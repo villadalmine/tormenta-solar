@@ -12,11 +12,12 @@ html, body {
 }
 
 #stage {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 800px;
   height: 448px;
-  transform: scale(1.25);
-  transform-origin: center;
+  transform-origin: top left;   /* fit.js setea translate()+scale() desde acá */
   box-shadow: 0 0 60px rgba(0,0,0,0.9);
 }
 

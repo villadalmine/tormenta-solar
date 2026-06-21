@@ -72,6 +72,21 @@ try {
 
       ok(errors.length === 0, `[${vp.name}] errores de consola/JS: ${errors.join(' | ')}`);
 
+      // (1b) el #stage no debe salirse del viewport (no se corta) y debe LLENAR la pantalla
+      const stage = await page.evaluate(() => {
+        const s = document.getElementById('stage'); if (!s) return null;
+        const r = s.getBoundingClientRect();
+        return { top: r.top, left: r.left, bottom: r.bottom, right: r.right,
+          w: r.width, h: r.height, vw: innerWidth, vh: innerHeight };
+      });
+      ok(stage, `[${vp.name}] no existe #stage`);
+      if (stage) {
+        ok(stage.top >= -1 && stage.left >= -1 && stage.right <= stage.vw + 1 && stage.bottom <= stage.vh + 1,
+          `[${vp.name}] el #stage se SALE del viewport (rect ${stage.left.toFixed(0)},${stage.top.toFixed(0)} → ${stage.right.toFixed(0)},${stage.bottom.toFixed(0)} en ${stage.vw}x${stage.vh})`);
+        const fills = stage.w >= stage.vw * 0.97 || stage.h >= stage.vh * 0.97;
+        ok(fills, `[${vp.name}] el #stage NO llena la pantalla (es ${stage.w.toFixed(0)}x${stage.h.toFixed(0)} en ${stage.vw}x${stage.vh}) — ¿fit.js no corrió?`);
+      }
+
       // (2) el botón ENTRAR debe estar ENTERO dentro del viewport
       const btn = await page.evaluate(() => {
         const b = document.getElementById('startBtn'); if (!b) return null;

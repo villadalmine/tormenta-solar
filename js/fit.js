@@ -6,15 +6,15 @@
   const stage = document.getElementById('stage');
   if (!stage) return;
   const BASE_W = 800, BASE_H = 448;   // tamaño base del stage (igual al canvas)
-  const MARGIN = 24;                  // aire para que no pegue contra los bordes
 
   function fit() {
-    // s = lo que entre en la ventana por el lado más justo → NUNCA se sale (no se corta).
-    const s = Math.min(
-      (window.innerWidth  - MARGIN) / BASE_W,
-      (window.innerHeight - MARGIN) / BASE_H
-    );
-    stage.style.transform = 'scale(' + (s > 0 ? s : 1) + ')';
+    // el #stage está fijo arriba-izquierda; lo escalamos desde top-left y lo centramos con
+    // translate. Como s = lo que entra por el lado más justo, NUNCA se pasa del viewport
+    // (no se corta) y llena la pantalla por uno de los dos lados.
+    const s = Math.min(window.innerWidth / BASE_W, window.innerHeight / BASE_H);
+    const tx = (window.innerWidth  - BASE_W * s) / 2;
+    const ty = (window.innerHeight - BASE_H * s) / 2;
+    stage.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + (s > 0 ? s : 1) + ')';
   }
 
   window.addEventListener('resize', fit);
