@@ -83,7 +83,7 @@ gh api repos/villadalmine/tormenta-solar/pages   # estado de Pages (url incluida
 
 - [ ] `node tests/e2e.js` pasa (boot + auditoría de assets + sub-modos).
 - [ ] El `?v=N` de `index.html` está actualizado.
-- [ ] Hay un archivo de **licencia** si el repo es público (MIT, etc.). *(Pendiente.)*
+- [x] Hay un archivo de **licencia** (`LICENSE`, GPLv3).
 - [ ] El README describe bien el juego y los controles.
 
 ---

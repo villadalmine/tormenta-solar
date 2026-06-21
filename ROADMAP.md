@@ -100,4 +100,4 @@ python3 -m http.server 8000   # http://localhost:8000
   Subí todo y activá Pages apuntando a la raíz; se juega desde `index.html`.
 - No hay secretos ni `.env`. No hay `node_modules` (Node solo se usa para el test).
 - Sugerido agregar un `.gitignore` (al menos `*.output`, archivos temporales del sistema).
-- Licencia: definir una (MIT, CC-BY-NC, etc.) antes de publicar.
+- Licencia: **GPLv3** (archivo `LICENSE`). ✅

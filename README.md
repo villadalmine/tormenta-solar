@@ -165,6 +165,13 @@ Ver **[ROADMAP.md](ROADMAP.md)**.
 Cómo subir el repo y dejarlo jugable online (GitHub Pages), paso a paso:
 **[PUBLICAR.md](PUBLICAR.md)**.
 
+## 📄 Licencia
+**GNU General Public License v3.0** (GPLv3) — ver [LICENSE](LICENSE).
+Software libre: podés usarlo, estudiarlo, modificarlo y compartirlo; las obras derivadas
+deben mantenerse bajo la misma licencia.
+
+Copyright © 2026 villadalmine.
+
 ## Créditos
 Juego y dirección creativa: el autor. Programación asistida con Claude Code.
 Hecho con humor porteño. Aguante.
