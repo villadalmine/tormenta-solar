@@ -30,7 +30,9 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** 
 - **Economía**: monedas, caramelos (vuelto), **changuito virtual**, Diosa Tropical, carne,
   fiambre, munición, vida.
 - **Música chiptune** por zona (tango, cumbia, eighties, metal, dance, telo).
-- **Suite e2e headless** (`node tests/e2e.js`): boot + auditoría de assets + 7 sub-modos.
+- **Tests en 2 niveles**: e2e headless (`node tests/e2e.js`, lógica + auditoría de assets) y
+  **web smoke** en navegador real (`tests/web-smoke.mjs`, Playwright+Chromium, corre en CI) que ve
+  render/CSS/layout (consola, botón ENTRAR no cortado, canvas dibuja, screenshots).
 - **Links**: la intro linkea al repo (GitHub) y el README al juego online (GitHub Pages).
 - **Presencia "jugando ahora"** (`js/presence.js`, capa aditiva opcional): contador en la intro;
   backend mínimo en `presence-server/` (Node propio o Cloudflare Worker). Sin endpoint → no muestra
@@ -156,7 +158,11 @@ Un overlay que:
    (b) una entrada `<art>: '<x>'` en `DOOR_ART` de `game.js`. Sin (b) dibuja una puerta genérica.
 4. **Puertas "lanzador de modo"** (super, vinilos) **no se cablean** con `wire()`; las maneja
    `interact()` en game.js. El e2e las excluye del chequeo de wiring.
-5. **Sin navegador en el entorno de dev**: toda validación es headless (e2e + `node --check`).
+5. **Dos niveles de test.** `node tests/e2e.js` es headless (DOM/canvas mockeado): valida lógica
+   y assets, pero **no ve render/CSS/layout**. Para eso está el **web smoke** real
+   (`tests/web-smoke.mjs`, Playwright+Chromium) que corre en **GitHub Actions** en cada push y
+   chequea consola, que el **botón ENTRAR no quede cortado**, y que el canvas dibuje. Si tocás
+   CSS/HTML/layout, confiá en el web smoke (o corrélo local instalando Chromium).
 
 ---
 

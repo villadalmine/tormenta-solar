@@ -1,0 +1,39 @@
+name: tests
+
+# Corre en cada push / PR. El job de "web smoke" abre el juego en un Chromium real
+# (cosa que el entorno de dev local no tiene) y verifica render + layout + consola.
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 1) e2e headless (lógica + auditoría de assets), sin navegador
+      - name: e2e headless
+        run: node tests/e2e.js
+
+      # 2) smoke de navegador real (Playwright + Chromium)
+      - name: instalar tooling
+        run: npm install
+
+      - name: instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: web smoke (navegador real)
+        run: node tests/web-smoke.mjs
+
+      - name: subir screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: tests/screenshots/
+          if-no-files-found: ignore

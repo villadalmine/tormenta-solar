@@ -10,3 +10,4 @@ Thumbs.db
 *.output
 *.log
 node_modules/
+tests/screenshots/

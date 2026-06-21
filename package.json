@@ -1,0 +1,13 @@
+{
+  "name": "tormenta-solar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "El JUEGO es 100% estático y sin dependencias; esto es solo el tooling de tests.",
+  "scripts": {
+    "test": "node tests/e2e.js",
+    "test:web": "node tests/web-smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}

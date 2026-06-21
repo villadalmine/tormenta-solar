@@ -178,19 +178,45 @@ que mapee el `art` de la puerta al sprite en `Art.items`.
 
 ---
 
-## 🧪 Tests (headless, sin navegador)
+## 🧪 Tests
+
+Hay **dos niveles** de test, que cubren cosas distintas:
+
+### 1. e2e headless — lógica + assets (rápido, sin navegador)
 
 ```bash
 node tests/e2e.js
 ```
 
-`tests/e2e.js` levanta el juego entero con un DOM/Canvas/AudioContext mockeado, carga los
-11 scripts **en el mismo orden que `index.html`**, corre el game loop, hace una
-**auditoría de assets** (verifica que todo sprite referenciado por cada sala exista en `Art`)
-y arranca los 7 sub-modos. Atrapa el bug típico de "pantalla en blanco" por sprite faltante.
+Levanta el juego con un DOM/Canvas/AudioContext **mockeado**, carga los scripts en el mismo orden
+que `index.html`, corre el game loop, hace una **auditoría de assets** (todo sprite/decor de cada
+sala existe en `Art`) y arranca los sub-modos. Atrapa el bug de "pantalla en blanco" por sprite
+faltante. **No ve render ni CSS ni layout** (está mockeado), así que no detecta cosas visuales.
 
-> **Regla:** correr `node tests/e2e.js` antes de dar por terminado cualquier cambio, y
-> **subir `?v=N`** en `index.html`.
+### 2. web smoke — navegador REAL (Playwright + Chromium)
+
+```bash
+npm install
+npx playwright install chromium
+node tests/web-smoke.mjs        # o: npm run test:web
+```
+
+Sirve la carpeta y abre el juego en un **Chromium real** en varias resoluciones (1366 / 1920 /
+1280). Verifica lo que el headless **no puede ver**:
+
+- **0 errores** de consola / excepciones de JS,
+- el **botón ENTRAR** está **entero dentro del viewport** (no cortado) ← este test agarra el bug
+  del panel que se salía de pantalla,
+- el panel de intro no recorta contenido sin scroll,
+- tras apretar ENTRAR el **canvas dibuja** (no queda en blanco),
+- y guarda **screenshots** en `tests/screenshots/`.
+
+Corre **solo en GitHub Actions** en cada push (ahí hay navegador) vía
+[`.github/workflows/web-smoke.yml`](.github/workflows/web-smoke.yml); localmente solo si instalás
+Chromium con los comandos de arriba.
+
+> **Regla:** correr `node tests/e2e.js` antes de dar por terminado cualquier cambio y **subir
+> `?v=N`** en `index.html`. Si tocás CSS/HTML/layout, además el **web smoke** (lo corre el CI).
 
 ---
 
