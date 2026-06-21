@@ -196,7 +196,7 @@ y arranca los 7 sub-modos. Atrapa el bug típico de "pantalla en blanco" por spr
 
 ## 📜 Estado y próximos pasos
 
-Ver **[ROADMAP.md](ROADMAP.md)**.
+Ver **[ROADMAP.md](ROADMAP.md)**. Historial de versiones en **[CHANGELOG.md](CHANGELOG.md)**.
 
 ## 🚀 Publicar
 
