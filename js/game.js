@@ -156,11 +156,15 @@
     }
   }
   function doLoop() {
-    // quedarte en el búnker = entrar al LOOP: el día se reinicia (hasta que vayas al portal)
+    // el catre del búnker SOLO sirve con la tormenta ya estallada (antes no hay caos del que refugiarse)
+    if (!stormed) {
+      setMsg('La city todavía está normal, no estalló nada. ¿Para qué te vas a dormir? El loop de supervivencia arranca cuando reviente la TORMENTA SOLAR. 😴', '#9fd3ff', 5500);
+      return;
+    }
+    // post-tormenta: dormir = pasa un DÍA, pero el caos sigue igual (no es un reset limpio)
     loopCount++;
-    reset();
     flash();
-    setMsg('Te tirás en el catre del búnker... y el día REINICIA. 🔁 Día #' + loopCount + ' en el loop. (La city otra vez igual. Para salir de verdad: el PORTAL de la Casa de Cambio.)', '#7CFC00', 8000);
+    setMsg('Dormís en el catre. 🌅 Pasa un DÍA (#' + loopCount + '), pero afuera el caos de la tormenta sigue igual. Tu vida se va gastando: vas a tener que salir a COMER o te vas al tacho. (Supervivencia: en obra.)', '#7CFC00', 7500);
   }
   function playFifa() {
     if (!player.hasMegaDrive) { setMsg('“¿Trajiste una Mega Drive? Comprá una en el super chino (sección CONSOLAS) y volvé para el torneo de FIFA.” 🎮', '#9fd3ff', 5000); return; }
@@ -422,6 +426,7 @@
     }
     // NPCs amistosos (EducaciónIT)
     for (const n of r.npcs || []) {
+      if (n.invisible) continue;   // ej. el "linyera de las joyas": aparece recién al tocarlas
       const img = Art.npc[n.sprite] || Art.npc.civil1;
       ctx.drawImage(img, n.x - cam.x - img.width/2, n.y - cam.y - img.height);
       label(n.name, n.x - cam.x, n.y - cam.y - img.height - 4, '#aef0c0');

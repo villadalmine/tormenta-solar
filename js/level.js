@@ -43,7 +43,7 @@ const Level = (() => {
       playerStart: spec.playerStart != null ? feet(spec.playerStart) : null,
       enemies: (spec.enemies || []).map(e => ({ type: e.t, dormant: e.dormant, look: e.look, ...feet(e.x, e.y) })),
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
-      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
+      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE })),
@@ -407,9 +407,9 @@ const Level = (() => {
           {t:'maniqui',x:3.4}, {t:'cocina',x:4.8}, {t:'bano',x:6.6},
           {t:'sofa',x:8.6}, {t:'tvplasma',x:10.1}, {t:'joyas',x:11.4}, {t:'maletin',x:12.4},
         ];
-        // el linyera cuida las JOYAS: si las querés tocar, sale y te raja a la calle
+        // el linyera NO se ve: aparece de la nada al tocar las JOYAS y te raja a la calle
         spec.npcs = [
-          { name:'Linyera', sprite:'linyera', x:11.4, action:'joyas', lines: LINYERA_LINES },
+          { name:'', sprite:'linyera', invisible:true, x:11.4, action:'joyas', lines: LINYERA_LINES },
         ];
         spec.pickups = [{t:'coins',x:7,amount:6}];
         // PISO 19: además, el TÓTEM sagrado de 3 monos (abre el búnker del piso 20)
