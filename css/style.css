@@ -1,0 +1,147 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #000;
+  color: #cfd8dc;
+  font-family: "Courier New", monospace;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#stage {
+  position: relative;
+  width: 800px;
+  height: 448px;
+  transform: scale(1.25);
+  transform-origin: center;
+  box-shadow: 0 0 60px rgba(0,0,0,0.9);
+}
+
+#screen {
+  display: block;
+  width: 800px;
+  height: 448px;
+  background: #111;
+  cursor: crosshair;
+}
+
+/* ---- HUD ---- */
+#hud {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.1));
+  font-size: 13px;
+  letter-spacing: 1px;
+  pointer-events: none;
+  text-shadow: 0 0 6px #000;
+}
+.hud-label { color: #7a8a99; font-size: 10px; display: block; }
+.hud-val { color: #7CFC00; font-size: 22px; font-weight: bold; }
+.hud-right { display: flex; gap: 16px; }
+.hud-right .stat { text-align: center; }
+.hud-right #ammo { color: #FFD54F; }
+.hud-right #coins { color: #FFC107; }
+.hud-right #forros { color: #FF8FC7; }
+.hud-right #caramelos { color: #FF7043; }
+.hud-msg { color: #ff5252; font-size: 14px; font-weight: bold; text-align: center; }
+
+#floorName {
+  position: absolute;
+  top: 8px; left: 0; right: 0;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #4FC3F7;
+  text-shadow: 0 0 8px #000;
+  pointer-events: none;
+}
+
+#prompt {
+  position: absolute;
+  left: 0; right: 0; bottom: 56px;
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #FFE082;
+  text-shadow: 0 0 8px #000;
+  pointer-events: none;
+}
+#prompt .key {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border: 1px solid #FFE082;
+  border-radius: 3px;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* ---- Overlays ---- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 12, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.panel {
+  width: 90%;
+  max-width: 560px;
+  padding: 22px 26px;
+  border: 1px solid #1f3a4d;
+  background: rgba(6, 14, 22, 0.96);
+  box-shadow: inset 0 0 40px rgba(0, 60, 90, 0.25);
+}
+.panel h1 {
+  font-size: 30px;
+  letter-spacing: 4px;
+  color: #FFB300;
+  text-shadow: 0 0 14px rgba(255,140,0,0.6);
+  margin-bottom: 4px;
+}
+.panel h2 {
+  font-size: 13px;
+  color: #4FC3F7;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.panel p { font-size: 12.5px; line-height: 1.5; margin-bottom: 9px; color: #b0bec5; }
+.panel p.controls { color: #80cbc4; font-size: 11px; margin-top: 12px; }
+.panel strong { color: #fff; }
+
+button {
+  margin-top: 16px;
+  padding: 11px 20px;
+  background: #FFB300;
+  color: #0a0a0a;
+  border: none;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 14px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+button:hover { background: #ffd54f; }
+
+/* ---- Storm flash ---- */
+#flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9;
+}
+
+.hidden { display: none !important; }

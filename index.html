@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TORMENTA SOLAR — Nivel 1: Calle Florida</title>
+<link rel="stylesheet" href="css/style.css?v=30">
+</head>
+<body>
+<div id="stage">
+  <canvas id="screen" width="800" height="448"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <span class="hud-label">VIDA</span>
+      <span id="hp" class="hud-val">100</span>
+    </div>
+    <div class="hud-center">
+      <span id="msg" class="hud-msg"></span>
+    </div>
+    <div class="hud-right">
+      <span class="stat"><span class="hud-label">MONEDAS</span><span id="coins" class="hud-val">20</span></span>
+      <span class="stat"><span class="hud-label">CARAMELOS</span><span id="caramelos" class="hud-val">0</span></span>
+      <span class="stat"><span class="hud-label">🍺🥩🥓</span><span id="vicios" class="hud-val">0·0·0</span></span>
+      <span class="stat"><span class="hud-label">MUN.</span><span id="ammo" class="hud-val">24</span></span>
+    </div>
+  </div>
+
+  <!-- nombre del piso actual -->
+  <div id="floorName" class="hidden"></div>
+
+  <!-- prompt de interacción -->
+  <div id="prompt" class="hidden"></div>
+
+  <!-- INTRO -->
+  <div id="intro" class="overlay">
+    <div class="panel">
+      <h1>TORMENTA SOLAR</h1>
+      <h2>Nivel 1 — Calle Florida, Buenos Aires</h2>
+      <p>
+        El planeta fue devastado por una tormenta solar que rasgó el tejido del
+        espacio-tiempo. Saltás entre momentos de la historia para entender por qué.
+      </p>
+      <p>
+        Estás en la esquina de <strong>Florida y Lavalle</strong>. Podés entrar a los
+        locales: <strong>EducaciónIT</strong> (subí a saludar a los profes y CEOs) y el
+        <strong>arcade</strong> (jugá al <strong>Pac-Man</strong> y al <strong>Galaga</strong>).
+        Pero los verdes están abajo: entrá por la <strong>galería</strong> y
+        <strong>bajá a la cueva</strong>.
+      </p>
+      <p>
+        Ahí abajo no hay luz: es todo ilegal, a la sombra. Comprás... y justo en ese
+        momento, allá arriba, <strong>todo se apaga</strong>.
+      </p>
+      <p class="controls">
+        <strong>A/D o ←/→</strong> correr · <strong>W / Espacio</strong> saltar ·
+        <strong>Mouse</strong> apuntar · <strong>Click (mantené)</strong> disparar ·
+        <strong>E</strong> usar puerta / comprar · <strong>M</strong> música
+      </p>
+      <button id="startBtn">ENTRAR A LA PEATONAL</button>
+    </div>
+  </div>
+
+  <!-- END -->
+  <div id="endscreen" class="overlay hidden">
+    <div class="panel">
+      <h1 id="endTitle">FIN</h1>
+      <p id="endText"></p>
+      <button id="restartBtn">REINTENTAR</button>
+    </div>
+  </div>
+
+  <!-- storm flash -->
+  <div id="flash"></div>
+</div>
+
+<script src="js/audio.js?v=30"></script>
+<script src="js/art.js?v=30"></script>
+<script src="js/input.js?v=30"></script>
+<script src="js/fx.js?v=30"></script>
+<script src="js/level.js?v=30"></script>
+<script src="js/player.js?v=30"></script>
+<script src="js/enemies.js?v=30"></script>
+<script src="js/arcade.js?v=30"></script>
+<script src="js/super.js?v=30"></script>
+<script src="js/vinilos.js?v=30"></script>
+<script src="js/game.js?v=30"></script>
+</body>
+</html>
