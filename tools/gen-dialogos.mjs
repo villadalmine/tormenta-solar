@@ -15,11 +15,17 @@ const OUT = path.join(ROOT, 'js', 'dialogos.js');
 const KEYFILE = path.join(ROOT, 'tools', 'openrouter.key');
 const MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free';
 
-const KEY = (process.env.OPENROUTER_API_KEY || (existsSync(KEYFILE) ? readFileSync(KEYFILE, 'utf8') : '')).trim();
+const KEYSRC = process.env.OPENROUTER_API_KEY ? 'env OPENROUTER_API_KEY'
+  : (existsSync(KEYFILE) ? 'tools/openrouter.key' : 'ninguna');
+let KEY = (process.env.OPENROUTER_API_KEY || (existsSync(KEYFILE) ? readFileSync(KEYFILE, 'utf8') : '')).trim();
+// tolerar que peguen "OPENROUTER_API_KEY=sk-..." o con comillas, o varias líneas
+KEY = KEY.split(/\r?\n/)[0].replace(/^OPENROUTER_API_KEY\s*=\s*/i, '').replace(/^["']|["']$/g, '').trim();
 if (!KEY) {
-  console.error('❌ Falta la API key. Poné OPENROUTER_API_KEY=... en el entorno o escribila en tools/openrouter.key');
+  console.error('❌ Falta la API key. Poné OPENROUTER_API_KEY=... en el entorno o escribila (sola) en tools/openrouter.key');
   process.exit(1);
 }
+console.log('Key:', KEY.length + ' chars (' + KEY.slice(0, 7) + '…' + KEY.slice(-4) + ') — de ' + KEYSRC);
+if (!KEY.startsWith('sk-or-')) console.log('⚠️  Ojo: las keys de OpenRouter empiezan con "sk-or-". Revisá que sea la correcta (no la de otro servicio).');
 
 const SYSTEM = `Sos guionista de un videojuego de humor argentino ("TORMENTA SOLAR", en la peatonal Florida y Lavalle, Buenos Aires). Escribís diálogos CORTOS (1-2 frases) en SLANG PORTEÑO, con humor, frescos y variados, sin insultos gratuitos de más. Devolvés SIEMPRE y SOLO un array JSON de strings (sin texto extra, sin markdown). Cada string es una línea lista para mostrar; podés cerrar con un emoji.`;
 
