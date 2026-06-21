@@ -8,7 +8,9 @@ La galería trucha y su sótano: el **camino de bajada** desde la calle hasta la
 dólar**. Tiendas raras de color en el medio.
 
 ## Detalle
-- **Subsuelo 1 (galería):** sex-shop "El Subte", "Comida rara" (locales `action:'shop'`).
+- **Subsuelo 1 (galería):** sex-shop "El Subte", "Comida rara" (locales `action:'shop'`) y un
+  **personaje misterioso** que, **tras la tormenta**, vende **armas medievales** (fierro criollo) —
+  ver [`../personajes/vendedor-armas.md`](../personajes/vendedor-armas.md).
 - **Subsuelo 2 (sótano):** "Masajes Felices" y un personaje **tenebroso** que te vende un amuleto.
 - Es **pasillo de conexión**: calle → galería → sótano → cuevas.
 - **Post-tormenta:** parte de la red "a la sombra" que **sobrevive** (refugio), no colapsa.

@@ -8,8 +8,11 @@ El cambio ilegal: **3 cueveros**. Dos te rebotan, el tercero te cambia... y **ju
 tormenta solar**. Es el punto de quiebre de la historia. También está la **disquería**.
 
 ## Detalle
-- **Cuevero 1 (`coins`)** y **Cuevero 2 (`garca`)**: no te cambian, te rebotan con excusas.
-- **Cuevero 3 (`real`)**: *"dale, vení que te los cambio"* → te cambia y **dispara `stormed`**
+- El hall (sala 8) es la **antesala**: cada cuevero **te invita a pasar a su cueva** (salas
+  **35/36/37**), que tienen aspecto de cueva ilegal con **gente esperando** (*"es para mi hijo"*,
+  *"sin dólares el país se va a la mierda"*). Ver [`../personajes/cueveros.md`](../personajes/cueveros.md).
+- **Cueva 1 (`coins`)** y **Cueva 2 (`garca`)**: no te cambian, te rebotan con excusas.
+- **Cueva 3 (`real`)**: *"dale, vení que te los cambio"* → te cambia y **dispara `stormed`**
   (el espacio-tiempo se parte).
 - **Disquería** (modo `vinilos`, puerta `vinilos`): comprás un vinilo → **`ticket_cemento`**.
 - **Conexión secreta:** el **super chino** desemboca acá por una puerta secreta

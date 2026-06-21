@@ -45,7 +45,7 @@ const Level = (() => {
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
       npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
-      cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, dialog: c.dialog, ...feet(c.x) })),
+      cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE })),
       doors: [], doorById: {},
     };
@@ -226,6 +226,8 @@ const Level = (() => {
           { name:'Comida rara', sprite:'comida', x:28, action:'shop',
             sells:{ kind:'health', amount:25, cost:4, stock:3 },
             dialog:'“¿Pancho de tres días? Igual te hace bien, barato.” 🤢' },
+          { name:'???', sprite:'misterioso', x:36, action:'armas',
+            dialog:'“Pssst... cuando se pudra todo y las eléctricas no anden, vení que tengo FIERRO criollo.” 🗡️' },
         ],
         enemies: [{t:'peaton',x:18},{t:'dron',x:24,y:6}],
         decor: [{t:'caja',x:8},{t:'barril',x:16},{t:'cartel',x:24},{t:'caja',x:32}],
@@ -261,12 +263,9 @@ const Level = (() => {
           { id:'chinoback', art:'superchino', label:'entrar al chino por atrás', x:44, inward:-1 },
         ],
         cueveros: [
-          { name:'Cueva 1', sprite:'cuevero', x:14, outcome:'coins',
-            dialog:'“Uh, venís cargado de monedas... eso te marca, pibe. Acá no te cambio. Andá.”' },
-          { name:'Cueva 2', sprite:'cuevero', x:26, outcome:'garca',
-            dialog:'“Mmm... tenés cara de garca. Nah, andá a otro lado, no te cambio nada.”' },
-          { name:'Cueva 3', sprite:'cuevero', x:40, outcome:'real',
-            dialog:'“Dale, vení que te los cambio, tranqui...”' },
+          { name:'Cueva 1', sprite:'cuevero', x:14, to:35, dialog:'“Dale, pasá pibe, acá adentro te atiendo. Pasá, pasá, no muerdo...”' },
+          { name:'Cueva 2', sprite:'cuevero', x:26, to:36, dialog:'“Vení, entrá tranqui a la cueva, hablamos adentro.”' },
+          { name:'Cueva 3', sprite:'cuevero', x:40, to:37, dialog:'“Pasá, pasá, que te cambio tranqui. Entrá a la cueva.”' },
         ],
         enemies: [{t:'peaton',x:20},{t:'peaton',x:32},{t:'dron',x:28,y:6}],
         decor: [{t:'barril',x:8},{t:'caja',x:18},{t:'cartel',x:30},{t:'barril',x:44}],
@@ -299,7 +298,10 @@ const Level = (() => {
       // 10 — trastienda: truco con el tahúr
       makeRoom({
         name: 'Trastienda — Truco', theme: 'secret', light: 0.78, w: 22,
-        doors: [{ id:'back', art:'exit', label:'volver a la sala', x:2, inward:1 }],
+        doors: [
+          { id:'back', art:'exit', label:'volver a la sala', x:2, inward:1 },
+          { id:'chinotruco', art:'superchino', label:'cruzar al chino (la puerta del tahúr)', x:18, inward:-1 },
+        ],
         npcs: [{ name:'El Tahúr', sprite:'tahur', x:7, action:'truco',
           dialog:'“Sentate, pibe. Quilmes y truco. Si perdés te entregás el marrón... la bolsa de plata no.” 🃏' }],
         decor: [{t:'parlante',x:3},{t:'mesaTruco',x:7},{t:'bailarinaMesa',x:11},{t:'bailarinaMesa',x:15},{t:'bailarinaParlante',x:19}],
@@ -456,6 +458,47 @@ const Level = (() => {
       pickups: [{t:'health',x:12},{t:'coins',x:6,amount:8}],
     }));
 
+    // 35,36,37 — las TRES cuevas del dólar (cada cuevero te invita a la suya): gente esperando + el deal
+    rooms.push(makeRoom({
+      name: 'Cueva del dólar — la del fondo', theme: 'rock', light: 0.36, w: 18,
+      doors: [{ id:'back', art:'up', label:'salir de la cueva', x:2, inward:1 }],
+      cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'coins',
+        dialog:'“Uh, venís cargado de monedas... eso te marca, pibe. Acá no te cambio. Andá.”' }],
+      npcs: [
+        { name:'En la cola', sprite:'gordo',  x:6,    dialog:'“Todo legal, ¿eh? Es para mi hijo, para cuando sea grande.” 👶' },
+        { name:'En la cola', sprite:'civil3', x:9,    dialog:'“Si no ahorro en dólares, este país se va a la mierda, pibe.” 🇦🇷' },
+        { name:'En la cola', sprite:'mujer',  x:11.5, dialog:'“Yo en el peso no confío ni loca. Verde o nada.” 💵' },
+      ],
+      decor: [{t:'barril',x:4},{t:'caja',x:8},{t:'cartel',x:12}],
+      pickups: [{t:'coins',x:7,amount:4}],
+    }));
+    rooms.push(makeRoom({
+      name: 'Cueva del dólar — la de al lado', theme: 'rock', light: 0.36, w: 18,
+      doors: [{ id:'back', art:'up', label:'salir de la cueva', x:2, inward:1 }],
+      cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'garca',
+        dialog:'“Mmm... tenés cara de garca. Nah, andá a otro lado, no te cambio nada.”' }],
+      npcs: [
+        { name:'En la cola', sprite:'viejo',   x:6,    dialog:'“Vengo todos los meses. Es mi cajita de ahorro, qué querés.” 🏦' },
+        { name:'En la cola', sprite:'civil4',  x:9,    dialog:'“Shhh, acá no se habla de cuánto traés, pibe.” 🤫' },
+        { name:'En la cola', sprite:'conNino', x:11.5, dialog:'“Es para el futuro del nene. Dólar, siempre dólar.” 👨‍👦' },
+      ],
+      decor: [{t:'caja',x:4},{t:'barril',x:8},{t:'cartel',x:12}],
+      pickups: [{t:'ammo',x:7}],
+    }));
+    rooms.push(makeRoom({
+      name: 'Cueva del dólar — la que te cambia', theme: 'rock', light: 0.36, w: 18,
+      doors: [{ id:'back', art:'up', label:'salir de la cueva', x:2, inward:1 }],
+      cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'real',
+        dialog:'“Dale, vení que te los cambio, tranqui...”' }],
+      npcs: [
+        { name:'En la cola', sprite:'civil2', x:6,    dialog:'“Acá sí te cambian. El tipo es de confianza, eh.” 💵' },
+        { name:'En la cola', sprite:'mujer',  x:9,    dialog:'“Es para mi hijo, todo legal. Bueno, legal-legal no, pero me entendés.” 👶' },
+        { name:'En la cola', sprite:'gordo',  x:11.5, dialog:'“Apurate que se hace cola. Si no ahorro verde, ¿qué le dejo a los pibes?” 🇦🇷' },
+      ],
+      decor: [{t:'barril',x:4},{t:'cartel',x:8},{t:'caja',x:12}],
+      pickups: [{t:'coins',x:7,amount:5}],
+    }));
+
     function wire(ai, ad, bi, bd) {
       const A = rooms[ai], B = rooms[bi], da = A.doorById[ad], db = B.doorById[bd];
       da.to = bi; da.at = { x: db.x + db.inward*48, y: db.y };
@@ -479,6 +522,11 @@ const Level = (() => {
     for (let n = 1; n < 20; n++) wire(13 + n, 'up', 14 + n, 'down');
     // piso 20 (sala 33) -> búnker (sala 34), por la puerta secreta
     wire(33, 'bunker', 34, 'back');
+    // las 3 cuevas (35,36,37): se entra por la invitación del cuevero (handleCuevero), se sale por 'back' al hall (8)
+    [35, 36, 37].forEach((ri, k) => {
+      const d = rooms[ri].doorById['back'];
+      d.to = 8; d.at = { x: [14, 26, 40][k] * TILE + TILE/2, y: rooms[8].gTop * TILE };
+    });
 
     return rooms;
   }

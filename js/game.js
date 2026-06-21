@@ -38,6 +38,7 @@
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
+  let trucoWon = false;                             // ganar el truco abre una puerta al chino (se consume al cruzar)
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -56,7 +57,7 @@
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
-    loopCount = 0; chinoFrontOpen = false; decayAcc = 0;   // loop de supervivencia, de cero
+    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
@@ -87,6 +88,7 @@
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
       if (d.id === 'bunker' && !bunkerUnlocked) continue;
       if (d.id === 'chinoback' && !stormed) continue;   // la puerta trasera aparece con la tormenta
+      if (d.id === 'chinotruco' && !trucoWon) continue; // la puerta del tahúr se abre al ganar el truco
       const dist = Math.hypot(pcx - d.x, pf - d.y);
       if (dist < bd) { bd = dist; best = { kind: 'door', d }; }
     }
@@ -115,6 +117,7 @@
         else setMsg('El FRENTE del chino está atrincherado: tachos con fuego, granadas y los ninjas de guardia. No entrás por acá. → Entrá por la PUERTA TRASERA (desde la cueva) o que IORIO toque para que se vayan. 🔥🥷', '#ff5252', 6500);
       }
       else if (it.d.id === 'chinoback') enterSuper();           // entrada de servicio desde el refugio
+      else if (it.d.id === 'chinotruco') { trucoWon = false; enterSuper(); }  // puerta del tahúr (se consume)
       else if (it.d.id === 'vinilos') enterVinilos();
       else if (it.d.id === 'cambio' && !stormed) {
         // la casa de cambio oficial está HASTA LAS PELOTAS: la cola no te deja entrar
@@ -142,6 +145,7 @@
     else if (n.action === 'loop') doLoop(n);
     else if (n.action === 'limosna') giveLimosna(n);
     else if (n.action === 'iorio') giveIorio(n);
+    else if (n.action === 'armas') buyArmas(n);
     else if (n.action === 'fifa') playFifa();
     else { setMsg(n.dialog || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
   }
@@ -213,6 +217,16 @@
     if ((player.falopa || 0) <= 0) { setMsg('Iorio: “¿Y la falopa, gil? Sin merca no hay Pibe Tigre. Buscá en los CAJONES de los deptos de lujo del edificio.” 🤘', '#ffd54f', 6000); return; }
     player.falopa--; chinoFrontOpen = true; Sfx.win();
     setMsg('Le pasás la falopa a Iorio 🤘. Arranca PIBE TIGRE y los NINJAS (metaleros) dejan el chino y se van al recital. ¡El FRENTE del chino quedó ABIERTO! Corré a comer antes de que vuelvan. (Iorio putea al sol: “...che tano Marcello, menos mal que ahora hacemos acústicos y tango, ya que no hay luz.”) 🎻', '#7CFC00', 9000);
+  }
+  function buyArmas(n) {
+    // el misterioso de la galería: con la tormenta, las armas eléctricas no sirven → fierro criollo
+    if (!stormed) { setMsg('“Guardá la guita, pibe. Con la luz andando todavía, las eléctricas te alcanzan. Volvé cuando se pudra todo.” 🗡️', '#9fd3ff', 5000); return; }
+    if (n.armado) { setMsg('“Ya te armé, criollo. Andá a hacer historia.” ⚔️', '#aef0c0', 3000); return; }
+    const cost = 15;
+    if (player.coins < cost) { setMsg('“Fierro criollo no es gratis, pibe. Son ' + cost + ' monedas.” 🗡️', '#ff5252', 4000); Sfx.empty(); return; }
+    player.coins -= cost; n.armado = true;
+    player.ammo += 40; player.hp = Math.min(100, player.hp + 20);
+    setMsg('El tipo abre un trapo en el piso: REBENQUE, BOLEADORAS, FACÓN y un FAL de Malvinas. “Las eléctricas no andan con la tormenta solar, pibe. Llevate fierro criollo de verdad.” ⚔️🇦🇷  +40 munición, +20 vida.', '#7CFC00', 7500);
   }
   function handleLujo(n) {
     // mismo punto en los pisos de lujo: pre-tormenta son las JOYAS (te raja el linyera),
@@ -310,6 +324,11 @@
   }
   function handleCuevero(c) {
     Sfx.pickup();
+    if (c.to != null) {   // el cuevero del hall te INVITA a pasar a su cueva
+      spawnIn(c.to, 4);
+      setMsg('Entrás a la cueva del dólar. 💵 Gente esperando, olor a humedad, todos murmurando. Hablales (E)... y andá al cuevero del fondo a cambiar.', '#7CFC00', 6000);
+      return;
+    }
     if (c.outcome === 'real') {
       bought = true;
       setMsg(c.dialog + ' ...y JUSTO explota todo. El tipo se queda con tu plata. Vos: nada. 💸', '#ff5252', 7000);
@@ -488,6 +507,7 @@
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
       if (d.id === 'bunker' && !bunkerUnlocked) continue;
       if (d.id === 'chinoback' && !stormed) continue;
+      if (d.id === 'chinotruco' && !trucoWon) continue;
       const img = Art.items[DOOR_ART[d.art] || 'door'];
       ctx.drawImage(img, d.x - cam.x - img.width/2, d.y - cam.y - img.height);
       // frente del chino atrincherado tras la tormenta (hasta que Iorio corra a los ninjas)
@@ -612,6 +632,7 @@
         : a === 'totem' ? 'robar el tótem de 3 monos 🐵'
         : a === 'limosna' ? (stormed ? 'pedirle unas monedas al linyera 🪙' : 'hablar con ' + it.n.name)
         : a === 'iorio' ? (stormed ? 'darle falopa a Iorio 🤘' : 'hablar con Iorio')
+        : a === 'armas' ? (stormed ? 'comprar fierro criollo ⚔️' : 'hablar con el misterioso')
         : a === 'loop' ? 'tirarte a dormir (pasar un día) 😴'
         : 'hablar con ' + it.n.name;
     }
@@ -662,7 +683,8 @@
           if (res === 'win') {
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
             player.coins -= robbed; stunUntil = performance.now() + 2600;
-            setMsg('Le ganás al tahúr... pero las minas se te tiran encima 💃💃, no te dejan ni caminar y te afanan ' + robbed + ' monedas. 😵', '#ff5252', 6500);
+            trucoWon = true;   // ganar abre la PUERTA DEL TAHÚR al chino (se cruza una vez)
+            setMsg('Le ganás al tahúr... pero las minas se te tiran encima 💃💃, no te dejan ni caminar y te afanan ' + robbed + ' monedas. 😵 (Igual: el tahúr abre una puerta al fondo que cruza derecho al CHINO — usala antes de irte.)', '#ff5252', 7000);
           }
           else { player.hp = Math.max(1, player.hp - 25); setMsg('Perdés. El tahúr te sonríe de costado... dicen que al tipo le gusta el marrón. Salís medio incómodo, sin saber bien por qué. (−25 vida)', '#ff5252', 6800); }
         } else if (kind === 'frogger' && challengeForVale) {

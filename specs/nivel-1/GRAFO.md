@@ -81,6 +81,7 @@ flowchart LR
 | `chino` (+ familia + ninjas) | [chino.md](personajes/chino.md) |
 | `tahur` | [tahur.md](personajes/tahur.md) |
 | `iorio` (quest del loop: falopa → Pibe Tigre) | [iorio.md](personajes/iorio.md) |
+| `vendedor_armas` (fierro criollo post-tormenta) | [vendedor-armas.md](personajes/vendedor-armas.md) |
 | `vendedor_garbarino` | [vendedor-garbarino.md](personajes/vendedor-garbarino.md) |
 | `npcs_arcade` (chori / trucotron) | [npcs-arcade.md](personajes/npcs-arcade.md) |
 | `musico` | [musico.md](personajes/musico.md) |
@@ -163,6 +164,8 @@ chino --vende--> comida [post-colapso]
 comida --da--> vida
 chino --bloquea--> entrada_frente [ninjas + fuego + granadas]
 cueva_dolar --conecta_con--> chino [puerta trasera / entrada de servicio]
+ganar_truco --conecta_con--> chino [puerta del tahúr, se consume, repetible]
+vendedor_armas --vende--> fierro_criollo [post-tormenta: rebenque/boleadoras/facón/FAL]
 muebles_lujo --da--> falopa [finita, ~10 pisos]
 iorio --quiere--> falopa
 iorio --desbloquea--> chino_front_abierto [Pibe Tigre → ninjas se van]
