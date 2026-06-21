@@ -3,6 +3,8 @@
 - **Estado:** Draft
 - **Nivel:** 1 — Florida y Lavalle
 - **Última actualización:** 2026-06-21
+- **Decisiones tomadas:** el refugio es un **loop literal** (no un final); el colapso de los
+  otros edificios es **fachada en ruinas + puertas bloqueadas** (ver RF-7 y §3.3).
 
 ## 1. Contexto y objetivo
 
@@ -57,9 +59,11 @@ Cuando estalla la tormenta, **la sociedad colapsa**. La mayoría de los edificio
 
 - **(A) ESCAPE — pasar de nivel.** Ir a la **Casa de Cambio Oficial** (sala 13), ahora con el
   espacio-tiempo roto, y meterse en el **PORTAL** del fondo. *(Ya implementado: `win()`.)*
-- **(B) REFUGIO — quedarse a sobrevivir.** Esconderse en la **red de lugares conectados a la cueva
-  del cuevero que te rajó** (sala 8 y lo que cuelga de ahí). Se vuelve **"tu casa"** porque **nadie
-  más puede entrar**: es el lugar ilegal, a la sombra, fuera del radar de la sociedad.
+- **(B) REFUGIO — quedarse y entrar en el LOOP.** Esconderse en la **red de lugares conectados a la
+  cueva del cuevero que te rajó** (sala 8 y lo que cuelga de ahí) y, sobre todo, en el **búnker de
+  los linyeras**. Se vuelve **"tu casa"** porque **nadie más puede entrar**: es el lugar ilegal, a
+  la sombra, fuera del radar de la sociedad. **Decisión: es un loop LITERAL** — quedarse no es un
+  final, te mete en un **bucle temporal** (ver §3.3): la city se repite y volvés a arrancar.
 
 ### 3.1 Qué sobrevive y por qué
 
@@ -88,6 +92,27 @@ Al intentar agarrarlo, **aparecen 20 linyeras** y, en vez de echarte, te **consa
 Desde ese momento, la puerta del piso 20 **queda abierta para siempre** y lleva al **BÚNKER**
 (sala nueva): el lugar **más seguro** del nivel.
 
+### 3.3 El loop (decisión: loop literal)
+
+Quedarse en el búnker **no termina el nivel**: lo **reinicia en bucle**. Narrativamente, el búnker
+de los linyeras está *"fuera"* del desgarro del espacio-tiempo (por eso es el lugar más seguro), así
+que **el día se repite**: volvés al inicio del Nivel 1 (la city otra vez igual, *"otro día más
+esperando el dólar"*). Es el contraste con el **portal** de la Casa de Cambio, que es la **única
+salida hacia adelante** (el salto temporal real al próximo momento de la historia).
+
+- **Disparador del loop:** dentro del búnker hay un punto de interacción (un catre / fogata / los
+  linyeras) con `action:'loop'` que, al usarlo, **reinicia el nivel**.
+- **Qué persiste al loopear:** *(sub-decisión, ver Preguntas abiertas)* — por defecto se propone
+  **resetear todo** (loop "limpio", como morir pero sin pantalla de derrota), salvo quizás un
+  contador de vueltas para un guiño ("Día #N en el loop").
+- Es **opcional y sin penalización**: el jugador elige quedarse (loop) o ir al portal (avanzar).
+
+### 3.4 Colapso de la ciudad (decisión: fachada en ruinas)
+
+Tras `stormed`, los edificios que **no** son refugio ni salida **se derrumban**: además de
+**bloquear la puerta** (no entrás), se les **cambia el arte de la fachada a una versión en ruinas**
+(escombros, vidrios rotos, fuego), para que se **vea** el colapso, no solo se sienta. Ver RF-7.
+
 ## 4. Requisitos funcionales
 
 - **RF-1** — En la **sala 32** (piso 19) existe un ítem interactivo **"Tótem de 3 monos"**
@@ -102,9 +127,14 @@ Desde ese momento, la puerta del piso 20 **queda abierta para siempre** y lleva 
   etc.). Es un destino de "quedarse", no un `win`.
 - **RF-6** — **No rompe el final**: la **Casa de Cambio (13)** sigue siendo la única vía de **pasar
   de nivel**. El búnker es alternativa de **refugio**, no victoria.
-- **RF-7** *(colapso post-tormenta, narrativa)* — Tras `stormed`, los edificios que **no** son
-  `{super, abandonado, red de la cueva, casa de cambio}` quedan **inaccesibles** (sus puertas en la
-  calle no entran). *(Mecánica concreta: ver Preguntas abiertas.)*
+- **RF-7** *(colapso post-tormenta = fachada en ruinas)* — Tras `stormed`, los edificios que **no**
+  son `{super, abandonado, red de la cueva, casa de cambio}`: **(a)** su puerta en la calle **no
+  entra** y tira un mensaje ("derrumbado / clausurado"), y **(b)** su **fachada cambia a un sprite
+  en ruinas** (escombros/fuego). Hace falta una **variante "ruina" del arte de fachada** por
+  edificio afectado (o un overlay genérico de derrumbe).
+- **RF-8** *(loop literal)* — En el **búnker** hay un punto con `action:'loop'` que **reinicia el
+  Nivel 1** (vuelve al inicio de la calle, estado reseteado). No es un `win`; es el bucle temporal.
+  Opcional: llevar un contador de vueltas (`loopCount`) para un guiño ("Día #N").
 
 ## 5. Estados y flags
 
@@ -112,7 +142,8 @@ Desde ese momento, la puerta del piso 20 **queda abierta para siempre** y lleva 
 |---|---|---|
 | `bunkerUnlocked` | bool | `false` → `true` al disparar el tótem (RF-2). Habilita la puerta del piso 20. |
 | `totemSeen` | bool | marca si ya se mostró el monólogo largo (para variar en re-interacción). |
-| *(existentes)* `stormed`, `borrachosHappy`, `secretUnlocked`, `moneyRecovered` | bool | Ver §2.2. |
+| `loopCount` | int | +1 cada vez que se usa el loop del búnker (RF-8). Guiño "Día #N". |
+| *(existentes)* `stormed`, `borrachosHappy`, `secretUnlocked`, `moneyRecovered` | bool | Ver §2.2. `stormed` además dispara el colapso/ruinas (RF-7). |
 
 ## 6. Criterios de aceptación
 
@@ -131,9 +162,10 @@ Desde ese momento, la puerta del piso 20 **queda abierta para siempre** y lleva 
    linyera del maletín.)*
 2. **Los "20 linyeras":** ¿se dibujan 20 de verdad o es un set-piece con varios sprites `linyera`
    + el mensaje? *(Sugerencia: dibujar unos cuantos, no hace falta 20 entidades reales.)*
-3. **Colapso de los otros edificios (RF-7):** ¿bloquear las puertas en la calle tras `stormed`
-   (mensaje "derrumbado") o cambiarles el arte a fachada en ruinas? Definir la mecánica.
+3. ~~**Colapso de los otros edificios (RF-7).**~~ ✅ **DECIDIDO:** **fachada en ruinas + puerta
+   bloqueada** (RF-7, §3.4).
 4. **El búnker, ¿da algo?** ¿checkpoint/guardado, loot, un NPC que cuenta lore del satélite/IA?
-5. **¿"Loop" literal?** El pedido menciona *"un loop o te escapás"*. Aclarar si quedarse en el
-   refugio reinicia/cicla algo, o es solo un **final alternativo** de "sobrevivir" vs. "escapar".
+5. ~~**¿"Loop" literal?**~~ ✅ **DECIDIDO:** **loop literal** — quedarse reinicia el nivel en bucle
+   (RF-8, §3.3). Sub-decisión pendiente: **qué persiste** al loopear (propuesta: reset total +
+   `loopCount`).
 6. **Más entradas al refugio:** el tótem es **una** forma; listar y especificar las próximas.
