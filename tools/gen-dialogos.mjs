@@ -52,7 +52,7 @@ async function chat(messages) {
       'Authorization': 'Bearer ' + KEY,
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://villadalmine.github.io/tormenta-solar',
-      'X-Title': 'Tormenta Solar — gen-dialogos',
+      'X-Title': 'Tormenta Solar gen-dialogos',
     },
     body: JSON.stringify({ model: MODEL, messages, temperature: 1.05, max_tokens: 1000 }),
   });
