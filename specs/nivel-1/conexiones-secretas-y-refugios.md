@@ -1,10 +1,13 @@
 # SPEC: Conexiones secretas y refugios (Nivel 1)
 
-- **Estado:** Draft
+- **Estado:** Parcialmente implementado
 - **Nivel:** 1 — Florida y Lavalle
 - **Última actualización:** 2026-06-21
 - **Decisiones tomadas:** el refugio es un **loop literal** (no un final); el colapso de los
   otros edificios es **fachada en ruinas + puertas bloqueadas** (ver RF-7 y §3.3).
+- **Ya en código (v=37):** joyas→linyera te raja, **tótem de 3 monos** (RF-1/2), **búnker** del
+  piso 20 (RF-3/4/5/6) y **loop** del catre (RF-8). **Pendiente:** colapso en **ruinas** de los
+  otros edificios tras la tormenta (RF-7) y la persistencia del loop.
 
 ## 1. Contexto y objetivo
 

@@ -77,7 +77,7 @@ flowchart LR
 |---|---|
 | `borrachines` (vino/cerveza/porro) | [borrachines.md](personajes/borrachines.md) |
 | `cueveros` (1/2/3) | [cueveros.md](personajes/cueveros.md) |
-| `linyera` (+ los 20 / gurú) | [linyera.md](personajes/linyera.md) |
+| `linyera` (guardián joyas / 20 gurú / tirados ruina / búnker) | [linyeras.md](personajes/linyeras.md) |
 | `chino` (+ familia + ninjas) | [chino.md](personajes/chino.md) |
 | `tahur` | [tahur.md](personajes/tahur.md) |
 | `vendedor_garbarino` | [vendedor-garbarino.md](personajes/vendedor-garbarino.md) |
