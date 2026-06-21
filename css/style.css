@@ -97,25 +97,27 @@ html, body {
 .panel {
   width: 90%;
   max-width: 560px;
-  padding: 22px 26px;
+  max-height: 94%;          /* nunca más alto que el stage */
+  overflow-y: auto;         /* si no entra, scrollea adentro (el botón siempre alcanzable) */
+  padding: 16px 24px;
   border: 1px solid #1f3a4d;
   background: rgba(6, 14, 22, 0.96);
   box-shadow: inset 0 0 40px rgba(0, 60, 90, 0.25);
 }
 .panel h1 {
-  font-size: 30px;
+  font-size: 28px;
   letter-spacing: 4px;
   color: #FFB300;
   text-shadow: 0 0 14px rgba(255,140,0,0.6);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .panel h2 {
   font-size: 13px;
   color: #4FC3F7;
   letter-spacing: 2px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
-.panel p { font-size: 12.5px; line-height: 1.5; margin-bottom: 9px; color: #b0bec5; }
+.panel p { font-size: 12px; line-height: 1.42; margin-bottom: 7px; color: #b0bec5; }
 .panel p.controls { color: #80cbc4; font-size: 11px; margin-top: 12px; }
 .panel strong { color: #fff; }
 
@@ -130,13 +132,13 @@ html, body {
   font-size: 11px;
   letter-spacing: 1px;
 }
-.gh-line { font-size: 10.5px; color: #607d8b; margin-top: 14px; margin-bottom: 0; }
+.gh-line { font-size: 10.5px; color: #607d8b; margin-top: 10px; margin-bottom: 0; }
 .gh-link { color: #4FC3F7; text-decoration: none; }
 .gh-link:hover { text-decoration: underline; }
 
 button {
-  margin-top: 16px;
-  padding: 11px 20px;
+  margin-top: 12px;
+  padding: 10px 20px;
   background: #FFB300;
   color: #0a0a0a;
   border: none;

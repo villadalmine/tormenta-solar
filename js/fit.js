@@ -6,14 +6,15 @@
   const stage = document.getElementById('stage');
   if (!stage) return;
   const BASE_W = 800, BASE_H = 448;   // tamaño base del stage (igual al canvas)
-  const MARGIN = 12;                  // aire para que no pegue contra los bordes
+  const MARGIN = 24;                  // aire para que no pegue contra los bordes
 
   function fit() {
+    // s = lo que entre en la ventana por el lado más justo → NUNCA se sale (no se corta).
     const s = Math.min(
       (window.innerWidth  - MARGIN) / BASE_W,
       (window.innerHeight - MARGIN) / BASE_H
     );
-    stage.style.transform = 'scale(' + Math.max(0.5, s) + ')';
+    stage.style.transform = 'scale(' + (s > 0 ? s : 1) + ')';
   }
 
   window.addEventListener('resize', fit);
