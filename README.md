@@ -53,7 +53,7 @@ caramelos **no** se aceptan como pago (el chino se enoja).
 
 ## 🗺️ Recorrido y contenido
 
-La calle (sala 0) conecta con todos los edificios. **34 salas** en total.
+La calle (sala 0) conecta con todos los edificios. **38 salas** en total.
 
 ### En la calle
 - **EducaciónIT** (pisos 4/8/9): saludás a Maxi (Java), Guido, los dos CEOs Sebastián y
@@ -150,11 +150,15 @@ Sin bundler: los `<script>` se cargan en orden de dependencia desde `index.html`
 | `js/arcade.js` | Minijuegos overlay: pacman, galaga, frogger, truco, fighter |
 | `js/super.js` | Super chino (vista de arriba) |
 | `js/vinilos.js` | Disquería (vista de arriba) |
-| `js/game.js` | Loop principal, estados, cámara, iluminación, tormenta, HUD |
-| `js/presence.js` | Contador "jugando ahora" (capa aditiva, opcional, no toca el core) |
+| `js/game.js` | Loop principal, estados, cámara, iluminación, tormenta, HUD, loop de supervivencia |
+| `js/dialogos.js` | Pools de diálogo (generados por IA, modo A). Si falta, los NPCs usan su pool propio |
+| `js/ai.js` | Chat con NPC vía IA (modo B): proxy / BYOK / local. Capa aditiva, graceful |
+
+**Capas aditivas** (no tocan el core; el juego anda igual sin ellas):
+`js/config.js` (⚙ opciones), `js/presence.js` (jugando ahora), `js/fit.js` (auto-escalado de pantalla).
 
 **Cache-busting:** todos los `src` llevan `?v=N` en `index.html`. **Al cambiar cualquier
-JS/CSS hay que subir ese número** (si no, el navegador sirve la versión vieja). Actual: **`v=39`**.
+JS/CSS hay que subir ese número** (si no, el navegador sirve la versión vieja). Actual: **`v=45`**.
 
 ---
 
@@ -169,6 +173,44 @@ que no toca el juego: cada pestaña manda un latido a un endpoint que cuenta a l
   pegás su URL en `js/presence.js → ENDPOINT`. Todo explicado en
   **[`presence-server/`](presence-server/README.md)**.
 - No pide login ni guarda datos personales: solo un id random por pestaña, con TTL de ~30s.
+
+---
+
+## 🔁 Loop de supervivencia (después de la tormenta)
+
+Cuando estalla la tormenta podés **escapar por el portal** (Casa de Cambio) **o quedarte en el loop**.
+En el loop la meta es **sobrevivir**: la **vida baja con el tiempo** y hay que **comer en el chino**,
+que quedó **atrincherado** (ninjas + fuego + granadas en el frente). Entrás por la **puerta trasera**
+(desde la cueva) o conseguís que **Iorio** toque (le das **falopa** de los cajones de lujo) para que
+los ninjas se vayan. La **plata** sale de los **linyeras** (ex-millonarios que lloran su historia).
+Dormís en el **catre del búnker** para pasar un día. Todo el diseño está en
+**[`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)**.
+
+---
+
+## 🤖 Diálogos y chat con IA (OpenRouter)
+
+Dos capas **opcionales y aditivas** (el juego anda 100% sin ellas):
+
+- **Modo A — diálogos pre-generados:** `tools/gen-dialogos.mjs` genera pools de diálogo variados
+  (slang porteño) con un modelo **`:free`** de OpenRouter y los escribe en `js/dialogos.js` (estático,
+  cero costo/latencia en runtime). Los NPCs leen de ahí con **fallback** a sus líneas propias.
+  Key en `tools/openrouter.key` (gitignored) o `OPENROUTER_API_KEY`. Correr: `npm run gen:dialogos`.
+- **Modo B — chat en vivo:** hablás con un NPC (el **linyera filósofo** de la calle). Prioridad:
+  **proxy del dev** (`ai-proxy/`, vos pagás) → **BYOK** (el jugador pega **su** API key en ⚙ Opciones,
+  queda en su navegador) → **local** (líneas predefinidas si no hay nada o si la IA tarda/falla).
+
+> ⚠️ **Seguridad:** nunca se pone la key del dev en el cliente (cualquiera gastaría tu cuota). Por eso:
+> **proxy** (key server-side) **o BYOK** (key del jugador, sólo en su navegador). Detalle y política
+> de prioridad en **[`specs/ia-openrouter.md`](specs/ia-openrouter.md)** y **[`ai-proxy/`](ai-proxy/README.md)**.
+
+---
+
+## 📐 Diseño (Spec-Driven Development)
+
+Cada parte del nivel está documentada como **grafo de entidades** en **[`specs/`](specs/README.md)**:
+una ficha por edificio y por personaje, un [GRAFO](specs/nivel-1/GRAFO.md) (Mermaid + aristas) y specs
+de sistemas (loop, conexiones secretas, configuración, IA). Ver también [`specs/TECNICAS.md`](specs/TECNICAS.md).
 
 ### Cómo está armado un nivel
 `Level.build()` devuelve un array de salas (`makeRoom(spec)`). Las salas se conectan con

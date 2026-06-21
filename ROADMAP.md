@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** (cache `v=33`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** (cache `v=45`).
 
 ---
 
@@ -8,7 +8,12 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** 
 
 - **Motor 2D side-scroller**: colisión por tiles, gravedad, salto, cámara, iluminación con
   foco alrededor del jugador, partículas, parallax.
-- **34 salas** conectadas por puertas (ver README).
+- **38 salas** conectadas por puertas (ver README), incluyendo las 3 cuevas del dólar y el búnker.
+- **Loop de supervivencia** post-tormenta (vida que decae, comer en el chino, falopa/Iorio, plata de
+  los linyeras, catre/día, muerte→loop anterior). Ver `specs/nivel-1/loop-supervivencia.md`.
+- **IA (OpenRouter)**: diálogos pre-generados (modo A, `js/dialogos.js`) + chat en vivo con un NPC
+  (modo B, `js/ai.js`: proxy/BYOK/local). Capas aditivas. Ver `specs/ia-openrouter.md`.
+- **Opciones** (`js/config.js`): tamaño de fuente, duración/fundido del texto, API key (BYOK).
 - **Calle Florida y Lavalle** con NPCs, decoración, enemigos (peatones/drones), pickups,
   y la **cola de la casa de cambio** (10 personas distintas).
 - **EducaciónIT** (3 pisos con ascensor), **Garbarino**, **Cemento** (Almafuerte/Iorio),
