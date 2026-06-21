@@ -8,6 +8,9 @@ La empresa/escuela de tecnología, **3 pisos con ascensor**. Puro guiño/flavor:
 y CEOs. No tiene quest ni gating; es color y humor.
 
 ## Detalle
+- **Recepción (cada piso):** la **secretaria** es **chateable** (`action:'chat'`, `persona:'secretaria'`):
+  te vende cursos, horarios, qué profe da qué, descuentos y métodos de pago — y **sólo eso** (persona
+  acotada). Ver [`../../ia-openrouter.md`](../../ia-openrouter.md) §0.
 - **Piso 4:** recepción + **Maxi** (profe de Java, *"todo es un objeto"*).
 - **Piso 8:** los **dos CEOs Sebastián**, **Guido**. (Chiste: los dos se llaman Sebastián.)
 - **Piso 9:** **Marcos** y unos mates (+relax).

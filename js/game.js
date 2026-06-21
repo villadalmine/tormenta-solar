@@ -260,6 +260,10 @@
     thinking.remove();
     chatLine('npc', reply);
     chatHistory.push({ role: 'assistant', content: reply });
+    // si había key pero la respuesta salió local → avisar (no confundir al jugador)
+    if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) {
+      chatLine('sys', '(la IA no respondió con tu key — líneas locales. Abrí la consola F12 para ver el error: 429/404/CORS, etc.)');
+    }
     chatBusy = false;
     if (elChatInput) elChatInput.focus();
   }

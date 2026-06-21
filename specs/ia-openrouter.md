@@ -38,6 +38,19 @@ Cambiar la key resetea ese estado. Timeout: 12 s.
 > Resumen: **el juego siempre habla** (locales). La IA en vivo es un **enhancement** del chat, con
 > dev-paid > player-key > local, y degradación automática a local ante lentitud/fallo.
 
+### Qué NPC es chateable y cuál NO (regla anti-confusión)
+- **NO se hacen chat los NPCs que dan DATA crítica de gameplay.** Ej.: **Iorio** debe tirar la pista
+  de la **falopa** (si no, el jugador nunca se entera) → queda como **acción scripteada**
+  (`action:'iorio'`, no `chat`). Igual los borrachines (`want`/`hint`) y los cueveros. **El chat libre
+  no puede esconder info esencial.**
+- **Los NPC chateables usan una persona ACOTADA** (system prompt que limita el tema): el chat es para
+  color/inmersión, no para guiar. Personas actuales:
+  - `filosofo` — el linyera de la calle: filosofía callejera, sin info de quest.
+  - `secretaria` — recepción de **EducaciónIT** (cada piso): SÓLO cursos, horarios, qué profe da qué,
+    descuentos y métodos de pago. Si le preguntás otra cosa, desvía ("de eso no sé, ¿te cuento de los
+    cursos?"). **No contesta nada fuera de su rol.**
+- Las personas (system prompts) viven en `js/ai.js` (BYOK) y en `ai-proxy/personas.js` (proxy).
+
 ## 1. Objetivo
 Usar un LLM (vía **OpenRouter**, con un **modelo `:free`**) para **mejorar el contenido textual** del
 juego: diálogos variados, narrador del loop, NPCs con los que charlar, sin romper el ethos (100%

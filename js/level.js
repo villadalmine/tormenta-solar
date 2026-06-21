@@ -142,7 +142,7 @@ const Level = (() => {
           { id:'up',  art:'elevator', label:'subir al piso 8',  x:17, inward:-1 },
         ],
         npcs: [
-          { name:'Recepción', sprite:'recepcionista', x:4, dialog:'“Bienvenido a EducaciónIT. Piso 4: Java con Maxi. ¿Tenés turno?” ☎️' },
+          { name:'Recepción', sprite:'recepcionista', x:4, action:'chat', persona:'secretaria', dialog:'“Bienvenido a EducaciónIT. Te cuento de los cursos, horarios, profes, descuentos y formas de pago. ¿Qué querés saber?” ☎️' },
           { name:'Maxi', sprite:'maxi', x:11, dialog:'“¡Eh, Maxi!” — el profe de Java. «Acordate: en Java, todo es un objeto.» 👋' },
         ],
         decor: [{t:'escritorio',x:7},{t:'laptop',x:11},{t:'planta',x:14},{t:'cafe',x:17}],
@@ -158,7 +158,7 @@ const Level = (() => {
           { id:'up',   art:'elevator', label:'subir al piso 9', x:19, inward:-1 },
         ],
         npcs: [
-          { name:'Recepción', sprite:'recepcionista', x:4, dialog:'“Piso 8: acá están los CEOs. Firmá la planilla, porfa.” ☎️' },
+          { name:'Recepción', sprite:'recepcionista', x:4, action:'chat', persona:'secretaria', dialog:'“Piso 8: acá están los CEOs. ¿Te anoto en un curso o querés ver horarios y descuentos?” ☎️' },
           { name:'Guido', sprite:'guido', x:8,  dialog:'“¡Guido, máquina!” 👋' },
           { name:'Sebastián', sprite:'seba1', x:12, dialog:'Sebastián, uno de los CEOs. «Bienvenido a EducaciónIT.» 👔' },
           { name:'Sebastián', sprite:'seba2', x:16, dialog:'El otro Sebastián, también CEO. «Sí, los dos nos llamamos Sebastián.» 😄' },
@@ -173,7 +173,7 @@ const Level = (() => {
         platforms: [[7,9,4]],
         doors: [{ id:'down', art:'elevator', label:'bajar al piso 8', x:2, inward:1 }],
         npcs: [
-          { name:'Recepción', sprite:'recepcionista', x:4, dialog:'“Piso 9: relax y mates. Pasá, pasá.” ☎️' },
+          { name:'Recepción', sprite:'recepcionista', x:4, action:'chat', persona:'secretaria', dialog:'“Piso 9: relax y mates con Marcos. ¿Te cuento de los cursos, los horarios o las formas de pago?” ☎️' },
           { name:'Marcos', sprite:'marcos', x:12, dialog:'Te tomás unos mates con Marcos. 🧉 «Ahh, cebado en su punto.» Qué momento.' },
         ],
         decor: [{t:'escritorio',x:7},{t:'laptop',x:12},{t:'planta',x:15},{t:'cafe',x:17}],
