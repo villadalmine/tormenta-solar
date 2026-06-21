@@ -363,6 +363,46 @@ const Art = (() => {
         g.fillStyle = '#a5d6a7'; g.fillRect(x+3, 18, 4, 3); g.fillRect(x+3, 25, 4, 3); }               // fajos de dólares
       g.fillStyle = '#fff'; g.globalAlpha = 0.9; g.fillRect(w-10, 5, 2, 2); g.fillRect(w-7, 8, 1, 1); g.globalAlpha = 1; // brillo
     }),
+    // ---- cosas ROTAS (pisos pares destruidos del edificio abandonado) ----
+    tele_rota: mk(56, 62, (g, w, h) => {
+      g.fillStyle = '#263238'; g.fillRect(8, h-10, w-16, 10);                                   // mueble caído
+      g.save(); g.translate(w/2, h-26); g.rotate(0.12);                                          // tele ladeada
+      g.fillStyle = '#0a0a0a'; g.fillRect(-w/2+6, -22, w-12, 40);                                // marco
+      g.fillStyle = '#11161c'; g.fillRect(-w/2+10, -18, w-20, 32);                               // pantalla muerta
+      g.strokeStyle = '#5b6b77'; g.lineWidth = 1.5;                                              // grieta
+      g.beginPath(); g.moveTo(-6,-16); g.lineTo(2,-2); g.lineTo(-4,6); g.lineTo(6,14); g.stroke();
+      g.beginPath(); g.moveTo(2,-2); g.lineTo(12,-8); g.stroke();
+      g.restore();
+      g.fillStyle = 'rgba(120,180,200,0.5)'; for (let i=0;i<10;i++) g.fillRect(16+Math.random()*24, 12+Math.random()*22, 1, 1); // estática
+    }),
+    bano_roto: mk(58, 62, (g, w, h) => {
+      g.fillStyle = '#9aa6ac'; g.fillRect(0, 8, w, h-8);                                          // azulejos sucios
+      g.fillStyle = '#7d8890';
+      for (let y=8;y<h;y+=12) g.fillRect(0, y, w, 1);
+      for (let x=0;x<w;x+=12) g.fillRect(x, 8, 1, h-8);
+      g.fillStyle = '#d7dadb'; g.fillRect(8, h-14, 16, 14); g.beginPath(); g.ellipse(16, h-16, 9, 5, 0, 0, Math.PI*2); g.fill(); // inodoro
+      g.strokeStyle = '#555'; g.lineWidth = 1; g.beginPath(); g.moveTo(10, h-12); g.lineTo(20, h-2); g.stroke();   // rajado
+      g.fillStyle = 'rgba(90,150,180,0.55)'; g.beginPath(); g.ellipse(32, h-3, 22, 5, 0, 0, Math.PI*2); g.fill();  // charco
+      g.fillStyle = '#b0bec5'; g.fillRect(40, 16, 3, 10);                                         // caño roto
+      g.fillStyle = 'rgba(120,180,210,0.7)'; for (let i=0;i<6;i++) g.fillRect(41, 26+i*5, 2, 3);  // chorrea
+      g.fillStyle = '#5e7780'; g.fillRect(36, 12, 16, 12);                                        // espejo roto
+      g.strokeStyle = '#cdd6da'; g.lineWidth = 1; g.beginPath(); g.moveTo(38,13); g.lineTo(50,23); g.moveTo(44,12); g.lineTo(40,24); g.stroke();
+    }),
+    mueble_roto: mk(50, 50, (g, w, h) => {
+      g.fillStyle = '#5d4037'; g.fillRect(6, h-30, w-12, 30);                                     // cuerpo
+      g.fillStyle = '#4e342e'; g.fillRect(6, h-30, w-12, 4);
+      g.save(); g.translate(12, h-20); g.rotate(0.3); g.fillStyle = '#6d4c41'; g.fillRect(0, 0, 16, 10); g.restore(); // cajón colgando
+      g.save(); g.translate(w-10, h-4); g.rotate(-0.5); g.fillStyle = '#6d4c41'; g.fillRect(0, -22, 8, 22); g.restore(); // puerta arrancada
+      g.fillStyle = '#1a120c'; g.fillRect(26, h-22, 10, 12);                                      // agujero
+    }),
+    sillon_roto: mk(66, 42, (g, w, h) => {
+      g.fillStyle = 'rgba(0,0,0,0.2)'; g.beginPath(); g.ellipse(w/2, h-3, 28, 4, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#55606b'; g.fillRect(4, 16, w-8, 16);
+      g.fillStyle = '#444d56'; g.fillRect(2, 8, 12, 24); g.fillRect(w-14, 8, 12, 24);
+      g.fillStyle = '#cfc5b0'; g.beginPath(); g.arc(24, 16, 4, 0, Math.PI*2); g.arc(30, 14, 3, 0, Math.PI*2); g.fill(); // relleno saliendo
+      g.strokeStyle = '#2b3138'; g.lineWidth = 2; g.beginPath(); g.moveTo(40, 14); g.lineTo(44, 26); g.stroke();       // rasgadura
+      g.strokeStyle = '#888'; g.lineWidth = 1; g.beginPath(); for (let i=0;i<4;i++){ g.moveTo(50, 30-i*4); g.lineTo(54, 28-i*4); } g.stroke(); // resorte
+    }),
   };
 
   // ---------------- PERSONAJE ----------------

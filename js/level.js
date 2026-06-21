@@ -375,6 +375,16 @@ const Level = (() => {
       '“Yo vivía en el piso de lujo... me echaron... ahora vivo acá nomás.”',
       'Murmura algo y se da vuelta contra la pared. 😪',
       '“¿Buscás algo de valor? Subí a los impares... están vacíos, pero brillan.” ✨',
+      '“La tele anda... si la mirás de costado y entrecerrás los ojos.” 📺',
+      '“No uses ese baño, pibe, hace una semana que chorrea.” 🚽',
+      '“Este sillón lo saqué de la calle. Tiene historia. Y pulgas.” 🛋️',
+      '“¿Vos también te quedaste sin nada? Bienvenido al club.” 🍷',
+      'Tose, escupe, y te ofrece la mitad de su vino. 🍷',
+      '“Cuidado con el agujero del piso, ahí se cayó el Beto.” 🕳️',
+      '“Yo era gerente de banco, ¿sabés? Mirame ahora.” 💼',
+      '“Si ves a un linyera con un tótem de monos... ese es el jefe.” 🐵',
+      '“Hay goteras hasta en las goteras, hermano.” 💧',
+      '“Pasá tranqui, total acá ya no queda nada que romper.” 🧱',
     ];
     // el linyera filósofo que cuida el maletín de los pisos de lujo (Diógenes versión Florida)
     const LINYERA_LINES = [
@@ -408,12 +418,23 @@ const Level = (() => {
           spec.npcs.push({ name:'Tótem de 3 monos', sprite:'totem_monos', x:8, action:'totem' });
         }
       } else {
-        spec.decor = [{t:'escombros',x:5},{t:'barril',x:9},{t:'escombros',x:12},{t:'caja',x:14}];
-        spec.npcs = [
-          { name:'Tirado',       sprite:'yonqui', x:6,    dialog: RUINA_LINES[(n*1)   % RUINA_LINES.length] },
-          { name:'Durmiendo',    sprite:'yonqui', x:10,   dialog: RUINA_LINES[(n*2+1) % RUINA_LINES.length] },
-          { name:'Hecho mierda', sprite:'yonqui', x:13.5, dialog: RUINA_LINES[(n*3+2) % RUINA_LINES.length] },
-        ];
+        // piso DESTRUIDO: cada piso par es distinto — muebles rotos y linyeras variados por piso
+        const roto = ['escombros','tele_rota','bano_roto','mueble_roto','sillon_roto','barril','caja'];
+        const at = (k) => roto[(n*5 + k*3) % roto.length];     // muebles rotos distintos por piso
+        const dx = [4.5, 7, 9.5, 12];
+        spec.decor = dx.map((x, k) => ({ t: at(k), x: x + ((n + k) % 3 - 1) * 0.5 }));
+        const count = 2 + (n % 3);                              // 2..4 linyeras tirados por piso
+        const xs = [3.5, 5.5, 7.5, 9.5, 11.5];
+        const names = ['Linyera tirado','Linyera durmiendo','Linyera hecho mierda','Linyera'];
+        spec.npcs = [];
+        for (let i = 0; i < count; i++) {
+          spec.npcs.push({
+            name: names[i % names.length],
+            sprite: ((n + i) % 3 === 0) ? 'linyera' : 'yonqui',          // mezcla tirados/parados
+            x: xs[(i + (n >> 1)) % xs.length],                           // posiciones rotadas por piso
+            dialog: RUINA_LINES[(n*5 + i*7) % RUINA_LINES.length],       // cada uno dice algo distinto
+          });
+        }
         spec.pickups = [{t:'health',x:8}];
       }
       rooms.push(makeRoom(spec));
