@@ -13,13 +13,12 @@ import { fileURLToPath } from 'url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'js', 'dialogos.js');
 const KEYFILE = path.join(ROOT, 'tools', 'openrouter.key');
-// si pasás OPENROUTER_MODEL se usa ese; si no, prueba esta lista (rota si uno está rate-limited)
-const MODELS = process.env.OPENROUTER_MODEL ? [process.env.OPENROUTER_MODEL] : [
+// los slugs de modelos free cambian seguido → lo principal es traer la lista AL VUELO desde
+// OpenRouter (resolveModels()). Esto es solo respaldo por si falla ese fetch.
+const FALLBACK_MODELS = [
   'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemma-2-9b-it:free',
   'mistralai/mistral-7b-instruct:free',
-  'meta-llama/llama-3.1-8b-instruct:free',
-  'qwen/qwen-2.5-7b-instruct:free',
+  'deepseek/deepseek-chat-v3-0324:free',
 ];
 const THROTTLE = +(process.env.THROTTLE_MS || 4000);   // pausa entre pedidos (respeta el límite por minuto)
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -83,15 +82,28 @@ async function chatRetry(messages) {
       try { return { text: await chat(model, messages), model }; }
       catch (e) {
         last = e;
-        if (e.code === 429 || e.code >= 500) {
-          if (attempt < 2) { const w = 5000 * (attempt + 1); process.stdout.write('(429 espero ' + (w/1000) + 's) '); await sleep(w); continue; }
-          process.stdout.write('(rota modelo) ');   // agotó reintentos con este modelo
-        } else { throw e; }   // 401/400: no tiene sentido reintentar
+        if (e.code === 401) throw e;                            // key mala: no insistir
+        if ((e.code === 429 || e.code >= 500) && attempt < 2) { // saturado/temporal: esperar y reintentar
+          const w = 5000 * (attempt + 1); process.stdout.write('(429 espero ' + (w/1000) + 's) '); await sleep(w); continue;
+        }
+        process.stdout.write('(rota modelo) ');                 // 404/400 (no existe) o agotado → próximo modelo
         break;
       }
     }
   }
   throw last;
+}
+// trae la lista de modelos FREE actuales de OpenRouter (pricing 0); si falla, usa el respaldo
+async function resolveModels() {
+  try {
+    const r = await fetch('https://openrouter.ai/api/v1/models', { headers: { 'Authorization': 'Bearer ' + KEY } });
+    if (!r.ok) throw new Error('models ' + r.status);
+    const d = await r.json();
+    const free = (d.data || []).filter(m => m.pricing && +m.pricing.prompt === 0 && +m.pricing.completion === 0).map(m => m.id);
+    const pref = free.filter(id => /instruct|chat|gemma|mistral|llama|qwen|deepseek/i.test(id));
+    const list = [...new Set(pref.length ? pref : free)].slice(0, 8);
+    return list.length ? list : FALLBACK_MODELS;
+  } catch (e) { return FALLBACK_MODELS; }
 }
 
 function parseArray(txt) {
@@ -100,7 +112,8 @@ function parseArray(txt) {
   return JSON.parse(txt.slice(a, b + 1)).map(String).map(s => s.trim()).filter(Boolean);
 }
 
-console.log('Modelos:', MODELS.join(', '), '\n');
+const MODELS = process.env.OPENROUTER_MODEL ? [process.env.OPENROUTER_MODEL] : await resolveModels();
+console.log('Modelos free a probar (' + MODELS.length + '):', MODELS.join(', '), '\n');
 const out = {}, usados = new Set();
 let i = 0;
 for (const job of JOBS) {
