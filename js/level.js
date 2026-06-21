@@ -258,6 +258,7 @@ const Level = (() => {
         doors: [
           { id:'up', art:'up', label:'subir', x:3, inward:1 },
           { id:'vinilos', art:'disqueria', label:'entrar a la disquería', x:9, inward:-1 },
+          { id:'chinoback', art:'superchino', label:'entrar al chino por atrás', x:44, inward:-1 },
         ],
         cueveros: [
           { name:'Cueva 1', sprite:'cuevero', x:14, outcome:'coins',
@@ -331,7 +332,7 @@ const Level = (() => {
         name: 'CEMENTO — recital under', theme: 'cemento', light: 0.55, w: 26,
         doors: [{ id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 }],
         npcs: [
-          { name:'Iorio (Almafuerte)', sprite:'iorio', x:14, dialog:'“¿Qué hacés, tragaleche? Rajá... traeme falopa y te toco Pibe Tigre.” 🤘' },
+          { name:'Iorio (Almafuerte)', sprite:'iorio', x:14, action:'iorio', dialog:'“¿Qué hacés, tragaleche? Rajá... traeme falopa y te toco Pibe Tigre.” 🤘' },
           { name:'Guitarrista', sprite:'guitarrista', x:11, dialog:'“Pará que afino, loco. Esta viola tiene más años que vos.” 🎸' },
           { name:'Bajista', sprite:'bajista', x:17, dialog:'“Grave, todo grave, hermano. El bajo es la vida.” 🎸' },
           { name:'Baterista', sprite:'baterista', x:20, dialog:'“¡Uno, dos, tres, cuatro! ...¿probamos de nuevo?” 🥁' },
@@ -407,9 +408,11 @@ const Level = (() => {
           {t:'maniqui',x:3.4}, {t:'cocina',x:4.8}, {t:'bano',x:6.6},
           {t:'sofa',x:8.6}, {t:'tvplasma',x:10.1}, {t:'joyas',x:11.4}, {t:'maletin',x:12.4},
         ];
-        // el linyera NO se ve: aparece de la nada al tocar las JOYAS y te raja a la calle
+        // el linyera NO se ve: aparece de la nada al tocar las JOYAS y te raja a la calle.
+        // el maletín, tras la tormenta, es un CAJÓN con falopa (trigger invisible sobre el decor).
         spec.npcs = [
           { name:'', sprite:'linyera', invisible:true, x:11.4, action:'joyas', lines: LINYERA_LINES },
+          { name:'', sprite:'linyera', invisible:true, x:12.4, action:'falopa' },
         ];
         spec.pickups = [{t:'coins',x:7,amount:6}];
         // PISO 19: además, el TÓTEM sagrado de 3 monos (abre el búnker del piso 20)
@@ -433,6 +436,7 @@ const Level = (() => {
             sprite: ((n + i) % 3 === 0) ? 'linyera' : 'yonqui',          // mezcla tirados/parados
             x: xs[(i + (n >> 1)) % xs.length],                           // posiciones rotadas por piso
             dialog: RUINA_LINES[(n*5 + i*7) % RUINA_LINES.length],       // cada uno dice algo distinto
+            action: 'limosna',                                          // tras la tormenta te dan monedas
           });
         }
         spec.pickups = [{t:'health',x:8}];

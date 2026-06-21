@@ -1,8 +1,17 @@
 # SPEC: El loop — supervivencia (Nivel 1)
 
-- **Estado:** Draft (diseño; lo único que ya existe en código es la puerta secreta super→cueva)
+- **Estado:** Implementado (MVP, v=40) — falta pulir balance/arte
 - **Nivel:** 1 — Florida y Lavalle
 - **Última actualización:** 2026-06-21
+
+> **Implementado (v=40):** vida −3/30 s post-tormenta; **comer en el chino** (−10 🪙 / +40 vida) por
+> la **puerta trasera** (cueva) o por el **frente** si Iorio abrió; **frente barricado** si no;
+> **Iorio** (falopa → abre el frente, temporal, repetible); **falopa** en los cajones de lujo;
+> **monedas** de los linyeras (llanto + random 5–20, 1×/loop); **dormir** = día + reponer falopa +
+> guita parcial random + vida llena; **morir** = volver al loop anterior. HUD: indicador `LOOP`
+> (🌿 falopa + Día). **Simplificaciones del MVP:** comer es una compra instantánea (no entra al modo
+> super); la barricada del frente y los ninjas yéndose al recital son **narrados** (sin arte/entidades
+> nuevas); números **placeholder** (a balancear, ver §9-Q6).
 
 ## 1. Objetivo del loop
 Quedarse en el refugio (en vez de salir por el portal) tiene una **meta: SOBREVIVIR**. Tu **vida baja

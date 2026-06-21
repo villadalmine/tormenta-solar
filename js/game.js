@@ -21,6 +21,7 @@
   const elCoins = document.getElementById('coins');
   const elCaramelos = document.getElementById('caramelos');
   const elVicios = document.getElementById('vicios');
+  const elFalopa = document.getElementById('falopa');
   const elMsg = document.getElementById('msg');
   const elFlash = document.getElementById('flash');
   const elFloor = document.getElementById('floorName');
@@ -35,7 +36,8 @@
   const DOOR_ART = { galeria: 'door', up: 'doorUp', exit: 'exit', educacionit: 'educacionit', arcade: 'arcade', elevator: 'elevator', superchino: 'superchino', garbarino: 'garbarino', disqueria: 'disqueria', cemento: 'cemento', cambio: 'cambio', abandonado: 'abandonado' };
   let arcadeGame = null, superGame = null, vinilosGame = null;
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
-  let bunkerUnlocked = false, loopCount = 0;   // tótem → búnker; loopCount persiste entre loops
+  let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
+  let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -54,6 +56,7 @@
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
+    loopCount = 0; chinoFrontOpen = false; decayAcc = 0;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
@@ -83,6 +86,7 @@
       if (d.id === 'secret' && !secretUnlocked) continue;
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
       if (d.id === 'bunker' && !bunkerUnlocked) continue;
+      if (d.id === 'chinoback' && !stormed) continue;   // la puerta trasera aparece con la tormenta
       const dist = Math.hypot(pcx - d.x, pf - d.y);
       if (dist < bd) { bd = dist; best = { kind: 'door', d }; }
     }
@@ -105,7 +109,12 @@
     const it = nearestInteract();
     if (!it) return;
     if (it.kind === 'door') {
-      if (it.d.id === 'super') enterSuper();
+      if (it.d.id === 'super') {
+        if (!stormed) enterSuper();                              // pre-tormenta: changuito normal
+        else if (chinoFrontOpen) eatAtChino('frente');          // Iorio corrió a los ninjas
+        else setMsg('El FRENTE del chino está atrincherado: tachos con fuego, granadas y los ninjas de guardia. No entrás por acá. → Probá la PUERTA TRASERA (desde la cueva) o que IORIO toque para que se vayan. 🔥🥷', '#ff5252', 6500);
+      }
+      else if (it.d.id === 'chinoback') eatAtChino('trasera');  // entrada de servicio desde el refugio
       else if (it.d.id === 'vinilos') enterVinilos();
       else if (it.d.id === 'cambio' && !stormed) {
         // la casa de cambio oficial está HASTA LAS PELOTAS: la cola no te deja entrar
@@ -131,6 +140,9 @@
     else if (n.action === 'joyas') grabJoyas(n);
     else if (n.action === 'totem') grabTotem(n);
     else if (n.action === 'loop') doLoop(n);
+    else if (n.action === 'falopa') grabFalopa(n);
+    else if (n.action === 'limosna') giveLimosna(n);
+    else if (n.action === 'iorio') giveIorio(n);
     else if (n.action === 'fifa') playFifa();
     else { setMsg(n.dialog || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
   }
@@ -159,16 +171,74 @@
       setMsg('“Gurú, la puerta del PISO 20 ya es tuya. El búnker te espera arriba.” 🐵', '#aef0c0', 3500);
     }
   }
+  const LINYERA_CRY = [
+    '“Yo tenía TRES deptos en Puerto Madero... tres. (se quiebra) Mirá ahí en el inodoro, agarrá, total ya no me sirve de nada...” 😭',
+    '“Era gerente de banco. Traje, reuniones, un vacío de mierda. (llora) Hay guita en la caja fuerte, llevate, pibe.” 💼😢',
+    '“Tenía un auto importado por cada día de la semana. ¿Y para qué, eh? (moquea) Sacá unas monedas, dale.” 🚗',
+    '“Me cansé de laburar para una vida vacía. (suspira) Tomá, a mí no me hacen falta.” 🪙',
+  ];
+  function spawnIn(idx, tileX) {
+    current = idx; const rm = rooms[idx];
+    player.x = tileX * Level.TILE + Level.TILE/2 - player.w/2;
+    player.y = rm.gTop * Level.TILE - player.h;
+    player.vx = player.vy = 0; transCd = 0.4;
+    updateCam(); elFloor.textContent = rm.name;
+  }
+  function resetLoopResources() {            // cajones de falopa y limosnas se renuevan cada loop
+    for (const rm of rooms) for (const n of rm.npcs || []) { n.falopaTaken = false; n.limosnaTaken = false; }
+  }
+  function reviveToPreviousLoop() {
+    loopCount = Math.max(0, loopCount - 1);
+    player.alive = true; player.hp = 100; decayAcc = 0; player.falopa = 0;
+    resetLoopResources(); chinoFrontOpen = false;
+    const idx = bunkerUnlocked ? rooms.findIndex(r => /[Bb][úu]nker/.test(r.name)) : rooms.findIndex(r => r.cueveros);
+    spawnIn(idx >= 0 ? idx : 0, 4); flash();
+    setMsg('Te moriste de hambre... pero el loop te escupe de vuelta al refugio (DÍA #' + loopCount + '). Seguí comiendo, pibe. 💀🔁', '#ff5252', 7000);
+  }
+  function grabFalopa(n) {
+    if (!stormed) { setMsg('Es un maletín lleno de dólares... con el espacio-tiempo intacto, mejor ni tocarlo (acordate del linyera). 💼', '#ffd54f', 4500); return; }
+    if (n.falopaTaken) { setMsg('Este cajón ya lo vaciaste. Se rellena el próximo día (dormí en el búnker). 🌿', '#9fb4c4', 3500); return; }
+    n.falopaTaken = true; player.falopa = (player.falopa || 0) + 2; Sfx.pickup();
+    setMsg('Abrís el cajón del mueble de lujo: ¡repleto de FALOPA! 🌿 Agarrás (+2, tenés ' + player.falopa + '). Es para que IORIO toque y se vayan los ninjas del chino.', '#7CFC00', 6000);
+  }
+  function giveLimosna(n) {
+    if (!stormed) { setMsg(n.dialog || '“...andá pasando, pibe...”', '#aef0c0', 4000); return; }
+    if (n.limosnaTaken) { setMsg('“Ya te di lo que tenía, pibe. Volvé mañana.” 🪙', '#9fb4c4', 3000); return; }
+    n.limosnaTaken = true;
+    const amt = 5 + ((Math.random() * 16) | 0);     // 5..20, aleatorio
+    player.coins += amt; Sfx.pickup();
+    setMsg(LINYERA_CRY[(Math.random() * LINYERA_CRY.length) | 0] + '  +' + amt + ' 🪙', '#FFC107', 6500);
+  }
+  function giveIorio(n) {
+    if (!stormed) { setMsg(n.dialog || '“Traeme falopa y te toco Pibe Tigre.” 🤘', '#aef0c0', 4500); return; }
+    if ((player.falopa || 0) <= 0) { setMsg('Iorio: “¿Y la falopa, gil? Sin merca no hay Pibe Tigre. Buscá en los CAJONES de los deptos de lujo del edificio.” 🤘', '#ffd54f', 6000); return; }
+    player.falopa--; chinoFrontOpen = true; Sfx.win();
+    setMsg('Le pasás la falopa a Iorio 🤘. Arranca PIBE TIGRE y los NINJAS (metaleros) dejan el chino y se van al recital. ¡El FRENTE del chino quedó ABIERTO! Corré a comer antes de que vuelvan. (Iorio putea al sol: “...che tano Marcello, menos mal que ahora hacemos acústicos y tango, ya que no hay luz.”) 🎻', '#7CFC00', 9000);
+  }
+  function eatAtChino(via) {
+    const cost = 10, heal = 40;
+    if (player.coins < cost) { setMsg('No te alcanza la guita para comer (cuesta ' + cost + ' 🪙). Sacale monedas a los linyeras del edificio. 🍜', '#ff5252', 5000); return; }
+    player.coins -= cost; player.hp = Math.min(100, player.hp + heal); Sfx.pickup();
+    if (via === 'frente') {
+      chinoFrontOpen = false;
+      setMsg('Entrás por el frente, comés (−' + cost + ' 🪙, +' + heal + ' vida 🍜) y salís... pero los ninjas YA volvieron a la barricada. Para otra, más falopa para Iorio. 🥷', '#7CFC00', 6500);
+    } else {
+      setMsg('Entrás al chino por la puerta de atrás y comés: −' + cost + ' 🪙, +' + heal + ' vida. 🍜', '#7CFC00', 4500);
+    }
+  }
   function doLoop() {
-    // el catre del búnker SOLO sirve con la tormenta ya estallada (antes no hay caos del que refugiarse)
+    // el catre SOLO sirve con la tormenta ya estallada (antes no hay caos del que refugiarse)
     if (!stormed) {
-      setMsg('La city todavía está normal, no estalló nada. ¿Para qué te vas a dormir? El loop de supervivencia arranca cuando reviente la TORMENTA SOLAR. 😴', '#9fd3ff', 5500);
+      setMsg('La city todavía está normal, no estalló nada. ¿Para qué dormir? El loop de supervivencia arranca cuando reviente la TORMENTA SOLAR. 😴', '#9fd3ff', 5500);
       return;
     }
-    // post-tormenta: dormir = pasa un DÍA, pero el caos sigue igual (no es un reset limpio)
     loopCount++;
-    flash();
-    setMsg('Dormís en el catre. 🌅 Pasa un DÍA (#' + loopCount + '), pero afuera el caos de la tormenta sigue igual. Tu vida se va gastando: vas a tener que salir a COMER o te vas al tacho. (Supervivencia: en obra.)', '#7CFC00', 7500);
+    resetLoopResources();
+    player.falopa = 0;                                                      // la falopa se resetea por loop
+    player.coins = Math.floor(player.coins * (0.3 + Math.random() * 0.4));  // monedas: te queda algo (parcial, aleatorio)
+    player.hp = 100; player.alive = true; decayAcc = 0;                     // descansás: arrancás el día lleno
+    chinoFrontOpen = false; flash();
+    setMsg('Dormís en el catre. 🌅 DÍA #' + loopCount + '. El caos de la tormenta sigue afuera. La falopa de los cajones se repuso y te quedó algo de guita; arrancás con la vida llena, pero el hambre vuelve: salí a COMER. 🍜', '#7CFC00', 8000);
   }
   function playFifa() {
     if (!player.hasMegaDrive) { setMsg('“¿Trajiste una Mega Drive? Comprá una en el super chino (sección CONSOLAS) y volvé para el torneo de FIFA.” 🎮', '#9fd3ff', 5000); return; }
@@ -314,7 +384,16 @@
 
     player.stunned = performance.now() < stunUntil;
     player.update(dt, r, cam);
-    if (!player.alive) { die(); return; }
+
+    // LOOP de supervivencia: tras la tormenta la vida se gasta (-3 cada 30 s). Comé o te morís.
+    if (stormed) {
+      decayAcc += dt;
+      while (decayAcc >= 30) { decayAcc -= 30; player.hp -= 3; if (player.hp <= 0) { player.hp = 0; player.alive = false; } }
+    }
+    if (!player.alive || player.hp <= 0) {
+      if (stormed && loopCount > 0) { reviveToPreviousLoop(); return; }   // morís → volvés al loop anterior
+      die(); return;
+    }
     updateCam();
 
     Enemies.update(s.enemies, dt, r, player);
@@ -360,6 +439,7 @@
     elCoins.textContent = player.coins;
     elCaramelos.textContent = player.caramelos;
     if (elVicios) elVicios.textContent = (player.diosa||0) + '·' + (player.carne||0) + '·' + (player.fiambre||0);
+    if (elFalopa) elFalopa.textContent = stormed ? ('🌿' + (player.falopa||0) + '  D' + loopCount) : '—';
     if (performance.now() > msgUntil) elMsg.style.opacity = '0';   // fundido de salida (ver --ui-msg-fade)
   }
 
@@ -413,6 +493,7 @@
       if (d.id === 'secret' && !secretUnlocked) continue;
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
       if (d.id === 'bunker' && !bunkerUnlocked) continue;
+      if (d.id === 'chinoback' && !stormed) continue;
       const img = Art.items[DOOR_ART[d.art] || 'door'];
       ctx.drawImage(img, d.x - cam.x - img.width/2, d.y - cam.y - img.height);
       if (d.id === 'secret') {
