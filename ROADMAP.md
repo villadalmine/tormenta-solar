@@ -52,11 +52,85 @@ Ordenadas por impacto. Nada de esto está hecho.
 - [ ] Sonido ambiente por sala (hoy solo música).
 
 ### Técnico / calidad
-- [ ] **Mobile / touch**: hoy es teclado+mouse, no anda en celular.
-- [ ] **Escalado responsive** del canvas a distintas pantallas.
+- [ ] **Mobile / touch**: hoy es teclado+mouse, no anda en celular. → ver
+      **[📱 Soporte para celulares](#-soporte-para-celulares-mobile)** abajo (estrategia analizada).
 - [ ] Extender el e2e para **simular navegación real** (caminar hasta una puerta, gatillar la
       tormenta y verificar la victoria), no solo boot + auditoría de assets.
 - [ ] Considerar partir `art.js` (es enorme) en módulos por categoría.
+
+---
+
+## 📱 Soporte para celulares (mobile)
+
+> Decisión de diseño: lo vamos a hacer **sin tocar el código del juego** (los 11 `js/*.js`),
+> como una **capa aditiva** aparte. Así el core sigue siendo fácil de mantener: la versión
+> de escritorio no se entera de que existe la mobile.
+
+### Por qué se puede hacer “por afuera” (el seam)
+
+Todo el input del juego pasa por **un único módulo**, `js/input.js`, y se lee siempre como:
+
+- `Input.keys['a' | 'd' | 'w' | ' ' | 'e' | 'escape' | …]`  (objeto **mutable** público)
+- `Input.mouse.x`, `Input.mouse.y`, `Input.mouse.down`  (objeto **mutable** público)
+
+`game.js`, `player.js`, `super.js`, `vinilos.js` y `arcade.js` **nunca** leen el teclado/mouse
+directo: leen estos dos objetos. Eso es el **seam**: una capa mobile puede **escribir** en
+`Input.keys`/`Input.mouse` y el juego entero responde igual, sin cambiar una línea del core.
+(El juego **no depende** de la capa mobile; la capa mobile depende del juego. Dependencia en
+un solo sentido = mantenible.)
+
+### Estrategia recomendada (en capas, de menor a mayor esfuerzo)
+
+**Capa 1 — Adaptador de input táctil (`mobile/touch.js`, NUEVO, no toca el core).**
+Un overlay que:
+- Detecta touch (`matchMedia('(pointer: coarse)')`).
+- Dibuja controles en pantalla (joystick virtual izq. + botones `SALTAR`/`E` der.; para apuntar,
+  arrastrar en la mitad derecha; tap = disparar).
+- **Traduce** gestos a estado de Input: joystick → `Input.keys['a'/'d']`, botón salto →
+  `Input.keys['w']`, botón acción → `Input.keys['e']`, drag → `Input.mouse.x/y`, tap →
+  `Input.mouse.down`. Para los modos vista-de-arriba (super/disquería) el mismo joystick ya
+  mapea a `a/d/w/s` y los botones a `e`/`escape`.
+- Único requisito sobre el core: que `Input.keys`/`Input.mouse` sean mutables y públicos →
+  **ya lo son**. Si en algún momento hiciera falta, el ÚNICO cambio tolerable en el core sería
+  exponer un helper en `Input` (ej. `Input.set(k,v)`), pero hoy **no hace falta**.
+
+**Capa 2 — Viewport / escalado responsive (`mobile/mobile.css`, NUEVO).**
+- Canvas 960×540 fijo, escalado por **CSS** (`width:100%; height:100%; object-fit:contain`)
+  para no tocar la lógica de render. Bloquear orientación a **landscape** (cartel “girá el
+  teléfono” en portrait) vía CSS + `screen.orientation.lock('landscape')` cuando se pueda.
+- `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">`
+  y manejo de `safe-area-inset-*` para el notch.
+
+**Capa 3 — Entry point separado (`mobile.html`, NUEVO).**
+- Copia de `index.html` que además incluye `mobile/mobile.css` y `mobile/touch.js` (después de
+  `input.js`). Mismos `js/*.js`, mismo `?v=N`. **Cero archivos del core modificados.**
+- Opción más prolija para no duplicar HTML: un mini `mobile/boot.js` que, si detecta touch,
+  inyecta el CSS y el overlay — así `index.html` podría cargarlo condicionalmente con **una sola
+  línea** (`<script src="mobile/boot.js">`), que es el único “toque” y es puramente aditivo.
+
+### Distribución (qué tan “app” querés que sea)
+
+1. **PWA instalable (recomendado para empezar):** agregar `manifest.webmanifest` + íconos +
+   un `service-worker.js` que cachee los assets. Queda “instalable” desde el navegador, offline,
+   pantalla completa. **No requiere build ni tocar el core.** Como ya es 100% estático, encaja
+   directo en GitHub Pages.
+2. **Wrapper nativo (App Store / Play Store):** un **proyecto aparte** con **Capacitor**
+   (carpeta/repo propio, ej. `tormenta-solar-app/`) que apunta a estos archivos estáticos como
+   `webDir`. El juego sigue intacto; Capacitor sólo lo envuelve en un shell nativo y da acceso a
+   APIs del cel. Es el “build diferente” literal: vive afuera, no contamina el core.
+3. **TWA (Trusted Web Activity):** si ya hay PWA, publicar en Play Store envolviendo la URL de
+   Pages. El más barato si no necesitás APIs nativas.
+
+### Orden sugerido de trabajo
+1. `mobile/touch.js` + `mobile/mobile.css` + `mobile.html` → jugable al tacto (capas 1–3).
+2. Probar en cel real (DevTools device mode no alcanza para gestos finos).
+3. PWA (manifest + service worker) → instalable/offline.
+4. (Opcional) Capacitor para tiendas.
+
+### Qué NO hacer
+- No meter `if (mobile)` desperdigados por `game.js`/`player.js`: rompe el principio de capa única.
+- No migrar a un bundler sólo por esto: el seam de Input alcanza sin build.
+- Mantener el e2e headless válido para **ambas** versiones (el core no cambia, así que sigue cubriendo).
 
 ---
 
