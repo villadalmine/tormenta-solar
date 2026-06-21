@@ -496,6 +496,12 @@
       if (d.id === 'chinoback' && !stormed) continue;
       const img = Art.items[DOOR_ART[d.art] || 'door'];
       ctx.drawImage(img, d.x - cam.x - img.width/2, d.y - cam.y - img.height);
+      // frente del chino atrincherado tras la tormenta (hasta que Iorio corra a los ninjas)
+      if (d.id === 'super' && stormed && !chinoFrontOpen) {
+        const b = Art.decor.barricada;
+        ctx.drawImage(b, d.x - cam.x - b.width/2, d.y - cam.y - b.height);
+        label('🔥 ATRINCHERADO', d.x - cam.x, d.y - cam.y - b.height - 4, '#ff5252');
+      }
       if (d.id === 'secret') {
         const mi = Art.npc.misterioso, mx = d.x - cam.x - 46;
         ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(mx + mi.width/2, d.y - cam.y, 12, 4, 0, 0, Math.PI*2); ctx.fill();

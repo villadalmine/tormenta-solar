@@ -403,6 +403,32 @@ const Art = (() => {
       g.strokeStyle = '#2b3138'; g.lineWidth = 2; g.beginPath(); g.moveTo(40, 14); g.lineTo(44, 26); g.stroke();       // rasgadura
       g.strokeStyle = '#888'; g.lineWidth = 1; g.beginPath(); for (let i=0;i<4;i++){ g.moveTo(50, 30-i*4); g.lineTo(54, 28-i*4); } g.stroke(); // resorte
     }),
+    // barricada del frente del chino (post-tormenta): tachos con fuego + granadas + ninja de guardia
+    barricada: mk(86, 76, (g, w, h) => {
+      g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(w/2, h-3, 40, 6, 0, 0, Math.PI*2); g.fill();
+      const tacho = (x) => {
+        g.fillStyle = '#37474f'; g.fillRect(x, h-26, 18, 26); g.fillStyle = '#263238'; g.fillRect(x, h-26, 18, 3);
+        g.fillStyle = '#ff6a00'; g.beginPath(); g.moveTo(x+2, h-26); g.quadraticCurveTo(x+9, h-46, x+16, h-26); g.fill();
+        g.fillStyle = '#ffca28'; g.beginPath(); g.moveTo(x+5, h-26); g.quadraticCurveTo(x+9, h-39, x+13, h-26); g.fill();
+        g.globalAlpha = 0.4; g.fillStyle = '#fff'; g.fillRect(x+4, h-52, 10, 9); g.globalAlpha = 1;
+      };
+      tacho(4); tacho(w-22);
+      // granadas apiladas
+      for (let i = 0; i < 5; i++) {
+        const gx = w/2 - 14 + (i % 3) * 12, gy = h - 7 - (i < 3 ? 0 : 9);
+        g.fillStyle = '#33691e'; g.beginPath(); g.arc(gx, gy, 5, 0, Math.PI*2); g.fill();
+        g.fillStyle = '#4e342e'; g.fillRect(gx - 1, gy - 8, 2, 4);
+      }
+      // ninja samurái de guardia
+      const nx = w/2;
+      g.fillStyle = '#111'; g.fillRect(nx-7, h-46, 14, 30);
+      g.fillStyle = '#1a1a1a'; g.beginPath(); g.arc(nx, h-50, 6, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#b71c1c'; g.fillRect(nx-7, h-53, 14, 3);                       // vincha roja
+      g.fillStyle = '#caa070'; g.fillRect(nx-5, h-50, 10, 3);                       // franja de ojos
+      g.fillStyle = '#111'; g.fillRect(nx-4, h-50, 2, 2); g.fillRect(nx+2, h-50, 2, 2);
+      g.strokeStyle = '#cfd8dc'; g.lineWidth = 2; g.beginPath(); g.moveTo(nx+7, h-40); g.lineTo(nx+20, h-59); g.stroke(); // katana
+      g.strokeStyle = '#5d4037'; g.lineWidth = 2; g.beginPath(); g.moveTo(nx+5, h-37); g.lineTo(nx+8, h-41); g.stroke(); // empuñadura
+    }),
   };
 
   // ---------------- PERSONAJE ----------------

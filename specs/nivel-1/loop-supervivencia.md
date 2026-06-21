@@ -10,8 +10,9 @@
 > **monedas** de los linyeras (llanto + random 5–20, 1×/loop); **dormir** = día + reponer falopa +
 > guita parcial random + vida llena; **morir** = volver al loop anterior. HUD: indicador `LOOP`
 > (🌿 falopa + Día). **Simplificaciones del MVP:** comer es una compra instantánea (no entra al modo
-> super); la barricada del frente y los ninjas yéndose al recital son **narrados** (sin arte/entidades
-> nuevas); números **placeholder** (a balancear, ver §9-Q6).
+> super); la **barricada del frente** ya tiene **arte** (`Art.decor.barricada`: tachos con fuego +
+> granadas + ninja, se dibuja sobre la puerta del chino con la tormenta y desaparece cuando Iorio la
+> abre); los ninjas yéndose al recital siguen **narrados**; números **placeholder** (ver §9-Q6).
 
 ## 1. Objetivo del loop
 Quedarse en el refugio (en vez de salir por el portal) tiene una **meta: SOBREVIVIR**. Tu **vida baja
