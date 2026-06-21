@@ -96,26 +96,23 @@ Al intentar agarrarlo, **aparecen 20 linyeras** y, en vez de echarte, te **consa
 Desde ese momento, la puerta del piso 20 **queda abierta para siempre** y lleva al **BÚNKER**
 (sala nueva): el lugar **más seguro** del nivel.
 
-### 3.3 El loop (decisión: loop literal)
+### 3.3 El loop (loop = supervivencia, storm-gated)
 
-Quedarse en el búnker **no termina el nivel**: lo **reinicia en bucle**. Narrativamente, el búnker
-de los linyeras está *"fuera"* del desgarro del espacio-tiempo (por eso es el lugar más seguro), así
-que **el día se repite**: volvés al inicio del Nivel 1 (la city otra vez igual, *"otro día más
-esperando el dólar"*). Es el contraste con el **portal** de la Casa de Cambio, que es la **única
-salida hacia adelante** (el salto temporal real al próximo momento de la historia).
+> **Refinado:** el loop **NO es un "reset limpio" del nivel** (eso quedó descartado). Es un **ciclo de
+> supervivencia post-tormenta**: cada día que dormís, el mundo **sigue en el caos** de la tormenta y
+> tu vida se gasta. Todo el detalle está en **[`loop-supervivencia.md`](loop-supervivencia.md)**.
 
-- **Disparador del loop:** dentro del búnker hay un punto de interacción (un catre / fogata / los
-  linyeras) con `action:'loop'` que, al usarlo, **reinicia el nivel**.
-- **El loop NO termina solo:** te quedás loopeando **hasta que VOS decidís pasar de nivel** por el
-  portal de la Casa de Cambio. Es un estado, no un evento de una sola vez.
-- **Qué se HACE en el loop:** la meta es **sobrevivir** — la vida baja con los días y hay que salir a
-  **comprar comida al chino** (atrincherado). Todo eso está especificado en
-  **[`loop-supervivencia.md`](loop-supervivencia.md)** (acceso por la puerta trasera o vía Iorio,
-  falopa de los cajones de lujo, monedas de los linyeras).
-- **Qué persiste al loopear:** *(sub-decisión, ver Preguntas abiertas)* — por defecto se propone
-  **resetear todo** (loop "limpio", como morir pero sin pantalla de derrota), salvo quizás un
-  contador de vueltas para un guiño ("Día #N en el loop").
-- Es **opcional y sin penalización**: el jugador elige quedarse (loop) o ir al portal (avanzar).
+- **Solo existe con la tormenta estallada (`stormed`).** Antes, el búnker es inerte y **dormir no
+  hace nada** *(ya en código, v=38)*.
+- **Disparador:** el **catre** del búnker (`action:'loop'`): dormir = **pasa un día** (`loopCount++`),
+  pero **el mundo sigue igual** (no se reinicia la city desde cero).
+- **Meta: sobrevivir.** La vida **decae −3/30 s**; hay que salir a **comprar comida al chino**
+  (atrincherado) — por la **puerta trasera** o consiguiendo que **Iorio** corra a los ninjas.
+- **Recursos al loopear:** la **falopa** de los cajones de lujo **se resetea** cada vuelta; las
+  **monedas** de los linyeras quedan **parciales y aleatorias** (ni todo ni nada).
+- **Muerte (vida 0):** **volvés al loop anterior** (`loopCount − 1`), no es game-over seco.
+- **El loop NO termina solo:** seguís **hasta que VOS** salís por el **portal** de la Casa de Cambio
+  (la única salida hacia adelante).
 
 ### 3.4 Colapso de la ciudad (decisión: fachada en ruinas)
 
@@ -142,9 +139,10 @@ Tras `stormed`, los edificios que **no** son refugio ni salida **se derrumban**:
   entra** y tira un mensaje ("derrumbado / clausurado"), y **(b)** su **fachada cambia a un sprite
   en ruinas** (escombros/fuego). Hace falta una **variante "ruina" del arte de fachada** por
   edificio afectado (o un overlay genérico de derrumbe).
-- **RF-8** *(loop literal)* — En el **búnker** hay un punto con `action:'loop'` que **reinicia el
-  Nivel 1** (vuelve al inicio de la calle, estado reseteado). No es un `win`; es el bucle temporal.
-  Opcional: llevar un contador de vueltas (`loopCount`) para un guiño ("Día #N").
+- **RF-8** *(loop = supervivencia, storm-gated)* — En el **búnker**, el **catre** (`action:'loop'`)
+  **solo funciona post-`stormed`** *(ya en código, v=38)*. Dormir = **pasa un día** (`loopCount++`)
+  manteniendo el mundo en caos (no reset). El ciclo de supervivencia completo (vida −3/30 s, comida,
+  falopa, Iorio, muerte→loop anterior) está en **[`loop-supervivencia.md`](loop-supervivencia.md)**.
 
 ## 5. Estados y flags
 

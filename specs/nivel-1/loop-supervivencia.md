@@ -5,16 +5,27 @@
 - **Última actualización:** 2026-06-21
 
 ## 1. Objetivo del loop
-Quedarse en el refugio (en vez de salir por el portal) tiene una **meta: SOBREVIVIR**. Cada día del
-loop tu **vida baja**; para no morir tenés que **salir a comprar comida al chino**. Pero el mundo
-colapsó y el chino está atrincherado: conseguir **comida** (y la **plata** para pagarla, y la forma
-de **entrar**) es el juego del loop. Termina cuando **vos** decidís irte por el **portal** de la
-Casa de Cambio.
+Quedarse en el refugio (en vez de salir por el portal) tiene una **meta: SOBREVIVIR**. Tu **vida baja
+con el tiempo**; para no morir tenés que **salir a comprar comida al chino**. Pero el mundo colapsó y
+el chino está atrincherado: conseguir **comida** (y la **plata** para pagarla, y la forma de
+**entrar**) es el juego del loop. Termina cuando **vos** decidís irte por el **portal** de la Casa de
+Cambio.
 
-## 2. La vida decae con los días
-- Tu **vida baja** a medida que pasan los **días** del loop (timer / por vuelta).
-- **Comida del chino** restaura vida → es el sumidero/fuente del bucle.
-- *(Sub-decisión: ¿baja por tiempo real, por "día", o por vuelta de loop? Ver §9.)*
+## 1.1 El loop SOLO existe después de la tormenta (storm-gated)
+**Importante:** la supervivencia arranca **recién con la tormenta solar** (`stormed`). Antes de eso:
+- El **búnker está inerte**: solo hay **linyeras y el catre**. **Dormir no hace nada** (no hay caos
+  del que refugiarse). *(Implementado v=38: el catre chequea `stormed`.)*
+- Podés desbloquear el búnker (tótem) antes de la tormenta, pero **no pasa nada** hasta que estalle.
+
+Con `stormed = true`, el mundo queda en **caos permanente** y arranca el ciclo de abajo. **Dormir en
+el catre = pasa un DÍA**, pero **el caos sigue igual** (NO es un reset limpio del nivel; el mundo
+post-tormenta persiste).
+
+## 2. La vida decae (post-tormenta)
+- **Decisión:** la vida baja **−3 cada 30 segundos** (tiempo real), una vez estallada la tormenta.
+- **Comida del chino** restaura vida → es la única forma de compensar el desgaste.
+- Si la vida llega a **0**: **morís** y **volvés al loop anterior** (día `loopCount − 1`), no es un
+  game-over seco.
 
 ## 3. Entrar al chino (está atrincherado)
 Tras la tormenta, el **super chino** se **atrinchera**: **ninjas samurái**, **barricadas de fuego**
@@ -27,10 +38,16 @@ atrás**, esquivando la barricada. Comprás comida y volvés.
 > Hoy esa puerta existe en una sola dirección (`enterCuevaFromSecret`, super→cueva). **Falta** el
 > sentido inverso (cueva→chino) y el modo "comprar comida".
 
-### Opción B — Iorio y el Pibe Tigre
-Vas a **Cemento** y le pedís ayuda a **Iorio**. Iorio te pide **falopa**: si se la conseguís, **toca
-"Pibe Tigre"** 🤘 y **los ninjas —que son metaleros— abandonan el mercado** para ir al recital,
-dejando la **puerta del chino ABIERTA** (entrás por adelante). Ver [`personajes/iorio.md`](personajes/iorio.md).
+### Opción B — Iorio y el Pibe Tigre (ventana TEMPORAL, repetible)
+Vas a **Cemento** y le pedís ayuda a **Iorio**. Le das **falopa** → **toca "Pibe Tigre"** 🤘 → los
+**ninjas (metaleros) abandonan el chino** y se van **al recital**, dejando la **puerta del chino
+abierta**. Pero es una **ventana corta y de una**:
+- **Entrás, comprás y salís.** Cuando salís, **los ninjas YA volvieron** a la barricada e **Iorio
+  volvió a su estado anterior** (puteando al dios sol). Si querés otra vuelta, **le das falopa de
+  nuevo** (por eso la falopa es un recurso que gastás).
+- Flavor de Iorio al volver: *"...la puta que te parió, dios sol... ¡Che, tano Marcello! Menos mal
+  que ahora hacemos acústicos y tango, total ya no hay luz."* 🎻 (post-tormenta no hay electricidad).
+Ver [`personajes/iorio.md`](personajes/iorio.md).
 
 ## 4. Recursos (de dónde sale todo)
 
@@ -38,9 +55,12 @@ dejando la **puerta del chino ABIERTA** (entrás por adelante). Ver [`personajes
 Cuando la tormenta **colapsa** todo, los **muebles de lujo** de los pisos impares pasan a tener
 **cajones llenos de falopa**. La juntás de ahí. **Se acaba**: hay **10 pisos de lujo**, debería
 alcanzarte. Recurso **finito** → tensión de supervivencia.
+- **Decisión:** la **falopa se RESETEA en cada loop** (cada día volvés a tener los cajones llenos).
 
 ### Monedas (para pagar la comida)
 - Salen de las **cajas fuertes** de los linyeras y del **inodoro** de los baños.
+- **Decisión:** las **monedas NO se resetean del todo** entre loops — queda una cantidad **parcial y
+  aleatoria** (a veces más, a veces menos). No es ni reset total ni persistencia total.
 - Los **linyeras eran millonarios** que se quedaron sin laburo y se **cansaron del sistema**; guardan
   esas cosas porque **para ellos no valen nada**. Al **hablarles** te **cuentan su historia** (lo
   grandes que eran), **se ponen a llorar** arrepentidos de la vida citadina, y te dicen *"che, pibe,
@@ -54,24 +74,30 @@ vida baja → necesitás COMIDA → para comprarla necesitás MONEDAS (linyeras:
           → comprás comida → vida sube → ... hasta que salís por el PORTAL (fin del loop)
 ```
 
-## 6. Requisitos funcionales (Draft, sin implementar)
-- **RF-L1** — la vida **decae** con el tiempo/días del loop.
+## 6. Requisitos funcionales (Draft salvo lo marcado)
+- **RF-L0** *(implementado v=38)* — el loop **solo existe post-`stormed`**; pre-tormenta el catre no
+  hace nada.
+- **RF-L1** — la vida **decae −3 cada 30 s** (tiempo real) una vez `stormed`.
 - **RF-L2** — el chino **vende comida** que restaura vida (post-colapso).
 - **RF-L3** — el **frente** del chino queda **barricado** (ninjas/fuego/granadas) tras `stormed`.
 - **RF-L4** — **puerta trasera** cueva↔chino usable como entrada de servicio.
-- **RF-L5** — **falopa**: ítem **finito** en los cajones de los pisos de lujo (~10 pisos, se agota).
-- **RF-L6** — **Iorio**: darle falopa → toca Pibe Tigre → ninjas se van → front del chino abierto.
-- **RF-L7** — **monedas** en cajas fuertes / inodoro; los linyeras te muestran dónde (diálogo + lore).
-- **RF-L8** — el loop **termina** cuando vas al **portal** (no hay que sobrevivir para siempre).
+- **RF-L5** — **falopa**: ítem en los cajones de lujo (~10 pisos). **Se resetea cada loop.**
+- **RF-L6** — **Iorio**: falopa → toca Pibe Tigre → ninjas se van → front abierto **por una entrada**;
+  al **salir**, los ninjas vuelven e Iorio vuelve a su estado. **Repetible** con más falopa.
+- **RF-L7** — **monedas** en cajas fuertes / inodoro. Entre loops quedan en cantidad **parcial y
+  aleatoria** (ni reset total ni persistencia total).
+- **RF-L8** — **dormir en el catre = pasa un día** (`loopCount++`); el mundo sigue en caos (no reset
+  limpio). El loop **termina** cuando vas al **portal**.
+- **RF-L9** — si la **vida llega a 0**: **morís y volvés al loop anterior** (`loopCount − 1`).
 
-## 7. Estados y flags (propuestos)
+## 7. Estados y flags
 | Flag | Tipo | Nota |
 |---|---|---|
-| `player.hp` | int | ya existe; ahora **decae** con los días del loop |
-| `falopa` | int | ítem nuevo, finito |
+| `player.hp` | int | **decae −3 / 30 s** post-`stormed`; 0 → volver al loop anterior |
+| `falopa` | int | ítem; **se resetea cada loop** |
 | `comida` | int/acción | lo que comprás en el chino para subir vida |
-| `iorioHelped` / `chinoFrontOpen` | bool | Iorio tocó → front abierto |
-| `dia` | int | días sobrevividos en el loop (relación con `loopCount`) |
+| `chinoFrontOpen` | bool | Iorio tocó → front abierto **temporal** (se cierra al salir) |
+| `loopCount` / `dia` | int | día del loop (dormir lo sube; morir lo baja 1) |
 
 ## 8. Aristas
 ```
@@ -88,11 +114,11 @@ linyera --da--> monedas [cajas fuertes / inodoro, "mirá ahí tengo plata"]
 monedas --paga--> comida
 ```
 
-## 9. Preguntas abiertas
-1. ¿La vida baja por **tiempo real**, por **"día"**, o por **vuelta de loop**? ¿Cuánto por unidad?
-2. ¿La **comida** es un ítem que comprás y comés, o comer = recuperar al instante en la caja?
-3. ¿La **falopa finita** se comparte entre loops o se **resetea** cada vuelta? (Coherencia con el
-   "loop limpio" decidido en `conexiones-secretas-y-refugios.md`.)
-4. ¿Iorio abre el chino **para siempre** o **por un rato** (los ninjas vuelven)?
-5. ¿**Game over** si la vida llega a 0 en el loop? ¿Reinicia el loop o es muerte real?
-6. **Balance:** ¿10 pisos de falopa alcanzan? ¿cuánta plata hay por linyera / por inodoro?
+## 9. Preguntas abiertas (lo resuelto quedó arriba)
+- **Q2 — comida:** ¿ítem que comprás y comés cuando querés, o comer = recuperar al instante en la
+  caja del chino? *(pendiente)*
+- **Q6 — balance:** ¿10 pisos de falopa alcanzan por loop? ¿cuánta plata da cada linyera / inodoro?
+  ¿cuánta vida da una comida vs. el −3/30 s? *(a tunear al implementar)*
+
+> Resueltas: vida −3/30 s (Q1) · falopa resetea, plata parcial-aleatoria (Q3) · Iorio temporal y
+> repetible (Q4) · muerte = volver al loop anterior (Q5).

@@ -14,6 +14,8 @@ entrás con el **`ticket_cemento`** que comprás en la disquería. Música **met
   Tigre** → los **ninjas metaleros** dejan el chino → **front del chino abierto**. Ver
   [`iorio.md`](../personajes/iorio.md) y [`../loop-supervivencia.md`](../loop-supervivencia.md).
 - **Post-tormenta:** la fachada colapsa, pero **adentro Iorio sigue** (el reducto under aguanta).
+  Sin electricidad, la banda pasa a **acústico y tango** (*"menos mal que ahora hacemos acústicos y
+  tango, total ya no hay luz"*).
 
 ## Aristas
 ```

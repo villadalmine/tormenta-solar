@@ -29,9 +29,10 @@ que abre el **búnker** del piso 20 (refugio / loop).
 - **Post-tormenta / LOOP — la despensa del refugio:** este edificio es de donde sacás los recursos
   para sobrevivir (ver [`../loop-supervivencia.md`](../loop-supervivencia.md)):
   - **Falopa:** tras el colapso, los **muebles de lujo** (pisos impares) tienen **cajones llenos de
-    falopa** → la juntás para dársela a **Iorio**. Es **finita** (~10 pisos de lujo).
+    falopa** → la juntás para dársela a **Iorio**. ~10 pisos. **Se resetea en cada loop.**
   - **Monedas:** en las **cajas fuertes** de los linyeras y en el **inodoro** de los baños. Los
-    linyeras (ex-millonarios) te muestran dónde al hablarles (ver `personajes/linyeras.md`).
+    linyeras (ex-millonarios) te muestran dónde al hablarles. Entre loops quedan en cantidad
+    **parcial y aleatoria** (ver `personajes/linyeras.md`).
 - **Post-tormenta:** **sobrevive** (nadie lo quiere) → refugio.
 
 ## Aristas

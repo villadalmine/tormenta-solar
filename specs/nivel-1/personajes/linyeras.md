@@ -50,6 +50,8 @@ ya no valen nada**. Por eso, en el **loop de supervivencia** son tu **fuente de 
 - Entonces te dicen *"che, pibe, mirá ahí tengo plata"* y te **muestran dónde** (su **caja fuerte**
   o el **inodoro**) → vas **sacando monedas** para comprarle comida al chino.
 - Es la economía del loop: ver [`../loop-supervivencia.md`](../loop-supervivencia.md).
+- **Entre loops**, las monedas que dejan no se resetean del todo: queda una cantidad **parcial y
+  aleatoria** (la falopa de los cajones de lujo, en cambio, **sí se resetea** cada vuelta).
 
 Pool de relatos (Draft, hacer variantes — cada uno distinto):
 - *“Yo tenía tres departamentos en Puerto Madero, pibe... tres. (se quiebra) Mirá ahí, en el

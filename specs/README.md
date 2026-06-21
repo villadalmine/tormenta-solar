@@ -71,6 +71,7 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar autom�
 
 **Transversal**
 - [TECNICAS.md](TECNICAS.md) — cómo se modela esto en game dev (grafo de entidades, quest DAG, RAG).
+- [configuracion.md](configuracion.md) — opciones/accesibilidad (fuente, duración del texto, volumen).
 
 **Nivel 1 — sistemas**
 | Spec | Estado |
