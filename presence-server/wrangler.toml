@@ -1,0 +1,10 @@
+name = "tormenta-presence"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# KV donde se guardan los latidos. Creá el namespace una vez:
+#   npx wrangler kv namespace create PRESENCE
+# y pegá el id que te devuelve acá abajo:
+[[kv_namespaces]]
+binding = "PRESENCE"
+id = "PONÉ_ACÁ_EL_ID_DEL_KV"

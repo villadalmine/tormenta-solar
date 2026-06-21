@@ -307,6 +307,62 @@ const Art = (() => {
       g.fillStyle = '#5a3a2a'; g.fillRect(6, h-8, 10, 8); g.fillStyle = '#2a2a30'; g.fillRect(28, h-10, 9, 10);
       g.fillStyle = '#777'; g.fillRect(20, h-6, 7, 6); g.strokeStyle = '#222'; g.lineWidth = 1; g.strokeRect(20, h-6, 7, 6);
     }),
+    // ---- depto de LUJO (pisos impares del edificio abandonado) ----
+    cocina: mk(72, 72, (g, w, h) => {
+      g.fillStyle = '#37474f'; g.fillRect(2, h-30, w-4, 30);                                   // bajo mesada
+      g.fillStyle = '#eceff1'; g.fillRect(0, h-34, w, 5);                                       // encimera
+      g.fillStyle = '#455a64'; g.fillRect(6, h-26, 18, 22); g.fillRect(28, h-26, 18, 22); g.fillRect(50, h-26, 16, 22);
+      g.fillStyle = '#cfd8dc'; g.fillRect(20, h-18, 2, 6); g.fillRect(42, h-18, 2, 6); g.fillRect(62, h-18, 2, 6); // manijas
+      g.fillStyle = '#263238'; g.fillRect(8, h-39, 24, 6);                                      // anafe
+      g.fillStyle = '#ff7043'; g.beginPath(); g.arc(15, h-36, 3, 0, Math.PI*2); g.arc(25, h-36, 3, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#546e7a'; g.fillRect(6, 6, 26, 22); g.fillRect(40, 6, 26, 22);             // alacenas
+      g.fillStyle = '#37474f'; g.fillRect(8, 8, 22, 18); g.fillRect(42, 8, 22, 18);
+      g.fillStyle = '#90a4ae'; g.fillRect(34, 0, 6, 18); g.beginPath(); g.moveTo(28, 18); g.lineTo(46, 18); g.lineTo(42, 30); g.lineTo(32, 30); g.closePath(); g.fill(); // campana
+    }),
+    bano: mk(60, 62, (g, w, h) => {
+      g.fillStyle = '#cfd8dc'; g.fillRect(0, 6, w, h-6);
+      g.strokeStyle = '#b0bec5'; g.lineWidth = 1;
+      for (let x = 0; x < w; x += 12) { g.beginPath(); g.moveTo(x, 6); g.lineTo(x, h); g.stroke(); }
+      for (let y = 6; y < h; y += 12) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+      g.fillStyle = '#fff'; g.fillRect(8, h-14, 16, 14); g.beginPath(); g.ellipse(16, h-16, 9, 5, 0, 0, Math.PI*2); g.fill(); // inodoro
+      g.fillStyle = '#eee'; g.fillRect(8, h-30, 14, 14);                                        // mochila
+      g.fillStyle = '#fff'; g.fillRect(34, h-12, 22, 12); g.fillStyle = '#b3e5fc'; g.fillRect(36, h-10, 18, 6); // bañera + agua
+      g.fillStyle = '#b0bec5'; g.fillRect(44, h-20, 2, 8);                                      // canilla
+      g.fillStyle = '#80d8ff'; g.fillRect(36, 10, 18, 14); g.globalAlpha = 0.5; g.fillStyle = '#fff'; g.fillRect(38, 12, 4, 10); g.globalAlpha = 1; // espejo
+    }),
+    sofa: mk(70, 42, (g, w, h) => {
+      g.fillStyle = 'rgba(0,0,0,0.2)'; g.beginPath(); g.ellipse(w/2, h-3, 30, 4, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#6a1b9a'; g.fillRect(4, 14, w-8, 18);
+      g.fillStyle = '#7b1fa2'; g.fillRect(2, 8, 12, 24); g.fillRect(w-14, 8, 12, 24);
+      g.fillStyle = '#8e24aa'; g.fillRect(14, 12, 18, 8); g.fillRect(36, 12, 18, 8);
+      g.fillStyle = '#4a148c'; g.fillRect(8, h-8, 5, 8); g.fillRect(w-13, h-8, 5, 8);
+    }),
+    tvplasma: mk(64, 70, (g, w, h) => {
+      g.fillStyle = '#263238'; g.fillRect(8, h-12, w-16, 12);                                   // rack
+      g.fillStyle = '#111'; g.fillRect(w/2-3, h-22, 6, 10); g.fillRect(w/2-12, h-13, 24, 3);     // pie
+      g.fillStyle = '#0a0a0a'; g.fillRect(2, 4, w-4, h-26);                                      // marco
+      g.fillStyle = '#0d47a1'; g.fillRect(6, 8, w-12, h-34);                                     // pantalla (paisaje)
+      g.fillStyle = '#26c6da'; g.fillRect(6, 8+(h-34)*0.55, w-12, (h-34)*0.45);
+      g.fillStyle = '#fff59d'; g.beginPath(); g.arc(w-16, 18, 5, 0, Math.PI*2); g.fill();
+      g.globalAlpha = 0.15; g.fillStyle = '#fff'; g.fillRect(8, 10, 6, h-38); g.globalAlpha = 1;
+    }),
+    joyas: mk(34, 48, (g, w, h) => {
+      g.fillStyle = '#3e2723'; g.fillRect(8, h-20, 18, 20);
+      g.fillStyle = '#5d4037'; g.fillRect(6, h-24, 22, 5);
+      g.fillStyle = '#b71c1c'; g.fillRect(9, h-29, 16, 7);                                       // almohadón
+      g.strokeStyle = '#ffd700'; g.lineWidth = 2; g.beginPath(); g.arc(17, h-26, 6, 0.1*Math.PI, 0.9*Math.PI); g.stroke(); // collar
+      const gem = (x, y, c) => { g.fillStyle = c; g.beginPath(); g.moveTo(x, y-4); g.lineTo(x+4, y); g.lineTo(x, y+4); g.lineTo(x-4, y); g.closePath(); g.fill(); };
+      gem(12, h-34, '#e91e63'); gem(22, h-34, '#00e5ff'); gem(17, h-39, '#76ff03');
+      g.fillStyle = '#fff'; g.fillRect(11, h-36, 1, 3); g.fillRect(21, h-36, 1, 3);              // destellos
+    }),
+    maletin: mk(46, 36, (g, w, h) => {
+      g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(w/2, h-2, 20, 3, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#3e2723'; g.fillRect(3, 2, w-6, 12); g.fillStyle = '#4e342e'; g.fillRect(5, 4, w-10, 8); // tapa
+      g.fillStyle = '#2e1c16'; g.fillRect(2, 14, w-4, h-16);                                      // base
+      for (let i = 0; i < 3; i++) { const x = 6 + i*12; g.fillStyle = '#2e7d32'; g.fillRect(x, 16, 10, 7); g.fillStyle = '#43a047'; g.fillRect(x, 23, 10, 7);
+        g.fillStyle = '#a5d6a7'; g.fillRect(x+3, 18, 4, 3); g.fillRect(x+3, 25, 4, 3); }               // fajos de dólares
+      g.fillStyle = '#fff'; g.globalAlpha = 0.9; g.fillRect(w-10, 5, 2, 2); g.fillRect(w-7, 8, 1, 1); g.globalAlpha = 1; // brillo
+    }),
   };
 
   // ---------------- PERSONAJE ----------------
@@ -482,6 +538,21 @@ const Art = (() => {
       g.fillStyle = '#1a1a1a'; g.beginPath(); g.arc(6, 36, 5, Math.PI, 2*Math.PI); g.fill(); // pelo
       g.strokeStyle = '#6b5a3a'; g.lineWidth = 1; g.beginPath(); g.moveTo(2, 41); g.lineTo(10, 39); g.stroke(); // brazo colgando
       g.fillStyle = 'rgba(180,180,200,0.4)'; g.fillRect(30, 30, 2, 6);      // ZzZ humo/vaho
+    }),
+    linyera: mk(40, 46, (g, w, h) => {
+      // el solcito que le tapás
+      g.fillStyle = 'rgba(255,213,79,0.35)'; g.beginPath(); g.arc(w-7, 10, 9, 0, Math.PI*2); g.fill();
+      g.fillStyle = 'rgba(0,0,0,0.22)'; g.beginPath(); g.ellipse(w/2-2, h-3, 12, 4, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#4e342e'; g.fillRect(w/2-8, h-18, 6, 18); g.fillRect(w/2, h-18, 6, 18);   // piernas
+      g.fillStyle = '#2e1c16'; g.fillRect(w/2-9, h-4, 8, 4); g.fillRect(w/2, h-4, 8, 4);        // zapatos rotos
+      g.fillStyle = '#6d4c41'; g.fillRect(w/2-11, h-30, 22, 16);                                // abrigo gastado
+      g.fillStyle = '#5d4037'; g.fillRect(w/2-11, h-30, 22, 4);
+      g.fillStyle = '#8d6e63'; g.fillRect(w/2-6, h-22, 6, 6);                                   // remiendo
+      g.strokeStyle = '#b5895f'; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath(); g.moveTo(w/2+8, h-28); g.lineTo(w/2+15, h-36); g.stroke(); // brazo: "pará, pibe"
+      g.fillStyle = '#caa478'; g.beginPath(); g.arc(w/2-2, h-36, 6, 0, Math.PI*2); g.fill();    // cabeza
+      g.fillStyle = '#3a2a1a'; g.beginPath(); g.arc(w/2-2, h-39, 6, Math.PI, 2*Math.PI); g.fill(); // pelo desgreñado
+      g.fillStyle = '#d8d8d8'; g.fillRect(w/2-7, h-34, 10, 5);                                  // barba canosa
+      g.fillStyle = '#111'; g.fillRect(w/2-4, h-37, 2, 2); g.fillRect(w/2, h-37, 2, 2);          // ojos
     }),
     turista: mk(32, 44, (g) => {
       drawPerson(g, 32, 44, { skin:'#e6c098', hair:'#caa45a', shirt:'#ef6c00', pants:'#2a3a4a', eyes:'#111' });

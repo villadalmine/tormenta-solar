@@ -134,7 +134,7 @@ if (require.main === module) {
       (r.npcs||[]).forEach(n => { if (!A.npc[n.sprite]) bad.push(ri + ' npc ' + n.name + ' -> ' + n.sprite); });
       (r.enemies||[]).forEach(e => { if (e.look && A.enemy && !A.enemy[e.look]) bad.push(ri + ' enemy -> ' + e.look); });
       (r.machines||[]).forEach(mc => { if (!A.machines[mc.game]) bad.push(ri + ' machine -> ' + mc.game); });
-      (r.decor||[]).forEach(d => { if (d.art && A.decor && !A.decor[d.art]) bad.push(ri + ' decor -> ' + d.art); });
+      (r.decor||[]).forEach(d => { if (d.type && A.decor && !A.decor[d.type]) bad.push(ri + ' decor -> ' + d.type); });
       (r.doors||[]).forEach(d => { const k = DOOR_ART[d.art] || d.art || 'door'; if (!A.items[k]) bad.push(ri + ' door -> ' + d.art); });
     });
     return JSON.stringify({ bad: bad, n: R.length });

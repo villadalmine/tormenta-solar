@@ -7,9 +7,15 @@ las **cuevas del dólar** (cambio ilegal), estalla todo y escapás por un **port
 Hecho en **JavaScript vanilla + HTML5 Canvas**, sin build, sin dependencias, sin assets
 externos: **todo el arte y la música son procedurales** (se dibujan/sintetizan por código).
 
+## 🕹️ Jugá online
+
+👉 **[villadalmine.github.io/tormenta-solar](https://villadalmine.github.io/tormenta-solar/)**
+
+(Se juega en el navegador, no instala nada. Probado en Chrome/Firefox de escritorio.)
+
 ---
 
-## ▶️ Cómo correr
+## ▶️ Cómo correr (local)
 
 No necesita instalar nada. Serví la carpeta con cualquier server estático:
 
@@ -22,7 +28,8 @@ python3 -m http.server 8000
 > y el cacheo. El audio arranca recién cuando hacés click en **ENTRAR A LA PEATONAL**
 > (política de autoplay de los navegadores).
 
-Probado en Chrome/Firefox de escritorio. Canvas 960×540.
+Probado en Chrome/Firefox de escritorio. Canvas **800×448**, que **se auto-escala para llenar
+la ventana** manteniendo la proporción (`js/fit.js`) — no hace falta hacer zoom en el navegador.
 
 ---
 
@@ -92,8 +99,14 @@ Cuando le acercás lo que quiere, **lo detecta**, te lo agradece y **deja de ped
 
 Con los tres contentos **saltan de alegría**, te hacen **socio VIP** “por alimentar a las clases
 bajas de forma desinteresada”, **abren el edificio** y te soplan el secreto del super→cueva. El
-edificio tiene **20 pisos** (ascensor): los **impares son de lujo** (la mejor moda, vacíos, podés
-saquear monedas) y los **pares están destruidos** (escombros y gente tirada / yonquis durmiendo).
+edificio tiene **20 pisos** (ascensor):
+
+- Los **impares son de lujo**: un **depto top** con cocina, baño, **living con un tele
+  buenísima**, maniquí de moda, **joyas** y un **maletín lleno de dólares**. Podés saquear unas
+  monedas... pero cuando vas por el maletín o las joyas **sube un linyera filósofo** (un Diógenes
+  de Florida) y te frena: *“No toques eso, pibe, afecta el espacio-temporal y me convierto de
+  vuelta en millonario... ¡y yo no quiero laburar! Corréte, que me tapás el sol.”* 🌞
+- Los **pares están destruidos**: escombros y gente tirada / yonquis durmiendo.
 
 ### El final
 Tras la tormenta, volvés a la superficie, entrás a la **Casa de Cambio Oficial** (ahora
@@ -137,9 +150,24 @@ Sin bundler: los `<script>` se cargan en orden de dependencia desde `index.html`
 | `js/super.js` | Super chino (vista de arriba) |
 | `js/vinilos.js` | Disquería (vista de arriba) |
 | `js/game.js` | Loop principal, estados, cámara, iluminación, tormenta, HUD |
+| `js/presence.js` | Contador "jugando ahora" (capa aditiva, opcional, no toca el core) |
 
 **Cache-busting:** todos los `src` llevan `?v=N` en `index.html`. **Al cambiar cualquier
-JS/CSS hay que subir ese número** (si no, el navegador sirve la versión vieja). Actual: **`v=31`**.
+JS/CSS hay que subir ese número** (si no, el navegador sirve la versión vieja). Actual: **`v=33`**.
+
+---
+
+## 🟢 “Jugando ahora” (presencia online)
+
+La intro puede mostrar un cartelito **🟢 N jugando ahora**. Es una **capa aditiva** (`js/presence.js`)
+que no toca el juego: cada pestaña manda un latido a un endpoint que cuenta a los activos.
+
+- **Sin endpoint configurado, no muestra nada** (el juego anda 100% igual). Por eso funciona
+  en GitHub Pages aunque no tengas backend.
+- Para activarlo levantás un endpoint mínimo (Node propio **o** un Cloudflare Worker gratis) y
+  pegás su URL en `js/presence.js → ENDPOINT`. Todo explicado en
+  **[`presence-server/`](presence-server/README.md)**.
+- No pide login ni guarda datos personales: solo un id random por pestaña, con TTL de ~30s.
 
 ### Cómo está armado un nivel
 `Level.build()` devuelve un array de salas (`makeRoom(spec)`). Las salas se conectan con

@@ -376,6 +376,13 @@ const Level = (() => {
       'Murmura algo y se da vuelta contra la pared. 😪',
       '“¿Buscás algo de valor? Subí a los impares... están vacíos, pero brillan.” ✨',
     ];
+    // el linyera filósofo que cuida el maletín de los pisos de lujo (Diógenes versión Florida)
+    const LINYERA_LINES = [
+      '“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞',
+      '“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞',
+      '“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨',
+      '“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼',
+    ];
     for (let n = 1; n <= 20; n++) {
       const lux = (n % 2 === 1), w = 17;
       const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar un piso', x:2, inward:1 }];
@@ -383,8 +390,16 @@ const Level = (() => {
       const spec = { name:'Edificio Abandonado — Piso ' + n + (lux ? ' · LUJO' : ' · ruina'),
         theme: lux ? 'lujo' : 'ruina', light: lux ? 1.0 : 0.42, w, doors };
       if (lux) {
-        spec.decor = [{t:'maniqui',x:5},{t:'maniqui',x:8},{t:'cartel',x:11},{t:'maniqui',x:13}];
-        spec.pickups = [{t:'coins',x:7,amount:6},{t:'coins',x:12,amount:5}];
+        // depto de lujo: moda, cocina, baño, living con tele, joyas y un maletín con dólares
+        spec.decor = [
+          {t:'maniqui',x:3.4}, {t:'cocina',x:4.8}, {t:'bano',x:6.6},
+          {t:'sofa',x:8.6}, {t:'tvplasma',x:10.1}, {t:'joyas',x:11.4}, {t:'maletin',x:12.4},
+        ];
+        // el linyera cuida el maletín/joyas: si los querés agarrar, te frena con su filosofía
+        spec.npcs = [
+          { name:'Linyera', sprite:'linyera', x:12.6, action:'maletin', lines: LINYERA_LINES },
+        ];
+        spec.pickups = [{t:'coins',x:7,amount:6}];
       } else {
         spec.decor = [{t:'escombros',x:5},{t:'barril',x:9},{t:'escombros',x:12},{t:'caja',x:14}];
         spec.npcs = [

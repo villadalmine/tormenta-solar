@@ -119,6 +119,21 @@ html, body {
 .panel p.controls { color: #80cbc4; font-size: 11px; margin-top: 12px; }
 .panel strong { color: #fff; }
 
+.online-badge {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 3px 10px;
+  border: 1px solid #2e7d32;
+  border-radius: 12px;
+  background: rgba(20, 60, 25, 0.5);
+  color: #9ccc65;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.gh-line { font-size: 10.5px; color: #607d8b; margin-top: 14px; margin-bottom: 0; }
+.gh-link { color: #4FC3F7; text-decoration: none; }
+.gh-link:hover { text-decoration: underline; }
+
 button {
   margin-top: 16px;
   padding: 11px 20px;

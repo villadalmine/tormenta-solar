@@ -121,8 +121,16 @@
     else if (n.action === 'truco') { setMsg('Te sentás a la mesa...', '#ffd54f', 1000); launchArcade('truco'); }
     else if (n.action === 'shop') buyFromShop(n);
     else if (n.action === 'borracho') giveBorracho(n);
+    else if (n.action === 'maletin') grabMaletin(n);
     else if (n.action === 'fifa') playFifa();
     else { setMsg(n.dialog || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
+  }
+  function grabMaletin(n) {
+    // querés agarrar el maletín de dólares / las joyas → sube el linyera y te frena
+    const lines = n.lines && n.lines.length ? n.lines : ['“No toques eso, pibe.”'];
+    if (!n.said) { n.said = true; setMsg(lines[0], '#ffd54f', 8500); }   // la primera vez, el monólogo
+    else setMsg(lines[1 + ((Math.random() * (lines.length - 1)) | 0)] || lines[0], '#ffd54f', 5500);
+    Sfx.pickup();
   }
   function playFifa() {
     if (!player.hasMegaDrive) { setMsg('“¿Trajiste una Mega Drive? Comprá una en el super chino (sección CONSOLAS) y volvé para el torneo de FIFA.” 🎮', '#9fd3ff', 5000); return; }

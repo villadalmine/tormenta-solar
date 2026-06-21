@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** (cache `v=31`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** (cache `v=33`).
 
 ---
 
@@ -22,13 +22,22 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** 
 - **Disquería** (vista de arriba): comprás vinilo → **ticket de Cemento**.
 - **Galería / Sótano / Cuevas del dólar**: tiendas raras, 3 cueveros, **tormenta solar** y
   **portal final** en la Casa de Cambio Oficial.
-- **3 borrachines + edificio abandonado de 20 pisos** (impares lujo vacío / pares destruidos
-  con yonquis). Cada borracho tiene algo en la mano (vino/cerveza/porro) y quiere de regalo
-  fiambre / **Diosa Tropical** / carne; te tiran cosas al azar y la pista se revela hablándole.
+- **3 borrachines + edificio abandonado de 20 pisos**. Cada borracho tiene algo en la mano
+  (vino/cerveza/porro) y quiere de regalo fiambre / **Diosa Tropical** / carne; te tiran cosas
+  al azar y la pista se revela hablándole. Pisos **impares = depto de lujo** (cocina, baño, living
+  con tele, joyas y **maletín de dólares**) cuidado por un **linyera filósofo** (Diógenes: “corréte
+  que me tapás el sol”) que te frena si querés agarrar el maletín/joyas; **pares = destruidos** (yonquis).
 - **Economía**: monedas, caramelos (vuelto), **changuito virtual**, Diosa Tropical, carne,
   fiambre, munición, vida.
 - **Música chiptune** por zona (tango, cumbia, eighties, metal, dance, telo).
 - **Suite e2e headless** (`node tests/e2e.js`): boot + auditoría de assets + 7 sub-modos.
+- **Links**: la intro linkea al repo (GitHub) y el README al juego online (GitHub Pages).
+- **Presencia "jugando ahora"** (`js/presence.js`, capa aditiva opcional): contador en la intro;
+  backend mínimo en `presence-server/` (Node propio o Cloudflare Worker). Sin endpoint → no muestra
+  nada y el juego anda igual. Ver `presence-server/README.md`.
+- **Auto-escalado de pantalla** (`js/fit.js`, capa aditiva): el `#stage` se escala con
+  `transform: scale()` para llenar la ventana sin deformar (canvas + HUD juntos). No hay que hacer
+  zoom en el navegador. Mismo seam que serviría para mobile.
 
 ---
 
@@ -155,7 +164,7 @@ Un overlay que:
 
 ```bash
 # 1. editar js/*.js
-# 2. subir el cache:  ?v=31 -> ?v=32  en index.html (todos los src)
+# 2. subir el cache:  ?v=32 -> ?v=33  en index.html (todos los src)
 # 3. validar:
 node tests/e2e.js
 # 4. probar a mano:
