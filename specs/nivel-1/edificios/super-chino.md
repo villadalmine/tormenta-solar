@@ -16,12 +16,21 @@ casi todas las cosas que piden los borrachines y la Mega Drive. Tiene **changuit
 - Góndolas: **Diosa Tropical**, carne, fiambre, golosinas, limpieza/bazar y **Mega Drive** (CONSOLAS).
 - **Puerta secreta** → te lleva a la **cueva del dólar** (`enterCuevaFromSecret`, +60 monedas la 1ª
   vez). Los borrachines te soplan esta pista al hacerte VIP.
-- **Post-tormenta:** **atrincherado** (tachos con fuego, granadas, ninjas) → **sobrevive** (refugio).
+- **Post-tormenta / LOOP:** el super se **atrinchera** — **barricadas de fuego**, **granadas** y
+  **ninjas** en el **frente** → **no entrás por adelante**. Pero es **donde se compra la comida** que
+  te mantiene vivo en el loop. Dos formas de entrar (ver [`../loop-supervivencia.md`](../loop-supervivencia.md)):
+  - **(A) Puerta trasera:** la puerta secreta super↔cueva es la **entrada de servicio** desde el
+    refugio (cueva del dólar / "búnker del cuevero").
+  - **(B) Iorio:** darle **falopa** a Iorio en Cemento → toca Pibe Tigre → los **ninjas metaleros se
+    van** → el **frente** del chino queda abierto.
 
 ## Aristas
 ```
 calle --conecta_con--> super_chino
-super_chino --conecta_con--> cuevas_dolar [secreta]
+super_chino --conecta_con--> cuevas_dolar [secreta · entrada de servicio en el loop]
+super_chino --vende--> comida [post-colapso, restaura vida]
+super_chino --bloquea--> entrada_frente [barricada: ninjas + fuego + granadas, post stormed]
+iorio --desbloquea--> chino_front_abierto [falopa → Pibe Tigre → ninjas se van]
 super_chino --vende--> diosa_tropical
 super_chino --vende--> carne
 super_chino --vende--> fiambre

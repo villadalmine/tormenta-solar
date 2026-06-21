@@ -41,6 +41,22 @@ distinta** del pool `RUINA_LINES` (18 líneas), variando por piso e índice. Eje
 Tranquilos, te tratan de **gurú**. Uno es **el catre**: `action:'loop'` → te quedás en el **loop**
 (reinicia el nivel). Otros dos te recuerdan que la salida real es el portal de la Casa de Cambio.
 
+## Lore + rol en el LOOP (Draft)
+Los linyeras **eran millonarios** que se quedaron **sin laburo** y se **cansaron del sistema**: lo
+dejaron todo y se vinieron a vivir acá. Guardan **joyas, plata y cosas de valor** porque **para ellos
+ya no valen nada**. Por eso, en el **loop de supervivencia** son tu **fuente de monedas**:
+- Al **hablarles**, te **cuentan su historia** (lo grandes que eran, los negocios, la City), y
+  **se ponen a llorar** arrepentidos de esa vida citadina.
+- Entonces te dicen *"che, pibe, mirá ahí tengo plata"* y te **muestran dónde** (su **caja fuerte**
+  o el **inodoro**) → vas **sacando monedas** para comprarle comida al chino.
+- Es la economía del loop: ver [`../loop-supervivencia.md`](../loop-supervivencia.md).
+
+Pool de relatos (Draft, hacer variantes — cada uno distinto):
+- *“Yo tenía tres departamentos en Puerto Madero, pibe... tres. (se quiebra) Mirá ahí, en el
+  inodoro, agarrá lo que quieras, total...”* 😭
+- *“Era gerente de banco. Traje. Reuniones. Un vacío. (llora) Hay guita en la caja fuerte, llevate.”* 💼
+- *“Tenía un auto importado por cada día de la semana. ¿Y para qué? Sacá monedas de ahí, dale.”* 🚗
+
 ## Reglas de variación (anti-repetición)
 - **Frase distinta por NPC**: índice `(n*5 + i*7) % RUINA_LINES.length` (piso `n`, linyera `i`).
 - **Posición rotada por piso**: `xs[(i + (n>>1)) % xs.length]`.
@@ -56,4 +72,6 @@ edificio_abandonado --contiene--> linyera [tirados, pisos pares · 2-4 por piso,
 totem_monos --desbloquea--> bunkerUnlocked [los 20 linyeras te hacen gurú]
 bunker --contiene--> linyera [del búnker]
 linyera_catre --da--> loop [action:'loop']
+linyera --da--> monedas [te muestra la caja fuerte / el inodoro: "mirá ahí tengo plata"]
+linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
 ```

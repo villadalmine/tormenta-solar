@@ -80,6 +80,7 @@ flowchart LR
 | `linyera` (guardián joyas / 20 gurú / tirados ruina / búnker) | [linyeras.md](personajes/linyeras.md) |
 | `chino` (+ familia + ninjas) | [chino.md](personajes/chino.md) |
 | `tahur` | [tahur.md](personajes/tahur.md) |
+| `iorio` (quest del loop: falopa → Pibe Tigre) | [iorio.md](personajes/iorio.md) |
 | `vendedor_garbarino` | [vendedor-garbarino.md](personajes/vendedor-garbarino.md) |
 | `npcs_arcade` (chori / trucotron) | [npcs-arcade.md](personajes/npcs-arcade.md) |
 | `musico` | [musico.md](personajes/musico.md) |
@@ -129,13 +130,42 @@ cuevero_3 --desbloquea--> stormed
 stormed --desbloquea--> portal [en casa_cambio]
 stormed --bloquea--> educacionit [ruinas]
 stormed --bloquea--> garbarino [ruinas]
-stormed --bloquea--> cemento [ruinas]
 stormed --bloquea--> choreria [ruinas]
 stormed --bloquea--> arcade [ruinas]
+cemento --sobrevive--> stormed [Iorio es clave en el loop]
 super_chino --da--> moneyRecovered [+60 al volver por la cueva]
 
 totem_monos --desbloquea--> bunkerUnlocked [en piso 19]
 bunkerUnlocked --desbloquea--> bunker
 bunker --da--> loop [reinicia el nivel, RF-8]
 casa_cambio --da--> WIN [tocar el portal]
+```
+
+## Sub-grafo del LOOP (supervivencia) — Draft
+
+Lo que hacés si te quedás en el loop. Detalle en [`loop-supervivencia.md`](loop-supervivencia.md).
+
+```mermaid
+flowchart LR
+  dias[Pasan los días] --> vida[Vida BAJA] --> comida[Comprar COMIDA en el chino]
+  comida --> vida2[Vida sube]
+  chinoFrente[Chino atrincherado · ninjas+fuego+granadas] -. no entrás .-> comida
+  trasera[Puerta trasera: refugio→chino] --> comida
+  falopa[Falopa de cajones de lujo] --> iorio[Iorio toca Pibe Tigre] --> ninjas[Ninjas metaleros se van] --> chinoAbierto[Front del chino abierto] --> comida
+  liny[Hablar a un linyera: llora, te muestra] --> monedas[Monedas: caja fuerte/inodoro] --> comida
+  portal{{Salir por el PORTAL}} -. fin del loop .-> portal
+```
+
+```
+loop --requiere--> sobrevivir
+vida --decae_con--> dias
+chino --vende--> comida [post-colapso]
+comida --da--> vida
+chino --bloquea--> entrada_frente [ninjas + fuego + granadas]
+cueva_dolar --conecta_con--> chino [puerta trasera / entrada de servicio]
+muebles_lujo --da--> falopa [finita, ~10 pisos]
+iorio --quiere--> falopa
+iorio --desbloquea--> chino_front_abierto [Pibe Tigre → ninjas se van]
+linyera --da--> monedas [caja fuerte / inodoro]
+monedas --paga--> comida
 ```

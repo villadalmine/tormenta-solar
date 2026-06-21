@@ -15,7 +15,10 @@ tormenta solar**. Es el punto de quiebre de la historia. También está la **dis
 - **Conexión secreta:** el **super chino** desemboca acá por una puerta secreta
   (`enterCuevaFromSecret`), y la primera vez **le recuperás +60 monedas** al cuevero que te cagó
   (`moneyRecovered`).
-- **Post-tormenta:** es el corazón del **refugio** (red ilegal "a la sombra"), no colapsa.
+- **Post-tormenta / LOOP — el "búnker del cuevero":** es el **corazón del refugio** (red ilegal "a
+  la sombra", no colapsa). Desde acá entrás al **chino por la puerta trasera** (entrada de servicio)
+  para comprar comida sin cruzar la barricada del frente. Ver
+  [`../loop-supervivencia.md`](../loop-supervivencia.md).
 
 ## Aristas
 ```

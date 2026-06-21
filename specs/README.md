@@ -76,7 +76,8 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar autom�
 | Spec | Estado |
 |---|---|
 | [GRAFO del Nivel 1](nivel-1/GRAFO.md) | Draft |
-| [Conexiones secretas y refugios](nivel-1/conexiones-secretas-y-refugios.md) | Draft |
+| [Conexiones secretas y refugios](nivel-1/conexiones-secretas-y-refugios.md) | Parcial. impl. |
+| [El loop — supervivencia](nivel-1/loop-supervivencia.md) | Draft |
 
 **Nivel 1 — fichas de entidad:** ver [`nivel-1/edificios/`](nivel-1/edificios/) y
 [`nivel-1/personajes/`](nivel-1/personajes/). El índice completo de nodos está en el

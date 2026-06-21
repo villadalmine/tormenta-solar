@@ -76,7 +76,8 @@ Cuando estalla la tormenta, **la sociedad colapsa**. La mayoría de los edificio
 | **Edificio de los borrachines** (14–33) | Sí, **habitable** | Nadie lo quiere: los borrachines son *"la escoria de la sociedad"*. Por eso sigue en pie y es refugio. |
 | **La cueva del dólar** (8) y su red | Sí | Es ilegal/a la sombra; la sociedad colapsada no llega ahí. |
 | **Casa de Cambio Oficial** (13) | Sí, pero es la **salida** | No es refugio: es el portal para escapar. |
-| **Todo el resto** (EducaciónIT, Garbarino, Cemento, Chorería, arcade) | **No** | Colapsa / clausurado. No se puede entrar tras la tormenta. |
+| **Cemento** (12) | Sí | El under aguanta y **Iorio** es clave en el loop (falopa → abre el chino). Ver [`loop-supervivencia.md`](loop-supervivencia.md). |
+| **Todo el resto** (EducaciónIT, Garbarino, Chorería, arcade) | **No** | Colapsa / clausurado. No se puede entrar tras la tormenta. |
 
 ### 3.2 El búnker de los linyeras (feature nueva)
 
@@ -107,10 +108,10 @@ salida hacia adelante** (el salto temporal real al próximo momento de la histor
   linyeras) con `action:'loop'` que, al usarlo, **reinicia el nivel**.
 - **El loop NO termina solo:** te quedás loopeando **hasta que VOS decidís pasar de nivel** por el
   portal de la Casa de Cambio. Es un estado, no un evento de una sola vez.
-- **Qué se puede HACER en el loop:** *(todavía sin definir — es su propio SDD)*. La idea: cada
-  vuelta podés intentar cosas nuevas / juntar / experimentar en la city repetida. Esto se especifica
-  aparte (ver `specs/nivel-1/edificios/` y `personajes/` para el catálogo de qué ofrece cada nodo, y
-  un futuro `loop-actividades.md`).
+- **Qué se HACE en el loop:** la meta es **sobrevivir** — la vida baja con los días y hay que salir a
+  **comprar comida al chino** (atrincherado). Todo eso está especificado en
+  **[`loop-supervivencia.md`](loop-supervivencia.md)** (acceso por la puerta trasera o vía Iorio,
+  falopa de los cajones de lujo, monedas de los linyeras).
 - **Qué persiste al loopear:** *(sub-decisión, ver Preguntas abiertas)* — por defecto se propone
   **resetear todo** (loop "limpio", como morir pero sin pantalla de derrota), salvo quizás un
   contador de vueltas para un guiño ("Día #N en el loop").
@@ -137,7 +138,7 @@ Tras `stormed`, los edificios que **no** son refugio ni salida **se derrumban**:
 - **RF-6** — **No rompe el final**: la **Casa de Cambio (13)** sigue siendo la única vía de **pasar
   de nivel**. El búnker es alternativa de **refugio**, no victoria.
 - **RF-7** *(colapso post-tormenta = fachada en ruinas)* — Tras `stormed`, los edificios que **no**
-  son `{super, abandonado, red de la cueva, casa de cambio}`: **(a)** su puerta en la calle **no
+  son `{super, abandonado, red de la cueva, casa de cambio, cemento}`: **(a)** su puerta en la calle **no
   entra** y tira un mensaje ("derrumbado / clausurado"), y **(b)** su **fachada cambia a un sprite
   en ruinas** (escombros/fuego). Hace falta una **variante "ruina" del arte de fachada** por
   edificio afectado (o un overlay genérico de derrumbe).

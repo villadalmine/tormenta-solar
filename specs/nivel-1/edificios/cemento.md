@@ -10,7 +10,10 @@ entrás con el **`ticket_cemento`** que comprás en la disquería. Música **met
 ## Detalle
 - **Iorio**, guitarrista, bajista, baterista (flavor + chiste). **Asador** con choripán de la previa.
 - Gating: la puerta en la calle **requiere `hasCementoTicket`** (si no, no aparece/usable).
-- **Post-tormenta:** colapsa → ruinas (RF-7).
+- **En el LOOP, Iorio es clave:** le pedís ayuda, te pide **falopa**, y si se la das **toca Pibe
+  Tigre** → los **ninjas metaleros** dejan el chino → **front del chino abierto**. Ver
+  [`iorio.md`](../personajes/iorio.md) y [`../loop-supervivencia.md`](../loop-supervivencia.md).
+- **Post-tormenta:** la fachada colapsa, pero **adentro Iorio sigue** (el reducto under aguanta).
 
 ## Aristas
 ```
@@ -18,5 +21,6 @@ calle --conecta_con--> cemento [requiere ticket_cemento]
 cemento --requiere--> ticket_cemento
 ticket_cemento --se_consigue_en--> disqueria
 cemento --contiene--> banda_cemento
-stormed --bloquea--> cemento [ruinas]
+cemento --contiene--> iorio
+cemento --sobrevive--> stormed [el under aguanta; Iorio es clave en el loop]
 ```
