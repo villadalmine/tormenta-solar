@@ -111,10 +111,10 @@
     if (it.kind === 'door') {
       if (it.d.id === 'super') {
         if (!stormed) enterSuper();                              // pre-tormenta: changuito normal
-        else if (chinoFrontOpen) eatAtChino('frente');          // Iorio corrió a los ninjas
-        else setMsg('El FRENTE del chino está atrincherado: tachos con fuego, granadas y los ninjas de guardia. No entrás por acá. → Probá la PUERTA TRASERA (desde la cueva) o que IORIO toque para que se vayan. 🔥🥷', '#ff5252', 6500);
+        else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(); }  // Iorio corrió a los ninjas (una entrada)
+        else setMsg('El FRENTE del chino está atrincherado: tachos con fuego, granadas y los ninjas de guardia. No entrás por acá. → Entrá por la PUERTA TRASERA (desde la cueva) o que IORIO toque para que se vayan. 🔥🥷', '#ff5252', 6500);
       }
-      else if (it.d.id === 'chinoback') eatAtChino('trasera');  // entrada de servicio desde el refugio
+      else if (it.d.id === 'chinoback') enterSuper();           // entrada de servicio desde el refugio
       else if (it.d.id === 'vinilos') enterVinilos();
       else if (it.d.id === 'cambio' && !stormed) {
         // la casa de cambio oficial está HASTA LAS PELOTAS: la cola no te deja entrar
@@ -137,10 +137,9 @@
     else if (n.action === 'truco') { setMsg('Te sentás a la mesa...', '#ffd54f', 1000); launchArcade('truco'); }
     else if (n.action === 'shop') buyFromShop(n);
     else if (n.action === 'borracho') giveBorracho(n);
-    else if (n.action === 'joyas') grabJoyas(n);
+    else if (n.action === 'lujo') handleLujo(n);
     else if (n.action === 'totem') grabTotem(n);
     else if (n.action === 'loop') doLoop(n);
-    else if (n.action === 'falopa') grabFalopa(n);
     else if (n.action === 'limosna') giveLimosna(n);
     else if (n.action === 'iorio') giveIorio(n);
     else if (n.action === 'fifa') playFifa();
@@ -215,16 +214,11 @@
     player.falopa--; chinoFrontOpen = true; Sfx.win();
     setMsg('Le pasás la falopa a Iorio 🤘. Arranca PIBE TIGRE y los NINJAS (metaleros) dejan el chino y se van al recital. ¡El FRENTE del chino quedó ABIERTO! Corré a comer antes de que vuelvan. (Iorio putea al sol: “...che tano Marcello, menos mal que ahora hacemos acústicos y tango, ya que no hay luz.”) 🎻', '#7CFC00', 9000);
   }
-  function eatAtChino(via) {
-    const cost = 10, heal = 40;
-    if (player.coins < cost) { setMsg('No te alcanza la guita para comer (cuesta ' + cost + ' 🪙). Sacale monedas a los linyeras del edificio. 🍜', '#ff5252', 5000); return; }
-    player.coins -= cost; player.hp = Math.min(100, player.hp + heal); Sfx.pickup();
-    if (via === 'frente') {
-      chinoFrontOpen = false;
-      setMsg('Entrás por el frente, comés (−' + cost + ' 🪙, +' + heal + ' vida 🍜) y salís... pero los ninjas YA volvieron a la barricada. Para otra, más falopa para Iorio. 🥷', '#7CFC00', 6500);
-    } else {
-      setMsg('Entrás al chino por la puerta de atrás y comés: −' + cost + ' 🪙, +' + heal + ' vida. 🍜', '#7CFC00', 4500);
-    }
+  function handleLujo(n) {
+    // mismo punto en los pisos de lujo: pre-tormenta son las JOYAS (te raja el linyera),
+    // post-tormenta el CAJÓN del mueble (falopa para Iorio).
+    if (!stormed) grabJoyas(n);
+    else grabFalopa(n);
   }
   function doLoop() {
     // el catre SOLO sirve con la tormenta ya estallada (antes no hay caos del que refugiarse)
@@ -269,7 +263,7 @@
     if (n.hint && (n.talks >= 4 || Math.random() < 0.45)) setMsg(n.hint, '#ffd54f', 5500);
     else setMsg(pick(n.lines || ['“¿Una mano no me das, pibe?”']), '#ffd54f', 4200);
   }
-  function enterSuper() { superGame = Super.create({ player, gaveBeers }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
+  function enterSuper() { superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   function enterCuevaFromSecret() {
     const idx = rooms.findIndex(r => r.cueveros);
@@ -609,7 +603,18 @@
     if (!it) { elPrompt.classList.add('hidden'); return; }
     let txt;
     if (it.kind === 'cuevero') txt = 'hablar con el cuevero';
-    else if (it.kind === 'npc') txt = it.n.action === 'fighter' ? 'retar a Street Fighter' : it.n.action === 'chori' ? 'canjear vale (choripán)' : it.n.action === 'shop' ? 'comprar (' + it.n.sells.cost + ' ' + (it.n.sells.pay === 'caramelos' ? 'caramelos' : it.n.sells.pay === 'forros' ? 'forros' : 'monedas') + ')' : 'hablar con ' + it.n.name;
+    else if (it.kind === 'npc') {
+      const a = it.n.action;
+      txt = a === 'fighter' ? 'retar a Street Fighter'
+        : a === 'chori' ? 'canjear vale (choripán)'
+        : a === 'shop' ? 'comprar (' + it.n.sells.cost + ' ' + (it.n.sells.pay === 'caramelos' ? 'caramelos' : it.n.sells.pay === 'forros' ? 'forros' : 'monedas') + ')'
+        : a === 'lujo' ? (stormed ? 'abrir el cajón del mueble (falopa) 🌿' : 'tocar las joyas 💎')
+        : a === 'totem' ? 'robar el tótem de 3 monos 🐵'
+        : a === 'limosna' ? (stormed ? 'pedirle unas monedas al linyera 🪙' : 'hablar con ' + it.n.name)
+        : a === 'iorio' ? (stormed ? 'darle falopa a Iorio 🤘' : 'hablar con Iorio')
+        : a === 'loop' ? 'tirarte a dormir (pasar un día) 😴'
+        : 'hablar con ' + it.n.name;
+    }
     else if (it.kind === 'machine') {
       const m = it.m;
       if (stormed) txt = '¡máquina poseída!';

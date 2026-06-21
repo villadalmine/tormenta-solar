@@ -1,18 +1,20 @@
 # SPEC: El loop — supervivencia (Nivel 1)
 
-- **Estado:** Implementado (MVP, v=40) — falta pulir balance/arte
+- **Estado:** Implementado (MVP, v=42) — falta pulir balance/arte
 - **Nivel:** 1 — Florida y Lavalle
 - **Última actualización:** 2026-06-21
 
-> **Implementado (v=40):** vida −3/30 s post-tormenta; **comer en el chino** (−10 🪙 / +40 vida) por
-> la **puerta trasera** (cueva) o por el **frente** si Iorio abrió; **frente barricado** si no;
-> **Iorio** (falopa → abre el frente, temporal, repetible); **falopa** en los cajones de lujo;
-> **monedas** de los linyeras (llanto + random 5–20, 1×/loop); **dormir** = día + reponer falopa +
-> guita parcial random + vida llena; **morir** = volver al loop anterior. HUD: indicador `LOOP`
-> (🌿 falopa + Día). **Simplificaciones del MVP:** comer es una compra instantánea (no entra al modo
-> super); la **barricada del frente** ya tiene **arte** (`Art.decor.barricada`: tachos con fuego +
-> granadas + ninja, se dibuja sobre la puerta del chino con la tormenta y desaparece cuando Iorio la
-> abre); los ninjas yéndose al recital siguen **narrados**; números **placeholder** (ver §9-Q6).
+> **Implementado (v=42):** vida −3/30 s post-tormenta. **Entrás al LOCAL del chino** (modo super) por
+> el **frente** si Iorio lo abrió, o por la **puerta trasera** (door `chinoback` en la cueva). Adentro
+> **comprás = comés** (+15 vida por ítem) y **salís SOLO por la puerta secreta** (→ cueva): por la
+> **principal no te dejan** (*"está todo hasta la teta, quedate y gastá, el chino tiene caramelos"*).
+> Robar = grab + irte sin pagar → ninjas (ya existía). **Barricada** con arte en el frente
+> (`Art.decor.barricada`) mientras no esté abierto. **Iorio** (falopa → abre el frente, temporal,
+> repetible). **Falopa**: un solo punto en los pisos de lujo (`action:'lujo'`: pre-tormenta = joyas y
+> te raja, post = cajón con falopa). **Monedas** de los linyeras de los pisos pares (llanto + random
+> 5–20, 1×/loop). **Catre** visible en el búnker (`Art.decor.catre`) → dormir = día + reponer falopa +
+> guita parcial + vida llena. **Morir** = volver al loop anterior. HUD `LOOP` (🌿 falopa + Día).
+> **Pendiente (ROADMAP):** animar el fuego, sprite de ninjas yéndose, balance de números, ruinas RF-7.
 
 ## 1. Objetivo del loop
 Quedarse en el refugio (en vez de salir por el portal) tiene una **meta: SOBREVIVIR**. Tu **vida baja

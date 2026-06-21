@@ -408,11 +408,10 @@ const Level = (() => {
           {t:'maniqui',x:3.4}, {t:'cocina',x:4.8}, {t:'bano',x:6.6},
           {t:'sofa',x:8.6}, {t:'tvplasma',x:10.1}, {t:'joyas',x:11.4}, {t:'maletin',x:12.4},
         ];
-        // el linyera NO se ve: aparece de la nada al tocar las JOYAS y te raja a la calle.
-        // el maletín, tras la tormenta, es un CAJÓN con falopa (trigger invisible sobre el decor).
+        // UN solo punto interactivo sobre las joyas/maletín (trigger invisible sobre el decor):
+        // pre-tormenta toca las joyas → el linyera te raja; post-tormenta abrís el cajón → falopa.
         spec.npcs = [
-          { name:'', sprite:'linyera', invisible:true, x:11.4, action:'joyas', lines: LINYERA_LINES },
-          { name:'', sprite:'linyera', invisible:true, x:12.4, action:'falopa' },
+          { name:'', sprite:'linyera', invisible:true, x:11.9, action:'lujo', lines: LINYERA_LINES },
         ];
         spec.pickups = [{t:'coins',x:7,amount:6}];
         // PISO 19: además, el TÓTEM sagrado de 3 monos (abre el búnker del piso 20)
@@ -449,12 +448,11 @@ const Level = (() => {
       name: 'El Búnker de los Linyeras', theme: 'secret', light: 0.8, w: 20,
       doors: [{ id:'back', art:'exit', label:'volver al piso 20', x:2, inward:1 }],
       npcs: [
-        { name:'El Catre (quedarse)', sprite:'linyera', x:10, action:'loop',
-          dialog:'“Tirate en el catre, gurú. Acá afuera la sociedad se cae a pedazos; adentro, ni te enterás.”' },
-        { name:'Linyera', sprite:'linyera', x:5,  dialog:'“Bienvenido al búnker, gurú. Acá nadie labura. 🛖”' },
+        { name:'', sprite:'linyera', invisible:true, x:10, action:'loop' },   // el CATRE (decor) es el punto de dormir
+        { name:'Linyera', sprite:'linyera', x:5,  dialog:'“Bienvenido al búnker, gurú. Acá nadie labura. Tirate en el catre cuando quieras pasar el día. 🛖”' },
         { name:'Linyera', sprite:'linyera', x:15, dialog:'“Si querés salir de verdad, andá al portal de la Casa de Cambio. Si no, quedate en el loop.” 🔁' },
       ],
-      decor: [{t:'barril',x:8},{t:'caja',x:13},{t:'parlante',x:17}],
+      decor: [{t:'catre',x:10},{t:'barril',x:4},{t:'caja',x:16},{t:'parlante',x:18}],
       pickups: [{t:'health',x:12},{t:'coins',x:6,amount:8}],
     }));
 

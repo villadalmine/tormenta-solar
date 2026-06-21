@@ -403,6 +403,15 @@ const Art = (() => {
       g.strokeStyle = '#2b3138'; g.lineWidth = 2; g.beginPath(); g.moveTo(40, 14); g.lineTo(44, 26); g.stroke();       // rasgadura
       g.strokeStyle = '#888'; g.lineWidth = 1; g.beginPath(); for (let i=0;i<4;i++){ g.moveTo(50, 30-i*4); g.lineTo(54, 28-i*4); } g.stroke(); // resorte
     }),
+    // catre del búnker (donde te tirás a dormir = pasar un día en el loop)
+    catre: mk(56, 30, (g, w, h) => {
+      g.fillStyle = 'rgba(0,0,0,0.22)'; g.beginPath(); g.ellipse(w/2, h-2, 25, 4, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#3e2723'; g.fillRect(5, h-12, 4, 12); g.fillRect(w-9, h-12, 4, 12);   // patas
+      g.fillStyle = '#6d4c41'; g.fillRect(3, h-17, w-6, 8);                                  // lona
+      g.fillStyle = '#8d6e63'; g.fillRect(3, h-17, w-6, 2);
+      g.fillStyle = '#a1887f'; g.fillRect(5, h-21, 16, 6);                                   // almohada
+      g.fillStyle = '#5d4037'; g.fillRect(23, h-15, w-28, 5);                                // manta raída
+    }),
     // barricada del frente del chino (post-tormenta): tachos con fuego + granadas + ninja de guardia
     barricada: mk(86, 76, (g, w, h) => {
       g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(w/2, h-3, 40, 6, 0, 0, Math.PI*2); g.fill();

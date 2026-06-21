@@ -47,6 +47,14 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** 
 
 Ordenadas por impacto. Nada de esto está hecho.
 
+### Loop de supervivencia — pulido pendiente
+Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md). El MVP está; falta:
+- [ ] **Animar el fuego** de la barricada del chino (llamas parpadeando).
+- [ ] **Sprite de los ninjas yéndose al recital** cuando Iorio toca (hoy solo texto).
+- [ ] **Balance** de los números placeholder (decay −3/30s, comida −10/+40, falopa, plata 5–20).
+- [ ] **RF-7 — colapso en ruinas**: fachadas destruidas + puertas bloqueadas de los edificios que
+      no son refugio tras la tormenta (hoy siguen entrables/normales).
+
 ### Jugabilidad
 - [ ] **Objetivo dentro del edificio abandonado**: hoy es exploración + loot de monedas.
       Darle un premio real (ej. un arma/mejora en el último piso, o un personaje).

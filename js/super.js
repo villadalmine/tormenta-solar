@@ -34,6 +34,7 @@ const Super = (() => {
 
   function create(ctx) {
     const P = ctx.player;
+    const stormed = !!ctx.stormed;   // post-tormenta: comprar = comer (cura), y solo salís por atrás
     const map = Array.from({ length: H }, () => new Array(W).fill(0));
     const cat = Array.from({ length: H }, () => new Array(W).fill(null));
     for (let x = 0; x < W; x++) { map[0][x] = 1; map[H-1][x] = 1; }
@@ -47,7 +48,7 @@ const Super = (() => {
       for (let r = r0; r <= r0+1; r++) for (let x = c0; x <= c0+2; x++) { map[r][x] = 2; cat[r][x] = c; }
       gond.push({ c0, r0, cat: c, cx: c0+1, cy: r0 });
     }
-    const exitC = { x: 2, y: 12 }, secret = { x: 24, y: 1, open: !!ctx.gaveBeers }, caja = { x: 13, y: 12 };
+    const exitC = { x: 2, y: 12 }, secret = { x: 24, y: 1, open: !!ctx.gaveBeers || stormed }, caja = { x: 13, y: 12 };
     const family = { x: 22, y: 1 };   // puerta OSCURA: vive la familia del chino, no se entra (de ahí salen los ninjas)
     const player = { x: 6.5*CS, y: 12.5*CS, r: 11 };
     // changuito (inventario virtual): lo que AGARRÁS queda acá SIN pagar hasta que pasás por la CAJA
@@ -97,8 +98,11 @@ const Super = (() => {
       P.caramelos += change;
       for (const c of cart) deposit(c);
       const n = cart.length; cart = [];
+      let healAmt = 0;
+      if (stormed) { healAmt = Math.min(100, P.hp + n * 15) - P.hp; P.hp += healAmt; }   // comprás = comida → curás
       Sfx.win();
       let extra = mega ? ' ¡Y te llevás una MEGA DRIVE! 🎮 (torneo de FIFA: el flaco del TRUCOTRON en el arcade).' : '';
+      if (stormed && healAmt > 0) extra += ' Comés ahí mismo: +' + healAmt + ' vida. 🍜  (Ahora rajá por la PUERTA SECRETA del fondo.)';
       setMsg('Chino: “¡Gracias amigo!” 🧧 Pagás ' + total + ' monedas por ' + n + ' producto' + (n === 1 ? '' : 's') + '. Vuelto: +' + change + ' caramelos 🍬.' + extra, mega ? 7 : 5);
     }
     // intento de IRSE: si llevás cosas sin pagar, salen los NINJAS y te rajan sin la mercadería
@@ -108,6 +112,11 @@ const Super = (() => {
         eject = 2.8; ninjaX = -40;
         setMsg('Intentás rajar con ' + robo + ' producto' + (robo === 1 ? '' : 's') + ' SIN pagar... De la PUERTA OSCURA (donde vive la familia del chino) salen DOS NINJAS SAMURÁI 🥷🗡️ y te echan del local SIN lo que “te olvidaste” de pagar.', 3);
         exitTo = to;     // a dónde te escupen después de la paliza
+        return;
+      }
+      // post-tormenta: por la puerta PRINCIPAL no te dejan salir (está todo "hasta la teta")
+      if (stormed && to === 'street') {
+        setMsg('Querés salir por la puerta principal... “¡Eh, solo, loco! ¿No ves que afuera está todo HASTA LA TETA? Quedate, pibe, gastá tranquilo... el chino tiene caramelos.” 🧧 → Rajá por la PUERTA SECRETA del fondo (a la cueva).', 5);
         return;
       }
       finish(to);
