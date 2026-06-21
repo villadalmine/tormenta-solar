@@ -160,6 +160,11 @@ y arranca los 7 sub-modos. Atrapa el bug típico de "pantalla en blanco" por spr
 
 Ver **[ROADMAP.md](ROADMAP.md)**.
 
+## 🚀 Publicar
+
+Cómo subir el repo y dejarlo jugable online (GitHub Pages), paso a paso:
+**[PUBLICAR.md](PUBLICAR.md)**.
+
 ## Créditos
 Juego y dirección creativa: el autor. Programación asistida con Claude Code.
 Hecho con humor porteño. Aguante.
