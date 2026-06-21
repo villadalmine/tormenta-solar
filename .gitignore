@@ -11,3 +11,7 @@ Thumbs.db
 *.log
 node_modules/
 tests/screenshots/
+
+# clave de OpenRouter (modo A, generación de diálogos) — NUNCA commitear
+tools/openrouter.key
+tools/.env
