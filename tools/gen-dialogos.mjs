@@ -13,7 +13,16 @@ import { fileURLToPath } from 'url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'js', 'dialogos.js');
 const KEYFILE = path.join(ROOT, 'tools', 'openrouter.key');
-const MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free';
+// si pasás OPENROUTER_MODEL se usa ese; si no, prueba esta lista (rota si uno está rate-limited)
+const MODELS = process.env.OPENROUTER_MODEL ? [process.env.OPENROUTER_MODEL] : [
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'google/gemma-2-9b-it:free',
+  'mistralai/mistral-7b-instruct:free',
+  'meta-llama/llama-3.1-8b-instruct:free',
+  'qwen/qwen-2.5-7b-instruct:free',
+];
+const THROTTLE = +(process.env.THROTTLE_MS || 4000);   // pausa entre pedidos (respeta el límite por minuto)
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const KEYSRC = process.env.OPENROUTER_API_KEY ? 'env OPENROUTER_API_KEY'
   : (existsSync(KEYFILE) ? 'tools/openrouter.key' : 'ninguna');
@@ -51,7 +60,7 @@ const JOBS = [
     fewshot:['“¿Qué hacés, tragaleche? Traeme falopa y te toco Pibe Tigre, dale.” 🤘'] },
 ];
 
-async function chat(messages) {
+async function chat(model, messages) {
   const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -60,11 +69,29 @@ async function chat(messages) {
       'HTTP-Referer': 'https://villadalmine.github.io/tormenta-solar',
       'X-Title': 'Tormenta Solar gen-dialogos',
     },
-    body: JSON.stringify({ model: MODEL, messages, temperature: 1.05, max_tokens: 1000 }),
+    body: JSON.stringify({ model, messages, temperature: 1.05, max_tokens: 1000 }),
   });
-  if (!r.ok) throw new Error('OpenRouter ' + r.status + ': ' + (await r.text()).slice(0, 200));
+  if (!r.ok) { const e = new Error('OpenRouter ' + r.status); e.code = r.status; e.body = (await r.text()).slice(0, 160); throw e; }
   const d = await r.json();
   return d.choices?.[0]?.message?.content || '';
+}
+// reintenta con backoff ante 429/5xx; si un modelo no afloja, rota al siguiente de MODELS
+async function chatRetry(messages) {
+  let last;
+  for (const model of MODELS) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try { return { text: await chat(model, messages), model }; }
+      catch (e) {
+        last = e;
+        if (e.code === 429 || e.code >= 500) {
+          if (attempt < 2) { const w = 5000 * (attempt + 1); process.stdout.write('(429 espero ' + (w/1000) + 's) '); await sleep(w); continue; }
+          process.stdout.write('(rota modelo) ');   // agotó reintentos con este modelo
+        } else { throw e; }   // 401/400: no tiene sentido reintentar
+        break;
+      }
+    }
+  }
+  throw last;
 }
 
 function parseArray(txt) {
@@ -73,21 +100,26 @@ function parseArray(txt) {
   return JSON.parse(txt.slice(a, b + 1)).map(String).map(s => s.trim()).filter(Boolean);
 }
 
-console.log('Modelo:', MODEL, '\n');
-const out = {};
+console.log('Modelos:', MODELS.join(', '), '\n');
+const out = {}, usados = new Set();
+let i = 0;
 for (const job of JOBS) {
   process.stdout.write('· ' + job.key.padEnd(18) + ' ');
   const user = `Personaje/situación: ${job.desc}\nEjemplos del TONO (no los repitas, son solo de referencia):\n${job.fewshot.map(s => '- ' + s).join('\n')}\n\nGenerá ${job.n} líneas NUEVAS, distintas entre sí y de los ejemplos. Solo el array JSON.`;
   try {
-    out[job.key] = parseArray(await chat([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]));
-    console.log('✓ ' + out[job.key].length + ' líneas');
+    const { text, model } = await chatRetry([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]);
+    out[job.key] = parseArray(text); usados.add(model);
+    console.log('✓ ' + out[job.key].length + ' líneas (' + model.split('/').pop() + ')');
   } catch (e) {
-    console.log('✗ falló (' + e.message + ') — dejo los ejemplos');
+    console.log('✗ falló (' + (e.code ? e.code + ' ' + (e.body || '') : e.message).slice(0, 90) + ') — dejo los ejemplos');
     out[job.key] = job.fewshot;
   }
+  if (++i < JOBS.length) await sleep(THROTTLE);   // respiro entre pedidos
 }
 
-const banner = `// dialogos.js — GENERADO por tools/gen-dialogos.mjs (modelo ${MODEL}).\n` +
+const banner = `// dialogos.js — GENERADO por tools/gen-dialogos.mjs (modelos: ${[...usados].join(', ') || 'ninguno (todo falló)'}).\n` +
   `// No editar a mano. Regenerá con:  node tools/gen-dialogos.mjs\n`;
 writeFileSync(OUT, banner + 'const Dialogos = ' + JSON.stringify(out, null, 2) + ';\n');
+const ok = Object.values(out).filter((v, k) => v.length > (JOBS[k] ? JOBS[k].fewshot.length : 0)).length;
 console.log('\n✓ Escrito ' + path.relative(ROOT, OUT) + ' (' + Object.keys(out).length + ' pools)');
+if (usados.size === 0) console.log('⚠️  Todos los modelos free estaban saturados (429). Reintentá en un rato, o probá OPENROUTER_MODEL=<otro:free>, o sumá unos créditos en OpenRouter para subir el límite.');
