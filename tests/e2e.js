@@ -157,5 +157,38 @@ if (require.main === module) {
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));
 
-  console.log('\n🎮 E2E OK — boot + calle + todos los sub-modos corren sin crash.');
+  // ---- chino: changuito (agarrar sin pagar) → pagar → ninjas si rajás sin pagar ----
+  const chino = vm.runInContext(`(() => {
+    const out = [];
+    const C = __mkCtx();
+    // 1) agarrar varios items, pagar con guita suficiente → pasan al inventario y dan vuelto en caramelos
+    const P1 = { coins: 50, caramelos: 0, diosa: 0, carne: 0, fiambre: 0, hasMegaDrive: false };
+    const s1 = Super.create({ player: P1, gaveBeers: false });
+    s1.__grab('DIOSAS'); s1.__grab('CARNES'); s1.__grab('FIAMBRES');
+    if (s1.__cart().length !== 3) out.push('FAIL changuito no junta 3');
+    if (P1.diosa !== 0 || P1.carne !== 0) out.push('FAIL agarrar ya entrega sin pagar');
+    s1.__pay();
+    if (s1.__cart().length !== 0) out.push('FAIL changuito no se vacía al pagar');
+    if (P1.diosa !== 1 || P1.carne !== 1 || P1.fiambre !== 1) out.push('FAIL pagar no deposita inventario');
+    if (P1.coins !== 50 - 3*6) out.push('FAIL no cobra bien (' + P1.coins + ')');
+    if (P1.caramelos <= 0) out.push('FAIL no da vuelto en caramelos');
+    // 2) sin guita suficiente: NO se paga y NO acepta caramelos (cart intacto)
+    const P2 = { coins: 2, caramelos: 999, diosa: 0 };
+    const s2 = Super.create({ player: P2, gaveBeers: false });
+    s2.__grab('DIOSAS'); s2.__pay();
+    if (s2.__cart().length !== 1 || P2.diosa !== 0) out.push('FAIL pagó sin guita / aceptó caramelos');
+    // 3) rajar con el changuito lleno → ninjas, se pierde la mercadería, te echan a la calle
+    const P3 = { coins: 50, diosa: 0 };
+    const s3 = Super.create({ player: P3, gaveBeers: false });
+    s3.__grab('DIOSAS'); s3.__leave('street');
+    if (s3.__cart().length !== 0) out.push('FAIL ninjas no te sacan la mercadería');
+    if (P3.diosa !== 0) out.push('FAIL te quedaste con lo no pagado');
+    for (let i = 0; i < 200 && !s3.done; i++) s3.update(0.016);
+    if (!s3.done || s3.exitTo !== 'street') out.push('FAIL ninjas no te echan a la calle');
+    return out.length ? out.join(' | ') : 'OK';
+  })()`, sandbox);
+  if (chino !== 'OK') { console.error('❌ CHINO/CHANGUITO: ' + chino); process.exit(1); }
+  console.log('✓ chino: changuito + pagar + vuelto en caramelos + ninjas (sin pagar) OK');
+
+  console.log('\n🎮 E2E OK — boot + calle + todos los sub-modos + chino corren sin crash.');
 }

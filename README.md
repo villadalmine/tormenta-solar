@@ -38,7 +38,8 @@ Probado en Chrome/Firefox de escritorio. Canvas 960×540.
 | Música on/off | `M` |
 
 **Minijuegos vista de arriba** (super chino, disquería): moverse con `WASD`/flechas,
-`E` interactuar, `C` pagar con caramelos (super), `Esc` salir.
+`E` interactuar (agarrar de la góndola / pagar en la caja), `Esc` salir. En el super, los
+caramelos **no** se aceptan como pago (el chino se enoja).
 
 ---
 
@@ -59,9 +60,13 @@ La calle (sala 0) conecta con todos los edificios. **34 salas** en total.
 - **Casa de Cambio Oficial**: está *hasta las pelotas*, no podés entrar... hasta que la
   tormenta rompe el espacio-tiempo y **adentro se abre el PORTAL** (el final del juego).
 - **Edificio abandonado** (20 pisos): lo custodian **3 borrachines** (ver abajo).
-- **Super chino** (vista de arriba): comprás birras, carne, fiambre, golosinas y una
-  **Mega Drive** (easter egg → torneo de FIFA en el Trucotron). Hay una **puerta secreta**
-  que da derecho a la cueva.
+- **Super chino** (vista de arriba): **changuito** real — agarrás de las góndolas (Diosa
+  Tropical, carne, fiambre, golosinas, una **Mega Drive**…) y **todo queda sin pagar** hasta
+  que pasás por la **CAJA**. El chino cobra en monedas y **da el vuelto en caramelos**; si no
+  te alcanza la guita **no te lo fía** y **no acepta caramelos** (“¡chino no comer y pagar con
+  caramelos!”). Si intentás **rajar sin pagar**, de la **puerta oscura** (donde vive la familia
+  del chino) salen **dos ninjas samurái** y te echan **sin la mercadería**. Tiene una **puerta
+  secreta** que da a la cueva.
 
 ### Abajo (la galería → las cuevas)
 - **Galería / Sótano** (subsuelos 1 y 2): tiendas raras (sex-shop, comida dudosa, masajista,
@@ -73,20 +78,22 @@ La calle (sala 0) conecta con todos los edificios. **34 salas** en total.
   roba la guita y te tiran las bailarinas encima).
 
 ### Los 3 borrachines + edificio abandonado
-Los tres borrachines de la calle custodian su edificio y **no te dejan pasar** hasta que
-cada uno reciba **lo que se le antoja** — pero **no te dicen qué**: hablándoles varias veces
-(`E`) sueltan la pista.
+Los tres borrachines de la calle **tienen cada uno algo distinto en la mano** (vino, cerveza,
+porro) y custodian su edificio: **no te dejan pasar** hasta que cada uno reciba **el regalo que
+se le antoja** — y **no es lo que tienen en la mano**. Tampoco te lo dicen de una: al hablarles
+(`E`) **siempre te tiran cosas al azar** y, en una de esas, sueltan **la pista** de qué comprarle.
+Cuando le acercás lo que quiere, **lo detecta**, te lo agradece y **deja de pedirte cosas**.
 
-| Borrachín | Quiere | Se consigue en |
-|---|---|---|
-| El de la birra 🍺 | una **birra** | super chino → góndola BIRRAS |
-| El del porro 🌬️ | un **pedazo de carne** (el bajón) | super chino → garca de CARNES |
-| El del vino 🍷 | un **fiambre** | super chino → garca de FIAMBRES |
+| Borrachín | Tiene en la mano | Quiere de regalo | Se consigue en |
+|---|---|---|---|
+| El del vino 🍷 | vino | un **sándwich de fiambre** | super chino → góndola FIAMBRES |
+| El de la cerveza 🍺 | cerveza | una **Diosa Tropical** 🍹 (el vinito dulce) | super chino → góndola DIOSAS |
+| El del porro 🌬️ | porro (con bajón) | un **cacho de carne** | super chino → garca de CARNES |
 
-Con los tres contentos se corren, te **abren el edificio** y te soplan el secreto del
-super→cueva. El edificio tiene **20 pisos** (ascensor): los **impares son de lujo** (la mejor
-moda, vacíos, podés saquear monedas) y los **pares están destruidos** (escombros y gente
-tirada / yonquis durmiendo).
+Con los tres contentos **saltan de alegría**, te hacen **socio VIP** “por alimentar a las clases
+bajas de forma desinteresada”, **abren el edificio** y te soplan el secreto del super→cueva. El
+edificio tiene **20 pisos** (ascensor): los **impares son de lujo** (la mejor moda, vacíos, podés
+saquear monedas) y los **pares están destruidos** (escombros y gente tirada / yonquis durmiendo).
 
 ### El final
 Tras la tormenta, volvés a la superficie, entrás a la **Casa de Cambio Oficial** (ahora
@@ -96,9 +103,12 @@ abierta) y tocás el **portal** del fondo. Fin del nivel.
 
 ## 💰 Economía e inventario
 
-- **Monedas**: plata principal (comprar, jugar a las máquinas).
-- **Caramelos**: el vuelto del chino. Sirven para algunas compras.
-- **Birras / Carne / Fiambre**: para los borrachines (HUD: `🍺·🥩·🥓`).
+- **Monedas**: plata principal (comprar en el chino, jugar a las máquinas). **El chino solo
+  cobra en monedas** (caramelos NO).
+- **Caramelos**: el **vuelto** del chino (no se paga con ellos).
+- **Changuito (inventario virtual)**: lo que agarrás en el super queda **sin pagar** hasta la
+  CAJA. Si te vas sin pagar, los **ninjas** te lo sacan.
+- **Diosa Tropical / Carne / Fiambre**: los regalos de los borrachines (HUD: `🍹·🥩·🥓`).
 - **Munición / Vida**: estándar.
 - Flags de progreso: `hasMegaDrive`, `hasCementoTicket`, `gaveBeers`, `borrachosHappy`,
   `fifaWon`, `moneyRecovered`, `secretUnlocked`, `stormed`.
@@ -129,7 +139,7 @@ Sin bundler: los `<script>` se cargan en orden de dependencia desde `index.html`
 | `js/game.js` | Loop principal, estados, cámara, iluminación, tormenta, HUD |
 
 **Cache-busting:** todos los `src` llevan `?v=N` en `index.html`. **Al cambiar cualquier
-JS/CSS hay que subir ese número** (si no, el navegador sirve la versión vieja). Actual: **`v=30`**.
+JS/CSS hay que subir ese número** (si no, el navegador sirve la versión vieja). Actual: **`v=31`**.
 
 ### Cómo está armado un nivel
 `Level.build()` devuelve un array de salas (`makeRoom(spec)`). Las salas se conectan con

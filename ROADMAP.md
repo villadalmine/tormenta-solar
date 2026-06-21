@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-20** (cache `v=30`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** (cache `v=31`).
 
 ---
 
@@ -15,14 +15,18 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-20** 
   **Chorería**.
 - **Arcade** con 4 máquinas jugables (Pac-Man, Galaga, Frogger, Trucotron) + puerta secreta
   → **truco con el Tahúr** (te roba la guita, bailarinas, música de telo).
-- **Super chino** (vista de arriba): góndolas que rotan, caja, garcas de carne/fiambre,
-  pago con monedas o caramelos, **Mega Drive** (easter egg) y puerta secreta a la cueva.
+- **Super chino** (vista de arriba): góndolas que rotan, **changuito** (agarrás sin pagar →
+  pagás en la CAJA, vuelto en caramelos), garcas de carne/fiambre, **Mega Drive** (easter egg),
+  **ninjas samurái** si rajás sin pagar, puerta oscura de la familia y puerta secreta a la cueva.
+  El chino **no acepta caramelos** como pago.
 - **Disquería** (vista de arriba): comprás vinilo → **ticket de Cemento**.
 - **Galería / Sótano / Cuevas del dólar**: tiendas raras, 3 cueveros, **tormenta solar** y
   **portal final** en la Casa de Cambio Oficial.
 - **3 borrachines + edificio abandonado de 20 pisos** (impares lujo vacío / pares destruidos
-  con yonquis). Cada borracho quiere birra / carne / fiambre; la pista se revela hablándole.
-- **Economía**: monedas, caramelos, birras, carne, fiambre, munición, vida.
+  con yonquis). Cada borracho tiene algo en la mano (vino/cerveza/porro) y quiere de regalo
+  fiambre / **Diosa Tropical** / carne; te tiran cosas al azar y la pista se revela hablándole.
+- **Economía**: monedas, caramelos (vuelto), **changuito virtual**, Diosa Tropical, carne,
+  fiambre, munición, vida.
 - **Música chiptune** por zona (tango, cumbia, eighties, metal, dance, telo).
 - **Suite e2e headless** (`node tests/e2e.js`): boot + auditoría de assets + 7 sub-modos.
 
@@ -77,7 +81,7 @@ Ordenadas por impacto. Nada de esto está hecho.
 
 ```bash
 # 1. editar js/*.js
-# 2. subir el cache:  ?v=30 -> ?v=31  en index.html (todos los src)
+# 2. subir el cache:  ?v=31 -> ?v=32  en index.html (todos los src)
 # 3. validar:
 node tests/e2e.js
 # 4. probar a mano:

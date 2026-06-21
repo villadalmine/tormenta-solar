@@ -4,7 +4,7 @@ const Player = (() => {
     return {
       x: feetX - 10, y: feetY - 40, w: 20, h: 40,
       vx: 0, vy: 0, grounded: false, facing: 1,
-      hp: 100, ammo: 24, coins: 20, forros: 0, caramelos: 0, birras: 0, carne: 0, fiambre: 0, hasMegaDrive: false, hasCementoTicket: false, alive: true,
+      hp: 100, ammo: 24, coins: 20, forros: 0, caramelos: 0, birras: 0, carne: 0, fiambre: 0, diosa: 0, hasMegaDrive: false, hasCementoTicket: false, alive: true,
       anim: 'idle', animTime: 0, shootCd: 0, muzzle: 0,
       aim: { x: 1, y: 0 }, hurtCd: 0,
 

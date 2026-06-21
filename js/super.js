@@ -8,16 +8,23 @@ const Super = (() => {
   const SECT = [{ cx: 3, name: 'ALMACÉN' }, { cx: 11, name: 'LIMPIEZA' }, { cx: 19, name: 'BAZAR' }];
   const COLORS = {
     VINOS:['#7a1020','#4a0d1a','#a01030'], BIRRAS:['#d4a017','#caa000','#e0c060'],
+    DIOSAS:['#ff7043','#ffca28','#ec407a'],
     FIAMBRES:['#d98a8a','#c98060','#b06050'], CARNES:['#c62828','#8d2020','#e05050'],
     GOLOSINAS:['#e91e63','#ffd54f','#ff7043'], GALLETITAS:['#c8a165','#e0c090','#a07840'],
     LIMPIEZA:['#26c6da','#00acc1','#80deea'], HIGIENE:['#f8bbd0','#ce93d8','#fafafa'],
     BAZAR:['#607d8b','#455a64','#8d6e63'], CONSOLAS:['#212121','#37474f','#5d4037'] };
-  const DESC = { VINOS:'vino en caja', FIAMBRES:'fiambres dudosos', CARNES:'carne de origen incierto',
+  const DESC = { VINOS:'vino en caja', BIRRAS:'una birra', DIOSAS:'una DIOSA TROPICAL (el vinito dulce de fruta)',
+    FIAMBRES:'fiambres dudosos', CARNES:'carne de origen incierto',
     GOLOSINAS:'caramelos', GALLETITAS:'galletitas', LIMPIEZA:'lavandina y detergente',
     HIGIENE:'jabón y papel', BAZAR:'electrónica trucha y ropa baqueteada' };
+  // qué se mete al changuito (sin pagar) por categoría — etiqueta corta
+  const LABEL = { VINOS:'un vino 🍷', BIRRAS:'una birra 🍺', DIOSAS:'una Diosa Tropical 🍹',
+    FIAMBRES:'un fiambre 🥓', CARNES:'un pedazo de carne 🥩', GOLOSINAS:'caramelos 🍬',
+    GALLETITAS:'galletitas 🍪', LIMPIEZA:'lavandina 🧴', HIGIENE:'jabón 🧼', BAZAR:'un chiche del bazar 🔌',
+    CONSOLAS:'una consola 🎮' };
   const RETRO = ['Atari 2600','Family Game (NES trucha)','Master System','Super Nintendo','Game Boy','Neo Geo',
     'Sega Saturn','PlayStation 1','Nintendo 64','Dreamcast','PlayStation 2','GameCube','Xbox','Nintendo Wii','PlayStation 3','Xbox 360'];
-  const PRICE = 6, CHANGE = 4, CARPRICE = 60;
+  const PRICE = 6, CHANGE = 4;
   function shuffle(a) { a = a.slice(); for (let i = a.length-1; i > 0; i--) { const j = (Math.random()*(i+1))|0; [a[i],a[j]] = [a[j],a[i]]; } return a; }
   function wrap(ctx, text, maxW) {
     const words = text.split(' '), lines = []; let cur = '';
@@ -32,7 +39,8 @@ const Super = (() => {
     for (let x = 0; x < W; x++) { map[0][x] = 1; map[H-1][x] = 1; }
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W-1] = 1; }
     // categorías: pinned siempre + resto rota -> "cambian de posición"
-    const cats = shuffle(['BIRRAS','CONSOLAS','CARNES','FIAMBRES', ...shuffle(['VINOS','GOLOSINAS','GALLETITAS','LIMPIEZA','HIGIENE','BAZAR']).slice(0,5)]);
+    // pinned: lo que piden los borrachines (DIOSAS/CARNES/FIAMBRES) + CONSOLAS (Mega Drive) siempre disponibles
+    const cats = shuffle(['DIOSAS','CONSOLAS','CARNES','FIAMBRES', ...shuffle(['VINOS','BIRRAS','GOLOSINAS','GALLETITAS','LIMPIEZA','HIGIENE','BAZAR']).slice(0,5)]);
     const gond = []; let gi = 0;
     for (const r0 of GROWS) for (const c0 of GCOLS) {
       const c = cats[gi++];
@@ -40,9 +48,12 @@ const Super = (() => {
       gond.push({ c0, r0, cat: c, cx: c0+1, cy: r0 });
     }
     const exitC = { x: 2, y: 12 }, secret = { x: 24, y: 1, open: !!ctx.gaveBeers }, caja = { x: 13, y: 12 };
+    const family = { x: 22, y: 1 };   // puerta OSCURA: vive la familia del chino, no se entra (de ahí salen los ninjas)
     const player = { x: 6.5*CS, y: 12.5*CS, r: 11 };
-    let done = false, exitTo = null, msg = '', msgT = 0, prompt = '', pay = false, eHeld = false, cHeld = false;
-    setMsg('Tienda abierta: 3 sectores. Caminá libre, parate al lado de un estante y [E]. La CAJA del chino está al frente. [C] pagar con caramelos. ESC: salir.', 8);
+    // changuito (inventario virtual): lo que AGARRÁS queda acá SIN pagar hasta que pasás por la CAJA
+    let cart = [], eject = 0, ninjaX = 0;
+    let done = false, exitTo = null, msg = '', msgT = 0, prompt = '', eHeld = false, cHeld = false;
+    setMsg('Agarrá de las góndolas [E] (se mete al changuito SIN pagar). Después pagás en la CAJA del chino — te da el vuelto en caramelos. Si rajás sin pagar... salen los ninjas. ESC: salir.', 9);
 
     function setMsg(t, s = 3.5) { msg = t; msgT = s; }
     function finish(to) { exitTo = to; done = true; }
@@ -55,47 +66,89 @@ const Super = (() => {
     }
     function near(c) { return Math.hypot(player.x-(c.x+0.5)*CS, player.y-(c.y+0.5)*CS) < CS*1.6; }
 
-    function buy(c) {
-      if (pay) { if (P.caramelos < CARPRICE) { setMsg('No te alcanzan los caramelos: el chino te cobra ' + CARPRICE + ' (10x). 🍬'); return; } P.caramelos -= CARPRICE; }
-      else { if (P.coins < PRICE) { setMsg('No te alcanza la guita (' + PRICE + ' monedas).'); return; } P.coins -= PRICE; P.caramelos += CHANGE; }
+    // AGARRAR: mete el producto al changuito (SIN pagar). Puede juntar uno o varios.
+    function grab(c) {
+      cart.push(c);
       Sfx.pickup();
-      const v = pay ? '' : ' Vuelto: +' + CHANGE + ' caramelos 🍬.';
-      if (c === 'BIRRAS') { P.birras += 1; setMsg('🍺 Comprás una BIRRA (tenés ' + P.birras + ').' + v); }
-      else if (c === 'CONSOLAS') {
-        if (!P.hasMegaDrive) { P.hasMegaDrive = true; setMsg('🎮 ¡Te llevás una MEGA DRIVE! El chino: “Hay torneo de FIFA original — en el arcade, preguntale al flaco del TRUCOTRON.” 🏆', 7); }
-        else setMsg('🎮 Te llevás una ' + RETRO[(Math.random()*RETRO.length)|0] + ' (de dudosa procedencia).' + v, 4);
+      const garca = (c === 'CARNES' || c === 'FIAMBRES') ? 'El garca te encaja ' : 'Agarrás ';
+      setMsg(garca + LABEL[c] + ' y lo metés al changuito (SIN pagar). Changuito: ' + cart.length + ' ítem' + (cart.length === 1 ? '' : 's') + '. Pagá en la CAJA del chino. 🛒');
+    }
+    // DEPOSITAR: al pagar, el producto pasa al inventario de verdad
+    function deposit(c) {
+      if (c === 'BIRRAS') P.birras = (P.birras||0) + 1;
+      else if (c === 'DIOSAS') P.diosa = (P.diosa||0) + 1;
+      else if (c === 'CARNES') P.carne = (P.carne||0) + 1;
+      else if (c === 'FIAMBRES') P.fiambre = (P.fiambre||0) + 1;
+      else if (c === 'GOLOSINAS') P.caramelos = (P.caramelos||0) + 4;
+      else if (c === 'CONSOLAS') P.hasMegaDrive = true;
+      // el resto (vinos, limpieza, higiene, bazar, galletitas) es decorativo: queda "comprado" sin efecto
+    }
+    // PAGAR en la caja: chequea la guita; si no alcanza, NO se paga (y NO se aceptan caramelos)
+    function payAtCaja() {
+      if (cart.length === 0) { setMsg('Chino: “Amigo, no agarraste nada. Andá a las góndolas primero.” 🧧'); return; }
+      const total = cart.length * PRICE;
+      if (P.coins < total) {
+        setMsg('Chino: “Te falta la guita, amigo. Son ' + total + ' monedas y tenés ' + P.coins + '. Caramelos NO acepto. Dejá algo o conseguí más.” 🧧');
+        return;
       }
-      else if (c === 'CARNES') { P.carne = (P.carne||0) + 1; setMsg('El garca te encaja un PEDAZO DE CARNE 🥩 (' + DESC[c] + '). “Es de hoy, te lo juro.” Tenés ' + P.carne + '.' + v); }
-      else if (c === 'FIAMBRES') { P.fiambre = (P.fiambre||0) + 1; setMsg('El garca te encaja un FIAMBRE 🥓 (' + DESC[c] + '). “Recién cortado, dale.” Tenés ' + P.fiambre + '.' + v); }
-      else setMsg('Comprás ' + (DESC[c] || c.toLowerCase()) + '.' + v);
+      const mega = !P.hasMegaDrive && cart.indexOf('CONSOLAS') >= 0;
+      P.coins -= total;
+      const change = cart.length * CHANGE;
+      P.caramelos += change;
+      for (const c of cart) deposit(c);
+      const n = cart.length; cart = [];
+      Sfx.win();
+      let extra = mega ? ' ¡Y te llevás una MEGA DRIVE! 🎮 (torneo de FIFA: el flaco del TRUCOTRON en el arcade).' : '';
+      setMsg('Chino: “¡Gracias amigo!” 🧧 Pagás ' + total + ' monedas por ' + n + ' producto' + (n === 1 ? '' : 's') + '. Vuelto: +' + change + ' caramelos 🍬.' + extra, mega ? 7 : 5);
+    }
+    // intento de IRSE: si llevás cosas sin pagar, salen los NINJAS y te rajan sin la mercadería
+    function tryLeave(to) {
+      if (cart.length > 0 && eject <= 0) {
+        const robo = cart.length; cart = [];
+        eject = 2.8; ninjaX = -40;
+        setMsg('Intentás rajar con ' + robo + ' producto' + (robo === 1 ? '' : 's') + ' SIN pagar... De la PUERTA OSCURA (donde vive la familia del chino) salen DOS NINJAS SAMURÁI 🥷🗡️ y te echan del local SIN lo que “te olvidaste” de pagar.', 3);
+        exitTo = to;     // a dónde te escupen después de la paliza
+        return;
+      }
+      finish(to);
     }
     function interact() {
       const g = adjGondolaObj();
-      if (g) { buy(g.cat); return; }
-      if (near(caja)) { setMsg('Chino (caja): “Vuelto siempre en caramelos, amigo 🍬. Si me pagás con caramelos te cobro 10 veces más, ¿eh?”'); return; }
-      if (secret.open && near(secret)) { finish('cueva'); return; }
-      setMsg('Acercate a un estante o a la CAJA y apretá E.');
+      if (g) { grab(g.cat); return; }
+      if (near(caja)) { payAtCaja(); return; }
+      if (near(family)) { setMsg('Chino (tapando la puerta oscura): “Acá NO, amigo. Acá vive la familia. Comprá y pagá tranquilo, ¿eh?” 🥷'); return; }
+      if (secret.open && near(secret)) { tryLeave('cueva'); return; }
+      setMsg('Acercate a una góndola (agarrar) o a la CAJA (pagar) y apretá E.');
     }
 
     return {
       get done() { return done; }, get exitTo() { return exitTo; },
+      // ---- superficie de prueba (headless e2e); no afecta el juego ----
+      __cart: () => cart.slice(), __grab: (c) => grab(c), __pay: () => payAtCaja(), __leave: (to) => tryLeave(to),
       update(dt) {
         msgT -= dt;
+        // paliza de los ninjas: corre la animación y después te escupe a la calle (sin la mercadería)
+        if (eject > 0) {
+          eject -= dt; ninjaX += 220*dt; prompt = '';
+          if (eject <= 0) finish(exitTo || 'street');
+          return;
+        }
         const sp = 170*dt;
         if (Input.keys['arrowleft'] || Input.keys['a']) { if (freeAt(player.x-sp, player.y)) player.x -= sp; }
         if (Input.keys['arrowright'] || Input.keys['d']) { if (freeAt(player.x+sp, player.y)) player.x += sp; }
         if (Input.keys['arrowup'] || Input.keys['w']) { if (freeAt(player.x, player.y-sp)) player.y -= sp; }
         if (Input.keys['arrowdown'] || Input.keys['s']) { if (freeAt(player.x, player.y+sp)) player.y += sp; }
-        if (Input.keys['escape']) { finish('street'); return; }
-        if (Input.keys['c']) { if (!cHeld) { cHeld = true; pay = !pay; setMsg(pay ? '🍬 Modo: PAGAR CON CARAMELOS (el chino cobra 10x = ' + CARPRICE + ').' : '💰 Modo: pagar con monedas.'); } } else cHeld = false;
+        if (Input.keys['escape']) { tryLeave('street'); return; }
+        if (Input.keys['c']) { if (!cHeld) { cHeld = true; setMsg('Chino, ENOJADO: “¡Chino NO comer y pagar con caramelos! ¡Caramelos NO! Pagá con monedas, amigo.” 🤬'); } } else cHeld = false;
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
-        if (near(exitC)) finish('street');
-        if (secret.open && near(secret)) finish('cueva');
+        if (near(exitC)) tryLeave('street');
+        if (secret.open && near(secret)) tryLeave('cueva');
         const g = adjGondolaObj();
-        if (g) prompt = (g.cat === 'CARNES' || g.cat === 'FIAMBRES' ? '🥩 Garca de ' + g.cat + ' — [E] te encaja mierda' : '🛒 Góndola de ' + g.cat + ' — [E] comprar') + ' (' + (pay ? CARPRICE + ' caramelos' : PRICE + ' monedas') + ')';
-        else if (near(caja)) prompt = '🧧 CAJA del chino — [E] (vuelto en caramelos)';
-        else if (secret.open && near(secret)) prompt = '🚪 PUERTA SECRETA — entrá';
-        else if (near(exitC)) prompt = '↓ Salida a la calle';
+        if (g) prompt = (g.cat === 'CARNES' || g.cat === 'FIAMBRES' ? '🥩 Garca de ' + g.cat + ' — [E] te encaja al changuito' : '🛒 Góndola de ' + g.cat + ' — [E] al changuito');
+        else if (near(caja)) prompt = '🧧 CAJA del chino — [E] PAGAR (' + cart.length * PRICE + ' monedas, vuelto en caramelos)';
+        else if (near(family)) prompt = '🚪 Puerta oscura — la familia del chino (no se entra)';
+        else if (secret.open && near(secret)) prompt = '🚪 PUERTA SECRETA — salir (¡pagá antes!)';
+        else if (near(exitC)) prompt = '↓ Salida a la calle (¡pagá antes!)';
         else prompt = '';
       },
       draw(ctx, VW, VH) {
@@ -125,15 +178,32 @@ const Super = (() => {
         const ex = ox + (exitC.x+0.5)*CS, ey = oy + (exitC.y+0.5)*CS;
         ctx.fillStyle = '#2e7d32'; ctx.fillRect(ex-CS/2, ey-CS/2, CS, CS); ctx.fillStyle = '#eaffea'; ctx.font = 'bold 8px monospace'; ctx.fillText('SALIDA', ex, ey+3);
         if (secret.open) { const sx = ox + (secret.x+0.5)*CS, sy = oy + (secret.y+0.5)*CS; ctx.fillStyle = '#6a1b9a'; ctx.fillRect(sx-CS/2, sy-CS/2, CS, CS); ctx.fillStyle = '#e0b0ff'; ctx.beginPath(); ctx.arc(sx, sy, 6+Math.sin(Date.now()/200)*2, 0, Math.PI*2); ctx.fill(); }
+        // PUERTA OSCURA de la familia del chino (no se entra; de acá salen los ninjas)
+        const fdx = ox + (family.x+0.5)*CS, fdy = oy + (family.y+0.5)*CS;
+        ctx.fillStyle = '#0c0d12'; ctx.fillRect(fdx-CS/2, fdy-CS/2, CS, CS);
+        ctx.strokeStyle = '#b71c1c'; ctx.lineWidth = 2; ctx.strokeRect(fdx-CS/2+2, fdy-CS/2+2, CS-4, CS-4);
+        ctx.fillStyle = '#caa000'; ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center'; ctx.fillText('福', fdx, fdy+3);
         // jugador con changuito
         ctx.fillStyle = '#36567f'; ctx.beginPath(); ctx.arc(ox+player.x, oy+player.y, player.r, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#d9a878'; ctx.beginPath(); ctx.arc(ox+player.x, oy+player.y-3, 5, 0, Math.PI*2); ctx.fill();
         ctx.strokeStyle = '#999'; ctx.lineWidth = 2; ctx.strokeRect(ox+player.x+8, oy+player.y-4, 10, 8);
+        // NINJAS SAMURÁI echándote (mientras dura la paliza)
+        if (eject > 0) {
+          ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 28, VW, VH-28);
+          const py = oy + player.y;
+          for (let k = 0; k < 2; k++) {
+            const nx = ox + player.x + 26 + k*22 + Math.min(ninjaX, 60), ny = py - 6 + k*4;
+            ctx.fillStyle = '#15171d'; ctx.beginPath(); ctx.arc(nx, ny, 11, 0, Math.PI*2); ctx.fill();       // cuerpo
+            ctx.fillStyle = '#e0b088'; ctx.fillRect(nx-3, ny-12, 6, 4);                                      // ojos (tapa)
+            ctx.strokeStyle = '#cfd4da'; ctx.lineWidth = 3; ctx.lineCap = 'round';                            // katana
+            ctx.beginPath(); ctx.moveTo(nx-12, ny-10); ctx.lineTo(nx-26, ny-22); ctx.stroke();
+          }
+        }
         // barra superior
         ctx.fillStyle = '#0a0c12'; ctx.fillRect(0, 0, VW, 28);
         ctx.fillStyle = '#FFC107'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'left'; ctx.fillText('SUPER CHINO 超市', 10, 19);
-        ctx.fillStyle = '#fff'; ctx.fillText('💰' + P.coins + '  🍬' + P.caramelos + '  🍺' + P.birras + '  🥩' + (P.carne||0) + '  🥓' + (P.fiambre||0), 180, 19);
-        ctx.fillStyle = pay ? '#FF7043' : '#9fd3ff'; ctx.textAlign = 'right'; ctx.fillText(pay ? 'PAGO: CARAMELOS (10x)' : 'PAGO: MONEDAS  [C]', VW-10, 19);
+        ctx.fillStyle = '#fff'; ctx.fillText('💰' + P.coins + '  🍬' + P.caramelos + '  🍹' + (P.diosa||0) + '  🥩' + (P.carne||0) + '  🥓' + (P.fiambre||0), 170, 19);
+        ctx.fillStyle = cart.length ? '#FF7043' : '#9fd3ff'; ctx.textAlign = 'right'; ctx.fillText('🛒 CHANGUITO: ' + cart.length + (cart.length ? ' (sin pagar)' : ''), VW-10, 19);
         // mensaje (abajo, multilínea para que entre todo)
         let bottom = VH;
         if (msgT > 0) {

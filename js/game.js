@@ -132,25 +132,25 @@
   }
   function giveBorracho(n) {
     const pick = a => a[(Math.random()*a.length)|0];
-    const want = n.want || 'birra';            // birra | carne | fiambre
+    const want = n.want || 'carne';            // diosa | carne | fiambre
     if (n.fed) { setMsg(pick(['“Gracias, campeón, ya estoy servido.” 🥴', '“Salú de nuevo, hermano.”', '“Sos un fenómeno, pibe.”']), '#aef0c0', 2500); return; }
-    const have = want === 'birra' ? player.birras : want === 'carne' ? player.carne : player.fiambre;
+    const have = want === 'diosa' ? (player.diosa||0) : want === 'carne' ? (player.carne||0) : (player.fiambre||0);
     if (have > 0) {
-      // tenés justo lo que necesita → se lo das
-      if (want === 'birra') player.birras--; else if (want === 'carne') player.carne--; else player.fiambre--;
+      // el borrachín DETECTA que tenés lo que quiere → te lo agradece y deja de pedir
+      if (want === 'diosa') player.diosa--; else if (want === 'carne') player.carne--; else player.fiambre--;
       n.fed = true; borrachosFed++; Sfx.pickup();
-      const got = want === 'birra' ? 'una BIRRA fría 🍺' : want === 'carne' ? 'un PEDAZO DE CARNE 🥩' : 'un FIAMBRE 🥓';
+      const got = want === 'diosa' ? 'una DIOSA TROPICAL 🍹' : want === 'carne' ? 'un PEDAZO DE CARNE 🥩' : 'un FIAMBRE (sándwich) 🥓';
       if (borrachosFed >= 3) {
         borrachosHappy = true; gaveBeers = true;
-        setMsg('Le pasás ' + got + '. Los TRES quedan chochos, se corren tambaleando y te ABREN el edificio abandonado. 🏚️ (Y te soplan: “Adentro del super hay una puerta directa a la cueva del que te cagó.”) 🤫', '#7CFC00', 8500);
+        setMsg('Le encajás ' + got + '. Los TRES saltan de alegría 🎉 y te invitan a pasar: sos SOCIO VIP por alimentar a las clases bajas de forma desinteresada. El edificio queda ABIERTO. 🏚️ (Y te soplan: “Adentro del super hay una puerta directa a la cueva del que te cagó.”) 🤫', '#7CFC00', 9000);
       } else {
-        setMsg('Le pasás ' + got + '. “¡Aaah, gracias maestro!” Quedó feliz.  (' + borrachosFed + '/3 borrachines contentos)', '#aef0c0', 4000);
+        setMsg('Le encajás ' + got + '. “¡Aaah, gracias maestro!” Deja de pedirte cosas.  (' + borrachosFed + '/3 borrachines contentos)', '#aef0c0', 4500);
       }
       return;
     }
-    // no tenés lo que quiere: primero divaga; recién tras varias charlas suelta la pista
+    // no tenés lo que quiere: siempre te tira algo random, y en una de esas suelta la pista de qué comprarle
     n.talks = (n.talks || 0) + 1;
-    if (n.talks >= 3 && n.hint) setMsg(n.hint, '#ffd54f', 5000);
+    if (n.hint && (n.talks >= 4 || Math.random() < 0.45)) setMsg(n.hint, '#ffd54f', 5500);
     else setMsg(pick(n.lines || ['“¿Una mano no me das, pibe?”']), '#ffd54f', 4200);
   }
   function enterSuper() { superGame = Super.create({ player, gaveBeers }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
@@ -312,7 +312,7 @@
     elAmmo.textContent = player.ammo;
     elCoins.textContent = player.coins;
     elCaramelos.textContent = player.caramelos;
-    if (elVicios) elVicios.textContent = player.birras + '·' + (player.carne||0) + '·' + (player.fiambre||0);
+    if (elVicios) elVicios.textContent = (player.diosa||0) + '·' + (player.carne||0) + '·' + (player.fiambre||0);
     if (performance.now() > msgUntil) elMsg.textContent = '';
   }
 
