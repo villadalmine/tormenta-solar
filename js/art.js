@@ -554,6 +554,21 @@ const Art = (() => {
       g.fillStyle = '#d8d8d8'; g.fillRect(w/2-7, h-34, 10, 5);                                  // barba canosa
       g.fillStyle = '#111'; g.fillRect(w/2-4, h-37, 2, 2); g.fillRect(w/2, h-37, 2, 2);          // ojos
     }),
+    // tótem sagrado de 3 cabezas de mono (Monkey Island) — piso 19
+    totem_monos: mk(34, 58, (g, w, h) => {
+      g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(w/2, h-2, 12, 4, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#6d4c41'; g.fillRect(w/2-9, 4, 18, h-6);                                   // poste de madera
+      g.fillStyle = '#5d4037'; g.fillRect(w/2-9, 4, 4, h-6);
+      const face = (cy, c) => {
+        g.fillStyle = c; g.fillRect(w/2-10, cy-7, 20, 15);                                       // cabeza
+        g.beginPath(); g.arc(w/2-11, cy-2, 3, 0, Math.PI*2); g.arc(w/2+11, cy-2, 3, 0, Math.PI*2); g.fill(); // orejas
+        g.fillStyle = '#3e2723'; g.fillRect(w/2-7, cy-3, 4, 4); g.fillRect(w/2+3, cy-3, 4, 4);   // ojos
+        g.fillStyle = '#d7a86e'; g.fillRect(w/2-5, cy+2, 10, 5);                                 // hocico
+        g.fillStyle = '#3e2723'; g.fillRect(w/2-3, cy+4, 2, 2); g.fillRect(w/2+1, cy+4, 2, 2);   // fosas
+      };
+      face(13, '#8d6e63'); face(29, '#a1887f'); face(45, '#795548');
+      g.fillStyle = '#ffca28'; g.fillRect(w/2-1, 9, 2, 2);                                       // ojo ritual
+    }),
     turista: mk(32, 44, (g) => {
       drawPerson(g, 32, 44, { skin:'#e6c098', hair:'#caa45a', shirt:'#ef6c00', pants:'#2a3a4a', eyes:'#111' });
       g.fillStyle = '#222'; g.fillRect(11, 22, 10, 6); // cámara

@@ -387,6 +387,8 @@ const Level = (() => {
       const lux = (n % 2 === 1), w = 17;
       const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar un piso', x:2, inward:1 }];
       if (n < 20) doors.push({ id:'up', art:'elevator', label:'subir un piso', x:w-3, inward:-1 });
+      // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
+      if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1 });
       const spec = { name:'Edificio Abandonado — Piso ' + n + (lux ? ' · LUJO' : ' · ruina'),
         theme: lux ? 'lujo' : 'ruina', light: lux ? 1.0 : 0.42, w, doors };
       if (lux) {
@@ -395,11 +397,16 @@ const Level = (() => {
           {t:'maniqui',x:3.4}, {t:'cocina',x:4.8}, {t:'bano',x:6.6},
           {t:'sofa',x:8.6}, {t:'tvplasma',x:10.1}, {t:'joyas',x:11.4}, {t:'maletin',x:12.4},
         ];
-        // el linyera cuida el maletín/joyas: si los querés agarrar, te frena con su filosofía
+        // el linyera cuida las JOYAS: si las querés tocar, sale y te raja a la calle
         spec.npcs = [
-          { name:'Linyera', sprite:'linyera', x:12.6, action:'maletin', lines: LINYERA_LINES },
+          { name:'Linyera', sprite:'linyera', x:11.4, action:'joyas', lines: LINYERA_LINES },
         ];
         spec.pickups = [{t:'coins',x:7,amount:6}];
+        // PISO 19: además, el TÓTEM sagrado de 3 monos (abre el búnker del piso 20)
+        if (n === 19) {
+          spec.decor.push({t:'maniqui',x:9.3});
+          spec.npcs.push({ name:'Tótem de 3 monos', sprite:'totem_monos', x:8, action:'totem' });
+        }
       } else {
         spec.decor = [{t:'escombros',x:5},{t:'barril',x:9},{t:'escombros',x:12},{t:'caja',x:14}];
         spec.npcs = [
@@ -411,6 +418,20 @@ const Level = (() => {
       }
       rooms.push(makeRoom(spec));
     }
+
+    // 34 — EL BÚNKER de los linyeras (refugio más seguro; acá vive el LOOP del nivel)
+    rooms.push(makeRoom({
+      name: 'El Búnker de los Linyeras', theme: 'secret', light: 0.8, w: 20,
+      doors: [{ id:'back', art:'exit', label:'volver al piso 20', x:2, inward:1 }],
+      npcs: [
+        { name:'El Catre (quedarse)', sprite:'linyera', x:10, action:'loop',
+          dialog:'“Tirate en el catre, gurú. Acá afuera la sociedad se cae a pedazos; adentro, ni te enterás.”' },
+        { name:'Linyera', sprite:'linyera', x:5,  dialog:'“Bienvenido al búnker, gurú. Acá nadie labura. 🛖”' },
+        { name:'Linyera', sprite:'linyera', x:15, dialog:'“Si querés salir de verdad, andá al portal de la Casa de Cambio. Si no, quedate en el loop.” 🔁' },
+      ],
+      decor: [{t:'barril',x:8},{t:'caja',x:13},{t:'parlante',x:17}],
+      pickups: [{t:'health',x:12},{t:'coins',x:6,amount:8}],
+    }));
 
     function wire(ai, ad, bi, bd) {
       const A = rooms[ai], B = rooms[bi], da = A.doorById[ad], db = B.doorById[bd];
@@ -433,6 +454,8 @@ const Level = (() => {
     // edificio abandonado: calle -> piso 1, y ascensor entre pisos
     wire(0, 'abandonado', 14, 'down');
     for (let n = 1; n < 20; n++) wire(13 + n, 'up', 14 + n, 'down');
+    // piso 20 (sala 33) -> búnker (sala 34), por la puerta secreta
+    wire(33, 'bunker', 34, 'back');
 
     return rooms;
   }

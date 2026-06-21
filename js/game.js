@@ -35,6 +35,7 @@
   const DOOR_ART = { galeria: 'door', up: 'doorUp', exit: 'exit', educacionit: 'educacionit', arcade: 'arcade', elevator: 'elevator', superchino: 'superchino', garbarino: 'garbarino', disqueria: 'disqueria', cemento: 'cemento', cambio: 'cambio', abandonado: 'abandonado' };
   let arcadeGame = null, superGame = null, vinilosGame = null;
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
+  let bunkerUnlocked = false, loopCount = 0;   // tótem → búnker; loopCount persiste entre loops
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -52,6 +53,7 @@
     stormed = false; bought = false; hasVale = false; challengeForVale = false; time = 0;
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
+    bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     arcadeGame = null; superGame = null; vinilosGame = null;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
@@ -76,6 +78,7 @@
     for (const d of r.doors) {
       if (d.id === 'secret' && !secretUnlocked) continue;
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
+      if (d.id === 'bunker' && !bunkerUnlocked) continue;
       const dist = Math.hypot(pcx - d.x, pf - d.y);
       if (dist < bd) { bd = dist; best = { kind: 'door', d }; }
     }
@@ -121,16 +124,43 @@
     else if (n.action === 'truco') { setMsg('Te sentás a la mesa...', '#ffd54f', 1000); launchArcade('truco'); }
     else if (n.action === 'shop') buyFromShop(n);
     else if (n.action === 'borracho') giveBorracho(n);
-    else if (n.action === 'maletin') grabMaletin(n);
+    else if (n.action === 'joyas') grabJoyas(n);
+    else if (n.action === 'totem') grabTotem(n);
+    else if (n.action === 'loop') doLoop(n);
     else if (n.action === 'fifa') playFifa();
     else { setMsg(n.dialog || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
   }
-  function grabMaletin(n) {
-    // querés agarrar el maletín de dólares / las joyas → sube el linyera y te frena
-    const lines = n.lines && n.lines.length ? n.lines : ['“No toques eso, pibe.”'];
-    if (!n.said) { n.said = true; setMsg(lines[0], '#ffd54f', 8500); }   // la primera vez, el monólogo
-    else setMsg(lines[1 + ((Math.random() * (lines.length - 1)) | 0)] || lines[0], '#ffd54f', 5500);
+  function ejectToStreet(msg) {
+    // te echan del edificio: aparecés de nuevo en la calle, en la puerta del abandonado
+    current = 0;
+    const d = rooms[0].doorById['abandonado'];
+    player.x = d.x - player.w / 2; player.y = rooms[0].gTop * Level.TILE - player.h;
+    player.vx = player.vy = 0; transCd = 0.4;
+    updateCam(); elFloor.textContent = rooms[0].name;
+    setMsg(msg, '#ffd54f', 7500);
+  }
+  function grabJoyas(n) {
+    // tocás las JOYAS → sale el linyera, te suelta su filosofía y te raja a la calle
+    const pick = a => a[(Math.random() * a.length) | 0];
+    const line = (n.lines && n.lines.length) ? pick(n.lines) : '“No toques eso, pibe.”';
+    ejectToStreet('Vas a manotear las joyas y SALE EL LINYERA: ' + line + ' Te agarra de la campera y te saca cagando a la calle. 🦶🚪');
     Sfx.pickup();
+  }
+  function grabTotem(n) {
+    // robar el tótem de 3 monos → 20 linyeras te hacen GURÚ y abren el búnker del piso 20
+    if (!bunkerUnlocked) {
+      bunkerUnlocked = true; Sfx.win();
+      setMsg('Vas a afanar el TÓTEM de 3 monos 🐵🐵🐵 y de la nada salen VEINTE linyeras... pero en vez de cagarte a palos te consagran GURÚ: “¡Encontraste a nuestro dios de Monkey Island! La puerta del PISO 20 es tuya: te lleva a nuestro BÚNKER, el lugar más seguro. Queda SIEMPRE abierta para vos.” 🗝️🛖', '#7CFC00', 9000);
+    } else {
+      setMsg('“Gurú, la puerta del PISO 20 ya es tuya. El búnker te espera arriba.” 🐵', '#aef0c0', 3500);
+    }
+  }
+  function doLoop() {
+    // quedarte en el búnker = entrar al LOOP: el día se reinicia (hasta que vayas al portal)
+    loopCount++;
+    reset();
+    flash();
+    setMsg('Te tirás en el catre del búnker... y el día REINICIA. 🔁 Día #' + loopCount + ' en el loop. (La city otra vez igual. Para salir de verdad: el PORTAL de la Casa de Cambio.)', '#7CFC00', 8000);
   }
   function playFifa() {
     if (!player.hasMegaDrive) { setMsg('“¿Trajiste una Mega Drive? Comprá una en el super chino (sección CONSOLAS) y volvé para el torneo de FIFA.” 🎮', '#9fd3ff', 5000); return; }
@@ -249,6 +279,7 @@
     else if (r.theme === 'office') setMsg(/Garbarino/.test(r.name) ? 'Garbarino: electrónica carísima. El vendedor no te suelta. 📺💸' : 'EducaciónIT — saludá a la gente (E) y subí en ascensor.', '#80cbc4', 4000);
     else if (r.theme === 'arcade') setMsg(stormed ? '¡El arcade está poseído! Pac-Man y Galaga te atacan.' : 'Arcade — apretá E en una máquina para jugar.', stormed ? '#ff5252' : '#ff2e88', 4000);
     else if (r.theme === 'shop') setMsg('Chorería — canjeá tu vale con el parrillero (E).', '#ffd54f', 3500);
+    else if (/[Bb][úu]nker/.test(r.name)) setMsg('El BÚNKER de los linyeras 🛖: el lugar más seguro de la city, acá no entra nadie. Tocá el catre (E) para quedarte en el LOOP, o volvé y andá al portal de la Casa de Cambio para salir de verdad.', '#7CFC00', 7000);
     else if (r.theme === 'secret') setMsg(/Truco/.test(r.name) ? 'La trastienda: el tahúr te espera para el truco. 🃏' : 'Entrás con miedo... humo, dos mesas, gente que te mira. “Acá no viste nada, pibe.”', '#d8c8b0', 5500);
     else if (r.cueveros) setMsg('Tres cuevas, tres cueveros. Probá con cada uno (E)... a ver quién te cambia.', '#7CFC00', 5500);
     else setMsg('Más abajo... seguí bajando hasta las cuevas.', '#9fb4c4', 3000);
@@ -373,6 +404,7 @@
     for (const d of r.doors) {
       if (d.id === 'secret' && !secretUnlocked) continue;
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
+      if (d.id === 'bunker' && !bunkerUnlocked) continue;
       const img = Art.items[DOOR_ART[d.art] || 'door'];
       ctx.drawImage(img, d.x - cam.x - img.width/2, d.y - cam.y - img.height);
       if (d.id === 'secret') {
