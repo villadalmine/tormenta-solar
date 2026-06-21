@@ -1,0 +1,76 @@
+# SPEC: IA con OpenRouter (diálogos / contenido generativo)
+
+- **Estado:** Draft (idea + arquitectura; sin implementar)
+- **Alcance:** transversal
+- **Última actualización:** 2026-06-21
+
+## 1. Objetivo
+Usar un LLM (vía **OpenRouter**, con un **modelo `:free`**) para **mejorar el contenido textual** del
+juego: diálogos variados, narrador del loop, NPCs con los que charlar, sin romper el ethos (100%
+estático) ni meter la API key en el cliente. La IA **solo genera texto/flavor**; **nunca** toca el
+estado del juego (flags, outcomes, vida).
+
+## 2. Blocker de diseño
+El juego se sirve estático (GitHub Pages). **La API key NO puede vivir en el cliente** (quedaría
+expuesta y cualquiera quema la cuota). De ahí los dos modos de abajo.
+
+## 3. Dos modos
+
+### 🅰️ Pre-generación en dev-time (recomendado para empezar)
+Un **script Node** (`tools/gen-dialogos.mjs`, NUEVO, corre **local con tu key**, no en producción)
+que le pide a OpenRouter **N variantes** de líneas por NPC/situación, usando el **grafo**
+(`specs/nivel-1/GRAFO.md`) y las fichas como contexto, y **escribe pools estáticos** (en `js/*.js` o
+un `js/dialogos.js`) que se **commitean**.
+- ✅ Cero key en producción, **cero latencia/costo en runtime**, sigue 100% estático.
+- ✅ Resuelve la regla *"siempre variantes, no repetir"* sin escribir cientos de líneas a mano.
+- Es un **content generator** offline; el juego ni se entera de que hubo IA.
+
+### 🅱️ Runtime (en vivo) con proxy
+Para lo dinámico (chatear, reacciones al estado): **capa aditiva** igual que `presence.js`/`config.js`.
+- **Proxy mínimo** (extender `presence-server/` o `ai-proxy/`, Cloudflare Worker o Node): guarda
+  `OPENROUTER_API_KEY`, expone `POST /ai`, hace **rate-limit + cache + tope de tokens/coste**, y
+  arma el request a `https://openrouter.ai/api/v1/chat/completions`.
+- **`js/ai.js`** (NUEVO, capa aditiva): `AI.ask(kind, ctx)` → `fetch(ENDPOINT)`. **Graceful**: sin
+  endpoint configurado o si falla/tarda → **fallback a los pools hardcodeados**. Nunca dependencia dura.
+- **Asíncrono**, nunca en el loop de render: al acercarte a un NPC se dispara y **cachea** por
+  `(npc, estado)` en `localStorage`; mostrás "…" y reemplazás cuando llega.
+
+## 4. Qué mejora (orden de valor)
+1. **Diálogos dinámicos** sin repetir: borrachines, linyeras (llanto + historia), la cola del dólar,
+   la gente de las cuevas, Iorio.
+2. **Narrador del loop**: flavor distinto cada "Día #N" de supervivencia.
+3. **Chatear** con un NPC (linyera filósofo, cuevero) — más inmersión, más costo/latencia.
+4. **GraphRAG**: el knowledge graph como contexto/oráculo (ver `TECNICAS.md §5`) y para **QA en dev**.
+
+## 5. El system prompt (la voz)
+- Tono: **humor porteño, slang argentino**, NPC concreto, **1–2 frases**.
+- Contexto inyectado: ficha del NPC + estado relevante (pre/post tormenta, día del loop, qué tiene el
+  jugador) + **few-shot** con líneas existentes (los pools actuales como ejemplo de estilo).
+- Reglas duras en el prompt: nada de romper la 4ª pared del sistema, no inventar mecánicas, largo corto.
+
+## 6. Modelos `:free` de OpenRouter
+Variantes `:free` (Llama / Gemma / Mistral / DeepSeek, etc. — la oferta cambia) alcanzan para
+one-liners. **Free = rate-limited** (por minuto/día) → por eso el proxy necesita **cache + rate-limit**
+igual. Elegir el modelo por slug en el proxy; fácil de cambiar.
+
+## 7. Caveats (lo que hay que cuidar)
+- **Seguridad:** key **solo** en el proxy. CORS acotado. Validar/recortar el input del cliente
+  (prompt-injection): el cliente manda `kind` + estado, **no** un prompt libre arbitrario (salvo el
+  modo chat, que va con guardrails).
+- **Latencia:** 1–5 s → siempre async + fallback; nunca bloquear el gameplay.
+- **Costo/cuota:** cache agresivo (localStorage + proxy), rate-limit, tope de tokens.
+- **Calidad/tono:** depende del prompt + few-shot; opcional filtro de palabras para mantener el tono.
+- **Offline / Pages sin proxy:** **debe** degradar a los pools hardcodeados (el juego anda igual).
+
+## 8. Requisitos funcionales (Draft)
+- **RF-IA1** — modo A: script dev-time que genera pools y los deja estáticos (cero runtime).
+- **RF-IA2** — modo B: `js/ai.js` aditivo con **fallback** a pools si no hay IA.
+- **RF-IA3** — proxy con key segura + rate-limit + cache + tope.
+- **RF-IA4** — la IA **solo** produce texto; el estado del juego queda en el código.
+- **RF-IA5** — cache de respuestas por `(npc, estado)` para costo/latencia/offline.
+
+## 9. Preguntas abiertas
+- ¿Arrancamos por **A (pre-generación)** —más alineado y sin infra— y dejamos B para "chatear"?
+- ¿Qué NPCs primero? (sugerencia: borrachines + linyeras + gente de las cuevas.)
+- ¿Modelo `:free` preferido? (probar 2–3 y comparar tono/latencia.)
+- ¿Querés un **modo chat** real con algún NPC, o alcanza con líneas generadas?
