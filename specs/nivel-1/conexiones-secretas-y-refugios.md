@@ -102,6 +102,12 @@ salida hacia adelante** (el salto temporal real al próximo momento de la histor
 
 - **Disparador del loop:** dentro del búnker hay un punto de interacción (un catre / fogata / los
   linyeras) con `action:'loop'` que, al usarlo, **reinicia el nivel**.
+- **El loop NO termina solo:** te quedás loopeando **hasta que VOS decidís pasar de nivel** por el
+  portal de la Casa de Cambio. Es un estado, no un evento de una sola vez.
+- **Qué se puede HACER en el loop:** *(todavía sin definir — es su propio SDD)*. La idea: cada
+  vuelta podés intentar cosas nuevas / juntar / experimentar en la city repetida. Esto se especifica
+  aparte (ver `specs/nivel-1/edificios/` y `personajes/` para el catálogo de qué ofrece cada nodo, y
+  un futuro `loop-actividades.md`).
 - **Qué persiste al loopear:** *(sub-decisión, ver Preguntas abiertas)* — por defecto se propone
   **resetear todo** (loop "limpio", como morir pero sin pantalla de derrota), salvo quizás un
   contador de vueltas para un guiño ("Día #N en el loop").
