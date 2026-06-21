@@ -6,12 +6,14 @@ const Input = (() => {
 
   function bind(c) {
     canvas = c;
+    const typing = e => e.target && /^(input|textarea|select)$/i.test(e.target.tagName);
     document.addEventListener('keydown', e => {
+      if (typing(e)) return;   // escribiendo en un campo (ej. el chat) → no mover al jugador
       const k = e.key.toLowerCase();
       keys[k] = true;
       if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
     });
-    document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+    document.addEventListener('keyup', e => { if (!typing(e)) keys[e.key.toLowerCase()] = false; });
     function toCanvas(e) {
       const r = canvas.getBoundingClientRect();
       mouse.x = (e.clientX - r.left) * (canvas.width / r.width);

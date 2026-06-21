@@ -1,6 +1,8 @@
 # SPEC: IA con OpenRouter (diálogos / contenido generativo)
 
-- **Estado:** Modo A implementado (v=44); Modo B (runtime/proxy) sigue Draft
+- **Estado:** Modo A implementado (v=44); **Modo B (chat en vivo) implementado** (v=45): cliente
+  `js/ai.js` (proxy **o** BYOK **o** local), proxy `ai-proxy/` (Node + Worker), NPC chateable
+  (Linyera filósofo) y campo de API key en ⚙ Opciones. Ver §0 (política de resolución).
 - **Alcance:** transversal
 - **Última actualización:** 2026-06-21
 
@@ -11,6 +13,30 @@
 > (`LINYERA_CRY`), Iorio, la gente de las cuevas (`cueva_gente`) y los cueveros que rebotan
 > (`cuevero_rebote`) leen de `Dialogos.<pool>` vía un helper `_D/_Dp`; si `js/dialogos.js` no está
 > (e2e), usan los pools hardcodeados. La IA solo da TEXTO; cero efecto en el estado.
+
+## 0. Política de resolución (DECISIÓN IMPORTANTE)
+
+Dos capas distintas, no confundir:
+
+### Diálogo normal de los NPCs (borrachines, linyeras, cola, cueveros, Iorio…)
+**Siempre LOCAL.** Usa los pools **pre-generados con el script (modo A, `js/dialogos.js`) + los
+hardcodeados**. **Nunca** llama a la IA en vivo (cero latencia, cero costo, siempre disponible).
+Esto es el **default** del contenido del juego.
+
+### Chat en vivo con un NPC (`action:'chat'`) — orden de prioridad
+1. **Proxy del dev** (`PROXY` seteado en `js/ai.js`) → "vos pagás", la key queda server-side. Si está
+   configurado, **manda** (los jugadores no necesitan key).
+2. **BYOK** — la **key del jugador** (la que pega en ⚙ Opciones, guardada en su `localStorage`). Se
+   usa **sólo si no hay proxy**. Cada uno paga lo suyo; la key nunca sale de su navegador.
+3. **LOCAL** (líneas predefinidas / canned) — si **no hay** proxy ni key, **o** si la IA elegida
+   **tarda/falla**.
+
+**Anti-espera:** si la key del jugador es trucha o el modelo tarda, **al primer fallo se hace switch
+a las locales** por el resto de la sesión (`byokDead`), para que no se quede esperando cada vez.
+Cambiar la key resetea ese estado. Timeout: 12 s.
+
+> Resumen: **el juego siempre habla** (locales). La IA en vivo es un **enhancement** del chat, con
+> dev-paid > player-key > local, y degradación automática a local ante lentitud/fallo.
 
 ## 1. Objetivo
 Usar un LLM (vía **OpenRouter**, con un **modelo `:free`**) para **mejorar el contenido textual** del

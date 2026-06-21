@@ -1,0 +1,9 @@
+name = "tormenta-ai"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# La key NO va acá. Se carga como secret:
+#   wrangler secret put OPENROUTER_API_KEY
+# (opcional) forzar un modelo:
+#   [vars]
+#   OPENROUTER_MODEL = "mistralai/mistral-7b-instruct:free"

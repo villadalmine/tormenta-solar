@@ -43,7 +43,7 @@ const Level = (() => {
       playerStart: spec.playerStart != null ? feet(spec.playerStart) : null,
       enemies: (spec.enemies || []).map(e => ({ type: e.t, dormant: e.dormant, look: e.look, ...feet(e.x, e.y) })),
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
-      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
+      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE })),
@@ -85,6 +85,8 @@ const Level = (() => {
         ],
         npcs: [
           { name:'Vecina', sprite:'civil1', x:8,  dialog:'“Ay, nene... ¿viste cómo está el dólar? Un espanto.” 🙄' },
+          { name:'Linyera filósofo', sprite:'linyera', x:14, action:'chat', persona:'filosofo',
+            dialog:'“Sentate, pibe, que el apuro es del que no entendió nada. Preguntame lo que quieras.” 🌞' },
           { name:'Músico', sprite:'musico', x:24, dialog:'“Una moneda y te toco una cumbia, maestro.” 🎶' },
           { name:'Canillita', sprite:'diariero', x:38, dialog:'“¡Diarios, revistas! ¿El de hoy, pibe? Está todo cada vez peor.” 📰' },
           { name:'Oficinista', sprite:'civil4', x:50, dialog:'“Tarde, tarde, ¡llego tarde!” 💼' },

@@ -26,6 +26,11 @@
   const elFlash = document.getElementById('flash');
   const elFloor = document.getElementById('floorName');
   const elPrompt = document.getElementById('prompt');
+  const elChat = document.getElementById('chat');
+  const elChatTitle = document.getElementById('chat-title');
+  const elChatLog = document.getElementById('chat-log');
+  const elChatInput = document.getElementById('chat-input');
+  let chatNpc = null, chatHistory = [], chatBusy = false;
 
   let rooms, states, current, player, cam;
   let state = 'intro', stormed = false, bought = false, hasVale = false, challengeForVale = false;
@@ -146,6 +151,7 @@
     else if (n.action === 'limosna') giveLimosna(n);
     else if (n.action === 'iorio') giveIorio(n);
     else if (n.action === 'armas') buyArmas(n);
+    else if (n.action === 'chat') openChat(n);
     else if (n.action === 'fifa') playFifa();
     else { setMsg(n.dialog || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
   }
@@ -217,6 +223,45 @@
     if ((player.falopa || 0) <= 0) { setMsg('Iorio: “¿Y la falopa, gil? Sin merca no hay Pibe Tigre. Buscá en los CAJONES de los deptos de lujo del edificio.” 🤘', '#ffd54f', 6000); return; }
     player.falopa--; chinoFrontOpen = true; Sfx.win();
     setMsg('Le pasás la falopa a Iorio 🤘. Arranca PIBE TIGRE y los NINJAS (metaleros) dejan el chino y se van al recital. ¡El FRENTE del chino quedó ABIERTO! Corré a comer antes de que vuelvan. (Iorio putea al sol: “...che tano Marcello, menos mal que ahora hacemos acústicos y tango, ya que no hay luz.”) 🎻', '#7CFC00', 9000);
+  }
+  // ---- chat con IA (action:'chat') ----
+  function chatLine(who, txt) {
+    const div = document.createElement('div');
+    div.className = who; div.textContent = (who === 'you' ? 'Vos: ' : who === 'npc' ? '' : '') + txt;
+    elChatLog.appendChild(div); elChatLog.scrollTop = elChatLog.scrollHeight;
+    return div;
+  }
+  function openChat(n) {
+    if (typeof AI === 'undefined') { setMsg(n.dialog || '“...”', '#aef0c0', 4000); return; }
+    chatNpc = n; chatHistory = []; chatBusy = false;
+    elChatTitle.textContent = '💬 ' + (n.name || 'CHARLA');
+    elChatLog.innerHTML = '';
+    chatLine('sys', AI.mode() === 'offline' ? '(sin IA conectada — respuestas predefinidas. Pegá tu API key en ⚙ Opciones.)' : '(charlando con IA — ' + AI.mode() + ')');
+    if (n.dialog) chatLine('npc', n.dialog);
+    state = 'chat';
+    elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
+    setTimeout(() => elChatInput && elChatInput.focus(), 30);
+  }
+  function closeChat() {
+    elChat.classList.add('hidden'); elChatInput.value = ''; chatNpc = null;
+    if (state === 'chat') state = 'playing';
+  }
+  async function chatSend() {
+    if (chatBusy || !chatNpc) return;
+    const msg = (elChatInput.value || '').trim();
+    if (!msg) return;
+    elChatInput.value = ''; chatLine('you', msg);
+    chatHistory.push({ role: 'user', content: msg });
+    chatBusy = true;
+    const thinking = chatLine('sys', '...');
+    let reply;
+    try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory); }
+    catch (e) { reply = '“...se me cruzó un cable, pibe. Repetí.”'; }
+    thinking.remove();
+    chatLine('npc', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+    chatBusy = false;
+    if (elChatInput) elChatInput.focus();
   }
   function buyArmas(n) {
     // el misterioso de la galería: con la tormenta, las armas eléctricas no sirven → fierro criollo
@@ -633,6 +678,7 @@
         : a === 'limosna' ? (stormed ? 'pedirle unas monedas al linyera 🪙' : 'hablar con ' + it.n.name)
         : a === 'iorio' ? (stormed ? 'darle falopa a Iorio 🤘' : 'hablar con Iorio')
         : a === 'armas' ? (stormed ? 'comprar fierro criollo ⚔️' : 'hablar con el misterioso')
+        : a === 'chat' ? 'charlar 💬 con ' + (it.n.name || 'el linyera')
         : a === 'loop' ? 'tirarte a dormir (pasar un día) 😴'
         : 'hablar con ' + it.n.name;
     }
@@ -732,10 +778,17 @@
 
   Input.bind(canvas);
   document.addEventListener('keydown', e => {
+    if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
     else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? '♪ Música ON' : '♪ Música OFF', '#9fd3ff', 1200); }
   });
   document.getElementById('startBtn').addEventListener('click', start);
   document.getElementById('restartBtn').addEventListener('click', start);
+  document.getElementById('chat-send').addEventListener('click', chatSend);
+  document.getElementById('chat-close').addEventListener('click', closeChat);
+  elChatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); chatSend(); }
+    else if (e.key === 'Escape') closeChat();
+  });
 })();

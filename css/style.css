@@ -182,7 +182,33 @@ button:hover { background: #ffd54f; }
 }
 .opt-btn:hover { background: #2e587a; }
 .opt-val { min-width: 58px; text-align: center; color: #FFE082; }
+.opt-aikey-label { margin-top: 14px; border-top: 1px solid #1f3a4d; padding-top: 12px; }
+.opt-aikey-label > span { color: #80cbc4; }
+#opt-aikey { width: 100%; padding: 8px 10px; font-family: inherit; font-size: 12px;
+  background: #0a141c; color: #e8eef2; border: 1px solid #1f3a4d; border-radius: 3px; }
+#opt-aikey:focus { outline: none; border-color: #4FC3F7; }
+.opt-note { font-size: 10.5px; color: #90a4ae; margin: 6px 0 2px; line-height: 1.4; }
 .opt-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 .opt-actions button { margin-top: 0; padding: 8px 14px; font-size: 12px; }
+
+/* ---- Chat con NPC ---- */
+.chat-panel { max-width: 600px; }
+#chat-title { color: #FFB300; }
+#chat-log {
+  height: 200px; max-height: 46vh; overflow-y: auto;
+  margin: 10px 0; padding: 8px 10px;
+  border: 1px solid #1f3a4d; background: rgba(2,8,14,0.7);
+  font-size: 12px; line-height: 1.45;
+}
+#chat-log .you { color: #80cbc4; margin: 4px 0; }
+#chat-log .npc { color: #ffe082; margin: 4px 0; }
+#chat-log .sys { color: #607d8b; font-style: italic; margin: 4px 0; }
+.chat-input-row { display: flex; gap: 8px; }
+#chat-input {
+  flex: 1; padding: 9px 10px; font-family: inherit; font-size: 13px;
+  background: #0a141c; color: #e8eef2; border: 1px solid #1f3a4d; border-radius: 3px;
+}
+#chat-input:focus { outline: none; border-color: #4FC3F7; }
+.chat-input-row button { margin-top: 0; padding: 9px 14px; font-size: 12px; }
 
 .hidden { display: none !important; }
