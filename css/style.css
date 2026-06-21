@@ -44,21 +44,24 @@ html, body {
   pointer-events: none;
   text-shadow: 0 0 6px #000;
 }
-.hud-label { color: #7a8a99; font-size: 10px; display: block; }
-.hud-val { color: #7CFC00; font-size: 22px; font-weight: bold; }
+.hud-label { color: #7a8a99; font-size: calc(10px * var(--ui-font-scale, 1)); display: block; }
+.hud-val { color: #7CFC00; font-size: calc(22px * var(--ui-font-scale, 1)); font-weight: bold; }
 .hud-right { display: flex; gap: 16px; }
 .hud-right .stat { text-align: center; }
 .hud-right #ammo { color: #FFD54F; }
 .hud-right #coins { color: #FFC107; }
 .hud-right #forros { color: #FF8FC7; }
 .hud-right #caramelos { color: #FF7043; }
-.hud-msg { color: #ff5252; font-size: 14px; font-weight: bold; text-align: center; }
+.hud-msg {
+  color: #ff5252; font-size: calc(14px * var(--ui-font-scale, 1)); font-weight: bold; text-align: center;
+  transition: opacity var(--ui-msg-fade, 150ms) linear;   /* aparecer/desaparecer suave */
+}
 
 #floorName {
   position: absolute;
   top: 8px; left: 0; right: 0;
   text-align: center;
-  font-size: 12px;
+  font-size: calc(12px * var(--ui-font-scale, 1));
   letter-spacing: 3px;
   color: #4FC3F7;
   text-shadow: 0 0 8px #000;
@@ -69,7 +72,7 @@ html, body {
   position: absolute;
   left: 0; right: 0; bottom: 56px;
   text-align: center;
-  font-size: 13px;
+  font-size: calc(13px * var(--ui-font-scale, 1));
   letter-spacing: 1px;
   color: #FFE082;
   text-shadow: 0 0 8px #000;
@@ -161,5 +164,25 @@ button:hover { background: #ffd54f; }
   pointer-events: none;
   z-index: 9;
 }
+
+/* ---- Opciones ---- */
+#optBtn {
+  position: absolute; top: 6px; right: 8px; z-index: 11;
+  width: 26px; height: 26px; margin: 0; padding: 0;
+  font-size: 15px; line-height: 24px; text-align: center;
+  background: rgba(6,14,22,0.8); color: #cfd8dc;
+  border: 1px solid #1f3a4d; border-radius: 4px; cursor: pointer;
+}
+#optBtn:hover { background: rgba(20,40,55,0.95); color: #fff; }
+.opt-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 9px 0; font-size: 12px; }
+.opt-row > span:first-child { flex: 1; text-align: left; color: #b0bec5; }
+.opt-btn {
+  width: 26px; height: 24px; margin: 0; padding: 0; font-size: 15px; line-height: 22px;
+  background: #1f3a4d; color: #fff; border: none; border-radius: 3px; cursor: pointer;
+}
+.opt-btn:hover { background: #2e587a; }
+.opt-val { min-width: 58px; text-align: center; color: #FFE082; }
+.opt-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+.opt-actions button { margin-top: 0; padding: 8px 14px; font-size: 12px; }
 
 .hidden { display: none !important; }

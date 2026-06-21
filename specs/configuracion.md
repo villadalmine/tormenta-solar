@@ -1,8 +1,12 @@
 # SPEC: Configuración del juego (opciones / accesibilidad)
 
-- **Estado:** Draft
+- **Estado:** Implementado (v1: fuente + timing del texto) · resto Draft
 - **Alcance:** transversal (todos los niveles)
 - **Última actualización:** 2026-06-21
+- **Ya en código (v=39):** `js/config.js` (capa aditiva) + panel **⚙ Opciones** (botón en el stage o
+  tecla **O**) con **tamaño de fuente** (`--ui-font-scale`), **duración del texto** (`Config.msgMs`)
+  y **aparición/desaparición** con fundido (`--ui-msg-fade`). Persiste en `localStorage`. Pendiente:
+  `uiScale`, volumen, presets.
 
 ## 1. Objetivo
 Centralizar los parámetros **tweakables** de UX/legibilidad en un solo lugar (`Config`), para poder

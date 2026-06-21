@@ -43,6 +43,7 @@ la ventana** manteniendo la proporción (`js/fit.js`) — no hace falta hacer zo
 | Disparar (escupitajo) | Click izquierdo (mantené) |
 | Usar puerta / hablar / comprar | `E` |
 | Música on/off | `M` |
+| Opciones (fuente, duración del texto) | `O` o el botón **⚙** |
 
 **Minijuegos vista de arriba** (super chino, disquería): moverse con `WASD`/flechas,
 `E` interactuar (agarrar de la góndola / pagar en la caja), `Esc` salir. En el super, los
@@ -153,7 +154,7 @@ Sin bundler: los `<script>` se cargan en orden de dependencia desde `index.html`
 | `js/presence.js` | Contador "jugando ahora" (capa aditiva, opcional, no toca el core) |
 
 **Cache-busting:** todos los `src` llevan `?v=N` en `index.html`. **Al cambiar cualquier
-JS/CSS hay que subir ese número** (si no, el navegador sirve la versión vieja). Actual: **`v=33`**.
+JS/CSS hay que subir ese número** (si no, el navegador sirve la versión vieja). Actual: **`v=39`**.
 
 ---
 

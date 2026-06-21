@@ -4,11 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TORMENTA SOLAR — Nivel 1: Calle Florida</title>
-<link rel="stylesheet" href="css/style.css?v=38">
+<link rel="stylesheet" href="css/style.css?v=39">
 </head>
 <body>
 <div id="stage">
   <canvas id="screen" width="800" height="448"></canvas>
+
+  <!-- botón de opciones -->
+  <button id="optBtn" title="Opciones (O)">⚙</button>
 
   <!-- HUD -->
   <div id="hud" class="hidden">
@@ -76,22 +79,46 @@
     </div>
   </div>
 
+  <!-- OPCIONES -->
+  <div id="options" class="overlay hidden">
+    <div class="panel">
+      <h2>⚙ OPCIONES</h2>
+      <div class="opt-row"><span>Tamaño de la fuente</span>
+        <button class="opt-btn" data-k="fontScale" data-d="-0.1">−</button>
+        <span class="opt-val" id="ov-fontScale">100%</span>
+        <button class="opt-btn" data-k="fontScale" data-d="0.1">+</button></div>
+      <div class="opt-row"><span>Duración del texto</span>
+        <button class="opt-btn" data-k="msgMs" data-d="-0.25">−</button>
+        <span class="opt-val" id="ov-msgMs">1.00×</span>
+        <button class="opt-btn" data-k="msgMs" data-d="0.25">+</button></div>
+      <div class="opt-row"><span>Aparición / desaparición</span>
+        <button class="opt-btn" data-k="msgFade" data-d="-50">−</button>
+        <span class="opt-val" id="ov-msgFade">150ms</span>
+        <button class="opt-btn" data-k="msgFade" data-d="50">+</button></div>
+      <div class="opt-actions">
+        <button id="opt-reset">Restablecer</button>
+        <button id="opt-close">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- storm flash -->
   <div id="flash"></div>
 </div>
 
-<script src="js/audio.js?v=38"></script>
-<script src="js/art.js?v=38"></script>
-<script src="js/input.js?v=38"></script>
-<script src="js/fx.js?v=38"></script>
-<script src="js/level.js?v=38"></script>
-<script src="js/player.js?v=38"></script>
-<script src="js/enemies.js?v=38"></script>
-<script src="js/arcade.js?v=38"></script>
-<script src="js/super.js?v=38"></script>
-<script src="js/vinilos.js?v=38"></script>
-<script src="js/game.js?v=38"></script>
-<script src="js/presence.js?v=38"></script>
-<script src="js/fit.js?v=38"></script>
+<script src="js/config.js?v=39"></script>
+<script src="js/audio.js?v=39"></script>
+<script src="js/art.js?v=39"></script>
+<script src="js/input.js?v=39"></script>
+<script src="js/fx.js?v=39"></script>
+<script src="js/level.js?v=39"></script>
+<script src="js/player.js?v=39"></script>
+<script src="js/enemies.js?v=39"></script>
+<script src="js/arcade.js?v=39"></script>
+<script src="js/super.js?v=39"></script>
+<script src="js/vinilos.js?v=39"></script>
+<script src="js/game.js?v=39"></script>
+<script src="js/presence.js?v=39"></script>
+<script src="js/fit.js?v=39"></script>
 </body>
 </html>

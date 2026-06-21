@@ -113,6 +113,20 @@ try {
 
       await page.screenshot({ path: path.join(SHOTS, `intro-${vp.name}.png`) });
 
+      // (3b) el panel de OPCIONES abre y aplica (cambia la fuente → --ui-font-scale)
+      await page.click('#optBtn');
+      const optOpen = await page.evaluate(() => !document.getElementById('options').classList.contains('hidden'));
+      ok(optOpen, `[${vp.name}] el panel de Opciones no abrió`);
+      if (optOpen) {
+        const getFS = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ui-font-scale').trim());
+        const before = await getFS();
+        await page.click('.opt-btn[data-k="fontScale"][data-d="-0.1"]');
+        const after = await getFS();
+        ok(before !== after, `[${vp.name}] cambiar la fuente no movió --ui-font-scale (${before} → ${after})`);
+        await page.click('#opt-reset');
+        await page.click('#opt-close');
+      }
+
       // (4) arrancar y verificar que el canvas dibuja algo (no queda uniforme).
       //     Si el botón está cortado/fuera de viewport, ni lo intentamos (ya quedó el fail).
       if (btnInside) {

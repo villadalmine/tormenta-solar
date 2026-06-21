@@ -61,7 +61,11 @@
     setMsg('Andá a la derecha y entrá por la GALERÍA para bajar a la cueva.  [E] usar puerta', '#FFD54F', 6000);
   }
 
-  function setMsg(t, c, ms = 3000) { elMsg.textContent = t; elMsg.style.color = c || '#ff5252'; msgUntil = performance.now() + ms; }
+  function setMsg(t, c, ms = 3000) {
+    elMsg.textContent = t; elMsg.style.color = c || '#ff5252'; elMsg.style.opacity = '1';
+    const mul = (typeof Config !== 'undefined' && Config.msgMs) ? Config.msgMs : 1;   // duración configurable
+    msgUntil = performance.now() + ms * mul;
+  }
 
   // ---- cámara ----
   function updateCam() {
@@ -356,7 +360,7 @@
     elCoins.textContent = player.coins;
     elCaramelos.textContent = player.caramelos;
     if (elVicios) elVicios.textContent = (player.diosa||0) + '·' + (player.carne||0) + '·' + (player.fiambre||0);
-    if (performance.now() > msgUntil) elMsg.textContent = '';
+    if (performance.now() > msgUntil) elMsg.style.opacity = '0';   // fundido de salida (ver --ui-msg-fade)
   }
 
   // ---- render ----
