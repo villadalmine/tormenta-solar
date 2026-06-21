@@ -1,8 +1,16 @@
 # SPEC: IA con OpenRouter (diálogos / contenido generativo)
 
-- **Estado:** Draft (idea + arquitectura; sin implementar)
+- **Estado:** Modo A implementado (v=44); Modo B (runtime/proxy) sigue Draft
 - **Alcance:** transversal
 - **Última actualización:** 2026-06-21
+
+> **Implementado (v=44, modo A):** `tools/gen-dialogos.mjs` genera 9 pools (`js/dialogos.js`) con un
+> modelo `:free` de OpenRouter (key en env o `tools/openrouter.key`, gitignored; trae la lista de
+> modelos free al vuelo y rota/reintenta ante 429/404). **Enchufado a los NPCs** con fallback: los
+> borrachines (`lines`), los linyeras de ruina (`RUINA_LINES`), el llanto de los ex-millonarios
+> (`LINYERA_CRY`), Iorio, la gente de las cuevas (`cueva_gente`) y los cueveros que rebotan
+> (`cuevero_rebote`) leen de `Dialogos.<pool>` vía un helper `_D/_Dp`; si `js/dialogos.js` no está
+> (e2e), usan los pools hardcodeados. La IA solo da TEXTO; cero efecto en el estado.
 
 ## 1. Objetivo
 Usar un LLM (vía **OpenRouter**, con un **modelo `:free`**) para **mejorar el contenido textual** del

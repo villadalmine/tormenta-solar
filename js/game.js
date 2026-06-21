@@ -174,7 +174,7 @@
       setMsg('“Gurú, la puerta del PISO 20 ya es tuya. El búnker te espera arriba.” 🐵', '#aef0c0', 3500);
     }
   }
-  const LINYERA_CRY = [
+  const LINYERA_CRY = (typeof Dialogos !== 'undefined' && Dialogos.linyera_llanto && Dialogos.linyera_llanto.length) ? Dialogos.linyera_llanto : [
     '“Yo tenía TRES deptos en Puerto Madero... tres. (se quiebra) Mirá ahí en el inodoro, agarrá, total ya no me sirve de nada...” 😭',
     '“Era gerente de banco. Traje, reuniones, un vacío de mierda. (llora) Hay guita en la caja fuerte, llevate, pibe.” 💼😢',
     '“Tenía un auto importado por cada día de la semana. ¿Y para qué, eh? (moquea) Sacá unas monedas, dale.” 🚗',

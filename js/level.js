@@ -58,6 +58,9 @@ const Level = (() => {
   }
 
   function build() {
+    // pools de diálogo generados por IA (js/dialogos.js, opcional). Si no está → usa el fallback.
+    const _D = (pool, fb) => (typeof Dialogos !== 'undefined' && Dialogos[pool] && Dialogos[pool].length) ? Dialogos[pool] : fb;
+    const _Dp = (pool, fb) => { const a = _D(pool, null); return a ? a[(Math.random()*a.length)|0] : fb; };
     const rooms = [
       // 0 — la calle (Florida y Lavalle): edificios con sus puertas
       makeRoom({
@@ -100,25 +103,25 @@ const Level = (() => {
           { name:'Señora 2', sprite:'mujer', x:88.6, dialog:'“No empujes que me sacan de la fila, atorrante.” 😤' },
           { name:'Borrachín del vino', sprite:'borracho_vino',  x:97, action:'borracho', want:'fiambre',
             hint:'“Uff... lo que me arreglaría un SÁNDWICH DE FIAMBRE ahora, pibe... un saladito, mortadela, lo que sea. Compralo en el super chino, dale.” 🥓',
-            lines:[
+            lines: _D('borracho_vino', [
             'Te tira un corcho a la cabeza. “¿Sabés qué pasa? El país está como yo: sin un mango, pero firme.” 🍷',
             'Te alcanza un caramelo pegoteado del bolsillo. “Yo fui contador, ¿sabés? Contador... de chistes malos. Ja.”',
             'Te escupe vino sin querer. “Este edificio de atrás es nuestro, eh. Pero no entra cualquiera.” 🏚️',
-            'Te encaja un botón que se le cayó. “El obelisco lo construí yo, no me creen.” 🏛️' ] },
+            'Te encaja un botón que se le cayó. “El obelisco lo construí yo, no me creen.” 🏛️' ]) },
           { name:'Borrachín de la cerveza', sprite:'borracho_birra', x:100, action:'borracho', want:'diosa',
             hint:'“Cerveza tengo, lo que quiero es una DIOSA TROPICAL, hermano... el vinito dulce de fruta. Conseguila en el super chino (góndola DIOSAS).” 🍹',
-            lines:[
+            lines: _D('borracho_cerveza', [
             'Te tira la tapita de la birra. “¡Boca campeón del mundo! ...¿no salió? Bueno, igual, salú.” ⚽',
             'Te ofrece un sorbo de su lata y se arrepiente. “Salú... *hipo*... vos me querés, ¿no, hermano?”',
             'Te encaja un posavasos mojado. “Nosotros cuidamos la entrada de ese edificio. Hay que ganarse el pase, eh.” 🚪',
-            'Te pasa una servilleta escrita. “Mañana arranco la dieta. Mañana, eh.”' ] },
+            'Te pasa una servilleta escrita. “Mañana arranco la dieta. Mañana, eh.”' ]) },
           { name:'Borrachín del porro', sprite:'borracho_porro', x:103, action:'borracho', want:'carne',
             hint:'“Loco... tengo un BAJÓN bárbaro. Me morfaría un CACHO DE CARNE, te juro. Conseguime carne en el super, dale.” 🥩',
-            lines:[
+            lines: _D('borracho_porro', [
             'Te tira el filtro armado. “Tranqui todo, loco... ¿escuchás los pájaros? No hay pájaros. Igual.” 🌬️',
             'Te pasa un encendedor sin gas. “El sistema, viste... el sistema, hermano.”',
             'Te encaja un papelito. “Si los tres quedamos contentos, te abrimos el edificio, ¿me entendés o no me entendés?” 🏚️',
-            'Te alcanza una galletita aplastada. “Este edificio antes era un banco. Ahora soy yo el banco. De nada.” 🏦' ] },
+            'Te alcanza una galletita aplastada. “Este edificio antes era un banco. Ahora soy yo el banco. De nada.” 🏦' ]) },
         ],
         enemies: [
           {t:'peaton',x:14,look:'peatonN'},{t:'peaton',x:20,look:'turistaW'},{t:'peaton',x:32,look:'shopperW'},{t:'peaton',x:42,look:'peatonN2'},
@@ -334,7 +337,7 @@ const Level = (() => {
         name: 'CEMENTO — recital under', theme: 'cemento', light: 0.55, w: 26,
         doors: [{ id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 }],
         npcs: [
-          { name:'Iorio (Almafuerte)', sprite:'iorio', x:14, action:'iorio', dialog:'“¿Qué hacés, tragaleche? Rajá... traeme falopa y te toco Pibe Tigre.” 🤘' },
+          { name:'Iorio (Almafuerte)', sprite:'iorio', x:14, action:'iorio', dialog: _Dp('iorio', '“¿Qué hacés, tragaleche? Rajá... traeme falopa y te toco Pibe Tigre.” 🤘') },
           { name:'Guitarrista', sprite:'guitarrista', x:11, dialog:'“Pará que afino, loco. Esta viola tiene más años que vos.” 🎸' },
           { name:'Bajista', sprite:'bajista', x:17, dialog:'“Grave, todo grave, hermano. El bajo es la vida.” 🎸' },
           { name:'Baterista', sprite:'baterista', x:20, dialog:'“¡Uno, dos, tres, cuatro! ...¿probamos de nuevo?” 🥁' },
@@ -369,7 +372,7 @@ const Level = (() => {
     // ---- 14..33: EDIFICIO ABANDONADO de los borrachines, 20 PISOS ----
     //   impares = LUJO (lo mejor de la moda, no hay nadie)
     //   pares   = DESTRUIDOS (escombros y gente tirada / yonquis durmiendo)
-    const RUINA_LINES = [
+    const RUINA_LINES = _D('linyera_ruina', [
       '“...andá pasando, pibe... acá no hay nada... nada...” 💀',
       '“¿Tenés un puchito? ...dejá, dejá...” 🚬',
       'Duerme hecho un ovillo, ni te registra. 😴',
@@ -388,7 +391,7 @@ const Level = (() => {
       '“Si ves a un linyera con un tótem de monos... ese es el jefe.” 🐵',
       '“Hay goteras hasta en las goteras, hermano.” 💧',
       '“Pasá tranqui, total acá ya no queda nada que romper.” 🧱',
-    ];
+    ]);
     // el linyera filósofo que cuida el maletín de los pisos de lujo (Diógenes versión Florida)
     const LINYERA_LINES = [
       '“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞',
@@ -524,8 +527,12 @@ const Level = (() => {
     wire(33, 'bunker', 34, 'back');
     // las 3 cuevas (35,36,37): se entra por la invitación del cuevero (handleCuevero), se sale por 'back' al hall (8)
     [35, 36, 37].forEach((ri, k) => {
-      const d = rooms[ri].doorById['back'];
+      const r = rooms[ri];
+      const d = r.doorById['back'];
       d.to = 8; d.at = { x: [14, 26, 40][k] * TILE + TILE/2, y: rooms[8].gTop * TILE };
+      // diálogos generados por IA (si dialogos.js está): gente esperando + cuevero que rebota
+      for (const n of r.npcs) if (n.name === 'En la cola') n.dialog = _Dp('cueva_gente', n.dialog);
+      for (const c of r.cueveros) if (c.outcome !== 'real') c.dialog = _Dp('cuevero_rebote', c.dialog);
     });
 
     return rooms;
