@@ -80,6 +80,18 @@ Pool de relatos (Draft, hacer variantes — cada uno distinto):
 - **Semilla para el script:** «linyera filósofo ex-exitoso, feliz en la calle, sabiduría + humor;
   variantes: resignado en ruina / ex-millonario que llora y te muestra la plata».
 
+### Pools que alimenta (los lee `tools/gen-dialogos.mjs`)
+```gen
+pool: linyera_ruina
+n: 10
+seed: linyera tirado en un piso destruido de un edificio abandonado, entre muebles rotos; frase resignada/absurda con humor
+```
+```gen
+pool: linyera_llanto
+n: 8
+seed: linyera que ERA millonario, se cansó del sistema y dejó todo; te cuenta su historia, se pone a llorar y te dice que agarres la plata que guarda (caja fuerte / inodoro)
+```
+
 ## Aristas
 ```
 edificio_abandonado --contiene--> linyera [guardián de joyas, pisos impares]

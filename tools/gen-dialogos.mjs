@@ -1,12 +1,16 @@
 // gen-dialogos.mjs — MODO A: pre-genera los pools de diálogo con OpenRouter (modelo free)
 // y los escribe en js/dialogos.js (estático, se commitea). NO corre en producción.
 //
+// FUENTE: los pools (key / n / seed) salen de los bloques ```gen de las fichas SDD en
+// specs/nivel-1/personajes/*.md (la sección Personalidad de cada personaje). Agregás un personaje
+// nuevo o cambiás su personalidad → tocás SU ficha y regenerás. (Respaldo: FALLBACK_JOBS.)
+//
 // Uso:
 //   1) Conseguí una API key en https://openrouter.ai/keys
 //   2) Ponela en la env  OPENROUTER_API_KEY=...   o en el archivo  tools/openrouter.key  (1 línea).
 //      (tools/openrouter.key está en .gitignore: NUNCA se sube.)
 //   3) node tools/gen-dialogos.mjs        (opcional: OPENROUTER_MODEL=otro/modelo:free)
-import { readFileSync, existsSync, writeFileSync } from 'fs';
+import { readFileSync, existsSync, writeFileSync, readdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -38,7 +42,27 @@ if (!KEY.startsWith('sk-or-')) console.log('⚠️  Ojo: las keys de OpenRouter 
 const SYSTEM = `Sos guionista de un videojuego de humor argentino ("TORMENTA SOLAR", en la peatonal Florida y Lavalle, Buenos Aires). Escribís diálogos CORTOS (1-2 frases) en SLANG PORTEÑO, con humor, frescos y variados, sin insultos gratuitos de más. Devolvés SIEMPRE y SOLO un array JSON de strings (sin texto extra, sin markdown). Cada string es una línea lista para mostrar; podés cerrar con un emoji.`;
 
 // cada job: clave de pool, cuántas líneas, descripción del personaje/situación, y ejemplos de tono
-const JOBS = [
+// FUENTE DE VERDAD: los pools salen de las fichas SDD (specs/nivel-1/personajes/*.md), de los
+// bloques ```gen (pool / n / seed). Si no encuentra ninguno, usa FALLBACK_JOBS de abajo.
+function jobsFromFichas() {
+  const dir = path.join(ROOT, 'specs', 'nivel-1', 'personajes');
+  if (!existsSync(dir)) return null;
+  const jobs = [];
+  for (const f of readdirSync(dir).filter(x => x.endsWith('.md'))) {
+    const txt = readFileSync(path.join(dir, f), 'utf8');
+    const re = /```gen\s+([\s\S]*?)```/g; let m;
+    while ((m = re.exec(txt))) {
+      const b = m[1];
+      const key = (b.match(/pool:\s*([^\n]+)/i) || [])[1]?.trim();
+      const n = parseInt((b.match(/\bn:\s*(\d+)/i) || [])[1] || '8', 10);
+      const seed = (b.match(/seed:\s*([^\n]+)/i) || [])[1]?.trim();
+      if (key && seed) jobs.push({ key, n, desc: seed, fewshot: [], from: f });
+    }
+  }
+  return jobs.length ? jobs : null;
+}
+
+const FALLBACK_JOBS = [
   { key:'borracho_vino', n:8, desc:'Borrachín con un VINO en la mano que QUIERE (sin decirlo directo) un sándwich de FIAMBRE. Te tira/encaja algo random y suelta una frase.',
     fewshot:['Te escupe un poco de tinto sin querer. “Este edificio era un banco, ¿sabés? Ahora el banco soy yo.” 🍷','Te alcanza media empanada fría. “Tomá, convidá... che, ¿un sanguche no tenés?”'] },
   { key:'borracho_cerveza', n:8, desc:'Borrachín con una CERVEZA en la mano que quiere una DIOSA TROPICAL (vino dulce de fruta). Tira algo random + frase.',
@@ -58,6 +82,12 @@ const JOBS = [
   { key:'iorio', n:6, desc:'Iorio (cantante de metal, estilo Almafuerte) en un recital under. Te pide falopa para tocar; post-apagón putea al sol y propone hacer tango/acústico.',
     fewshot:['“¿Qué hacés, tragaleche? Traeme falopa y te toco Pibe Tigre, dale.” 🤘'] },
 ];
+
+const fromFichas = jobsFromFichas();
+const JOBS = fromFichas || FALLBACK_JOBS;
+console.log(fromFichas
+  ? '📄 Pools desde las fichas SDD: ' + JOBS.length + ' (' + JOBS.map(j => j.key).join(', ') + ')'
+  : '📄 Sin bloques ```gen en las fichas → uso los pools hardcodeados de respaldo.');
 
 async function chat(model, messages) {
   const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -118,7 +148,8 @@ const out = {}, usados = new Set();
 let i = 0;
 for (const job of JOBS) {
   process.stdout.write('· ' + job.key.padEnd(18) + ' ');
-  const user = `Personaje/situación: ${job.desc}\nEjemplos del TONO (no los repitas, son solo de referencia):\n${job.fewshot.map(s => '- ' + s).join('\n')}\n\nGenerá ${job.n} líneas NUEVAS, distintas entre sí y de los ejemplos. Solo el array JSON.`;
+  const ex = (job.fewshot && job.fewshot.length) ? `\nEjemplos del TONO (no los repitas, son solo de referencia):\n${job.fewshot.map(s => '- ' + s).join('\n')}` : '';
+  const user = `Personaje/situación: ${job.desc}${ex}\n\nGenerá ${job.n} líneas NUEVAS, distintas entre sí${ex ? ' y de los ejemplos' : ''}, bien en personaje. Solo el array JSON.`;
   try {
     const { text, model } = await chatRetry([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]);
     out[job.key] = parseArray(text); usados.add(model);

@@ -32,6 +32,23 @@ Tres distintos, **misma base** (escabiados, delirantes, entrañables) pero **cad
 - **Semilla para el script:** «borrachín con {vino|cerveza|porro} en la mano que quiere de regalo
   {fiambre|Diosa Tropical|carne}; tira algo random + una frase delirante».
 
+### Pools que alimenta (los lee `tools/gen-dialogos.mjs`)
+```gen
+pool: borracho_vino
+n: 8
+seed: borrachín con un VINO en la mano que quiere (sin decirlo directo) un sándwich de FIAMBRE; te tira/encaja algo random y suelta una frase delirante (banco, obelisco, "el sistema")
+```
+```gen
+pool: borracho_cerveza
+n: 8
+seed: borrachín con una CERVEZA en la mano que quiere una DIOSA TROPICAL (vino dulce de fruta); tira algo random + una frase
+```
+```gen
+pool: borracho_porro
+n: 8
+seed: borrachín fumando PORRO, con bajón/munchies, que quiere un cacho de CARNE; tira algo random + una frase
+```
+
 ## Aristas
 ```
 calle --contiene--> borrachines

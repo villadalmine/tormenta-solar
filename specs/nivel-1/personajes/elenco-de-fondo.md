@@ -22,6 +22,14 @@ para no inflar el grafo con nodos sueltos. Cada uno tiene su línea de diálogo 
   hace **ficha propia** y se lo saca de acá (ej. el del chori y el del Trucotron → `npcs-arcade.md`).
 - Regla de variación: **cada uno con diálogo distinto** (nada repetido en la misma sala).
 
+## Pools que alimenta (los lee `tools/gen-dialogos.mjs`)
+La **cola del dólar** (la gente haciendo fila en la Casa de Cambio) tiene su pool generado:
+```gen
+pool: cola_dolar
+n: 10
+seed: persona haciendo la cola eterna en la Casa de Cambio Oficial; se queja de la espera, el número, el dólar y la inflación
+```
+
 ## Aristas
 ```
 calle --contiene--> elenco_cola_cambio

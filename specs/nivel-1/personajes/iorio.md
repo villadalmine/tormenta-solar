@@ -34,6 +34,13 @@ atrincherado.
 - **Semilla para el script:** «Iorio, metalero hosco; te pide falopa para tocar; post-apagón se
   resigna al tango acústico y putea al sol».
 
+### Pools que alimenta (los lee `tools/gen-dialogos.mjs`)
+```gen
+pool: iorio
+n: 6
+seed: Iorio (cantante de metal estilo Almafuerte) en un recital under; te pide falopa para tocar Pibe Tigre; post-apagón putea al dios sol y propone hacer tango/acústico
+```
+
 ## Aristas
 ```
 cemento --contiene--> iorio

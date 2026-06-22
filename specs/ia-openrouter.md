@@ -81,9 +81,11 @@ Es la **fuente única** de la voz del personaje, de la que se derivan:
 1. los **pools del modo A** (`tools/gen-dialogos.mjs` — sus JOBS espejan estas semillas), y
 2. los **`persona` del chat** (modo B).
 
-> **Plan (pendiente):** que `gen-dialogos.mjs` **lea las fichas** (la sección Personalidad / semilla)
-> y arme automáticamente, por personaje, **muchas** respuestas basadas en su personalidad + contexto,
-> así no hay que mantener las semillas en dos lados. Hoy van a mano en sync.
+> **Hecho:** `gen-dialogos.mjs` **lee las fichas**. Cada ficha declara sus pools en bloques
+> ` ```gen ` (`pool` / `n` / `seed`); el script los junta de `specs/nivel-1/personajes/*.md` y genera.
+> Para sumar/ajustar diálogos de un personaje, se toca **su ficha** y se regenera (`npm run gen:dialogos`).
+> Hay `FALLBACK_JOBS` por si no encuentra bloques. (Sigue pendiente: usar también el bloque Personalidad
+> completo como contexto extra, no sólo la `seed`.)
 
 ## 1. Objetivo
 Usar un LLM (vía **OpenRouter**, con un **modelo `:free`**) para **mejorar el contenido textual** del

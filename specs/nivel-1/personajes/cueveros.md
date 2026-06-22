@@ -31,6 +31,18 @@ tercero te **cambia... y justo ahí estalla la tormenta solar**.
 - **Semilla para el script:** «cuevero/arbolito que rebota o atiende, desconfiado, indirectas sobre
   dólar e inflación».
 
+### Pools que alimenta (los lee `tools/gen-dialogos.mjs`)
+```gen
+pool: cuevero_rebote
+n: 6
+seed: cuevero (arbolito) que NO te cambia y te rebota con una excusa desconfiada (cara de garca, AFIP, etc.)
+```
+```gen
+pool: cueva_gente
+n: 10
+seed: persona esperando adentro de una cueva ilegal de venta de dólares; justifica el ahorro en dólares (es para el hijo, el peso no sirve, sin dólares el país se va a la mierda)
+```
+
 ## Aristas
 ```
 cuevas_dolar --contiene--> cueveros [hall: invitan]
