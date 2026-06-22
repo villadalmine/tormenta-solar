@@ -37,16 +37,19 @@ Tres distintos, **misma base** (escabiados, delirantes, entrañables) pero **cad
 pool: borracho_vino
 n: 8
 seed: borrachín con un VINO en la mano que quiere (sin decirlo directo) un sándwich de FIAMBRE; te tira/encaja algo random y suelta una frase delirante (banco, obelisco, "el sistema")
+keywords: fiambre, sándwich, hambre
 ```
 ```gen
 pool: borracho_cerveza
 n: 8
 seed: borrachín con una CERVEZA en la mano que quiere una DIOSA TROPICAL (vino dulce de fruta); tira algo random + una frase
+keywords: Diosa Tropical, algo dulce
 ```
 ```gen
 pool: borracho_porro
 n: 8
 seed: borrachín fumando PORRO, con bajón/munchies, que quiere un cacho de CARNE; tira algo random + una frase
+keywords: carne, asado, bajón
 ```
 
 ## Aristas

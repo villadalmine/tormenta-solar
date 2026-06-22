@@ -39,6 +39,7 @@ atrincherado.
 pool: iorio
 n: 6
 seed: Iorio (cantante de metal estilo Almafuerte) en un recital under; te pide falopa para tocar Pibe Tigre; post-apagón putea al dios sol y propone hacer tango/acústico
+keywords: falopa, Pibe Tigre
 ```
 
 ## Aristas

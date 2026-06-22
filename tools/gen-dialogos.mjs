@@ -50,13 +50,17 @@ function jobsFromFichas() {
   const jobs = [];
   for (const f of readdirSync(dir).filter(x => x.endsWith('.md'))) {
     const txt = readFileSync(path.join(dir, f), 'utf8');
+    // contexto = el bloque "## Personalidad ..." completo (hasta el próximo ### o ##)
+    const pm = txt.match(/##\s*Personalidad[^\n]*\n([\s\S]*?)(?:\n###\s|\n##\s|$)/i);
+    const context = pm ? pm[1].trim() : '';
     const re = /```gen\s+([\s\S]*?)```/g; let m;
     while ((m = re.exec(txt))) {
       const b = m[1];
       const key = (b.match(/pool:\s*([^\n]+)/i) || [])[1]?.trim();
       const n = parseInt((b.match(/\bn:\s*(\d+)/i) || [])[1] || '8', 10);
       const seed = (b.match(/seed:\s*([^\n]+)/i) || [])[1]?.trim();
-      if (key && seed) jobs.push({ key, n, desc: seed, fewshot: [], from: f });
+      const keywords = (b.match(/keywords?:\s*([^\n]+)/i) || [])[1]?.trim();
+      if (key && seed) jobs.push({ key, n, desc: seed, context, keywords, fewshot: [], from: f });
     }
   }
   return jobs.length ? jobs : null;
@@ -149,7 +153,9 @@ let i = 0;
 for (const job of JOBS) {
   process.stdout.write('· ' + job.key.padEnd(18) + ' ');
   const ex = (job.fewshot && job.fewshot.length) ? `\nEjemplos del TONO (no los repitas, son solo de referencia):\n${job.fewshot.map(s => '- ' + s).join('\n')}` : '';
-  const user = `Personaje/situación: ${job.desc}${ex}\n\nGenerá ${job.n} líneas NUEVAS, distintas entre sí${ex ? ' y de los ejemplos' : ''}, bien en personaje. Solo el array JSON.`;
+  const ctx = job.context ? `\n\nPERSONALIDAD DEL PERSONAJE (respetala a fondo):\n${job.context}` : '';
+  const kw = job.keywords ? `\n\nQue alguna línea mencione naturalmente: ${job.keywords}. (Las PISTAS del juego igual las garantiza el código por separado, así que no fuerces.)` : '';
+  const user = `Personaje/situación: ${job.desc}${ctx}${kw}${ex}\n\nGenerá ${job.n} líneas NUEVAS, distintas entre sí${ex ? ' y de los ejemplos' : ''}, bien EN PERSONAJE. Solo el array JSON.`;
   try {
     const { text, model } = await chatRetry([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]);
     out[job.key] = parseArray(text); usados.add(model);

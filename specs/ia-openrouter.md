@@ -74,6 +74,15 @@ Los modelos `:free` son **lentos y rate-limited** (después de 1 request te tira
     cursos?"). **No contesta nada fuera de su rol.**
 - Las personas (system prompts) viven en `js/ai.js` (BYOK) y en `ai-proxy/personas.js` (proxy).
 
+### Las PISTAS (palabras clave) NO dependen del LLM
+Las pistas del juego se entregan por la **capa scripteada**, siempre, pase lo que pase con la IA:
+- el campo **`hint`** (los borrachines lo revelan al hablarles) y las **`action`** (Iorio→falopa,
+  el del chori→vale, etc.).
+- Las **pools generadas** (modo A) y el **chat IA** (modo B) son **flavor**. El `keywords:` de los
+  bloques ` ```gen ` sólo hace que ese flavor sea **on-theme** (que algún borracho hambriento nombre
+  el fiambre), **no reemplaza** la pista.
+- **Regla:** *hablar* a un NPC clave **siempre dice lo importante**; *chatear* (IA) es **libre**.
+
 ### Fuente única de la personalidad: la ficha SDD de cada personaje
 Cada personaje tiene un bloque **Personalidad** en su ficha (`specs/nivel-1/personajes/*`): voz, tono,
 contexto, qué quiere, **qué NO dice** (límites), `persona` de chat y una **semilla para el script**.
