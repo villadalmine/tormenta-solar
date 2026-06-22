@@ -1,9 +1,12 @@
 // i18n.js — runtime de idiomas (capa ADITIVA, no rompe el core si falta). Ver specs/idiomas.md.
-// Resolución: ?lang=  →  localStorage(ts_lang)  →  navigator.language  →  DEFAULT.
-// t(key, params) cae: idioma activo → DEFAULT (es-AR) → la clave cruda (nunca vacío).
+// Resolución del idioma (orden): ?lang=  →  localStorage(ts_lang, lo que elegís en ⚙ Opciones)
+//   →  navigator.language (auto del browser: español→es-AR; CUALQUIER otro idioma no soportado→inglés)
+//   →  inglés (FALLBACK internacional: si no se puede detectar nada, English).
+// t(key, params) cae: idioma activo → es-AR (catálogo fuente, siempre completo) → la clave cruda.
 // Los diálogos de NPCs se piden con I18n.dict(pool) (lee Dialogos[es|en][pool]).
 const I18n = (() => {
-  const DEFAULT = 'es-AR';
+  const DEFAULT = 'es-AR';        // idioma FUENTE (catálogo completo) — fallback de t() para claves faltantes
+  const FALLBACK_LANG = 'en';     // idioma que se usa si el browser trae uno que el juego NO soporta
   const SUPPORTED = ['es-AR', 'en'];
   const NAMES = { 'es-AR': 'Español (Argentina)', 'en': 'English' };
   const LS = 'ts_lang';
@@ -30,9 +33,16 @@ const I18n = (() => {
     } catch (e) { return null; }
   }
   function stored() { try { return typeof localStorage !== 'undefined' ? norm(localStorage.getItem(LS)) : null; } catch (e) { return null; } }
-  function fromNav() { try { return typeof navigator !== 'undefined' ? norm(navigator.language) : null; } catch (e) { return null; } }
+  // browser: si es un idioma SOPORTADO (es→es-AR, en→en) lo usa; si trae otro idioma → inglés.
+  function fromNav() {
+    try {
+      if (typeof navigator === 'undefined' || !navigator.language) return null;
+      return norm(navigator.language) || FALLBACK_LANG;   // no soportado → inglés
+    } catch (e) { return null; }
+  }
 
-  let lang = query() || stored() || fromNav() || DEFAULT;
+  // ?lang (override por URL) → tu elección guardada (Opciones) → browser → inglés internacional
+  let lang = query() || stored() || fromNav() || FALLBACK_LANG;
 
   function interp(s, params) {
     if (!params || typeof s !== 'string') return s;
@@ -41,6 +51,11 @@ const I18n = (() => {
   function t(key, params) {
     const s = (catalogs[lang] && catalogs[lang][key]) || (catalogs[DEFAULT] && catalogs[DEFAULT][key]) || key;
     return interp(s, params);
+  }
+  // como t() pero devuelve un ARRAY del catálogo (para líneas al azar). null si no es array.
+  function tList(key) {
+    const v = (catalogs[lang] && catalogs[lang][key]) || (catalogs[DEFAULT] && catalogs[DEFAULT][key]);
+    return Array.isArray(v) ? v : null;
   }
   function dict(pool) {
     if (typeof Dialogos === 'undefined') return null;

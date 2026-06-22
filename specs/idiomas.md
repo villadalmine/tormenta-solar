@@ -143,9 +143,16 @@ I18n.dict(pool)                 // devuelve el pool de diálogos del idioma acti
 ## 5. Resolución del idioma (orden) y persistencia
 
 1. **Query string** `?lang=en` (para compartir/testear un idioma puntual).
-2. **Elección del jugador** en ⚙ Opciones, guardada en `localStorage` (`ts_lang`).
-3. **`navigator.language`** del browser (si matchea un `SUPPORTED`; `es-*`→`es-AR`, `en-*`→`en`).
-4. **DEFAULT** (`es-AR`).
+2. **Elección del jugador** en ⚙ Opciones, guardada en `localStorage` (`ts_lang`) — **vos podés poner
+   el que quieras** y manda sobre el auto-detect.
+3. **`navigator.language`** del browser (auto): `es-*` → `es-AR`; **cualquier otro idioma que el juego
+   NO soporte** (fr, de, pt sin catálogo, etc.) → **inglés**.
+4. **Inglés** (`FALLBACK_LANG`): si no se puede detectar nada, English como default internacional.
+
+> **Regla pedida:** el juego arranca en **inglés** salvo que el browser diga explícitamente español (o
+> que vos elijas otro en Opciones). Así un idioma no soportado **siempre cae en inglés**, no en español.
+> Ojo: `DEFAULT = es-AR` sigue siendo el **catálogo fuente** (fallback de `t()` para claves faltantes),
+> distinto del idioma *resuelto* para mostrar.
 
 UI: un selector de **Idioma / Language** en ⚙ Opciones (junto a fuente/timing). Cambiarlo llama
 `I18n.set()` → re-aplica la UI **en vivo** (sin recargar) y persiste. Ver `configuracion.md`.
