@@ -1,6 +1,6 @@
 # SPEC: Grafo de historia + motor de pistas (la "didáctica" del juego)
 
-- **Estado:** Draft (diseño; nada implementado todavía)
+- **Estado:** Draft — **diseño CERRADO, listo para implementar** (nada de código todavía; ver §7 plan)
 - **Nivel:** transversal (se estrena en Nivel 1)
 - **Última actualización:** 2026-06-22
 
@@ -90,18 +90,25 @@ del **artefacto de datos** de §3.3.)
 
 ### 3.2 El motor de pistas (`HintEngine`) — la "didáctica"
 Dado el **estado actual** (los flags), el motor calcula la **frontera**: las aristas cuya precondición
-está **a un paso** de cumplirse (o la siguiente acción del camino crítico). De ahí emite una **pista
-escalada por nivel de spoiler**:
+está **a un paso** de cumplirse. Sabe **qué hiciste y qué te falta** (compara flags vs. aristas). De ahí
+emite una pista, pero **el nivel de detalle sube con la INSISTENCIA del jugador**, no solo: arranca críptico
+para hacerte **pensar**, y si seguís preguntando se va abriendo:
 
-- **Nivel 0 (ambiente):** "Algo se huele raro en la cueva..."
-- **Nivel 1 (rumbo):** "Los borrachines no te dejan pasar porque quieren que les convides algo."
-- **Nivel 2 (concreto):** "Conseguí una Diosa Tropical en el super (sección DIOSAS) y dásela al de la cerveza."
+- **Nivel 0 — frase loca / filosófica:** te tira un acertijo que te hace pensar, sin nombrar nada.
+  *"El verde se compra abajo, donde no llega el sol... pero el sol igual te va a encontrar, pibe."*
+- **Nivel 1 — más claro (si repreguntás):** rumbo, pero todavía sin receta.
+  *"¿Nunca bajaste a la cueva del fondo? Ahí cambian lo que vos buscás."*
+- **Nivel 2 — directo (si seguís):** la receta concreta.
+  *"Hablá con el cuevero del fondo y cambiá los dólares. Listo. Ahí arranca todo."*
+- **Nivel 3 — se enoja (si lo cansás):** te lo dice sin vueltas y medio podrido.
+  *"¡Que vayas a la CUEVA del fondo y CAMBIES, carajo! ¿Te lo dibujo?"*
 
-Reglas (atadas a [`ia-openrouter.md` §0](../ia-openrouter.md)):
+El escalado es **por conversación / insistencia** (cuántas veces le repreguntás sobre lo mismo), no por
+timer. Si cambiás de tema o resolvés el paso, vuelve a Nivel 0. Reglas (atadas a
+[`ia-openrouter.md` §0](../ia-openrouter.md)):
 - **La pista CRÍTICA la garantiza el código** (retrieval sobre el grafo), nunca el LLM. El chat IA del
-  NPC-guía es **flavor**: se le pasa la pista recuperada como **grounding** y la dice con su voz; no
-  inventa rutas.
-- El motor evita spoilear de más: arranca en Nivel 0/1 y sube si el jugador insiste o sigue trabado.
+  linyera es **flavor**: recibe la pista recuperada + el nivel de spoiler como **grounding** y la dice con
+  su voz (críptica o podrida según el nivel); **no inventa rutas**.
 
 ### 3.3 De dónde sale el grafo: autoría distribuida → vista ensamblada
 **Fuente de verdad = las fichas** (no un archivo central que haya que mantener sincronizado a mano). Cada
@@ -146,25 +153,36 @@ grafo se recompila.
 > Capa **aditiva**: el artefacto ensamblado (p. ej. `js/historia.js` generado, o leído de las fichas en
 > runtime) va detrás de un `typeof Historia !== 'undefined'`; sin él, el juego anda igual.
 
-### 3.4 El linyera filósofo como oráculo (futuro, "luego")
-El **linyera filósofo** (ya chateable en la calle) es el **narrador omnisciente**: habla como un Diógenes
-medio iluminado *porque ve el grafo entero*. Al hablarle, el juego corre `HintEngine.next(estado)`
-(= planner sobre el grafo ensamblado de §3.3) y obtiene el próximo paso de la frontera. Cómo lo dice:
-- **Sin IA:** dice la pista del nivel de spoiler actual, tal cual (i18n).
-- **Con IA (chat):** se le pasa esa pista recuperada como **grounding** en el system prompt y la transcrea
+### 3.4 El linyera filósofo como oráculo ERRANTE (futuro, "luego")
+El **linyera filósofo** (ya chateable) es el **narrador omnisciente**: habla como un Diógenes medio
+iluminado *porque ve el grafo entero*. Al hablarle, el juego corre `HintEngine.next(estado)` (= planner
+sobre el grafo ensamblado de §3.3) y obtiene el/los próximos pasos de la frontera.
+
+**No está fijo en un solo lado: es errante.** Aparece (o reaparece) **cerca de lo que NO hiciste** — el
+motor elige, de las aristas de frontera, la **más cercana** al jugador (cercanía = lugar + qué tan a mano
+está la precondición). Así el encuentro se siente orgánico: lo cruzás justo donde hay algo pendiente, y te
+tira la frase loca sobre *eso*. Cómo lo dice:
+- **Sin IA:** dice la pista del nivel de spoiler actual (§3.2), tal cual (i18n).
+- **Con IA (chat):** se le pasa esa pista + el nivel como **grounding** en el system prompt y la transcrea
   con su voz canchera (ver [`glosario-transcreacion.md`](../glosario-transcreacion.md)). **La ruta sale del
   grafo, no del LLM** (regla de [`ia-openrouter.md` §0](../ia-openrouter.md)): el modelo le pone la voz, no
   inventa qué destraba qué.
 
-Diégesis: que "sepa todo" queda justificado en la ficción — es el tipo que se cansó del sistema, lo vio
-desde afuera y ahora *entiende cómo funciona la máquina*. El oráculo no rompe la inmersión: la explica.
+**Multi-camino (Q4):** cuando hay varias aristas abiertas hacia el mismo objetivo (p. ej. entrar al chino
+por **truco** / **Iorio** / **cueva**), el linyera empuja hacia la **más cercana/feasible** según dónde
+estás parado — no las lista todas (eso spoilearía las rutas). Si te movés, puede cambiar de sugerencia.
+
+Diégesis: que "sepa todo" y "aparezca donde te falta algo" queda justificado en la ficción — es el tipo
+que se cansó del sistema, lo vio desde afuera y ahora *entiende cómo funciona la máquina*; deambula por
+Florida y te cruza donde te estás trabando. El oráculo no rompe la inmersión: la explica.
 
 ## 4. Requisitos funcionales
 - **RF-1:** Existe un grafo de historia declarativo (`Historia.beats` + `Historia.edges`) que cubre
   **todas** las decisiones reales del Nivel 1 (las `action:` y los flags de §2), incluido el disparador
   de la tormenta.
-- **RF-2:** `HintEngine.next(estado)` devuelve, para cualquier estado válido, **al menos una** arista de
-  frontera y su pista al nivel de spoiler pedido (0/1/2).
+- **RF-2:** `HintEngine.next(estado, {cerca, insistencia})` devuelve, para cualquier estado válido, la
+  arista de frontera **más cercana** y su pista al nivel de spoiler según la insistencia (0 frase loca →
+  1 rumbo → 2 receta → 3 directo/enojado).
 - **RF-3:** Las pistas son **i18n** (claves o catálogo, es-AR fuente; transcreación al inglés — ver
   [`glosario-transcreacion.md`](../glosario-transcreacion.md)).
 - **RF-4:** Capa **aditiva**: sin `Historia`/`HintEngine`, el juego funciona igual (los flags y la lógica
@@ -184,24 +202,33 @@ que **escriba** los flags vía el grafo — fuera de alcance de este Draft.)
   `HintEngine.next()` devuelve la pista esperada (test de tabla).
 - Paridad i18n de las pistas (es/en).
 
-## 7. Decisiones tomadas / preguntas abiertas
+## 7. Decisiones tomadas
 
-**Resueltas (este Draft):**
+Todo el diseño quedó cerrado; ya no hay preguntas abiertas para empezar a implementar.
+
+**Arquitectura:**
 - **¿Central o consultando a cada uno?** → **Autoría distribuida en las fichas (` ```hist `) + grafo
   ensamblado** (§3.3). No hay fuente central duplicada.
 - **¿Cómo "sabe" el linyera?** → Es un **oráculo/planner** sobre el grafo ensamblado (§3.0, §3.4); la IA
   solo le pone la voz (grounding), no decide rutas.
 - **¿Quién guía?** → El **linyera filósofo** que ya existe (no se agrega NPC nuevo).
 
-**Abiertas (decidir antes de implementar):**
-1. **¿El grafo solo describe, o también maneja los flags?** Fase 1 (recomendada) = **describe** + alimenta
-   pistas; `game.js` sigue dueño de los flags. Fase 2 (opcional) = el grafo es la **fuente** y `game.js`
-   setea los flags a través suyo (más limpio, más refactor).
-2. **¿El grafo se lee en runtime de las fichas, o se pre-compila** a `js/historia.js` con un script (como
-   `gen-dialogos.mjs`)? (Recomendado: pre-compilar, para no parsear markdown en el browser.)
-3. **Política de spoiler:** ¿la pista sube de nivel sola si el jugador sigue trabado (timer/insistencia),
-   o el jugador pide "dame más data"?
-4. **Multi-camino:** cuando hay varias aristas de frontera (truco / Iorio / cueva para entrar al chino),
-   ¿el motor prioriza una, las lista, o elige por cercanía de precondición?
-5. **Alcance del grafo:** ¿solo el camino crítico (llegar al portal), o también los secundarios
-   (búnker/loop, FIFA, disquería→Cemento) con sus pistas?
+**Resueltas con el dueño (las 5 de la iteración):**
+1. **¿Describe o maneja los flags?** → **Solo DESCRIBE** (Fase 1): el grafo **lee** los flags que `game.js`
+   ya setea, para saber dónde estás y dar pistas. **No toca la lógica que ya anda.** (Que el grafo *maneje*
+   los flags = sea el dueño del estado = refactor de Fase 2, **descartado por ahora**.)
+2. **¿Runtime o pre-compilado?** → **Pre-compilado**: un script (estilo `gen-dialogos.mjs`) lee las fichas
+   en la compu y escribe `js/historia.js` listo; el juego solo lo carga (no parsea markdown en el browser).
+3. **Política de spoiler** → **Escalado por INSISTENCIA** (§3.2): arranca con una **frase loca/filosófica**
+   para hacerte pensar; si repreguntás sobre eso, se pone **más claro**; si lo cansás, **se enoja y te lo
+   dice directo**. El linyera sabe **qué hiciste y qué no** (compara flags vs. grafo). Se reinicia al
+   resolver el paso o cambiar de tema.
+4. **Multi-camino** → El linyera es **errante**: aparece/reaparece **cerca de lo que no hiciste** y empuja
+   hacia la arista de frontera **más cercana/feasible** (no lista todas las rutas). Ver §3.4.
+5. **Alcance** → **Todo**: camino crítico **y** secundarios (búnker/loop, FIFA, disquería→Cemento, armas,
+   etc.). El linyera puede ayudar con cualquier cosa pendiente.
+
+**Plan de implementación (cuando se arranque):** (a) agregar bloque ` ```hist ` a cada ficha de
+`personajes/`/`edificios/` con su arista (pre/does/sets/hints×niveles); (b) script que ensambla
+`js/historia.js` + validación (sin ciclos, cobertura de `action:`); (c) `HintEngine` (frontera + cercanía +
+nivel por insistencia); (d) enchufar el linyera errante (spawn cerca de pendientes + chat con grounding).
