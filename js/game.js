@@ -12,6 +12,9 @@
     const a = (typeof I18n !== 'undefined' && I18n.tList) ? I18n.tList(k) : null;
     return (a && a.length) ? a[(Math.random() * a.length) | 0] : k;
   };
+  // TX(s): traduce strings de level.js (nombres de sala/NPC, diálogos fijos, labels de puerta) en el
+  // punto de DISPLAY. level.js queda en español internamente (regex de sala / wiring por name siguen ok).
+  const TX = (s) => (typeof I18n !== 'undefined' && I18n.lang === 'en' && typeof levelTx === 'function') ? levelTx(s) : s;
 
   // canvas de iluminación (oscuridad con "agujeros" de luz)
   const lightCanvas = document.createElement('canvas');
@@ -76,7 +79,7 @@
     arcadeGame = null; superGame = null; vinilosGame = null;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
-    elFloor.textContent = rooms[0].name;
+    elFloor.textContent = TX(rooms[0].name);
     setMsg(T('g.start'), '#FFD54F', 6000);
   }
 
@@ -164,7 +167,7 @@
     else if (n.action === 'armas') buyArmas(n);
     else if (n.action === 'chat') openChat(n);
     else if (n.action === 'fifa') playFifa();
-    else { setMsg(n.dialog || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
+    else { setMsg(TX(n.dialog) || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
   }
   function ejectToStreet(msg) {
     // te echan del edificio: aparecés de nuevo en la calle, en la puerta del abandonado
@@ -172,7 +175,7 @@
     const d = rooms[0].doorById['abandonado'];
     player.x = d.x - player.w / 2; player.y = rooms[0].gTop * Level.TILE - player.h;
     player.vx = player.vy = 0; transCd = 0.4;
-    updateCam(); elFloor.textContent = rooms[0].name;
+    updateCam(); elFloor.textContent = TX(rooms[0].name);
     setMsg(msg, '#ffd54f', 7500);
   }
   function grabJoyas(n) {
@@ -203,7 +206,7 @@
     player.x = tileX * Level.TILE + Level.TILE/2 - player.w/2;
     player.y = rm.gTop * Level.TILE - player.h;
     player.vx = player.vy = 0; transCd = 0.4;
-    updateCam(); elFloor.textContent = rm.name;
+    updateCam(); elFloor.textContent = TX(rm.name);
   }
   function resetLoopResources() {            // cajones de falopa y limosnas se renuevan cada loop
     for (const rm of rooms) for (const n of rm.npcs || []) { n.falopaTaken = false; n.limosnaTaken = false; }
@@ -223,7 +226,7 @@
     setMsg(T('g.falopa.grab', { n: player.falopa }), '#7CFC00', 6000);
   }
   function giveLimosna(n) {
-    if (!stormed) { setMsg(n.dialog || T('g.limosna.preStorm'), '#aef0c0', 4000); return; }
+    if (!stormed) { setMsg(TX(n.dialog) || T('g.limosna.preStorm'), '#aef0c0', 4000); return; }
     if (n.limosnaTaken) { setMsg(T('g.limosna.empty'), '#9fb4c4', 3000); return; }
     n.limosnaTaken = true;
     const amt = 5 + ((Math.random() * 16) | 0);     // 5..20, aleatorio
@@ -231,7 +234,7 @@
     setMsg(linyeraCry() + '  +' + amt + ' 🪙', '#FFC107', 6500);
   }
   function giveIorio(n) {
-    if (!stormed) { setMsg(n.dialog || T('g.iorio.preStorm'), '#aef0c0', 4500); return; }
+    if (!stormed) { setMsg(TX(n.dialog) || T('g.iorio.preStorm'), '#aef0c0', 4500); return; }
     if ((player.falopa || 0) <= 0) { setMsg(T('g.iorio.noFalopa'), '#ffd54f', 6000); return; }
     player.falopa--; chinoFrontOpen = true; Sfx.win();
     setMsg(T('g.iorio.give'), '#7CFC00', 9000);
@@ -244,12 +247,12 @@
     return div;
   }
   function openChat(n) {
-    if (typeof AI === 'undefined') { setMsg(n.dialog || '“...”', '#aef0c0', 4000); return; }
+    if (typeof AI === 'undefined') { setMsg(TX(n.dialog) || '“...”', '#aef0c0', 4000); return; }
     chatNpc = n; chatHistory = []; chatBusy = false;
-    elChatTitle.textContent = '💬 ' + (n.name || 'CHARLA');
+    elChatTitle.textContent = '💬 ' + (TX(n.name) || T('chat.title'));
     elChatLog.innerHTML = '';
     chatLine('sys', AI.mode() === 'offline' ? T('g.chat.offline') : T('g.chat.online', { mode: AI.mode() }));
-    if (n.dialog) chatLine('npc', n.dialog);
+    if (n.dialog) chatLine('npc', TX(n.dialog));
     state = 'chat';
     elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
     setTimeout(() => elChatInput && elChatInput.focus(), 30);
@@ -345,7 +348,7 @@
     current = idx;
     const cu = rooms[idx], up = cu.doorById['up'];
     player.x = (up.x + 48) - player.w/2; player.y = cu.gTop*Level.TILE - player.h; player.vx = player.vy = 0;
-    updateCam(); elFloor.textContent = cu.name;
+    updateCam(); elFloor.textContent = TX(cu.name);
     if (!moneyRecovered) { moneyRecovered = true; player.coins += 60; setMsg(T('g.cueva.secretMoney'), '#7CFC00', 7000); }
     else setMsg(T('g.cueva.secretEmpty'), '#9fb4c4', 4000);
   }
@@ -392,7 +395,7 @@
     }
     if (c.outcome === 'real') {
       bought = true;
-      setMsg(T('g.cuevero.real', { dialog: c.dialog }), '#ff5252', 7000);
+      setMsg(T('g.cuevero.real', { dialog: TX(c.dialog) }), '#ff5252', 7000);
       triggerStorm();
     } else {
       setMsg(c.dialog, '#ffd54f', 4800);
@@ -420,7 +423,7 @@
     transCd = 0.35;
     updateCam();
     const r = room();
-    elFloor.textContent = r.name;
+    elFloor.textContent = TX(r.name);
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
     else if (current === 0) setMsg(T('g.trans.street'), '#4FC3F7', 2500);
@@ -497,7 +500,7 @@
       const target = player.x + player.w/2 - 26;
       if (Math.abs(target - n.x) > 4) n.x += Math.sign(target - n.x) * Math.min(75*dt, Math.abs(target - n.x));
       n.upCd = (n.upCd || 0) - dt;
-      if (n.upCd <= 0 && n.lines) { setMsg(n.lines[(Math.random()*n.lines.length)|0], '#80cbc4', 2800); n.upCd = 3.5 + Math.random()*2.5; }
+      if (n.upCd <= 0 && n.lines) { setMsg(TX(n.lines[(Math.random()*n.lines.length)|0]), '#80cbc4', 2800); n.upCd = 3.5 + Math.random()*2.5; }
     }
 
     // melee de peatones ya aplicado en Enemies.update; salida:
@@ -594,14 +597,14 @@
     for (const m of r.machines || []) {
       const img = Art.machines[m.game];
       ctx.drawImage(img, m.x - cam.x - img.width/2, m.y - cam.y - img.height);
-      label(m.name, m.x - cam.x, m.y - cam.y - img.height - 4, '#ff2e88');
+      label(TX(m.name), m.x - cam.x, m.y - cam.y - img.height - 4, '#ff2e88');
     }
     // NPCs amistosos (EducaciónIT)
     for (const n of r.npcs || []) {
       if (n.invisible) continue;   // ej. el "linyera de las joyas": aparece recién al tocarlas
       const img = Art.npc[n.sprite] || Art.npc.civil1;
       ctx.drawImage(img, n.x - cam.x - img.width/2, n.y - cam.y - img.height);
-      label(n.name, n.x - cam.x, n.y - cam.y - img.height - 4, '#aef0c0');
+      label(TX(n.name), n.x - cam.x, n.y - cam.y - img.height - 4, '#aef0c0');
     }
     // portal (calle, tras la tormenta)
     if (r.theme === 'cambio' && stormed && r.goal) {
@@ -612,7 +615,7 @@
     for (const c of r.cueveros || []) {
       const img = Art.npc.cuevero;
       ctx.drawImage(img, c.x - cam.x - img.width/2, c.y - cam.y - img.height);
-      label(c.name, c.x - cam.x, c.y - cam.y - img.height - 4, '#7CFC00');
+      label(TX(c.name), c.x - cam.x, c.y - cam.y - img.height - 4, '#7CFC00');
     }
     // pickups
     for (const p of s.pickups) {
@@ -697,12 +700,12 @@
         : a === 'shop' ? T('g.prompt.shop', { cost: it.n.sells.cost, cur: T('g.cur.' + (it.n.sells.pay === 'caramelos' ? 'caramelos' : it.n.sells.pay === 'forros' ? 'forros' : 'monedas')) })
         : a === 'lujo' ? (stormed ? T('g.prompt.lujoStorm') : T('g.prompt.lujo'))
         : a === 'totem' ? T('g.prompt.totem')
-        : a === 'limosna' ? (stormed ? T('g.prompt.limosna') : T('g.prompt.talk', { name: it.n.name }))
+        : a === 'limosna' ? (stormed ? T('g.prompt.limosna') : T('g.prompt.talk', { name: TX(it.n.name) }))
         : a === 'iorio' ? (stormed ? T('g.prompt.iorioStorm') : T('g.prompt.iorio'))
         : a === 'armas' ? (stormed ? T('g.prompt.armasStorm') : T('g.prompt.armas'))
-        : a === 'chat' ? T('g.prompt.chat', { name: it.n.name || 'el linyera' })
+        : a === 'chat' ? T('g.prompt.chat', { name: TX(it.n.name) || TX('el linyera') })
         : a === 'loop' ? T('g.prompt.loop')
-        : T('g.prompt.talk', { name: it.n.name });
+        : T('g.prompt.talk', { name: TX(it.n.name) });
     }
     else if (it.kind === 'machine') {
       const m = it.m;
@@ -711,7 +714,7 @@
       else txt = T('g.prompt.machine', { name: m.name });
     }
     else if (stormed && COLLAPSED.includes(it.d.id)) txt = T('g.prompt.collapsed');
-    else txt = it.d.label;
+    else txt = TX(it.d.label);
     elPrompt.innerHTML = '<span class="key">E</span>' + txt;
     elPrompt.classList.remove('hidden');
   }

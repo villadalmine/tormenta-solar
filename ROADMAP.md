@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** (cache `v=45`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** (cache `v=58`).
 
 ---
 
@@ -13,6 +13,9 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** 
   los linyeras, catre/día, muerte→loop anterior). Ver `specs/nivel-1/loop-supervivencia.md`.
 - **IA (OpenRouter)**: diálogos pre-generados (modo A, `js/dialogos.js`) + chat en vivo con un NPC
   (modo B, `js/ai.js`: proxy/BYOK/local). Capas aditivas. Ver `specs/ia-openrouter.md`.
+- **Multi-idioma (ES/EN)**: el juego entero se juega en inglés. `js/i18n.js` + catálogos `js/lang/*`
+  (`t/tList/dict`, `data-i18n`), selector en ⚙ Opciones, auto-detect del browser (no soportado→inglés),
+  pools y chat IA por idioma (transcreación, no traducción literal). Ver `specs/idiomas.md`.
 - **Opciones** (`js/config.js`): tamaño de fuente, duración/fundido del texto, API key (BYOK).
 - **Calle Florida y Lavalle** con NPCs, decoración, enemigos (peatones/drones), pickups,
   y la **cola de la casa de cambio** (10 personas distintas).
@@ -52,18 +55,26 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** 
 
 Ordenadas por impacto. Nada de esto está hecho.
 
-### Idiomas / i18n (inglés)
-Ver [`specs/idiomas.md`](specs/idiomas.md). **Fase 1 hecha (v=54):** runtime `js/i18n.js` + catálogos
+### Idiomas / i18n (inglés) — ✅ COMPLETO para Nivel 1 (v=58)
+Ver [`specs/idiomas.md`](specs/idiomas.md) (**source of truth · §13 = dónde seguir**). El juego ENTERO se
+puede jugar en inglés (verificado en navegador real: intro "SOLAR STORM", botón "HIT THE STREET", etc.).
+
+**Fase 1 hecha (v=54):** runtime `js/i18n.js` + catálogos
 `js/lang/es.js`/`en.js` (UI estática, paridad 29/29) + `data-i18n` en `index.html` + selector en ⚙ Opciones
 + pools por idioma (`Dialogos[es|en]`, `_D/_Dp` vía `I18n.dict`) + chat IA en el idioma activo (transcreación)
 + generador multi-idioma (`OPENROUTER_LANGS=es,en`). Resolución `?lang`→localStorage→navigator→es-AR.
 - [x] **Fase 2 · Pasada A (v=57):** TODA la narración de `game.js` (~90 `setMsg`/prompts/fin/labels/arcade)
       a claves `t()/tList()` (`js/lang/game.es.js`+`game.en.js`, paridad 149/149). En `en` ya sale en inglés.
-- [ ] **Fase 2 · Pasada B:** `level.js` — nombres de sala (`r.name` del HUD), `dialog`/`hint`/`name` fijos,
-      labels de puerta (`d.label`); y dar **id/theme estable** al búnker/truco/Garbarino (hoy `game.js` los
-      detecta por regex sobre `r.name`, se rompe al traducir).
-- [ ] **Generar `Dialogos.en`** con el script (`OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs`) y commitearlo.
-- [ ] Glosario de transcreación por término (falopa, linyera, chino…) para consistencia.
+- [x] **Fase 2 · Pasada B (v=58):** `level.js` (salas/NPCs/diálogos/labels) traducido en el punto de display
+      con `js/lang/level.en.js` + helper `TX()`. `level.js` NO se tocó: sus strings quedan como **id interno
+      estable** (los regex `/Búnker/`,`/Truco/`,`/Garbarino/` y el wiring por `name` siguen intactos).
+- [x] **`Dialogos.en` generado** con el script (8/9 pools; `linyera_llanto` cae a `es`).
+
+**Qué sigue (OPCIONAL — ver `specs/idiomas.md` §13):**
+- [ ] Regenerar `Dialogos.en` para más variedad / completar `linyera_llanto`: `OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs`.
+- [ ] Glosario de transcreación por término (falopa, linyera, chino…) centralizado.
+- [ ] 3er idioma (ej. `pt-BR`): para `level.js` conviene **migrarlo a claves `t()`** (hoy `level.en.js` es un
+      mapa es→en puntual). Nivel 2 debería nacer ya con claves `t()` desde el principio.
 
 ### IA / diálogos
 - [x] **`tools/gen-dialogos.mjs` lee las fichas** (`specs/nivel-1/personajes/*`, bloques ` ```gen `):

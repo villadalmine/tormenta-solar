@@ -9,6 +9,43 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v54–v58] — 2026-06-22 — 🌎 Multi-idioma: el juego entero en inglés
+
+Soporte multi-idioma (español rioplatense ⇄ inglés) para que lo jueguen angloparlantes. `es-AR` es la
+**fuente**; el inglés es **transcreación** (no traducción literal: el humor porteño no se rompe). Capa
+aditiva, mismo ethos que `config.js`/`fit.js`. Spec: [`specs/idiomas.md`](specs/idiomas.md) (source of
+truth). *(Las versiones v34–v53 no están detalladas acá; ver `ROADMAP.md` y la memoria del proyecto.)*
+
+### Agregado
+- **Runtime i18n** (`js/i18n.js`): `I18n.t(key, params)` (fallback idioma→es-AR→clave), `I18n.tList(key)`
+  (líneas al azar), `I18n.dict(pool)` (diálogos por idioma), `I18n.apply()` (recorre `[data-i18n]` /
+  `[data-i18n-attr]`), `I18n.set(lang)` (cambia en vivo y persiste).
+- **Catálogos**: UI (`js/lang/es.js`/`en.js`), narración de `game.js` (`js/lang/game.es.js`/`game.en.js`,
+  se mergean con `Object.assign`) y traducción de `level.js` (`js/lang/level.en.js`, mapa es→en + reglas
+  para nombres dinámicos). **Paridad 149/149 claves** UI+narración (verificada).
+- **Selector de idioma** en ⚙ Opciones (`#opt-lang`), cambia en vivo sin recargar.
+- **Diálogos de NPC por idioma** (`Dialogos[es|en][pool]`): `tools/gen-dialogos.mjs` ahora es multi-idioma
+  (`OPENROUTER_LANGS=es,en`, prompt de transcreación). `js/dialogos.js` reestructurado. (`en`: 8/9 pools.)
+- **Chat IA en el idioma activo** (`js/ai.js`): directiva de transcreación en el system prompt + canned
+  en inglés (`FALLBACK_EN`).
+
+### Cambiado
+- **Resolución del idioma** (v56): `?lang` → `localStorage(ts_lang)` (lo que elegís en Settings) →
+  `navigator.language` (español→`es-AR`; **cualquier otro idioma no soportado → inglés**) → inglés.
+- **`game.js`**: toda la narración (~90 `setMsg`/prompts/fin/labels/arcade/música) pasa por `T()/TL()`.
+- **`level.js`**: **no se tocó** — sus strings quedan en español como **id interno estable** (los regex
+  `/Búnker/`,`/Truco/`,`/Garbarino/` y el wiring por `name` siguen intactos); se traducen sólo al mostrar
+  vía `TX()` → `js/lang/level.en.js`.
+- Meta no-cache en el HTML y cache `v=54`→`v=58`.
+
+### Notas
+- Verificado en navegador real (`?lang=en`): intro "SOLAR STORM", botón "HIT THE STREET", piso
+  "Florida & Lavalle", mensajes en inglés. e2e y web smoke en verde.
+- **Pendiente (opcional)**: regenerar `Dialogos.en` para más variedad, glosario de transcreación, y un 3er
+  idioma (que conviene encarar migrando `level.js` a claves `t()`). Ver `specs/idiomas.md` §13.
+
+---
+
 ## [v33] — 2026-06-21
 
 ### Agregado

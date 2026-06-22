@@ -1,9 +1,15 @@
 # SPEC: Idiomas / i18n (soporte multi-idioma, empezando por inglés)
 
-- **Estado:** **Fase 1 implementada (v=54)** · Fase 2 (narración inline de `game.js`) pendiente
+- **Estado:** **Implementado — el juego ENTERO se puede jugar en inglés (v=58).** Fase 1 (UI+pools+IA) +
+  Fase 2A (narración `game.js`) + Fase 2B (`level.js`: salas/NPCs/diálogos/labels). Verificado en navegador real.
 - **Alcance:** transversal (todos los niveles, UI + diálogos + IA)
 - **Última actualización:** 2026-06-22
 - **Idioma fuente (default):** `es-AR` (español rioplatense, slang porteño) · **primer idioma nuevo:** `en`
+
+> **DÓNDE SEGUIR (source of truth):** el inglés ya está COMPLETO para Nivel 1. Lo que queda es
+> **opcional / a futuro** (ver §13): regenerar `Dialogos.en` cuando se quiera más variedad, glosario de
+> transcreación, agregar un 3er idioma (ej. `pt-BR`), y mover las traducciones de `level.js` a un esquema
+> por-idioma genérico si algún día se suma un idioma más (hoy `level.en.js` es es→en puntual).
 
 ## 0. Estado de implementación (qué ya anda en v=54)
 
@@ -29,11 +35,14 @@ nuevos `js/lang/game.es.js` + `js/lang/game.en.js` (se mergean en `LANG_ES`/`LAN
 **Paridad total 149/149 claves.** Helpers `T(k,params)` / `TL(k)` en `game.js` (sin I18n → devuelven la
 clave; e2e no valida textos). En modo `en` la narración del juego ya sale en inglés (transcreado).
 
-**⏳ Fase 2 · Pasada B — `level.js` (pendiente):** los **nombres de sala** (`r.name`, se ven en el HUD de
-piso), los `dialog`/`hint`/`want`/`name` **fijos** de NPCs y los **labels de puerta** (`d.label`) siguen
-en español. Además hay que **independizar la lógica del nombre de sala**: hoy `game.js` detecta el búnker
-/ truco / Garbarino con regex sobre `r.name` (`/[Bb]únker/`, `/Truco/`, `/Garbarino/`) — al traducir los
-nombres eso se rompe, así que en la Pasada B esas salas necesitan un **id/theme estable** en vez del nombre.
+**✅ Fase 2 · Pasada B — `level.js` (v=58):** los **nombres de sala**, los `name`/`dialog`/`hint`/labels
+de puerta **fijos** de NPCs y puertas se traducen en el **punto de display** con `js/lang/level.en.js`
+(mapa es→en + reglas para nombres dinámicos tipo "Piso N") vía el helper `TX(s)` en `game.js`. Clave de
+diseño: **`level.js` NO se tocó** — sus strings quedan en español como **id interno estable**, así la
+lógica que depende del nombre (regex `/Búnker/`, `/Truco/`, `/Garbarino/`, y el wiring `n.name==='En la
+cola'` / `_Dp`) **sigue intacta**; sólo se traduce lo que se muestra. Los diálogos de NPC por pool
+(`_Dp`/`_D`) ya salen del idioma activo (no pasan por `TX`). **Verificado en navegador real**: intro
+"SOLAR STORM", botón "HIT THE STREET", piso "Florida & Lavalle", mensajes en inglés.
 
 ## 0.1 Cómo generar los diálogos de NPCs en inglés (correr el script)
 El inglés de los **pools** (`Dialogos.en`) se genera con IA (modo A), no se escribe a mano:
@@ -235,3 +244,26 @@ UI: un selector de **Idioma / Language** en ⚙ Opciones (junto a fuente/timing)
   el catálogo del texto). La regla de transcreación de la voz de cada personaje vive ahí y en
   `ENTIDAD-template.md` (Personalidad → "Voz en otros idiomas").
 - **`README.md` de specs** — agregar esta ficha al índice transversal.
+
+## 13. Dónde seguir (source of truth — qué falta, todo OPCIONAL)
+
+El inglés del **Nivel 1 ya está completo y jugable** (UI, narración, NPCs, fin). Lo que sigue es mejora,
+no bloqueante:
+
+1. **Más variedad en `Dialogos.en`** — algunos pools quedaron flojos o vacíos en una corrida (el free
+   tier tira 429). Regenerar cuando quieras: `OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs`, revisar
+   y commitear `js/dialogos.js`. Hoy `en` tiene 8/9 pools; `linyera_llanto` cae a `es` (se ve en español).
+2. **Glosario de transcreación** (§2/§6): fijar la traducción de los términos recurrentes (falopa→gear,
+   linyera→bum, chino→corner shop, cuevero, arbolito…) en un solo lugar para mantener consistencia entre
+   `lang/*.en.js` y los pools. Hoy es coherente pero no está centralizado.
+3. **3er idioma (ej. `pt-BR`)** — para la UI/narración: agregar `LANG_PT` (en `lang/*.es.js`/`en.js` el
+   patrón es `Object.assign`); sumar `'pt-BR'` a `I18n.SUPPORTED` + `NAMES`. Para `level.js`: hoy
+   `level.en.js` es un mapa **es→en puntual** (sólo aplica en modo `en`). Para un 3er idioma habría que
+   generalizar `TX`/`levelTx` a `LEVEL_TX[lang]` (o, mejor, **migrar `level.js` a claves `t()`** como se
+   hizo con `game.js`, que es el camino "agnóstico" del §6 punto 7). Decisión pendiente: mapa-por-idioma
+   vs. claves. Recomendado: claves, para no acumortar mapas.
+4. **Pools `en` de NPCs por pista** — verificar que ninguna PISTA crítica dependa del pool (las pistas van
+   por `hint`/`action` scripteados, ya traducidos en `game.es/en.js`; los pools son flavor). Ya cumplido.
+5. **Number/format** (`U$D`, etc.) y **RTL**: fuera de alcance hoy (§11).
+
+> Si se agrega Nivel 2: nace ya con claves `t()` desde el principio (no repetir el refactor de `level.js`).
