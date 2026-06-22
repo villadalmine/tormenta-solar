@@ -1,16 +1,17 @@
 # SPEC: Idiomas / i18n (soporte multi-idioma, empezando por inglés)
 
-- **Estado:** **Implementado — el juego ENTERO se puede jugar en inglés (v=59).** Fase 1 (UI+pools+IA) +
+- **Estado:** **Implementado — el juego ENTERO se puede jugar en inglés (v=60).** Fase 1 (UI+pools+IA) +
   Fase 2A (narración `game.js`) + Fase 2B (`level.js`: salas/NPCs/diálogos/labels) +
   Fase 2C (sub-pantallas: super chino, disquería, arcade, estado del chat IA). Verificado en navegador real.
 - **Alcance:** transversal (todos los niveles, UI + diálogos + IA)
 - **Última actualización:** 2026-06-22
 - **Idioma fuente (default):** `es-AR` (español rioplatense, slang porteño) · **primer idioma nuevo:** `en`
 
-> **DÓNDE SEGUIR (source of truth):** el inglés ya está COMPLETO para Nivel 1. Lo que queda es
-> **opcional / a futuro** (ver §13): regenerar `Dialogos.en` cuando se quiera más variedad, glosario de
-> transcreación, agregar un 3er idioma (ej. `pt-BR`), y mover las traducciones de `level.js` a un esquema
-> por-idioma genérico si algún día se suma un idioma más (hoy `level.en.js` es es→en puntual).
+> **DÓNDE SEGUIR (source of truth):** el inglés ya está COMPLETO para Nivel 1. **`Dialogos.en` completo
+> (9/9 pools, v=60)** y **glosario de transcreación** centralizado en
+> [`glosario-transcreacion.md`](glosario-transcreacion.md). Lo único que queda es **a futuro** (ver §13):
+> agregar un 3er idioma (ej. `pt-BR`) → ahí conviene mover las traducciones de `level.js` a un esquema
+> por-idioma genérico (hoy `level.en.js` es es→en puntual).
 
 ## 0. Estado de implementación (qué ya anda en v=54)
 
@@ -63,13 +64,18 @@ en `game.es.js`/`game.en.js`):
   inglés verificado montando `I18n` en `en` y capturando el texto dibujado por cada pantalla.
 
 ## 0.1 Cómo generar los diálogos de NPCs en inglés (correr el script)
-El inglés de los **pools** (`Dialogos.en`) se genera con IA (modo A), no se escribe a mano:
+El inglés de los **pools** (`Dialogos.en`) se genera con IA (modo A), no se escribe a mano. **Estado: 9/9
+pools completos en `es` y `en` (v=60).** Para regenerar o completar:
 ```bash
 # key en tools/openrouter.key (1 línea) o env OPENROUTER_API_KEY
-OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs   # genera ambos (o OPENROUTER_LANGS=en para solo inglés)
+OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs              # regenera TODOS los pools de ambos idiomas
+OPENROUTER_LANGS=en node tools/gen-dialogos.mjs                 # solo inglés (todos los pools)
+OPENROUTER_LANGS=en OPENROUTER_ONLY=linyera_llanto node tools/gen-dialogos.mjs   # TOP-UP de un pool puntual
 ```
-Reescribe `js/dialogos.js` con `Dialogos.en` lleno (transcreado del español, no traducido). Subí `?v=N`.
-Mientras `Dialogos.en` esté vacío, en inglés los NPCs caen automáticamente a las líneas en español.
+`OPENROUTER_ONLY=pool1,pool2` regenera **solo** esos pools (el resto se preserva vía `readExisting()`) —
+útil para completar uno que quedó vacío por un 429 sin tocar los buenos. Transcreación, no traducción
+literal (ver [`glosario-transcreacion.md`](glosario-transcreacion.md)). Reescribe `js/dialogos.js`; subí `?v=N`.
+Si un pool `en` quedara vacío, en inglés esos NPCs caen automáticamente a las líneas en español (fallback).
 
 ## 1. Contexto y objetivo
 

@@ -9,6 +9,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v60] — 2026-06-22 — 🌎 i18n: `Dialogos.en` completo + glosario de transcreación
+
+Cierre de los pendientes opcionales de i18n (menos el 3er idioma).
+
+### Agregado
+- **`js/dialogos.js`**: se completó el último pool en inglés que faltaba (`linyera_llanto`, 8 líneas
+  transcreadas) → **9/9 pools llenos en `es` y `en`**. (Antes caía al fallback `g.linyeraCry` de 4 líneas.)
+- **`specs/glosario-transcreacion.md`** (NUEVO): fuente única de las decisiones es-AR → inglés —
+  nombres propios que se dejan igual, mapeo canónico de términos (guita→cash, falopa→gear, forros→rubbers,
+  pibe→kid, etc.) y notas de tono. Referenciado desde `idiomas.md`, `ia-openrouter.md` y el índice de specs.
+- **`tools/gen-dialogos.mjs`**: flag `OPENROUTER_ONLY=pool1,pool2` para regenerar **solo** ciertos pools
+  (top-up sin tocar los demás, que `readExisting()` preserva). Útil cuando un pool cae por un 429.
+
+### Cambiado
+- Cache `v=59`→`v=60`.
+
+---
+
 ## [v59] — 2026-06-22 — 🌎 i18n: las pantallas que faltaban (super, disquería, arcade, IA)
 
 Un chequeo idioma por idioma encontró 4 sub-pantallas que habían quedado **en español** porque

@@ -1,4 +1,4 @@
-// dialogos.js — GENERADO por tools/gen-dialogos.mjs (modelos: google/gemma-4-31b-it:free, google/gemma-4-26b-a4b-it:free, liquid/lfm-2.5-1.2b-instruct:free).
+// dialogos.js — GENERADO por tools/gen-dialogos.mjs (modelos: google/gemma-4-26b-a4b-it:free).
 // No editar a mano. Regenerá con:  node tools/gen-dialogos.mjs   (idiomas: OPENROUTER_LANGS=es,en)
 // Estructura: Dialogos[idioma][pool] = [líneas].
 const Dialogos = {
@@ -179,6 +179,15 @@ const Dialogos = {
       "The system wants you stressed. I'm just here, vibing amidst the debris. ✌️",
       "Don't ask about my bank account, it's currently in a state of spiritual meditation. 🧘‍♂️"
     ],
-    "linyera_llanto": []
+    "linyera_llanto": [
+      "I used to have penthouses in Puerto Madero, but now I just have this glorious sidewalk breeze. 🌬️",
+      "Listen, kid, chasing the bag is a trap; the only real gold is a sunny afternoon on Lavalle. ☀️",
+      "I traded my Mercedes for this cardboard throne, and honestly? Best deal I ever made. 😎",
+      "Stop looking at me like that, man... I actually had a life once, and it sucked! 😭",
+      "Everything I owned is rotting in that toilet over there, but at least I'm free! 🚽💰",
+      "Take the cash from the safe, just take it! I'm done with the rat race! 💸",
+      "Money can't buy happiness, but a piece of gum from the corner shop definitely helps. 🍬",
+      "Don't be a slave to the system, mate; just grab the loot and go enjoy the sun! ✌️"
+    ]
   }
 };

@@ -92,7 +92,8 @@ Es la **fuente única** de la voz del personaje, de la que se derivan:
 2. los **`persona` del chat** (modo B).
 
 **Multi-idioma — los chistes NO se traducen, se TRANSCREAN (regla dura).** Cuando el juego se sirve
-en otro idioma (ver `specs/idiomas.md`), las personas, las líneas canned y los pools generados deben
+en otro idioma (ver `specs/idiomas.md` y el [glosario de transcreación](glosario-transcreacion.md) =
+términos/nombres propios/tono canónicos), las personas, las líneas canned y los pools generados deben
 **conservar el humor porteño** del personaje, **sin romperse en la traducción**. El system prompt de
 cada persona y los JOBS del generador llevan la instrucción explícita: *"no traduzcas literal — buscá
 el equivalente en slang callejero del idioma destino, manteniendo el tono y el chiste del personaje"*.

@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** (cache `v=59`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** (cache `v=60`).
 
 ---
 
@@ -55,7 +55,7 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** 
 
 Ordenadas por impacto. Nada de esto está hecho.
 
-### Idiomas / i18n (inglés) — ✅ COMPLETO para Nivel 1 (v=59)
+### Idiomas / i18n (inglés) — ✅ COMPLETO para Nivel 1 (v=60)
 Ver [`specs/idiomas.md`](specs/idiomas.md) (**source of truth · §13 = dónde seguir**). El juego ENTERO se
 puede jugar en inglés (verificado en navegador real: intro "SOLAR STORM", botón "HIT THE STREET", etc.).
 
@@ -71,7 +71,9 @@ puede jugar en inglés (verificado en navegador real: intro "SOLAR STORM", botó
 - [x] **Fase 2 · Pasada C (v=59):** sub-pantallas que faltaban — **super chino** (`super.js`), **disquería**
       (`vinilos.js`), **arcade** (`arcade.js`: HUD/banners/Street Fighter/Truco) y **estado del chat IA** en
       Opciones (`ai.js`) — cableadas a `T()` (claves `sup.*`/`vin.*`/`arc.*`/`ai.*`, paridad 263/263).
-- [x] **`Dialogos.en` generado** con el script (8/9 pools; `linyera_llanto` cae a `es`).
+- [x] **`Dialogos.en` completo (v=60):** 9/9 pools llenos (se completó `linyera_llanto` con
+      `OPENROUTER_ONLY=linyera_llanto`, flag nuevo del generador para top-up sin churn). **Glosario de
+      transcreación** centralizado en [`specs/glosario-transcreacion.md`](specs/glosario-transcreacion.md).
 
 **Qué sigue (OPCIONAL — ver `specs/idiomas.md` §13):**
 - [ ] Regenerar `Dialogos.en` para más variedad / completar `linyera_llanto`: `OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs`.

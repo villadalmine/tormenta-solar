@@ -96,10 +96,21 @@ const FALLBACK_JOBS = [
 ];
 
 const fromFichas = jobsFromFichas();
-const JOBS = fromFichas || FALLBACK_JOBS;
+let JOBS = fromFichas || FALLBACK_JOBS;
 console.log(fromFichas
   ? '📄 Pools desde las fichas SDD: ' + JOBS.length + ' (' + JOBS.map(j => j.key).join(', ') + ')'
   : '📄 Sin bloques ```gen en las fichas → uso los pools hardcodeados de respaldo.');
+
+// OPENROUTER_ONLY=pool1,pool2 → regenerar SOLO esos pools (top-up de uno que quedó vacío sin tocar
+// los demás, que readExisting() preserva). Útil p.ej. para completar un pool que cayó por un 429.
+const ONLY = (process.env.OPENROUTER_ONLY || '').split(',').map(s => s.trim()).filter(Boolean);
+if (ONLY.length) {
+  const known = new Set(JOBS.map(j => j.key));
+  const missing = ONLY.filter(k => !known.has(k));
+  if (missing.length) { console.error('❌ OPENROUTER_ONLY: pool(s) inexistente(s): ' + missing.join(', ')); process.exit(1); }
+  JOBS = JOBS.filter(j => ONLY.includes(j.key));
+  console.log('🎯 OPENROUTER_ONLY → solo: ' + JOBS.map(j => j.key).join(', '));
+}
 
 async function chat(model, messages) {
   const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
