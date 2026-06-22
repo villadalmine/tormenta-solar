@@ -91,6 +91,16 @@ Es la **fuente única** de la voz del personaje, de la que se derivan:
 1. los **pools del modo A** (`tools/gen-dialogos.mjs` — sus JOBS espejan estas semillas), y
 2. los **`persona` del chat** (modo B).
 
+**Multi-idioma — los chistes NO se traducen, se TRANSCREAN (regla dura).** Cuando el juego se sirve
+en otro idioma (ver `specs/idiomas.md`), las personas, las líneas canned y los pools generados deben
+**conservar el humor porteño** del personaje, **sin romperse en la traducción**. El system prompt de
+cada persona y los JOBS del generador llevan la instrucción explícita: *"no traduzcas literal — buscá
+el equivalente en slang callejero del idioma destino, manteniendo el tono y el chiste del personaje"*.
+La ficha de cada personaje declara su **voz en otros idiomas (transcreación)** en el bloque
+Personalidad (ver `ENTIDAD-template.md`); de ahí salen tanto el `persona` por idioma como los pools
+`js/dialogos.<lang>.js`. El chat en vivo responde en el **idioma activo** (`I18n.lang`) manteniendo
+la misma voz. Las **pistas** siguen garantizadas por la capa scripteada en cualquier idioma.
+
 > **Hecho:** `gen-dialogos.mjs` **lee las fichas**. Cada ficha declara sus pools en bloques
 > ` ```gen ` (`pool` / `n` / `seed`); el script los junta de `specs/nivel-1/personajes/*.md` y genera.
 > Para sumar/ajustar diálogos de un personaje, se toca **su ficha** y se regenera (`npm run gen:dialogos`).
@@ -117,6 +127,17 @@ un `js/dialogos.js`) que se **commitean**.
 - ✅ Cero key en producción, **cero latencia/costo en runtime**, sigue 100% estático.
 - ✅ Resuelve la regla *"siempre variantes, no repetir"* sin escribir cientos de líneas a mano.
 - Es un **content generator** offline; el juego ni se entera de que hubo IA.
+
+### 🅲️ Ollama local (FUTURO — anotado para ver luego)
+> **Estado: idea, sin empezar.** Correr un modelo **local con [Ollama](https://ollama.com)** como
+> tercera fuente del chat (modo B), para quien lo tenga instalado: cero costo, cero cuota, privado
+> y sin clave. Encaja en el **mismo seam** que ya existe (`AI.chat()` con orden de fuentes): se
+> sumaría **`viaOllama()`** apuntando a `http://localhost:11434/api/chat` (modelo ej. `gemma`/`llama3.2`),
+> y entraría en la cadena de prioridad (p. ej. **Ollama local > proxy > BYOK > local-canned**, o
+> elegible en ⚙ Opciones). Detección: ping a `localhost:11434` al abrir Opciones; si responde,
+> ofrecer la opción. **No** cambia nada del resto: si no hay Ollama, sigue igual que hoy. Pendiente
+> de decidir: orden de prioridad, cómo se elige el modelo local, y CORS (Ollama necesita
+> `OLLAMA_ORIGINS` para aceptar el origen del juego). Ver ROADMAP → IA.
 
 ### 🅱️ Runtime (en vivo) con proxy
 Para lo dinámico (chatear, reacciones al estado): **capa aditiva** igual que `presence.js`/`config.js`.

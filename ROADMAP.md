@@ -57,6 +57,10 @@ Ordenadas por impacto. Nada de esto está hecho.
       los pools salen de cada personaje. (Pendiente: usar también la Personalidad completa como
       contexto, no sólo la `seed`.)
 - [ ] Más NPCs chateables con persona acotada (cuevero, tahúr) reusando su bloque Personalidad.
+- [ ] **Ollama local** como fuente del chat (modo C, para ver luego): correr un modelo local
+      (`http://localhost:11434`) para quien lo tenga — cero costo/cuota, privado, sin clave. Mismo
+      seam (`AI.chat()`), se agregaría `viaOllama()` en la cadena de prioridad + detección en ⚙ Opciones.
+      Detalle en `specs/ia-openrouter.md` → "Modo C (Ollama local)".
 
 ### Loop de supervivencia — pulido pendiente
 Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md). El MVP está; falta:

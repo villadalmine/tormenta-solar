@@ -20,6 +20,11 @@ Este bloque es la **fuente única** de la voz del personaje: de acá salen los p
 - **Qué NO dice (límites):** lo que está fuera de su rol; nunca rompe la 4ª pared ni admite ser IA.
 - **Persona de chat:** `id` (o "no chateable — su data crítica va por acción scripteada").
 - **Semilla para el script:** «descripción de 1 línea que usa `gen-dialogos`».
+- **Voz en otros idiomas (transcreación):** cómo suena este personaje en `en` (y futuros idiomas).
+  **No se traduce literal**: se busca el equivalente cultural que **conserve el humor porteño** sin
+  romperlo (un linyera filósofo porteño → un *street-philosopher bum*, no un "homeless man" neutro).
+  Glosario propio del personaje si tiene muletillas (ej. cómo se transcrea su muletilla, sin perder
+  la cadencia). Ver `specs/idiomas.md` §2. Si todavía no está definido: «pendiente — transcrear, no traducir».
 
 ## Aristas
 > Una relación por línea, formato `origen --verbo--> destino [condición]`.
