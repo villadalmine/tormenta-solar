@@ -14,8 +14,8 @@ const AI = (() => {
   let lastSource = 'local';   // de dónde salió la última respuesta: 'proxy' | 'byok' | 'local'
   // default = un free CHICO y RÁPIDO (para el chat la velocidad importa más que el tamaño).
   // El user lo cambia en Opciones (ej. uno más grande/lindo si no le molesta esperar).
-  const DEFAULT_MODEL = 'meta-llama/llama-3.2-3b-instruct:free';
-  const MODELS = [DEFAULT_MODEL, 'liquid/lfm-2.5-1.2b-instruct:free', 'google/gemma-4-26b-a4b-it:free', 'mistralai/mistral-7b-instruct:free'];
+  const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free';   // el último que usamos y anduvo
+  const MODELS = [DEFAULT_MODEL, 'meta-llama/llama-3.2-3b-instruct:free', 'liquid/lfm-2.5-1.2b-instruct:free', 'mistralai/mistral-7b-instruct:free'];
 
   // personas (system prompts) para el modo BYOK directo. En el proxy hay copias server-side.
   const PERSONAS = {
