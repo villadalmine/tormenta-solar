@@ -169,9 +169,15 @@ if (require.main === module) {
     if (!inCueva || inCueva.id !== 'tormenta') out.push('FAIL cercanía cueva→tormenta: ' + (inCueva && inCueva.id));
     // una arista hecha (stormed=true) sale de la frontera
     if (HintEngine.frontier({ stormed: true }).some(e => e.id === 'tormenta')) out.push('FAIL tormenta hecha sigue en frontera');
-    // todo hecho, incluido cruzar el portal (won) → no quedan pistas
-    const allDone = { stormed:true, borrachosHappy:true, bunkerUnlocked:true, chinoFrontOpen:true, trucoWon:true, won:true };
-    if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista');
+    // secundarias: cercanía al super sugiere la Mega Drive; el FIFA NO aparece sin Mega Drive (precondición)
+    const inSuper = HintEngine.next({}, { at: 'super' });
+    if (!inSuper || inSuper.id !== 'megadrive') out.push('FAIL cercanía super→megadrive: ' + (inSuper && inSuper.id));
+    if (HintEngine.frontier({}).some(e => e.id === 'fifa')) out.push('FAIL fifa en frontera sin Mega Drive');
+    if (!HintEngine.frontier({ hasMegaDrive: true }).some(e => e.id === 'fifa')) out.push('FAIL fifa no aparece con Mega Drive');
+    // todo hecho (crítico + secundario + portal) → no quedan pistas
+    const allDone = { stormed:true, borrachosHappy:true, bunkerUnlocked:true, chinoFrontOpen:true, trucoWon:true,
+      won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true };
+    if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);
   const hb = JSON.parse(hint);

@@ -18,9 +18,10 @@ const HintEngine = (() => {
     return edges().filter(e => preMet(e, st) && !done(e, st));
   }
 
-  // próxima arista a sugerir: prioriza por CERCANÍA (mismo lugar que el jugador) y, si no, orden del grafo.
+  // próxima arista a sugerir: ordena por PRIORIDAD (camino crítico antes que secundario; `pri`, default 10)
+  // y dentro de eso prioriza la que está MÁS CERCA (mismo lugar que el jugador).
   function pick(st, at) {
-    const fr = frontier(st);
+    const fr = frontier(st).slice().sort((a, b) => (a.pri == null ? 10 : a.pri) - (b.pri == null ? 10 : b.pri));
     if (!fr.length) return null;
     if (at) { const near = fr.find(e => e.at === at); if (near) return near; }
     return fr[0];

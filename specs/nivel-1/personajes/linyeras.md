@@ -128,3 +128,27 @@ linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
   }
 }
 ```
+```hist
+{
+  "id": "loop",
+  "title": "Dormir en el catre del búnker (pasar un día, reponer)",
+  "at": "bunker",
+  "pri": 24,
+  "pre": { "bunkerUnlocked": true, "stormed": true },
+  "sets": { "sleptOnce": true },
+  "hints": {
+    "es": [
+      "Cuando el cuerpo no da más, hasta un gurú necesita un catre seguro para ver otro día...",
+      "En el búnker hay un catre: dormir ahí te hace pasar el día y reponer un poco.",
+      "Tocá el CATRE del búnker (E) para dormir: pasás un día del loop, te llenás la vida y se repone la falopa.",
+      "¡Tirate a dormir en el CATRE del búnker! Pasás el día, recuperás vida y volvés a tener con qué seguir."
+    ],
+    "en": [
+      "When the body's done, even a guru needs a safe cot to see another day...",
+      "In the bunker there's a cot: sleeping there passes the day and restocks you a bit.",
+      "Touch the bunker COT (E) to sleep: you pass a loop day, refill your life and the gear comes back.",
+      "Go lie down on the bunker COT! You pass the day, get your life back and have stuff to keep going."
+    ]
+  }
+}
+```

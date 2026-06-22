@@ -104,6 +104,61 @@ const Historia = {
       "from": "specs/nivel-1/personajes/linyeras.md"
     },
     {
+      "id": "loop",
+      "title": "Dormir en el catre del búnker (pasar un día, reponer)",
+      "at": "bunker",
+      "pri": 24,
+      "pre": {
+        "bunkerUnlocked": true,
+        "stormed": true
+      },
+      "sets": {
+        "sleptOnce": true
+      },
+      "hints": {
+        "es": [
+          "Cuando el cuerpo no da más, hasta un gurú necesita un catre seguro para ver otro día...",
+          "En el búnker hay un catre: dormir ahí te hace pasar el día y reponer un poco.",
+          "Tocá el CATRE del búnker (E) para dormir: pasás un día del loop, te llenás la vida y se repone la falopa.",
+          "¡Tirate a dormir en el CATRE del búnker! Pasás el día, recuperás vida y volvés a tener con qué seguir."
+        ],
+        "en": [
+          "When the body's done, even a guru needs a safe cot to see another day...",
+          "In the bunker there's a cot: sleeping there passes the day and restocks you a bit.",
+          "Touch the bunker COT (E) to sleep: you pass a loop day, refill your life and the gear comes back.",
+          "Go lie down on the bunker COT! You pass the day, get your life back and have stuff to keep going."
+        ]
+      },
+      "from": "specs/nivel-1/personajes/linyeras.md"
+    },
+    {
+      "id": "fifa",
+      "title": "Ganar el torneo de FIFA 98 (con la Mega Drive)",
+      "at": "arcade",
+      "pri": 21,
+      "pre": {
+        "hasMegaDrive": true
+      },
+      "sets": {
+        "fifaWon": true
+      },
+      "hints": {
+        "es": [
+          "Hay un flaco en el fondo del arcade que solo juega si le traés su consola...",
+          "Al del TRUCOTRON le pica el FIFA: con la consola justa, te arma un torneo.",
+          "Llevá la Mega Drive al TRUCOTRON del arcade y ganale el torneo de FIFA 98: +30 monedas.",
+          "¡Enchufá la MEGA DRIVE en el TRUCOTRON y GANÁ el FIFA 98! Te llevás 30 monedas, listo."
+        ],
+        "en": [
+          "There's a guy in the back of the arcade who'll only play if you bring him his console...",
+          "The TRUCOTRON guy's itching for FIFA: with the right console he sets up a tournament.",
+          "Take the Mega Drive to the TRUCOTRON at the arcade and win the FIFA 98 tournament: +30 coins.",
+          "Plug the MEGA DRIVE into the TRUCOTRON and WIN FIFA 98! You pocket 30 coins, done."
+        ]
+      },
+      "from": "specs/nivel-1/personajes/npcs-arcade.md"
+    },
+    {
       "id": "truco",
       "title": "Ganarle al tahúr (puerta al chino)",
       "at": "arcade",
@@ -126,6 +181,33 @@ const Historia = {
         ]
       },
       "from": "specs/nivel-1/personajes/tahur.md"
+    },
+    {
+      "id": "armas",
+      "title": "Comprar fierro criollo (con la tormenta, las eléctricas no andan)",
+      "at": "galeria",
+      "pri": 23,
+      "pre": {
+        "stormed": true
+      },
+      "sets": {
+        "armado": true
+      },
+      "hints": {
+        "es": [
+          "Con la luz cortada, lo eléctrico no sirve. Hay un misterioso que tiene fierro de otra época...",
+          "En la galería hay un tipo que, con la tormenta, vende armas que SÍ funcionan sin luz.",
+          "Hablá con el misterioso de la galería y comprale fierro criollo (rebenque/facón/FAL): +munición +vida.",
+          "¡Andá al misterioso de la GALERÍA y comprá el FIERRO CRIOLLO! Te suma munición y vida, dale."
+        ],
+        "en": [
+          "With the power down, electric stuff is useless. There's a mysterious guy with old-school iron...",
+          "In the gallery there's a guy who, with the storm, sells weapons that DO work without power.",
+          "Talk to the mysterious guy in the gallery and buy criollo steel (whip/facón/FAL): +ammo +life.",
+          "Go to the mysterious guy in the GALLERY and buy the CRIOLLO STEEL! It adds ammo and life, come on."
+        ]
+      },
+      "from": "specs/nivel-1/personajes/vendedor-armas.md"
     },
     {
       "id": "portal",
@@ -153,6 +235,56 @@ const Historia = {
         ]
       },
       "from": "specs/nivel-1/edificios/casa-de-cambio-oficial.md"
+    },
+    {
+      "id": "cemento_ticket",
+      "title": "Conseguir la entrada a Cemento (en la disquería)",
+      "at": "cueva",
+      "pri": 22,
+      "pre": {},
+      "sets": {
+        "hasCementoTicket": true
+      },
+      "hints": {
+        "es": [
+          "Abajo, entre vinilos, hay un punk que regala lo que vos necesitás para ver a los pesados...",
+          "En la disquería de la cueva, el punk del mostrador da una entrada a un recital.",
+          "Comprale un disco al punk de la disquería: te regala la ENTRADA A CEMENTO (donde toca Iorio).",
+          "¡Andá a la disquería, comprale al PUNK y te da la ENTRADA A CEMENTO para llegar a Iorio, dale!"
+        ],
+        "en": [
+          "Down among the vinyl there's a punk who gives away just what you need to see the heavy guys...",
+          "At the record shop in the cueva, the punk at the counter hands out a gig ticket.",
+          "Buy a record from the record-shop punk: he gives you the CEMENTO TICKET (where Iorio plays).",
+          "Go to the record shop, buy from the PUNK and he gives you the CEMENTO TICKET to reach Iorio!"
+        ]
+      },
+      "from": "specs/nivel-1/edificios/cuevas-del-dolar.md"
+    },
+    {
+      "id": "megadrive",
+      "title": "Comprar una Mega Drive (para el torneo de FIFA)",
+      "at": "super",
+      "pri": 20,
+      "pre": {},
+      "sets": {
+        "hasMegaDrive": true
+      },
+      "hints": {
+        "es": [
+          "Hay un torneo esperando una maquinita que ya nadie usa... ¿no la viste en alguna góndola?",
+          "En el super chino, en la sección CONSOLAS, hay algo que sirve para un torneo del arcade.",
+          "Comprale al chino una MEGA DRIVE (sección CONSOLAS) y llevala al TRUCOTRON del arcade para el FIFA.",
+          "¡Que compres la MEGA DRIVE en el super (CONSOLAS) y la lleves al arcade para el torneo de FIFA, dale!"
+        ],
+        "en": [
+          "There's a tournament waiting on a little machine nobody uses anymore... seen it on a shelf?",
+          "At the Chinese supermarket, in the CONSOLES aisle, there's something for an arcade tournament.",
+          "Buy a MEGA DRIVE from the Chino (CONSOLES aisle) and take it to the TRUCOTRON at the arcade for the FIFA.",
+          "Buy the MEGA DRIVE at the supermarket (CONSOLES) and take it to the arcade for the FIFA tournament!"
+        ]
+      },
+      "from": "specs/nivel-1/edificios/super-chino.md"
     }
   ]
 };

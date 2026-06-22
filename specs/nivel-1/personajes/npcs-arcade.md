@@ -37,3 +37,29 @@ npc_trucotron --requiere--> mega_drive
 npc_trucotron --da--> fifaWon [+30 monedas]
 mega_drive --se_consigue_en--> super_chino
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "fifa",
+  "title": "Ganar el torneo de FIFA 98 (con la Mega Drive)",
+  "at": "arcade",
+  "pri": 21,
+  "pre": { "hasMegaDrive": true },
+  "sets": { "fifaWon": true },
+  "hints": {
+    "es": [
+      "Hay un flaco en el fondo del arcade que solo juega si le traés su consola...",
+      "Al del TRUCOTRON le pica el FIFA: con la consola justa, te arma un torneo.",
+      "Llevá la Mega Drive al TRUCOTRON del arcade y ganale el torneo de FIFA 98: +30 monedas.",
+      "¡Enchufá la MEGA DRIVE en el TRUCOTRON y GANÁ el FIFA 98! Te llevás 30 monedas, listo."
+    ],
+    "en": [
+      "There's a guy in the back of the arcade who'll only play if you bring him his console...",
+      "The TRUCOTRON guy's itching for FIFA: with the right console he sets up a tournament.",
+      "Take the Mega Drive to the TRUCOTRON at the arcade and win the FIFA 98 tournament: +30 coins.",
+      "Plug the MEGA DRIVE into the TRUCOTRON and WIN FIFA 98! You pocket 30 coins, done."
+    ]
+  }
+}
+```

@@ -9,6 +9,28 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v62] — 2026-06-22 — 🧭 Pistas: aristas secundarias (el linyera ayuda en TODO)
+
+Segunda pasada del grafo de historia: el linyera ahora también guía las ramas secundarias, no solo el
+camino crítico.
+
+### Agregado
+- **5 aristas nuevas** (` ```hist ` en las fichas): `megadrive` (super), `fifa` (arcade), `cemento_ticket`
+  (disquería), `armas` (galería), `loop` (búnker). **11 aristas en total.**
+- **Prioridad** en `HintEngine`: el camino crítico (`pri` default 10) gana al secundario (`pri` 20+); la
+  cercanía sigue eligiendo lo del lugar donde estás.
+- `historiaState()` ampliado (`hasMegaDrive`, `fifaWon`, `hasCementoTicket`, `armado`, `sleptOnce`) y
+  `currentAt()` con más lugares (super/galería/búnker). Flag espejo `armado` en `game.js` (no refactor).
+- e2e: asserts de cercanía (super→megadrive) y precondición (FIFA requiere Mega Drive).
+
+### Cambiado
+- Cache `v=61`→`v=62`.
+
+### Notas
+- Fase 1 casi completa. Pendiente (SDD §7): **spawn errante** del linyera y **grounding** del chat IA.
+
+---
+
 ## [v61] — 2026-06-22 — 🧭 Grafo de historia + linyera-oráculo de pistas (Fase 1)
 
 Primera implementación del SDD [`historia-grafo.md`](specs/nivel-1/historia-grafo.md): el **linyera

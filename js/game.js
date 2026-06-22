@@ -57,6 +57,7 @@
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
   let trucoWon = false;                             // ganar el truco abre una puerta al chino (se consume al cruzar)
+  let armado = false;                               // espejo de n.armado: compraste fierro criollo (lo lee el grafo de historia)
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -75,7 +76,7 @@
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
-    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false;   // loop de supervivencia, de cero
+    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
@@ -249,15 +250,23 @@
   // --- pistas del linyera oráculo (capa aditiva; ver specs/nivel-1/historia-grafo.md) ---
   // Fase 1: SOLO LEEMOS los flags que ya maneja game.js para saber dónde está parado el jugador.
   function historiaState() {
-    return { stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon };
+    return {
+      stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon, fifaWon, armado,
+      hasMegaDrive: !!(player && player.hasMegaDrive),
+      hasCementoTicket: !!(player && player.hasCementoTicket),
+      sleptOnce: loopCount > 0,
+    };
   }
   // lugar actual → tag del grafo (para la cercanía del oráculo)
   function currentAt() {
     const n = (room() && room().name) || '';
-    if (/[Cc]ueva/.test(n)) return 'cueva';
+    if (/[Bb][úu]nker/.test(n)) return 'bunker';
+    if (/[Cc]ueva|[Dd]isquer/.test(n)) return 'cueva';
     if (/Cemento/.test(n)) return 'cemento';
     if (/[Cc]ambio/.test(n)) return 'cambio';
     if (/[Aa]rcade|[Tt]ruco|trastienda/.test(n)) return 'arcade';
+    if (/[Ss]uper|[Cc]hino/.test(n)) return 'super';
+    if (/[Gg]aler/.test(n)) return 'galeria';
     if (/Edificio|Piso/.test(n)) return 'edificio';
     return 'calle';
   }
@@ -314,7 +323,7 @@
     if (n.armado) { setMsg(T('g.armas.done'), '#aef0c0', 3000); return; }
     const cost = 15;
     if (player.coins < cost) { setMsg(T('g.armas.noCoins', { cost }), '#ff5252', 4000); Sfx.empty(); return; }
-    player.coins -= cost; n.armado = true;
+    player.coins -= cost; n.armado = true; armado = true;
     player.ammo += 40; player.hp = Math.min(100, player.hp + 20);
     setMsg(T('g.armas.buy'), '#7CFC00', 7500);
   }

@@ -33,3 +33,29 @@ cuevero_3 --desbloquea--> stormed
 disqueria --da--> ticket_cemento
 super_chino --da--> moneyRecovered [+60 al volver por la cueva]
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "cemento_ticket",
+  "title": "Conseguir la entrada a Cemento (en la disquería)",
+  "at": "cueva",
+  "pri": 22,
+  "pre": {},
+  "sets": { "hasCementoTicket": true },
+  "hints": {
+    "es": [
+      "Abajo, entre vinilos, hay un punk que regala lo que vos necesitás para ver a los pesados...",
+      "En la disquería de la cueva, el punk del mostrador da una entrada a un recital.",
+      "Comprale un disco al punk de la disquería: te regala la ENTRADA A CEMENTO (donde toca Iorio).",
+      "¡Andá a la disquería, comprale al PUNK y te da la ENTRADA A CEMENTO para llegar a Iorio, dale!"
+    ],
+    "en": [
+      "Down among the vinyl there's a punk who gives away just what you need to see the heavy guys...",
+      "At the record shop in the cueva, the punk at the counter hands out a gig ticket.",
+      "Buy a record from the record-shop punk: he gives you the CEMENTO TICKET (where Iorio plays).",
+      "Go to the record shop, buy from the PUNK and he gives you the CEMENTO TICKET to reach Iorio!"
+    ]
+  }
+}
+```

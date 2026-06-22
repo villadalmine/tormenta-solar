@@ -1,7 +1,7 @@
 # SPEC: Grafo de historia + motor de pistas (la "didáctica" del juego)
 
-- **Estado:** **Fase 1 en marcha (v=61)** — camino crítico implementado y enchufado al linyera. Diseño
-  cerrado (§7). Falta: aristas secundarias + spawn errante del linyera + grounding del chat IA.
+- **Estado:** **Fase 1 casi completa (v=62)** — 11 aristas (crítico + secundario), motor + linyera
+  enchufados. Diseño cerrado (§7). Falta solo: spawn errante del linyera + grounding del chat IA.
 - **Nivel:** transversal (se estrena en Nivel 1)
 - **Última actualización:** 2026-06-22
 
@@ -239,6 +239,10 @@ Todo el diseño quedó cerrado; ya no hay preguntas abiertas para empezar a impl
   nivel por insistencia, bilingüe vía `I18n`. Capa aditiva. Testeado en el e2e.
 - [x] **(d parcial)** Linyera enchufado: al abrir el chat tira pista nivel 0; cada repregunta sube el
   nivel (0→3). Lee los flags reales de `game.js` (Fase 1: solo describe).
-- [ ] **Pendiente:** aristas **secundarias** (megadrive/fifa/cemento-ticket/armas/loop) con su ` ```hist `;
-  **spawn errante** del linyera (que aparezca cerca de lo no hecho); **grounding** del chat IA con la pista
-  recuperada (hoy la pista es scripteada aparte; falta pasarla al system prompt del LLM como contexto).
+- [x] **Aristas secundarias (v=62):** `megadrive`, `fifa`, `cemento_ticket`, `armas`, `loop` — el linyera
+  **ayuda en todo** (11 aristas en total). Prioridad: el camino crítico (`pri` default 10) gana al
+  secundario (`pri` 20+); por cercanía, en cada lugar sugiere lo de ahí. Flag espejo `armado` en `game.js`
+  (1 línea, no refactor) para detectar la compra de armas; `sleptOnce = loopCount>0` para el loop.
+- [ ] **Pendiente:** **spawn errante** del linyera (que aparezca cerca de lo no hecho, no solo en la calle);
+  **grounding** del chat IA con la pista recuperada (hoy la pista es scripteada aparte; falta pasarla al
+  system prompt del LLM como contexto).

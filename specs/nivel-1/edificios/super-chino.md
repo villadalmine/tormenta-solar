@@ -41,3 +41,29 @@ super_chino --da--> moneyRecovered [+60 al volver por la cueva]
 super_chino --contiene--> chino
 chino --bloquea--> salida_sin_pagar [ninjas samurái]
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "megadrive",
+  "title": "Comprar una Mega Drive (para el torneo de FIFA)",
+  "at": "super",
+  "pri": 20,
+  "pre": {},
+  "sets": { "hasMegaDrive": true },
+  "hints": {
+    "es": [
+      "Hay un torneo esperando una maquinita que ya nadie usa... ¿no la viste en alguna góndola?",
+      "En el super chino, en la sección CONSOLAS, hay algo que sirve para un torneo del arcade.",
+      "Comprale al chino una MEGA DRIVE (sección CONSOLAS) y llevala al TRUCOTRON del arcade para el FIFA.",
+      "¡Que compres la MEGA DRIVE en el super (CONSOLAS) y la lleves al arcade para el torneo de FIFA, dale!"
+    ],
+    "en": [
+      "There's a tournament waiting on a little machine nobody uses anymore... seen it on a shelf?",
+      "At the Chinese supermarket, in the CONSOLES aisle, there's something for an arcade tournament.",
+      "Buy a MEGA DRIVE from the Chino (CONSOLES aisle) and take it to the TRUCOTRON at the arcade for the FIFA.",
+      "Buy the MEGA DRIVE at the supermarket (CONSOLES) and take it to the arcade for the FIFA tournament!"
+    ]
+  }
+}
+```

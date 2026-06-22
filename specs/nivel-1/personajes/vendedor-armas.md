@@ -37,3 +37,29 @@ galeria --contiene--> vendedor_armas
 vendedor_armas --requiere--> stormed [solo vende con la tormenta]
 vendedor_armas --vende--> fierro_criollo [rebenque/boleadoras/facón/FAL → +munición +vida]
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "armas",
+  "title": "Comprar fierro criollo (con la tormenta, las eléctricas no andan)",
+  "at": "galeria",
+  "pri": 23,
+  "pre": { "stormed": true },
+  "sets": { "armado": true },
+  "hints": {
+    "es": [
+      "Con la luz cortada, lo eléctrico no sirve. Hay un misterioso que tiene fierro de otra época...",
+      "En la galería hay un tipo que, con la tormenta, vende armas que SÍ funcionan sin luz.",
+      "Hablá con el misterioso de la galería y comprale fierro criollo (rebenque/facón/FAL): +munición +vida.",
+      "¡Andá al misterioso de la GALERÍA y comprá el FIERRO CRIOLLO! Te suma munición y vida, dale."
+    ],
+    "en": [
+      "With the power down, electric stuff is useless. There's a mysterious guy with old-school iron...",
+      "In the gallery there's a guy who, with the storm, sells weapons that DO work without power.",
+      "Talk to the mysterious guy in the gallery and buy criollo steel (whip/facón/FAL): +ammo +life.",
+      "Go to the mysterious guy in the GALLERY and buy the CRIOLLO STEEL! It adds ammo and life, come on."
+    ]
+  }
+}
+```
