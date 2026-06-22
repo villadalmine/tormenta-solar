@@ -9,6 +9,33 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v61] — 2026-06-22 — 🧭 Grafo de historia + linyera-oráculo de pistas (Fase 1)
+
+Primera implementación del SDD [`historia-grafo.md`](specs/nivel-1/historia-grafo.md): el **linyera
+filósofo** ahora **te tira pistas que dependen de en qué punto de la historia estás**, sin spoilear de
+una. Capa **aditiva** (sin esto, el juego anda igual); el grafo **solo describe** (lee los flags que
+`game.js` ya maneja, no los toca).
+
+### Agregado
+- **`tools/gen-historia.mjs`**: ensambla el grafo desde bloques ` ```hist ` (JSON) declarados en las
+  fichas (`personajes/`+`edificios/`) → escribe `js/historia.js`. Validación: ids únicos, sin ciclos.
+- **`js/historia.js`** (generado): 6 aristas del **camino crítico** (`tormenta`, `edificio`, `bunker`,
+  `chino_iorio`, `truco`, `portal`), cada una con precondición/efecto y **pistas es+en × 4 niveles**.
+- **`js/hint-engine.js`** (`HintEngine`): dado el estado (flags) + lugar + insistencia, devuelve la
+  próxima pista de la **frontera**, por **cercanía** y con **spoiler escalado** (0 frase loca → 3 directo).
+- **Linyera enchufado**: al hablarle tira una pista críptica; cada repregunta la aclara más (hasta
+  ponerse directo). Sabe qué hiciste y qué no.
+- **e2e**: valida el grafo + el motor (frontera, cercanía cueva→tormenta, aristas hechas, fin sin pistas).
+
+### Cambiado
+- Cache `v=60`→`v=61`.
+
+### Notas
+- Fase 1 / camino crítico. Pendiente (en el SDD §7): aristas secundarias, **spawn errante** del linyera y
+  **grounding** del chat IA con la pista.
+
+---
+
 ## [v60] — 2026-06-22 — 🌎 i18n: `Dialogos.en` completo + glosario de transcreación
 
 Cierre de los pendientes opcionales de i18n (menos el 3er idioma).

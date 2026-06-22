@@ -41,7 +41,7 @@
   const elChatTitle = document.getElementById('chat-title');
   const elChatLog = document.getElementById('chat-log');
   const elChatInput = document.getElementById('chat-input');
-  let chatNpc = null, chatHistory = [], chatBusy = false;
+  let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0;
 
   let rooms, states, current, player, cam;
   let state = 'intro', stormed = false, bought = false, hasVale = false, challengeForVale = false;
@@ -246,13 +246,37 @@
     elChatLog.appendChild(div); elChatLog.scrollTop = elChatLog.scrollHeight;
     return div;
   }
+  // --- pistas del linyera oráculo (capa aditiva; ver specs/nivel-1/historia-grafo.md) ---
+  // Fase 1: SOLO LEEMOS los flags que ya maneja game.js para saber dónde está parado el jugador.
+  function historiaState() {
+    return { stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon };
+  }
+  // lugar actual → tag del grafo (para la cercanía del oráculo)
+  function currentAt() {
+    const n = (room() && room().name) || '';
+    if (/[Cc]ueva/.test(n)) return 'cueva';
+    if (/Cemento/.test(n)) return 'cemento';
+    if (/[Cc]ambio/.test(n)) return 'cambio';
+    if (/[Aa]rcade|[Tt]ruco|trastienda/.test(n)) return 'arcade';
+    if (/Edificio|Piso/.test(n)) return 'edificio';
+    return 'calle';
+  }
+  // ¿es el linyera filósofo (el guía/oráculo)?
+  const isOraculo = n => n && n.persona === 'filosofo';
+  function showHint(level) {
+    if (typeof HintEngine === 'undefined') return;
+    const h = HintEngine.next(historiaState(), { at: currentAt(), insistencia: level });
+    if (h) chatLine('npc', '💡 ' + h.text);
+  }
+
   function openChat(n) {
     if (typeof AI === 'undefined') { setMsg(TX(n.dialog) || '“...”', '#aef0c0', 4000); return; }
-    chatNpc = n; chatHistory = []; chatBusy = false;
+    chatNpc = n; chatHistory = []; chatBusy = false; hintAsks = 0;
     elChatTitle.textContent = '💬 ' + (TX(n.name) || T('chat.title'));
     elChatLog.innerHTML = '';
     chatLine('sys', AI.mode() === 'offline' ? T('g.chat.offline') : T('g.chat.online', { mode: AI.mode() }));
     if (n.dialog) chatLine('npc', TX(n.dialog));
+    if (isOraculo(n)) showHint(0);   // el linyera arranca con una pista críptica (nivel 0)
     state = 'chat';
     elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
     setTimeout(() => elChatInput && elChatInput.focus(), 30);
@@ -275,6 +299,8 @@
     thinking.remove();
     chatLine('npc', reply);
     chatHistory.push({ role: 'assistant', content: reply });
+    // el linyera oráculo: cada vez que le repreguntás, sube el nivel de spoiler (0→3: más claro hasta directo)
+    if (isOraculo(chatNpc)) showHint(Math.min(++hintAsks, 3));
     // si había key pero la respuesta salió local → avisar (no confundir al jugador)
     if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) {
       chatLine('sys', T('g.chat.localWarn'));

@@ -53,3 +53,28 @@ cueva_3 --desbloquea--> stormed [el deal real]
 cueva_N --contiene--> gente_esperando ["es para mi hijo / sin dólares el país se va a la mierda"]
 super_chino --da--> moneyRecovered [le sacás +60 al cuevero 3]
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "tormenta",
+  "title": "Disparar la tormenta solar",
+  "at": "cueva",
+  "pre": {},
+  "sets": { "stormed": true },
+  "hints": {
+    "es": [
+      "El verde se compra abajo, donde no llega el sol... pero el sol igual te encuentra, pibe.",
+      "¿Nunca bajaste del todo a la cueva? El negocio de verdad está en la del fondo.",
+      "Andá a la cueva del fondo y cambiale los dólares al arbolito: ahí arranca TODO.",
+      "¡Que bajes a la CUEVA DEL FONDO y CAMBIES, carajo! ¿Te lo dibujo?"
+    ],
+    "en": [
+      "The green's bought down below, where the sun don't reach... but the sun finds you anyway, kid.",
+      "You never went all the way down to the cueva? The real deal's in the back one.",
+      "Go to the back cueva and change your dollars with the arbolito: that's where it ALL kicks off.",
+      "Go DOWN to the BACK CUEVA and CHANGE already, damn it! Want me to draw you a map?"
+    ]
+  }
+}
+```

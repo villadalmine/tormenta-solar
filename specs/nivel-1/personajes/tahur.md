@@ -37,3 +37,28 @@ secretUnlocked --desbloquea--> trastienda_truco
 ganar_truco --desbloquea--> chinotruco [puerta al chino, se consume al cruzar, repetible]
 chinotruco --conecta_con--> super_chino
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "truco",
+  "title": "Ganarle al tahúr (puerta al chino)",
+  "at": "arcade",
+  "pre": {},
+  "sets": { "trucoWon": true },
+  "hints": {
+    "es": [
+      "Atrás del arcade timbean. El que gana una de truco se gana algo más que el pozo...",
+      "Hay una trastienda donde un tahúr juega al truco; ganarle abre un atajo.",
+      "Ganale al tahúr en el truco (1/2/3 carta, T truco, V envido): se abre una puerta directa al chino.",
+      "¡Andá a la trastienda, GANALE EL TRUCO al tahúr y cruzás derecho al chino! Eso."
+    ],
+    "en": [
+      "Behind the arcade they gamble. Whoever wins a game of truco wins more than the pot...",
+      "There's a back room where a card sharp plays truco; beating him opens a shortcut.",
+      "Beat the card sharp at truco (1/2/3 card, T truco, V envido): a door straight to the shop opens.",
+      "Go to the back room, BEAT the sharp at TRUCO and you cut straight to the corner shop! There."
+    ]
+  }
+}
+```

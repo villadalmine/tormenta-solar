@@ -1,6 +1,7 @@
 # SPEC: Grafo de historia + motor de pistas (la "didáctica" del juego)
 
-- **Estado:** Draft — **diseño CERRADO, listo para implementar** (nada de código todavía; ver §7 plan)
+- **Estado:** **Fase 1 en marcha (v=61)** — camino crítico implementado y enchufado al linyera. Diseño
+  cerrado (§7). Falta: aristas secundarias + spawn errante del linyera + grounding del chat IA.
 - **Nivel:** transversal (se estrena en Nivel 1)
 - **Última actualización:** 2026-06-22
 
@@ -228,7 +229,16 @@ Todo el diseño quedó cerrado; ya no hay preguntas abiertas para empezar a impl
 5. **Alcance** → **Todo**: camino crítico **y** secundarios (búnker/loop, FIFA, disquería→Cemento, armas,
    etc.). El linyera puede ayudar con cualquier cosa pendiente.
 
-**Plan de implementación (cuando se arranque):** (a) agregar bloque ` ```hist ` a cada ficha de
-`personajes/`/`edificios/` con su arista (pre/does/sets/hints×niveles); (b) script que ensambla
-`js/historia.js` + validación (sin ciclos, cobertura de `action:`); (c) `HintEngine` (frontera + cercanía +
-nivel por insistencia); (d) enchufar el linyera errante (spawn cerca de pendientes + chat con grounding).
+**Plan de implementación / estado (v=61):**
+- [x] **(a)** Bloques ` ```hist ` (JSON) en las fichas — **camino crítico**: `tormenta` (cueveros),
+  `edificio` (borrachines), `bunker` (linyeras), `chino_iorio` (iorio), `truco` (tahur), `portal`
+  (casa-de-cambio). Cada uno con `pre`/`sets`/`hints` es+en × 4 niveles.
+- [x] **(b)** `tools/gen-historia.mjs` ensambla `js/historia.js` (6 aristas) + validación (ids únicos, sin
+  ciclos triviales, flags sueltos avisados). Escanea solo `personajes/`+`edificios/`.
+- [x] **(c)** `js/hint-engine.js`: `HintEngine.next(estado, {at, insistencia})` — frontera + cercanía +
+  nivel por insistencia, bilingüe vía `I18n`. Capa aditiva. Testeado en el e2e.
+- [x] **(d parcial)** Linyera enchufado: al abrir el chat tira pista nivel 0; cada repregunta sube el
+  nivel (0→3). Lee los flags reales de `game.js` (Fase 1: solo describe).
+- [ ] **Pendiente:** aristas **secundarias** (megadrive/fifa/cemento-ticket/armas/loop) con su ` ```hist `;
+  **spawn errante** del linyera (que aparezca cerca de lo no hecho); **grounding** del chat IA con la pista
+  recuperada (hoy la pista es scripteada aparte; falta pasarla al system prompt del LLM como contexto).

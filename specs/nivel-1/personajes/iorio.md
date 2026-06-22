@@ -49,3 +49,28 @@ iorio --quiere--> falopa
 iorio --desbloquea--> chino_front_abierto [temporal: una entrada; al salir, ninjas vuelven]
 falopa --se_consigue_en--> muebles_lujo [pisos impares, post-colapso]
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "chino_iorio",
+  "title": "Abrir el frente del chino con Iorio",
+  "at": "cemento",
+  "pre": { "stormed": true },
+  "sets": { "chinoFrontOpen": true },
+  "hints": {
+    "es": [
+      "El frente del chino lo cuidan los ninjas... a menos que suene algo que los haga rajar al pogo.",
+      "En Cemento hay un metalero que, si lo enganchás, hace irse a los ninjas del chino.",
+      "Conseguí FALOPA en los cajones de los pisos de lujo y dásela a Iorio: toca, los ninjas se van.",
+      "¡Llevale FALOPA a IORIO en Cemento, toca Pibe Tigre, los ninjas se van al recital y entrás al chino!"
+    ],
+    "en": [
+      "The corner shop's front is guarded by ninjas... unless something plays that sends them to the pit.",
+      "At Cemento there's a metalhead who, if you hook him up, makes the shop's ninjas leave.",
+      "Get GEAR from the drawers in the luxury floors and give it to Iorio: he plays, the ninjas clear out.",
+      "Bring GEAR to IORIO at Cemento, he plays Pibe Tigre, the ninjas head to the gig and you get into the shop!"
+    ]
+  }
+}
+```

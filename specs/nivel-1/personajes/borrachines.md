@@ -62,3 +62,28 @@ borrachines --bloquea--> edificio_abandonado [hasta borrachosHappy]
 borrachines --desbloquea--> edificio_abandonado [si los 3 fed]
 borrachines --da--> pista_super_cueva [al hacerte VIP]
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "edificio",
+  "title": "Abrir el edificio abandonado",
+  "at": "calle",
+  "pre": {},
+  "sets": { "borrachosHappy": true },
+  "hints": {
+    "es": [
+      "Hay tres que no se mueven de esa puerta... algo querrán los muchachos, ¿no?",
+      "A los tres borrachines los abrís con la panza: cada uno quiere algo distinto de comer/tomar.",
+      "Conseguí en el super: una Diosa Tropical, un fiambre y un pedazo de carne; dale uno a cada borrachín.",
+      "¡Que les LLEVES la Diosa, el fiambre y la carne a los tres borrachines, y te abren el edificio! Listo."
+    ],
+    "en": [
+      "There's three that won't budge from that door... the fellas want something, don't they?",
+      "You open the three drunks through the belly: each one wants something different to eat or drink.",
+      "Get from the supermarket: a Diosa Tropical, some cold cuts and a chunk of meat; give one to each drunk.",
+      "BRING the Diosa, the cold cuts and the meat to the three drunks and they open the building! Done."
+    ]
+  }
+}
+```

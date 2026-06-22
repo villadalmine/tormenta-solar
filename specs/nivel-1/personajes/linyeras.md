@@ -103,3 +103,28 @@ linyera_catre --da--> loop [action:'loop']
 linyera --da--> monedas [te muestra la caja fuerte / el inodoro: "mirá ahí tengo plata"]
 linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
 ```
+
+## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+```hist
+{
+  "id": "bunker",
+  "title": "Ganarte el búnker (gurú de los linyeras)",
+  "at": "edificio",
+  "pre": { "borrachosHappy": true },
+  "sets": { "bunkerUnlocked": true },
+  "hints": {
+    "es": [
+      "Adentro del edificio, los monos miran. Tres monitos que no ven, no oyen, no hablan...",
+      "Subí el edificio: arriba hay algo de Monkey Island que a los linyeras los vuelve locos.",
+      "En un piso alto está el TÓTEM de 3 monos. Robalo y 20 linyeras te hacen gurú: se abre el búnker.",
+      "¡Que SUBAS y AFANES el TÓTEM de los 3 monos! Te consagran gurú y se abre el búnker, dale."
+    ],
+    "en": [
+      "Inside the building, the monkeys watch. Three little monkeys that see no, hear no, speak no...",
+      "Go up the building: up top there's a Monkey Island thing the bums go crazy for.",
+      "On an upper floor there's the 3-monkey TOTEM. Swipe it and 20 bums crown you guru: the bunker opens.",
+      "GO UP and SWIPE the 3-monkey TOTEM! They crown you guru and the bunker opens, come on."
+    ]
+  }
+}
+```

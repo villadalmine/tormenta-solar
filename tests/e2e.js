@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
-const SCRIPTS = ['audio.js','art.js','input.js','fx.js','level.js','player.js',
+const SCRIPTS = ['historia.js','hint-engine.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
   'enemies.js','arcade.js','super.js','vinilos.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
@@ -97,7 +97,7 @@ for (const s of SCRIPTS) {
   try { vm.runInContext(code, sandbox, { filename: s }); }
   catch (e) { console.error('❌ [carga ' + s + ']', e.stack || e); process.exit(1); }
 }
-console.log('✓ Los 11 scripts cargaron sin error');
+console.log('✓ Los ' + SCRIPTS.length + ' scripts cargaron sin error');
 
 // ---- helpers de simulación ----
 function step(frames, dtMs = 16) {
@@ -156,6 +156,27 @@ if (require.main === module) {
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));
+
+  // ---- grafo de historia + motor de pistas (HintEngine) ----
+  const hint = vm.runInContext(`(() => {
+    const out = [];
+    if (typeof Historia === 'undefined' || !Historia.edges.length) out.push('FAIL Historia no cargó');
+    // estado inicial: la frontera debe incluir las aristas sin precondición (tormenta/edificio/truco)
+    const f0 = HintEngine.frontier({}).map(e => e.id);
+    if (!f0.includes('tormenta') || !f0.includes('edificio')) out.push('FAIL frontera inicial: ' + f0.join(','));
+    // cercanía: en la cueva, la próxima pista debe ser la tormenta
+    const inCueva = HintEngine.next({}, { at: 'cueva', insistencia: 0 });
+    if (!inCueva || inCueva.id !== 'tormenta') out.push('FAIL cercanía cueva→tormenta: ' + (inCueva && inCueva.id));
+    // una arista hecha (stormed=true) sale de la frontera
+    if (HintEngine.frontier({ stormed: true }).some(e => e.id === 'tormenta')) out.push('FAIL tormenta hecha sigue en frontera');
+    // todo hecho, incluido cruzar el portal (won) → no quedan pistas
+    const allDone = { stormed:true, borrachosHappy:true, bunkerUnlocked:true, chinoFrontOpen:true, trucoWon:true, won:true };
+    if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista');
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const hb = JSON.parse(hint);
+  if (hb.length) { console.error('❌ HINT ENGINE:\n' + hb.join('\n')); process.exit(1); }
+  console.log('✓ grafo de historia (' + vm.runInContext('Historia.edges.length', sandbox) + ' aristas) + motor de pistas OK');
 
   // ---- chino: changuito (agarrar sin pagar) → pagar → ninjas si rajás sin pagar ----
   const chino = vm.runInContext(`(() => {
