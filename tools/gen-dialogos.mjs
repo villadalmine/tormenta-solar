@@ -135,7 +135,9 @@ async function resolveModels() {
     const d = await r.json();
     const free = (d.data || []).filter(m => m.pricing && +m.pricing.prompt === 0 && +m.pricing.completion === 0).map(m => m.id);
     const pref = free.filter(id => /instruct|chat|gemma|mistral|llama|qwen|deepseek/i.test(id));
-    const list = [...new Set(pref.length ? pref : free)].slice(0, 8);
+    // chicos/rápidos primero (responden mucho más rápido que los 70B/253B)
+    const small = id => /(^|[^0-9])([1-9]\.?[0-9]?b|mini|small|flash|lite|nano)([^0-9]|$)/i.test(id) ? 0 : (/(1[0-9]b|2[0-9]b|3[0-2]b)/i.test(id) ? 1 : 2);
+    const list = [...new Set(pref.length ? pref : free)].sort((a, b) => small(a) - small(b)).slice(0, 8);
     return list.length ? list : FALLBACK_MODELS;
   } catch (e) { return FALLBACK_MODELS; }
 }
@@ -146,8 +148,13 @@ function parseArray(txt) {
   return JSON.parse(txt.slice(a, b + 1)).map(String).map(s => s.trim()).filter(Boolean);
 }
 
-const MODELS = process.env.OPENROUTER_MODEL ? [process.env.OPENROUTER_MODEL] : await resolveModels();
-console.log('Modelos free a probar (' + MODELS.length + '):', MODELS.join(', '), '\n');
+// si forzás OPENROUTER_MODEL, igual le pegamos el auto-descubrimiento atrás como fallback
+// (así un slug que no existe no te frena: rota a los free que SÍ andan).
+const auto = await resolveModels();
+const MODELS = process.env.OPENROUTER_MODEL
+  ? [process.env.OPENROUTER_MODEL, ...auto.filter(m => m !== process.env.OPENROUTER_MODEL)]
+  : auto;
+console.log('Modelos a probar (' + MODELS.length + '):', MODELS.slice(0, 6).join(', ') + (MODELS.length > 6 ? ', …' : ''), '\n');
 const out = {}, usados = new Set();
 let i = 0;
 for (const job of JOBS) {

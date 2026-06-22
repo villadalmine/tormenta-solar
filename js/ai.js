@@ -12,9 +12,10 @@ const AI = (() => {
   let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
   let _good = null;           // el último modelo que respondió bien → se usa primero (rápido)
   let lastSource = 'local';   // de dónde salió la última respuesta: 'proxy' | 'byok' | 'local'
-  // default = un modelo free que YA viene andando (no "auto" a ciegas). El user lo cambia en Opciones.
-  const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free';
-  const MODELS = [DEFAULT_MODEL, 'meta-llama/llama-3.2-3b-instruct:free', 'qwen/qwen3-next-80b-a3b-instruct:free', 'mistralai/mistral-7b-instruct:free'];
+  // default = un free CHICO y RÁPIDO (para el chat la velocidad importa más que el tamaño).
+  // El user lo cambia en Opciones (ej. uno más grande/lindo si no le molesta esperar).
+  const DEFAULT_MODEL = 'meta-llama/llama-3.2-3b-instruct:free';
+  const MODELS = [DEFAULT_MODEL, 'liquid/lfm-2.5-1.2b-instruct:free', 'google/gemma-4-26b-a4b-it:free', 'mistralai/mistral-7b-instruct:free'];
 
   // personas (system prompts) para el modo BYOK directo. En el proxy hay copias server-side.
   const PERSONAS = {

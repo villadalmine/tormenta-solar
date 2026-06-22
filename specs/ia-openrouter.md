@@ -41,8 +41,9 @@ Cambiar la key resetea ese estado. Timeout: 12 s.
 > dev-paid > player-key > local, y degradación automática a local ante lentitud/fallo.
 
 ### Selección y validación de modelo (en ⚙ Opciones) — v=47
-- **Default = un modelo free que YA anda** (`DEFAULT_MODEL = google/gemma-4-26b-a4b-it:free`), no
-  "auto" a ciegas. Se usa por defecto y el jugador lo cambia si quiere. Orden real:
+- **Default = un free CHICO y RÁPIDO** (`DEFAULT_MODEL = meta-llama/llama-3.2-3b-instruct:free`):
+  para el **chat** la velocidad importa más que el tamaño (los 70B/253B son lentos y rate-limited).
+  El jugador puede elegir uno más grande/lindo en Opciones si no le molesta esperar. Orden real:
   **modelo elegido por el jugador → el que ya funcionó en la sesión (`_good`) → el default → resto**.
 - En Opciones se ve **qué modelo usa** (`Modelo: <slug>`) y hay un campo para **forzar otro modelo**
   (slug de OpenRouter, ej.
