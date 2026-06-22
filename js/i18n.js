@@ -120,5 +120,5 @@ const I18n = (() => {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initUI);
     else initUI();
   }
-  return { t, dict, apply, set, get lang() { return lang; }, DEFAULT, SUPPORTED, short: () => short(lang) };
+  return { t, tList, dict, apply, set, get lang() { return lang; }, DEFAULT, SUPPORTED, short: () => short(lang) };
 })();

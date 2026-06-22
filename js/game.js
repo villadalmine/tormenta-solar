@@ -5,6 +5,14 @@
   const W = canvas.width, H = canvas.height;
   const TILE = Level.TILE;
 
+  // i18n: T(clave, params) = texto traducido; TL(clave) = línea al azar de un array del catálogo.
+  // Sin I18n (e2e headless) → T devuelve la clave (no crashea; el e2e no valida textos).
+  const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
+  const TL = (k) => {
+    const a = (typeof I18n !== 'undefined' && I18n.tList) ? I18n.tList(k) : null;
+    return (a && a.length) ? a[(Math.random() * a.length) | 0] : k;
+  };
+
   // canvas de iluminación (oscuridad con "agujeros" de luz)
   const lightCanvas = document.createElement('canvas');
   lightCanvas.width = W; lightCanvas.height = H;
@@ -40,8 +48,7 @@
 
   const DOOR_ART = { galeria: 'door', up: 'doorUp', exit: 'exit', educacionit: 'educacionit', arcade: 'arcade', elevator: 'elevator', superchino: 'superchino', garbarino: 'garbarino', disqueria: 'disqueria', cemento: 'cemento', cambio: 'cambio', abandonado: 'abandonado' };
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
-  const COLLAPSED = ['edu', 'arcade', 'choris', 'garbarino'];
-  const RUINA_MSG = ['Ese edificio se vino abajo con la tormenta. Tapiado, no se entra. 🧱', 'Derrumbado y clausurado: escombros hasta la puerta. 🚧', 'Ya fue, está hecho pedazos. Probá los lugares que aguantaron (chino, cueva, el de los borrachines). 💥'];
+  const COLLAPSED = ['edu', 'arcade', 'choris', 'garbarino'];   // RUINA_MSG → TL('g.ruina')
   let arcadeGame = null, superGame = null, vinilosGame = null;
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
@@ -70,7 +77,7 @@
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
     elFloor.textContent = rooms[0].name;
-    setMsg('Andá a la derecha y entrá por la GALERÍA para bajar a la cueva.  [E] usar puerta', '#FFD54F', 6000);
+    setMsg(T('g.start'), '#FFD54F', 6000);
   }
 
   function setMsg(t, c, ms = 3000) {
@@ -119,22 +126,22 @@
     const it = nearestInteract();
     if (!it) return;
     if (it.kind === 'door') {
-      if (stormed && COLLAPSED.includes(it.d.id)) { setMsg(RUINA_MSG[(Math.random()*RUINA_MSG.length)|0], '#b0a0a0', 4500); return; }
+      if (stormed && COLLAPSED.includes(it.d.id)) { setMsg(TL('g.ruina'), '#b0a0a0', 4500); return; }
       if (it.d.id === 'super') {
         if (!stormed) enterSuper();                              // pre-tormenta: changuito normal
         else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(); }  // Iorio corrió a los ninjas (una entrada)
-        else setMsg('El FRENTE del chino está atrincherado: tachos con fuego, granadas y los ninjas de guardia. No entrás por acá. → Entrá por la PUERTA TRASERA (desde la cueva) o que IORIO toque para que se vayan. 🔥🥷', '#ff5252', 6500);
+        else setMsg(T('g.super.barricada'), '#ff5252', 6500);
       }
       else if (it.d.id === 'chinoback') enterSuper();           // entrada de servicio desde el refugio
       else if (it.d.id === 'chinotruco') { trucoWon = false; enterSuper(); }  // puerta del tahúr (se consume)
       else if (it.d.id === 'vinilos') enterVinilos();
       else if (it.d.id === 'cambio' && !stormed) {
         // la casa de cambio oficial está HASTA LAS PELOTAS: la cola no te deja entrar
-        setMsg(['“¡Ehh, loco, no te coles!”', '“¡Hacé la cola como todos, vivo!”', '“No entra un alfiler, está hasta las pelotas.”', '“¡Respetá la fila, colado!”', '“Sacá número y esperá como todos, eh.”'][(Math.random()*5)|0], '#ffd54f', 4500);
+        setMsg(TL('g.cambio.cola'), '#ffd54f', 4500);
       }
       else if (it.d.id === 'abandonado' && !borrachosHappy) {
         // los tres borrachines te tapan la entrada hasta que les des LO QUE QUIEREN
-        setMsg(['“Eh eh... acá no entra cualquiera, pibe.” Los tres borrachines te tapan la puerta. 🚫', '“Primero atendé a los muchachos y después hablamos del edificio, ¿estamos?” 🍻', 'Los borrachines no se mueven. Algo querrán... charlá con cada uno (E). 🤔'][(Math.random()*3)|0], '#ffd54f', 4800);
+        setMsg(TL('g.abandonado'), '#ffd54f', 4800);
       }
       else transition(it.d);
     }
@@ -144,9 +151,9 @@
   }
   function launchArcade(game) { arcadeGame = Arcade.create(game); state = 'arcade'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); }
   function handleNpc(n) {
-    if (n.action === 'frogger') { challengeForVale = true; setMsg('¡A jugar al Frogger!', '#ff2e88', 1000); launchArcade('frogger'); }
+    if (n.action === 'frogger') { challengeForVale = true; setMsg(T('g.frogger.start'), '#ff2e88', 1000); launchArcade('frogger'); }
     else if (n.action === 'chori') redeemChori();
-    else if (n.action === 'truco') { setMsg('Te sentás a la mesa...', '#ffd54f', 1000); launchArcade('truco'); }
+    else if (n.action === 'truco') { setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco'); }
     else if (n.action === 'shop') buyFromShop(n);
     else if (n.action === 'borracho') giveBorracho(n);
     else if (n.action === 'lujo') handleLujo(n);
@@ -171,25 +178,26 @@
   function grabJoyas(n) {
     // tocás las JOYAS → sale el linyera, te suelta su filosofía y te raja a la calle
     const pick = a => a[(Math.random() * a.length) | 0];
-    const line = (n.lines && n.lines.length) ? pick(n.lines) : '“No toques eso, pibe.”';
-    ejectToStreet('Vas a manotear las joyas y SALE EL LINYERA: ' + line + ' Te agarra de la campera y te saca cagando a la calle. 🦶🚪');
+    const line = (n.lines && n.lines.length) ? pick(n.lines) : T('g.joyas.default');
+    ejectToStreet(T('g.joyas.eject', { line }));
     Sfx.pickup();
   }
   function grabTotem(n) {
     // robar el tótem de 3 monos → 20 linyeras te hacen GURÚ y abren el búnker del piso 20
     if (!bunkerUnlocked) {
       bunkerUnlocked = true; Sfx.win();
-      setMsg('Vas a afanar el TÓTEM de 3 monos 🐵🐵🐵 y de la nada salen VEINTE linyeras... pero en vez de cagarte a palos te consagran GURÚ: “¡Encontraste a nuestro dios de Monkey Island! La puerta del PISO 20 es tuya: te lleva a nuestro BÚNKER, el lugar más seguro. Queda SIEMPRE abierta para vos.” 🗝️🛖', '#7CFC00', 9000);
+      setMsg(T('g.totem.first'), '#7CFC00', 9000);
     } else {
-      setMsg('“Gurú, la puerta del PISO 20 ya es tuya. El búnker te espera arriba.” 🐵', '#aef0c0', 3500);
+      setMsg(T('g.totem.again'), '#aef0c0', 3500);
     }
   }
-  const LINYERA_CRY = (typeof Dialogos !== 'undefined' && Dialogos.linyera_llanto && Dialogos.linyera_llanto.length) ? Dialogos.linyera_llanto : [
-    '“Yo tenía TRES deptos en Puerto Madero... tres. (se quiebra) Mirá ahí en el inodoro, agarrá, total ya no me sirve de nada...” 😭',
-    '“Era gerente de banco. Traje, reuniones, un vacío de mierda. (llora) Hay guita en la caja fuerte, llevate, pibe.” 💼😢',
-    '“Tenía un auto importado por cada día de la semana. ¿Y para qué, eh? (moquea) Sacá unas monedas, dale.” 🚗',
-    '“Me cansé de laburar para una vida vacía. (suspira) Tomá, a mí no me hacen falta.” 🪙',
-  ];
+  // llanto de los ex-millonarios: pool por idioma (I18n.dict) → catálogo (TL) → Dialogos legacy
+  function linyeraCry() {
+    if (typeof I18n !== 'undefined' && I18n.dict) { const a = I18n.dict('linyera_llanto'); if (a && a.length) return a[(Math.random()*a.length)|0]; }
+    const tl = TL('g.linyeraCry'); if (tl !== 'g.linyeraCry') return tl;
+    const a = (typeof Dialogos !== 'undefined' && Dialogos.es && Dialogos.es.linyera_llanto) || [];
+    return a.length ? a[(Math.random()*a.length)|0] : '...';
+  }
   function spawnIn(idx, tileX) {
     current = idx; const rm = rooms[idx];
     player.x = tileX * Level.TILE + Level.TILE/2 - player.w/2;
@@ -206,32 +214,32 @@
     resetLoopResources(); chinoFrontOpen = false;
     const idx = bunkerUnlocked ? rooms.findIndex(r => /[Bb][úu]nker/.test(r.name)) : rooms.findIndex(r => r.cueveros);
     spawnIn(idx >= 0 ? idx : 0, 4); flash();
-    setMsg('Te moriste de hambre... pero el loop te escupe de vuelta al refugio (DÍA #' + loopCount + '). Seguí comiendo, pibe. 💀🔁', '#ff5252', 7000);
+    setMsg(T('g.revive', { n: loopCount }), '#ff5252', 7000);
   }
   function grabFalopa(n) {
-    if (!stormed) { setMsg('Es un maletín lleno de dólares... con el espacio-tiempo intacto, mejor ni tocarlo (acordate del linyera). 💼', '#ffd54f', 4500); return; }
-    if (n.falopaTaken) { setMsg('Este cajón ya lo vaciaste. Se rellena el próximo día (dormí en el búnker). 🌿', '#9fb4c4', 3500); return; }
+    if (!stormed) { setMsg(T('g.falopa.preStorm'), '#ffd54f', 4500); return; }
+    if (n.falopaTaken) { setMsg(T('g.falopa.empty'), '#9fb4c4', 3500); return; }
     n.falopaTaken = true; player.falopa = (player.falopa || 0) + 2; Sfx.pickup();
-    setMsg('Abrís el cajón del mueble de lujo: ¡repleto de FALOPA! 🌿 Agarrás (+2, tenés ' + player.falopa + '). Es para que IORIO toque y se vayan los ninjas del chino.', '#7CFC00', 6000);
+    setMsg(T('g.falopa.grab', { n: player.falopa }), '#7CFC00', 6000);
   }
   function giveLimosna(n) {
-    if (!stormed) { setMsg(n.dialog || '“...andá pasando, pibe...”', '#aef0c0', 4000); return; }
-    if (n.limosnaTaken) { setMsg('“Ya te di lo que tenía, pibe. Volvé mañana.” 🪙', '#9fb4c4', 3000); return; }
+    if (!stormed) { setMsg(n.dialog || T('g.limosna.preStorm'), '#aef0c0', 4000); return; }
+    if (n.limosnaTaken) { setMsg(T('g.limosna.empty'), '#9fb4c4', 3000); return; }
     n.limosnaTaken = true;
     const amt = 5 + ((Math.random() * 16) | 0);     // 5..20, aleatorio
     player.coins += amt; Sfx.pickup();
-    setMsg(LINYERA_CRY[(Math.random() * LINYERA_CRY.length) | 0] + '  +' + amt + ' 🪙', '#FFC107', 6500);
+    setMsg(linyeraCry() + '  +' + amt + ' 🪙', '#FFC107', 6500);
   }
   function giveIorio(n) {
-    if (!stormed) { setMsg(n.dialog || '“Traeme falopa y te toco Pibe Tigre.” 🤘', '#aef0c0', 4500); return; }
-    if ((player.falopa || 0) <= 0) { setMsg('Iorio: “¿Y la falopa, gil? Sin merca no hay Pibe Tigre. Buscá en los CAJONES de los deptos de lujo del edificio.” 🤘', '#ffd54f', 6000); return; }
+    if (!stormed) { setMsg(n.dialog || T('g.iorio.preStorm'), '#aef0c0', 4500); return; }
+    if ((player.falopa || 0) <= 0) { setMsg(T('g.iorio.noFalopa'), '#ffd54f', 6000); return; }
     player.falopa--; chinoFrontOpen = true; Sfx.win();
-    setMsg('Le pasás la falopa a Iorio 🤘. Arranca PIBE TIGRE y los NINJAS (metaleros) dejan el chino y se van al recital. ¡El FRENTE del chino quedó ABIERTO! Corré a comer antes de que vuelvan. (Iorio putea al sol: “...che tano Marcello, menos mal que ahora hacemos acústicos y tango, ya que no hay luz.”) 🎻', '#7CFC00', 9000);
+    setMsg(T('g.iorio.give'), '#7CFC00', 9000);
   }
   // ---- chat con IA (action:'chat') ----
   function chatLine(who, txt) {
     const div = document.createElement('div');
-    div.className = who; div.textContent = (who === 'you' ? 'Vos: ' : who === 'npc' ? '' : '') + txt;
+    div.className = who; div.textContent = (who === 'you' ? T('g.chat.youPrefix') : '') + txt;
     elChatLog.appendChild(div); elChatLog.scrollTop = elChatLog.scrollHeight;
     return div;
   }
@@ -240,7 +248,7 @@
     chatNpc = n; chatHistory = []; chatBusy = false;
     elChatTitle.textContent = '💬 ' + (n.name || 'CHARLA');
     elChatLog.innerHTML = '';
-    chatLine('sys', AI.mode() === 'offline' ? '(sin IA conectada — respuestas predefinidas. Pegá tu API key en ⚙ Opciones.)' : '(charlando con IA — ' + AI.mode() + ')');
+    chatLine('sys', AI.mode() === 'offline' ? T('g.chat.offline') : T('g.chat.online', { mode: AI.mode() }));
     if (n.dialog) chatLine('npc', n.dialog);
     state = 'chat';
     elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
@@ -260,26 +268,26 @@
     const thinking = chatLine('sys', '...');
     let reply;
     try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory); }
-    catch (e) { reply = '“...se me cruzó un cable, pibe. Repetí.”'; }
+    catch (e) { reply = T('g.chat.error'); }
     thinking.remove();
     chatLine('npc', reply);
     chatHistory.push({ role: 'assistant', content: reply });
     // si había key pero la respuesta salió local → avisar (no confundir al jugador)
     if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) {
-      chatLine('sys', '(la IA no respondió con tu key — líneas locales. Abrí la consola F12 para ver el error: 429/404/CORS, etc.)');
+      chatLine('sys', T('g.chat.localWarn'));
     }
     chatBusy = false;
     if (elChatInput) elChatInput.focus();
   }
   function buyArmas(n) {
     // el misterioso de la galería: con la tormenta, las armas eléctricas no sirven → fierro criollo
-    if (!stormed) { setMsg('“Guardá la guita, pibe. Con la luz andando todavía, las eléctricas te alcanzan. Volvé cuando se pudra todo.” 🗡️', '#9fd3ff', 5000); return; }
-    if (n.armado) { setMsg('“Ya te armé, criollo. Andá a hacer historia.” ⚔️', '#aef0c0', 3000); return; }
+    if (!stormed) { setMsg(T('g.armas.preStorm'), '#9fd3ff', 5000); return; }
+    if (n.armado) { setMsg(T('g.armas.done'), '#aef0c0', 3000); return; }
     const cost = 15;
-    if (player.coins < cost) { setMsg('“Fierro criollo no es gratis, pibe. Son ' + cost + ' monedas.” 🗡️', '#ff5252', 4000); Sfx.empty(); return; }
+    if (player.coins < cost) { setMsg(T('g.armas.noCoins', { cost }), '#ff5252', 4000); Sfx.empty(); return; }
     player.coins -= cost; n.armado = true;
     player.ammo += 40; player.hp = Math.min(100, player.hp + 20);
-    setMsg('El tipo abre un trapo en el piso: REBENQUE, BOLEADORAS, FACÓN y un FAL de Malvinas. “Las eléctricas no andan con la tormenta solar, pibe. Llevate fierro criollo de verdad.” ⚔️🇦🇷  +40 munición, +20 vida.', '#7CFC00', 7500);
+    setMsg(T('g.armas.buy'), '#7CFC00', 7500);
   }
   function handleLujo(n) {
     // mismo punto en los pisos de lujo: pre-tormenta son las JOYAS (te raja el linyera),
@@ -290,7 +298,7 @@
   function doLoop() {
     // el catre SOLO sirve con la tormenta ya estallada (antes no hay caos del que refugiarse)
     if (!stormed) {
-      setMsg('La city todavía está normal, no estalló nada. ¿Para qué dormir? El loop de supervivencia arranca cuando reviente la TORMENTA SOLAR. 😴', '#9fd3ff', 5500);
+      setMsg(T('g.loop.preStorm'), '#9fd3ff', 5500);
       return;
     }
     loopCount++;
@@ -299,36 +307,36 @@
     player.coins = Math.floor(player.coins * (0.3 + Math.random() * 0.4));  // monedas: te queda algo (parcial, aleatorio)
     player.hp = 100; player.alive = true; decayAcc = 0;                     // descansás: arrancás el día lleno
     chinoFrontOpen = false; flash();
-    setMsg('Dormís en el catre. 🌅 DÍA #' + loopCount + '. El caos de la tormenta sigue afuera. La falopa de los cajones se repuso y te quedó algo de guita; arrancás con la vida llena, pero el hambre vuelve: salí a COMER. 🍜', '#7CFC00', 8000);
+    setMsg(T('g.loop.sleep', { n: loopCount }), '#7CFC00', 8000);
   }
   function playFifa() {
-    if (!player.hasMegaDrive) { setMsg('“¿Trajiste una Mega Drive? Comprá una en el super chino (sección CONSOLAS) y volvé para el torneo de FIFA.” 🎮', '#9fd3ff', 5000); return; }
-    if (fifaWon) { setMsg('“Campeón del torneo de FIFA 98, ¡grande!” 🏆', '#7CFC00', 3000); return; }
+    if (!player.hasMegaDrive) { setMsg(T('g.fifa.noMega'), '#9fd3ff', 5000); return; }
+    if (fifaWon) { setMsg(T('g.fifa.done'), '#7CFC00', 3000); return; }
     fifaWon = true; player.coins += 30; Sfx.win();
-    setMsg('Enchufás la MEGA DRIVE y jugás el TORNEO DE FIFA 98 (el primero). Gambeteás, la clavás al ángulo... ¡CAMPEÓN! 🏆 +30 monedas.', '#7CFC00', 6500);
+    setMsg(T('g.fifa.win'), '#7CFC00', 6500);
   }
   function giveBorracho(n) {
     const pick = a => a[(Math.random()*a.length)|0];
     const want = n.want || 'carne';            // diosa | carne | fiambre
-    if (n.fed) { setMsg(pick(['“Gracias, campeón, ya estoy servido.” 🥴', '“Salú de nuevo, hermano.”', '“Sos un fenómeno, pibe.”']), '#aef0c0', 2500); return; }
+    if (n.fed) { setMsg(TL('g.borracho.fed'), '#aef0c0', 2500); return; }
     const have = want === 'diosa' ? (player.diosa||0) : want === 'carne' ? (player.carne||0) : (player.fiambre||0);
     if (have > 0) {
       // el borrachín DETECTA que tenés lo que quiere → te lo agradece y deja de pedir
       if (want === 'diosa') player.diosa--; else if (want === 'carne') player.carne--; else player.fiambre--;
       n.fed = true; borrachosFed++; Sfx.pickup();
-      const got = want === 'diosa' ? 'una DIOSA TROPICAL 🍹' : want === 'carne' ? 'un PEDAZO DE CARNE 🥩' : 'un FIAMBRE (sándwich) 🥓';
+      const got = want === 'diosa' ? T('g.borracho.gotDiosa') : want === 'carne' ? T('g.borracho.gotCarne') : T('g.borracho.gotFiambre');
       if (borrachosFed >= 3) {
         borrachosHappy = true; gaveBeers = true;
-        setMsg('Le encajás ' + got + '. Los TRES saltan de alegría 🎉 y te invitan a pasar: sos SOCIO VIP por alimentar a las clases bajas de forma desinteresada. El edificio queda ABIERTO. 🏚️ (Y te soplan: “Adentro del super hay una puerta directa a la cueva del que te cagó.”) 🤫', '#7CFC00', 9000);
+        setMsg(T('g.borracho.allHappy', { got }), '#7CFC00', 9000);
       } else {
-        setMsg('Le encajás ' + got + '. “¡Aaah, gracias maestro!” Deja de pedirte cosas.  (' + borrachosFed + '/3 borrachines contentos)', '#aef0c0', 4500);
+        setMsg(T('g.borracho.thanks', { got, n: borrachosFed }), '#aef0c0', 4500);
       }
       return;
     }
     // no tenés lo que quiere: siempre te tira algo random, y en una de esas suelta la pista de qué comprarle
     n.talks = (n.talks || 0) + 1;
     if (n.hint && (n.talks >= 6 || Math.random() < 0.3)) setMsg(n.hint, '#ffd54f', 5500);
-    else setMsg(pick(n.lines || ['“¿Una mano no me das, pibe?”']), '#ffd54f', 4200);
+    else setMsg(n.lines ? pick(n.lines) : T('g.borracho.askDefault'), '#ffd54f', 4200);
   }
   function enterSuper() { superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
@@ -338,38 +346,38 @@
     const cu = rooms[idx], up = cu.doorById['up'];
     player.x = (up.x + 48) - player.w/2; player.y = cu.gTop*Level.TILE - player.h; player.vx = player.vy = 0;
     updateCam(); elFloor.textContent = cu.name;
-    if (!moneyRecovered) { moneyRecovered = true; player.coins += 60; setMsg('Entrás por la puerta secreta y encarás al arbolito que te cagó. Le sacás la guita: +60 monedas. 😎', '#7CFC00', 7000); }
-    else setMsg('La cueva del arbolito. Ya le sacaste todo, no queda nada.', '#9fb4c4', 4000);
+    if (!moneyRecovered) { moneyRecovered = true; player.coins += 60; setMsg(T('g.cueva.secretMoney'), '#7CFC00', 7000); }
+    else setMsg(T('g.cueva.secretEmpty'), '#9fb4c4', 4000);
   }
   function buyFromShop(n) {
     const sh = n.sells;
-    const cur = sh.pay === 'caramelos' ? 'caramelos' : sh.pay === 'forros' ? 'forros' : 'monedas';
+    const cur = T('g.cur.' + (sh.pay === 'caramelos' ? 'caramelos' : sh.pay === 'forros' ? 'forros' : 'monedas'));
     const have = sh.pay === 'caramelos' ? player.caramelos : sh.pay === 'forros' ? player.forros : player.coins;
-    if (sh.stock <= 0) { setMsg('“Ya no me queda, flaco.”', '#ffd54f', 2500); return; }
-    if (have < sh.cost) { setMsg('No te alcanza: cuesta ' + sh.cost + ' ' + cur + ' y tenés ' + have + '.', '#ff5252', 3000); Sfx.empty(); return; }
+    if (sh.stock <= 0) { setMsg(T('g.shop.empty'), '#ffd54f', 2500); return; }
+    if (have < sh.cost) { setMsg(T('g.shop.noFunds', { cost: sh.cost, cur, have }), '#ff5252', 3000); Sfx.empty(); return; }
     if (sh.pay === 'caramelos') player.caramelos -= sh.cost; else if (sh.pay === 'forros') player.forros -= sh.cost; else player.coins -= sh.cost;
     sh.stock--;
     let txt;
-    if (sh.kind === 'ammo') { player.ammo += sh.amount; txt = '+' + sh.amount + ' munición'; }
-    else if (sh.kind === 'health') { player.hp = Math.min(100, player.hp + sh.amount); txt = '+' + sh.amount + ' vida'; }
-    else { player.ammo += 30; player.hp = Math.min(100, player.hp + 25); txt = 'un amuleto tenebroso (+30 munición, +25 vida)'; }
-    setMsg('Compraste: ' + txt + '  (−' + sh.cost + ' ' + cur + ')', '#7CFC00', 3500); Sfx.pickup();
+    if (sh.kind === 'ammo') { player.ammo += sh.amount; txt = T('g.shop.ammo', { n: sh.amount }); }
+    else if (sh.kind === 'health') { player.hp = Math.min(100, player.hp + sh.amount); txt = T('g.shop.health', { n: sh.amount }); }
+    else { player.ammo += 30; player.hp = Math.min(100, player.hp + 25); txt = T('g.shop.amuleto'); }
+    setMsg(T('g.shop.bought', { txt, cost: sh.cost, cur }), '#7CFC00', 3500); Sfx.pickup();
   }
   function machinePrice(m) { return 3 + (m.plays || 0) * 3; }
   function handleMachine(m) {
-    if (stormed) { setMsg('La máquina está poseída por la tormenta... ¡te ataca!', '#ff5252', 3000); return; }
+    if (stormed) { setMsg(T('g.machine.possessed'), '#ff5252', 3000); return; }
     // Pac-Man y Galaga: el dueño te extorsiona y sube el precio cada vez
     if (m.game === 'pacman' || m.game === 'galaga') {
       const price = machinePrice(m);
-      if (player.coins < price) { setMsg('“Flaco, esta es MI máquina. Son ' + price + ' monedas. Sin guita no jugás.” 💸', '#ff5252', 3500); Sfx.empty(); return; }
+      if (player.coins < price) { setMsg(T('g.machine.pay', { price }), '#ff5252', 3500); Sfx.empty(); return; }
       player.coins -= price; m.plays = (m.plays || 0) + 1;
-      setMsg('Pagaste ' + price + ' monedas... “La próxima te sale más, eh.” 😏', '#ffd54f', 2500);
+      setMsg(T('g.machine.paid', { price }), '#ffd54f', 2500);
       challengeForVale = false; launchArcade(m.game); return;
     }
     // TrucoTron: el tipo del fondo oscuro no juega con peleles
     if (m.game === 'trucotron') {
       if (arcadeWon.pacman && arcadeWon.galaga && arcadeWon.frogger) { challengeForVale = false; launchArcade('truco'); }
-      else setMsg('Sale un tipo del fondo oscuro: “Ehh, con peleles no juego. Ganale a TODAS las máquinas primero, pibe.”', '#d8c8b0', 5500);
+      else setMsg(T('g.machine.trucotron'), '#d8c8b0', 5500);
       return;
     }
     // Frogger libre (práctica)
@@ -379,12 +387,12 @@
     Sfx.pickup();
     if (c.to != null) {   // el cuevero del hall te INVITA a pasar a su cueva
       spawnIn(c.to, 4);
-      setMsg('Entrás a la cueva del dólar. 💵 Gente esperando, olor a humedad, todos murmurando. Hablales (E)... y andá al cuevero del fondo a cambiar.', '#7CFC00', 6000);
+      setMsg(T('g.cuevero.enter'), '#7CFC00', 6000);
       return;
     }
     if (c.outcome === 'real') {
       bought = true;
-      setMsg(c.dialog + ' ...y JUSTO explota todo. El tipo se queda con tu plata. Vos: nada. 💸', '#ff5252', 7000);
+      setMsg(T('g.cuevero.real', { dialog: c.dialog }), '#ff5252', 7000);
       triggerStorm();
     } else {
       setMsg(c.dialog, '#ffd54f', 4800);
@@ -393,16 +401,16 @@
   function redeemChori() {
     if (hasVale) {
       hasVale = false; player.hp = Math.min(100, player.hp + 40);
-      setMsg('🌭 Te comés el choripán gratis. +40 vida. ¡Aguante!', '#7CFC00', 3500); Sfx.pickup();
+      setMsg(T('g.chori.eat'), '#7CFC00', 3500); Sfx.pickup();
     } else {
-      setMsg('Necesitás un vale. Ganale al del choripán en el arcade (Street Fighter).', '#FFD54F', 4500);
+      setMsg(T('g.chori.noVale'), '#FFD54F', 4500);
     }
   }
   function checkSecret() {
     if (secretUnlocked) return;
     if (arcadeWon.pacman && arcadeWon.galaga && arcadeWon.frogger) {
       secretUnlocked = true;
-      setMsg('Un tipo sale de atrás: “Pibe... le ganaste a todas. ¿Querés ganar MUCHA plata? Vení, no preguntes.” Se abrió una puerta al fondo del arcade. 🚪', '#ffd54f', 8000);
+      setMsg(T('g.secret.unlock'), '#ffd54f', 8000);
     }
   }
   function transition(d) {
@@ -414,19 +422,19 @@
     const r = room();
     elFloor.textContent = r.name;
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
-    if (current === 0 && stormed) { flash(); setMsg('La calle quedó a oscuras y todo enloqueció. La CASA DE CAMBIO OFICIAL quedó abierta: metete ahí, el portal se abrió adentro. 🏦🌀', '#ff5252', 6500); }
-    else if (current === 0) setMsg('De vuelta en Florida y Lavalle.', '#4FC3F7', 2500);
-    else if (r.theme === 'cambio') { flash(); setMsg(stormed ? '¡El espacio-tiempo se partió! La gente corre en pánico y al fondo se abrió un PORTAL. ¡Metete ahí! 🌀' : 'Casa de Cambio Oficial: está HASTA LAS PELOTAS de gente sacando número. No se puede ni respirar. 🏦', stormed ? '#ff5252' : '#ffd54f', 6000); }
-    else if (r.theme === 'cemento') setMsg('CEMENTO. Almafuerte hace la prueba de sonido 🤘. Está todo lleno de humo y olor a asado haciéndose. 🔥🥩', '#ff5252', 5500);
-    else if (r.theme === 'lujo') setMsg('Piso de LUJO 👗✨: lo mejor de la moda, vidrieras impecables... y no hay un alma. Saqueá tranquilo (E en el ascensor para seguir).', '#ffd54f', 5000);
-    else if (r.theme === 'ruina') setMsg('Piso DESTRUIDO 💀: escombros, olor a encierro y gente tirada, hecha mierda, durmiendo. Pisá despacio.', '#b0a0a0', 5000);
-    else if (r.theme === 'office') setMsg(/Garbarino/.test(r.name) ? 'Garbarino: electrónica carísima. El vendedor no te suelta. 📺💸' : 'EducaciónIT — saludá a la gente (E) y subí en ascensor.', '#80cbc4', 4000);
-    else if (r.theme === 'arcade') setMsg(stormed ? '¡El arcade está poseído! Pac-Man y Galaga te atacan.' : 'Arcade — apretá E en una máquina para jugar.', stormed ? '#ff5252' : '#ff2e88', 4000);
-    else if (r.theme === 'shop') setMsg('Chorería — canjeá tu vale con el parrillero (E).', '#ffd54f', 3500);
-    else if (/[Bb][úu]nker/.test(r.name)) setMsg('El BÚNKER de los linyeras 🛖: el lugar más seguro de la city, acá no entra nadie. Tocá el catre (E) para quedarte en el LOOP, o volvé y andá al portal de la Casa de Cambio para salir de verdad.', '#7CFC00', 7000);
-    else if (r.theme === 'secret') setMsg(/Truco/.test(r.name) ? 'La trastienda: el tahúr te espera para el truco. 🃏' : 'Entrás con miedo... humo, dos mesas, gente que te mira. “Acá no viste nada, pibe.”', '#d8c8b0', 5500);
-    else if (r.cueveros) setMsg('Tres cuevas, tres cueveros. Probá con cada uno (E)... a ver quién te cambia.', '#7CFC00', 5500);
-    else setMsg('Más abajo... seguí bajando hasta las cuevas.', '#9fb4c4', 3000);
+    if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
+    else if (current === 0) setMsg(T('g.trans.street'), '#4FC3F7', 2500);
+    else if (r.theme === 'cambio') { flash(); setMsg(stormed ? T('g.trans.cambioStorm') : T('g.trans.cambioFull'), stormed ? '#ff5252' : '#ffd54f', 6000); }
+    else if (r.theme === 'cemento') setMsg(T('g.trans.cemento'), '#ff5252', 5500);
+    else if (r.theme === 'lujo') setMsg(T('g.trans.lujo'), '#ffd54f', 5000);
+    else if (r.theme === 'ruina') setMsg(T('g.trans.ruina'), '#b0a0a0', 5000);
+    else if (r.theme === 'office') setMsg(/Garbarino/.test(r.name) ? T('g.trans.garbarino') : T('g.trans.edu'), '#80cbc4', 4000);
+    else if (r.theme === 'arcade') setMsg(stormed ? T('g.trans.arcadeStorm') : T('g.trans.arcade'), stormed ? '#ff5252' : '#ff2e88', 4000);
+    else if (r.theme === 'shop') setMsg(T('g.trans.shop'), '#ffd54f', 3500);
+    else if (/[Bb][úu]nker/.test(r.name)) setMsg(T('g.trans.bunker'), '#7CFC00', 7000);
+    else if (r.theme === 'secret') setMsg(/Truco/.test(r.name) ? T('g.trans.trucoStore') : T('g.trans.secretStore'), '#d8c8b0', 5500);
+    else if (r.cueveros) setMsg(T('g.trans.cueveros'), '#7CFC00', 5500);
+    else setMsg(T('g.trans.deeper'), '#9fb4c4', 3000);
   }
   function triggerStorm() {
     if (stormed) return;
@@ -434,7 +442,7 @@
     Sfx.stormBoom(); Sfx.startHum();
     shakeUntil = performance.now() + 900;
     for (const s of states) for (const e of s.enemies) e.hostile = true;
-    setMsg('“Listo, jefe.” Un temblor: ARRIBA se cortó TODO por la tormenta solar. Acá abajo, sin luz, nada cambia. Subí y escapá.', '#ff5252', 7000);
+    setMsg(T('g.storm'), '#ff5252', 7000);
   }
   function flash() {
     elFlash.style.background = '#fff'; elFlash.style.transition = 'none'; elFlash.style.opacity = '1';
@@ -471,9 +479,9 @@
       if (p.taken) continue;
       if (Math.abs(player.x+player.w/2 - p.x) < 22 && Math.abs(player.y+player.h - p.y) < 40) {
         p.taken = true; Sfx.pickup();
-        if (p.type === 'ammo') { player.ammo += p.amount; setMsg('+' + p.amount + ' munición', '#FFD54F', 1100); }
-        else if (p.type === 'coins') { player.coins += p.amount; setMsg('+' + p.amount + ' monedas', '#FFC107', 1100); }
-        else { player.hp = Math.min(100, player.hp + p.amount); setMsg('+' + p.amount + ' vida', '#7CFC00', 1100); }
+        if (p.type === 'ammo') { player.ammo += p.amount; setMsg(T('g.shop.ammo', { n: p.amount }), '#FFD54F', 1100); }
+        else if (p.type === 'coins') { player.coins += p.amount; setMsg(T('g.shop.coins', { n: p.amount }), '#FFC107', 1100); }
+        else { player.hp = Math.min(100, player.hp + p.amount); setMsg(T('g.shop.health', { n: p.amount }), '#7CFC00', 1100); }
       }
     }
     // cumbia del músico: suena cuando pasás cerca (y antes de la tormenta)
@@ -567,19 +575,19 @@
       if (d.id === 'super' && stormed && !chinoFrontOpen) {
         const b = Art.decor.barricada;
         ctx.drawImage(b, d.x - cam.x - b.width/2, d.y - cam.y - b.height);
-        label('🔥 ATRINCHERADO', d.x - cam.x, d.y - cam.y - b.height - 4, '#ff5252');
+        label(T('g.label.barricada'), d.x - cam.x, d.y - cam.y - b.height - 4, '#ff5252');
       }
       // RF-7: edificios derrumbados tras la tormenta (tablones sobre la puerta)
       if (stormed && COLLAPSED.includes(d.id)) {
         const tb = Art.decor.tablones;
         ctx.drawImage(tb, d.x - cam.x - tb.width/2, d.y - cam.y - tb.height);
-        label('CLAUSURADO', d.x - cam.x, d.y - cam.y - tb.height - 4, '#b0a0a0');
+        label(T('g.label.clausurado'), d.x - cam.x, d.y - cam.y - tb.height - 4, '#b0a0a0');
       }
       if (d.id === 'secret') {
         const mi = Art.npc.misterioso, mx = d.x - cam.x - 46;
         ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(mx + mi.width/2, d.y - cam.y, 12, 4, 0, 0, Math.PI*2); ctx.fill();
         ctx.drawImage(mi, mx, d.y - cam.y - mi.height);
-        label('¡psst! vení', mx + mi.width/2, d.y - cam.y - mi.height - 4, '#ffd54f');
+        label(T('g.label.psst'), mx + mi.width/2, d.y - cam.y - mi.height - 4, '#ffd54f');
       }
     }
     // máquinas de arcade
@@ -681,28 +689,28 @@
     const it = nearestInteract();
     if (!it) { elPrompt.classList.add('hidden'); return; }
     let txt;
-    if (it.kind === 'cuevero') txt = 'hablar con el cuevero';
+    if (it.kind === 'cuevero') txt = T('g.prompt.cuevero');
     else if (it.kind === 'npc') {
       const a = it.n.action;
-      txt = a === 'fighter' ? 'retar a Street Fighter'
-        : a === 'chori' ? 'canjear vale (choripán)'
-        : a === 'shop' ? 'comprar (' + it.n.sells.cost + ' ' + (it.n.sells.pay === 'caramelos' ? 'caramelos' : it.n.sells.pay === 'forros' ? 'forros' : 'monedas') + ')'
-        : a === 'lujo' ? (stormed ? 'abrir el cajón del mueble (falopa) 🌿' : 'tocar las joyas 💎')
-        : a === 'totem' ? 'robar el tótem de 3 monos 🐵'
-        : a === 'limosna' ? (stormed ? 'pedirle unas monedas al linyera 🪙' : 'hablar con ' + it.n.name)
-        : a === 'iorio' ? (stormed ? 'darle falopa a Iorio 🤘' : 'hablar con Iorio')
-        : a === 'armas' ? (stormed ? 'comprar fierro criollo ⚔️' : 'hablar con el misterioso')
-        : a === 'chat' ? 'charlar 💬 con ' + (it.n.name || 'el linyera')
-        : a === 'loop' ? 'tirarte a dormir (pasar un día) 😴'
-        : 'hablar con ' + it.n.name;
+      txt = a === 'fighter' ? T('g.prompt.fighter')
+        : a === 'chori' ? T('g.prompt.chori')
+        : a === 'shop' ? T('g.prompt.shop', { cost: it.n.sells.cost, cur: T('g.cur.' + (it.n.sells.pay === 'caramelos' ? 'caramelos' : it.n.sells.pay === 'forros' ? 'forros' : 'monedas')) })
+        : a === 'lujo' ? (stormed ? T('g.prompt.lujoStorm') : T('g.prompt.lujo'))
+        : a === 'totem' ? T('g.prompt.totem')
+        : a === 'limosna' ? (stormed ? T('g.prompt.limosna') : T('g.prompt.talk', { name: it.n.name }))
+        : a === 'iorio' ? (stormed ? T('g.prompt.iorioStorm') : T('g.prompt.iorio'))
+        : a === 'armas' ? (stormed ? T('g.prompt.armasStorm') : T('g.prompt.armas'))
+        : a === 'chat' ? T('g.prompt.chat', { name: it.n.name || 'el linyera' })
+        : a === 'loop' ? T('g.prompt.loop')
+        : T('g.prompt.talk', { name: it.n.name });
     }
     else if (it.kind === 'machine') {
       const m = it.m;
-      if (stormed) txt = '¡máquina poseída!';
-      else if (m.game === 'pacman' || m.game === 'galaga') txt = 'jugar ' + m.name + ' (' + machinePrice(m) + ' monedas)';
-      else txt = 'jugar ' + m.name;
+      if (stormed) txt = T('g.prompt.machinePossessed');
+      else if (m.game === 'pacman' || m.game === 'galaga') txt = T('g.prompt.machinePay', { name: m.name, price: machinePrice(m) });
+      else txt = T('g.prompt.machine', { name: m.name });
     }
-    else if (stormed && COLLAPSED.includes(it.d.id)) txt = 'derrumbado, no se entra 🧱';
+    else if (stormed && COLLAPSED.includes(it.d.id)) txt = T('g.prompt.collapsed');
     else txt = it.d.label;
     elPrompt.innerHTML = '<span class="key">E</span>' + txt;
     elPrompt.classList.remove('hidden');
@@ -712,16 +720,15 @@
   function win() {
     if (state === 'win') return;
     state = 'win'; running = false; Sfx.stopHum(); Sfx.win();
-    elEndTitle.textContent = 'PORTAL ESTABLE'; elEndTitle.style.color = '#4FC3F7';
-    elEndText.innerHTML = 'Cruzás el portal mientras Florida y Lavalle se desmoronan en estática.<br><br>' +
-      'Esto no empezó hoy: la tormenta viene desde mucho más atrás... desde que pusimos un satélite a pensar por nosotros.<br><br><em>El salto temporal comienza. (Fin del Nivel 1)</em>';
+    elEndTitle.textContent = T('g.win.title'); elEndTitle.style.color = '#4FC3F7';
+    elEndText.innerHTML = T('g.win.text');
     showEnd();
   }
   function die() {
     if (state === 'dead') return;
     state = 'dead'; running = false; Sfx.stopHum();
-    elEndTitle.textContent = 'TE CONSUMIÓ LA TORMENTA'; elEndTitle.style.color = '#ff5252';
-    elEndText.innerHTML = 'La interferencia te alcanzó.<br><br>El portal temporal se cierra sin vos.<br><br><em>Probá de nuevo.</em>';
+    elEndTitle.textContent = T('g.die.title'); elEndTitle.style.color = '#ff5252';
+    elEndText.innerHTML = T('g.die.text');
     showEnd();
   }
   function showEnd() {
@@ -745,21 +752,21 @@
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
             player.coins -= robbed; stunUntil = performance.now() + 2600;
             trucoWon = true;   // ganar abre la PUERTA DEL TAHÚR al chino (se cruza una vez)
-            setMsg('Le ganás al tahúr... pero las minas se te tiran encima 💃💃, no te dejan ni caminar y te afanan ' + robbed + ' monedas. 😵 (Igual: el tahúr abre una puerta al fondo que cruza derecho al CHINO — usala antes de irte.)', '#ff5252', 7000);
+            setMsg(T('g.truco.win', { n: robbed }), '#ff5252', 7000);
           }
-          else { player.hp = Math.max(1, player.hp - 25); setMsg('Perdés. El tahúr te sonríe de costado... dicen que al tipo le gusta el marrón. Salís medio incómodo, sin saber bien por qué. (−25 vida)', '#ff5252', 6800); }
+          else { player.hp = Math.max(1, player.hp - 25); setMsg(T('g.truco.lose'), '#ff5252', 6800); }
         } else if (kind === 'frogger' && challengeForVale) {
-          if (res === 'win') { hasVale = true; setMsg('¡Le ganaste al Frogger! Tenés un VALE por un choripán gratis 🌭. Canjealo en la chorería.', '#7CFC00', 6000); }
-          else setMsg('Te ganó el del chori. Sin vale... pedile revancha.', '#ff5252', 4000);
+          if (res === 'win') { hasVale = true; setMsg(T('g.frogger.valeWin'), '#7CFC00', 6000); }
+          else setMsg(T('g.frogger.valeLose'), '#ff5252', 4000);
           challengeForVale = false;
         } else if (kind === 'frogger') {
-          if (res === 'win') { player.coins += 8; setMsg('🐸 ¡Cruzaste! +8 monedas.', '#7CFC00', 3000); }
-          else setMsg('Te aplastaron en el Frogger.', '#ff5252', 2500);
+          if (res === 'win') { player.coins += 8; setMsg(T('g.frogger.win'), '#7CFC00', 3000); }
+          else setMsg(T('g.frogger.lose'), '#ff5252', 2500);
         } else if (res === 'win') { // pac-man / galaga
           player.coins += 10;
-          if (kind === 'pacman') { player.ammo += 6; setMsg('🕹️ ¡Ganaste el Pac-Man! +10 monedas, +6 munición.', '#7CFC00', 4000); }
-          else { player.hp = Math.min(100, player.hp + 20); setMsg('🕹️ ¡Ganaste el Galaga! +10 monedas, +20 vida.', '#7CFC00', 4000); }
-        } else setMsg('Game over. Probá de nuevo, hay monedas en juego.', '#9fd3ff', 2800);
+          if (kind === 'pacman') { player.ammo += 6; setMsg(T('g.pacman.win'), '#7CFC00', 4000); }
+          else { player.hp = Math.min(100, player.hp + 20); setMsg(T('g.galaga.win'), '#7CFC00', 4000); }
+        } else setMsg(T('g.arcade.gameover'), '#9fd3ff', 2800);
         checkSecret();
       }
     } else if (state === 'super' && superGame) {
@@ -768,14 +775,14 @@
         const to = superGame.exitTo; superGame = null; state = 'playing'; transCd = 0.35;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         if (to === 'cueva') enterCuevaFromSecret();
-        else setMsg('Salís del super chino con los bolsillos llenos de caramelos. 🍬', '#FFC107', 3000);
+        else setMsg(T('g.super.leave'), '#FFC107', 3000);
       }
     } else if (state === 'vinilos' && vinilosGame) {
       vinilosGame.update(dt); vinilosGame.draw(ctx, W, H);
       if (vinilosGame.done) {
         vinilosGame = null; state = 'playing'; transCd = 0.35;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); Sfx.stopEighties();
-        setMsg('Salís de la disquería. 🎵', '#e0b0ff', 2500);
+        setMsg(T('g.vinilos.leave'), '#e0b0ff', 2500);
       }
     } else {
       update(dt); render();
@@ -796,7 +803,7 @@
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
-    else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? '♪ Música ON' : '♪ Música OFF', '#9fd3ff', 1200); }
+    else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? T('g.music.on') : T('g.music.off'), '#9fd3ff', 1200); }
   });
   document.getElementById('startBtn').addEventListener('click', start);
   document.getElementById('restartBtn').addEventListener('click', start);

@@ -57,8 +57,11 @@ Ver [`specs/idiomas.md`](specs/idiomas.md). **Fase 1 hecha (v=54):** runtime `js
 `js/lang/es.js`/`en.js` (UI estática, paridad 29/29) + `data-i18n` en `index.html` + selector en ⚙ Opciones
 + pools por idioma (`Dialogos[es|en]`, `_D/_Dp` vía `I18n.dict`) + chat IA en el idioma activo (transcreación)
 + generador multi-idioma (`OPENROUTER_LANGS=es,en`). Resolución `?lang`→localStorage→navigator→es-AR.
-- [ ] **Fase 2:** extraer a claves los **`setMsg`/prompts/fin** de `game.js` y los `dialog`/`hint`/`name`
-      fijos de `level.js` (hoy siguen en español). Refactor mecánico grande.
+- [x] **Fase 2 · Pasada A (v=57):** TODA la narración de `game.js` (~90 `setMsg`/prompts/fin/labels/arcade)
+      a claves `t()/tList()` (`js/lang/game.es.js`+`game.en.js`, paridad 149/149). En `en` ya sale en inglés.
+- [ ] **Fase 2 · Pasada B:** `level.js` — nombres de sala (`r.name` del HUD), `dialog`/`hint`/`name` fijos,
+      labels de puerta (`d.label`); y dar **id/theme estable** al búnker/truco/Garbarino (hoy `game.js` los
+      detecta por regex sobre `r.name`, se rompe al traducir).
 - [ ] **Generar `Dialogos.en`** con el script (`OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs`) y commitearlo.
 - [ ] Glosario de transcreación por término (falopa, linyera, chino…) para consistencia.
 

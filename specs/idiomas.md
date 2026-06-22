@@ -23,10 +23,17 @@
 - `tools/gen-dialogos.mjs`: **multi-idioma** (`OPENROUTER_LANGS=es,en`), escribe `Dialogos[lang][pool]`,
   preserva los idiomas que no se regeneran, prompt de transcreación para `en`.
 
-**⏳ Fase 2 — pendiente:** los **cientos de `setMsg`/prompts/textos de fin** hardcodeados en `game.js`
-(narración del juego) y los `dialog`/`hint`/`want`/`name` fijos de `level.js` siguen en español. Hay
-que extraerlos a claves del catálogo (`t(...)`) — es un refactor mecánico grande. Hasta que se haga,
-en modo `en` la UI/chrome y el chat IA están en inglés, pero la narración inline sigue en español.
+**✅ Fase 2 · Pasada A — `game.js` (v=57):** TODA la narración de `game.js` (los ~90 `setMsg`, prompts,
+textos de fin, labels del canvas, resultados de arcade, música) extraída a claves `t()/tList()`. Catálogos
+nuevos `js/lang/game.es.js` + `js/lang/game.en.js` (se mergean en `LANG_ES`/`LANG_EN` con `Object.assign`).
+**Paridad total 149/149 claves.** Helpers `T(k,params)` / `TL(k)` en `game.js` (sin I18n → devuelven la
+clave; e2e no valida textos). En modo `en` la narración del juego ya sale en inglés (transcreado).
+
+**⏳ Fase 2 · Pasada B — `level.js` (pendiente):** los **nombres de sala** (`r.name`, se ven en el HUD de
+piso), los `dialog`/`hint`/`want`/`name` **fijos** de NPCs y los **labels de puerta** (`d.label`) siguen
+en español. Además hay que **independizar la lógica del nombre de sala**: hoy `game.js` detecta el búnker
+/ truco / Garbarino con regex sobre `r.name` (`/[Bb]únker/`, `/Truco/`, `/Garbarino/`) — al traducir los
+nombres eso se rompe, así que en la Pasada B esas salas necesitan un **id/theme estable** en vez del nombre.
 
 ## 0.1 Cómo generar los diálogos de NPCs en inglés (correr el script)
 El inglés de los **pools** (`Dialogos.en`) se genera con IA (modo A), no se escribe a mano:
