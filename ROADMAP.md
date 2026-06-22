@@ -63,8 +63,9 @@ Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)
 - [ ] **Animar el fuego** de la barricada del chino (llamas parpadeando).
 - [ ] **Sprite de los ninjas yéndose al recital** cuando Iorio toca (hoy solo texto).
 - [ ] **Balance** de los números placeholder (decay −3/30s, comida −10/+40, falopa, plata 5–20).
-- [ ] **RF-7 — colapso en ruinas**: fachadas destruidas + puertas bloqueadas de los edificios que
-      no son refugio tras la tormenta (hoy siguen entrables/normales).
+- [x] **RF-7 — colapso en ruinas** (v=50): tras la tormenta, EducaciónIT / arcade / chorería /
+      Garbarino quedan **clausurados** (puerta bloqueada con mensaje + tablones cruzados sobre la
+      fachada). Sobreviven super, cueva/galería, abandonado, Cemento (Iorio) y la Casa de Cambio.
 
 ### Jugabilidad
 - [ ] **Objetivo dentro del edificio abandonado**: hoy es exploración + loot de monedas.

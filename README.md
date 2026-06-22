@@ -183,8 +183,9 @@ En el loop la meta es **sobrevivir**: la **vida baja con el tiempo** y hay que *
 que quedó **atrincherado** (ninjas + fuego + granadas en el frente). Entrás por la **puerta trasera**
 (desde la cueva) o conseguís que **Iorio** toque (le das **falopa** de los cajones de lujo) para que
 los ninjas se vayan. La **plata** sale de los **linyeras** (ex-millonarios que lloran su historia).
-Dormís en el **catre del búnker** para pasar un día. Todo el diseño está en
-**[`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)**.
+Dormís en el **catre del búnker** para pasar un día. Tras la tormenta, los edificios que **no** son
+refugio (EducaciónIT, arcade, chorería, Garbarino) quedan **clausurados** (tablones + "derrumbado").
+Todo el diseño está en **[`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)**.
 
 ---
 

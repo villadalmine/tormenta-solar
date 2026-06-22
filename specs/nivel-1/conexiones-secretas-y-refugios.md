@@ -134,11 +134,11 @@ Tras `stormed`, los edificios que **no** son refugio ni salida **se derrumban**:
   etc.). Es un destino de "quedarse", no un `win`.
 - **RF-6** — **No rompe el final**: la **Casa de Cambio (13)** sigue siendo la única vía de **pasar
   de nivel**. El búnker es alternativa de **refugio**, no victoria.
-- **RF-7** *(colapso post-tormenta = fachada en ruinas)* — Tras `stormed`, los edificios que **no**
-  son `{super, abandonado, red de la cueva, casa de cambio, cemento}`: **(a)** su puerta en la calle **no
-  entra** y tira un mensaje ("derrumbado / clausurado"), y **(b)** su **fachada cambia a un sprite
-  en ruinas** (escombros/fuego). Hace falta una **variante "ruina" del arte de fachada** por
-  edificio afectado (o un overlay genérico de derrumbe).
+- **RF-7** *(colapso post-tormenta = fachada en ruinas)* — ✅ **Implementado (v=50).** Tras `stormed`,
+  los edificios que **no** son `{super, abandonado, red de la cueva, casa de cambio, cemento}` —o sea
+  **EducaciónIT, arcade, chorería, Garbarino** (`COLLAPSED` en game.js)— quedan **clausurados**:
+  **(a)** su puerta no entra y tira un mensaje ("derrumbado / clausurado"), y **(b)** se les dibuja
+  **tablones cruzados** (`Art.decor.tablones`) + cartel CLAUSURADO sobre la fachada.
 - **RF-8** *(loop = supervivencia, storm-gated)* — En el **búnker**, el **catre** (`action:'loop'`)
   **solo funciona post-`stormed`** *(ya en código, v=38)*. Dormir = **pasa un día** (`loopCount++`)
   manteniendo el mundo en caos (no reset). El ciclo de supervivencia completo (vida −3/30 s, comida,

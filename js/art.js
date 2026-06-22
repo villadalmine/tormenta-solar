@@ -438,6 +438,20 @@ const Art = (() => {
       g.strokeStyle = '#cfd8dc'; g.lineWidth = 2; g.beginPath(); g.moveTo(nx+7, h-40); g.lineTo(nx+20, h-59); g.stroke(); // katana
       g.strokeStyle = '#5d4037'; g.lineWidth = 2; g.beginPath(); g.moveTo(nx+5, h-37); g.lineTo(nx+8, h-41); g.stroke(); // empuñadura
     }),
+    // edificio CLAUSURADO/derrumbado (post-tormenta): tablones cruzados + escombros al pie
+    tablones: mk(72, 104, (g, w, h) => {
+      g.fillStyle = '#3a352e'; g.beginPath(); g.moveTo(2, h); g.lineTo(16, h-18); g.lineTo(32, h); g.closePath(); g.fill();   // escombros
+      g.fillStyle = '#4a443a'; g.beginPath(); g.moveTo(28, h); g.lineTo(44, h-14); g.lineTo(64, h); g.closePath(); g.fill();
+      g.save(); g.translate(w/2, h/2);
+      for (const ang of [0.5, -0.5]) {
+        g.save(); g.rotate(ang);
+        g.fillStyle = '#6d4c41'; g.fillRect(-w*0.7, -7, w*1.4, 14);
+        g.fillStyle = '#5d4037'; g.fillRect(-w*0.7, -7, w*1.4, 3);
+        g.fillStyle = '#2a1f17'; g.fillRect(-w*0.5, -2, 3, 3); g.fillRect(w*0.5-4, -2, 3, 3);   // clavos
+        g.restore();
+      }
+      g.restore();
+    }),
   };
 
   // ---------------- PERSONAJE ----------------

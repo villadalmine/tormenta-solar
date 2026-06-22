@@ -39,6 +39,9 @@
   let lastT = 0, running = false, msgUntil = 0, shakeUntil = 0, time = 0, transCd = 0;
 
   const DOOR_ART = { galeria: 'door', up: 'doorUp', exit: 'exit', educacionit: 'educacionit', arcade: 'arcade', elevator: 'elevator', superchino: 'superchino', garbarino: 'garbarino', disqueria: 'disqueria', cemento: 'cemento', cambio: 'cambio', abandonado: 'abandonado' };
+  // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
+  const COLLAPSED = ['edu', 'arcade', 'choris', 'garbarino'];
+  const RUINA_MSG = ['Ese edificio se vino abajo con la tormenta. Tapiado, no se entra. 🧱', 'Derrumbado y clausurado: escombros hasta la puerta. 🚧', 'Ya fue, está hecho pedazos. Probá los lugares que aguantaron (chino, cueva, el de los borrachines). 💥'];
   let arcadeGame = null, superGame = null, vinilosGame = null;
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
@@ -116,6 +119,7 @@
     const it = nearestInteract();
     if (!it) return;
     if (it.kind === 'door') {
+      if (stormed && COLLAPSED.includes(it.d.id)) { setMsg(RUINA_MSG[(Math.random()*RUINA_MSG.length)|0], '#b0a0a0', 4500); return; }
       if (it.d.id === 'super') {
         if (!stormed) enterSuper();                              // pre-tormenta: changuito normal
         else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(); }  // Iorio corrió a los ninjas (una entrada)
@@ -565,6 +569,12 @@
         ctx.drawImage(b, d.x - cam.x - b.width/2, d.y - cam.y - b.height);
         label('🔥 ATRINCHERADO', d.x - cam.x, d.y - cam.y - b.height - 4, '#ff5252');
       }
+      // RF-7: edificios derrumbados tras la tormenta (tablones sobre la puerta)
+      if (stormed && COLLAPSED.includes(d.id)) {
+        const tb = Art.decor.tablones;
+        ctx.drawImage(tb, d.x - cam.x - tb.width/2, d.y - cam.y - tb.height);
+        label('CLAUSURADO', d.x - cam.x, d.y - cam.y - tb.height - 4, '#b0a0a0');
+      }
       if (d.id === 'secret') {
         const mi = Art.npc.misterioso, mx = d.x - cam.x - 46;
         ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(mx + mi.width/2, d.y - cam.y, 12, 4, 0, 0, Math.PI*2); ctx.fill();
@@ -692,6 +702,7 @@
       else if (m.game === 'pacman' || m.game === 'galaga') txt = 'jugar ' + m.name + ' (' + machinePrice(m) + ' monedas)';
       else txt = 'jugar ' + m.name;
     }
+    else if (stormed && COLLAPSED.includes(it.d.id)) txt = 'derrumbado, no se entra 🧱';
     else txt = it.d.label;
     elPrompt.innerHTML = '<span class="key">E</span>' + txt;
     elPrompt.classList.remove('hidden');
