@@ -188,6 +188,10 @@ button:hover { background: #ffd54f; }
   background: #0a141c; color: #e8eef2; border: 1px solid #1f3a4d; border-radius: 3px; }
 #opt-aikey:focus { outline: none; border-color: #4FC3F7; }
 .opt-note { font-size: 10.5px; color: #90a4ae; margin: 6px 0 2px; line-height: 1.4; }
+#opt-aimodel { flex: 1; padding: 8px 10px; font-family: inherit; font-size: 11px;
+  background: #0a141c; color: #e8eef2; border: 1px solid #1f3a4d; border-radius: 3px; }
+#opt-aimodel:focus { outline: none; border-color: #4FC3F7; }
+.opt-validate-btn { width: auto; padding: 0 12px; }
 .opt-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 .opt-actions button { margin-top: 0; padding: 8px 14px; font-size: 12px; }
 

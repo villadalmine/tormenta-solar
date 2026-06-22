@@ -6,10 +6,15 @@
 const AI = (() => {
   const PROXY = '';   // (opcional) URL de tu proxy ai-proxy. Si está → "vos pagás" (prioridad 1).
   const KEY_LS = 'ts_openrouter_key';
-  const TIMEOUT = 12000;
-  let byokDead = false;   // si la key del jugador tarda/falla una vez → de ahí en más, líneas locales
+  const TIMEOUT = 11000;
+  const MAX_TRIES = 3;        // no probar más de N modelos por mensaje (no colgar)
+  let byokDead = false;       // tras varios fallos seguidos → de ahí en más, líneas locales
+  let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
+  let _good = null;           // el último modelo que respondió bien → se usa primero (rápido)
   let lastSource = 'local';   // de dónde salió la última respuesta: 'proxy' | 'byok' | 'local'
-  const MODELS = ['meta-llama/llama-3.3-70b-instruct:free', 'mistralai/mistral-7b-instruct:free', 'deepseek/deepseek-chat-v3-0324:free'];
+  // default = un modelo free que YA viene andando (no "auto" a ciegas). El user lo cambia en Opciones.
+  const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free';
+  const MODELS = [DEFAULT_MODEL, 'meta-llama/llama-3.2-3b-instruct:free', 'qwen/qwen3-next-80b-a3b-instruct:free', 'mistralai/mistral-7b-instruct:free'];
 
   // personas (system prompts) para el modo BYOK directo. En el proxy hay copias server-side.
   const PERSONAS = {
@@ -39,7 +44,35 @@ const AI = (() => {
   const canned = npc => { const a = FALLBACK[npc] || FALLBACK.default; return a[(Math.random() * a.length) | 0]; };
 
   function playerKey() { try { return (localStorage.getItem(KEY_LS) || '').trim(); } catch (e) { return ''; } }
-  function setKey(k) { try { localStorage.setItem(KEY_LS, (k || '').trim()); } catch (e) {} byokDead = false; }
+  function setKey(k) { try { localStorage.setItem(KEY_LS, (k || '').trim()); } catch (e) {} byokDead = false; byokFails = 0; _good = null; _freeModels = null; }
+
+  const MODEL_LS = 'ts_openrouter_model';
+  function userModel() { try { return (localStorage.getItem(MODEL_LS) || '').trim(); } catch (e) { return ''; } }
+  function setModel(m) { try { localStorage.setItem(MODEL_LS, (m || '').trim()); } catch (e) {} _good = null; byokDead = false; byokFails = 0; }
+  function currentModel() { return userModel() || _good || DEFAULT_MODEL; }
+
+  // prueba un modelo con la key del jugador y mide cuánto tarda → { ok, ms, error }
+  async function validate(model) {
+    if (typeof fetch !== 'function') return { ok: false, error: 'sin fetch' };
+    const key = playerKey();
+    if (!key) return { ok: false, error: 'pegá primero tu API key arriba' };
+    const m = (model || '').trim() || currentModel();
+    if (!m || m === 'auto') return { ok: false, error: 'escribí un modelo (ej. mistralai/mistral-7b-instruct:free)' };
+    const t0 = Date.now(); const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST', signal: ctrl.signal,
+        headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'X-Title': 'Tormenta Solar' },
+        body: JSON.stringify({ model: m, messages: [{ role: 'user', content: 'Respondé solo: ok' }], max_tokens: 5 }),
+      });
+      clearTimeout(to); const ms = Date.now() - t0;
+      if (r.status === 401) return { ok: false, ms, error: 'API key inválida (401)' };
+      if (r.status === 404) return { ok: false, ms, error: 'ese modelo no existe (404)' };
+      if (r.status === 429) return { ok: false, ms, error: 'saturado (429), probá en un rato' };
+      if (!r.ok) return { ok: false, ms, error: 'error ' + r.status };
+      return { ok: true, ms, model: m };
+    } catch (e) { clearTimeout(to); return { ok: false, error: e.name === 'AbortError' ? 'timeout (>15s, lentísimo)' : e.message }; }
+  }
 
   function buildMessages(npc, message, history) {
     const system = PERSONAS[npc] || DEFAULT_PERSONA;
@@ -59,7 +92,9 @@ const AI = (() => {
         const d = await r.json();
         const free = (d.data || []).filter(m => m.pricing && +m.pricing.prompt === 0 && +m.pricing.completion === 0).map(m => m.id);
         const pref = free.filter(id => /instruct|chat|gemma|mistral|llama|qwen|deepseek/i.test(id));
-        const list = [...new Set(pref.length ? pref : free)].slice(0, 6);
+        // chicos/rápidos primero (responden mucho más rápido que los 70B)
+        const small = id => /(^|[^0-9])([1-9]\.?[0-9]?b|mini|small|flash|lite|nano)([^0-9]|$)/i.test(id) ? 0 : (/(1[0-9]b|2[0-9]b|3[0-2]b)/i.test(id) ? 1 : 2);
+        const list = [...new Set(pref.length ? pref : free)].sort((a, b) => small(a) - small(b)).slice(0, 6);
         if (list.length) { _freeModels = list; console.log('[ai] modelos free:', list.join(', ')); return list; }
       } else { console.warn('[ai] /models', r.status); }
     } catch (e) { console.warn('[ai] no pude traer modelos free:', e.message); }
@@ -68,24 +103,27 @@ const AI = (() => {
 
   async function viaOpenRouter(key, npc, message, history) {
     const messages = buildMessages(npc, message, history);
-    const models = await freeModels(key);
-    let lastStatus = 0;
-    for (const model of models) {
+    const all = await freeModels(key);
+    const first = userModel() || _good || DEFAULT_MODEL;                     // elegido por el jugador → el que anduvo → default
+    const order = [first, ...all.filter(m => m !== first)];
+    let tried = 0, lastStatus = 0;
+    for (const model of order) {
+      if (tried++ >= MAX_TRIES) break;   // no rotar por todos (eso es lo que lo hacía LENTO)
       const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), TIMEOUT);
       try {
         const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST', signal: ctrl.signal,
           headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'X-Title': 'Tormenta Solar' },
-          body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 220 }),
+          body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 160 }),
         });
         clearTimeout(t);
-        if (r.status === 429 || r.status === 404) { lastStatus = r.status; continue; }   // saturado / no existe → otro
+        if (r.status === 429 || r.status === 404) { lastStatus = r.status; if (model === _good) _good = null; continue; }
         if (!r.ok) { lastStatus = r.status; console.warn('[ai] OpenRouter', r.status, (await r.text().catch(() => '')).slice(0, 160)); break; }
         const d = await r.json(); const reply = d.choices?.[0]?.message?.content;
-        if (reply) return reply.trim().slice(0, 400);
+        if (reply) { _good = model; return reply.trim().slice(0, 400); }   // recordamos el que anduvo
       } catch (e) { clearTimeout(t); console.warn('[ai] fetch falló (' + model + '):', e.message); }
     }
-    console.warn('[ai] ningún modelo free respondió (último status ' + lastStatus + ')');
+    console.warn('[ai] sin respuesta (status ' + lastStatus + '). El free está saturado: probá de nuevo en unos segundos.');
     return null;
   }
   async function viaProxy(npc, message, history) {
@@ -106,9 +144,9 @@ const AI = (() => {
       if (PROXY) { try { const r = await viaProxy(npc, message, history); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
       const key = playerKey();
       if (key && !byokDead) {
-        try { const r = await viaOpenRouter(key, npc, message, history); if (r) { lastSource = 'byok'; return r; } } catch (e) {}
-        byokDead = true;   // tardó/falló: switch a locales por el resto de la sesión (hasta que cambie la key)
-        console.warn('[ai] BYOK no respondió → uso líneas LOCALES por la sesión. Revisá los mensajes [ai] de arriba.');
+        try { const r = await viaOpenRouter(key, npc, message, history); if (r) { byokFails = 0; lastSource = 'byok'; return r; } } catch (e) {}
+        // un 429 transitorio NO mata el BYOK: cae a local SOLO en este mensaje y reintenta el próximo
+        if (++byokFails >= MAX_TRIES) { byokDead = true; console.warn('[ai] ' + byokFails + ' fallos seguidos → líneas locales por la sesión. Cambiá la key (o esperá) para reintentar.'); }
       }
     }
     lastSource = 'local';
@@ -121,13 +159,26 @@ const AI = (() => {
   if (typeof document !== 'undefined') {
     const wire = () => {
       const inp = document.getElementById('opt-aikey'), st = document.getElementById('ai-status');
+      const mi = document.getElementById('opt-aimodel'), mst = document.getElementById('ai-model-status'), vb = document.getElementById('opt-validate');
       const upd = () => { if (st) st.textContent = mode() === 'byok'
         ? '✓ Chat IA con TU key (pagás tu propio uso; la key queda en tu navegador).'
         : (mode() === 'proxy' ? '✓ Chat IA por el proxy del juego.' : 'Chat IA: offline (líneas predefinidas). Pegá tu key de openrouter.ai/keys para activarlo.'); };
-      if (inp) { inp.value = playerKey(); inp.addEventListener('input', () => { setKey(inp.value); upd(); }); }
-      upd();
+      const updModel = (txt) => { if (mst) mst.textContent = txt || ('Modelo: ' + currentModel() + (userModel() ? ' (elegido por vos)' : ' (por defecto · podés cambiarlo)')); };
+      if (inp) { inp.value = playerKey(); inp.addEventListener('input', () => { setKey(inp.value); upd(); updModel(); }); }
+      if (mi) { mi.value = userModel(); mi.addEventListener('input', () => { setModel(mi.value); updModel(); }); }
+      if (vb) vb.addEventListener('click', async () => {
+        if (!playerKey()) { updModel('Validar: pegá primero tu API key arriba.'); return; }
+        const m = (mi && mi.value.trim()) || currentModel();
+        updModel('Validando ' + m + '…'); vb.disabled = true;
+        const res = await validate(mi && mi.value.trim());
+        vb.disabled = false;
+        updModel(res.ok
+          ? '✓ Anda · ' + res.ms + ' ms ' + (res.ms < 3500 ? '(rápido 🚀)' : res.ms < 8000 ? '(ok 👍)' : '(lento 🐢)')
+          : '✗ ' + res.error + (res.ms ? (' · ' + res.ms + ' ms') : ''));
+      });
+      upd(); updModel();
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, mode, lastSource: () => lastSource, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, get online() { return mode() !== 'offline'; } };
 })();

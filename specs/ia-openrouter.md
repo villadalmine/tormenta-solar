@@ -1,8 +1,10 @@
 # SPEC: IA con OpenRouter (diálogos / contenido generativo)
 
-- **Estado:** Modo A implementado (v=44); **Modo B (chat en vivo) implementado** (v=45): cliente
-  `js/ai.js` (proxy **o** BYOK **o** local), proxy `ai-proxy/` (Node + Worker), NPC chateable
-  (Linyera filósofo) y campo de API key en ⚙ Opciones. Ver §0 (política de resolución).
+- **Estado:** Modo A implementado (v=44); **Modo B (chat en vivo) implementado** (v=45–47): cliente
+  `js/ai.js` (proxy **o** BYOK **o** local), proxy `ai-proxy/` (Node + Worker), NPCs chateables
+  (linyera filósofo + secretaria de EducaciónIT con persona acotada), y en ⚙ Opciones: **API key**,
+  **selección de modelo** y botón **Validar** (existe + velocidad). Modelos free al vuelo, cacheo del
+  que anduvo, tope de intentos y BYOK tolerante a 429. Ver §0.
 - **Alcance:** transversal
 - **Última actualización:** 2026-06-21
 
@@ -37,6 +39,27 @@ Cambiar la key resetea ese estado. Timeout: 12 s.
 
 > Resumen: **el juego siempre habla** (locales). La IA en vivo es un **enhancement** del chat, con
 > dev-paid > player-key > local, y degradación automática a local ante lentitud/fallo.
+
+### Selección y validación de modelo (en ⚙ Opciones) — v=47
+- **Default = un modelo free que YA anda** (`DEFAULT_MODEL = google/gemma-4-26b-a4b-it:free`), no
+  "auto" a ciegas. Se usa por defecto y el jugador lo cambia si quiere. Orden real:
+  **modelo elegido por el jugador → el que ya funcionó en la sesión (`_good`) → el default → resto**.
+- En Opciones se ve **qué modelo usa** (`Modelo: <slug>`) y hay un campo para **forzar otro modelo**
+  (slug de OpenRouter, ej.
+  `mistralai/mistral-7b-instruct:free`). Se guarda en `localStorage` (`ts_openrouter_model`).
+- Botón **Validar**: hace una llamada mínima al modelo con la key del jugador y reporta si **existe**
+  y **cuánto tarda** (`✓ Anda · 1234 ms (rápido 🚀 / ok 👍 / lento 🐢)` o `✗ no existe (404) / 429 /
+  401 / timeout`). `AI.validate(model)`.
+
+### Rendimiento del free tier (decisiones)
+Los modelos `:free` son **lentos y rate-limited** (después de 1 request te tiran 429). Por eso:
+- **Se cachea el modelo que funcionó** (`_good`) y se usa **primero** → respuestas rápidas (1 sola
+  llamada, sin rotar por todos, que era lo que lo hacía lentísimo).
+- **Tope de 3 intentos** por mensaje (`MAX_TRIES`), timeout 11 s, **modelos chicos/rápidos primero**.
+- **Un 429 transitorio NO mata el BYOK**: cae a local **sólo ese mensaje** y reintenta el próximo.
+  Recién tras **3 fallos seguidos** se hace switch a local por la sesión (`byokDead`).
+- Logs `[ai] …` en consola (F12) y `AI.lastSource()` para diagnosticar; el chat avisa si cayó a local
+  teniendo key.
 
 ### Qué NPC es chateable y cuál NO (regla anti-confusión)
 - **NO se hacen chat los NPCs que dan DATA crítica de gameplay.** Ej.: **Iorio** debe tirar la pista
