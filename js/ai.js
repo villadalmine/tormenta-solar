@@ -28,6 +28,8 @@ const AI = (() => {
 
   // idioma activo (vía I18n, capa opcional). 'en' | 'es'. Sin I18n → español.
   const curLang = () => (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es';
+  // T(clave, params): textos de la UI de Opciones (estado del chat, validación) traducidos.
+  const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   // instrucción de idioma que se le AGREGA al system prompt. Clave: TRANSCREAR, no traducir literal,
   // que el humor porteño del personaje NO se rompa (ver specs/idiomas.md y ia-openrouter.md).
   const LANG_DIRECTIVE = {
@@ -85,11 +87,11 @@ const AI = (() => {
 
   // prueba un modelo con la key del jugador y mide cuánto tarda → { ok, ms, error }
   async function validate(model) {
-    if (typeof fetch !== 'function') return { ok: false, error: 'sin fetch' };
+    if (typeof fetch !== 'function') return { ok: false, error: T('ai.err.noFetch') };
     const key = playerKey();
-    if (!key) return { ok: false, error: 'pegá primero tu API key arriba' };
+    if (!key) return { ok: false, error: T('ai.err.noKey') };
     const m = (model || '').trim() || currentModel();
-    if (!m || m === 'auto') return { ok: false, error: 'escribí un modelo (ej. mistralai/mistral-7b-instruct:free)' };
+    if (!m || m === 'auto') return { ok: false, error: T('ai.err.noModel') };
     const t0 = Date.now(); const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 15000);
     try {
       const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -98,12 +100,12 @@ const AI = (() => {
         body: JSON.stringify({ model: m, messages: [{ role: 'user', content: 'Respondé solo: ok' }], max_tokens: 5 }),
       });
       clearTimeout(to); const ms = Date.now() - t0;
-      if (r.status === 401) return { ok: false, ms, error: 'API key inválida (401)' };
-      if (r.status === 404) return { ok: false, ms, error: 'ese modelo no existe (404)' };
-      if (r.status === 429) return { ok: false, ms, error: 'saturado (429), probá en un rato' };
-      if (!r.ok) return { ok: false, ms, error: 'error ' + r.status };
+      if (r.status === 401) return { ok: false, ms, error: T('ai.err.401') };
+      if (r.status === 404) return { ok: false, ms, error: T('ai.err.404') };
+      if (r.status === 429) return { ok: false, ms, error: T('ai.err.429') };
+      if (!r.ok) return { ok: false, ms, error: T('ai.err.http', { status: r.status }) };
       return { ok: true, ms, model: m };
-    } catch (e) { clearTimeout(to); return { ok: false, error: e.name === 'AbortError' ? 'timeout (>15s, lentísimo)' : e.message }; }
+    } catch (e) { clearTimeout(to); return { ok: false, error: e.name === 'AbortError' ? T('ai.err.timeout') : e.message }; }
   }
 
   function buildMessages(npc, message, history) {
@@ -193,19 +195,19 @@ const AI = (() => {
       const inp = document.getElementById('opt-aikey'), st = document.getElementById('ai-status');
       const mi = document.getElementById('opt-aimodel'), mst = document.getElementById('ai-model-status'), vb = document.getElementById('opt-validate');
       const upd = () => { if (st) st.textContent = mode() === 'byok'
-        ? '✓ Chat IA con TU key (pagás tu propio uso; la key queda en tu navegador).'
-        : (mode() === 'proxy' ? '✓ Chat IA por el proxy del juego.' : 'Chat IA: offline (líneas predefinidas). Pegá tu key de openrouter.ai/keys para activarlo.'); };
-      const updModel = (txt) => { if (mst) mst.textContent = txt || ('Modelo: ' + currentModel() + (userModel() ? ' (elegido por vos)' : ' (por defecto · podés cambiarlo)')); };
+        ? T('ai.status.byok')
+        : (mode() === 'proxy' ? T('ai.status.proxy') : T('ai.status.offline')); };
+      const updModel = (txt) => { if (mst) mst.textContent = txt || (T('ai.model.label', { model: currentModel() }) + (userModel() ? T('ai.model.chosen') : T('ai.model.default'))); };
       if (inp) { inp.value = playerKey(); inp.addEventListener('input', () => { setKey(inp.value); upd(); updModel(); }); }
       if (mi) { mi.value = userModel(); mi.addEventListener('input', () => { setModel(mi.value); updModel(); }); }
       if (vb) vb.addEventListener('click', async () => {
-        if (!playerKey()) { updModel('Validar: pegá primero tu API key arriba.'); return; }
+        if (!playerKey()) { updModel(T('ai.model.needKey')); return; }
         const m = (mi && mi.value.trim()) || currentModel();
-        updModel('Validando ' + m + '…'); vb.disabled = true;
+        updModel(T('ai.model.validating', { model: m })); vb.disabled = true;
         const res = await validate(mi && mi.value.trim());
         vb.disabled = false;
         updModel(res.ok
-          ? '✓ Anda · ' + res.ms + ' ms ' + (res.ms < 3500 ? '(rápido 🚀)' : res.ms < 8000 ? '(ok 👍)' : '(lento 🐢)')
+          ? T('ai.model.ok', { ms: res.ms, speed: res.ms < 3500 ? T('ai.speed.fast') : res.ms < 8000 ? T('ai.speed.ok') : T('ai.speed.slow') })
           : '✗ ' + res.error + (res.ms ? (' · ' + res.ms + ' ms') : ''));
       });
       upd(); updModel();

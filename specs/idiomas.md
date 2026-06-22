@@ -1,7 +1,8 @@
 # SPEC: Idiomas / i18n (soporte multi-idioma, empezando por inglés)
 
-- **Estado:** **Implementado — el juego ENTERO se puede jugar en inglés (v=58).** Fase 1 (UI+pools+IA) +
-  Fase 2A (narración `game.js`) + Fase 2B (`level.js`: salas/NPCs/diálogos/labels). Verificado en navegador real.
+- **Estado:** **Implementado — el juego ENTERO se puede jugar en inglés (v=59).** Fase 1 (UI+pools+IA) +
+  Fase 2A (narración `game.js`) + Fase 2B (`level.js`: salas/NPCs/diálogos/labels) +
+  Fase 2C (sub-pantallas: super chino, disquería, arcade, estado del chat IA). Verificado en navegador real.
 - **Alcance:** transversal (todos los niveles, UI + diálogos + IA)
 - **Última actualización:** 2026-06-22
 - **Idioma fuente (default):** `es-AR` (español rioplatense, slang porteño) · **primer idioma nuevo:** `en`
@@ -43,6 +44,23 @@ lógica que depende del nombre (regex `/Búnker/`, `/Truco/`, `/Garbarino/`, y e
 cola'` / `_Dp`) **sigue intacta**; sólo se traduce lo que se muestra. Los diálogos de NPC por pool
 (`_Dp`/`_D`) ya salen del idioma activo (no pasan por `TX`). **Verificado en navegador real**: intro
 "SOLAR STORM", botón "HIT THE STREET", piso "Florida & Lavalle", mensajes en inglés.
+
+**✅ Fase 2 · Pasada C — sub-pantallas (v=59):** un chequeo idioma-por-idioma detectó 4 archivos que
+generaban texto visible y **nunca se habían cableado** a i18n; quedaban en español aunque el resto del
+juego estuviera en inglés. Resuelto con el mismo patrón (helper `T()` local en cada IIFE + claves nuevas
+en `game.es.js`/`game.en.js`):
+- `js/super.js` (Super Chino, vista de arriba): mensajes/prompts/labels (góndolas, sectores, CAJA,
+  CHANGUITO, SALIDA, chino, ninjas). Categorías = **id interno estable**, se traducen al mostrar
+  (`sup.cat.*`, `sup.label.*`).
+- `js/vinilos.js` (Disquería): intro, punk, banner, época, SALIDA. **Ojo:** acá el helper se llama
+  `TR()` (no `T()`) porque `create()` ya define una coordenada local `const … T = 78` (borde superior);
+  usar `T` la pisaba → `T is not a function`. Lección: chequear colisión de nombre con vars locales.
+- `js/arcade.js` (minijuegos): `header`/`banner` (`PUNTOS/VIDAS`, `¡GANASTE!/GAME OVER/PERDISTE`),
+  Street Fighter y **todo el Truco**. Se **conservan** los términos del juego (`truco`, `envido`) y las
+  iniciales de palos (E/B/O/C) — son del dominio rioplatense, no se traducen.
+- `js/ai.js`: estado del chat IA en ⚙ Opciones + errores de validación (401/404/429/timeout) por `T()`.
+- Claves nuevas `sup.*`, `vin.*`, `arc.*`, `ai.*`. **Paridad total 263/263** (verificada). Render en
+  inglés verificado montando `I18n` en `en` y capturando el texto dibujado por cada pantalla.
 
 ## 0.1 Cómo generar los diálogos de NPCs en inglés (correr el script)
 El inglés de los **pools** (`Dialogos.en`) se genera con IA (modo A), no se escribe a mano:

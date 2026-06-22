@@ -9,6 +9,32 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v59] — 2026-06-22 — 🌎 i18n: las pantallas que faltaban (super, disquería, arcade, IA)
+
+Un chequeo idioma por idioma encontró 4 sub-pantallas que habían quedado **en español** porque
+nunca se habían cableado a la capa i18n. Ahora el juego está **realmente** entero en inglés.
+
+### Cambiado
+- **Super Chino** (`js/super.js`): mensajes, prompts y labels del canvas (góndolas, sectores, CAJA,
+  CHANGUITO, SALIDA, diálogos del chino y los ninjas) pasan por `T()`. Las categorías quedan como
+  **id interno estable** y se traducen al mostrar (`sup.cat.*`).
+- **Disquería** (`js/vinilos.js`): intro, diálogos del punk, banner, época y SALIDA por `T()` (acá el
+  helper se llama `TR()` porque `create()` ya usa una coordenada local `T`).
+- **Arcade** (`js/arcade.js`): HUD (`PUNTOS/VIDAS`), banners (`¡GANASTE!/GAME OVER/PERDISTE`), Street
+  Fighter y **todo el Truco** (envido, quiero/no quiero, parda, pozo, marcador). Se conservan los
+  términos del truco (`truco`, `envido`) y las iniciales de los palos (E/B/O/C).
+- **Chat IA en ⚙ Opciones** (`js/ai.js`): estado del chat, validación de modelo y errores
+  (401/404/429/timeout) por `T()`.
+- **Catálogos**: +~120 claves (`sup.*`, `vin.*`, `arc.*`, `ai.*`) en `game.es.js`/`game.en.js`.
+  **Paridad 263/263** (verificada).
+- Cache `v=58`→`v=59`.
+
+### Notas
+- Verificado renderizando las tres pantallas con `I18n` en inglés (texto dibujado en EN). e2e
+  (incl. sub-modos y chino) y web smoke en verde.
+
+---
+
 ## [v54–v58] — 2026-06-22 — 🌎 Multi-idioma: el juego entero en inglés
 
 Soporte multi-idioma (español rioplatense ⇄ inglés) para que lo jueguen angloparlantes. `es-AR` es la

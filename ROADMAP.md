@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** (cache `v=58`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** (cache `v=59`).
 
 ---
 
@@ -55,7 +55,7 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** 
 
 Ordenadas por impacto. Nada de esto está hecho.
 
-### Idiomas / i18n (inglés) — ✅ COMPLETO para Nivel 1 (v=58)
+### Idiomas / i18n (inglés) — ✅ COMPLETO para Nivel 1 (v=59)
 Ver [`specs/idiomas.md`](specs/idiomas.md) (**source of truth · §13 = dónde seguir**). El juego ENTERO se
 puede jugar en inglés (verificado en navegador real: intro "SOLAR STORM", botón "HIT THE STREET", etc.).
 
@@ -68,6 +68,9 @@ puede jugar en inglés (verificado en navegador real: intro "SOLAR STORM", botó
 - [x] **Fase 2 · Pasada B (v=58):** `level.js` (salas/NPCs/diálogos/labels) traducido en el punto de display
       con `js/lang/level.en.js` + helper `TX()`. `level.js` NO se tocó: sus strings quedan como **id interno
       estable** (los regex `/Búnker/`,`/Truco/`,`/Garbarino/` y el wiring por `name` siguen intactos).
+- [x] **Fase 2 · Pasada C (v=59):** sub-pantallas que faltaban — **super chino** (`super.js`), **disquería**
+      (`vinilos.js`), **arcade** (`arcade.js`: HUD/banners/Street Fighter/Truco) y **estado del chat IA** en
+      Opciones (`ai.js`) — cableadas a `T()` (claves `sup.*`/`vin.*`/`arc.*`/`ai.*`, paridad 263/263).
 - [x] **`Dialogos.en` generado** con el script (8/9 pools; `linyera_llanto` cae a `es`).
 
 **Qué sigue (OPCIONAL — ver `specs/idiomas.md` §13):**

@@ -1,12 +1,14 @@
 // arcade.js — minijuegos jugables dentro de la sala de arcade (Pac-Man y Galaga).
 // Cada uno expone { update(dt), draw(ctx,W,H), done }. Se sale con ESC.
 const Arcade = (() => {
+  // i18n: T(clave, params) traducido vía I18n (capa opcional). Sin I18n → devuelve la clave.
+  const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
 
   function header(ctx, W, title, info) {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 26);
     ctx.fillStyle = '#ffe21a'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'left';
     ctx.fillText(title, 10, 18);
-    ctx.fillStyle = '#9fd3ff'; ctx.textAlign = 'right'; ctx.fillText(info + '   ESC: salir', W - 10, 18);
+    ctx.fillStyle = '#9fd3ff'; ctx.textAlign = 'right'; ctx.fillText(info + '   ' + T('arc.esc'), W - 10, 18);
   }
   function banner(ctx, W, H, text, col) {
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, H/2 - 28, W, 56);
@@ -116,8 +118,8 @@ const Arcade = (() => {
           ctx.beginPath(); ctx.arc(gx, gy, CS*0.36, Math.PI, 0); ctx.lineTo(gx+CS*0.36, gy+CS*0.36); ctx.lineTo(gx-CS*0.36, gy+CS*0.36); ctx.fill();
           ctx.fillStyle = fr ? '#fff' : '#fff'; ctx.beginPath(); ctx.arc(gx-4, gy-2, 3, 0, Math.PI*2); ctx.arc(gx+4, gy-2, 3, 0, Math.PI*2); ctx.fill();
         }
-        header(ctx, W, 'PAC-MAN', 'PUNTOS ' + score + '  VIDAS ' + lives + (frightened > 0 ? '  🍒 ¡COMÉLOS!' : ''));
-        if (over > 0) banner(ctx, W, H, win ? '¡GANASTE!' : 'GAME OVER', win ? '#7CFC00' : '#ff5252');
+        header(ctx, W, 'PAC-MAN', T('arc.score') + ' ' + score + '  ' + T('arc.lives') + ' ' + lives + (frightened > 0 ? T('arc.pac.eat') : ''));
+        if (over > 0) banner(ctx, W, H, win ? T('arc.win') : T('arc.gameover'), win ? '#7CFC00' : '#ff5252');
       },
     };
   }
@@ -167,8 +169,8 @@ const Arcade = (() => {
         ctx.fillStyle = '#4fc3f7'; ctx.beginPath(); ctx.moveTo(ship.x, ship.y-12); ctx.lineTo(ship.x-13, ship.y+8); ctx.lineTo(ship.x+13, ship.y+8); ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#ffe14d'; for (const b of pb) ctx.fillRect(b.x-1.5, b.y-7, 3, 9);
         ctx.fillStyle = '#ff5a5a'; for (const b of eb) ctx.fillRect(b.x-1.5, b.y, 3, 8);
-        header(ctx, W, 'GALAGA', 'PUNTOS ' + score + '  VIDAS ' + lives);
-        if (over > 0) banner(ctx, W, H, win ? '¡GANASTE!' : 'GAME OVER', win ? '#7CFC00' : '#ff5252');
+        header(ctx, W, 'GALAGA', T('arc.score') + ' ' + score + '  ' + T('arc.lives') + ' ' + lives);
+        if (over > 0) banner(ctx, W, H, win ? T('arc.win') : T('arc.gameover'), win ? '#7CFC00' : '#ff5252');
       },
     };
   }
@@ -235,10 +237,10 @@ const Arcade = (() => {
           ctx.fillStyle = col; const w = 300*Math.max(0,hp)/100; ctx.fillRect(right ? x+300-w : x, 34, w, 16);
           ctx.fillStyle = '#fff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = right ? 'right' : 'left'; ctx.fillText(name, right ? x+300 : x, 30);
         }
-        bar(20, p.hp, '#4fc3f7', 'VOS', false); bar(W-320, e.hp, '#ff5252', 'EL DEL CHORI', true);
+        bar(20, p.hp, '#4fc3f7', T('arc.fight.you'), false); bar(W-320, e.hp, '#ff5252', T('arc.fight.chori'), true);
         drawFighter(ctx, p); drawFighter(ctx, e);
-        header(ctx, W, 'STREET FIGHTER', 'A/D mover · W saltar · J piña · K patada');
-        if (over > 0) banner(ctx, W, H, win ? '¡GANASTE!' : 'PERDISTE', win ? '#7CFC00' : '#ff5252');
+        header(ctx, W, 'STREET FIGHTER', T('arc.fight.controls'));
+        if (over > 0) banner(ctx, W, H, win ? T('arc.win') : T('arc.lose'), win ? '#7CFC00' : '#ff5252');
       },
     };
     function drawFighter(ctx, f) {
@@ -280,7 +282,7 @@ const Arcade = (() => {
     const aiHand = [deck.pop(), deck.pop(), deck.pop()].map(c => ({ c, used:false }));
     let round = 0, pW = 0, aiW = 0, firstWinner = 0, phase = 'play', revealT = 0, over = 0, win = false;
     let stake = 10, envDone = false, trucoCalled = false, forrosDelta = 0;
-    let tableP = null, tableA = null, note = 'Carta 1/2/3 · T: truco · V: envido';
+    let tableP = null, tableA = null, note = T('arc.truco.note0');
 
     const envPts = (hand) => {
       const cs = hand.map(h => h.c), val = n => (n >= 10 ? 0 : n);
@@ -294,15 +296,15 @@ const Arcade = (() => {
     function callEnvido() {
       envDone = true;
       const pe = envPts(pHand), ae = envPts(aiHand);
-      if (ae >= 27 || Math.random() < 0.4) { forrosDelta += 6; note = 'Envido: el tahúr no quiere. +6 forros.'; }
-      else if (pe >= ae) { forrosDelta += 6; note = 'Envido ' + pe + ' a ' + ae + '. ¡Tuyo! +6 forros'; }
-      else { forrosDelta -= 6; note = 'Envido ' + pe + ' a ' + ae + '. Perdiste. −6 forros'; }
+      if (ae >= 27 || Math.random() < 0.4) { forrosDelta += 6; note = T('arc.truco.envNo'); }
+      else if (pe >= ae) { forrosDelta += 6; note = T('arc.truco.envWin', { pe, ae }); }
+      else { forrosDelta -= 6; note = T('arc.truco.envLose', { pe, ae }); }
     }
     function callTruco() {
       trucoCalled = true;
       const strong = aiHand.some(h => !h.used && power(h.c) >= 10);
-      if (strong || Math.random() < 0.5) { stake = 20; note = '“¡Quiero!” Va el truco: vale 20 forros.'; }
-      else { win = true; forrosDelta += stake; note = '“No quiero.” ¡Te llevás la mano! +' + stake + ' forros'; over = 1.8; }
+      if (strong || Math.random() < 0.5) { stake = 20; note = T('arc.truco.quiero'); }
+      else { win = true; forrosDelta += stake; note = T('arc.truco.noQuiero', { stake }); over = 1.8; }
     }
 
     function aiPlay() {
@@ -313,9 +315,9 @@ const Arcade = (() => {
     }
     function resolve() {
       const pp = power(tableP), pa = power(tableA);
-      if (pp > pa) { pW++; if (!firstWinner) firstWinner = 1; note = '¡Ganaste la mano!'; }
-      else if (pa > pp) { aiW++; if (!firstWinner) firstWinner = -1; note = 'Te ganó la mano.'; }
-      else note = 'Parda.';
+      if (pp > pa) { pW++; if (!firstWinner) firstWinner = 1; note = T('arc.truco.handWin'); }
+      else if (pa > pp) { aiW++; if (!firstWinner) firstWinner = -1; note = T('arc.truco.handLose'); }
+      else note = T('arc.truco.tie');
     }
 
     return {
@@ -330,10 +332,10 @@ const Arcade = (() => {
             round++; tableP = tableA = null;
             if (pW >= 2 || aiW >= 2 || round >= 3) {
               win = pW > aiW || (pW === aiW && firstWinner === 1);
-              if (win) { forrosDelta += stake; note = '¡GANASTE EL TRUCO!'; }
-              else note = 'PERDISTE';
+              if (win) { forrosDelta += stake; note = T('arc.truco.bigWin'); }
+              else note = T('arc.lose');
               over = 1.8;
-            } else { phase = 'play'; note = 'Tu turno: carta 1/2/3' + (trucoCalled ? '' : ' · T truco'); }
+            } else { phase = 'play'; note = T('arc.truco.yourTurn') + (trucoCalled ? '' : T('arc.truco.tHint')); }
           }
           return;
         }
@@ -373,12 +375,12 @@ const Arcade = (() => {
         }
         // marcador
         ctx.fillStyle = '#cfe8c0'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
-        ctx.fillText('VOS ' + pW + '  -  ' + aiW + ' TAHÚR', W/2, 70);
+        ctx.fillText(T('arc.truco.score', { p: pW, ai: aiW }), W/2, 70);
         ctx.fillStyle = '#ffd54f'; ctx.font = '13px monospace'; ctx.fillText(note, W/2, 96);
         ctx.fillStyle = '#ff9ed0'; ctx.font = 'bold 12px monospace';
-        ctx.fillText('Pozo: ' + stake + ' forros' + (forrosDelta ? '   (vas ' + (forrosDelta>0?'+':'') + forrosDelta + ')' : ''), W/2, 112);
-        header(ctx, W, 'TRUCO', '1/2/3 carta · T truco · V envido');
-        if (over > 0) banner(ctx, W, H, win ? '¡GANASTE!' : 'PERDISTE', win ? '#7CFC00' : '#ff5252');
+        ctx.fillText(T('arc.truco.pot', { stake }) + (forrosDelta ? T('arc.truco.potDelta', { sign: forrosDelta>0?'+':'', delta: forrosDelta }) : ''), W/2, 112);
+        header(ctx, W, 'TRUCO', T('arc.truco.controls'));
+        if (over > 0) banner(ctx, W, H, win ? T('arc.win') : T('arc.lose'), win ? '#7CFC00' : '#ff5252');
       },
     };
   }
@@ -421,7 +423,7 @@ const Arcade = (() => {
         ctx.fillStyle = '#0a160a'; ctx.fillRect(0, 0, W, H);
         for (let i = 0; i < ROWS; i++) {
           const y = rowY(i);
-          if (i === ROWS-1) { ctx.fillStyle = '#1b5e20'; ctx.fillRect(0, y-16, W, 32); ctx.fillStyle = '#7CFC00'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillText('META', W/2, y+4); }
+          if (i === ROWS-1) { ctx.fillStyle = '#1b5e20'; ctx.fillRect(0, y-16, W, 32); ctx.fillStyle = '#7CFC00'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillText(T('arc.frog.goal'), W/2, y+4); }
           else if (lanes[i]) {
             ctx.fillStyle = '#202024'; ctx.fillRect(0, y-16, W, 32);
             ctx.fillStyle = '#3a3a40'; for (let x = 0; x < W; x += 44) ctx.fillRect(x, y-1, 22, 2);
@@ -432,8 +434,8 @@ const Arcade = (() => {
         const fy = rowY(frog.i);
         ctx.fillStyle = '#7CFC00'; ctx.beginPath(); ctx.arc(frog.x, fy, 13, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#0d3b12'; ctx.fillRect(frog.x-8, fy-4, 3, 3); ctx.fillRect(frog.x+5, fy-4, 3, 3);
-        header(ctx, W, 'FROGGER', 'flechas/WASD · VIDAS ' + lives);
-        if (over > 0) banner(ctx, W, H, win ? '¡GANASTE!' : 'GAME OVER', win ? '#7CFC00' : '#ff5252');
+        header(ctx, W, 'FROGGER', T('arc.frog.controls', { n: lives }));
+        if (over > 0) banner(ctx, W, H, win ? T('arc.win') : T('arc.gameover'), win ? '#7CFC00' : '#ff5252');
       },
     };
   }
