@@ -73,7 +73,7 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar autom�
 - [TECNICAS.md](TECNICAS.md) — cómo se modela esto en game dev (grafo de entidades, quest DAG, RAG).
 - [configuracion.md](configuracion.md) — opciones/accesibilidad (fuente, duración del texto, volumen).
 - [ia-openrouter.md](ia-openrouter.md) — IA (OpenRouter, modelo free) para diálogos/contenido (Draft).
-- [idiomas.md](idiomas.md) — i18n / soporte multi-idioma (inglés), transcreación del humor porteño (Draft).
+- [idiomas.md](idiomas.md) — i18n / soporte multi-idioma (inglés), transcreación del humor porteño (Fase 1 impl. v=54).
 
 **Nivel 1 — sistemas**
 | Spec | Estado |

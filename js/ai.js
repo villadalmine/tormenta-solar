@@ -26,6 +26,33 @@ const AI = (() => {
   };
   const DEFAULT_PERSONA = 'Sos un personaje del juego de humor argentino "Tormenta Solar" (Florida y Lavalle). Slang porteño, humor, frases cortas. Nunca digas que sos una IA.';
 
+  // idioma activo (vía I18n, capa opcional). 'en' | 'es'. Sin I18n → español.
+  const curLang = () => (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es';
+  // instrucción de idioma que se le AGREGA al system prompt. Clave: TRANSCREAR, no traducir literal,
+  // que el humor porteño del personaje NO se rompa (ver specs/idiomas.md y ia-openrouter.md).
+  const LANG_DIRECTIVE = {
+    es: ' Respondé SIEMPRE en español rioplatense (argentino).',
+    en: ' Reply ALWAYS in English, but KEEP this character\'s Buenos Aires (porteño) street humor and attitude — TRANSCREATE, do not translate literally; find the equivalent slang in English so the joke still lands. Keep proper nouns (Florida, Lavalle, Obelisco, etc.).',
+  };
+
+  // líneas locales (canned) cuando no hay IA. Por idioma: el juego SIEMPRE habla.
+  const FALLBACK_EN = {
+    filosofo: [
+      '"You know what, kid? The man with nothing has nothing to lose. That\'s real freedom."',
+      '"Dollar goes up, dollar goes down... I\'m still here watching folks walk by. Who won?"',
+      '"Happiness ain\'t for sale at the corner shop, man. But a candy helps." 🍬',
+      '"Not plugged into the cosmos right now (or the internet). Drop your API key in ⚙ Options and let\'s philosophize." 🔌',
+    ],
+    secretaria: [
+      '"We\'ve got Java with Maxi, Python and web dev. Want me to sign you up?" 💻',
+      '"There\'s a 2-for-1 if you bring a friend, and interest-free installments. How do you wanna pay?" 💳',
+      '"Morning, afternoon and evening slots, Monday to Friday. Which one suits you?" 🗓️',
+      '"The two Sebastián CEOs are giving a talk Friday. Interested?"',
+      '"(offline right now) Grab a brochure, boss: courses, schedules and discounts." 📋',
+    ],
+    default: ['"...hmm. (stares at you) Who knows, kid."', '"No signal with the beyond right now. Load an API key in Options."'],
+  };
+
   const FALLBACK = {
     filosofo: [
       '“¿Sabés qué, pibe? El que no tiene nada, no tiene nada que perder. Eso es ser libre.”',
@@ -42,7 +69,11 @@ const AI = (() => {
     ],
     default: ['“...mmm. (te mira fijo) Andá a saber, pibe.”', '“Ahora no tengo señal con el más allá. Cargá una API key en Opciones.”'],
   };
-  const canned = npc => { const a = FALLBACK[npc] || FALLBACK.default; return a[(Math.random() * a.length) | 0]; };
+  const canned = npc => {
+    const table = curLang() === 'en' ? FALLBACK_EN : FALLBACK;
+    const a = table[npc] || table.default;
+    return a[(Math.random() * a.length) | 0];
+  };
 
   function playerKey() { try { return (localStorage.getItem(KEY_LS) || '').trim(); } catch (e) { return ''; } }
   function setKey(k) { try { localStorage.setItem(KEY_LS, (k || '').trim()); } catch (e) {} byokDead = false; byokFails = 0; _good = null; _freeModels = null; }
@@ -76,7 +107,7 @@ const AI = (() => {
   }
 
   function buildMessages(npc, message, history) {
-    const system = PERSONAS[npc] || DEFAULT_PERSONA;
+    const system = (PERSONAS[npc] || DEFAULT_PERSONA) + (LANG_DIRECTIVE[curLang()] || '');
     const hist = (Array.isArray(history) ? history : [])
       .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
       .slice(-8).map(m => ({ role: m.role, content: m.content.slice(0, 400) }));

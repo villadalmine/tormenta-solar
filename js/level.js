@@ -58,8 +58,16 @@ const Level = (() => {
   }
 
   function build() {
-    // pools de diálogo generados por IA (js/dialogos.js, opcional). Si no está → usa el fallback.
-    const _D = (pool, fb) => (typeof Dialogos !== 'undefined' && Dialogos[pool] && Dialogos[pool].length) ? Dialogos[pool] : fb;
+    // pools de diálogo generados por IA (js/dialogos.js, opcional), por IDIOMA vía I18n.dict.
+    // Sin I18n → cae a Dialogos.es[pool] / Dialogos[pool] (legacy) y, si nada, al fallback hardcodeado.
+    const _D = (pool, fb) => {
+      if (typeof I18n !== 'undefined' && I18n.dict) { const a = I18n.dict(pool); if (a && a.length) return a; }
+      if (typeof Dialogos !== 'undefined') {
+        const a = (Dialogos.es && Dialogos.es[pool]) || Dialogos[pool];
+        if (a && a.length) return a;
+      }
+      return fb;
+    };
     const _Dp = (pool, fb) => { const a = _D(pool, null); return a ? a[(Math.random()*a.length)|0] : fb; };
     const rooms = [
       // 0 — la calle (Florida y Lavalle): edificios con sus puertas

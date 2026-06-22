@@ -52,6 +52,16 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** 
 
 Ordenadas por impacto. Nada de esto está hecho.
 
+### Idiomas / i18n (inglés)
+Ver [`specs/idiomas.md`](specs/idiomas.md). **Fase 1 hecha (v=54):** runtime `js/i18n.js` + catálogos
+`js/lang/es.js`/`en.js` (UI estática, paridad 29/29) + `data-i18n` en `index.html` + selector en ⚙ Opciones
++ pools por idioma (`Dialogos[es|en]`, `_D/_Dp` vía `I18n.dict`) + chat IA en el idioma activo (transcreación)
++ generador multi-idioma (`OPENROUTER_LANGS=es,en`). Resolución `?lang`→localStorage→navigator→es-AR.
+- [ ] **Fase 2:** extraer a claves los **`setMsg`/prompts/fin** de `game.js` y los `dialog`/`hint`/`name`
+      fijos de `level.js` (hoy siguen en español). Refactor mecánico grande.
+- [ ] **Generar `Dialogos.en`** con el script (`OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs`) y commitearlo.
+- [ ] Glosario de transcreación por término (falopa, linyera, chino…) para consistencia.
+
 ### IA / diálogos
 - [x] **`tools/gen-dialogos.mjs` lee las fichas** (`specs/nivel-1/personajes/*`, bloques ` ```gen `):
       los pools salen de cada personaje. (Pendiente: usar también la Personalidad completa como

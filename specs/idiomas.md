@@ -1,9 +1,41 @@
 # SPEC: Idiomas / i18n (soporte multi-idioma, empezando por inglés)
 
-- **Estado:** Draft (plan, sin implementar)
+- **Estado:** **Fase 1 implementada (v=54)** · Fase 2 (narración inline de `game.js`) pendiente
 - **Alcance:** transversal (todos los niveles, UI + diálogos + IA)
 - **Última actualización:** 2026-06-22
 - **Idioma fuente (default):** `es-AR` (español rioplatense, slang porteño) · **primer idioma nuevo:** `en`
+
+## 0. Estado de implementación (qué ya anda en v=54)
+
+**✅ Fase 1 — base + UI + pools + IA:**
+- `js/i18n.js` (runtime, capa aditiva): `I18n.t(key, params)` con fallback **idioma → es-AR → clave**,
+  `I18n.dict(pool)` (lee `Dialogos[es|en][pool]`, cae a `es`), `I18n.apply()` (recorre `[data-i18n]` /
+  `[data-i18n-attr]`), `I18n.set(lang)`. Resolución `?lang` → `localStorage(ts_lang)` → `navigator` → `es-AR`.
+- `js/lang/es.js` + `js/lang/en.js`: catálogo de la **UI estática** (intro, HUD, opciones, fin, chat).
+  **Paridad 29/29 claves** (verificado). El inglés es **transcreación** (ej. "ENTRAR A LA PEATONAL" →
+  "HIT THE STREET", no literal).
+- `index.html`: `data-i18n` / `data-i18n-attr` en toda la UI estática + **selector de idioma** en ⚙ Opciones
+  (`#opt-lang`) + scripts cargados (`lang/*`, `i18n.js`) en `v=54`.
+- `js/dialogos.js`: reestructurado a `Dialogos[es|en][pool]` (es lleno, **en vacío hasta generarlo**).
+  `js/level.js` `_D/_Dp` leen vía `I18n.dict` (sin I18n → caen a `Dialogos.es` → fallback hardcodeado).
+- `js/ai.js`: el chat responde en el **idioma activo** agregando una **directiva de transcreación** al
+  system prompt (mantené el humor porteño, no traduzcas literal) + **canned en inglés** (`FALLBACK_EN`).
+- `tools/gen-dialogos.mjs`: **multi-idioma** (`OPENROUTER_LANGS=es,en`), escribe `Dialogos[lang][pool]`,
+  preserva los idiomas que no se regeneran, prompt de transcreación para `en`.
+
+**⏳ Fase 2 — pendiente:** los **cientos de `setMsg`/prompts/textos de fin** hardcodeados en `game.js`
+(narración del juego) y los `dialog`/`hint`/`want`/`name` fijos de `level.js` siguen en español. Hay
+que extraerlos a claves del catálogo (`t(...)`) — es un refactor mecánico grande. Hasta que se haga,
+en modo `en` la UI/chrome y el chat IA están en inglés, pero la narración inline sigue en español.
+
+## 0.1 Cómo generar los diálogos de NPCs en inglés (correr el script)
+El inglés de los **pools** (`Dialogos.en`) se genera con IA (modo A), no se escribe a mano:
+```bash
+# key en tools/openrouter.key (1 línea) o env OPENROUTER_API_KEY
+OPENROUTER_LANGS=es,en node tools/gen-dialogos.mjs   # genera ambos (o OPENROUTER_LANGS=en para solo inglés)
+```
+Reescribe `js/dialogos.js` con `Dialogos.en` lleno (transcreado del español, no traducido). Subí `?v=N`.
+Mientras `Dialogos.en` esté vacío, en inglés los NPCs caen automáticamente a las líneas en español.
 
 ## 1. Contexto y objetivo
 

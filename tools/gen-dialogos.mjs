@@ -39,7 +39,15 @@ if (!KEY) {
 console.log('Key:', KEY.length + ' chars (' + KEY.slice(0, 7) + '…' + KEY.slice(-4) + ') — de ' + KEYSRC);
 if (!KEY.startsWith('sk-or-')) console.log('⚠️  Ojo: las keys de OpenRouter empiezan con "sk-or-". Revisá que sea la correcta (no la de otro servicio).');
 
-const SYSTEM = `Sos guionista de un videojuego de humor argentino ("TORMENTA SOLAR", en la peatonal Florida y Lavalle, Buenos Aires). Escribís diálogos CORTOS (1-2 frases) en SLANG PORTEÑO, con humor, frescos y variados, sin insultos gratuitos de más. Devolvés SIEMPRE y SOLO un array JSON de strings (sin texto extra, sin markdown). Cada string es una línea lista para mostrar; podés cerrar con un emoji.`;
+// idiomas a generar (Dialogos[lang][pool]). Default: ambos. Para regenerar solo uno: OPENROUTER_LANGS=en
+const LANGS = (process.env.OPENROUTER_LANGS || 'es,en').split(',').map(s => s.trim()).filter(Boolean);
+
+// system prompt por idioma. CLAVE del inglés: TRANSCREAR (no traducir literal) para que el humor
+// porteño no se rompa. Ver specs/idiomas.md §2 y specs/ia-openrouter.md.
+const SYSTEM_BY_LANG = {
+  es: `Sos guionista de un videojuego de humor argentino ("TORMENTA SOLAR", en la peatonal Florida y Lavalle, Buenos Aires). Escribís diálogos CORTOS (1-2 frases) en SLANG PORTEÑO, con humor, frescos y variados, sin insultos gratuitos de más. Devolvés SIEMPRE y SOLO un array JSON de strings (sin texto extra, sin markdown). Cada string es una línea lista para mostrar; podés cerrar con un emoji.`,
+  en: `You are the scriptwriter for an Argentine comedy video game ("SOLAR STORM", on the Florida & Lavalle pedestrian street in Buenos Aires). Write SHORT lines (1-2 sentences) in ENGLISH, but KEEP the Buenos Aires (porteño) street humor and attitude: TRANSCREATE, do NOT translate literally — find the equivalent English slang so the joke still lands. Keep proper nouns (Obelisco, Florida, Lavalle, Boca, etc.). Fresh and varied, no gratuitous slurs. Return ALWAYS and ONLY a JSON array of strings (no extra text, no markdown). Each string is a ready-to-show line; you may end with an emoji.`,
+};
 
 // cada job: clave de pool, cuántas líneas, descripción del personaje/situación, y ejemplos de tono
 // FUENTE DE VERDAD: los pools salen de las fichas SDD (specs/nivel-1/personajes/*.md), de los
@@ -154,29 +162,53 @@ const auto = await resolveModels();
 const MODELS = process.env.OPENROUTER_MODEL
   ? [process.env.OPENROUTER_MODEL, ...auto.filter(m => m !== process.env.OPENROUTER_MODEL)]
   : auto;
-console.log('Modelos a probar (' + MODELS.length + '):', MODELS.slice(0, 6).join(', ') + (MODELS.length > 6 ? ', …' : ''), '\n');
-const out = {}, usados = new Set();
-let i = 0;
-for (const job of JOBS) {
-  process.stdout.write('· ' + job.key.padEnd(18) + ' ');
-  const ex = (job.fewshot && job.fewshot.length) ? `\nEjemplos del TONO (no los repitas, son solo de referencia):\n${job.fewshot.map(s => '- ' + s).join('\n')}` : '';
+console.log('Modelos a probar (' + MODELS.length + '):', MODELS.slice(0, 6).join(', ') + (MODELS.length > 6 ? ', …' : ''));
+console.log('Idiomas a generar:', LANGS.join(', '), '\n');
+
+// arma el prompt del usuario para un job en un idioma dado
+function buildUser(job, lang) {
+  const ex = (job.fewshot && job.fewshot.length) ? `\nEjemplos del TONO en español (referencia de la VOZ, NO los repitas ni los traduzcas tal cual):\n${job.fewshot.map(s => '- ' + s).join('\n')}` : '';
   const ctx = job.context ? `\n\nPERSONALIDAD DEL PERSONAJE (respetala a fondo):\n${job.context}` : '';
   const kw = job.keywords ? `\n\nQue alguna línea mencione naturalmente: ${job.keywords}. (Las PISTAS del juego igual las garantiza el código por separado, así que no fuerces.)` : '';
-  const user = `Personaje/situación: ${job.desc}${ctx}${kw}${ex}\n\nGenerá ${job.n} líneas NUEVAS, distintas entre sí${ex ? ' y de los ejemplos' : ''}, bien EN PERSONAJE. Solo el array JSON.`;
-  try {
-    const { text, model } = await chatRetry([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]);
-    out[job.key] = parseArray(text); usados.add(model);
-    console.log('✓ ' + out[job.key].length + ' líneas (' + model.split('/').pop() + ')');
-  } catch (e) {
-    console.log('✗ falló (' + (e.code ? e.code + ' ' + (e.body || '') : e.message).slice(0, 90) + ') — dejo los ejemplos');
-    out[job.key] = job.fewshot;
+  if (lang === 'en') {
+    return `Character/situation (described in Spanish): ${job.desc}${ctx}${kw}${ex}\n\nWrite ${job.n} NEW lines in ENGLISH, all different from each other${ex ? ' and from the examples' : ''}, fully IN CHARACTER. TRANSCREATE the porteño humor (don't translate literally). Only the JSON array.`;
   }
-  if (++i < JOBS.length) await sleep(THROTTLE);   // respiro entre pedidos
+  return `Personaje/situación: ${job.desc}${ctx}${kw}${ex}\n\nGenerá ${job.n} líneas NUEVAS, distintas entre sí${ex ? ' y de los ejemplos' : ''}, bien EN PERSONAJE. Solo el array JSON.`;
+}
+
+// preservar idiomas/pools que NO se regeneran en esta corrida (merge con lo que ya hay)
+function readExisting() {
+  try {
+    if (!existsSync(OUT)) return {};
+    const m = readFileSync(OUT, 'utf8').match(/const Dialogos\s*=\s*([\s\S]*?);\s*$/);
+    return m ? JSON.parse(m[1]) : {};
+  } catch (e) { return {}; }
+}
+
+const out = readExisting(), usados = new Set();
+for (const lang of LANGS) {
+  out[lang] = out[lang] || {};
+  console.log('— idioma: ' + lang + ' —');
+  const SYSTEM = SYSTEM_BY_LANG[lang] || SYSTEM_BY_LANG.es;
+  let i = 0;
+  for (const job of JOBS) {
+    process.stdout.write('· ' + (lang + '/' + job.key).padEnd(24) + ' ');
+    const user = buildUser(job, lang);
+    try {
+      const { text, model } = await chatRetry([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]);
+      out[lang][job.key] = parseArray(text); usados.add(model);
+      console.log('✓ ' + out[lang][job.key].length + ' líneas (' + model.split('/').pop() + ')');
+    } catch (e) {
+      console.log('✗ falló (' + (e.code ? e.code + ' ' + (e.body || '') : e.message).slice(0, 90) + ')' + (lang === 'es' ? ' — dejo los ejemplos' : ' — queda vacío (cae a es)'));
+      out[lang][job.key] = lang === 'es' ? (job.fewshot || []) : (out[lang][job.key] || []);
+    }
+    if (++i < JOBS.length) await sleep(THROTTLE);   // respiro entre pedidos
+  }
 }
 
 const banner = `// dialogos.js — GENERADO por tools/gen-dialogos.mjs (modelos: ${[...usados].join(', ') || 'ninguno (todo falló)'}).\n` +
-  `// No editar a mano. Regenerá con:  node tools/gen-dialogos.mjs\n`;
+  `// No editar a mano. Regenerá con:  node tools/gen-dialogos.mjs   (idiomas: OPENROUTER_LANGS=es,en)\n` +
+  `// Estructura: Dialogos[idioma][pool] = [líneas].\n`;
 writeFileSync(OUT, banner + 'const Dialogos = ' + JSON.stringify(out, null, 2) + ';\n');
-const ok = Object.values(out).filter((v, k) => v.length > (JOBS[k] ? JOBS[k].fewshot.length : 0)).length;
-console.log('\n✓ Escrito ' + path.relative(ROOT, OUT) + ' (' + Object.keys(out).length + ' pools)');
+console.log('\n✓ Escrito ' + path.relative(ROOT, OUT) + ' (idiomas: ' + Object.keys(out).join(', ') + ')');
 if (usados.size === 0) console.log('⚠️  Todos los modelos free estaban saturados (429). Reintentá en un rato, o probá OPENROUTER_MODEL=<otro:free>, o sumá unos créditos en OpenRouter para subir el límite.');
