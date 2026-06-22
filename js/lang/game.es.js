@@ -86,6 +86,7 @@
     'g.chat.error': '“...se me cruzó un cable, pibe. Repetí.”',
     'g.chat.localWarn': '(la IA no respondió con tu key — líneas locales. Abrí la consola F12 para ver el error: 429/404/CORS, etc.)',
     'g.chat.youPrefix': 'Vos: ',
+    'g.oraculo.greet': '“Eh, pibe... yo veo el quilombo entero desde acá arriba. Preguntame, que algo sé.” 🧙',
 
     // --- cueva secreta ---
     'g.cueva.secretMoney': 'Entrás por la puerta secreta y encarás al arbolito que te cagó. Le sacás la guita: +60 monedas. 😎',

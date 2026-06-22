@@ -75,6 +75,7 @@
     'g.chat.error': '"...a wire crossed in my head, kid. Say it again."',
     'g.chat.localWarn': '(the AI didn\'t reply with your key — local lines. Open the console F12 to see the error: 429/404/CORS, etc.)',
     'g.chat.youPrefix': 'You: ',
+    'g.oraculo.greet': '"Hey, kid... I see the whole mess from up here. Ask me, I know a thing or two." 🧙',
 
     'g.cueva.secretMoney': 'You come in through the secret door and corner the arbolito who screwed you. You take your cash back: +60 coins. 😎',
     'g.cueva.secretEmpty': "The arbolito's cueva. You already cleaned him out, nothing left.",

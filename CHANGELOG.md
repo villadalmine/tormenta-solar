@@ -9,6 +9,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v64] — 2026-06-22 — 🧭 Linyera ERRANTE: aparece cerca de lo que no hiciste (Fase 1 completa)
+
+Último ítem del grafo de historia (Fase 1): el linyera ya no está fijo en la calle.
+
+### Agregado
+- **Linyera errante** (`placeRoamingOraculo` en `game.js`): al entrar a una sala, si hay una arista de
+  **frontera en ese lugar** (`currentAt()`), aparece un linyera cerca del jugador para tirar la pista de
+  *eso*. Uno solo a la vez (se mueve con vos); en la calle queda el fijo de siempre. Inyección **aditiva**
+  en `spawnIn`, sin tocar `Level.build()`. Saludo i18n `g.oraculo.greet`.
+
+### Cambiado
+- Cache `v=63`→`v=64`.
+
+### Notas
+- **Fase 1 del grafo de historia COMPLETA.** Futuro opcional: Fase 2 (que el grafo *maneje* los flags).
+
+---
+
 ## [v63] — 2026-06-22 — 🧭 Pistas: el linyera las dice con su voz (grounding del chat IA)
 
 El chat IA del linyera ahora se **apoya en la pista del grafo** (grounding): el LLM le pone la voz, la ruta

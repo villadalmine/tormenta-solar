@@ -1,7 +1,8 @@
 # SPEC: Grafo de historia + motor de pistas (la "didáctica" del juego)
 
-- **Estado:** **Fase 1 casi completa (v=63)** — 11 aristas (crítico + secundario), motor + linyera +
-  grounding del chat IA. Diseño cerrado (§7). Falta solo: **spawn errante** del linyera.
+- **Estado:** **Fase 1 COMPLETA (v=64)** — 11 aristas (crítico + secundario), motor + linyera + grounding
+  del chat IA + **spawn errante**. Diseño cerrado (§7). Futuro opcional: Fase 2 (que el grafo maneje los
+  flags) y más aristas si crece el nivel.
 - **Nivel:** transversal (se estrena en Nivel 1)
 - **Última actualización:** 2026-06-22
 
@@ -246,5 +247,9 @@ Todo el diseño quedó cerrado; ya no hay preguntas abiertas para empezar a impl
 - [x] **Grounding del chat IA (v=63):** `AI.chat(npc, msg, history, grounding)` — la pista recuperada se
   le pasa al system prompt (`groundDirective`, es/en) para que el linyera la diga **con su voz, sin inventar
   ruta**. Si la respuesta sale LOCAL (sin IA), se muestra la pista explícita (💡) como garantía.
-- [ ] **Pendiente (único):** **spawn errante** del linyera — que aparezca/reaparezca cerca de lo no hecho
-  (hoy está fijo en la calle); requiere tocar el spawn de NPCs por sala (más invasivo que Fase 1).
+- [x] **Spawn errante (v=64):** al entrar a una sala, si hay una arista de **frontera en ese lugar**
+  (`currentAt()`), aparece un linyera cerca del jugador (uno solo a la vez, se mueve con vos; en la calle
+  queda el fijo). Inyección aditiva en `spawnIn` (`placeRoamingOraculo`), sin tocar `Level.build()`.
+
+**Fase 1 completa.** Futuro opcional: **Fase 2** (que el grafo **maneje** los flags, no solo los describa)
+y sumar aristas si el nivel crece.

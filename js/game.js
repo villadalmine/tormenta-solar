@@ -42,6 +42,7 @@
   const elChatLog = document.getElementById('chat-log');
   const elChatInput = document.getElementById('chat-input');
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0;
+  let roamingNpc = null;   // el linyera ERRANTE: aparece cerca de lo que no hiciste (ver historia-grafo.md §3.4)
 
   let rooms, states, current, player, cam;
   let state = 'intro', stormed = false, bought = false, hasVale = false, challengeForVale = false;
@@ -77,7 +78,7 @@
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false;   // loop de supervivencia, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; roamingNpc = null;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
     elFloor.textContent = TX(rooms[0].name);
@@ -208,6 +209,27 @@
     player.y = rm.gTop * Level.TILE - player.h;
     player.vx = player.vy = 0; transCd = 0.4;
     updateCam(); elFloor.textContent = TX(rm.name);
+    placeRoamingOraculo(tileX);
+  }
+  // LINYERA ERRANTE (capa aditiva): al entrar a una sala, si hay una arista de frontera EN ESTE LUGAR,
+  // aparece el linyera cerca del jugador para tirarte la pista. Se mueve con vos (uno solo a la vez).
+  function placeRoamingOraculo(tileX) {
+    if (typeof HintEngine === 'undefined' || typeof Historia === 'undefined') return;
+    if (roamingNpc) {   // sacalo de donde estaba (no duplicar)
+      for (const rm of rooms) { const i = (rm.npcs || []).indexOf(roamingNpc); if (i >= 0) rm.npcs.splice(i, 1); }
+      roamingNpc = null;
+    }
+    const rm = rooms[current];
+    if (!rm || current === 0) return;                                   // en la calle ya está el linyera fijo
+    if ((rm.npcs || []).some(n => n.persona === 'filosofo')) return;    // ya hay un filósofo en esta sala
+    const at = currentAt();
+    if (!HintEngine.frontier(historiaState()).some(e => e.at === at)) return;   // nada pendiente acá
+    const w = rm.w || 20;
+    const tx = Math.max(1, Math.min(w - 2, tileX + (tileX < w - 4 ? 3 : -3)));  // a unos pasos del jugador
+    roamingNpc = { name: 'Linyera filósofo', sprite: 'linyera', action: 'chat', persona: 'filosofo',
+      dialog: T('g.oraculo.greet'), roaming: true,
+      x: tx * Level.TILE + Level.TILE/2, y: rm.gTop * Level.TILE };
+    (rm.npcs = rm.npcs || []).push(roamingNpc);
   }
   function resetLoopResources() {            // cajones de falopa y limosnas se renuevan cada loop
     for (const rm of rooms) for (const n of rm.npcs || []) { n.falopaTaken = false; n.limosnaTaken = false; }

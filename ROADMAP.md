@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** (cache `v=63`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** (cache `v=64`).
 
 ---
 
@@ -21,7 +21,8 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** 
   fichas (` ```hist `) por `tools/gen-historia.mjs` → `js/historia.js`; `js/hint-engine.js` (frontera +
   cercanía + prioridad crítico/secundario). Capa aditiva, solo describe. **11 aristas** (crítico +
   secundario: megadrive/fifa/cemento/armas/loop). El chat IA del linyera usa la pista como **grounding**
-  (la dice con su voz). Falta solo el **spawn errante**. Ver `specs/nivel-1/historia-grafo.md`.
+  (la dice con su voz) y el linyera es **errante** (aparece cerca de lo no hecho). **Fase 1 completa.**
+  Ver `specs/nivel-1/historia-grafo.md`.
 - **Opciones** (`js/config.js`): tamaño de fuente, duración/fundido del texto, API key (BYOK).
 - **Calle Florida y Lavalle** con NPCs, decoración, enemigos (peatones/drones), pickups,
   y la **cola de la casa de cambio** (10 personas distintas).
