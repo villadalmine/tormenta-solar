@@ -272,11 +272,11 @@
   }
   // ¿es el linyera filósofo (el guía/oráculo)?
   const isOraculo = n => n && n.persona === 'filosofo';
-  function showHint(level) {
-    if (typeof HintEngine === 'undefined') return;
-    const h = HintEngine.next(historiaState(), { at: currentAt(), insistencia: level });
-    if (h) chatLine('npc', '💡 ' + h.text);
+  function getHint(level) {
+    if (typeof HintEngine === 'undefined') return null;
+    return HintEngine.next(historiaState(), { at: currentAt(), insistencia: level });
   }
+  function showHint(level) { const h = getHint(level); if (h) chatLine('npc', '💡 ' + h.text); }
 
   function openChat(n) {
     if (typeof AI === 'undefined') { setMsg(TX(n.dialog) || '“...”', '#aef0c0', 4000); return; }
@@ -302,14 +302,16 @@
     chatHistory.push({ role: 'user', content: msg });
     chatBusy = true;
     const thinking = chatLine('sys', '...');
+    // linyera oráculo: cada repregunta sube el spoiler (0→3); la pista se le pasa como GROUNDING a la IA
+    // (la dice con su voz, no inventa ruta). Si la respuesta sale LOCAL, la mostramos explícita (garantía).
+    const ground = isOraculo(chatNpc) ? getHint(Math.min(++hintAsks, 3)) : null;
     let reply;
-    try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory); }
+    try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory, ground && ground.text); }
     catch (e) { reply = T('g.chat.error'); }
     thinking.remove();
     chatLine('npc', reply);
     chatHistory.push({ role: 'assistant', content: reply });
-    // el linyera oráculo: cada vez que le repreguntás, sube el nivel de spoiler (0→3: más claro hasta directo)
-    if (isOraculo(chatNpc)) showHint(Math.min(++hintAsks, 3));
+    if (ground && typeof AI !== 'undefined' && AI.lastSource() === 'local') chatLine('npc', '💡 ' + ground.text);
     // si había key pero la respuesta salió local → avisar (no confundir al jugador)
     if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) {
       chatLine('sys', T('g.chat.localWarn'));

@@ -9,6 +9,26 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v63] — 2026-06-22 — 🧭 Pistas: el linyera las dice con su voz (grounding del chat IA)
+
+El chat IA del linyera ahora se **apoya en la pista del grafo** (grounding): el LLM le pone la voz, la ruta
+sale del `HintEngine`.
+
+### Agregado
+- **`AI.chat(npc, message, history, grounding)`**: la pista recuperada se inyecta en el system prompt
+  (`groundDirective`, es/en) — *"decí ESTO con tus palabras, no inventes otros caminos ni datos"*. También
+  se manda al proxy (`grounding` en el body).
+- **`game.js`**: al chatear con el linyera, la pista del nivel actual se pasa como grounding; si la
+  respuesta sale **local** (sin IA), se muestra la pista explícita (💡) como garantía.
+
+### Cambiado
+- Cache `v=62`→`v=63`.
+
+### Notas
+- Con esto, de la Fase 1 del grafo de historia queda **solo** el **spawn errante** del linyera (SDD §7).
+
+---
+
 ## [v62] — 2026-06-22 — 🧭 Pistas: aristas secundarias (el linyera ayuda en TODO)
 
 Segunda pasada del grafo de historia: el linyera ahora también guía las ramas secundarias, no solo el

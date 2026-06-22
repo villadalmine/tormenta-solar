@@ -80,7 +80,7 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar automÃ
 | Spec | Estado |
 |---|---|
 | [GRAFO del Nivel 1](nivel-1/GRAFO.md) | Draft |
-| [Grafo de historia + motor de pistas](nivel-1/historia-grafo.md) | Fase 1 impl. (v=62, 11 aristas) |
+| [Grafo de historia + motor de pistas](nivel-1/historia-grafo.md) | Fase 1 impl. (v=63, 11 aristas + grounding) |
 | [Conexiones secretas y refugios](nivel-1/conexiones-secretas-y-refugios.md) | Parcial. impl. |
 | [El loop â€” supervivencia](nivel-1/loop-supervivencia.md) | Draft |
 

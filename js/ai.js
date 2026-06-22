@@ -108,8 +108,13 @@ const AI = (() => {
     } catch (e) { clearTimeout(to); return { ok: false, error: e.name === 'AbortError' ? T('ai.err.timeout') : e.message }; }
   }
 
-  function buildMessages(npc, message, history) {
-    const system = (PERSONAS[npc] || DEFAULT_PERSONA) + (LANG_DIRECTIVE[curLang()] || '');
+  // grounding: la pista recuperada del grafo de historia (HintEngine). El LLM le pone la VOZ, no inventa ruta.
+  const groundDirective = (g) => !g ? '' : (curLang() === 'en'
+    ? '\n\nGAME HINT — weave THIS into your reply in your own voice, briefly; do NOT invent other routes or facts: ' + g
+    : '\n\nPISTA DEL JUEGO — meté ESTO en tu respuesta con tus palabras, breve; NO inventes otros caminos ni datos: ' + g);
+
+  function buildMessages(npc, message, history, grounding) {
+    const system = (PERSONAS[npc] || DEFAULT_PERSONA) + (LANG_DIRECTIVE[curLang()] || '') + groundDirective(grounding);
     const hist = (Array.isArray(history) ? history : [])
       .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
       .slice(-8).map(m => ({ role: m.role, content: m.content.slice(0, 400) }));
@@ -135,8 +140,8 @@ const AI = (() => {
     _freeModels = MODELS; return MODELS;   // fallback hardcodeado
   }
 
-  async function viaOpenRouter(key, npc, message, history) {
-    const messages = buildMessages(npc, message, history);
+  async function viaOpenRouter(key, npc, message, history, grounding) {
+    const messages = buildMessages(npc, message, history, grounding);
     const all = await freeModels(key);
     const first = userModel() || _good || DEFAULT_MODEL;                     // elegido por el jugador → el que anduvo → default
     const order = [first, ...all.filter(m => m !== first)];
@@ -160,11 +165,11 @@ const AI = (() => {
     console.warn('[ai] sin respuesta (status ' + lastStatus + '). El free está saturado: probá de nuevo en unos segundos.');
     return null;
   }
-  async function viaProxy(npc, message, history) {
+  async function viaProxy(npc, message, history, grounding) {
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), TIMEOUT);
     try {
       const r = await fetch(PROXY, { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ npc, message, history: (history || []).slice(-8) }) });
+        body: JSON.stringify({ npc, message, history: (history || []).slice(-8), grounding: grounding || undefined }) });
       clearTimeout(t);
       if (!r.ok) return null;
       const d = await r.json(); return d && d.reply ? String(d.reply).slice(0, 400) : null;
@@ -173,12 +178,12 @@ const AI = (() => {
 
   // PRIORIDAD: 1) proxy del dev (vos pagás) → 2) key del jugador (BYOK) → 3) líneas LOCALES
   // (las del script + hardcodeadas). Si la IA tarda/falla, cae a las locales y no te hace esperar más.
-  async function chat(npc, message, history = []) {
+  async function chat(npc, message, history = [], grounding) {
     if (typeof fetch === 'function') {
-      if (PROXY) { try { const r = await viaProxy(npc, message, history); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
+      if (PROXY) { try { const r = await viaProxy(npc, message, history, grounding); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
       const key = playerKey();
       if (key && !byokDead) {
-        try { const r = await viaOpenRouter(key, npc, message, history); if (r) { byokFails = 0; lastSource = 'byok'; return r; } } catch (e) {}
+        try { const r = await viaOpenRouter(key, npc, message, history, grounding); if (r) { byokFails = 0; lastSource = 'byok'; return r; } } catch (e) {}
         // un 429 transitorio NO mata el BYOK: cae a local SOLO en este mensaje y reintenta el próximo
         if (++byokFails >= MAX_TRIES) { byokDead = true; console.warn('[ai] ' + byokFails + ' fallos seguidos → líneas locales por la sesión. Cambiá la key (o esperá) para reintentar.'); }
       }
