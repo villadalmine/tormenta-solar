@@ -1,96 +1,96 @@
-// dialogos.js — GENERADO por tools/gen-dialogos.mjs (modelos: google/gemma-4-26b-a4b-it:free).
+// dialogos.js — GENERADO por tools/gen-dialogos.mjs (modelos: google/gemma-4-26b-a4b-it:free, google/gemma-4-31b-it:free).
 // No editar a mano. Regenerá con:  node tools/gen-dialogos.mjs
 const Dialogos = {
   "borracho_vino": [
-    "¡Mirá lo que es este etiqueta roja! Me bajó un hambre de locos... 🍷",
-    "¿Te fijaste que el cielo está medio picado? Como la panadería de la esquina. 🥖",
-    "Che, no me mirés así que no te voy a pedir un jamón y queso... 🥪",
-    "Este Malbec me está pidiendo a gritos un poco de mortadela. 🍖",
-    "Si este vino fuera comida, sería un súper completo. 🥪",
-    "¿No habrá un remanente de algún buffet por acá cerca? 🍷",
-    "Me está dando un bajón de carbohidratos que no te cuento. 🧀",
-    "Mirá que este tinto viene con cuerpo, ¿eh? Me falta el relleno. 🥪"
+    "¡El Obelisco es un dedo gigante que señala la verdad! 🗼",
+    "Si el sistema no me da un sándwich de mil capas, me quiebro. 🧀",
+    "¡Ese cajero automático me mira con desprecio, te lo juro! 🏧",
+    "Todo es un invento del banco para no darnos el jamón... 🥪",
+    "¡La democracia es como un fiambre, depende de quién te lo corte! 🍷",
+    "El Obelisco es el eje del mundo y yo tengo un vacío en el alma... 🏢",
+    "¡El sistema está colapsado, como mi hambre de mortadela! 🥴",
+    "Si me banco un banco más, me entierro en la calle Lavalle. 🍺"
   ],
   "borracho_cerveza": [
-    "Te lanza un envoltorio de maní. 'Dejá esa birra, nene, buscame una Diosa Tropical que hoy ando inspirado. 🍇'",
-    "Te tira un fósforo usado. '¿Qué es esta agua con gas? Traeme una Diosa Tropical o me desmayo acá mismo. 🍹'",
-    "Te encaja un ticket de bondi arrugado. '¡Escuchame! La Diosa Tropical es el único camino a la gloria. ✨'",
-    "Te tira un palillo de dientes. 'Changui, cortala con la espuma y traeme algo dulce, una Diosa Tropical. 🍷'",
-    "Te lanza una servilleta con grasa. '¿Me vas a dar esto? ¡Yo quiero una Diosa Tropical bien helada! 🧊'",
-    "Te tira un clip oxidado. 'La birra es para los que no tienen gusto, la Diosa Tropical es para los dioses. 👑'",
-    "Te encaja un encendedor sin gas. 'Che, no me chamuyes con esa rubia, ¡traeme una Diosa Tropical! 🍓'",
-    "Te tira una moneda de un peso. 'Haceme la gamba y buscame una Diosa Tropical, que estoy en las nubes. ☁️'"
+    "¡El Obelisco es un palito de helado gigante! 🍦",
+    "Si Boca gana la copita, yo me mudo a la Luna 🌙",
+    "¡El sistema me quiere ver abajo, pero yo estoy arriba! 🚀",
+    "La peatonal es un laberinto de sueños y migajas 🌀",
+    "¡Si el Banco Central fuera un helado sería de chocolate! 🍫",
+    "¡Buscame algo dulce, que la vida es un embole! 🍷",
+    "¡El sistema me tiene cortito, pero yo tengo ritmo! 💃",
+    "¡Si la calle Florida fuera un río, me ahogo de alegría! 🌊"
   ],
   "borracho_porro": [
-    "Se queda mirando el vacío. 'Che, loco... me está pidiendo un asadito el alma. ¿Tenés un bife?' 🥩",
-    "Tira la ceniza al piso. 'Qué mambo, ¿no tenés un pedacito de lomo que te haya sobrado?' 🥴",
-    "Se rasca la panza. 'Estoy que me como un bife de chorizo entero, de una. ¿Me salvás?' 🍖",
-    "Mira el cielo con ojos vidriosos. 'La luna parece un pedazo de carne... ¿no tenés algo para picar?' 🌕",
-    "Suelta una nube de humo. 'Me bajó un hambre de locos, tirame un pedazo de carne, porfa.' 💨",
-    "Se ríe solo. 'Si tuviera un asado ahora, sería feliz de por vida. ¿Alguna chance?' 🤤",
-    "Se apoya en la pared. 'Todo lo que quiero es una milanesa gigante... ¿no me hacés la segunda?' 🥘",
-    "Se queda hipnotizado con el humo. '¿Viste lo que es esto? Me urge un poco de carne, hermano.' 🚬"
-  ],
-  "linyera_ruina": [
-    "Acá el único que se mueve es el polvo, papá... 🌬",
-    "Si me quedo quieto un poco más, me confunden con un colchón viejo. 🛌",
-    "Lo bueno es que acá no me cobran alquiler, ¿viste? 😂",
-    "¿Viste este sillón? Es vintage, o sea, está para el olvido. 🛋",
-    "Si la suerte fuera moneda, yo estaría debiéndole hasta a la sombra. 💸",
-    "Me quedó un medio cigarrillo, pero sirve para la nostalgia. 🚬",
-    "La ciudad está re movida hoy, parece que hubo un terremoto o un boliche. 💃",
-    "Me parece que el techo tiene un problema de humedad... o de gravedad. 🏗",
-    "Si encontrás una moneda de diez, no me la devuelvas, es donación. 🪙",
-    "Acá se vive de diez, si no fuera porque no hay nada para comer. 🥪"
-  ],
-  "linyera_llanto": [
-    "Tenía una flota de autos que no cabían en el garage... (solloza) Agarrá lo que hay bajo la colchoneta.",
-    "¡Era el rey de la City, flaco! No me miraban a la cara... (llora) Sacá la plata que está en el bidé.",
-    "Mis acciones valían millones, hoy no tengo ni para el bondi... (hipa) Agarrá la caja fuerte del baño.",
-    "Vivía en un penthouse con vista a todo... (se quiebra) Agarrá los verdes que están en el botellero.",
-    "Me cansé de tanto business, la vida es un embole... (solloza) Tenés los dólares en la trampa del inodoro.",
-    "Iba de Gardel en un jet privado... (llora) Agarrá los billetes que guardo en el canasto de la ropa.",
-    "Tenía un club de vino de importación... (gime) Agarrá la guita que está detrás del cuadro.",
-    "¡Qué vida de locos, me la pasé laburando para nada! (llanto) Agarrá todo lo que hay en la caja de zapatos."
-  ],
-  "cola_dolar": [
-    "¡Dale, que me va a dar un síncope acá parado! 😫",
-    "El dólar sube más rápido que esta fila, es un delirio. 📈",
-    "¿Esto es una cola o la fila para el Mundial? ⚽",
-    "Si no atiendo ahora, el billete me sale el doble. 💸",
-    "Che, ¿alguien sabe si esto termina antes del próximo eclipse? 🌑",
-    "Me parece que me estoy haciendo viejo en esta vereda. 👴",
-    "¡Qué descontrol! Ni en el subte se ve tanta gente. 🚇",
-    "Me voy a quedar sin ahorros solo de esperar el turno. 🙃",
-    "¿Podemos agilizar un toque? Que tengo vida, no. 🏃‍♂️",
-    "A este paso, voy a cobrar el cambio en pesos de acá a un año. 🤡"
-  ],
-  "cueva_gente": [
-    "¿Viste lo que es esto? El peso no te alcanza ni para un alfajor. 🍫",
-    "Lo guardo para la facultad de la nena, no me queda otra. 🎓",
-    "Si espero a que el banco me dé algo, me quedo en bolas. 💸",
-    "Acá la guita no se derrite como un hielo al sol. ☀️",
-    "Es para el futuro de los chicos, hay que asegurar el capital. 🏦",
-    "El peso es de mentira, esto es lo único que vale. 💵",
-    "Prefiero tener un billete verde que un fajo de papeles colorados. 🟢",
-    "Si no me cubro ahora, mañana no como ni un choripán. 🌭",
-    "Es por si las moscas, que en este país nunca sabés qué onda. 🦟",
-    "Ahorrar en pesos es como tirar la plata en un pozo sin fondo. 🕳️"
+    "El Obelisco es un lápiz gigante que Dios clavó en la vereda ✍. Me vendría bien un asadito para bajar este viaje.",
+    "Si el sistema es un algoritmo, yo soy un error de software 🥴. Siento un bajón que me comería hasta el mantel.",
+    "El mundo gira como un disco rayado en la esquina de Lavalle 🎶. Me falta un bife para entender el sentido de la vida.",
+    "Boca es un sentimiento, no un club, te lo digo yo 💙. Mi estómago me está haciendo un asado con todo y vos.",
+    "La peatonal es un laberinto de sombras y deseos 🌙. Me urge un pedazo de carne para volver a la realidad.",
+    "Si Messi es un Dios, yo soy un monje budista en pausa ⚽. El bajón me tiene la cabeza como un bombo.",
+    "Todo es relativo, incluso la gravedad de este porro 💨. Algún asado de acá a la China me salvaría el alma.",
+    "La Luna es una moneda que nadie puede gastar 🌕. Tengo una necesidad existencial de un buen corte de carne."
   ],
   "cuevero_rebote": [
-    "Ni de onda te cambio, andá buscando a otro que te aguante. 👋",
-    "Te vi la cara de que me vas a meter un perro, ni ahí. 🤨",
-    "Acá no se cambia lo que no tiene etiqueta, bajá un cambio. ✋",
-    "No te hagás el de la última, sabés que no te cambio nada. 😒",
-    "Andá a ver si te la cuentan a vos, que acá no aceptamos devoluciones. 🚫",
-    "Tenés una pinta de que me venís a estafar que no podés con ella. 🕵"
+    "¿Qué hacés, fiera? Tenés una cara de que me querés pagar con billete de los que no valen nada 🤨",
+    "Mirá que no me la contás, que venís con cara de ser de la AFIP, ¿no? 🕵",
+    "Hoy no, amigo. Con este quilombo mejor ni nos arrimamos, me vas a chorear hasta el saludo 💸",
+    "¿Qué me querés cambiar vos? Si el billete te tiembla en la mano, no te lo tomo ni loco ✋",
+    "Andá a cambiar a otro lado, que acá no estamos para regalar la guita con el dólar como está 📉",
+    "No me vengas con cuentos, que te conozco de un videito que me pasaron... muy sospechoso 🧐"
+  ],
+  "cueva_gente": [
+    "¿Qué buscás, campeón? ¿O venís a la AFIP? 🤨",
+    "Acá no se fía, y menos con esa cara de que me vas a dar billetes falsos. 💸",
+    "Si es por el peso, ni te gastes, que eso mañana es papel higiénico. 🧻",
+    "¿Tenés los verdes o venís a perder el tiempo? Mirá que ando apurado. ⏱",
+    "Para el nieto, ¿no? Se nota a la legua que querés cubrirle el culo. 👴",
+    "Cuidá la guita, flaco, que en este país si no tenés verdes, no tenés nada. 📉",
+    "No me mirés así, que acá el único que tiene la posta soy yo. 😎",
+    "¿Traés los verdes limpios o vienen con algún 'egalito' de la policía? 🚓",
+    "Acá la inflación no entra, pero el desconfianza se nota de lejos. 👀",
+    "Si venís por el dólar blue, haceme la gauchada y no hagás tanto ruido. 🤫"
+  ],
+  "cola_dolar": [
+    "¿Me estás jodiendo? Me dieron el 142 y recién van por el 12. 🙄",
+    "Para cuando me toque el turno, el dólar ya subió tres lucas más.",
+    "Esta cola es más larga que el camino al Obelisco en Navidad.",
+    "Che, ¿esto es una casa de cambio o una sala de espera del hospital?",
+    "Ni que estuvieran imprimiendo los billetes acá adentro, dale!",
+    "Me voy a jubilar esperando que el cajero termine de contar esos pesos.",
+    "Si sigo acá parado, me voy a tener que mudar a la peatonal. 🏠",
+    "El número no avanza, es como mirar el reloj en lunes a la mañana.",
+    "Llegué con el blue a un precio y cuando salga va a ser otra moneda.",
+    "¿Alguien tiene un sándwich? Que esto es para pasar la noche. 🥪"
   ],
   "iorio": [
-    "¡Che, sacame un poco de polvito que si no no arranco! ⚡",
-    "¡Se cortó todo, esto es un desastre, qué mala suerte! 🤬",
-    "Se nos fue la luz, ya fue, volvamos a los temas tranquilos. 🎻",
-    "Si no hay algo para levantar, me tomo el palo. 🏃",
-    "¿Qué pasó? ¿Me van a dejar con las ganas de tocar? 🤨",
-    "Bueno, sacamos la guitarra y sacamos un tango, le mandamos acústico. 🎸"
+    "¡Che, pibe! Tirame un poco de falopa que si no no arranca Pibe Tigre, ¿me entendés?",
+    "¿Qué pasa con este equipo? ¡Marcello, despertate que estamos haciendo un ruido del carajo!",
+    "¡Miralo al Dios Sol, hijo de puta! Nos dejó a oscuras en el medio del aguante ☀️",
+    "Ya fue todo, bajen el volumen. Saquen una guitarra acústica que ahora mandamos un tango.",
+    "El sistema nos quiere callar, pero acá seguimos plantados como gladiadores 🎸",
+    "Dale, mové el orto que los ninjas del chino están esperando el mosh y nosotros sin luz."
+  ],
+  "linyera_ruina": [
+    "Mirá este living, un minimalismo natural. Yo lo llamo 'estilo escombro' 💅",
+    "Antes tenía tres pisos en Puerto Madero, ahora tengo el cielo entero. Gané por goleada",
+    "La guita es un estrés, pibe. Prefiero este colchón de cartón que no me pide impuestos",
+    "¿Viste este mueble roto? Es una metáfora de mi cuenta bancaria en el 2001, una joyita",
+    "El secreto es soltar, fiera. Solté el Porsche y recién ahí empecé a volar 🕊️",
+    "No me hables de inversiones, que mi mejor activo hoy es este rayito de sol",
+    "¿Para qué querés un reloj suizo si acá el tiempo es un concepto abstracto, papá?",
+    "Me jubilé del sistema antes que el sistema me jubilara a mí. Un genio, soy un genio",
+    "La felicidad no se compra en el chino, pero un caramelo de miel te cambia el día 🍬",
+    "Acá arriba se ve todo más claro, sobre todo que el éxito es una mentira bien vendida"
+  ],
+  "linyera_llanto": [
+    "Tenía tres departamentos en Puerto Madero y no dormía ni una siesta, ¡qué delirio!",
+    "La guita es un ancla, pibe. Yo corté el cable y ahora floto en el asfalto ☀️",
+    "¿Viste este cartón? Es más honesto que cualquier gerente de la City",
+    "Me cansé de correr la rata, ahora la rata y yo somos socios en el búnker",
+    "¡No me digas nada que me pongo sentimental! Me acuerdo del caviar y me da urticaria 😭",
+    "Llevate esos fajos que están en el inodoro, para mí son solo papeles pintados",
+    "La felicidad no se compra en el chino, pero un caramelo ayuda a pasar el día",
+    "Agarrá todo, hacé el negocio, que yo ya encontré el verdadero tesoro: el solcito en la cara ✨"
   ]
 };
