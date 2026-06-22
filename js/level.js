@@ -537,6 +537,10 @@ const Level = (() => {
       for (const c of r.cueveros) if (c.outcome !== 'real') c.dialog = _Dp('cuevero_rebote', c.dialog);
     });
 
+    // la COLA del dólar usa el pool generado: la fila en la calle (x≈74-90) y la Casa de Cambio (sala 13)
+    for (const n of rooms[0].npcs) if (n.x >= 73 * TILE && n.x <= 91 * TILE) n.dialog = _Dp('cola_dolar', n.dialog);
+    for (const n of rooms[13].npcs) if (/cola/i.test(n.name)) n.dialog = _Dp('cola_dolar', n.dialog);
+
     return rooms;
   }
 
