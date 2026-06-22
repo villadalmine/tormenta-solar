@@ -82,6 +82,7 @@ flowchart LR
 | `tahur` | [tahur.md](personajes/tahur.md) |
 | `iorio` (quest del loop: falopa → Pibe Tigre) | [iorio.md](personajes/iorio.md) |
 | `vendedor_armas` (fierro criollo post-tormenta) | [vendedor-armas.md](personajes/vendedor-armas.md) |
+| `secretaria` (recepción EducaciónIT, chateable) | [secretaria.md](personajes/secretaria.md) |
 | `vendedor_garbarino` | [vendedor-garbarino.md](personajes/vendedor-garbarino.md) |
 | `npcs_arcade` (chori / trucotron) | [npcs-arcade.md](personajes/npcs-arcade.md) |
 | `musico` | [musico.md](personajes/musico.md) |

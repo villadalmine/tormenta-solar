@@ -15,6 +15,18 @@ te corre un **torneo de FIFA** si trajiste una **Mega Drive**.
   conseguir la consola.
 - Los **dueños** de las máquinas (Pac-Man/Galaga) te cobran ficha cada vez más cara (flavor).
 
+## Personalidad (fuente para el generador de diálogos y el chat IA)
+- **El del chori:** parrillero/canchero del arcade; te reta al Frogger por un vale de choripán. Slang,
+  buena onda, hambre de gloria.
+- **El flaco del Trucotron:** nerd retro del fondo oscuro; no juega "con peleles", quiere torneo de
+  **FIFA 98** si traés una **Mega Drive**.
+- **Dueños de Pac-Man/Galaga:** extorsivos, te cobran ficha cada vez más cara ("acá nada es gratis").
+- **Qué NO dice:** no rompen la 4ª pared.
+- **Personas de chat:** definibles (`chori`, `trucotron`), pero su data clave (vale / FIFA) va por
+  **acción scripteada**.
+- **Semilla para el script:** «pibes de arcade ochentoso: el del chori, el nerd del Trucotron, los
+  dueños extorsivos de las máquinas».
+
 ## Aristas
 ```
 arcade --contiene--> npc_chori

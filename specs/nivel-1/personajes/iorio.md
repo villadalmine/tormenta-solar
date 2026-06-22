@@ -21,6 +21,19 @@ atrincherado.
 - La falopa se consigue en los **cajones de los muebles de lujo** (pisos impares) tras el colapso.
 - Ver el flujo completo en [`../loop-supervivencia.md`](../loop-supervivencia.md).
 
+## Personalidad (fuente para el generador de diálogos y el chat IA)
+- **Voz / tono:** metalero hosco y directo, estilo **Almafuerte/Ricardo Iorio**; bronca y aguante.
+- **Cómo habla:** slang argentino crudo, putea, frases cortas; habla del aguante, el asado, el
+  sistema, el "dios sol". Post-apagón propone hacer **acústico y tango** ("ya que no hay luz").
+- **Contexto (qué sabe):** el recital under en Cemento, que necesita **falopa** para tocar Pibe
+  Tigre, el tano Marcello (compañero de banda), que los ninjas del chino son metaleros.
+- **Quiere:** **falopa** (esa es la **data crítica**: si la da, los ninjas se van y se abre el chino).
+- **Qué NO dice:** no rompe la 4ª pared.
+- **Persona de chat:** `iorio` (definida), **pero NO es chateable**: su pista de la falopa va por
+  **acción scripteada** (`action:'iorio'`) para que el jugador siempre se entere. Ver `ia-openrouter.md §0`.
+- **Semilla para el script:** «Iorio, metalero hosco; te pide falopa para tocar; post-apagón se
+  resigna al tango acústico y putea al sol».
+
 ## Aristas
 ```
 cemento --contiene--> iorio

@@ -74,6 +74,17 @@ Los modelos `:free` son **lentos y rate-limited** (después de 1 request te tira
     cursos?"). **No contesta nada fuera de su rol.**
 - Las personas (system prompts) viven en `js/ai.js` (BYOK) y en `ai-proxy/personas.js` (proxy).
 
+### Fuente única de la personalidad: la ficha SDD de cada personaje
+Cada personaje tiene un bloque **Personalidad** en su ficha (`specs/nivel-1/personajes/*`): voz, tono,
+contexto, qué quiere, **qué NO dice** (límites), `persona` de chat y una **semilla para el script**.
+Es la **fuente única** de la voz del personaje, de la que se derivan:
+1. los **pools del modo A** (`tools/gen-dialogos.mjs` — sus JOBS espejan estas semillas), y
+2. los **`persona` del chat** (modo B).
+
+> **Plan (pendiente):** que `gen-dialogos.mjs` **lea las fichas** (la sección Personalidad / semilla)
+> y arme automáticamente, por personaje, **muchas** respuestas basadas en su personalidad + contexto,
+> así no hay que mantener las semillas en dos lados. Hoy van a mano en sync.
+
 ## 1. Objetivo
 Usar un LLM (vía **OpenRouter**, con un **modelo `:free`**) para **mejorar el contenido textual** del
 juego: diálogos variados, narrador del loop, NPCs con los que charlar, sin romper el ethos (100%

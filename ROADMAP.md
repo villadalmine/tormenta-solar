@@ -52,6 +52,12 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-21** 
 
 Ordenadas por impacto. Nada de esto está hecho.
 
+### IA / diálogos
+- [ ] Que `tools/gen-dialogos.mjs` **lea la sección Personalidad de cada ficha** de
+      `specs/nivel-1/personajes/*` y genere automáticamente muchas respuestas por personaje
+      (hoy las "semillas" del script y las fichas se mantienen a mano en sync). Ver `specs/ia-openrouter.md`.
+- [ ] Más NPCs chateables con persona acotada (cuevero, tahúr) reusando su bloque Personalidad.
+
 ### Loop de supervivencia — pulido pendiente
 Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md). El MVP está; falta:
 - [ ] **Animar el fuego** de la barricada del chino (llamas parpadeando).

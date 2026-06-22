@@ -20,6 +20,18 @@ soplan el secreto super→cueva.
   lo que quiere, lo **detecta**, te lo agradece y deja de pedir (`fed`).
 - Son **"la escoria"** → su edificio **sobrevive** a la tormenta (nadie lo quiere) = refugio.
 
+## Personalidad (fuente para el generador de diálogos y el chat IA)
+Tres distintos, **misma base** (escabiados, delirantes, entrañables) pero **cada uno con su obsesión**:
+- **Voz / tono:** borrachos de la peatonal, delirantes y filosóficos a la vez, entrañables.
+- **Cómo habla:** slang porteño, frases cortas que arrancan tirándote algo random + un delirio
+  (banco/obelisco/Boca/"el sistema"), y de fondo su antojo.
+- **Quiere (obsesión, cada uno):** vino→**sándwich de fiambre** · cerveza→**Diosa Tropical** ·
+  porro (con bajón)→**un cacho de carne**. **No es lo que tienen en la mano.**
+- **Qué NO dice:** no piden directo lo que quieren (lo sueltan como pista al azar); no rompen la 4ª pared.
+- **Persona de chat:** no chateables — su **pista (`hint`) va por acción scripteada** (que no se pierda).
+- **Semilla para el script:** «borrachín con {vino|cerveza|porro} en la mano que quiere de regalo
+  {fiambre|Diosa Tropical|carne}; tira algo random + una frase delirante».
+
 ## Aristas
 ```
 calle --contiene--> borrachines
