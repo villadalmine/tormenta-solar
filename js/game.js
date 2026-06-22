@@ -327,7 +327,7 @@
     }
     // no tenés lo que quiere: siempre te tira algo random, y en una de esas suelta la pista de qué comprarle
     n.talks = (n.talks || 0) + 1;
-    if (n.hint && (n.talks >= 4 || Math.random() < 0.45)) setMsg(n.hint, '#ffd54f', 5500);
+    if (n.hint && (n.talks >= 6 || Math.random() < 0.3)) setMsg(n.hint, '#ffd54f', 5500);
     else setMsg(pick(n.lines || ['“¿Una mano no me das, pibe?”']), '#ffd54f', 4200);
   }
   function enterSuper() { superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
