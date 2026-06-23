@@ -9,6 +9,27 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v72] — 2026-06-23 — 📱 Soporte mobile / touch (capa aditiva, dormida en desktop)
+
+Primera versión de controles táctiles, como **capa aparte** que no toca el core (los 11 `js/*.js`).
+
+### Agregado
+- **`mobile/`**: `boot.js` (detecta pointer coarse y, solo ahí, inyecta el resto), `touch.js` (controles
+  en pantalla) y `mobile.css` (estilos + cartel "girá el teléfono" en vertical).
+- **Controles**: **joystick** izquierdo → `Input.keys` a/d/w/s (sirve para el plataformas y los modos
+  vista-de-arriba); **mitad derecha** → apuntar + disparar (`Input.mouse`); botón **E** (usar) y **ESC**
+  (cerrar/salir), que disparan los mismos eventos de teclado que el juego ya escucha.
+- Una **sola línea** en `index.html` (`mobile/boot.js`); en desktop la capa queda **dormida** (pointer
+  fino → no inyecta nada), así el juego y los tests quedan idénticos.
+
+### Técnico
+- Aprovecha el **seam de Input** (`Input.keys`/`Input.mouse` son objetos públicos mutables): la capa
+  **escribe** ahí y el core responde igual, sin cambios. Dependencia en un solo sentido.
+- `z-index 8`: los controles van sobre el canvas durante el juego y **debajo** de los overlays (menús/chat)
+  y del ⚙. e2e + web-smoke (desktop) verdes. **Pendiente: probar en celular real** (gestos finos, notch).
+
+---
+
 ## [v71] — 2026-06-23 — 💬 Más NPCs chateables (cuevero y tahúr)
 
 El chat con IA tenía pocos personajes; ahora hay dos voces nuevas con persona acotada.

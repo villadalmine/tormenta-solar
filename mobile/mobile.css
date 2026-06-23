@@ -1,0 +1,43 @@
+/* mobile/mobile.css — controles táctiles en pantalla (capa MOBILE, solo se carga en dispositivos táctiles).
+   z-index 8: por encima del canvas durante el juego, pero DEBAJO de los overlays (intro/chat/opciones/fin,
+   z-index 10) y del botón ⚙ (z-index 11) → cuando hay un menú abierto, tapa los controles. */
+#touch-controls {
+  position: fixed; inset: 0; z-index: 8;
+  pointer-events: none;                 /* el contenedor no bloquea; solo los controles capturan */
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+}
+#touch-controls * { -webkit-tap-highlight-color: transparent; }
+
+/* zona de apuntar/disparar: mitad derecha (deja libre el ⚙ de arriba y el HUD) */
+#tc-aim { position: absolute; right: 0; top: 12%; width: 56%; height: 74%; pointer-events: auto; }
+
+/* joystick de movimiento (abajo-izquierda) */
+#tc-stick {
+  position: absolute; left: 20px; bottom: 20px; width: 120px; height: 120px; border-radius: 50%;
+  background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.22);
+  pointer-events: auto;
+}
+#tc-knob {
+  position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px;
+  border-radius: 50%; background: rgba(255,213,79,0.7); border: 2px solid rgba(255,213,79,0.9);
+}
+
+/* botones de acción */
+.tc-btn {
+  position: absolute; pointer-events: auto; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3); color: #0a0a0a;
+  font-family: monospace; font-weight: bold; letter-spacing: 1px;
+}
+#tc-e   { right: 26px; bottom: 110px; width: 70px; height: 70px; font-size: 18px; background: rgba(255,179,0,0.6); }
+#tc-esc { right: 110px; bottom: 30px; width: 54px; height: 54px; font-size: 12px; background: rgba(120,120,120,0.5); color: #fff; }
+
+/* cartel "girá el teléfono": solo en táctil + vertical */
+#rotate-hint { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+  #rotate-hint {
+    display: flex; position: fixed; inset: 0; z-index: 200; background: #0a0a0a; color: #FFD54F;
+    align-items: center; justify-content: center; text-align: center; padding: 30px;
+    font-family: monospace; font-weight: bold; font-size: 18px;
+  }
+}

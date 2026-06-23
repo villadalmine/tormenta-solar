@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=71`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=72`).
 
 ---
 
@@ -131,8 +131,9 @@ Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)
 - [x] Sonido ambiente por sala (v=70): `Sfx.setAmbient` (calle/viento/cueva/recital), capa aparte de la música.
 
 ### Técnico / calidad
-- [ ] **Mobile / touch**: hoy es teclado+mouse, no anda en celular. → ver
-      **[📱 Soporte para celulares](#-soporte-para-celulares-mobile)** abajo (estrategia analizada).
+- [x] **Mobile / touch — v1 (v=72)**: capas 1–3 implementadas como `mobile/` (`boot.js`+`touch.js`+`mobile.css`),
+      dormidas en desktop. Joystick + apuntar/disparar + E/ESC vía el seam de Input. **Falta probar en cel real**
+      y, opcional, PWA (manifest + service worker) y wrapper Capacitor. Ver **[📱 abajo](#-soporte-para-celulares-mobile)**.
 - [ ] Extender el e2e para **simular navegación real** (caminar hasta una puerta, gatillar la
       tormenta y verificar la victoria), no solo boot + auditoría de assets.
 - [ ] Considerar partir `art.js` (es enorme) en módulos por categoría.
@@ -201,8 +202,9 @@ Un overlay que:
    Pages. El más barato si no necesitás APIs nativas.
 
 ### Orden sugerido de trabajo
-1. `mobile/touch.js` + `mobile/mobile.css` + `mobile.html` → jugable al tacto (capas 1–3).
-2. Probar en cel real (DevTools device mode no alcanza para gestos finos).
+1. ✅ **(v=72)** `mobile/boot.js` + `mobile/touch.js` + `mobile/mobile.css` → jugable al tacto (capas 1–3).
+   Se enchufa con UNA línea en `index.html` (`mobile/boot.js`), dormida en desktop.
+2. ⏳ Probar en cel real (DevTools device mode no alcanza para gestos finos) → ajustar tamaños/posición.
 3. PWA (manifest + service worker) → instalable/offline.
 4. (Opcional) Capacitor para tiendas.
 
