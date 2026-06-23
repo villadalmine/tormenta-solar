@@ -9,6 +9,28 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v65] — 2026-06-23 — 💾 Guardado automático (continuar partida)
+
+El progreso ya no se pierde al recargar: se autoguarda en `localStorage` y la intro ofrece **Continuar**.
+
+### Agregado
+- **Guardado automático** (`js/save.js`, capa **aditiva**): cada ~5s jugando se persiste un snapshot del
+  estado en `localStorage` (clave `tormenta-solar-save-v1`). Sin `localStorage` o sin la capa, el juego
+  anda exactamente igual.
+- **Botón "Continuar"** en la intro (`#continueBtn`, i18n `intro.continue`), visible solo si hay partida
+  guardada; retoma exactamente donde dejaste (sala, posición, vida/inventario, todos los flags de historia,
+  pickups levantados, limosnas/falopa consumidas). Verde para distinguirlo de ENTRAR.
+- El guardado **se borra** al ganar (`win`) o morir de verdad (`die`); morir en el loop de supervivencia
+  no lo toca (volvés al loop anterior como siempre).
+
+### Técnico
+- Seam mínimo en `game.js`: `serialize()` (snapshot plano) / `restore(snap)` / `continueGame(snap)` +
+  `autosave()` en el loop; se expone `window.Game = { serialize, continueGame }`. El estado sigue privado.
+- No se persisten los sub-modos (arcade/super/disquería): al cargar retomás parado en la sala.
+- e2e: nuevo test de **round-trip** `serialize`→`continueGame`→`serialize` (vía `window.Game`). web-smoke OK.
+
+---
+
 ## [v64] — 2026-06-22 — 🧭 Linyera ERRANTE: aparece cerca de lo que no hiciste (Fase 1 completa)
 
 Último ítem del grafo de historia (Fase 1): el linyera ya no está fijo en la calle.

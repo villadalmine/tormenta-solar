@@ -121,6 +121,28 @@ if (require.main === module) {
   document.getElementById('startBtn').dispatch('click', {});
   step(120); // ~2s de juego en la calle
   console.log('✓ start() + 120 frames en la calle sin crash');
+
+  // ---- guardado: round-trip serialize/restore (el seam que usa js/save.js) ----
+  const save = vm.runInContext(`(() => {
+    const out = [];
+    if (!window.Game || !Game.serialize || !Game.continueGame) return JSON.stringify(['FAIL no se expone Game.serialize/continueGame']);
+    const snap = Game.serialize();
+    if (!snap) return JSON.stringify(['FAIL serialize devolvió null jugando']);
+    if (snap.v !== 1 || typeof snap.current !== 'number' || !snap.player || !snap.flags) out.push('FAIL snapshot incompleto');
+    // modificamos un snapshot y lo restauramos: debe quedar reflejado en el estado real
+    const mod = JSON.parse(JSON.stringify(snap));
+    mod.player.coins = 777; mod.flags.stormed = true; mod.player.hasMegaDrive = true;
+    Game.continueGame(mod);
+    const back = Game.serialize();
+    if (!back || back.player.coins !== 777 || !back.flags.stormed || !back.player.hasMegaDrive)
+      out.push('FAIL restore no aplicó el snapshot: ' + JSON.stringify(back && { c: back.player.coins, s: back.flags.stormed, m: back.player.hasMegaDrive }));
+    // un snapshot inválido NO debe romper (continueGame cae a start())
+    if (Game.serialize() == null) out.push('FAIL quedó fuera de juego tras restore');
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const sb = JSON.parse(save);
+  if (sb.length) { console.error('❌ GUARDADO:\n' + sb.join('\n')); process.exit(1); }
+  console.log('✓ guardado: serialize/restore round-trip OK');
   // moverse a la derecha un toque y simular interacción
   sandbox.Input && (sandbox.Input.keys = sandbox.Input.keys || {});
   key('e'); step(5); key('m'); step(5);

@@ -4,6 +4,7 @@
 (function () {
   const G = {
     'g.start': 'Andá a la derecha y entrá por la GALERÍA para bajar a la cueva.  [E] usar puerta',
+    'g.loaded': 'Retomaste donde dejaste, pibe. 💾',
 
     // --- ruinas / barricada / colas ---
     'g.ruina': [

@@ -9,6 +9,7 @@ const LANG_ES = {
   'intro.p3': 'Ahí abajo no hay luz: es todo ilegal, a la sombra. Comprás... y justo en ese momento, allá arriba, <strong>todo se apaga</strong>.',
   'intro.controls': '<strong>A/D o ←/→</strong> correr · <strong>W / Espacio</strong> saltar · <strong>Mouse</strong> apuntar · <strong>Click (mantené)</strong> disparar · <strong>E</strong> usar puerta / comprar · <strong>M</strong> música',
   'intro.start': 'ENTRAR A LA PEATONAL',
+  'intro.continue': 'CONTINUAR',
   'intro.gh': 'Código abierto (GPLv3) ·',
 
   // --- HUD ---

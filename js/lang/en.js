@@ -10,6 +10,7 @@ const LANG_EN = {
   'intro.p3': "Down there there's no light: it's all illegal, off the books. You buy... and right at that moment, up top, <strong>everything goes dark</strong>.",
   'intro.controls': '<strong>A/D or ←/→</strong> run · <strong>W / Space</strong> jump · <strong>Mouse</strong> aim · <strong>Click (hold)</strong> shoot · <strong>E</strong> use door / buy · <strong>M</strong> music',
   'intro.start': 'HIT THE STREET',
+  'intro.continue': 'CONTINUE',
   'intro.gh': 'Open source (GPLv3) ·',
 
   // --- HUD ---

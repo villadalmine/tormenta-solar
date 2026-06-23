@@ -85,6 +85,64 @@
     setMsg(T('g.start'), '#FFD54F', 6000);
   }
 
+  // ---- GUARDADO (capa ADITIVA; el dueño de localStorage + UI es js/save.js) ----
+  // serialize(): snapshot PLANO del estado, o null si no estamos en juego estable (solo 'playing').
+  // No persiste sub-modos (arcade/super/vinilos): al cargar, retomás parado en la sala.
+  function serialize() {
+    if (state !== 'playing' || !player) return null;
+    const p = player;
+    return {
+      v: 1, current, px: p.x, py: p.y,
+      player: { hp: p.hp, ammo: p.ammo, coins: p.coins, forros: p.forros, caramelos: p.caramelos,
+        birras: p.birras, carne: p.carne, fiambre: p.fiambre, diosa: p.diosa, falopa: p.falopa,
+        hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
+      flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
+        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, armado },
+      arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
+      pickups: states.map(s => s.pickups.map(pk => !!pk.taken)),
+      npcs: rooms.map(rm => (rm.npcs || []).map(n => ({ f: !!n.falopaTaken, l: !!n.limosnaTaken }))),
+    };
+  }
+  // restore(snap): reconstruye el mundo (reset) y le aplica el snapshot. true si cargó.
+  function restore(snap) {
+    if (!snap || snap.v !== 1 || typeof snap.current !== 'number') return false;
+    reset();                                              // mundo fresco + defaults
+    current = Math.max(0, Math.min(rooms.length - 1, snap.current));
+    Object.assign(player, snap.player || {});
+    player.x = snap.px; player.y = snap.py; player.vx = player.vy = 0; player.alive = true;
+    const f = snap.flags || {};
+    stormed = !!f.stormed; bought = !!f.bought; hasVale = !!f.hasVale; challengeForVale = !!f.challengeForVale;
+    secretUnlocked = !!f.secretUnlocked; gaveBeers = !!f.gaveBeers; borrachosFed = f.borrachosFed | 0;
+    borrachosHappy = !!f.borrachosHappy; moneyRecovered = !!f.moneyRecovered; fifaWon = !!f.fifaWon;
+    bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
+    trucoWon = !!f.trucoWon; armado = !!f.armado;
+    const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
+    if (snap.pickups) states.forEach((s, i) => s.pickups.forEach((pk, j) => { if (snap.pickups[i]) pk.taken = !!snap.pickups[i][j]; }));
+    if (snap.npcs) rooms.forEach((rm, i) => (rm.npcs || []).forEach((n, j) => { const d = snap.npcs[i] && snap.npcs[i][j]; if (d) { n.falopaTaken = d.f; n.limosnaTaken = d.l; } }));
+    if (stormed) Sfx.startHum();
+    updateCam(); elFloor.textContent = TX(rooms[current].name);
+    placeRoamingOraculo(Math.floor((player.x + player.w / 2) / Level.TILE));
+    setMsg(T('g.loaded'), '#7CFC00', 4000);
+    return true;
+  }
+  // continueGame(snap): igual que start() pero retomando el snapshot (lo usa el botón "Continuar").
+  function continueGame(snap) {
+    if (!restore(snap)) { start(); return; }
+    elIntro.classList.add('hidden'); elEnd.classList.add('hidden');
+    elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+    Sfx.init(); Sfx.startMusic();
+    running = true; lastT = performance.now();
+    requestAnimationFrame(loop);
+  }
+  // autosave: cada ~5s mientras jugás, si hay un sink (SaveStore de save.js). Sin sink, no hace nada.
+  let lastSave = 0;
+  function autosave(t) {
+    if (state !== 'playing' || typeof SaveStore === 'undefined' || !SaveStore.write) return;
+    if (t - lastSave < 5000) return;
+    lastSave = t;
+    const snap = serialize(); if (snap) SaveStore.write(snap);
+  }
+
   function setMsg(t, c, ms = 3000) {
     elMsg.textContent = t; elMsg.style.color = c || '#ff5252'; elMsg.style.opacity = '1';
     const mul = (typeof Config !== 'undefined' && Config.msgMs) ? Config.msgMs : 1;   // duración configurable
@@ -782,6 +840,7 @@
   function win() {
     if (state === 'win') return;
     state = 'win'; running = false; Sfx.stopHum(); Sfx.win();
+    if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // terminaste: borrá el guardado
     elEndTitle.textContent = T('g.win.title'); elEndTitle.style.color = '#4FC3F7';
     elEndText.innerHTML = T('g.win.text');
     showEnd();
@@ -789,6 +848,7 @@
   function die() {
     if (state === 'dead') return;
     state = 'dead'; running = false; Sfx.stopHum();
+    if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // moriste de verdad: guardado a la basura
     elEndTitle.textContent = T('g.die.title'); elEndTitle.style.color = '#ff5252';
     elEndText.innerHTML = T('g.die.text');
     showEnd();
@@ -802,6 +862,7 @@
   function loop(t) {
     if (!running) return;
     const dt = Math.min(0.04, (t - lastT)/1000) || 0; lastT = t;
+    autosave(t);
     if (state === 'arcade' && arcadeGame) {
       arcadeGame.update(dt); arcadeGame.draw(ctx, W, H);
       if (arcadeGame.done) {
@@ -875,4 +936,8 @@
     if (e.key === 'Enter') { e.preventDefault(); chatSend(); }
     else if (e.key === 'Escape') closeChat();
   });
+
+  // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
+  // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).
+  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame });
 })();

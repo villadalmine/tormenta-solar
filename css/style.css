@@ -154,6 +154,9 @@ button {
   transition: background 0.15s;
 }
 button:hover { background: #ffd54f; }
+/* "Continuar" (guardado): bloque propio arriba de ENTRAR, con tinte verde de "retomar" */
+#continueBtn { display: block; margin: 0 auto 4px; background: #7CFC00; }
+#continueBtn:hover { background: #9dff4a; }
 
 /* ---- Storm flash ---- */
 #flash {

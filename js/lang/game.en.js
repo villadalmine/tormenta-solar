@@ -4,6 +4,7 @@
 (function () {
   const G = {
     'g.start': 'Head right and go in through the ARCADE GALLERY to get down to the cueva.  [E] use door',
+    'g.loaded': 'Picked up right where you left off, kid. 💾',
 
     'g.ruina': [
       'That building came down in the storm. Boarded up, no way in. 🧱',

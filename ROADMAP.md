@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** (cache `v=64`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=65`).
 
 ---
 
@@ -23,6 +23,10 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-22** 
   secundario: megadrive/fifa/cemento/armas/loop). El chat IA del linyera usa la pista como **grounding**
   (la dice con su voz) y el linyera es **errante** (aparece cerca de lo no hecho). **Fase 1 completa.**
   Ver `specs/nivel-1/historia-grafo.md`.
+- **Guardado automático (v=65)**: el progreso se persiste en `localStorage` cada ~5s jugando
+  (`js/save.js`, capa aditiva) y la intro ofrece **Continuar** (retoma sala, posición, vida/inventario,
+  flags de historia, pickups). Se borra al ganar/morir. Seam en `game.js`: `serialize`/`restore`/
+  `continueGame` + `window.Game`. No persiste sub-modos (arcade/super/disquería).
 - **Opciones** (`js/config.js`): tamaño de fuente, duración/fundido del texto, API key (BYOK).
 - **Calle Florida y Lavalle** con NPCs, decoración, enemigos (peatones/drones), pickups,
   y la **cola de la casa de cambio** (10 personas distintas).
@@ -113,7 +117,7 @@ Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)
 - [ ] **Más usos para carne/fiambre/birras** más allá de los borrachines.
 - [ ] **Balance de la tormenta**: hoy los enemigos se activan al estallar; revisar dificultad
       de la vuelta a la superficie.
-- [ ] **Guardado**: el progreso se pierde al recargar (no hay persistencia).
+- [x] **Guardado** (v=65): autosave en `localStorage` + "Continuar" en la intro. Ver `js/save.js`.
 - [ ] **Pantalla de fin** más rica (stats: monedas juntadas, secretos encontrados).
 
 ### Contenido
