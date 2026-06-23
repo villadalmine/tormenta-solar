@@ -9,6 +9,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v74] — 2026-06-23 — 🕸️ Fase 2 del grafo: el grafo MANEJA los flags
+
+El grafo de historia pasa de *describir* a *gobernar* las transiciones de estado.
+
+### Cambiado
+- Las 8 transiciones de historia de `game.js` (tormenta, edificio, búnker, Iorio, truco, FIFA, armas,
+  chino_back) ya no hardcodean el flag: llaman a **`applyEdge(id, fallbackFlag)`**, que lee el `sets` de
+  esa arista del grafo (declarado en las fichas) para decidir **qué flag cambia**. La **fuente de verdad
+  de las transiciones es el grafo**: si cambia el `sets` de una ficha, cambia el efecto sin tocar `game.js`.
+
+### Técnico
+- Implementación **segura**: los *reads* de los flags quedan idénticos (un closure escribe el `let`
+  externo, no hace falta un store nuevo → cero churn/regresión en las lecturas). El 2º argumento
+  `fallbackFlag` es **red de seguridad** si `historia.js` no cargara (el juego progresa igual).
+- e2e: chequeo **estático** de que cada arista aplicada existe y setea exactamente su flag (atrapa typos de
+  id / drift del grafo). e2e + web-smoke verdes. Cierra el SDD `specs/nivel-1/historia-grafo.md` (Fase 1+2).
+
+---
+
 ## [v73] — 2026-06-23 — 📢 Publicidad / product placement — MVP (capa aditiva)
 
 Primer esqueleto de la monetización del SDD `specs/publicidad.md`: espacios de marca dentro del mundo.

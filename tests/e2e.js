@@ -204,6 +204,15 @@ if (require.main === module) {
     // la trasera se resuelve al ENTRAR (chinoEntered) y desaparece si ya abriste el frente (chinoFrontOpen)
     if (HintEngine.frontier({ stormed: true, chinoEntered: true }).some(e => e.id === 'chino_back')) out.push('FAIL chino_back sigue tras entrar');
     if (HintEngine.frontier({ stormed: true, chinoFrontOpen: true }).some(e => e.id === 'chino_back')) out.push('FAIL chino_back sigue con frente abierto');
+    // Fase 2 (el grafo MANEJE los flags): cada arista que game.js aplica por id debe existir y setear
+    // EXACTAMENTE su flag (si no, applyEdge no haría la transición). Atrapa typos de id / drift del grafo.
+    const F2 = { tormenta:'stormed', edificio:'borrachosHappy', bunker:'bunkerUnlocked', chino_iorio:'chinoFrontOpen',
+      truco:'trucoWon', fifa:'fifaWon', armas:'armado', chino_back:'chinoEntered' };
+    for (const id in F2) {
+      const e = Historia.edges.find(x => x.id === id);
+      if (!e) out.push('FAIL Fase2: falta la arista ' + id);
+      else if (!e.sets || e.sets[F2[id]] !== true) out.push('FAIL Fase2: ' + id + ' no setea ' + F2[id] + ' → ' + JSON.stringify(e.sets));
+    }
     // todo hecho (crítico + secundario + portal) → no quedan pistas
     const allDone = { stormed:true, borrachosHappy:true, bunkerUnlocked:true, chinoFrontOpen:true, trucoWon:true,
       won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true };

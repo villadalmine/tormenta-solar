@@ -1,9 +1,10 @@
 # SPEC: Grafo de historia + motor de pistas (la "didáctica" del juego)
 
-- **Estado:** **Fase 1 COMPLETA (v=64)** — motor + linyera + grounding del chat IA + **spawn errante**.
-  Diseño cerrado (§7). **12 aristas** (v=69: se sumó `chino_back`, la puerta TRASERA del chino, como
-  segunda forma de entrar post-tormenta junto a `chino_iorio`). Futuro opcional: Fase 2 (que el grafo
-  maneje los flags) y más aristas si crece el nivel.
+- **Estado:** **Fase 1 + Fase 2 COMPLETAS.** Fase 1 (v=64): motor + linyera + grounding + spawn errante.
+  **12 aristas** (v=69: `chino_back`). **Fase 2 (v=74): el grafo MANEJE los flags** — las transiciones de
+  game.js se aplican vía `applyEdge(id)`, que lee el `sets` de la arista (declarado en las fichas) para
+  decidir qué flag cambia. El grafo es la fuente de verdad de las transiciones. Futuro: más aristas si
+  crece el nivel.
 - **Nivel:** transversal (se estrena en Nivel 1)
 - **Última actualización:** 2026-06-22
 
@@ -217,9 +218,12 @@ Todo el diseño quedó cerrado; ya no hay preguntas abiertas para empezar a impl
 - **¿Quién guía?** → El **linyera filósofo** que ya existe (no se agrega NPC nuevo).
 
 **Resueltas con el dueño (las 5 de la iteración):**
-1. **¿Describe o maneja los flags?** → **Solo DESCRIBE** (Fase 1): el grafo **lee** los flags que `game.js`
-   ya setea, para saber dónde estás y dar pistas. **No toca la lógica que ya anda.** (Que el grafo *maneje*
-   los flags = sea el dueño del estado = refactor de Fase 2, **descartado por ahora**.)
+1. **¿Describe o maneja los flags?** → Fase 1 **describía**; **Fase 2 (v=74) MANEJA**: las transiciones de
+   `game.js` (tormenta, edificio, búnker, Iorio, truco, FIFA, armas, chino_back) se aplican con
+   `applyEdge(id, fallbackFlag)`, que toma el `sets` de la arista del grafo para decidir qué flag cambia.
+   Así el grafo es la fuente de verdad de las transiciones (si cambia el `sets` de una ficha, cambia el
+   efecto, sin tocar game.js). Implementación segura: los reads de los flags quedan igual (un closure
+   escribe el `let`), no hay store nuevo; el `fallbackFlag` es red de seguridad si `historia.js` no carga.
 2. **¿Runtime o pre-compilado?** → **Pre-compilado**: un script (estilo `gen-dialogos.mjs`) lee las fichas
    en la compu y escribe `js/historia.js` listo; el juego solo lo carga (no parsea markdown en el browser).
 3. **Política de spoiler** → **Escalado por INSISTENCIA** (§3.2): arranca con una **frase loca/filosófica**
@@ -260,5 +264,10 @@ Todo el diseño quedó cerrado; ya no hay preguntas abiertas para empezar a impl
   espejo nuevo `chinoEntered` (1 línea en `enterSuper`, lo setea cualquier puerta post-tormenta; persiste en
   el guardado). **12 aristas.**
 
-**Fase 1 completa.** Futuro opcional: **Fase 2** (que el grafo **maneje** los flags, no solo los describa)
-y sumar aristas si el nivel crece.
+- [x] **Fase 2 — el grafo maneja los flags (v=74):** `applyEdge(id, fallbackFlag)` + un registro chico de
+  setters (closures que escriben los `let`). Las 8 transiciones de `game.js` ya no hardcodean el flag:
+  nombran la **arista** y el grafo (su `sets`) decide. Reads sin cambios (cero churn/regresión); `fallbackFlag`
+  como red de seguridad. e2e: chequeo estático de que cada arista aplicada existe y setea su flag.
+
+**Fase 1 + Fase 2 completas.** Futuro: sumar aristas si el nivel crece (las nuevas se autoran en las fichas
+y `applyEdge` las aplica sin tocar más código).

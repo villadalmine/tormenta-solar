@@ -254,7 +254,7 @@
   function grabTotem(n) {
     // robar el tótem de 3 monos → 20 linyeras te hacen GURÚ y abren el búnker del piso 20
     if (!bunkerUnlocked) {
-      bunkerUnlocked = true; Sfx.win();
+      applyEdge('bunker', 'bunkerUnlocked'); Sfx.win();
       setMsg(T('g.totem.first'), '#7CFC00', 9000);
     } else {
       setMsg(T('g.totem.again'), '#aef0c0', 3500);
@@ -333,7 +333,7 @@
   function giveIorio(n) {
     if (!stormed) { setMsg(TX(n.dialog) || T('g.iorio.preStorm'), '#aef0c0', 4500); return; }
     if ((player.falopa || 0) <= 0) { setMsg(T('g.iorio.noFalopa'), '#ffd54f', 6000); return; }
-    player.falopa--; chinoFrontOpen = true; Sfx.win();
+    player.falopa--; applyEdge('chino_iorio', 'chinoFrontOpen'); Sfx.win();
     ninjaRunT = time; ninjaRunRoom = current;        // ¡tocó Pibe Tigre! los ninjas rajan al pogo (FX)
     setMsg(T('g.iorio.give'), '#7CFC00', 9000);
   }
@@ -346,6 +346,31 @@
   }
   // --- pistas del linyera oráculo (capa aditiva; ver specs/nivel-1/historia-grafo.md) ---
   // Fase 1: SOLO LEEMOS los flags que ya maneja game.js para saber dónde está parado el jugador.
+  // === FASE 2 del grafo: el GRAFO maneja los flags ===
+  // En vez de setear el flag a mano en cada lado, se APLICA una arista por id y la arista (su `sets`,
+  // declarado en las fichas) decide QUÉ flag cambia. Fuente de verdad de las transiciones = el grafo
+  // (Historia): si cambia el `sets` de una ficha, cambia el efecto sin tocar game.js. Un closure puede
+  // escribir el `let` externo, así que no hace falta un store y los reads siguen igual.
+  // El 2º argumento (fallbackFlag) es una RED DE SEGURIDAD: si historia.js no cargó, igual progresás.
+  const FLAG_SETTERS = {
+    stormed:          v => stormed = v,
+    borrachosHappy:   v => borrachosHappy = v,
+    bunkerUnlocked:   v => bunkerUnlocked = v,
+    chinoFrontOpen:   v => chinoFrontOpen = v,
+    trucoWon:         v => trucoWon = v,
+    fifaWon:          v => fifaWon = v,
+    armado:           v => armado = v,
+    chinoEntered:     v => chinoEntered = v,
+    hasMegaDrive:     v => { if (player) player.hasMegaDrive = v; },
+    hasCementoTicket: v => { if (player) player.hasCementoTicket = v; },
+  };
+  function applyEdge(id, fallbackFlag) {
+    const edges = (typeof Historia !== 'undefined' && Historia.edges) ? Historia.edges : [];
+    const e = edges.find(x => x.id === id);
+    if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); return true; }
+    if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) FLAG_SETTERS[fallbackFlag](true);   // grafo ausente → red de seguridad
+    return false;
+  }
   function historiaState() {
     return {
       stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon, fifaWon, armado, chinoEntered,
@@ -422,7 +447,7 @@
     if (n.armado) { setMsg(T('g.armas.done'), '#aef0c0', 3000); return; }
     const cost = 15;
     if (player.coins < cost) { setMsg(T('g.armas.noCoins', { cost }), '#ff5252', 4000); Sfx.empty(); return; }
-    player.coins -= cost; n.armado = true; armado = true;
+    player.coins -= cost; n.armado = true; applyEdge('armas', 'armado');
     player.ammo += 40; player.hp = Math.min(100, player.hp + 20);
     setMsg(T('g.armas.buy'), '#7CFC00', 7500);
   }
@@ -449,7 +474,7 @@
   function playFifa() {
     if (!player.hasMegaDrive) { setMsg(T('g.fifa.noMega'), '#9fd3ff', 5000); return; }
     if (fifaWon) { setMsg(T('g.fifa.done'), '#7CFC00', 3000); return; }
-    fifaWon = true; player.coins += 30; Sfx.win();
+    applyEdge('fifa', 'fifaWon'); player.coins += 30; Sfx.win();
     setMsg(T('g.fifa.win'), '#7CFC00', 6500);
   }
   function giveBorracho(n) {
@@ -463,7 +488,7 @@
       n.fed = true; borrachosFed++; Sfx.pickup();
       const got = want === 'diosa' ? T('g.borracho.gotDiosa') : want === 'carne' ? T('g.borracho.gotCarne') : T('g.borracho.gotFiambre');
       if (borrachosFed >= 3) {
-        borrachosHappy = true; gaveBeers = true;
+        applyEdge('edificio', 'borrachosHappy'); gaveBeers = true;
         setMsg(T('g.borracho.allHappy', { got }), '#7CFC00', 9000);
       } else {
         setMsg(T('g.borracho.thanks', { got, n: borrachosFed }), '#aef0c0', 4500);
@@ -475,7 +500,7 @@
     if (n.hint && (n.talks >= 6 || Math.random() < 0.3)) setMsg(n.hint, '#ffd54f', 5500);
     else setMsg(n.lines ? pick(n.lines) : T('g.borracho.askDefault'), '#ffd54f', 4200);
   }
-  function enterSuper() { if (stormed) chinoEntered = true; superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
+  function enterSuper() { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   function enterCuevaFromSecret() {
     const idx = rooms.findIndex(r => r.cueveros);
@@ -582,7 +607,7 @@
   }
   function triggerStorm() {
     if (stormed) return;
-    stormed = true;
+    applyEdge('tormenta', 'stormed');
     Sfx.stormBoom(); Sfx.startHum();
     shakeUntil = performance.now() + 900;
     for (const s of states) for (const e of s.enemies) e.hostile = true;
@@ -978,7 +1003,7 @@
           if (res === 'win') {
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
             player.coins -= robbed; stunUntil = performance.now() + 2600;
-            trucoWon = true;   // ganar abre la PUERTA DEL TAHÚR al chino (se cruza una vez)
+            applyEdge('truco', 'trucoWon');   // ganar abre la PUERTA DEL TAHÚR al chino (se cruza una vez)
             setMsg(T('g.truco.win', { n: robbed }), '#ff5252', 7000);
           }
           else { player.hp = Math.max(1, player.hp - 25); setMsg(T('g.truco.lose'), '#ff5252', 6800); }

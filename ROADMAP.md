@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=73`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=74`).
 
 ---
 
@@ -19,10 +19,11 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** 
 - **Grafo de historia + linyera-oráculo de pistas (Fase 1, v=62)**: el linyera filósofo tira pistas
   según en qué punto de la historia estás, con spoiler escalado por insistencia. Grafo ensamblado de las
   fichas (` ```hist `) por `tools/gen-historia.mjs` → `js/historia.js`; `js/hint-engine.js` (frontera +
-  cercanía + prioridad crítico/secundario). Capa aditiva, solo describe. **12 aristas** (crítico +
+  cercanía + prioridad crítico/secundario). **12 aristas** (crítico +
   secundario: megadrive/fifa/cemento/armas/loop + `chino_back` v=69, la puerta trasera del chino). El chat IA del linyera usa la pista como **grounding**
-  (la dice con su voz) y el linyera es **errante** (aparece cerca de lo no hecho). **Fase 1 completa.**
-  Ver `specs/nivel-1/historia-grafo.md`.
+  (la dice con su voz) y el linyera es **errante** (aparece cerca de lo no hecho). **Fase 1 + Fase 2
+  completas (v=74)**: el grafo además **maneja** los flags — las transiciones de `game.js` se aplican con
+  `applyEdge(id)` y el `sets` de cada arista decide qué flag cambia. Ver `specs/nivel-1/historia-grafo.md`.
 - **Publicidad / product placement — MVP (v=73)**: `js/ads.js` (capa aditiva) dibuja afiches de marca en
   slots anclados a salas reales (`ads/slots.json`) según un manifiesto local/remoto (`ads/manifest.json`).
   Sin manifiesto, idéntico. SDD `specs/publicidad.md`. Falta pantalla/fachada/góndola, imágenes y métricas.
