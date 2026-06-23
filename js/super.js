@@ -176,6 +176,8 @@ const Super = (() => {
         // sector arriba
         ctx.font = 'bold 12px monospace';
         for (const s of SECT) { const cx = ox + (s.cx+0.5)*CS; ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(cx-46, oy-16, 92, 14); ctx.fillStyle = '#ffe14d'; ctx.fillText(T('sup.sectorFmt', { name: T('sup.sector.' + s.name) }), cx, oy-5); }
+        // product placement en góndola (capa aditiva; ver specs/publicidad.md). Sin Ads, no hace nada.
+        if (typeof Ads !== 'undefined' && Ads.drawGondola) Ads.drawGondola(ctx, VW, VH);
         // garcas atendiendo carnes/fiambres
         for (const g of gond) if (g.cat === 'CARNES' || g.cat === 'FIAMBRES') { const fx = ox + (g.c0+1.5)*CS, fy = oy + (g.r0+2.4)*CS; ctx.fillStyle = '#1565c0'; ctx.beginPath(); ctx.arc(fx, fy, 8, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#e0b088'; ctx.beginPath(); ctx.arc(fx, fy-9, 5, 0, Math.PI*2); ctx.fill(); }
         // CAJA (chino) — grande y al frente

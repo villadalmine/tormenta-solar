@@ -29,6 +29,12 @@
       "brand": "RetroByte",
       "alt": { "es": "RETROBYTE — fichas infinitas 🕹️", "en": "RETROBYTE — infinite credits 🕹️" },
       "bg": "#0a0a22", "fg": "#7CFC00"
+    },
+    {
+      "slot": "super-gondola-1",
+      "brand": "Fideos Mamushka",
+      "alt": { "es": "FIDEOS MAMUSHKA — al dente, che 🍜", "en": "MAMUSHKA NOODLES — al dente, che 🍜" },
+      "bg": "#7a3b00", "fg": "#ffe14d"
     }
   ]
 }

@@ -9,6 +9,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v76] — 2026-06-23 — 🛒 Publicidad: formato góndola (product placement en el chino)
+
+Tercer formato del MVP de `specs/publicidad.md`: la marca DENTRO del super chino.
+
+### Agregado
+- **Formato `gondola`**: product placement en el súper (vista de arriba). `Ads.drawGondola(ctx, W, H)` dibuja
+  un cartel de marca en coords de pantalla; lo llama `super.js` en su `draw()` con un guard `typeof Ads`
+  (sin la capa, no hace nada). Slot/campaña de ejemplo: *Fideos Mamushka*.
+- `ads/slots.json` admite slots con `room:"super"` y coords `px/py` absolutas (el súper es un sub-modo).
+
+### Pendiente del SDD
+- Imágenes pixel-procesadas y **métricas** de impresión (reusar `presence-server`). e2e + web-smoke verdes.
+
+---
+
 ## [v75] — 2026-06-23 — 📢 Publicidad: formatos pantalla y fachada
 
 Segunda pasada del MVP de `specs/publicidad.md`: más formatos de espacio publicitario.

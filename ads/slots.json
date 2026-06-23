@@ -3,5 +3,6 @@
   { "id": "calle-afiche-2", "room": 0, "x": 70, "y": 7, "w": 96, "h": 60, "format": "poster" },
   { "id": "calle-fachada-1", "room": 0, "x": 46, "y": 6, "w": 150, "h": 54, "format": "fachada" },
   { "id": "cueva-afiche-1", "room": 8, "x": 30, "y": 6, "w": 84, "h": 56, "format": "poster" },
-  { "id": "arcade-pantalla-1", "room": 4, "x": 5, "y": 5, "w": 110, "h": 70, "format": "screen" }
+  { "id": "arcade-pantalla-1", "room": 4, "x": 5, "y": 5, "w": 110, "h": 70, "format": "screen" },
+  { "id": "super-gondola-1", "room": "super", "px": 14, "py": 360, "w": 96, "h": 44, "format": "gondola" }
 ]

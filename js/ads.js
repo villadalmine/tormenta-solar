@@ -93,6 +93,16 @@ const Ads = (() => {
     ctx.restore();
   }
 
+  // GÓNDOLA: product placement DENTRO del super chino (vista de arriba). Lo llama super.js en su draw().
+  // Usa coords de PANTALLA (px/py absolutos), porque el súper es un sub-modo con su propio sistema de coords.
+  function drawGondola(ctx, W, H) {
+    if (!slots.length) return;
+    for (const sl of slots) {
+      if (sl.room !== 'super' || (sl.format || 'gondola') !== 'gondola' || !chosen[sl.id]) continue;
+      drawPoster(ctx, sl.px != null ? sl.px : 14, sl.py != null ? sl.py : (H - 58), sl.w || 90, sl.h || 42, chosen[sl.id]);
+    }
+  }
+
   function draw(ctx, roomIndex, cam, W, H) {
     if (!slots.length) return;
     for (const sl of slots) {
@@ -106,6 +116,6 @@ const Ads = (() => {
   }
 
   if (typeof window !== 'undefined') load();
-  return { draw, reload: load, get slots() { return slots; } };
+  return { draw, drawGondola, reload: load, get slots() { return slots; } };
 })();
 if (typeof window !== 'undefined') window.Ads = Ads;
