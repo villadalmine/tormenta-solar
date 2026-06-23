@@ -5,6 +5,7 @@ const Player = (() => {
       x: feetX - 10, y: feetY - 40, w: 20, h: 40,
       vx: 0, vy: 0, grounded: false, facing: 1,
       hp: 100, ammo: 24, coins: 20, forros: 0, caramelos: 0, birras: 0, carne: 0, fiambre: 0, diosa: 0, falopa: 0, hasMegaDrive: false, hasCementoTicket: false, alive: true,
+      spitDmg: 14,   // daño del escupitajo; el TESORO de los linyeras (gurú) lo sube (mejora permanente del run)
       anim: 'idle', animTime: 0, shootCd: 0, muzzle: 0,
       aim: { x: 1, y: 0 }, hurtCd: 0,
 
@@ -35,7 +36,7 @@ const Player = (() => {
         if (this.ammo <= 0) { Sfx.empty(); this.shootCd = 0.25; return; }
         this.ammo--; this.shootCd = 0.16; this.muzzle = 0.08;
         const sx = this.x + this.w/2 + this.aim.x*18, sy = this.y + 12 + this.aim.y*18;
-        Bullets.spawn(sx, sy, this.aim.x*720, this.aim.y*720, 'player', 14);
+        Bullets.spawn(sx, sy, this.aim.x*720, this.aim.y*720, 'player', this.spitDmg || 14);
         Particles.spit(sx, sy, this.aim.x, this.aim.y);
         Sfx.spit();
       },

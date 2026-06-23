@@ -465,9 +465,12 @@ const Level = (() => {
       npcs: [
         { name:'', sprite:'linyera', invisible:true, x:10, action:'loop' },   // el CATRE (decor) es el punto de dormir
         { name:'Linyera', sprite:'linyera', x:5,  dialog:'“Bienvenido al búnker, gurú. Acá nadie labura. Tirate en el catre cuando quieras pasar el día. 🛖”' },
-        { name:'Linyera', sprite:'linyera', x:15, dialog:'“Si querés salir de verdad, andá al portal de la Casa de Cambio. Si no, quedate en el loop.” 🔁' },
+        // el linyera MAYOR te entrega el TESORO de los linyeras (premio del edificio: solo para el gurú)
+        { name:'Linyera mayor', sprite:'linyera', x:13, action:'tesoro',
+          dialog:'“Vos sos el gurú... a vos sí te lo damos. Guardamos un maletín toda la vida para alguien que entienda. Tomá: la guita y un secreto para que escupas como Dios manda.” 🐵💼' },
+        { name:'Linyera', sprite:'linyera', x:17, dialog:'“Si querés salir de verdad, andá al portal de la Casa de Cambio. Si no, quedate en el loop.” 🔁' },
       ],
-      decor: [{t:'catre',x:10},{t:'barril',x:4},{t:'caja',x:16},{t:'parlante',x:18}],
+      decor: [{t:'catre',x:10},{t:'barril',x:4},{t:'maletin',x:13.5},{t:'parlante',x:18}],
       pickups: [{t:'health',x:12},{t:'coins',x:6,amount:8}],
     }));
 

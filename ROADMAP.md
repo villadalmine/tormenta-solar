@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=67`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=68`).
 
 ---
 
@@ -113,8 +113,9 @@ Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)
       fachada). Sobreviven super, cueva/galería, abandonado, Cemento (Iorio) y la Casa de Cambio.
 
 ### Jugabilidad
-- [ ] **Objetivo dentro del edificio abandonado**: hoy es exploración + loot de monedas.
-      Darle un premio real (ej. un arma/mejora en el último piso, o un personaje).
+- [x] **Objetivo dentro del edificio abandonado** (v=68): el **tesoro de los linyeras** en el búnker
+      (maletín +150🪙, +40 munición y mejora permanente del escupitajo 14→24), solo para el gurú, 1×.
+      `grabTesoro`/`tesoroTaken` + `player.spitDmg`.
 - [ ] **Más usos para carne/fiambre/birras** más allá de los borrachines.
 - [ ] **Balance de la tormenta**: hoy los enemigos se activan al estallar; revisar dificultad
       de la vuelta a la superficie.

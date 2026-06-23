@@ -9,6 +9,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v68] — 2026-06-23 — 💼 Premio real en el edificio abandonado (el tesoro de los linyeras)
+
+El edificio dejó de ser solo loot de monedas: ahora la trepada tiene un **premio de verdad**.
+
+### Agregado
+- **Tesoro de los linyeras** en el búnker: el **linyera mayor** te entrega un **maletín de dólares** (+150 🪙),
+  un cajón de munición (+40) y una **mejora PERMANENTE del escupitajo** (daño 14→24, para todo el run).
+  Solo si sos **gurú** (tras robar el tótem del piso 19 → `bunkerUnlocked`) y **una vez por partida**.
+  Le da sentido a alimentar a los borrachines → trepar 20 pisos → tótem → búnker.
+- Nuevo **hito** en la pantalla de fin: *Reclamaste el tesoro de los linyeras* (ahora 11 hitos).
+
+### Técnico
+- `player.spitDmg` (default 14, lo lee `player.shoot`); el tesoro lo sube a 24. Persiste en el guardado.
+- `grabTesoro` + flag `tesoroTaken` (en `reset`/`serialize`/`restore`) + `action:'tesoro'` en el búnker
+  (NPC + decor `maletin`). i18n `g.tesoro.*` / `g.prompt.tesoro*` / `g.hito.tesoro` (es/en, paridad ok).
+- e2e (auditoría de los 38 cuartos) + web-smoke verdes.
+
+---
+
 ## [v67] — 2026-06-23 — 🏆 Pantalla de fin con stats (resumen de la partida)
 
 Ganar o morir ya no muestra solo texto: ahora hay un **resumen** de cómo te fue.

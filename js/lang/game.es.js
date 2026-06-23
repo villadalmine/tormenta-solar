@@ -35,6 +35,9 @@
     'g.joyas.eject': 'Vas a manotear las joyas y SALE EL LINYERA: {line} Te agarra de la campera y te saca cagando a la calle. 🦶🚪',
     'g.totem.first': 'Vas a afanar el TÓTEM de 3 monos 🐵🐵🐵 y de la nada salen VEINTE linyeras... pero en vez de cagarte a palos te consagran GURÚ: “¡Encontraste a nuestro dios de Monkey Island! La puerta del PISO 20 es tuya: te lleva a nuestro BÚNKER, el lugar más seguro. Queda SIEMPRE abierta para vos.” 🗝️🛖',
     'g.totem.again': '“Gurú, la puerta del PISO 20 ya es tuya. El búnker te espera arriba.” 🐵',
+    'g.tesoro.grab': '🐵💼 El linyera mayor abre el maletín: ¡DÓLARES! (+150 🪙) y te pasa un cartucho de munición (+40). Y un secreto de linyera: ahora escupís el doble de fuerte 💥. “Usalo bien, gurú.”',
+    'g.tesoro.empty': '“Ya te dimos lo nuestro, gurú. El maletín está vacío. Lo demás es panza al sol.” 🌞',
+    'g.tesoro.noGuru': '“Ese maletín no es para cualquiera, pibe. Primero hacete gurú.” 💼',
     'g.linyeraCry': [
       '“Yo tenía TRES deptos en Puerto Madero... tres. (se quiebra) Mirá ahí en el inodoro, agarrá, total ya no me sirve de nada...” 😭',
       '“Era gerente de banco. Traje, reuniones, un vacío de mierda. (llora) Hay guita en la caja fuerte, llevate, pibe.” 💼😢',
@@ -148,6 +151,8 @@
     'g.prompt.lujoStorm': 'abrir el cajón del mueble (falopa) 🌿',
     'g.prompt.lujo': 'tocar las joyas 💎',
     'g.prompt.totem': 'robar el tótem de 3 monos 🐵',
+    'g.prompt.tesoro': 'recibir el TESORO de los linyeras 💼',
+    'g.prompt.tesoroDone': 'el maletín ya es tuyo, gurú 🌞',
     'g.prompt.limosna': 'pedirle unas monedas al linyera 🪙',
     'g.prompt.iorioStorm': 'darle falopa a Iorio 🤘',
     'g.prompt.iorio': 'hablar con Iorio',
@@ -204,6 +209,7 @@
     'g.hito.megadrive': 'Conseguiste la Mega Drive',
     'g.hito.cemento':   'Entraste a Cemento',
     'g.hito.armado':    'Te armaste con fierro criollo',
+    'g.hito.tesoro':    'Reclamaste el tesoro de los linyeras',
     'g.hito.portal':    'Cruzaste el portal',
 
     // ===== SUPER CHINO (super.js) =====

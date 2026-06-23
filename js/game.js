@@ -61,6 +61,7 @@
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
   let trucoWon = false;                             // ganar el truco abre una puerta al chino (se consume al cruzar)
   let armado = false;                               // espejo de n.armado: compraste fierro criollo (lo lee el grafo de historia)
+  let tesoroTaken = false;                           // reclamaste el TESORO de los linyeras en el búnker (premio del edificio, 1×)
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -79,7 +80,7 @@
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
-    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false;   // loop de supervivencia, de cero
+    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false; tesoroTaken = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
@@ -98,9 +99,9 @@
       v: 1, current, px: p.x, py: p.y,
       player: { hp: p.hp, ammo: p.ammo, coins: p.coins, forros: p.forros, caramelos: p.caramelos,
         birras: p.birras, carne: p.carne, fiambre: p.fiambre, diosa: p.diosa, falopa: p.falopa,
-        hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
+        spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
-        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, armado },
+        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, armado, tesoroTaken },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       pickups: states.map(s => s.pickups.map(pk => !!pk.taken)),
       npcs: rooms.map(rm => (rm.npcs || []).map(n => ({ f: !!n.falopaTaken, l: !!n.limosnaTaken }))),
@@ -118,7 +119,7 @@
     secretUnlocked = !!f.secretUnlocked; gaveBeers = !!f.gaveBeers; borrachosFed = f.borrachosFed | 0;
     borrachosHappy = !!f.borrachosHappy; moneyRecovered = !!f.moneyRecovered; fifaWon = !!f.fifaWon;
     bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
-    trucoWon = !!f.trucoWon; armado = !!f.armado;
+    trucoWon = !!f.trucoWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken;
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
     if (snap.pickups) states.forEach((s, i) => s.pickups.forEach((pk, j) => { if (snap.pickups[i]) pk.taken = !!snap.pickups[i][j]; }));
     if (snap.npcs) rooms.forEach((rm, i) => (rm.npcs || []).forEach((n, j) => { const d = snap.npcs[i] && snap.npcs[i][j]; if (d) { n.falopaTaken = d.f; n.limosnaTaken = d.l; } }));
@@ -224,6 +225,7 @@
     else if (n.action === 'borracho') giveBorracho(n);
     else if (n.action === 'lujo') handleLujo(n);
     else if (n.action === 'totem') grabTotem(n);
+    else if (n.action === 'tesoro') grabTesoro(n);
     else if (n.action === 'loop') doLoop(n);
     else if (n.action === 'limosna') giveLimosna(n);
     else if (n.action === 'iorio') giveIorio(n);
@@ -256,6 +258,16 @@
     } else {
       setMsg(T('g.totem.again'), '#aef0c0', 3500);
     }
+  }
+  // TESORO de los linyeras (premio del edificio abandonado): el linyera mayor te lo da SOLO si sos gurú,
+  // una vez por partida. Maletín de dólares (+guita) + munición + mejora PERMANENTE del escupitajo.
+  function grabTesoro(n) {
+    if (!bunkerUnlocked) { setMsg(T('g.tesoro.noGuru'), '#ffd54f', 5000); return; }   // (en el búnker ya sos gurú; red de seguridad)
+    if (tesoroTaken) { setMsg(T('g.tesoro.empty'), '#aef0c0', 4000); return; }
+    tesoroTaken = true;
+    player.coins += 150; player.ammo += 40; player.spitDmg = 24;   // escupís más fuerte (14→24), para todo el run
+    Sfx.win();
+    setMsg(T('g.tesoro.grab'), '#7CFC00', 9000);
   }
   // llanto de los ex-millonarios: pool por idioma (I18n.dict) → catálogo (TL) → Dialogos legacy
   function linyeraCry() {
@@ -866,6 +878,7 @@
         : a === 'shop' ? T('g.prompt.shop', { cost: it.n.sells.cost, cur: T('g.cur.' + (it.n.sells.pay === 'caramelos' ? 'caramelos' : it.n.sells.pay === 'forros' ? 'forros' : 'monedas')) })
         : a === 'lujo' ? (stormed ? T('g.prompt.lujoStorm') : T('g.prompt.lujo'))
         : a === 'totem' ? T('g.prompt.totem')
+        : a === 'tesoro' ? T(tesoroTaken ? 'g.prompt.tesoroDone' : 'g.prompt.tesoro')
         : a === 'limosna' ? (stormed ? T('g.prompt.limosna') : T('g.prompt.talk', { name: TX(it.n.name) }))
         : a === 'iorio' ? (stormed ? T('g.prompt.iorioStorm') : T('g.prompt.iorio'))
         : a === 'armas' ? (stormed ? T('g.prompt.armasStorm') : T('g.prompt.armas'))
@@ -900,6 +913,7 @@
       { k: 'g.hito.megadrive', done: !!(player && player.hasMegaDrive) },
       { k: 'g.hito.cemento',   done: !!(player && player.hasCementoTicket) },
       { k: 'g.hito.armado',    done: armado },
+      { k: 'g.hito.tesoro',    done: tesoroTaken },
       { k: 'g.hito.portal',    done: !!won },
     ];
     return { coins: (player && player.coins) | 0, days: loopCount, items, hitos,

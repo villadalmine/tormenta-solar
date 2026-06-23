@@ -32,6 +32,9 @@
     'g.joyas.eject': 'You reach for the jewels and OUT COMES THE BUM: {line} He grabs you by the jacket and tosses you out onto the street. 🦶🚪',
     'g.totem.first': "You go to swipe the 3-monkey TOTEM 🐵🐵🐵 and out of nowhere TWENTY bums appear... but instead of beating you up they crown you GURU: \"You found our Monkey Island god! The FLOOR 20 door is yours: it leads to our BUNKER, the safest place around. It stays open for you ALWAYS.\" 🗝️🛖",
     'g.totem.again': '"Guru, the FLOOR 20 door is already yours. The bunker awaits upstairs." 🐵',
+    'g.tesoro.grab': '🐵💼 The elder bum cracks open the briefcase: DOLLARS! (+150 🪙) and he hands you an ammo box (+40). Plus a bum\'s secret: your spit now hits twice as hard 💥. "Use it well, guru."',
+    'g.tesoro.empty': '"We already gave you ours, guru. The briefcase is empty. The rest is just basking in the sun." 🌞',
+    'g.tesoro.noGuru': '"That briefcase isn\'t for just anyone, kid. Become guru first." 💼',
     'g.linyeraCry': [
       '"I had THREE flats in Puerto Madero... three. (breaks down) Look in the toilet there, grab it, it\'s no use to me anymore..." 😭',
       '"I was a bank manager. Suits, meetings, a hole in my soul. (cries) There\'s cash in the safe, take it, kid." 💼😢',
@@ -130,6 +133,8 @@
     'g.prompt.lujoStorm': 'open the dresser drawer (gear) 🌿',
     'g.prompt.lujo': 'touch the jewels 💎',
     'g.prompt.totem': 'swipe the 3-monkey totem 🐵',
+    'g.prompt.tesoro': 'receive the bums\' TREASURE 💼',
+    'g.prompt.tesoroDone': 'the briefcase is yours now, guru 🌞',
     'g.prompt.limosna': 'ask the bum for some coins 🪙',
     'g.prompt.iorioStorm': 'give gear to Iorio 🤘',
     'g.prompt.iorio': 'talk to Iorio',
@@ -183,6 +188,7 @@
     'g.hito.megadrive': 'Got the Mega Drive',
     'g.hito.cemento':   'Got into Cemento',
     'g.hito.armado':    'Armed up with criollo gear',
+    'g.hito.tesoro':    'Claimed the bums\' treasure',
     'g.hito.portal':    'Crossed the portal',
 
     // ===== CHINESE SUPERMARKET (super.js) =====
