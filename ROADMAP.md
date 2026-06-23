@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=69`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=70`).
 
 ---
 
@@ -127,7 +127,7 @@ Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)
 - [ ] **Nivel 2** (el salto temporal): la intro promete viajar entre momentos de la historia.
       Hoy termina en el portal del Nivel 1.
 - [ ] Más easter eggs / personajes reales.
-- [ ] Sonido ambiente por sala (hoy solo música).
+- [x] Sonido ambiente por sala (v=70): `Sfx.setAmbient` (calle/viento/cueva/recital), capa aparte de la música.
 
 ### Técnico / calidad
 - [ ] **Mobile / touch**: hoy es teclado+mouse, no anda en celular. → ver

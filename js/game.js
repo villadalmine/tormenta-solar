@@ -135,7 +135,7 @@
     if (!restore(snap)) { start(); return; }
     elIntro.classList.add('hidden'); elEnd.classList.add('hidden');
     elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
-    Sfx.init(); Sfx.startMusic();
+    Sfx.init(); Sfx.startMusic(); Sfx.setAmbient(ambientFor(room()));
     running = true; lastT = performance.now();
     requestAnimationFrame(loop);
   }
@@ -559,6 +559,7 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
+    Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
     else if (current === 0) setMsg(T('g.trans.street'), '#4FC3F7', 2500);
     else if (r.theme === 'cambio') { flash(); setMsg(stormed ? T('g.trans.cambioStorm') : T('g.trans.cambioFull'), stormed ? '#ff5252' : '#ffd54f', 6000); }
@@ -572,6 +573,12 @@
     else if (r.theme === 'secret') setMsg(/Truco/.test(r.name) ? T('g.trans.trucoStore') : T('g.trans.secretStore'), '#d8c8b0', 5500);
     else if (r.cueveros) setMsg(T('g.trans.cueveros'), '#7CFC00', 5500);
     else setMsg(T('g.trans.deeper'), '#9fb4c4', 3000);
+  }
+  // zona → cama de ambiente (calle/viento/cueva/recital); null = sin ambiente
+  function ambientFor(r) {
+    if (current === 0) return stormed ? 'viento' : 'calle';
+    if (!r) return null;
+    return r.theme === 'rock' ? 'cueva' : r.theme === 'cemento' ? 'recital' : r.theme === 'ruina' ? 'viento' : null;
   }
   function triggerStorm() {
     if (stormed) return;
@@ -935,7 +942,7 @@
   }
   function win() {
     if (state === 'win') return;
-    state = 'win'; running = false; Sfx.stopHum(); Sfx.win();
+    state = 'win'; running = false; Sfx.stopHum(); Sfx.stopAmbient(); Sfx.win();
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // terminaste: borrá el guardado
     elEndTitle.textContent = T('g.win.title'); elEndTitle.style.color = '#4FC3F7';
     elEndText.innerHTML = T('g.win.text'); renderStats(true);
@@ -943,7 +950,7 @@
   }
   function die() {
     if (state === 'dead') return;
-    state = 'dead'; running = false; Sfx.stopHum();
+    state = 'dead'; running = false; Sfx.stopHum(); Sfx.stopAmbient();
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // moriste de verdad: guardado a la basura
     elEndTitle.textContent = T('g.die.title'); elEndTitle.style.color = '#ff5252';
     elEndText.innerHTML = T('g.die.text'); renderStats(false);
@@ -1012,7 +1019,7 @@
     reset();
     elIntro.classList.add('hidden'); elEnd.classList.add('hidden');
     elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
-    Sfx.init(); Sfx.startMusic();
+    Sfx.init(); Sfx.startMusic(); Sfx.setAmbient(ambientFor(room()));
     running = true; lastT = performance.now();
     requestAnimationFrame(loop);
   }

@@ -9,6 +9,22 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v70] — 2026-06-23 — 🔊 Sonido ambiente por zona
+
+Hasta ahora solo había música. Ahora cada zona tiene una **cama de ambiente** sutil debajo.
+
+### Agregado
+- **Ambiente por sala** (`Sfx.setAmbient(kind)` en `audio.js`, capa **aparte** de la música): una cama de
+  ruido filtrado en loop con "respiración" lenta. Cuatro climas: **calle** (murmullo de ciudad),
+  **viento** (post-tormenta / pisos en ruina, desolado, con ráfagas), **cueva** (rumor grave de subsuelo)
+  y **recital** (gentío en Cemento). Se cruza-funde al cambiar de sala; se corta al ganar/morir.
+
+### Técnico
+- `game.js`: helper `ambientFor(room)` (zona→clima) cableado en la transición de sala + al arrancar/continuar.
+  Procedural (WebAudio: buffer de ruido en loop + biquad + LFO de volumen), sin assets. e2e + web-smoke verdes.
+
+---
+
 ## [v69] — 2026-06-23 — 🚪 La puerta trasera del chino entra al grafo de pistas
 
 Playtest: si disparabas la tormenta de una, el linyera solo te mandaba a Iorio (camino circular) y nunca

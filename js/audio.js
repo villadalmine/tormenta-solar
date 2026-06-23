@@ -3,6 +3,7 @@ const Sfx = (() => {
   let ctx = null;
   let hum = null;      // zumbido de la tormenta
   let humGain = null;
+  let amb = null, ambLfo = null, ambKind = null;   // cama de AMBIENTE por zona (capa aparte de la música)
 
   function ensure() {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -155,6 +156,39 @@ const Sfx = (() => {
       hum.start(); lfo.start();
     },
     stopHum() { if (humGain) humGain.gain.value = 0; },
+    // AMBIENTE por sala: una cama de ruido filtrado en loop (capa APARTE de la música).
+    // calle (murmullo) · viento (post-tormenta, desolado) · cueva (rumor de subsuelo) · recital (gentío).
+    setAmbient(kind) {
+      if (ambKind === kind) return;
+      // apagar el anterior
+      if (amb) { try { amb.stop(); } catch (e) {} amb = null; }
+      if (ambLfo) { try { ambLfo.stop(); } catch (e) {} ambLfo = null; }
+      ambKind = kind;
+      const CFG = {
+        calle:   { type: 'bandpass', freq: 520,  q: 0.5, vol: 0.020, lfo: 0.0  },
+        viento:  { type: 'highpass', freq: 700,  q: 0.4, vol: 0.038, lfo: 0.25 },
+        cueva:   { type: 'lowpass',  freq: 210,  q: 0.7, vol: 0.050, lfo: 0.12 },
+        recital: { type: 'bandpass', freq: 250,  q: 0.8, vol: 0.042, lfo: 0.7  },
+      };
+      const cfg = CFG[kind];
+      if (!cfg) return;                        // kind nulo/desconocido → sin ambiente
+      const c = ensure();
+      // fuente: ruido blanco en buffer, en loop
+      const buf = c.createBuffer(1, Math.max(1, (c.sampleRate || 44100) * 2), c.sampleRate || 44100);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      amb = c.createBufferSource(); amb.buffer = buf; amb.loop = true;
+      const f = c.createBiquadFilter(); f.type = cfg.type; f.frequency.value = cfg.freq; f.Q.value = cfg.q;
+      const g = c.createGain(); g.gain.value = cfg.vol;
+      amb.connect(f); f.connect(g); g.connect(c.destination);
+      if (cfg.lfo) {                           // "respiración"/ráfagas lentas del volumen
+        ambLfo = c.createOscillator(); ambLfo.frequency.value = cfg.lfo;
+        const lg = c.createGain(); lg.gain.value = cfg.vol * 0.6;
+        ambLfo.connect(lg); lg.connect(g.gain); ambLfo.start();
+      }
+      amb.start();
+    },
+    stopAmbient() { this.setAmbient(null); },
     startMusic() { musicWanted = true; if (!cumbiaActive) Music.start(); },
     stopMusic() { musicWanted = false; Music.stop(); },
     toggleMusic() { musicWanted = !musicWanted; if (musicWanted && !cumbiaActive) Music.start(); else Music.stop(); return musicWanted; },
