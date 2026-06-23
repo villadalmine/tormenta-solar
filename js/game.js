@@ -815,6 +815,7 @@
     Particles.draw(ctx, cam);
     // ninjas yéndose al pogo cuando Iorio toca (solo en Cemento, ~4s tras dar la falopa)
     if (current === ninjaRunRoom && time - ninjaRunT < 4.2) drawNinjaRunners(time - ninjaRunT);
+    if (typeof Ads !== 'undefined') Ads.draw(ctx, current, cam, W, H);   // publicidad (capa aditiva, ver specs/publicidad.md)
 
     drawLight(r);
     drawPost();

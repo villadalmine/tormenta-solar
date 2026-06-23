@@ -9,6 +9,27 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v73] — 2026-06-23 — 📢 Publicidad / product placement — MVP (capa aditiva)
+
+Primer esqueleto de la monetización del SDD `specs/publicidad.md`: espacios de marca dentro del mundo.
+
+### Agregado
+- **`js/ads.js`** (capa **aditiva**, no en el e2e): lee `ads/slots.json` (espacios anclados a salas reales)
+  + un manifiesto de campañas (`ads/manifest.json` o `window.ADS_MANIFEST` remoto), resuelve campaña→slot
+  (ventana de fechas + rotación por peso) y dibuja un **afiche al estilo** sobre el slot (imagen lazy si
+  hay, o placeholder de texto bilingüe). Etiqueta discreta "AD".
+- **`ads/slots.json`** (3 espacios de ejemplo: 2 en la calle, 1 en la cueva) + **`ads/manifest.json`** con
+  campañas **ficticias** (Cumbia Cola, Telo El Edén, Blue Bank) para demostrar el formato.
+- Seam en `game.js`: 1 línea guardada `if (typeof Ads !== 'undefined') Ads.draw(...)`. **Sin slots/manifiesto
+  o sin red, el juego anda idéntico.**
+
+### Técnico
+- En producción las creatividades/manifiesto viven **fuera del repo GPL** (o endpoint remoto). Falta del SDD:
+  pantalla/fachada/góndola, imágenes pixel-procesadas y métricas (reusar `presence-server`). web-smoke sirve
+  `ads/*.json` (fetch 200, sin errores). e2e + web-smoke verdes.
+
+---
+
 ## [v72] — 2026-06-23 — 📱 Soporte mobile / touch (capa aditiva, dormida en desktop)
 
 Primera versión de controles táctiles, como **capa aparte** que no toca el core (los 11 `js/*.js`).

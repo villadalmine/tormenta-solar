@@ -1,0 +1,23 @@
+{
+  "_comment": "EJEMPLO de manifiesto de campañas (marcas FICTICIAS, sin imagen → placeholder de texto). En producción esto vive afuera del repo GPL o en un endpoint remoto (window.ADS_MANIFEST). Ver specs/publicidad.md.",
+  "campaigns": [
+    {
+      "slot": "calle-afiche-1",
+      "brand": "Cumbia Cola",
+      "alt": { "es": "CUMBIA COLA — la del aguante 🥤", "en": "CUMBIA COLA — the people's soda 🥤" },
+      "bg": "#7a1020", "fg": "#ffd54f", "weight": 2
+    },
+    {
+      "slot": "calle-afiche-2",
+      "brand": "Telo El Edén",
+      "alt": { "es": "TELO EL EDÉN — por hora 🌙", "en": "EL EDÉN MOTEL — by the hour 🌙" },
+      "bg": "#2a1040", "fg": "#e0b0ff", "weight": 1
+    },
+    {
+      "slot": "cueva-afiche-1",
+      "brand": "Blue Bank",
+      "alt": { "es": "BLUE BANK — tu dólar tranqui 💵", "en": "BLUE BANK — your dollar, chill 💵" },
+      "bg": "#0c3a1e", "fg": "#9dff8a", "weight": 1
+    }
+  ]
+}

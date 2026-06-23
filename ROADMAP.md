@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=72`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=73`).
 
 ---
 
@@ -23,6 +23,9 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** 
   secundario: megadrive/fifa/cemento/armas/loop + `chino_back` v=69, la puerta trasera del chino). El chat IA del linyera usa la pista como **grounding**
   (la dice con su voz) y el linyera es **errante** (aparece cerca de lo no hecho). **Fase 1 completa.**
   Ver `specs/nivel-1/historia-grafo.md`.
+- **Publicidad / product placement — MVP (v=73)**: `js/ads.js` (capa aditiva) dibuja afiches de marca en
+  slots anclados a salas reales (`ads/slots.json`) según un manifiesto local/remoto (`ads/manifest.json`).
+  Sin manifiesto, idéntico. SDD `specs/publicidad.md`. Falta pantalla/fachada/góndola, imágenes y métricas.
 - **Guardado automático (v=65)**: el progreso se persiste en `localStorage` cada ~5s jugando
   (`js/save.js`, capa aditiva) y la intro ofrece **Continuar** (retoma sala, posición, vida/inventario,
   flags de historia, pickups). Se borra al ganar/morir. Seam en `game.js`: `serialize`/`restore`/

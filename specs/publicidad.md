@@ -1,6 +1,8 @@
 # SPEC: Publicidad / product placement en el juego (monetización por espacios)
 
-- **Estado:** **Draft** (para más adelante — no se implementa hasta resolver §10)
+- **Estado:** **MVP implementado (v=73)** — capa `js/ads.js` (afiche/poster) + `ads/slots.json` +
+  `ads/manifest.json` de ejemplo (marcas ficticias, placeholder de texto). Pendiente: pantalla/fachada,
+  imágenes pixel-procesadas, manifiesto remoto y métricas (§5). El Draft de abajo sigue siendo la guía.
 - **Nivel:** transversal (cualquier nivel; se estrena en Nivel 1)
 - **Última actualización:** 2026-06-23
 

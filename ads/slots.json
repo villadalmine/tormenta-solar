@@ -1,0 +1,5 @@
+[
+  { "id": "calle-afiche-1", "room": 0, "x": 30, "y": 7, "w": 96, "h": 60, "format": "poster" },
+  { "id": "calle-afiche-2", "room": 0, "x": 70, "y": 7, "w": 96, "h": 60, "format": "poster" },
+  { "id": "cueva-afiche-1", "room": 8, "x": 30, "y": 6, "w": 84, "h": 56, "format": "poster" }
+]
