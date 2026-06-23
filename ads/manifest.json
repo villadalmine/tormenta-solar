@@ -18,6 +18,17 @@
       "brand": "Blue Bank",
       "alt": { "es": "BLUE BANK — tu dólar tranqui 💵", "en": "BLUE BANK — your dollar, chill 💵" },
       "bg": "#0c3a1e", "fg": "#9dff8a", "weight": 1
+    },
+    {
+      "slot": "calle-fachada-1",
+      "brand": "PIZZA OBELISCO",
+      "bg": "#10151c", "fg": "#ffd54f"
+    },
+    {
+      "slot": "arcade-pantalla-1",
+      "brand": "RetroByte",
+      "alt": { "es": "RETROBYTE — fichas infinitas 🕹️", "en": "RETROBYTE — infinite credits 🕹️" },
+      "bg": "#0a0a22", "fg": "#7CFC00"
     }
   ]
 }

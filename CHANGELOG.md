@@ -9,6 +9,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v75] — 2026-06-23 — 📢 Publicidad: formatos pantalla y fachada
+
+Segunda pasada del MVP de `specs/publicidad.md`: más formatos de espacio publicitario.
+
+### Agregado
+- **Formato `screen`** (pantalla LED/TV): el afiche base + **scanlines** y un **barrido de brillo animado**
+  (clippeado a la pantalla). Slot de ejemplo en el **arcade** (RetroByte).
+- **Formato `fachada`**: cartel de local con **toldo a rayas** y marca grande. Slot de ejemplo en la calle
+  (Pizza Obelisco).
+- `ads/slots.json` y `ads/manifest.json` ampliados (5 slots, 5 campañas ficticias). Sigue todo aditivo:
+  sin manifiesto, idéntico.
+
+### Pendiente del SDD
+- Formato **góndola** (product placement en el super chino): necesita un seam en `super.js` (sub-modo aparte).
+- Imágenes pixel-procesadas y **métricas** (reusar `presence-server`). e2e + web-smoke verdes.
+
+---
+
 ## [v74] — 2026-06-23 — 🕸️ Fase 2 del grafo: el grafo MANEJA los flags
 
 El grafo de historia pasa de *describir* a *gobernar* las transiciones de estado.

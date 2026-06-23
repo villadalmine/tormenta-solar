@@ -7,6 +7,7 @@
 const Ads = (() => {
   const TILE = (typeof Level !== 'undefined' && Level.TILE) ? Level.TILE : 32;
   const lang = () => (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es';
+  const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
   let slots = [];               // [{ id, room, x, y, w, h, format }]  (x/y en tiles; w/h en px)
   const chosen = {};            // slotId -> campaña elegida
   const imgCache = {};          // url -> HTMLImageElement (lazy)
@@ -63,6 +64,35 @@ const Ads = (() => {
     ctx.restore();
   }
 
+  // formato PANTALLA (LED/TV): el afiche base + scanlines + barrido de brillo (animado)
+  function drawScreen(ctx, sx, sy, w, h, c) {
+    drawPoster(ctx, sx, sy, w, h, c);
+    const t = now();
+    ctx.save();
+    ctx.beginPath(); ctx.rect(sx, sy, w, h); ctx.clip();      // que nada se salga de la pantalla
+    ctx.globalAlpha = 0.16; ctx.fillStyle = '#000';
+    for (let y = 0; y < h; y += 3) ctx.fillRect(sx, sy + y, w, 1);   // scanlines
+    ctx.globalAlpha = 0.10 + 0.07 * Math.sin(t * 2);
+    ctx.fillStyle = '#bfefff';
+    const sweep = ((t * 70) % (w + 40)) - 20;                 // brillo que barre
+    ctx.fillRect(sx + sweep, sy, 12, h);
+    ctx.restore();
+  }
+  // formato FACHADA: cartel de local con toldo a rayas (más ancho/llamativo)
+  function drawFachada(ctx, sx, sy, w, h, c) {
+    ctx.save();
+    ctx.fillStyle = c.bg || '#222'; ctx.fillRect(sx, sy, w, h);
+    const stripeH = Math.min(12, h * 0.3);
+    for (let i = 0; i * 14 < w; i++) { ctx.fillStyle = (i % 2) ? '#d33' : '#f4f4f4'; ctx.fillRect(sx + i * 14, sy + h - stripeH, 14, stripeH); }
+    ctx.fillStyle = c.fg || '#FFD54F'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(c.brand || (c.alt && (c.alt[lang()] || c.alt.es)) || 'LOCAL', sx + w / 2, sy + (h - stripeH) / 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 2; ctx.strokeRect(sx + 1, sy + 1, w - 2, h - 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(sx, sy, 20, 9);
+    ctx.fillStyle = '#cfcfcf'; ctx.font = '6px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('AD', sx + 3, sy + 2);
+    ctx.restore();
+  }
+
   function draw(ctx, roomIndex, cam, W, H) {
     if (!slots.length) return;
     for (const sl of slots) {
@@ -70,7 +100,8 @@ const Ads = (() => {
       const w = sl.w || 80, h = sl.h || 60;
       const sx = (sl.x || 0) * TILE - cam.x, sy = (sl.y || 7) * TILE - cam.y;
       if (sx > W || sx + w < 0) continue;        // fuera de cámara (no dibujar)
-      drawPoster(ctx, sx, sy, w, h, chosen[sl.id]);
+      const fmt = sl.format || 'poster';
+      (fmt === 'screen' ? drawScreen : fmt === 'fachada' ? drawFachada : drawPoster)(ctx, sx, sy, w, h, chosen[sl.id]);
     }
   }
 
