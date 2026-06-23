@@ -168,6 +168,23 @@
     'g.die.title': 'THE STORM CONSUMED YOU',
     'g.die.text': 'The interference got you.<br><br>The time portal closes without you.<br><br><em>Try again.</em>',
 
+    // --- run summary (end screen) ---
+    'g.stats.title': 'HOW YOU DID',
+    'g.stats.coins': 'Cash in your pocket',
+    'g.stats.days':  'Days in the mess',
+    'g.stats.items': 'Stuff you grabbed',
+    'g.stats.hitos': 'Milestones',
+    'g.hito.tormenta':  'Set off the solar storm',
+    'g.hito.edificio':  'Opened the abandoned building',
+    'g.hito.bunker':    'Crowned guru (bunker)',
+    'g.hito.iorio':     'Iorio cleared out the ninjas',
+    'g.hito.truco':     'Beat the Card Sharp',
+    'g.hito.fifa':      'FIFA 98 champion',
+    'g.hito.megadrive': 'Got the Mega Drive',
+    'g.hito.cemento':   'Got into Cemento',
+    'g.hito.armado':    'Armed up with criollo gear',
+    'g.hito.portal':    'Crossed the portal',
+
     // ===== CHINESE SUPERMARKET (super.js) =====
     'sup.intro': 'Grab stuff off the shelves [E] (goes in the cart UNPAID). Then pay at the corner-shop TILL — he gives change in candy. Bolt without paying... and the ninjas come out. ESC: quit.',
     'sup.title': 'CHINESE SUPERMARKET 超市',

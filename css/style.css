@@ -158,6 +158,19 @@ button:hover { background: #ffd54f; }
 #continueBtn { display: block; margin: 0 auto 4px; background: #7CFC00; }
 #continueBtn:hover { background: #9dff4a; }
 
+/* ---- resumen de la partida (pantalla de fin) ---- */
+.end-stats:empty { display: none; }
+.end-stats-title { font-size: 11px; letter-spacing: 2px; color: #9fd3ff; margin: 10px 0 4px; }
+.end-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin-bottom: 8px; }
+.end-stat { display: flex; justify-content: space-between; font-size: 12px; gap: 8px;
+  border-bottom: 1px dotted rgba(255,255,255,0.15); padding-bottom: 2px; }
+.end-stat b { color: #FFD54F; }
+.end-hitos { list-style: none; padding: 0; margin: 4px 0 0; font-size: 11px; text-align: left;
+  columns: 2; column-gap: 18px; }
+.end-hitos li { padding: 1px 0; break-inside: avoid; }
+.end-hitos li.done { color: #7CFC00; }
+.end-hitos li.miss { color: #6a6a6a; }
+
 /* ---- Storm flash ---- */
 #flash {
   position: absolute;

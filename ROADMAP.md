@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=66`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=67`).
 
 ---
 
@@ -119,7 +119,8 @@ Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)
 - [ ] **Balance de la tormenta**: hoy los enemigos se activan al estallar; revisar dificultad
       de la vuelta a la superficie.
 - [x] **Guardado** (v=65): autosave en `localStorage` + "Continuar" en la intro. Ver `js/save.js`.
-- [ ] **Pantalla de fin** más rica (stats: monedas juntadas, secretos encontrados).
+- [x] **Pantalla de fin** más rica (v=67): resumen con guita, días, ítems juntados y checklist de 10 hitos
+      (`gameStats`/`renderStats` en game.js, `#endStats`).
 
 ### Contenido
 - [ ] **Nivel 2** (el salto temporal): la intro promete viajar entre momentos de la historia.

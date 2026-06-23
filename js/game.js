@@ -26,6 +26,7 @@
   const elEnd = document.getElementById('endscreen');
   const elEndTitle = document.getElementById('endTitle');
   const elEndText = document.getElementById('endText');
+  const elEndStats = document.getElementById('endStats');
   const elHud = document.getElementById('hud');
   const elHp = document.getElementById('hp');
   const elAmmo = document.getElementById('ammo');
@@ -885,12 +886,44 @@
   }
 
   // ---- fin ----
+  // resumen de la partida para la pantalla de fin: números + checklist de hitos.
+  function gameStats(won) {
+    let items = 0;
+    if (states) for (const s of states) for (const pk of s.pickups) if (pk.taken) items++;
+    const hitos = [
+      { k: 'g.hito.tormenta',  done: stormed },
+      { k: 'g.hito.edificio',  done: borrachosHappy },
+      { k: 'g.hito.bunker',    done: bunkerUnlocked },
+      { k: 'g.hito.iorio',     done: chinoFrontOpen },
+      { k: 'g.hito.truco',     done: trucoWon },
+      { k: 'g.hito.fifa',      done: fifaWon },
+      { k: 'g.hito.megadrive', done: !!(player && player.hasMegaDrive) },
+      { k: 'g.hito.cemento',   done: !!(player && player.hasCementoTicket) },
+      { k: 'g.hito.armado',    done: armado },
+      { k: 'g.hito.portal',    done: !!won },
+    ];
+    return { coins: (player && player.coins) | 0, days: loopCount, items, hitos,
+      done: hitos.filter(h => h.done).length, total: hitos.length };
+  }
+  function renderStats(won) {
+    if (!elEndStats) return;
+    const s = gameStats(won);
+    const row = (icon, label, val) => '<div class="end-stat"><span>' + icon + ' ' + label + '</span><b>' + val + '</b></div>';
+    let html = '<div class="end-stats-title">' + T('g.stats.title') + '</div><div class="end-stats-grid">';
+    html += row('🪙', T('g.stats.coins'), s.coins);
+    html += row('🌙', T('g.stats.days'),  s.days);
+    html += row('🎁', T('g.stats.items'), s.items);
+    html += row('🏆', T('g.stats.hitos'), s.done + '/' + s.total);
+    html += '</div><ul class="end-hitos">' + s.hitos.map(h =>
+      '<li class="' + (h.done ? 'done' : 'miss') + '">' + (h.done ? '✓' : '·') + ' ' + T(h.k) + '</li>').join('') + '</ul>';
+    elEndStats.innerHTML = html;
+  }
   function win() {
     if (state === 'win') return;
     state = 'win'; running = false; Sfx.stopHum(); Sfx.win();
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // terminaste: borrá el guardado
     elEndTitle.textContent = T('g.win.title'); elEndTitle.style.color = '#4FC3F7';
-    elEndText.innerHTML = T('g.win.text');
+    elEndText.innerHTML = T('g.win.text'); renderStats(true);
     showEnd();
   }
   function die() {
@@ -898,7 +931,7 @@
     state = 'dead'; running = false; Sfx.stopHum();
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // moriste de verdad: guardado a la basura
     elEndTitle.textContent = T('g.die.title'); elEndTitle.style.color = '#ff5252';
-    elEndText.innerHTML = T('g.die.text');
+    elEndText.innerHTML = T('g.die.text'); renderStats(false);
     showEnd();
   }
   function showEnd() {

@@ -9,6 +9,23 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v67] — 2026-06-23 — 🏆 Pantalla de fin con stats (resumen de la partida)
+
+Ganar o morir ya no muestra solo texto: ahora hay un **resumen** de cómo te fue.
+
+### Agregado
+- **Resumen de la partida** en la pantalla de fin (`#endStats`): guita en el bolsillo, días sobrevividos
+  en el loop, cosas juntadas (pickups), y **Hitos N/10** con un **checklist** ✓/· de los 10 hitos del nivel
+  (tormenta, edificio, búnker, Iorio, truco, FIFA, Mega Drive, Cemento, armado, portal). El portal aparece
+  tildado solo si ganaste.
+- i18n completo (es/en): `g.stats.*` + `g.hito.*` (paridad verificada).
+
+### Técnico
+- `gameStats(won)` + `renderStats(won)` en `game.js`; se llaman desde `win()`/`die()`. Reusa el estado que
+  ya existe (flags + `states[].pickups`), no agrega tracking nuevo. Estilos `.end-stats*` en `style.css`.
+
+---
+
 ## [v66] — 2026-06-23 — 🔥 Pulido del loop: fuego que parpadea + ninjas al pogo
 
 Dos detalles visuales del loop post-tormenta que estaban pendientes (antes eran estáticos / solo texto).

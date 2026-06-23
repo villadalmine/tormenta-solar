@@ -189,6 +189,23 @@
     'g.die.title': 'TE CONSUMIÓ LA TORMENTA',
     'g.die.text': 'La interferencia te alcanzó.<br><br>El portal temporal se cierra sin vos.<br><br><em>Probá de nuevo.</em>',
 
+    // --- resumen de la partida (pantalla de fin) ---
+    'g.stats.title': 'CÓMO TE FUE',
+    'g.stats.coins': 'Guita en el bolsillo',
+    'g.stats.days':  'Días en el quilombo',
+    'g.stats.items': 'Cosas que juntaste',
+    'g.stats.hitos': 'Hitos',
+    'g.hito.tormenta':  'Disparaste la tormenta solar',
+    'g.hito.edificio':  'Abriste el edificio abandonado',
+    'g.hito.bunker':    'Te consagraron gurú (búnker)',
+    'g.hito.iorio':     'Iorio corrió a los ninjas',
+    'g.hito.truco':     'Le ganaste al Tahúr',
+    'g.hito.fifa':      'Campeón del FIFA 98',
+    'g.hito.megadrive': 'Conseguiste la Mega Drive',
+    'g.hito.cemento':   'Entraste a Cemento',
+    'g.hito.armado':    'Te armaste con fierro criollo',
+    'g.hito.portal':    'Cruzaste el portal',
+
     // ===== SUPER CHINO (super.js) =====
     'sup.intro': 'Agarrá de las góndolas [E] (se mete al changuito SIN pagar). Después pagás en la CAJA del chino — te da el vuelto en caramelos. Si rajás sin pagar... salen los ninjas. ESC: salir.',
     'sup.title': 'SUPER CHINO 超市',
