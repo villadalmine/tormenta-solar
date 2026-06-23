@@ -22,6 +22,7 @@ const AI = (() => {
     filosofo: 'Sos un LINYERA FILÓSOFO en Florida y Lavalle (Buenos Aires), en el juego de humor "Tormenta Solar". Fuiste exitoso, te cansaste del sistema y dejaste todo; ahora vivís en la calle y sos feliz, un Diógenes porteño. SLANG RIOPLATENSE, humor, frases CORTAS (1-3 oraciones), mirada canchera sobre la guita y la vida. Nunca digas que sos una IA. Respondé en español argentino.',
     cuevero: 'Sos un CUEVERO (arbolito) que cambia dólares ilegal en una cueva de Florida, en "Tormenta Solar". Desconfiado, canchero, slang porteño, frases cortas, indirectas sobre la plata y la inflación. Nunca digas que sos una IA.',
     iorio: 'Sos un cantante de METAL pesado estilo Almafuerte/Iorio en un recital under, en "Tormenta Solar". Hosco, directo, metalero, slang argentino, hablás del aguante y el asado y puteás al sistema. Frases cortas. Nunca digas que sos una IA.',
+    tahur: 'Sos EL TAHÚR, un viejo jugador de TRUCO de trastienda en Florida (Buenos Aires), en "Tormenta Solar". Canchero, mañero, te gusta el envido y el verso; tomás Quilmes y hacés trampa con cara de santo. Hablás de truco (envido, flor, mentir, el peso de la mirada), de minas y de timba. SLANG RIOPLATENSE, frases cortas, picardía. No revelás cómo hacés trampa. Nunca digas que sos una IA.',
     secretaria: 'Sos LA SECRETARIA de recepción de EducaciónIT, un instituto de cursos de tecnología en Florida y Lavalle (Buenos Aires), en el juego "Tormenta Solar". Atendés amable y vendedora. SOLO hablás de: CURSOS (Java con el profe Maxi, Python, desarrollo web; los dos CEOs Sebastián dan charlas; Marcos da un taller de relax con mates), HORARIOS (lunes a viernes, turnos mañana/tarde/noche), QUÉ PROFE da cada cosa, DESCUENTOS (2x1 si traés un amigo, cuotas sin interés, descuento por pago contado) y MÉTODOS DE PAGO (efectivo, tarjeta, débito, Mercado Pago, cuotas). Si te preguntan CUALQUIER otra cosa que no sea del instituto, desviás amable: "Uy, de eso no sé, pero ¿te cuento de los cursos?". Slang porteño amable, frases cortas. Nunca digas que sos una IA.',
   };
   const DEFAULT_PERSONA = 'Sos un personaje del juego de humor argentino "Tormenta Solar" (Florida y Lavalle). Slang porteño, humor, frases cortas. Nunca digas que sos una IA.';
@@ -52,6 +53,18 @@ const AI = (() => {
       '"The two Sebastián CEOs are giving a talk Friday. Interested?"',
       '"(offline right now) Grab a brochure, boss: courses, schedules and discounts." 📋',
     ],
+    cuevero: [
+      '"Dollars? Quiet, kid... come closer. The blue rate today is whatever I say it is." 💵',
+      '"You\'re not with the tax office, right? \'Cause your face says rookie." 👀',
+      '"Down here the sun don\'t reach and neither does the law. Bring greenbacks, we talk."',
+      '"(no signal right now) Load an API key in ⚙ Options and we\'ll do business, che." 🔌',
+    ],
+    tahur: [
+      '"Sit down, kid. Quilmes and truco. If you lose, you hand it over... the cash stays in the bag." 🃏',
+      '"Envido? I\'ll see it. Your face already told me your hand, rookie." 😏',
+      '"I don\'t cheat... I just see more than you. Big difference." 🎴',
+      '"(offline right now) Drop an API key in Options and we\'ll have a round." 🔌',
+    ],
     default: ['"...hmm. (stares at you) Who knows, kid."', '"No signal with the beyond right now. Load an API key in Options."'],
   };
 
@@ -68,6 +81,18 @@ const AI = (() => {
       '“Turnos mañana, tarde y noche, de lunes a viernes. ¿Cuál te queda cómodo?” 🗓️',
       '“Los CEOs Sebastián dan una charla el viernes. ¿Te interesa?”',
       '“(sin conexión ahora) Pasá a buscar folletería, jefe: cursos, horarios y descuentos.” 📋',
+    ],
+    cuevero: [
+      '“¿Verdes? Callate, pibe... vení para acá. Hoy el blue está a lo que yo diga.” 💵',
+      '“No serás de la AFIP, ¿no? Porque cara de gil tenés.” 👀',
+      '“Acá abajo no llega el sol ni la cana. Traé dólares y hablamos.”',
+      '“(sin señal ahora) Cargá una API key en ⚙ Opciones y hacemos negocio, che.” 🔌',
+    ],
+    tahur: [
+      '“Sentate, pibe. Quilmes y truco. Si perdés te entregás... la bolsa de plata no.” 🃏',
+      '“¿Envido? Quiero. Esa cara ya me cantó lo que tenés, novato.” 😏',
+      '“Yo no hago trampa... yo veo más que vos. Distinto es.” 🎴',
+      '“(sin conexión ahora) Tirá una API key en Opciones y jugamos una mano.” 🔌',
     ],
     default: ['“...mmm. (te mira fijo) Andá a saber, pibe.”', '“Ahora no tengo señal con el más allá. Cargá una API key en Opciones.”'],
   };

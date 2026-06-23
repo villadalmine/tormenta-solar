@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=70`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=71`).
 
 ---
 
@@ -96,7 +96,8 @@ puede jugar en inglés (verificado en navegador real: intro "SOLAR STORM", botó
 - [x] **`tools/gen-dialogos.mjs` lee las fichas** (`specs/nivel-1/personajes/*`, bloques ` ```gen `):
       los pools salen de cada personaje. (Pendiente: usar también la Personalidad completa como
       contexto, no sólo la `seed`.)
-- [ ] Más NPCs chateables con persona acotada (cuevero, tahúr) reusando su bloque Personalidad.
+- [x] Más NPCs chateables con persona acotada (v=71): **cuevero** (sala 8) y **tahúr** (sala 9, 2 naiperos).
+      Personas en `ai.js` + proxy + canned es/en. Los NPCs con acción crítica siguen scripteados.
 - [ ] **Ollama local** como fuente del chat (modo C, para ver luego): correr un modelo local
       (`http://localhost:11434`) para quien lo tenga — cero costo/cuota, privado, sin clave. Mismo
       seam (`AI.chat()`), se agregaría `viaOllama()` en la cadena de prioridad + detección en ⚙ Opciones.

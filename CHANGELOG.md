@@ -9,6 +9,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v71] — 2026-06-23 — 💬 Más NPCs chateables (cuevero y tahúr)
+
+El chat con IA tenía pocos personajes; ahora hay dos voces nuevas con persona acotada.
+
+### Agregado
+- **Cuevero chateable** en la cueva (sala 8): un arbolito "sin clientes" (`action:'chat'`, `persona:'cuevero'`)
+  — desconfiado, slang porteño, indirectas sobre el blue y la AFIP. **No** es el del deal (ese sigue
+  scripteado: dispara la tormenta).
+- **Tahúres chateables** en la trastienda secreta (sala 9): dos naiperos (`persona:'tahur'`) que charlan de
+  truco, envido y trampas con cara de santo. El Tahúr del juego de truco sigue intacto (`action:'truco'`).
+- Persona **`tahur`** nueva en `js/ai.js` y en el proxy (`ai-proxy/personas.js`); **canned** locales (es/en)
+  para `cuevero` y `tahur` (antes caían al genérico) → el chat offline ahora responde **en personaje**.
+
+### Técnico
+- Respeta la regla de [ia-openrouter §0]: los NPCs con DATA/acción crítica siguen scripteados; sólo se
+  hacen chateables NPCs sin rol de gameplay. e2e (auditoría de assets) + web-smoke verdes.
+
+---
+
 ## [v70] — 2026-06-23 — 🔊 Sonido ambiente por zona
 
 Hasta ahora solo había música. Ahora cada zona tiene una **cama de ambiente** sutil debajo.
