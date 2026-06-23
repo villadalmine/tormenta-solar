@@ -9,6 +9,23 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v78] — 2026-06-23 — 🐛 Fix: salir del chat con ESC + autosave durante el chat
+
+### Arreglado
+- **No se podía salir del chat con ESC**: el handler de Escape vivía solo en el `<input>` del chat, así que
+  si el input perdía el foco (click en el log, o después de tocar "Decir") ESC se iba al `document` y **no
+  había handler** → quedabas trabado en `state='chat'` sin poder moverte. Ahora hay un **Escape global** que
+  cierra el chat tenga o no el foco el input. (El botón "Cerrar" siempre funcionó; "E" es *interactuar*, no salir.)
+- **Continuar tras refresh "no quedaba bien"**: el autosave **se salteaba el estado `chat`** (solo guardaba en
+  `playing`), así que si refrescabas estando en el chat, "Continuar" te devolvía a un punto viejo. Ahora el
+  autosave/serialize también cubren `chat` (el jugador está quieto y la posición es válida).
+
+### Técnico
+- `game.js`: Escape global con guard `state==='chat'`; `serialize()`/`autosave()` aceptan `playing`+`chat`.
+  e2e + web-smoke verdes.
+
+---
+
 ## [v77] — 2026-06-23 — 📈 Publicidad: métricas de impresión (cliente, opt-in)
 
 Cierre del MVP de medición de `specs/publicidad.md` del lado del cliente.

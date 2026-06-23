@@ -94,7 +94,7 @@
   // serialize(): snapshot PLANO del estado, o null si no estamos en juego estable (solo 'playing').
   // No persiste sub-modos (arcade/super/vinilos): al cargar, retomás parado en la sala.
   function serialize() {
-    if (state !== 'playing' || !player) return null;
+    if ((state !== 'playing' && state !== 'chat') || !player) return null;   // 'chat' también: el jugador está quieto y la pos es válida
     const p = player;
     return {
       v: 1, current, px: p.x, py: p.y,
@@ -142,7 +142,7 @@
   // autosave: cada ~5s mientras jugás, si hay un sink (SaveStore de save.js). Sin sink, no hace nada.
   let lastSave = 0;
   function autosave(t) {
-    if (state !== 'playing' || typeof SaveStore === 'undefined' || !SaveStore.write) return;
+    if ((state !== 'playing' && state !== 'chat') || typeof SaveStore === 'undefined' || !SaveStore.write) return;
     if (t - lastSave < 5000) return;
     lastSave = t;
     const snap = serialize(); if (snap) SaveStore.write(snap);
@@ -1052,6 +1052,8 @@
 
   Input.bind(canvas);
   document.addEventListener('keydown', e => {
+    // ESC cierra el chat SIEMPRE (tenga o no el foco el input; si no, quedás trabado en state='chat')
+    if (e.key === 'Escape' && state === 'chat') { e.preventDefault(); closeChat(); return; }
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
@@ -1063,7 +1065,7 @@
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); chatSend(); }
-    else if (e.key === 'Escape') closeChat();
+    else if (e.key === 'Escape') { e.preventDefault(); closeChat(); }   // (el handler global también lo cubre si pierde foco)
   });
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
