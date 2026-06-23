@@ -67,3 +67,29 @@ chino --bloquea--> salida_sin_pagar [ninjas samurái]
   }
 }
 ```
+
+El chino tiene **dos entradas** tras la tormenta: el frente (lo abre Iorio → [iorio.md](../personajes/iorio.md))
+y la **puerta trasera** desde la cueva (entrada de servicio, no necesita a nadie). Esta arista es la segunda:
+```hist
+{
+  "id": "chino_back",
+  "title": "Entrar al chino por la puerta trasera (desde la cueva)",
+  "at": "cueva",
+  "pre": { "stormed": true, "chinoFrontOpen": false },
+  "sets": { "chinoEntered": true },
+  "hints": {
+    "es": [
+      "El frente del chino está cerrado a cal y canto... pero los negocios siempre tienen otra puerta.",
+      "Hay una entrada de servicio al chino, abajo, al fondo de la cueva. No por la calle.",
+      "En la cueva, andá hasta el FONDO a la derecha: ahí hay una puerta trasera al chino.",
+      "¡Metete por la PUERTA TRASERA del chino, al fondo de la CUEVA a la derecha! No hace falta Iorio."
+    ],
+    "en": [
+      "The shop's front is shut tight... but businesses always have another door.",
+      "There's a service entrance to the shop down in the back of the cueva. Not from the street.",
+      "In the cueva, head all the way to the BACK on the right: there's a back door into the shop.",
+      "Go in through the shop's BACK DOOR, at the far right of the CUEVA! You don't need Iorio."
+    ]
+  }
+}
+```

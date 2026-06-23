@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=68`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=69`).
 
 ---
 
@@ -19,8 +19,8 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** 
 - **Grafo de historia + linyera-oráculo de pistas (Fase 1, v=62)**: el linyera filósofo tira pistas
   según en qué punto de la historia estás, con spoiler escalado por insistencia. Grafo ensamblado de las
   fichas (` ```hist `) por `tools/gen-historia.mjs` → `js/historia.js`; `js/hint-engine.js` (frontera +
-  cercanía + prioridad crítico/secundario). Capa aditiva, solo describe. **11 aristas** (crítico +
-  secundario: megadrive/fifa/cemento/armas/loop). El chat IA del linyera usa la pista como **grounding**
+  cercanía + prioridad crítico/secundario). Capa aditiva, solo describe. **12 aristas** (crítico +
+  secundario: megadrive/fifa/cemento/armas/loop + `chino_back` v=69, la puerta trasera del chino). El chat IA del linyera usa la pista como **grounding**
   (la dice con su voz) y el linyera es **errante** (aparece cerca de lo no hecho). **Fase 1 completa.**
   Ver `specs/nivel-1/historia-grafo.md`.
 - **Guardado automático (v=65)**: el progreso se persiste en `localStorage` cada ~5s jugando

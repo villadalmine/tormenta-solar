@@ -62,6 +62,7 @@
   let trucoWon = false;                             // ganar el truco abre una puerta al chino (se consume al cruzar)
   let armado = false;                               // espejo de n.armado: compraste fierro criollo (lo lee el grafo de historia)
   let tesoroTaken = false;                           // reclamaste el TESORO de los linyeras en el búnker (premio del edificio, 1×)
+  let chinoEntered = false;                           // entraste al chino post-tormenta por CUALQUIER puerta (lo lee el grafo: arista chino_back)
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -80,7 +81,7 @@
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
-    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false; tesoroTaken = false;   // loop de supervivencia, de cero
+    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
@@ -101,7 +102,7 @@
         birras: p.birras, carne: p.carne, fiambre: p.fiambre, diosa: p.diosa, falopa: p.falopa,
         spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
-        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, armado, tesoroTaken },
+        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, armado, tesoroTaken, chinoEntered },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       pickups: states.map(s => s.pickups.map(pk => !!pk.taken)),
       npcs: rooms.map(rm => (rm.npcs || []).map(n => ({ f: !!n.falopaTaken, l: !!n.limosnaTaken }))),
@@ -119,7 +120,7 @@
     secretUnlocked = !!f.secretUnlocked; gaveBeers = !!f.gaveBeers; borrachosFed = f.borrachosFed | 0;
     borrachosHappy = !!f.borrachosHappy; moneyRecovered = !!f.moneyRecovered; fifaWon = !!f.fifaWon;
     bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
-    trucoWon = !!f.trucoWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken;
+    trucoWon = !!f.trucoWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
     if (snap.pickups) states.forEach((s, i) => s.pickups.forEach((pk, j) => { if (snap.pickups[i]) pk.taken = !!snap.pickups[i][j]; }));
     if (snap.npcs) rooms.forEach((rm, i) => (rm.npcs || []).forEach((n, j) => { const d = snap.npcs[i] && snap.npcs[i][j]; if (d) { n.falopaTaken = d.f; n.limosnaTaken = d.l; } }));
@@ -347,7 +348,7 @@
   // Fase 1: SOLO LEEMOS los flags que ya maneja game.js para saber dónde está parado el jugador.
   function historiaState() {
     return {
-      stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon, fifaWon, armado,
+      stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon, fifaWon, armado, chinoEntered,
       hasMegaDrive: !!(player && player.hasMegaDrive),
       hasCementoTicket: !!(player && player.hasCementoTicket),
       sleptOnce: loopCount > 0,
@@ -474,7 +475,7 @@
     if (n.hint && (n.talks >= 6 || Math.random() < 0.3)) setMsg(n.hint, '#ffd54f', 5500);
     else setMsg(n.lines ? pick(n.lines) : T('g.borracho.askDefault'), '#ffd54f', 4200);
   }
-  function enterSuper() { superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
+  function enterSuper() { if (stormed) chinoEntered = true; superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   function enterCuevaFromSecret() {
     const idx = rooms.findIndex(r => r.cueveros);

@@ -1,8 +1,9 @@
 # SPEC: Grafo de historia + motor de pistas (la "didáctica" del juego)
 
-- **Estado:** **Fase 1 COMPLETA (v=64)** — 11 aristas (crítico + secundario), motor + linyera + grounding
-  del chat IA + **spawn errante**. Diseño cerrado (§7). Futuro opcional: Fase 2 (que el grafo maneje los
-  flags) y más aristas si crece el nivel.
+- **Estado:** **Fase 1 COMPLETA (v=64)** — motor + linyera + grounding del chat IA + **spawn errante**.
+  Diseño cerrado (§7). **12 aristas** (v=69: se sumó `chino_back`, la puerta TRASERA del chino, como
+  segunda forma de entrar post-tormenta junto a `chino_iorio`). Futuro opcional: Fase 2 (que el grafo
+  maneje los flags) y más aristas si crece el nivel.
 - **Nivel:** transversal (se estrena en Nivel 1)
 - **Última actualización:** 2026-06-22
 
@@ -250,6 +251,14 @@ Todo el diseño quedó cerrado; ya no hay preguntas abiertas para empezar a impl
 - [x] **Spawn errante (v=64):** al entrar a una sala, si hay una arista de **frontera en ese lugar**
   (`currentAt()`), aparece un linyera cerca del jugador (uno solo a la vez, se mueve con vos; en la calle
   queda el fijo). Inyección aditiva en `spawnIn` (`placeRoamingOraculo`), sin tocar `Level.build()`.
+
+- [x] **Puerta trasera del chino (v=69):** arista `chino_back` (en `super-chino.md`) — la **segunda forma**
+  de entrar al chino post-tormenta (además de `chino_iorio`): la entrada de servicio al **fondo de la cueva**,
+  que no necesita a nadie. `at:cueva`, `pre:{stormed,chinoFrontOpen:false}`, `sets:{chinoEntered}`. Resuelve
+  el agujero detectado en playtest: si disparás la tormenta de una, el linyera ahora **conoce las dos rutas**
+  y, por cercanía, te manda a la trasera cuando estás en la cueva (y a Iorio cuando estás en Cemento). Flag
+  espejo nuevo `chinoEntered` (1 línea en `enterSuper`, lo setea cualquier puerta post-tormenta; persiste en
+  el guardado). **12 aristas.**
 
 **Fase 1 completa.** Futuro opcional: **Fase 2** (que el grafo **maneje** los flags, no solo los describa)
 y sumar aristas si el nivel crece.
