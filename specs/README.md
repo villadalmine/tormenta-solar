@@ -75,6 +75,7 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar autom�
 - [ia-openrouter.md](ia-openrouter.md) — IA (OpenRouter, modelo free) para diálogos/contenido (Draft).
 - [idiomas.md](idiomas.md) — i18n / soporte multi-idioma (inglés), transcreación del humor porteño (impl. completo v=59).
 - [glosario-transcreacion.md](glosario-transcreacion.md) — fuente única de las decisiones es-AR → inglés (términos, nombres propios, tono).
+- [publicidad.md](publicidad.md) — monetización por product placement (afiches/pantallas/fachadas/góndola), capa aditiva tipo `presence` (Draft).
 
 **Nivel 1 — sistemas**
 | Spec | Estado |
