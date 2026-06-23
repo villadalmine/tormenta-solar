@@ -9,6 +9,26 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v66] — 2026-06-23 — 🔥 Pulido del loop: fuego que parpadea + ninjas al pogo
+
+Dos detalles visuales del loop post-tormenta que estaban pendientes (antes eran estáticos / solo texto).
+
+### Agregado
+- **Fuego animado** en la barricada del chino: los tachos ahora tienen **llamas que titilan** y se mecen
+  (`drawFlame` en `game.js`, dibujadas sobre el sprite con resplandor y `globalCompositeOperation:'lighter'`,
+  desfasadas entre los dos tachos). Reemplaza el fuego pintado fijo del sprite.
+- **Ninjas yéndose al pogo**: cuando le das FALOPA a **Iorio** y toca *Pibe Tigre*, en **Cemento** entran
+  corriendo **3 ninjas** hacia el escenario (siluetas con vincha roja y katana, piernas animadas;
+  `drawNinjaRunners`/`drawRunner`, FX transitorio de ~4s que se desvanece). Antes el frente del chino
+  simplemente se abría sin verse nada.
+
+### Técnico
+- Todo **procedural** (sin sprites ni sistema de entidades nuevos): se dibuja en `render()` con el reloj
+  `time`. El FX de ninjas usa `ninjaRunT`/`ninjaRunRoom` (se setean en `giveIorio`, se limpian en `reset`).
+- Capa de render pura: no toca lógica ni flags. e2e + web-smoke verdes.
+
+---
+
 ## [v65] — 2026-06-23 — 💾 Guardado automático (continuar partida)
 
 El progreso ya no se pierde al recargar: se autoguarda en `localStorage` y la intro ofrece **Continuar**.

@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=65`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=66`).
 
 ---
 
@@ -104,8 +104,9 @@ puede jugar en inglés (verificado en navegador real: intro "SOLAR STORM", botó
 
 ### Loop de supervivencia — pulido pendiente
 Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md). El MVP está; falta:
-- [ ] **Animar el fuego** de la barricada del chino (llamas parpadeando).
-- [ ] **Sprite de los ninjas yéndose al recital** cuando Iorio toca (hoy solo texto).
+- [x] **Animar el fuego** de la barricada del chino (v=66): `drawFlame` dibuja llamas que titilan/mecen.
+- [x] **Ninjas yéndose al recital** cuando Iorio toca (v=66): en Cemento entran 3 ninjas corriendo al pogo
+      (`drawNinjaRunners`, procedural, ~4s). Ya no es solo texto.
 - [ ] **Balance** de los números placeholder (decay −3/30s, comida −10/+40, falopa, plata 5–20).
 - [x] **RF-7 — colapso en ruinas** (v=50): tras la tormenta, EducaciónIT / arcade / chorería /
       Garbarino quedan **clausurados** (puerta bloqueada con mensaje + tablones cruzados sobre la

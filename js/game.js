@@ -43,6 +43,7 @@
   const elChatInput = document.getElementById('chat-input');
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0;
   let roamingNpc = null;   // el linyera ERRANTE: aparece cerca de lo que no hiciste (ver historia-grafo.md §3.4)
+  let ninjaRunT = -99, ninjaRunRoom = -1;   // FX transitorio: los ninjas rajan al mosh cuando Iorio toca
 
   let rooms, states, current, player, cam;
   let state = 'intro', stormed = false, bought = false, hasVale = false, challengeForVale = false;
@@ -79,6 +80,7 @@
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; roamingNpc = null;
+    ninjaRunT = -99; ninjaRunRoom = -1;
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
     elFloor.textContent = TX(rooms[0].name);
@@ -318,6 +320,7 @@
     if (!stormed) { setMsg(TX(n.dialog) || T('g.iorio.preStorm'), '#aef0c0', 4500); return; }
     if ((player.falopa || 0) <= 0) { setMsg(T('g.iorio.noFalopa'), '#ffd54f', 6000); return; }
     player.falopa--; chinoFrontOpen = true; Sfx.win();
+    ninjaRunT = time; ninjaRunRoom = current;        // ¡tocó Pibe Tigre! los ninjas rajan al pogo (FX)
     setMsg(T('g.iorio.give'), '#7CFC00', 9000);
   }
   // ---- chat con IA (action:'chat') ----
@@ -651,6 +654,46 @@
     ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x - txt.length*3.2, y - 9, txt.length*6.4, 12);
     ctx.fillStyle = col; ctx.fillText(txt, x, y);
   }
+  // llama parpadeante (tachos de la barricada del chino). cx/cy = boca del tacho; phase desfasa cada fuego.
+  function drawFlame(cx, cy, phase) {
+    const t = time * 6 + phase;
+    const flick = 1 + 0.18 * Math.sin(t) + 0.1 * Math.sin(t * 2.3 + 1.7);   // titileo
+    const h = 22 * flick, w = 9, sway = 2.4 * Math.sin(t * 1.3 + phase);     // se mece de costado
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const glow = ctx.createRadialGradient(cx, cy - 6, 1, cx, cy - 6, 22 * flick);
+    glow.addColorStop(0, 'rgba(255,170,40,0.5)'); glow.addColorStop(1, 'rgba(255,120,0,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(cx, cy - 6, 22 * flick, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ff6a00'; ctx.beginPath(); ctx.moveTo(cx - w, cy); ctx.quadraticCurveTo(cx + sway, cy - h, cx + w, cy); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffca28'; ctx.beginPath(); ctx.moveTo(cx - w*0.55, cy); ctx.quadraticCurveTo(cx + sway*1.2, cy - h*0.66, cx + w*0.55, cy); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,245,200,0.9)'; ctx.beginPath(); ctx.moveTo(cx - w*0.22, cy); ctx.quadraticCurveTo(cx + sway, cy - h*0.36, cx + w*0.22, cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  // ninjas que entran corriendo al pogo cuando Iorio toca Pibe Tigre (FX transitorio ~4s, procedural).
+  function drawNinjaRunners(e) {
+    const r = room(), gy = r.gTop * Level.TILE - cam.y, x0 = 1.5 * Level.TILE - cam.x;
+    const fade = e < 3.4 ? 1 : Math.max(0, (4.2 - e) / 0.8);
+    for (let i = 0; i < 3; i++) {
+      const te = e - i * 0.35; if (te < 0) continue;          // entran escalonados
+      drawRunner(x0 + te * 300 + i * 16, gy, time * 13 + i * 2.1, fade);
+    }
+  }
+  function drawRunner(sx, sy, ph, alpha) {
+    const step = 4 * Math.sin(ph);
+    ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 4;               // piernas en carrera
+    ctx.beginPath(); ctx.moveTo(sx, sy - 14); ctx.lineTo(sx - 5 + step, sy);
+    ctx.moveTo(sx, sy - 14); ctx.lineTo(sx + 5 - step, sy); ctx.stroke();
+    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(sx - 6, sy - 30, 12, 18);   // torso
+    ctx.beginPath(); ctx.arc(sx, sy - 34, 5, 0, Math.PI*2); ctx.fill();  // cabeza
+    ctx.fillStyle = '#b71c1c'; ctx.fillRect(sx - 6, sy - 37, 12, 3);     // vincha roja
+    ctx.fillStyle = '#caa070'; ctx.fillRect(sx - 4, sy - 34, 8, 2);      // franja de ojos
+    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 3;            // brazo hacia adelante
+    ctx.beginPath(); ctx.moveTo(sx, sy - 26); ctx.lineTo(sx + 9 + step, sy - 22); ctx.stroke();
+    ctx.strokeStyle = '#cfd8dc'; ctx.lineWidth = 2;            // katana a la espalda
+    ctx.beginPath(); ctx.moveTo(sx - 6, sy - 28); ctx.lineTo(sx - 16, sy - 40); ctx.stroke();
+    ctx.restore();
+  }
   function render() {
     const r = room(), s = st();
     // fondo
@@ -694,7 +737,10 @@
       // frente del chino atrincherado tras la tormenta (hasta que Iorio corra a los ninjas)
       if (d.id === 'super' && stormed && !chinoFrontOpen) {
         const b = Art.decor.barricada;
-        ctx.drawImage(b, d.x - cam.x - b.width/2, d.y - cam.y - b.height);
+        const bx = d.x - cam.x - b.width/2, by = d.y - cam.y - b.height;
+        ctx.drawImage(b, bx, by);
+        drawFlame(bx + 13, by + 50, 0);        // tacho izquierdo (boca a h-26)
+        drawFlame(bx + 73, by + 50, 2.1);      // tacho derecho (desfasado)
         label(T('g.label.barricada'), d.x - cam.x, d.y - cam.y - b.height - 4, '#ff5252');
       }
       // RF-7: edificios derrumbados tras la tormenta (tablones sobre la puerta)
@@ -746,6 +792,8 @@
     player.draw(ctx, cam);
     Bullets.draw(ctx, cam);
     Particles.draw(ctx, cam);
+    // ninjas yéndose al pogo cuando Iorio toca (solo en Cemento, ~4s tras dar la falopa)
+    if (current === ninjaRunRoom && time - ninjaRunT < 4.2) drawNinjaRunners(time - ninjaRunT);
 
     drawLight(r);
     drawPost();
