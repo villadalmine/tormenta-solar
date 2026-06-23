@@ -1,9 +1,16 @@
 # SPEC: Publicidad / product placement en el juego (monetización por espacios)
 
-- **Estado:** **MVP implementado (v=73–76)** — capa `js/ads.js` con formatos **afiche/poster**, **pantalla**
-  (`screen`, animado), **fachada** (`fachada`) y **góndola** (`gondola`, product placement en `super.js`) +
-  `ads/slots.json` + `ads/manifest.json` de ejemplo (marcas ficticias). Pendiente: imágenes pixel-procesadas,
-  manifiesto remoto y métricas (§5). El Draft de abajo sigue siendo la guía.
+- **Estado:** **MVP implementado (v=73–77)** — capa `js/ads.js` con formatos **afiche/poster**, **pantalla**
+  (`screen`, animado), **fachada** y **góndola** (product placement en `super.js`) + `ads/slots.json` +
+  `ads/manifest.json` de ejemplo + **métricas de impresión** cliente (v=77, opt-in por endpoint). Pendiente:
+  imágenes pixel-procesadas, manifiesto remoto y el **endpoint server** de métricas (contrato en §5). El Draft
+  de abajo sigue siendo la guía.
+
+> **Métricas (v=77, cliente):** `js/ads.js` cuenta una impresión por slot **a lo sumo cada 5s** (no por
+> frame) y, **solo si `window.ADS_METRICS` apunta a un endpoint**, hace `flush` cada 30s y al ocultar/cerrar
+> la pestaña (`sendBeacon`). Sin endpoint, **cero red** (default). Contrato del endpoint a implementar
+> (reusando `presence-server/`): `POST {ADS_METRICS}` body `{"views": { "<slotId>": <n>, … }, "ts": <ms>}`;
+> el server agrega por slot/campaña. `Ads.stats()` devuelve los conteos en memoria (debug).
 - **Nivel:** transversal (cualquier nivel; se estrena en Nivel 1)
 - **Última actualización:** 2026-06-23
 

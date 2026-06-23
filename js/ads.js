@@ -11,6 +11,24 @@ const Ads = (() => {
   let slots = [];               // [{ id, room, x, y, w, h, format }]  (x/y en tiles; w/h en px)
   const chosen = {};            // slotId -> campaña elegida
   const imgCache = {};          // url -> HTMLImageElement (lazy)
+  // --- métricas de IMPRESIÓN (agregadas, sin datos personales; opt-in por endpoint) ---
+  const views = {}, lastView = {};   // slotId -> conteo / último ts visto (throttle por slot)
+  const METRICS = (typeof window !== 'undefined' && window.ADS_METRICS) || '';   // '' = apagado (default)
+  function countView(id) {
+    const t = Date.now();
+    if (t - (lastView[id] || 0) < 5000) return;   // 1 impresión por slot cada 5s (no por frame)
+    lastView[id] = t; views[id] = (views[id] || 0) + 1;
+  }
+  function flush(beacon) {
+    if (!METRICS || typeof fetch === 'undefined') return;
+    const ids = Object.keys(views); if (!ids.length) return;
+    const payload = JSON.stringify({ views, ts: Date.now() });
+    for (const k of ids) delete views[k];          // best-effort: se limpia al enviar
+    try {
+      if (beacon && typeof navigator !== 'undefined' && navigator.sendBeacon) navigator.sendBeacon(METRICS, payload);
+      else fetch(METRICS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
+    } catch (e) {}
+  }
 
   const active = (c) => {       // ventana de pauta (si no hay fechas, siempre activa)
     const now = Date.now();
@@ -100,6 +118,7 @@ const Ads = (() => {
     for (const sl of slots) {
       if (sl.room !== 'super' || (sl.format || 'gondola') !== 'gondola' || !chosen[sl.id]) continue;
       drawPoster(ctx, sl.px != null ? sl.px : 14, sl.py != null ? sl.py : (H - 58), sl.w || 90, sl.h || 42, chosen[sl.id]);
+      countView(sl.id);
     }
   }
 
@@ -112,10 +131,18 @@ const Ads = (() => {
       if (sx > W || sx + w < 0) continue;        // fuera de cámara (no dibujar)
       const fmt = sl.format || 'poster';
       (fmt === 'screen' ? drawScreen : fmt === 'fachada' ? drawFachada : drawPoster)(ctx, sx, sy, w, h, chosen[sl.id]);
+      countView(sl.id);
     }
   }
 
-  if (typeof window !== 'undefined') load();
-  return { draw, drawGondola, reload: load, get slots() { return slots; } };
+  if (typeof window !== 'undefined') {
+    load();
+    if (METRICS) {     // solo si hay endpoint: flush periódico + al ocultar/cerrar la pestaña (beacon)
+      setInterval(() => { if (!(typeof document !== 'undefined' && document.hidden)) flush(false); }, 30000);
+      if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.hidden) flush(true); });
+      window.addEventListener('pagehide', () => flush(true));
+    }
+  }
+  return { draw, drawGondola, reload: load, flush, stats: () => ({ ...views }), get slots() { return slots; } };
 })();
 if (typeof window !== 'undefined') window.Ads = Ads;

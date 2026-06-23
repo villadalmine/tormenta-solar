@@ -9,6 +9,23 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v77] — 2026-06-23 — 📈 Publicidad: métricas de impresión (cliente, opt-in)
+
+Cierre del MVP de medición de `specs/publicidad.md` del lado del cliente.
+
+### Agregado
+- **Conteo de impresiones** en `js/ads.js`: una impresión por slot **a lo sumo cada 5s** (no por frame),
+  agregadas y **sin datos personales**. `Ads.stats()` las expone (debug).
+- **Flush opt-in**: solo si `window.ADS_METRICS` apunta a un endpoint, hace `POST {views, ts}` cada 30s y
+  al ocultar/cerrar la pestaña (`navigator.sendBeacon`). **Sin endpoint → cero red** (default), mismo molde
+  que `presence.js`.
+
+### Pendiente del SDD
+- El **endpoint server** de métricas (contrato documentado en §5, reusar `presence-server/`), imágenes
+  pixel-procesadas y manifiesto remoto. e2e + web-smoke verdes (sin endpoint, no hay red).
+
+---
+
 ## [v76] — 2026-06-23 — 🛒 Publicidad: formato góndola (product placement en el chino)
 
 Tercer formato del MVP de `specs/publicidad.md`: la marca DENTRO del super chino.

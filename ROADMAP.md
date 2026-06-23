@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=76`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** (cache `v=77`).
 
 ---
 
@@ -26,7 +26,7 @@ Estado del proyecto y por dónde seguir. Última actualización: **2026-06-23** 
   `applyEdge(id)` y el `sets` de cada arista decide qué flag cambia. Ver `specs/nivel-1/historia-grafo.md`.
 - **Publicidad / product placement — MVP (v=73)**: `js/ads.js` (capa aditiva) dibuja afiches de marca en
   slots anclados a salas reales (`ads/slots.json`) según un manifiesto local/remoto (`ads/manifest.json`).
-  Sin manifiesto, idéntico. Formatos afiche/pantalla/fachada/góndola (v=73-76). SDD `specs/publicidad.md`. Falta imágenes pixel y métricas.
+  Sin manifiesto, idéntico. Formatos afiche/pantalla/fachada/góndola + métricas cliente (v=73-77). SDD `specs/publicidad.md`. Falta endpoint server de métricas, imágenes pixel y manifiesto remoto.
 - **Guardado automático (v=65)**: el progreso se persiste en `localStorage` cada ~5s jugando
   (`js/save.js`, capa aditiva) y la intro ofrece **Continuar** (retoma sala, posición, vida/inventario,
   flags de historia, pickups). Se borra al ganar/morir. Seam en `game.js`: `serialize`/`restore`/
