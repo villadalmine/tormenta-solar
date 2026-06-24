@@ -10,7 +10,7 @@
 <meta property="og:description" content="Cómo viaja un mensaje del chat: HAProxy SNI → Cilium Gateway → proxy → LiteLLM → GPU/NPU. Kubernetes self-hosted, todo por API.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://villadalmine.github.io/tormenta-solar/info/tech.html">
-<link rel="stylesheet" href="info.css">
+<link rel="stylesheet" href="info.css?v=2">
 </head>
 <body>
 <header class="bar">
@@ -30,6 +30,47 @@
     pedido atraviesa una <b>infra Kubernetes self-hosted</b> entera. Esto es el viaje completo de un mensaje,
     de punta a punta. Nada es mágico ni una nube ajena: es <b>fierro propio</b>, y <b>todo se declara por API</b>.</p>
 
+    <h3>¿Por dónde entra el juego? — GitHub Pages vs. infra propia</h3>
+    <p>Hay dos cosas distintas viajando: <b>los estáticos del juego</b> (HTML/JS/CSS) y <b>el chat con IA</b>.
+    Los estáticos pueden servirse desde <b>GitHub Pages</b> (hoy) o desde <b>tu propia infra</b> (nginx en el
+    cluster); el <b>chat siempre</b> sale por la infra self-hosted. Este es el mismo navegador, dos orígenes:</p>
+
+    <div class="access">
+      <div class="top"><span class="node">🖥️ Tu navegador</span></div>
+      <div class="down">▼ pide dos cosas ▼</div>
+      <div class="split">
+        <div class="lane game">
+          <h4>① El juego — estáticos</h4>
+          <div class="what">HTML · JS · CSS · assets (sin build)</div>
+          <div class="opt gh">
+            <span class="k">MODO A — HOY · GitHub Pages</span>
+            CDN de GitHub · <span class="path">villadalmine.github.io/tormenta-solar</span><br>
+            <span class="path">gratis, global, cero infra propia.</span>
+          </div>
+          <div class="opt infra soon">
+            <span class="k">MODO B — self-host (cuando se active)</span>
+            nginx en tu cluster · <span class="path">tormenta-solar.cybercirujas.club</span><br>
+            <span class="path">por HAProxy → Cilium Gateway → pod nginx. "Todo local".</span>
+          </div>
+        </div>
+        <div class="lane ai">
+          <h4>② El chat — IA</h4>
+          <div class="what">fetch al proxy (en los dos modos)</div>
+          <div class="opt infra">
+            <span class="k">SIEMPRE · tu infra self-hosted</span>
+            <span class="path">llm-tormenta-solar.cybercirujas.club</span><br>
+            HAProxy (SNI) → Cilium Gateway (TLS) → proxy Node → LiteLLM →
+            <span class="path">OpenRouter / GPU (HAMi+Ollama) / NPU RK1.</span>
+          </div>
+          <div class="what" style="margin-top:8px">Da igual de dónde venga el juego: la IA, la key y el
+          fierro son siempre tuyos. Por eso es <b>gratis</b> para el jugador.</div>
+        </div>
+      </div>
+      <div class="legend"><b class="gh">▮ GitHub Pages</b> = solo archivos estáticos (modo A) ·
+        <b class="infra">▮ Infra propia</b> = el chat siempre, y los estáticos también en modo B.</div>
+    </div>
+
+    <h3 style="margin-top:26px">El viaje de un mensaje del chat</h3>
     <div class="flow"><pre>
    [ Navegador / GitHub Pages ]            el juego (estático)
               │  HTTPS  fetch(llm-tormenta-solar.cybercirujas.club)

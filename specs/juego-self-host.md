@@ -16,6 +16,26 @@ además de GitHub Pages. Mismo patrón self-hosted que el proxy de IA (ver `prox
 - HAProxy: el host ya está en las reglas SNI del `cybercirujas_backend` → VIP `192.168.178.200:443`.
 - **Falta TODO lo del cluster**: imagen, Deployment/Service, HTTPRoute, Certificate, listener HTTPS.
 
+## 2.5 Modos de acceso (GitHub Pages vs. infra propia) — documentado en la tech page
+
+Viajan **dos cosas distintas** y conviene no confundirlas:
+
+| | El juego (estáticos: HTML/JS/CSS) | El chat (IA) |
+|---|---|---|
+| **Qué es** | archivos estáticos, sin build | `fetch` POST al proxy |
+| **MODO A — HOY** | **GitHub Pages** (CDN de GitHub), `villadalmine.github.io/tormenta-solar` | — |
+| **MODO B — self-host** | **nginx en el cluster**, `tormenta-solar.cybercirujas.club` (HAProxy → Cilium Gateway → pod) | — |
+| **Siempre** | — | **infra propia**: `llm-tormenta-solar...` → HAProxy(SNI) → Gateway(TLS) → proxy → LiteLLM → OpenRouter/GPU(HAMi+Ollama)/NPU RK1 |
+
+**Clave:** el **chat siempre** sale por la infra self-hosted (la key y el fierro son del dev → gratis para
+el jugador), **independientemente** de dónde se sirvan los estáticos. Self-hostear el juego (MODO B) hace
+que "todo corra local", pero **no cambia** el camino de la IA. Migración A→B = activar el MODO B sin tocar
+el cliente; decidir luego cuál es el canónico (ver §5).
+
+Esto está graficado en `info/tech.html` (sección "¿Por dónde entra el juego?") con un diagrama CSS de dos
+carriles (① estáticos: GitHub vs cluster · ② chat: siempre infra) + leyenda. Estilos en `info/info.css`
+(`.access`/`.lane`/`.opt`).
+
 ## 3. Diseño propuesto
 
 - **Imagen**: `nginx:alpine` sirviendo los estáticos del repo (`index.html`, `js/`, `css/`, `info/`, …).
