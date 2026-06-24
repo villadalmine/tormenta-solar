@@ -96,6 +96,21 @@ Hallazgos midiendo el hardware real (SSH al host):
 8b = buena calidad, latencia media en placas viejas, usa tu fierro (privacidad). CPU/RAM = calidad alta con
 modelo grande pero latencia mala → no para chat en vivo.
 
+### 2.10.1 Arquitectura revisada (decisión del usuario): GPU solo para online-game; linyera en CPU+RAM
+
+- **Agentes (Holmes/OpenClaw/Hermes) → nube, free CON thinking** (OpenRouter). No usan GPU.
+- **GPU (HAMi) → exclusiva del juego online** (el que ya pidió GPU).
+- **Linyera (este juego) → CPU+RAM** (desacoplado de GPU y de la nube), con **fallback a `gemma4-free` (nube)**.
+
+**Medición CPU pura** (host, `num_gpu:0`, 100% CPU, 32 cores):
+- `llama3.1:8b`: **12.1 tok/s** → ~16s frío / **~7-12s caliente**, buena calidad criollo.
+- `gemma2:2b` (4× más chico, estimado): **~3-5s**. → candidato del linyera en CPU.
+
+**Claves:** (1) **más RAM NO acelera** — solo deja entrar modelos más grandes, y en CPU más grande = más
+lento (70b en 247GB correría a ~1-2 tok/s, inusable). El lever es cores + modelo chico. (2) **GPU+offload
+híbrido descartado**: robaría GPU al juego online. → Linyera = **ollama CPU-only en k8s** (sin request de
+GPU, solo cpu/mem limits) con gemma2:2b; nube como fallback.
+
 ### ⚠️ Gobernanza GPU / HAMi (importante)
 El **ollama del host** (`192.168.178.90`, fuera de k8s) consume VRAM **por fuera de HAMi** → HAMi no lo
 contabiliza y puede sobre-suscribir. Ese ollama **está consumido** (Holmes `gpt-5.4` → `:11434`; rutas
