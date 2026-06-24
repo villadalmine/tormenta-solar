@@ -9,6 +9,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v81] — 2026-06-24 — 🐛 Fix: salir del chino por la puerta trasera colgaba el juego
+
+### Arreglado
+- **Se colgaba al salir del super chino por la puerta secreta/trasera** (post-tormenta). Causa:
+  `enterCuevaFromSecret()` hacía `rooms.findIndex(r => r.cueveros)`, pero `makeRoom` le pone
+  `cueveros: []` (array **vacío pero truthy**) a TODAS las salas → el `findIndex` devolvía la **calle**
+  (sala 0), que **no tiene puerta `up`** → `up.x` tiraba `TypeError` → el game loop moría = **freeze**.
+- **Fix:** el predicado ahora pide `r.cueveros && r.cueveros.length` (la cueva REAL). Mismo bug latente
+  arreglado en `reviveToPreviousLoop()` (respawneaba en la calle en vez de la cueva) y en el mensaje de
+  transición. Aplica a v1 **y** v2. e2e + parity verdes.
+
+---
+
 ## [v80] — 2026-06-24 — 🧩 Motor v2 (data-driven) detrás de un toggle — F1/F2/F3
 
 Primer paso real hacia el **modelo de entidades data-driven** ([`specs/modelo-de-entidades.md`](specs/modelo-de-entidades.md)).

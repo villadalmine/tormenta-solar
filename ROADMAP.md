@@ -1,6 +1,6 @@
 # 🛣️ ROADMAP — Tormenta Solar
 
-Estado del proyecto y por dónde seguir. Última actualización: **2026-06-24** (cache `v=80`).
+Estado del proyecto y por dónde seguir. Última actualización: **2026-06-24** (cache `v=81`).
 
 ---
 

@@ -318,7 +318,7 @@
     loopCount = Math.max(0, loopCount - 1);
     player.alive = true; player.hp = 100; decayAcc = 0; player.falopa = 0;
     resetLoopResources(); chinoFrontOpen = false;
-    const idx = bunkerUnlocked ? rooms.findIndex(r => /[Bb][úu]nker/.test(r.name)) : rooms.findIndex(r => r.cueveros);
+    const idx = bunkerUnlocked ? rooms.findIndex(r => /[Bb][úu]nker/.test(r.name)) : rooms.findIndex(r => r.cueveros && r.cueveros.length);
     spawnIn(idx >= 0 ? idx : 0, 4); flash();
     setMsg(T('g.revive', { n: loopCount }), '#ff5252', 7000);
   }
@@ -509,7 +509,8 @@
   function enterSuper() { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   function enterCuevaFromSecret() {
-    const idx = rooms.findIndex(r => r.cueveros);
+    const idx = rooms.findIndex(r => r.cueveros && r.cueveros.length);   // la CUEVA real (no cualquier sala con cueveros:[] vacío)
+    if (idx < 0) return;
     current = idx;
     const cu = rooms[idx], up = cu.doorById['up'];
     player.x = (up.x + 48) - player.w/2; player.y = cu.gTop*Level.TILE - player.h; player.vx = player.vy = 0;
@@ -602,7 +603,7 @@
     else if (r.theme === 'shop') setMsg(T('g.trans.shop'), '#ffd54f', 3500);
     else if (/[Bb][úu]nker/.test(r.name)) setMsg(T('g.trans.bunker'), '#7CFC00', 7000);
     else if (r.theme === 'secret') setMsg(/Truco/.test(r.name) ? T('g.trans.trucoStore') : T('g.trans.secretStore'), '#d8c8b0', 5500);
-    else if (r.cueveros) setMsg(T('g.trans.cueveros'), '#7CFC00', 5500);
+    else if (r.cueveros && r.cueveros.length) setMsg(T('g.trans.cueveros'), '#7CFC00', 5500);
     else setMsg(T('g.trans.deeper'), '#9fb4c4', 3000);
   }
   // zona → cama de ambiente (calle/viento/cueva/recital); null = sin ambiente
