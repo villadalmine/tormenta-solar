@@ -45,6 +45,21 @@ Esto está graficado en `info/tech.html` (sección "¿Por dónde entra el juego?
 carriles (① estáticos: GitHub vs cluster · ② chat: siempre infra) + leyenda. Estilos en `info/info.css`
 (`.access`/`.lane`/`.opt`).
 
+## 2.6 ⚠️ El sitio local es un SNAPSHOT (rebuild en cada cambio)
+
+A diferencia de GitHub Pages (que sirve el repo y se actualiza solo en cada push), el sitio self-hosted
+sirve los archivos **horneados en la imagen** al momento del build. Por lo tanto, **cada cambio de páginas
+(index/info/js/...) requiere re-buildear** la imagen y redeployar:
+
+1. `git push` con los cambios.
+2. Subir el tag en `web/kaniko-build.yaml` (`0.1.1`, `0.1.2`, …) y `kubectl create -f web/kaniko-build.yaml`.
+3. `helm upgrade tormenta-web web/chart -n ai --reuse-values --set image.tag=<nuevo>`.
+
+(Si esto molesta, la alternativa futura es un sidecar **git-sync** que clone el repo a un volumen que sirve
+nginx, así se actualiza sin rebuild — pendiente, ver §5.)
+
+Estado: imagen actual **`0.1.1`** (sincronizada con el main: pipeline diseñado, MODE B LIVE, páginas EN, css v3).
+
 ## 3. Diseño propuesto
 
 - **Imagen**: `nginx:alpine` sirviendo los estáticos del repo (`index.html`, `js/`, `css/`, `info/`, …).
@@ -70,3 +85,4 @@ carriles (① estáticos: GitHub vs cluster · ② chat: siempre infra) + leyend
 
 - ¿El dominio propio es el canónico y GitHub Pages el espejo, o al revés? (SEO / og:url).
 - ¿Build del web en GitHub Actions→ghcr también (portabilidad), como online-game?
+- **git-sync sidecar** para que el sitio local se actualice sin rebuild (ver §2.6).

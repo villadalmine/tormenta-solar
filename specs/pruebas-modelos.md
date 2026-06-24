@@ -40,7 +40,30 @@ para que no se enfríe (evita los 17s), (b) un `model_name` en LiteLLM apuntando
 Nota infra: hay 2 ollama (`ai/ollama` = qwen2.5:1.5b; `gpu-llm/ollama` en srv-t7910 con GPU = llama3.2:3b
 + qwen2.5:1.5b + **gemma2:2b** que bajé). El slice GPU es chico (4GB / 40 cores HAMi) → entra hasta ~3-4b.
 
-## 3. A probar
+## 2.7 Diseño de rotación (LiteLLM) — PENDIENTE, se itera aparte
+
+Requisito del usuario: **si el server (GPU) se apaga, LiteLLM tiene que rotar solo a otro modelo**. Por eso
+el ruteo vive en LiteLLM, no en el juego. Diseño objetivo (a implementar cuando se itere el LiteLLM):
+
+```yaml
+# model_name de juego: GPU local primero, OpenRouter como red de seguridad
+- model_name: tormenta            # lo que usa el proxy (upstream.model=tormenta)
+  litellm_params:
+    model: openai/gemma2:2b        # (o el gemma que gane la prueba)
+    api_base: http://ollama.gpu-llm.svc.cluster.local:11434/v1
+    api_key: dummy
+    keep_alive: -1                 # que NO se descargue (evita el cold-start de ~17s)
+# fallback declarado: si 'tormenta' (GPU) falla/timeout → gemma4-free (OpenRouter)
+litellm_settings:
+  fallbacks: [{ "tormenta": ["gemma4-free"] }]
+```
+
+Así: GPU prendida → responde local (rápido, gratis, privado); GPU caída/lenta → LiteLLM rota a OpenRouter
+sin que el juego se entere. **El usuario lo está viendo por su lado; acá queda como diseño, no se aplica
+todavía** (cambio aditivo en el LiteLLM compartido vía Ansible de `infra-ai`). Falta además elegir el gemma
+final (ver §2.6 y la tanda de §3).
+
+## 3. A probar (más modelos en la GPU para elegir el mejor)
 
 - **OpenRouter free** (nube): gemma4 (actual) vs otros free — calidad del criollo/personaje.
 - **GPU NVIDIA** (`local-gpu`, Ollama en `srv-t7910`, compartida con HAMi): ¿contesta bien y rápido el
