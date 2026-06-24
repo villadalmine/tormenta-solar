@@ -23,7 +23,8 @@ Prompt fijo de linyera (Diógenes), `max_tokens` 160, vía LiteLLM y vía los en
 | Modelo | Backend | Latencia | Calidad |
 |---|---|---|---|
 | **gemma4-free** (gemma-4-31b:free) | OpenRouter | **3.7s** | ★★★★ mejor criollo + lore. **Default actual.** |
-| **gemma2:2b** | GPU (gpu-llm/ollama, NVIDIA+HAMi) | **2.5s caliente** / 17s frío | ★★★ buen criollo, en personaje. **Mejor self-hosted.** |
+| **gemma2:2b** | GPU (gpu-llm/ollama, NVIDIA+HAMi) | **2.5s caliente** / 17s frío | ★★★ buen criollo, en personaje. **Mejor self-hosted (punto justo en 4GB).** |
+| gemma3:4b | GPU ollama | **65s caliente** / timeout frío | ★★★★ el mejor criollo local, PERO 3.3GB no entra bien en el slice de 4GB → inusable por latencia (necesitaría más GPU) |
 | kimi-free | OpenRouter | 3.5s | ★★ español roto |
 | llama3.2:3b | GPU ollama | 23s | ★ Spanglish, se va de tema |
 | qwen2.5:1.5b | GPU/ai ollama | 40-55s | ★ flojo, lento |
