@@ -26,6 +26,8 @@ El juego es 100% estático; se publica en
 
 ### Técnico
 - Solo afecta a la capa mobile (dormida en desktop → web-smoke sin cambios). e2e + web-smoke verdes.
+- ⚠️ **SIN VERIFICAR EN DEVICE REAL**: el fix (y toda la capa mobile v=72) **falta probarlo en el cel del
+  usuario** — no es testeable headless. Pendiente de confirmación.
 
 ---
 

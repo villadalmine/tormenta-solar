@@ -135,9 +135,11 @@ Ver [`specs/nivel-1/loop-supervivencia.md`](specs/nivel-1/loop-supervivencia.md)
 - [x] Sonido ambiente por sala (v=70): `Sfx.setAmbient` (calle/viento/cueva/recital), capa aparte de la música.
 
 ### Técnico / calidad
-- [x] **Mobile / touch — v1 (v=72)**: capas 1–3 implementadas como `mobile/` (`boot.js`+`touch.js`+`mobile.css`),
-      dormidas en desktop. Joystick + apuntar/disparar + E/ESC vía el seam de Input. **Falta probar en cel real**
-      y, opcional, PWA (manifest + service worker) y wrapper Capacitor. Ver **[📱 abajo](#-soporte-para-celulares-mobile)**.
+- [~] **Mobile / touch — v1 (v=72; fix overlay v=79)**: capas 1–3 como `mobile/` (`boot.js`+`touch.js`+`mobile.css`),
+      dormidas en desktop. Joystick + apuntar/disparar + E/ESC vía el seam de Input. v=79 arregló que la zona táctil
+      tapaba los menús (se ocultan los controles con un overlay abierto). ⚠️ **SIN VERIFICAR EN DEVICE REAL**
+      (gestos/tamaños/notch + confirmar el fix de menús en el cel) — pendiente del usuario. Opcional: PWA + Capacitor.
+      Ver **[📱 abajo](#-soporte-para-celulares-mobile)**.
 - [ ] Extender el e2e para **simular navegación real** (caminar hasta una puerta, gatillar la
       tormenta y verificar la victoria), no solo boot + auditoría de assets.
 - [ ] Considerar partir `art.js` (es enorme) en módulos por categoría.
@@ -208,7 +210,8 @@ Un overlay que:
 ### Orden sugerido de trabajo
 1. ✅ **(v=72)** `mobile/boot.js` + `mobile/touch.js` + `mobile/mobile.css` → jugable al tacto (capas 1–3).
    Se enchufa con UNA línea en `index.html` (`mobile/boot.js`), dormida en desktop.
-2. ⏳ Probar en cel real (DevTools device mode no alcanza para gestos finos) → ajustar tamaños/posición.
+2. ⏳ **SIN VERIFICAR — pendiente del usuario:** probar en cel real (DevTools device mode no alcanza para gestos
+   finos) → confirmar el fix de menús de v=79 + ajustar tamaños/posición/notch.
 3. PWA (manifest + service worker) → instalable/offline.
 4. (Opcional) Capacitor para tiendas.
 
