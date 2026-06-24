@@ -374,6 +374,20 @@ Esto se llama **freemium / feature-gating de IA**, y **reusa la cadena que ya te
 > Suscripción y BYOK desbloquean **lo mismo** (las features full-AI). La diferencia es **quién paga** y
 > **qué latencia** te toca. El free nunca queda afuera del juego: sólo de la capa "viva".
 
+**Decisiones del dueño (2026-06-24) — principios firmes:**
+- **Por ahora, FREE = TODO.** No se gatea nada todavía. La degradación se define **más adelante**, con el
+  juego más estable, viendo hasta dónde conviene bajar al free.
+- **El pago NUNCA traba ni esconde contenido.** Prohibido el patrón "esto sólo se ve si pagás". Lo que el
+  pago da es la capa **viva** (IA en vivo); sin pagar, **el juego es más estático pero está completo y
+  jugable de punta a punta**. El `fallback` de cada entidad debe ser una versión **jugable**, no la ausencia
+  de la feature.
+- **La degradación es un PARÁMETRO, no código.** El `tier` por entidad arranca en `any` (free); apretarlo
+  en el futuro es **config/data**, no un cambio de lógica → **flexible para updates**. Así podés mover la
+  línea free↔pago por temporada sin tocar el motor.
+- **Empezar con UNA feature full-AI y que escale.** Arrancamos por el **chat de NPCs** (ya existe). Sumar
+  más (oráculo, `agent:llm`, etc.) = **agregar el atributo `ai` a más entidades**, sin código nuevo → escala
+  solo. No importa con cuál se arranca; importa que el seam ya soporte agregar.
+
 ### Lo habilita el modelo (atributos en el componente `ai` de la entidad)
 ```jsonc
 "ai": {
@@ -452,6 +466,10 @@ Para no reescribir a ciegas (strangler-fig):
   **juego siempre es jugable en gratis** (más estático).
 - **RF-14 (transparencia de IA, §6.9):** cada entidad full-AI declara `tier` + `model` testeado + `latencyMs`;
   la UI lo **deriva del modelo** (badge "✨ IA", qué modelo/latencia) sin hardcodear.
+- **RF-15 (free completo + no-paywall, §6.9):** el pago **nunca traba ni esconde contenido**; el `fallback`
+  es siempre una versión **jugable** (no ausencia). `tier` arranca en `any` (free = todo); apretarlo es
+  **config/data**, no código. Empezar con **una** feature full-AI (chat NPCs) y escalar agregando el atributo
+  `ai` a más entidades.
 
 ## 9. Criterios de aceptación
 
