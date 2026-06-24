@@ -43,6 +43,10 @@
   const elChatLog = document.getElementById('chat-log');
   const elChatInput = document.getElementById('chat-input');
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0;
+  // memoria por IDENTIDAD (clave = persona): cada linyera/NPC RECUERDA lo charlado entre aperturas y entre
+  // sesiones (persiste en el guardado). Es el `agent.memory` del modelo v2 (ver modelo-de-entidades §6½).
+  const oracleMem = {};
+  const memKey = n => (n && (n.persona || n.name)) || null;
   let roamingNpc = null;   // el linyera ERRANTE: aparece cerca de lo que no hiciste (ver historia-grafo.md §3.4)
   // roster de linyeras ilustres (homenaje) — el oráculo errante VARÍA entre ellos por sala (cada uno su identidad)
   const ORACULOS = [{ name: 'Diógenes', sprite: 'linyera', persona: 'filosofo' },
@@ -94,6 +98,7 @@
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
+    for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
     elFloor.textContent = TX(rooms[0].name);
@@ -116,6 +121,7 @@
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       pickups: states.map(s => s.pickups.map(pk => !!pk.taken)),
       npcs: rooms.map(rm => (rm.npcs || []).map(n => ({ f: !!n.falopaTaken, l: !!n.limosnaTaken }))),
+      oracleMem,   // memoria de los linyeras por identidad (agent.memory)
     };
   }
   // restore(snap): reconstruye el mundo (reset) y le aplica el snapshot. true si cargó.
@@ -134,6 +140,8 @@
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
     if (snap.pickups) states.forEach((s, i) => s.pickups.forEach((pk, j) => { if (snap.pickups[i]) pk.taken = !!snap.pickups[i][j]; }));
     if (snap.npcs) rooms.forEach((rm, i) => (rm.npcs || []).forEach((n, j) => { const d = snap.npcs[i] && snap.npcs[i][j]; if (d) { n.falopaTaken = d.f; n.limosnaTaken = d.l; } }));
+    for (const k in oracleMem) delete oracleMem[k];   // restaurá la memoria de los linyeras del snapshot
+    if (snap.oracleMem) Object.assign(oracleMem, snap.oracleMem);
     if (stormed) Sfx.startHum();
     updateCam(); elFloor.textContent = TX(rooms[current].name);
     placeRoamingOraculo(Math.floor((player.x + player.w / 2) / Level.TILE));
@@ -415,11 +423,14 @@
 
   function openChat(n) {
     if (typeof AI === 'undefined') { setMsg(TX(n.dialog) || '“...”', '#aef0c0', 4000); return; }
-    chatNpc = n; chatHistory = []; chatBusy = false; hintAsks = 0;
+    chatNpc = n; chatBusy = false; hintAsks = 0;
+    const key = memKey(n);
+    chatHistory = (key && oracleMem[key]) ? oracleMem[key].slice() : [];   // retoma su memoria por identidad
     elChatTitle.textContent = '💬 ' + (TX(n.name) || T('chat.title'));
     elChatLog.innerHTML = '';
     chatLine('sys', AI.mode() === 'offline' ? T('g.chat.offline') : T('g.chat.online', { mode: AI.mode() }));
     if (n.dialog) chatLine('npc', TX(n.dialog));
+    if (chatHistory.length) chatLine('sys', T('g.chat.remembers'));   // se acuerda de vos (tiene memoria previa)
     if (isOraculo(n)) showHint(0);   // el linyera arranca con una pista críptica (nivel 0)
     state = 'chat';
     elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
@@ -446,6 +457,7 @@
     thinking.remove();
     chatLine('npc', reply);
     chatHistory.push({ role: 'assistant', content: reply });
+    const mk = memKey(chatNpc); if (mk) oracleMem[mk] = chatHistory.slice(-12);   // guardá su memoria (cap 12 turnos)
     if (ground && typeof AI !== 'undefined' && AI.lastSource() === 'local') chatLine('npc', '💡 ' + ground.text);
     // si había key pero la respuesta salió local → avisar (no confundir al jugador)
     if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) {

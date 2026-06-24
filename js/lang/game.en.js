@@ -76,6 +76,7 @@
 
     'g.chat.offline': '(no AI connected — canned replies. Drop your API key in ⚙ Options.)',
     'g.chat.online': '(chatting with AI — {mode})',
+    'g.chat.remembers': '💭 (he remembers you)',
     'g.chat.error': '"...a wire crossed in my head, kid. Say it again."',
     'g.chat.localWarn': '(the AI didn\'t reply with your key — local lines. Open the console F12 to see the error: 429/404/CORS, etc.)',
     'g.chat.youPrefix': 'You: ',

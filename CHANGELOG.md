@@ -9,6 +9,27 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v86] — 2026-06-24 — 🧠 Memoria por identidad: los linyeras te recuerdan
+
+Primer pedazo del `agent.memory` del motor v2 (ver `specs/modelo-de-entidades.md` §6½), ya funcionando en v1.
+
+### Hecho ✅
+- **Cada linyera/NPC recuerda lo charlado**, por **identidad** (clave = `persona`): si volvés a hablar con
+  Diógenes (esté fijo o errante), **retoma la conversación** donde quedó. Aplica a todos los chateables.
+- **Persiste en el guardado**: la memoria va en `serialize`/`restore` (sobrevive recargar + "Continuar"); se
+  borra al empezar partida nueva (los linyeras te olvidan). Cap de 12 turnos por identidad.
+- Cue visible **"💭 (se acuerda de vos)"** al reabrir un chat con memoria previa (i18n es/en).
+
+### Pendiente ⚠️
+- La memoria hoy es la **conversación**; el "backstory" propio + razonamiento sobre eventos (el `agent`
+  completo con `policy`/transiciones) es del **motor v2** (diseñado, no implementado).
+- De antes: revisar sprite "el Carpo"; re-tematizar la narración.
+
+### Estado
+- e2e (round-trip de guardado con `oracleMem`) + paridad + web-smoke verdes. Cache `v=86`.
+
+---
+
 ## [v85] — 2026-06-24 — 🛰️ Los linyeras documentados SON los oráculos (expertos en tormentas/IA)
 
 Se cierra el círculo: el "linyera filósofo" genérico **desaparece**; los oráculos son los linyeras reales.
