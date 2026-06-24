@@ -176,6 +176,10 @@ Jerarquía de contención + entidades con componentes. Borrador de forma (los no
 - `lifecycle` `{appearsWhen?, hideWhen?, invisible?, oncePerLoop?}` — apariciones condicionadas
   (puerta trasera post-tormenta, falopa por loop, linyera errante, ninjas, etc.).
 - `i18n` `{id}` — clave estable para traducir nombre/diálogo (reemplaza el map `level.en.js`).
+- `agent`/`brain` `{traits, state, states, transitions, memory?, policy}` — la entidad **piensa y puede
+  mutarse a sí misma** de forma ACOTADA (no random). Ver §6½. Sirve para un NPC, **pero también para una
+  maceta o un edificio** (que se marchite/florezca/mute según condiciones).
+- `event`/`trace` (implícito): cada entidad emite eventos por su `id` estable → log de trazabilidad (§6½).
 
 **Idea clave:** una **maceta** es `{tipo:decor, render:{type:'planta'}}`; un **cartel** es
 `{tipo:sign, render:..., ad:{...}}`; un **linyera** es `{tipo:npc, render:{sprite:'linyera'},
@@ -206,6 +210,78 @@ archivo de datos**. Nivel 2 (el salto temporal que promete la intro) **nace decl
 edificios/entidades en el modelo y reusa todo. Lo único por nivel: data + arte nuevo si hace falta.
 (Hoy `level.js` mezcla motor y data del Nivel 1; el modelo los separa.)
 
+## 6½. IA en v2: entidades con "cerebro" + asistente con trazabilidad
+
+Dos pedidos del dueño, los dos caen redondos en el modelo de entidad-componente.
+
+### A) Entidades que se auto-mutan con IA, pero **acotadas** (siguen un razonamiento, no random)
+
+**Qué es / cómo se llama:** un **agente generativo con espacio de acciones acotado**. Mezcla de varias
+técnicas conocidas:
+- **Generative Agents** (Park et al. 2023, el paper "Smallville"): agentes con **memoria → reflexión →
+  plan**. Acá en miniatura.
+- **AI Director** (Left 4 Dead): un sistema que **cambia el mundo según el estado del juego** (un edificio
+  que "se pudre" si pasaron N loops, una maceta que florece si alimentaste a los borrachines).
+- **Utility AI / GOAP / Behavior Tree**: decisión **acotada** entre opciones legales con un "puntaje".
+- **Type Object + máquina de estados como data**: los **estados posibles** de la entidad están
+  **declarados** (data), así el cambio nunca sale del conjunto legal.
+- **Generación con grounding** (la regla que YA usás en [ia-openrouter §0](ia-openrouter.md) y en el
+  [grounding del linyera](nivel-1/historia-grafo.md)): **el código define el espacio legal; el LLM elige y
+  justifica dentro de él, con su voz** — nunca inventa una transición que no existe.
+
+**Cómo se modela (componente `agent`/`brain`):** cualquier entidad (npc, decor=maceta, edificio) puede tener:
+```jsonc
+"agent": {
+  "traits": { "humor": "amargo", "paciencia": 0.2 },   // atributos que SESGAN el razonamiento (no lo randomizan)
+  "state": "marchita",                                  // estado actual (runtime, va al estado, no al modelo)
+  "states": ["sana", "marchita", "mutante"],            // estados LEGALES (definición)
+  "transitions": [                                      // qué destraba qué (precondición → efecto), como el grafo de historia
+    { "to": "mutante", "when": { "stormed": true, "loop": ">=2" } }
+  ],
+  "memory": "rolling",                                  // qué eventos recientes "vio" (para razonar)
+  "policy": "llm | utility | rule"                      // quién elige la transición
+}
+```
+- Con `policy:"rule"/"utility"` → determinista (puntaje sobre `traits` + condiciones).
+- Con `policy:"llm"` → al motor le pasa **traits + estado actual + transiciones legales + contexto** y el
+  LLM **elige una transición y la explica** (con la voz de la entidad). **No puede saltar a un estado no
+  declarado** → "razonamiento, no aleatorio". La maceta "decide" mutar *porque* hubo tormenta y van 2 loops,
+  y lo dice con onda; pero el conjunto de finales posibles lo fijás vos como atributo.
+- **Idempotencia (§5):** los `states`/`transitions` son **definición** (modelo); el `state` actual y la
+  `memory` son **estado runtime** (se serializan con `save.js`). Así el mundo se reconstruye igual y la IA
+  no rompe el determinismo del armado.
+
+### B) Trazabilidad total para que un asistente (o vos preguntándole a Claude) sepa **exactamente** el juego
+
+**Qué es / cómo se llama:** la combinación de tres técnicas:
+1. **Event Sourcing** — la verdad de "qué hiciste" es un **log append-only de eventos** (`{t, entityId,
+   action, effect}`); el estado actual = el *fold* de esos eventos. Te da **historia perfecta**: dónde
+   estuviste, qué tocaste, en qué orden. (Hoy ya hay un proto: los flags + `loopCount`.)
+2. **Knowledge Graph + RAG (GraphRAG)** — **el modelo v2 ES el grafo de conocimiento** (entidades +
+   relaciones + ids estables). Un asistente **recupera el subgrafo relevante** (dónde estás, qué te falta,
+   qué destraba qué) y responde **grounded** en él (sin alucinar). El [grafo de historia + `HintEngine`]
+   (nivel-1/historia-grafo.md) ya es una versión chiquita y **rule-based** de esto.
+3. **World-state como contexto** — `serialize()` (lo que ya guarda `save.js`) da el "**dónde estoy / qué
+   tengo**" en un objeto estructurado, listo para pasarle a un LLM.
+
+**Cómo se arma en v2 (casi gratis por el modelo):** como **todo tiene `id` estable** y el **estado está
+separado de la definición**, el asistente recibe 3 cosas y sabe exactamente todo:
+- **`snapshot`** (estado actual: sala, inventario, flags, estado de cada entidad) — el "dónde".
+- **`eventLog`** (qué hiciste, en orden) — el "qué hice / cómo llegué".
+- **`subgrafo`** del modelo alrededor de donde estás (qué hay, qué destraba qué) — el "qué puedo/qué falta".
+
+Eso es, textualmente, un **copiloto del juego con GraphRAG + event sourcing**. Casos:
+- *In-game*: el linyera-oráculo deja de ser solo rule-based y pasa a un asistente que **explica tu partida**.
+- *Dev/meta* (vos preguntándole a Claude "¿cómo va?"): se le da el `snapshot + eventLog + modelo` y razona
+  sobre **tu partida real**, no en abstracto. También sirve para **QA automática** (detectar que un objetivo
+  quedó inalcanzable, que un flag no tiene quién lo destrabe, etc.).
+
+**Nombre corto del stack:** *Event Sourcing + Knowledge Graph + Retrieval-Augmented Generation (GraphRAG)* →
+un **asistente grounded en el estado real del juego**.
+
+> Las dos cosas comparten cimiento: **ids estables + estado separado + el modelo como grafo consultable**.
+> Por eso conviene que entren en el diseño de v2 desde el día 1 (aunque se implementen en fases tardías).
+
 ## 7. Coexistencia v1 / v2 + toggle en la UI (estrategia de migración)
 
 Para no reescribir a ciegas (strangler-fig):
@@ -233,6 +309,12 @@ Para no reescribir a ciegas (strangler-fig):
 - **RF-6:** El **mismo motor** levanta un Nivel 2 cambiando sólo la data.
 - **RF-7:** Capa **aditiva/compatible**: mientras v1 sea default, el juego actual no cambia (e2e + web-smoke
   siguen verdes).
+- **RF-8 (IA acotada, §6½A):** una entidad puede tener `agent`/`brain` con `states`/`transitions`
+  **declarados** (definición) y un `policy` (`rule`/`utility`/`llm`); el LLM **sólo elige entre transiciones
+  legales** (grounding), nunca inventa estados. El `state` actual es runtime (serializable).
+- **RF-9 (trazabilidad, §6½B):** el motor emite un **event log append-only** por `id` de entidad y expone
+  `snapshot + eventLog + subgrafo` para un asistente; la respuesta del LLM va **grounded** en eso (GraphRAG),
+  sin inventar. Sirve in-game (oráculo) y dev/meta (QA + "¿cómo va mi partida?").
 
 ## 9. Criterios de aceptación
 
