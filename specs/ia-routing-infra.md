@@ -50,14 +50,45 @@ Juego  ──(OpenAI-compatible, 1 endpoint, manda: tier + feature + identidad)�
 ### Política de routing (ejemplo, parametrizable)
 | Situación | Destino |
 |---|---|
-| Free (no pagó, no BYOK) | sin inferencia: el **juego** usa su `fallback` (no llega al gateway, o el gateway responde 402) |
-| Pago/suscripción, uso normal, plan global con margen | modelo **externo barato** |
+| Free (no pagó, no BYOK) — **hoy** | **POOL del dev** (keys free-tier + GPU). Decisión actual "free = todo" (modelo-de-entidades §6.9). Si se satura/abusa → fallback canned. *(A futuro se puede gatear free→estático: es config.)* |
+| Pago/suscripción, uso normal, plan global con margen | modelo **externo barato** (del pool) |
 | Pago, usuario **abusa** (supera su budget del plan global) | **GPU propia (vLLM)** |
 | Carga global **baja** (GPU ociosa) | **GPU propia** para todos los pagos (ahorra plan externo) |
 | BYOK | la **key del jugador** (no toca ni plan ni GPU del dev) |
 
 Los umbrales (qué es "abuso": tokens/día, req/min; qué es "carga baja": % GPU/cola) son **config del
 gateway/LiteLLM**, no del juego.
+
+### 3.5 Concurrencia / paralelización (el miedo a la latencia con muchos jugando)
+**Regla de oro: la paralelización NO va en el cliente con varios tokens — va SERVER-SIDE en el gateway.**
+El juego sigue mandando a UN solo endpoint; el gateway resuelve la concurrencia con tres mecanismos:
+
+1. **Pool de KEYS + load-balancing (LiteLLM router):** el gateway tiene **varias API keys** (de OpenRouter
+   u otros) como "deployments" del mismo modelo y reparte los requests (least-busy / round-robin). N keys ≈
+   N× el rate-limit del free tier, repartido. Si una key da **429**, **fallback automático** a la siguiente.
+   → Los **free** usan el **pool del dev** (no una sola key); el cliente NO ve ni tiene esas keys.
+2. **GPU propia con CONTINUOUS BATCHING (vLLM):** vLLM está hecho para **muchos requests concurrentes en
+   una GPU** (los batchea sobre la marcha). Es el mejor amortiguador de concurrencia: una GPU sola aguanta
+   varias charlas a la vez. Entra al pool como un backend más.
+3. **Overflow + timeouts → fallback:** si el pool externo está rate-limited, **reroutea a la GPU**; si todo
+   está saturado, **timeout corto → el juego usa su `fallback` canned** (nunca cuelga). + **respuestas
+   CORTAS** (el guardrail "amigo linyera" ya las acota) = menos tokens, más throughput, menos latencia.
+
+**Dónde viven los tokens (importante):**
+- El **pool del dev** (varias keys + GPU) vive **en el gateway/servidor**, NUNCA en el cliente. Por eso en
+  la UI no se cargan: son secretos del backend. La "paralelización con varios tokens" es **config del
+  gateway**, transparente para el juego.
+- El **token de la UI** (hoy, uno solo) es **BYOK** = la key del PROPIO jugador (un jugador = una key, no
+  necesita pool). Va directo a OpenRouter, lo paga él.
+- ⚠️ **Disclaimer (a mostrar en la UI):** si ponés tu propia key y es **free tier**, corrés vos el riesgo de
+  **rate-limit / latencia** (no hay pool que te cubra).
+- **GPU "token" propio:** un jugador con GPU local (Ollama/vLLM propio) sería **otra fuente**, aparte —
+  apunta a su `localhost`, no al pool del dev. (Encaja como "modo C local", futuro.)
+
+**Multi-token EN LA UI (diferido, opcional):** dejar que un jugador cargue **varias** keys para auto-rotar
+del lado cliente es un caso de nicho (sirve poco: un jugador no genera tanta concurrencia). Si se hace,
+sería **más adelante**, y la rotación/paralelización "de verdad" igual conviene server-side. El seam de
+`AI` ya soporta una key; agregar un array es menor cuando se decida.
 
 ## 4. Kubernetes (lo que define este SDD; pendiente de detallar)
 
@@ -94,8 +125,14 @@ gateway/LiteLLM**, no del juego.
   **budgets por usuario** y **fallback/overflow**; los umbrales son **config**, no código del juego.
 - **RF-4:** **Métricas** por usuario/feature/modelo (tokens, latencia, costo, errores) en Prometheus/Grafana,
   y el **cliente** expone latencia percibida + uso de fallback.
-- **RF-5:** **Free** nunca llega a gastar inferencia (usa fallback del juego); **BYOK** no toca recursos del dev.
+- **RF-5:** **Free** usa el **pool del dev** (keys free-tier + GPU) — decisión "free=todo" actual; cae a
+  `fallback` solo si se satura. **BYOK** usa la key del jugador (no toca el pool del dev). *(Gatear free→
+  estático en el futuro = config, no código.)*
 - **RF-6 (no-coupling):** Nada de esto cambia la **lógica del juego**; e2e/web-smoke no se enteran.
+- **RF-7 (concurrencia, §3.5):** la paralelización es **server-side**: **pool de keys** con load-balancing +
+  fallback en 429, **GPU con continuous batching** (vLLM), y **overflow + timeout→fallback**. El cliente
+  manda a **un** endpoint y NO tiene las keys del pool. La UI sigue con **una** key (BYOK); multi-token en la
+  UI es **diferido/opcional** (la paralelización real va en el gateway).
 
 ## 7. Preguntas abiertas
 
@@ -106,6 +143,12 @@ gateway/LiteLLM**, no del juego.
 4. **Privacidad:** ¿se loguean prompts? (recomendado: NO; sólo conteos agregados, como `presence`/`ads`.)
 5. **¿Local-player option?** Si el JUGADOR tiene GPU, ¿se le ofrece correr su propio modelo (Ollama/vLLM
    local = gratis/privado)? Ya estaba anotado como "modo C" en [ia-openrouter.md](ia-openrouter.md).
+6. **¿Cuántas keys en el pool y de qué proveedores?** (varias free de OpenRouter + GPU; definir el mínimo
+   para la concurrencia esperada.)
+7. **¿Cuándo gatear el free?** Hoy "free=todo" via el pool; si el costo/latencia aprieta, definir el umbral
+   para degradar free→canned (es config del gateway + el `tier` por entidad de §6.9).
+8. **Multi-token en la UI:** ¿se implementa alguna vez (rotación client-side para BYOK) o queda siempre
+   server-side? + disclaimer de free-tier BYOK (§3.5).
 
 ---
 
