@@ -1,8 +1,12 @@
 # SDD — Truco de verdad: reglas completas, truco de a 6, reclutamiento y Calle Lavalle
 
-- **Estado:** Draft
+- **Estado:** **F1 IMPLEMENTADO** (motor 1v1 real + cantos voceados). Resto en fases (ver §12).
 - **Última actualización:** 2026-06-24
 - **Tamaño:** **GRANDE** (es el feature más pesado del backlog — ver §12 mi lectura). Multi-fase.
+- **F1 hecho:** `js/truco.js` (motor puro: jerarquía/envido/flor/parda, testeado e2e) + `arcade.js makeTruco`
+  reescrito sobre él: cantos reales (envido/real/falta, truco/retruco/vale4, flor) con quiero/no quiero,
+  IA por tier, premio en **flores** (`player.flores`). **Voces criollas:** el tahúr canta en voz alta
+  (`Mensajero.cantar()`, voz es-AR). Falta: formatos 3manos/a15 (F2), tabla skill (F4), a6 (F5), cabarulo, Lavalle.
 - **Relacionado:** `js/arcade.js` (`makeTruco`, hoy un placeholder), el grafo (`historia.js`/`hint-engine.js`),
   `carteles-ia.md` (generación de excusas con NPU/GPU/cloud + el Mensajero), `nivel-1/**` (personajes).
 
