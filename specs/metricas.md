@@ -1,6 +1,7 @@
 # SDD — Métricas reales de uso del chat IA (qué modelo/backend por cada uso)
 
-- **Estado:** **Draft** (diseño; el proxy ya expone un `/metrics` básico SIN labels → falta lo de acá)
+- **Estado:** **F1 IMPLEMENTADO** (proxy 0.1.3, rev 7) — el `/metrics` ya etiqueta por modelo/backend/outcome.
+  Faltan F2 (ServiceMonitor) y F3 (dashboard Grafana).
 - **Última actualización:** 2026-06-24
 - **Patrón base:** se calca el de `online-game` (`app/core/metrics.py` + ServiceMonitor + dashboard Grafana
   como ConfigMap, incluso tienen un `llm-usage.json`). Relacionado: `latencia-chat.md`, `suscripcion.md`.
@@ -85,9 +86,10 @@ mensaje del jugador ni ids. Permite consultas tipo "qué modelos se usaron ayer 
 
 ## 9. Implementación por fases
 
-1. **F1 — proxy**: refactor del `/metrics` a Counter/Histogram con labels `model,backend,outcome` (+ persona),
-   set del `model` ganador en `ask()` y el mapa model→backend. (Imagen 0.1.3.)
-2. **F2 — ServiceMonitor** en `ai-proxy/chart` + scrape desde `monitoring`.
+1. **F1 — proxy**: ✅ HECHO (img 0.1.3, rev 7). `tormenta_ai_chat_total{model,backend,outcome}` +
+   `tormenta_ai_chat_latency_seconds` (histograma por model/backend); `ask()` devuelve el modelo ganador; mapa
+   `backendOf()` (→ openrouter/gpu/npu/openrouter-paid); `ratelimited` contado. Verificado en vivo.
+2. **F2 — ServiceMonitor** en `ai-proxy/chart` + scrape desde `monitoring`. (PENDIENTE)
 3. **F3 — dashboard** `tormenta-linyera.json` (ConfigMap) con los paneles de §7.
 4. **F4 — (opcional)** log JSON por evento → Loki.
 5. Cruzar con `litellm_*` para costo/proveedor real.
