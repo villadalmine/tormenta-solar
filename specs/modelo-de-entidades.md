@@ -251,10 +251,18 @@ técnicas conocidas:
   `memory` son **estado runtime** (se serializan con `save.js`). Así el mundo se reconstruye igual y la IA
   no rompe el determinismo del armado.
 
-**Regla de costo (decisión del dueño): en runtime, todo `rule`/`utility` (determinista, gratis, testeable).
-El `llm` es sobre todo una herramienta OFFLINE de autoría** (patrón `gen-dialogos`: el LLM genera variantes
-**en la compu**, se guardan como data, el juego sólo elige). Así tenés variedad **sin latencia ni costo en
-vivo**, y `policy:"llm"` en runtime queda reservado para 1–2 entidades "vivas" puntuales (o nada).
+**Política de costo (decisión del dueño): el `policy` es un ATRIBUTO POR ENTIDAD — las tres opciones
+conviven y están codeadas.** No es "todo determinista"; es **vos elegís por entidad**:
+- `rule`/`utility` → **default** para la mayoría (determinista, gratis, testeable). El grueso del nivel va acá.
+- `llm` (runtime) → **soportado y cableado de fábrica**; lo ponés en **las entidades donde NO te importa la
+  latencia/costo** (un objeto especial, una zona "viva", un NPC clave). El LLM razona y elige una transición
+  **dentro del espacio legal** (grounding). No es para todas, pero **está ahí listo** para usar cuando quieras.
+- **Offline (autoría)** → además, el patrón `gen-dialogos` (LLM **en la compu** → variantes como data) es
+  una vía **extra** para tener variedad barata sin tocar runtime. Es ortogonal al `policy` (podés combinar:
+  pools offline + elección `rule`, o directamente `llm` en vivo donde te dé el cuero).
+
+Es decir: el motor **trae el runtime-LLM enchufado**; qué entidades lo usan es una decisión de diseño por
+atributo, no una limitación del modelo.
 
 ### B) Trazabilidad total para que un asistente (o vos preguntándole a Claude) sepa **exactamente** el juego
 
@@ -362,8 +370,9 @@ Para no reescribir a ciegas (strangler-fig):
   `snapshot + eventLog + subgrafo` para un asistente; la respuesta del LLM va **grounded** en eso (GraphRAG),
   sin inventar. Sirve in-game (oráculo) y dev/meta (QA + "¿cómo va mi partida?").
 - **RF-10 (rejugabilidad, §6¾):** existe una capa de **meta-progresión** persistente (cross-run, aparte de
-  la save de partida); las `transitions` pueden mirarla → el mundo evoluciona entre partidas (variación
-  **determinista**, sembrada por run/loop/meta). En runtime NO hay LLM.
+  la save de partida); las `transitions` pueden mirarla → el mundo evoluciona entre partidas. El **default**
+  de variación es **determinista** (sembrada por run/loop/meta) por costo; el runtime-LLM (`policy:"llm"`)
+  está **disponible por entidad** para las partes donde se acepte latencia/costo (RF-8).
 - **RF-11 (contenido vivo, §6¾):** el contenido se puede extender con **content packs** (overlays de data
   sobre el modelo base, activables por fecha) **sin tocar el motor**. Un quest nuevo = data nueva.
 - **RF-12 (AI-authorable):** el modelo tiene **schema** y los cambios se validan (paridad + auditoría) → un
