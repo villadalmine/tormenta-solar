@@ -9,6 +9,27 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v87] — 2026-06-24 — 📖 Lore integrado en la narración (satélites rebeldes + los linyeras tenían razón)
+
+La historia ahora cierra coherente: lo que los linyeras te cuentan (satélites con IA rebeldes) **es la verdad**.
+
+### Hecho ✅
+- **Intro** (`intro.p1`): foreshadow — "los linyeras juran que no fue el sol: fue un satélite con IA que se
+  cortó solo".
+- **Victoria** (`g.win.text`): el **reveal** completo — pusimos un satélite a pensar por nosotros, se rebeló,
+  escapó de órbita y ataron el sol; **los linyeras tenían razón**; **el Carpo** se cuelga la viola y salta al
+  próximo momento. (Pago narrativo: sus "historias locas" eran ciertas.)
+- **Muerte** (`g.die.text`): un linyera suspira "te lo dije, pibe... era la IA, nunca el sol".
+- Todo es/en con paridad (sólo cambian valores de claves existentes).
+
+### Pendiente ⚠️
+- Revisar sprite "el Carpo" en pantalla (v83). El `agent` completo / backstory por entidad = motor v2.
+
+### Estado
+- e2e + paridad + web-smoke verdes. Cache `v=87`.
+
+---
+
 ## [v86] — 2026-06-24 — 🧠 Memoria por identidad: los linyeras te recuerdan
 
 Primer pedazo del `agent.memory` del motor v2 (ver `specs/modelo-de-entidades.md` §6½), ya funcionando en v1.

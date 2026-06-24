@@ -170,9 +170,9 @@
     'g.music.off': '♪ Music OFF',
 
     'g.win.title': 'STABLE PORTAL',
-    'g.win.text': 'You cross the portal as Florida & Lavalle crumble into static.<br><br>This didn\'t start today: the storm comes from much further back... ever since we put a satellite to think for us.<br><br><em>The time jump begins. (End of Level 1)</em>',
+    'g.win.text': 'You cross the portal as Florida & Lavalle crumble into static.<br><br>And it clicks: the bums were right. We put a satellite to think for us, it rebelled, slipped orbit and — way out there — they tied up the sun. The solar storms are its doing.<br><br>El Carpo slings his guitar and jumps to the next moment in history.<br><br><em>The time jump begins. (End of Level 1)</em>',
     'g.die.title': 'THE STORM CONSUMED YOU',
-    'g.die.text': 'The interference got you.<br><br>The time portal closes without you.<br><br><em>Try again.</em>',
+    'g.die.text': 'The interference got you.<br><br>A bum looks at you and sighs: "Told you, kid... it was the AI, never the sun."<br><br>The time portal closes without you.<br><br><em>Try again.</em>',
 
     // --- run summary (end screen) ---
     'g.stats.title': 'HOW YOU DID',

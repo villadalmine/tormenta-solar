@@ -191,9 +191,9 @@
 
     // --- fin ---
     'g.win.title': 'PORTAL ESTABLE',
-    'g.win.text': 'Cruzás el portal mientras Florida y Lavalle se desmoronan en estática.<br><br>Esto no empezó hoy: la tormenta viene desde mucho más atrás... desde que pusimos un satélite a pensar por nosotros.<br><br><em>El salto temporal comienza. (Fin del Nivel 1)</em>',
+    'g.win.text': 'Cruzás el portal mientras Florida y Lavalle se desmoronan en estática.<br><br>Y entendés: los linyeras tenían razón. Pusimos un satélite a pensar por nosotros, se rebeló, escapó de órbita y —allá lejos— ataron el sol. Las tormentas solares son su obra.<br><br>El Carpo se cuelga la viola y salta al próximo momento de la historia.<br><br><em>El salto temporal comienza. (Fin del Nivel 1)</em>',
     'g.die.title': 'TE CONSUMIÓ LA TORMENTA',
-    'g.die.text': 'La interferencia te alcanzó.<br><br>El portal temporal se cierra sin vos.<br><br><em>Probá de nuevo.</em>',
+    'g.die.text': 'La interferencia te alcanzó.<br><br>Un linyera te mira y suspira: “Te lo dije, pibe... era la IA, nunca el sol.”<br><br>El portal temporal se cierra sin vos.<br><br><em>Probá de nuevo.</em>',
 
     // --- resumen de la partida (pantalla de fin) ---
     'g.stats.title': 'CÓMO TE FUE',
