@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
-const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
+const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
   'enemies.js','arcade.js','super.js','vinilos.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
@@ -246,6 +246,43 @@ if (require.main === module) {
   const mb = JSON.parse(men);
   if (mb.length) { console.error('❌ MENSAJERO:\n' + mb.join('\n')); process.exit(1); }
   console.log('✓ Mensajero: pista/ambiente/reaccion + short/full OK');
+
+  // ---- motor de TRUCO (reglas puras: jerarquía, envido, flor, parda) ----
+  const tru = vm.runInContext(`(() => {
+    const out = [];
+    if (typeof Truco === 'undefined') { out.push('FAIL Truco no cargó'); return JSON.stringify(out); }
+    const C = (n, s) => ({ n, s });
+    // jerarquía: 1e>1b>7e>7o>3>2>1o>12>11>10>7c>6>5>4
+    const order = [C(1,'e'),C(1,'b'),C(7,'e'),C(7,'o'),C(3,'c'),C(2,'c'),C(1,'o'),C(12,'c'),C(11,'c'),C(10,'c'),C(7,'c'),C(6,'c'),C(5,'c'),C(4,'c')];
+    for (let i = 0; i < order.length - 1; i++)
+      if (!(Truco.power(order[i]) > Truco.power(order[i+1]))) out.push('FAIL jerarquía en ' + JSON.stringify(order[i]));
+    // envido: 7e+6e+5c = 33
+    if (Truco.envido([C(7,'e'),C(6,'e'),C(5,'c')]) !== 33) out.push('FAIL envido 33: ' + Truco.envido([C(7,'e'),C(6,'e'),C(5,'c')]));
+    // sin par: 7e+5b+4o = 7
+    if (Truco.envido([C(7,'e'),C(5,'b'),C(4,'o')]) !== 7) out.push('FAIL envido sin par');
+    // figuras valen 0: 12e+11e+5c = 20
+    if (Truco.envido([C(12,'e'),C(11,'e'),C(5,'c')]) !== 20) out.push('FAIL envido figuras=0');
+    // flor: 7e+5e+4e = 36 ; sin flor = null
+    if (Truco.flor([C(7,'e'),C(5,'e'),C(4,'e')]) !== 36) out.push('FAIL flor 36');
+    if (Truco.flor([C(7,'e'),C(5,'e'),C(4,'c')]) !== null) out.push('FAIL no-flor debe ser null');
+    // clash: 1e gana a 7e ; dos 3 = parda
+    if (Truco.clash(C(1,'e'),C(7,'e')) !== 1) out.push('FAIL clash 1e>7e');
+    if (Truco.clash(C(3,'o'),C(3,'c')) !== 0) out.push('FAIL parda dos 3');
+    // handWinner: gana 2 bazas
+    if (Truco.handWinner([1,1], 1) !== 1) out.push('FAIL hand [1,1]');
+    if (Truco.handWinner([-1,1,1], 1) !== 1) out.push('FAIL hand [-1,1,1]');
+    if (Truco.handWinner([0,-1], 1) !== -1) out.push('FAIL hand parda-luego-pierde');
+    if (Truco.handWinner([0,0,0], 1) !== 1) out.push('FAIL hand 3 pardas → mano');
+    // deal: 6 cartas distintas, 3 y 3 (determinista por semilla)
+    const d = Truco.deal(123);
+    if (d.p.length !== 3 || d.a.length !== 3) out.push('FAIL deal 3y3');
+    const all = [...d.p, ...d.a].map(c => c.n + c.s);
+    if (new Set(all).size !== 6) out.push('FAIL deal cartas repetidas');
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const tb = JSON.parse(tru);
+  if (tb.length) { console.error('❌ TRUCO:\n' + tb.join('\n')); process.exit(1); }
+  console.log('✓ motor de truco: jerarquía + envido + flor + parda + reparto OK');
 
   // ---- chino: changuito (agarrar sin pagar) → pagar → ninjas si rajás sin pagar ----
   const chino = vm.runInContext(`(() => {
