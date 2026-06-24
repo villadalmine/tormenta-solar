@@ -23,7 +23,10 @@ que un futuro `buildWorld(model)` reproduzca las 38 salas actuales (**test de pa
 Los componentes ricos (`ai`, `agent`, `story`, `dialogue`, `quest`, `ability`, `ad`) están en el schema pero
 son **opcionales**: se cuelgan en fases posteriores (§6½–§6.96 del SDD).
 
-## Validación (cuando se implemente)
-Un check de e2e validará cada `levels/*.json` contra `level.schema.json` (con un validador mínimo o `ajv`),
-y la **auditoría de cobertura** confirmará que cada `action`/`render.sprite`/`effect` referenciado existe en
-su registry (mismo patrón que la auditoría de assets de hoy).
+## Validación
+- **Ya corre:** `node tests/levels.mjs` — un **mini-validador de JSON Schema sin dependencias** (cubre el
+  subset que usa el schema) que valida cada `levels/*.json` contra `level.schema.json`. Trae un **self-test
+  negativo** (confirma que de verdad detecta errores). Hoy valida `example.json`; cuando F1 agregue
+  `nivel-1.json`, lo valida solo.
+- **Pendiente (F1):** la **auditoría de cobertura** (que cada `action`/`render.sprite`/`effect` referenciado
+  exista en su registry, como la auditoría de assets de hoy) e **integrarlo al e2e/CI**.
