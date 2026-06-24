@@ -420,6 +420,75 @@ Esto se llama **freemium / feature-gating de IA**, y **reusa la cadena que ya te
   [ia-routing-infra.md](ia-routing-infra.md). No toca el juego: éste sólo habla con **un endpoint** y
   **expone métricas** (el contrato está en §5 de ese spec).
 
+## 6.95. Schema en detalle: meta-progresión y quests
+
+### Meta-progresión (la 3ª capa de estado, §6¾)
+
+Es lo **persistente entre partidas** (lo que hace que "cuanto más jugás, más cambia"). Vive en su **propio
+`localStorage`** (`ts_meta`), **separado** de la save de partida (`tormenta-solar-save-v1`). Mientras la save
+de partida se borra/reinicia, la meta **acumula**.
+
+```jsonc
+// ts_meta — estado META (cross-run, persistente)
+{
+  "v": 1,
+  "runs": 7, "deaths": 3, "loopsTotal": 12,        // contadores acumulados
+  "seed": "a3f9",                                  // semilla estable para variación determinista del layout
+  "discovered": ["bunker", "tahur", "cuevas/3"],   // qué descubriste ALGUNA vez (ids estables)
+  "unlocked": ["ability_doblesalto", "nivel-2"],   // desbloqueos PERMANENTES (Metroidvania / NG+)
+  "questsDone": ["quest_mundial"],                  // quests completadas para siempre (scope:meta)
+  "packs": ["temporada-jul26"]                      // content-packs vistos/activos
+}
+```
+
+**Cómo maneja la variación (clave de idempotencia):** `buildWorld(modelo, ctx)` es puro, donde
+`ctx = { meta, runState }`. La variación NO es `Math.random()` suelto: es **`hash(seed + entityId + runs)`**
+→ el mundo cambia entre partidas **pero es determinista** dado el `ctx` (re-armar con el mismo `ctx` da el
+mismo mundo → testeable). Las `transitions`/`agent` de las entidades pueden leer `meta.*`:
+```jsonc
+{ "to": "mutante", "when": { "meta.runs": ">=3", "stormed": true } }
+```
+**Reglas:** la meta es **sólo local** (sin backend, como `config`/`save`); morir o NG+ **conserva** la meta;
+sólo un "borrar datos" explícito la limpia. Qué entra en meta vs partida es decisión por feature (§ abajo).
+
+### Quests (cómo se declara una misión)
+
+Insight: **un quest NO es un sistema nuevo — es un *bundle* presentable y premiado de aristas del
+[grafo de historia](nivel-1/historia-grafo.md)** (las que ya tienen `pre`/`sets`/`hints`). El `HintEngine`
+y el oráculo ya saben pistar "el próximo paso"; el quest sólo agrupa pasos + recompensa + presentación
+(quest log). Forma tentativa, declarada como una entidad más del modelo:
+
+```jsonc
+{
+  "tipo": "quest",
+  "id": "quest_mundial",
+  "i18n": "q.mundial",                       // nombre/descr traducibles
+  "giver": "calle/quest-npc",                // quién la da (entidad por id); o "autostart": {cond}
+  "requires": { "stormed": true },           // para que aparezca/se pueda tomar (gating)
+  "scope": "meta",                           // "run" (por partida) | "meta" (para siempre)
+  "repeatable": false,
+  "steps": [                                  // pasos = aristas (o refs a aristas existentes). Lineal o DAG.
+    { "id":"q.mundial.s1", "at":"super", "when":{}, "sets":{"tieneCamiseta":true},
+      "hints": { "es":["…cripto…","…rumbo…","…receta…","…directo…"] } },
+    { "id":"q.mundial.s2", "at":"cemento", "when":{"tieneCamiseta":true}, "sets":{"quest_mundial":true} }
+  ],
+  "rewards": { "coins": 50, "unlock": "ability_doblesalto", "flag": "campeon" }
+}
+```
+- **`steps`** son aristas: reusan `preMet`/`done` del `HintEngine` (frontera + pistas escaladas por
+  insistencia). Un step puede **referenciar** una arista ya existente (no duplicar) o declarar una nueva.
+- **`scope`** decide dónde vive el estado del quest: `run` → save de partida; `meta` → `questsDone` (no se
+  repite nunca más). La historia principal tiende a `meta`; las side/temporada a `run`.
+- **`rewards`** al completar: `coins`/items, `flag` (entra al grafo), `unlock` (va a `meta.unlocked` →
+  Metroidvania/NG+). Aplicado por el mismo `applyEdge` extendido.
+- **`giver`**: una entidad `npc`/`sign` con `interact:{action:"quest", quest:"quest_mundial"}`. Tomarla
+  activa el quest; el **quest log** (UI) se **deriva** de los quests activos + estado de sus steps (no se
+  hardcodea).
+- **Desde content-packs** (§6¾): un pack puede `add` un quest entero (la "misión de la semana") + su giver.
+
+> Así, "misiones de mundo abierto que vas cambiando" = **quests declarados como data**, que se apoyan en el
+> grafo de historia y el HintEngine que **ya existen**. El oráculo/asistente (§6½B) ya sabe guiarlos.
+
 ## 7. Coexistencia v1 / v2 + toggle en la UI (estrategia de migración)
 
 Para no reescribir a ciegas (strangler-fig):
@@ -470,6 +539,12 @@ Para no reescribir a ciegas (strangler-fig):
   es siempre una versión **jugable** (no ausencia). `tier` arranca en `any` (free = todo); apretarlo es
   **config/data**, no código. Empezar con **una** feature full-AI (chat NPCs) y escalar agregando el atributo
   `ai` a más entidades.
+- **RF-16 (meta-progresión, §6.95):** estado **persistente cross-run** en `ts_meta` (aparte de la save de
+  partida); `buildWorld(modelo, ctx)` es **puro** con `ctx={meta,runState}` y la variación usa
+  `hash(seed+id+runs)` (determinista, no `Math.random` suelto). Morir/NG+ conserva la meta.
+- **RF-17 (quests, §6.95):** un `quest` es una entidad **declarativa** = bundle de **aristas** (reusa
+  `pre`/`sets`/`hints` del grafo y el `HintEngine`) + `requires`/`scope`/`rewards`; el **quest log** se
+  **deriva** del estado de los steps; los packs pueden agregar quests. No es un sistema nuevo.
 
 ## 9. Criterios de aceptación
 
