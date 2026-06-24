@@ -1,8 +1,10 @@
 # 📜 Changelog — Tormenta Solar
 
 Todos los cambios notables del juego. Formato inspirado en
-[Keep a Changelog](https://keepachangelog.com/es-ES/). Las versiones se corresponden con el
-**cache-busting** (`?v=N` en `index.html`): subir `v` = release nuevo.
+[Keep a Changelog](https://keepachangelog.com/es-ES/). Dos canales de versión:
+- **`vN`** = releases del juego, atados al **cache-busting** (`?v=N` en `index.html`): subir `v` = release nuevo.
+- **`infra-N`** = cambios de **infraestructura / sitio / deploy** (proxy, self-host, páginas, modelos) que
+  NO tocan los archivos del juego, por eso no bumpean `?v`.
 
 El juego es 100% estático; se publica en
 [villadalmine.github.io/tormenta-solar](https://villadalmine.github.io/tormenta-solar/).
@@ -19,7 +21,7 @@ El juego es 100% estático; se publica en
 
 ---
 
-## [infra] — 2026-06-24 — 🖥️ Juego self-hosted + páginas EN + diagrama del stack + pruebas de modelos
+## [infra-1] — 2026-06-24 — 🖥️ Juego self-hosted + páginas EN + diagrama del stack + pruebas de modelos
 
 ### Hecho ✅
 - **Self-host del juego LIVE** en `https://tormenta-solar.cybercirujas.club`, **a la vez** que GitHub Pages
