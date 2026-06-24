@@ -70,4 +70,19 @@
   btnE.addEventListener('touchend',   e => { e.preventDefault(); fireKey('e', 'keyup'); }, { passive: false });
   btnEsc.addEventListener('touchstart', e => { e.preventDefault(); setKey('escape', true); fireKey('Escape', 'keydown'); }, { passive: false });
   btnEsc.addEventListener('touchend',   e => { e.preventDefault(); setKey('escape', false); fireKey('Escape', 'keyup'); }, { passive: false });
+
+  // IMPORTANTE: ocultar los controles cuando hay un MENÚ abierto. #stage usa transform:scale (fit.js) → crea
+  // un stacking context propio; los overlays (z-10) viven adentro, pero #touch-controls cuelga del body, así
+  // que su zona de apuntar quedaría POR ENCIMA de los menús y se comería los taps/clicks (Opciones, chat,
+  // intro). Mientras hay un overlay visible, escondemos los controles para que el menú reciba los toques.
+  const overlays = ['intro', 'options', 'chat', 'endscreen'].map(id => document.getElementById(id)).filter(Boolean);
+  function syncVisible() {
+    const menuOpen = overlays.some(o => !o.classList.contains('hidden'));
+    root.style.display = menuOpen ? 'none' : '';
+  }
+  syncVisible();
+  if (typeof MutationObserver === 'function') {
+    const mo = new MutationObserver(syncVisible);
+    overlays.forEach(o => mo.observe(o, { attributes: true, attributeFilter: ['class'] }));
+  }
 })();

@@ -9,6 +9,26 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v79] — 2026-06-24 — 🐛 Fix grande: la capa mobile tapaba los menús (Opciones/chat/intro)
+
+### Arreglado
+- **No se podían tocar los controles de Opciones (ni botones de menús) en dispositivos con pointer táctil**:
+  `#stage` usa `transform: scale()` (fit.js) → crea su propio *stacking context*, así que el z-index de los
+  overlays (z-10) es **local a `#stage`**. Pero `#touch-controls` (capa mobile, v=72) cuelga del `<body>`,
+  **afuera** de `#stage`, así que su zona de apuntar (`#tc-aim`, `pointer-events:auto`) quedaba pintada **por
+  encima de TODO `#stage`, incluidos los menús** → se comía los taps/clicks en la mitad derecha del panel
+  (Opciones, chat, intro). Solo respondía el teclado (Escape). Pasaba en cualquier device con *coarse pointer*
+  (celular, o notebook con pantalla táctil aunque uses mouse). **Probablemente explica también** los reportes
+  previos de "no salía del chat" (tapaba el botón Cerrar) y "Continuar no quedaba bien" (tapaba el botón).
+- **Fix**: `mobile/touch.js` ahora **oculta los controles mientras hay un overlay/menú abierto**
+  (`MutationObserver` sobre intro/options/chat/endscreen) → el menú recibe los toques; durante el juego, los
+  controles vuelven.
+
+### Técnico
+- Solo afecta a la capa mobile (dormida en desktop → web-smoke sin cambios). e2e + web-smoke verdes.
+
+---
+
 ## [v78] — 2026-06-23 — 🐛 Fix: salir del chat con ESC + autosave durante el chat
 
 ### Arreglado
