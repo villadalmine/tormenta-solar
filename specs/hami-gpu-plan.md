@@ -10,7 +10,9 @@
 
 - **Bare metal en srv-t7910**: `ollama serve` (host) con `llama3.1:8b` y `qwen2.5-coder:7b`. (Un LiteLLM del
   host en `:4000` aparece referenciado pero respondió vacío → posiblemente caído.)
-- **Consumidores del ollama del host** (hay que repuntarlos antes de apagar):
+- **FUERA DE ALCANCE — ya son 100% cloud (OpenRouter), NO tocan la GPU:** **Hermes** y **OpenClaw**
+  (`hermes-*`, `openclaw-*`, `gpt-4o`, etc. → OpenRouter). No se migran ni cambian.
+- **EN ALCANCE — lo único que usa la GPU local** (hay que repuntarlo antes de apagar el host):
   - `gpt-5.4` / `openai/gpt-5.4` (default de **Holmes**) → `192.168.178.90:11434` (llama3.1:8b).
   - `holmes-llama` / `holmes-free2` / `holmes-cheap` y `local-fast/llama/reason/coder-7b/codestral/deepseek`
     → LiteLLM del host `192.168.178.90:4000`.
