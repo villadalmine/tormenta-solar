@@ -30,13 +30,35 @@ service:
   port: 80                # expone 80 → contenedor 8788
 
 # Gateway API (Cilium) — la forma EN QUE ESTE CLUSTER expone servicios (no Ingress). HTTPRoute al
-# `cluster-gateway`. host = el dominio (LAN .cluster.home para test; público necesita listener HTTPS+cert).
+# `cluster-gateway` EXISTENTE (misma VIP 192.168.178.200 que el resto: cruzdelsur, etc.). HAProxy
+# hace SNI passthrough a esa VIP; cada hostname nuevo solo agrega un listener HTTPS al gateway.
+# Para el deploy público: gateway.enabled + tls.enabled + ensureListener.enabled (create=false).
 gateway:
   enabled: false
-  host: tormenta-ai.cluster.home
+  host: llm-tormenta-solar.cybercirujas.club
   extraHosts: []
-  name: cluster-gateway
+  name: cluster-gateway            # reusamos el gateway compartido (misma IP)
   namespace: gateway
+  className: cilium
+  create: false                    # false = reusar cluster-gateway (NO crear Gateway propio)
+  lbip: ""                         # solo aplica si create=true
+  tls:
+    enabled: false                 # true → Certificate (cert-manager) + listener HTTPS
+    secretName: ""                 # "" = <release>-tls
+    issuer: letsencrypt-prod       # ClusterIssuer ya existente (probá staging primero si querés)
+  # Agrega el listener HTTPS al cluster-gateway (que el chart no ownea) vía hook Job idempotente.
+  ensureListener:
+    enabled: false                 # poné true en el deploy público (create=false)
+    name: ""                       # "" = <release>-https
+    image: bitnami/kubectl:latest  # imagen con kubectl (mirroreá a tu registry si hace falta)
+
+# Let's Encrypt (DNS-01 acme-dns). En ESTE cluster los issuers YA existen (los creó online-game),
+# así que enabled=false y los reusamos. true solo si querés que el chart cree los ClusterIssuer.
+letsencrypt:
+  enabled: false
+  email: you@example.com
+  acmeDnsHost: https://auth.acme-dns.io
+  acmeDnsSecret: acme-dns-account  # secret en ns cert-manager, key credentials.json
 
 # Ingress opcional (NO usado en este cluster; quedó por compatibilidad genérica).
 ingress:
