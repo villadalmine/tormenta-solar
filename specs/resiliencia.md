@@ -76,6 +76,19 @@ sube el error rate — **por capa**, para saber qué se rompe primero (¿el G4? 
 - **RF-4** Suite de stress testing (script + escenarios por capa) y un reporte con la rodilla por capa.
 - **RF-5** (según resultado) ajustar `maxconn`/timeouts del G4, réplicas/HPA del proxy, o el umbral K.
 
+## 6.1 Perillas del borde G4 (HAProxy) — calibrar, no maximizar
+
+- **Estado actual:** `maxconn` ya se subió de **5 → 120** y `timeout queue` a 120s en una sesión previa (el
+  backend `cybercirujas_backend` es **1 server compartido** por todos los hosts cybercirujas). Verificar antes de
+  retocar.
+- **Principio:** el chat es conexión **larga** (~8-9s). `maxconn` no debe ser "lo más alto posible" sino **≈ cuántos
+  requests simultáneos el modelo sirve dentro de los 9s**. Más alto que eso → la cola se mueve al modelo y
+  **todos** responden lento (peor que fast-fail al Plan B).
+- **`timeout queue` corto (1-2s):** con el tope de 9s del cliente, encolar más es tirar la respuesta. Mejor
+  rechazar rápido → L2/L3.
+- Estas dos perillas son **lo que calibra el stress test §5**: medir la rodilla y poner `maxconn` justo por
+  debajo. **Subir a ciegas puede empeorar.**
+
 ## 7. Notas
 
 - **No romper el principio:** el cliente jamás bloquea esperando; el tope duro (9s) y el pool garantizan respuesta
