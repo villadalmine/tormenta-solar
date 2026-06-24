@@ -36,6 +36,16 @@ según **la carga y el uso**, abaratando costo y usando la **GPU propia** cuando
 
 ## 3. Diseño (capas)
 
+### 3.0 Resumen en una tabla (quién juega → qué token → a dónde va)
+| Jugador | ¿Quién paga? | Token que usa | A dónde va el pedido | Si se satura |
+|---|---|---|---|---|
+| **Free** (no paga) | el dev (vos) | **pool del dev** (varias keys + GPU, en el server) | gateway → keys free / tu GPU | respuestas canned (el juego sigue) |
+| **Suscripción** (€1/mes) | el jugador → al dev | **pool del dev** (server) | gateway → modelo barato / tu GPU | canned, con prioridad |
+| **BYOK** (su propia key) | el jugador → a OpenRouter | **su** key (la pega en la UI) | directo a OpenRouter | lo banca él ⚠️ (disclaimer free-tier) |
+
+**Dónde viven los tokens:** el **pool del dev** y la **GPU** están en el **servidor/gateway, NUNCA en el
+cliente** (la UI no los ve). El **único token en la UI** es el del propio jugador (**BYOK**, opcional).
+
 ```
 Juego  ──(OpenAI-compatible, 1 endpoint, manda: tier + feature + identidad)──▶  AI GATEWAY
                                                                                   │  (auth, rate-limit,
