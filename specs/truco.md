@@ -41,9 +41,10 @@ Baraja española de **40** (sin 8/9/comodín). 3 cartas c/u, 3 **manos** (bazas)
   acumulado del paso anterior). "Dos reales envido" = Envido + Real + Real, etc. Gana el de más puntos; empata el
   **mano** (el que es "mano", a la derecha del que reparte).
 
-### 3.3 Flor (si tenés 3 del mismo palo)
+### 3.3 Flor (si tenés 3 del mismo palo) — **CON FLOR SIEMPRE** (decidido)
 - **Flor** = 3 pts (se canta, no se juega envido si hay flor). Cadena: `Flor` → `Contraflor` → `Contraflor al
-  resto`. Flor mata envido. (Config: con flor / sin flor — algunos no la juegan; ver §11.)
+  resto`. Flor mata envido. **Se juega con flor en 1v1 Y en el truco de a 6** (es lo más fiel; la flor
+  multi-jugador en el 3v3 es la lógica más pesada — ver §12).
 
 ### 3.4 Truco
 - `Truco` (2) → `Retruco` (3) → `Vale Cuatro` (4). **Quiero/No quiero** (no quiero = el otro se lleva el valor
@@ -56,16 +57,30 @@ Baraja española de **40** (sin 8/9/comodín). 3 cartas c/u, 3 **manos** (bazas)
 ## 4. Formatos + negociación con el tahúr
 
 Al sentarte con el **tahúr**, te pregunta: **"¿jugamos a 3 manos, o el primero a 15 puntos?"**
-- **A 3 manos:** mejor de 3 rondas (rápido). (¿o exactamente 3 rondas y más puntos gana? — TBD §11.)
-- **A 15 puntos:** partida normal (malas 0-14 → buenas… acá el tope es 15; el de a 6 es a 30, §6). Falta envido
-  usa los puntos que faltan para 15.
+- **A 3 manos = MEJOR DE 3 RONDAS** (decidido): se juegan rondas hasta que alguien gana 2. Rápido.
+- **A 15 puntos:** partida normal (el de a 6 es a 30, §6). Falta envido usa los puntos que faltan para 15.
 
-## 5. Premio: flores (no forros)
+## 5. Premio: flores + el Cabarulo (DECIDIDO — dos monedas)
 
-- Ganar el truco da **flores** (`player.flores`), **no** forros. Las flores son moneda para el **"cabarulo"**
-  (sink futuro, **TBD**, el usuario lo define después). Reemplaza `forrosDelta` por `floresDelta` en el resultado
-  del arcade. (¿Forros siguen existiendo para los shops actuales o migran todos a flores? — §11.)
+- Ganar el truco da **flores** (`player.flores`), **no** forros. `forrosDelta` → **`floresDelta`** en el
+  resultado del arcade. **Flores y forros conviven** como **dos monedas separadas** con usos distintos; los
+  **shops actuales siguen cobrando en forros** (no se toca la economía existente).
 - El `applyEdge('truco','trucoWon')` (puerta del tahúr) se mantiene como hito existente.
+
+### 5.1 El Cabarulo (el sink, usa LAS DOS monedas + el chat IA)
+
+Un **local nuevo** (cabaret cirujeado). Las dos monedas tienen rol:
+
+- **ENTRAR = forros (vía charla absurda con el cafiolo/patovica).** El de la puerta te quiere cobrar **mucha
+  plata** para entrar; **no la tenés** → se abre una **charla con IA** (el cafiolo es una **persona chateable
+  nueva**) que **itera absurda** hasta que cede: *"bueno pibe, tenés forros… dame **5** y entrás."* → pagás
+  **5 forros** y entrás. (Es un **gate por chat**: reusa el sistema de personas/`ai.js`; el desbloqueo se dispara
+  cuando la charla llega al acuerdo, no por un precio fijo en pantalla.)
+- **ADENTRO = flores (cortejo).** Les **das flores a las mujeres** del cabarulo (para **no perder plata**) → las
+  chicas **se enamoran** de vos. Pero el **cafiolo** te **echa** porque "**no las dejás laburar**" → te saca
+  cagando. (El loop interno fino: **TBD**, "después vemos mejor qué pasa adentro".)
+- **Personajes nuevos:** el **cafiolo** (persona chateable, gate de entrada) + las **mujeres** del cabarulo
+  (receptoras de flores). Entidades a crear.
 
 ## 6. Truco de a 6 (3 vs 3) — evento aleatorio
 
@@ -131,16 +146,23 @@ A los **mejores jugadores se les reparten mejores cartas** (no es trampa visible
   se carga como nivel/zona nueva (probable `specs/nivel-2-lavalle.md` + datos en `level-data.js`/`mundo.js`).
 - **Si PERDÉS** la partida: podés ir a **buscar otros jugadores** (re-reclutar) y reintentar.
 
-## 11. Preguntas abiertas (hay que decidir antes de codear cada fase)
+## 11. Preguntas abiertas
 
-- **Formato "3 manos":** ¿mejor-de-3 rondas, o 3 rondas fijas y más puntos? 
-- **Truco de a 6 "primera mano global hasta 15":** mecánica EXACTA de "baza global" vs "1v1 con el de enfrente".
-- **Flores vs forros:** ¿forros se eliminan y todo pasa a flores, o conviven (truco→flores, shops→forros)? ¿qué
-  es el "cabarulo" y qué se compra con flores?
-- **¿Con flor o sin flor?** (simplifica mucho el motor sin flor).
-- **Disparo del truco de a 6:** ¿probabilidad por loop/visita? ¿cuánto se anticipa para pre-generar excusas?
-- **Roster exacto** de personajes invitables y sus ids (varios aún no tienen entidad: jubilados, turista,
-  garbarino, vinilero) → hay que crearlos.
+### Resueltas (2026-06-24)
+- ✅ **Flor:** **con flor siempre** (1v1 y a6).
+- ✅ **Formato "3 manos":** **mejor de 3 rondas** (gana 2).
+- ✅ **Monedas:** **dos separadas** — truco→**flores**; shops siguen en **forros** (no se toca la economía).
+- ✅ **Cabarulo (§5.1):** local nuevo; **forros = entrar** (charla absurda con el cafiolo hasta "dame 5 forros");
+  **flores = cortejar** a las mujeres (se enamoran → el cafiolo te echa por "no las dejás laburar").
+
+### Pendientes (se afinan al llegar a esa fase)
+- **Truco de a 6 "primera mano global hasta 15":** mecánica EXACTA de "baza global" vs "1v1 con el de enfrente"
+  (default tentativo: hasta 15 se compara la baza entre los 6; pasados 15, 1v1 con tu vis-à-vis). **Confirmar en F5.**
+- **Disparo del truco de a 6:** probabilidad por loop/visita + cuánto se anticipa para pre-generar excusas
+  (default: se dispara al entrar a la sala del tahúr, con un margen para la NPU).
+- **Roster** de invitables y del cabarulo: faltan entidades (jubilados, turista/gringo, garbarino, vinilero,
+  cafiolo, mujeres) → crearlas con el template de entidades.
+- **Adentro del cabarulo:** el loop fino post-cortejo.
 - **Lavalle:** todo el contenido del nivel 2.
 
 ## 12. Mi lectura del SDD (cómo lo veo)
@@ -155,9 +177,11 @@ A los **mejores jugadores se les reparten mejores cartas** (no es trampa visible
   5. **F5 — Truco de a 6** (3v3 a 30, regla de la casa, IA de 5 jugadores). **La parte más pesada.**
   6. **F6 — Reclutamiento** (roster + sí/no temático + **excusas con NPU/GPU/cloud** vía Mensajero) + **hito**.
   7. **F7 — Calle Lavalle** (mapa nuevo; diseño aparte).
-- **Riesgos:** (a) el truco de a 6 con envido/flor multi-jugador es **lógica compleja** — sugiero **sin flor** en
-  el 3v3 al menos al principio; (b) crear **muchas entidades nuevas** (jubilados, turista, garbarino, vinilero);
-  (c) Lavalle es **otro nivel entero** (alcance grande aparte).
+- **Riesgos:** (a) **se eligió con flor siempre** → la **flor multi-jugador en el 3v3 es la lógica más cara** del
+  proyecto; mitigación: el motor `decidir()` y el cálculo de flor/envido se construyen y testean **primero en
+  1v1** (F1) y recién se generalizan a 6 (F5), reusando el mismo núcleo; (b) crear **muchas entidades nuevas**
+  (jubilados, turista, garbarino, vinilero, **cafiolo + mujeres del cabarulo**); (c) Lavalle es **otro nivel
+  entero** (alcance grande aparte).
 - **Lo que ya juega a favor:** el **grafo + applyEdge + Mensajero** ya existen → el hito, las excusas y el
   desbloqueo de Lavalle encajan limpio. El motor de truco es **puro** (testeable con e2e sin render).
 - **Recomendación:** arrancar por **F1 (motor 1v1 real)** — es autónomo, testeable, y todo lo demás se apoya ahí.
