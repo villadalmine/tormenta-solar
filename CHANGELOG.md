@@ -11,22 +11,29 @@ El juego es 100% estático; se publica en
 
 ## 🔭 Próximamente — Roadmap (SDDs draft, sin implementar)
 
+- **Rotación en LiteLLM** (`specs/pruebas-modelos.md §2.7`): `gemma2:2b` en la GPU como primario
+  (+ `keep_alive`) con **fallback a `gemma4-free`** (OpenRouter) si la GPU se apaga. El usuario lo itera aparte.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
-- **Pruebas de modelos** GPU (HAMi/Ollama) / NPU RK1 / OpenRouter + `model_name: tormenta-free` exacto en
-  LiteLLM (`specs/pruebas-modelos.md`). Hoy el chat anda con `gemma4-free`.
+- *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
+  (cadena exacta del código) en LiteLLM.
 
 ---
 
-## [infra] — 2026-06-24 — 🖥️ El juego también corre self-hosted + páginas en inglés
+## [infra] — 2026-06-24 — 🖥️ Juego self-hosted + páginas EN + diagrama del stack + pruebas de modelos
 
 ### Hecho ✅
 - **Self-host del juego LIVE** en `https://tormenta-solar.cybercirujas.club`, **a la vez** que GitHub Pages
   (los dos conviven). nginx-unprivileged (`web/Dockerfile`), build Kaniko/Argo (`web/kaniko-build.yaml`),
   chart `web/chart` (release `tormenta-web`, ns `ai`), HTTPRoute + Certificate (LE prod) + ensure-listener
-  reusando `cluster-gateway`. Ver `specs/juego-self-host.md`.
+  reusando `cluster-gateway`. Imagen **0.1.1** (el sitio local es snapshot → rebuild en cada cambio).
+  Ver `specs/juego-self-host.md`.
 - **Páginas en inglés** para publicar: `info/index.en.html` + `info/tech.en.html`, con toggle EN/ES.
-- **Tech page**: gráfico "GitHub Pages vs infra propia" (estáticos vs chat) + dato del borde: HAProxy corre
-  en una **Mac mini G4 (PowerPC) con OpenBSD**.
+- **Tech page**: gráfico "GitHub Pages vs infra propia" (estáticos vs chat) + **pipeline diseñado** del viaje
+  del mensaje (CSS, con el ASCII en un desplegable) + dato del borde: HAProxy en una **Mac mini G4
+  (PowerPC) con OpenBSD**.
+- **Pruebas de modelos** (`specs/pruebas-modelos.md`): ganó `gemma4-free` (OpenRouter, 3.7s) como default;
+  mejor self-hosted = `gemma2:2b` en la GPU (2.5s caliente). NPU (corrupta/500), llama/qwen chicos y
+  gemma3:4b (65s, no entra en 4GB) descartados. Diseño de rotación en §2.7.
 - *(No bumpea `?v`: los archivos del juego no cambiaron; es infra + páginas info.)*
 
 ---
