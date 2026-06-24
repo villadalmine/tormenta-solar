@@ -34,6 +34,8 @@ const LANG_ES = {
   'opt.validate': 'Validar',
   'opt.reset': 'Restablecer',
   'opt.close': 'Cerrar',
+  'opt.engine': 'Motor (experimental)',
+  'opt.engineNote': 'v1 = estable · v2 = nuevo motor data-driven (aplica al (re)empezar).',
 
   // --- chat ---
   'chat.title': 'CHARLA',

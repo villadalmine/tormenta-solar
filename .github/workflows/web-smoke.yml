@@ -16,9 +16,15 @@ jobs:
         with:
           node-version: 20
 
-      # 1) e2e headless (lógica + auditoría de assets), sin navegador
+      # 1) e2e headless (lógica + auditoría de assets + boot v2), sin navegador
       - name: e2e headless
         run: node tests/e2e.js
+
+      # 1b) modelo v2 data-driven: schema válido + paridad v1≡v2 (sin deps)
+      - name: modelo v2 (schema + paridad)
+        run: |
+          node tests/levels.mjs
+          node tests/parity.mjs
 
       # 2) smoke de navegador real (Playwright + Chromium)
       - name: instalar tooling

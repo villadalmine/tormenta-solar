@@ -101,6 +101,8 @@
       "properties": {
         "id": { "$ref": "#/$defs/id" },
         "tipo": { "type": "string", "enum": ["door", "npc", "decor", "machine", "cuevero", "enemy", "pickup", "sign", "marker", "trigger", "quest"] },
+        "name": { "type": "string", "description": "nombre interno/display (npc/cuevero/machine); id estable de wiring/i18n" },
+        "label": { "type": "string", "description": "sólo doors: texto del prompt al cruzar (i18n gradual, D9)" },
         "x": { "type": "number", "description": "tile X (puede ser fraccionario)" },
         "y": { "type": "number", "description": "tile Y (opcional; default piso)" },
         "inward": { "type": "integer", "description": "sólo doors: dirección hacia adentro (-1/1) para calcular el spawn al cruzar" },
@@ -108,13 +110,12 @@
         "render": { "type": "object", "description": "sprite|type de Art", "additionalProperties": true },
         "interact": {
           "type": "object",
-          "description": "verbo registrado + params (§6.97). action debe existir en el registry Actions.",
-          "required": ["action"],
+          "description": "verbo registrado + params (§6.97). Si trae 'action', debe existir en el registry Actions.",
           "additionalProperties": true,
           "properties": {
             "action": { "type": "string" },
             "want": { "type": "string" }, "persona": { "type": "string" }, "quest": { "type": "string" },
-            "sells": { "type": "object" }, "lines": { "type": "array" }
+            "sells": { "type": "object" }, "lines": { "type": "array" }, "hint": { "type": "string" }, "follow": { "type": "boolean" }
           }
         },
         "link": {

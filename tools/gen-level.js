@@ -46,21 +46,25 @@ function entities(r, ri) {
   for (const d of r.doors || []) {
     const e = pos({ id: roomId[ri] + '/door-' + slug(d.id), tipo: 'door', render: { type: d.art || 'door' } }, d.x, d.y);
     if (d.facade) e.render.facade = d.facade;
+    if (d.label) e.label = d.label;
     if (d.inward != null) e.inward = d.inward;             // para reproducir el spawn al cruzar (wire)
     if (d.to != null) { e.link = { to: roomId[d.to] }; if (d.at) e.link.at = { x: tx(d.at.x), y: ty(d.at.y) }; }   // destino + spawn al cruzar
     E.push(e);
   }
   for (const m of r.npcs || []) {
-    const e = pos({ id: id('npc'), tipo: 'npc', render: { sprite: m.sprite } }, m.x, m.gTop != null ? m.y : m.y);
-    if (m.action) { e.interact = { action: m.action }; if (m.want) e.interact.want = m.want; if (m.persona) e.interact.persona = m.persona; if (m.sells) e.interact.sells = m.sells; }
+    const e = pos({ id: id('npc'), tipo: 'npc', render: { sprite: m.sprite } }, m.x, m.y);
+    if (m.name) e.name = m.name;
+    const it = {};
+    for (const k of ['action', 'want', 'persona', 'sells', 'lines', 'hint', 'follow']) if (m[k] != null) it[k] = m[k];
+    if (Object.keys(it).length) e.interact = it;
     if (m.persona && !m.action) e.chat = { persona: m.persona };
     if (m.dialog) e.dialogue = { text: m.dialog };
     if (m.invisible) e.lifecycle = { invisible: true };
     E.push(e);
   }
   for (const d of r.decor || []) E.push(pos({ id: id('decor'), tipo: 'decor', render: { type: d.type } }, d.x, d.feetY));
-  for (const mc of r.machines || []) E.push(pos({ id: id('machine'), tipo: 'machine', render: { game: mc.game }, interact: { action: 'machine' } }, mc.x, mc.y));
-  for (const c of r.cueveros || []) { const e = pos({ id: id('cuevero'), tipo: 'cuevero', render: { sprite: c.sprite }, interact: { action: 'cuevero' } }, c.x, c.y); if (c.outcome) e.interact.outcome = c.outcome; if (c.to != null) e.interact.to = roomId[c.to]; if (c.dialog) e.dialogue = { text: c.dialog }; E.push(e); }
+  for (const mc of r.machines || []) { const e = pos({ id: id('machine'), tipo: 'machine', render: { game: mc.game }, interact: { action: 'machine' } }, mc.x, mc.y); if (mc.name) e.name = mc.name; E.push(e); }
+  for (const c of r.cueveros || []) { const e = pos({ id: id('cuevero'), tipo: 'cuevero', render: { sprite: c.sprite }, interact: { action: 'cuevero' } }, c.x, c.y); if (c.name) e.name = c.name; if (c.outcome) e.interact.outcome = c.outcome; if (c.to != null) e.interact.to = roomId[c.to]; if (c.dialog) e.dialogue = { text: c.dialog }; E.push(e); }
   for (const p of r.pickups || []) { const give = { item: p.type }; if (p.amount != null) give.amount = p.amount; E.push(pos({ id: id('pickup'), tipo: 'pickup', give }, p.x, p.y)); }
   for (const en of r.enemies || []) { const e = pos({ id: id('enemy'), tipo: 'enemy', combat: { type: en.type } }, en.x, en.y); if (en.look) e.combat.look = en.look; if (en.dormant) e.combat.dormant = true; E.push(e); }
   return E;
@@ -81,7 +85,11 @@ const model = {
   }),
 };
 
-const out = path.join(__dirname, '..', 'levels', 'nivel-1.json');
-fs.writeFileSync(out, JSON.stringify(model, null, 2) + '\n');
+fs.writeFileSync(path.join(__dirname, '..', 'levels', 'nivel-1.json'), JSON.stringify(model, null, 2) + '\n');
+// wrapper JS para el browser (script sync, mismo patrón que dialogos.js/historia.js): lo consume mundo.js (v2)
+const js = '// level-data.js — GENERADO por tools/gen-level.js (NO editar a mano). El Nivel 1 como data (modelo v2).\n'
+  + '// Lo consume js/mundo.js cuando el motor v2 está activo (⚙ Opciones → Motor). Ver specs/modelo-de-entidades.md.\n'
+  + 'window.LEVEL1 = ' + JSON.stringify(model) + ';\n';
+fs.writeFileSync(path.join(__dirname, '..', 'js', 'level-data.js'), js);
 const nEnt = model.rooms.reduce((s, r) => s + r.entities.length, 0);
-console.log('✓ escrito levels/nivel-1.json — ' + model.rooms.length + ' salas, ' + nEnt + ' entidades');
+console.log('✓ escrito levels/nivel-1.json + js/level-data.js — ' + model.rooms.length + ' salas, ' + nEnt + ' entidades');

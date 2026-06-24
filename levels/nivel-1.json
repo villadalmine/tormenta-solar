@@ -65,6 +65,7 @@
             "facade": "educacionit"
           },
           "x": 10,
+          "label": "entrar a EducaciónIT",
           "inward": 1,
           "link": {
             "to": "educacionit-piso-4",
@@ -82,6 +83,7 @@
             "facade": "arcade"
           },
           "x": 28,
+          "label": "entrar al arcade",
           "inward": 1,
           "link": {
             "to": "arcade-de-lavalle",
@@ -99,6 +101,7 @@
             "facade": "choris"
           },
           "x": 46,
+          "label": "entrar a la chorería",
           "inward": 1,
           "link": {
             "to": "choreria-de-florida",
@@ -116,6 +119,7 @@
             "facade": "garbarino"
           },
           "x": 58,
+          "label": "entrar a Garbarino",
           "inward": -1,
           "link": {
             "to": "garbarino-electronica",
@@ -133,6 +137,7 @@
             "facade": "cemento"
           },
           "x": 61,
+          "label": "entrar a Cemento",
           "inward": -1,
           "link": {
             "to": "cemento-recital-under",
@@ -150,6 +155,7 @@
             "facade": "galeria"
           },
           "x": 74,
+          "label": "bajar a la galería",
           "inward": -1,
           "link": {
             "to": "galeria-subsuelo-1",
@@ -167,6 +173,7 @@
             "facade": "cambio"
           },
           "x": 90,
+          "label": "entrar a la casa de cambio",
           "inward": -1,
           "link": {
             "to": "casa-de-cambio-oficial",
@@ -184,6 +191,7 @@
             "facade": "abandonado"
           },
           "x": 101,
+          "label": "entrar al edificio abandonado",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-1-lujo",
@@ -201,6 +209,7 @@
             "facade": "superchino"
           },
           "x": 112,
+          "label": "entrar al super chino",
           "inward": -1
         },
         {
@@ -210,6 +219,7 @@
             "sprite": "civil1"
           },
           "x": 8,
+          "name": "Vecina",
           "dialogue": {
             "text": "“Ay, nene... ¿viste cómo está el dólar? Un espanto.” 🙄"
           }
@@ -221,6 +231,7 @@
             "sprite": "linyera"
           },
           "x": 14,
+          "name": "Linyera filósofo",
           "interact": {
             "action": "chat",
             "persona": "filosofo"
@@ -236,6 +247,7 @@
             "sprite": "musico"
           },
           "x": 24,
+          "name": "Músico",
           "dialogue": {
             "text": "“Una moneda y te toco una cumbia, maestro.” 🎶"
           }
@@ -247,6 +259,7 @@
             "sprite": "diariero"
           },
           "x": 38,
+          "name": "Canillita",
           "dialogue": {
             "text": "“¡Diarios, revistas! ¿El de hoy, pibe? Está todo cada vez peor.” 📰"
           }
@@ -258,6 +271,7 @@
             "sprite": "civil4"
           },
           "x": 50,
+          "name": "Oficinista",
           "dialogue": {
             "text": "“Tarde, tarde, ¡llego tarde!” 💼"
           }
@@ -269,6 +283,7 @@
             "sprite": "civil1"
           },
           "x": 56,
+          "name": "Turista",
           "dialogue": {
             "text": "“Excuse me... ¿dónde queda el Obelisco?” 📸"
           }
@@ -280,6 +295,7 @@
             "sprite": "civil3"
           },
           "x": 63,
+          "name": "Jubilado",
           "dialogue": {
             "text": "“Jaque, querido. Vas perdiendo... pagás el café.” ♟️"
           }
@@ -291,6 +307,7 @@
             "sprite": "civil4"
           },
           "x": 65,
+          "name": "Jubilado",
           "dialogue": {
             "text": "“Callate y movés vos, tramposo de mierda.” ♟️"
           }
@@ -302,6 +319,7 @@
             "sprite": "viejo"
           },
           "x": 76,
+          "name": "Viejo",
           "dialogue": {
             "text": "“Hace dos horas que espero, pibe... y no avanza.” 👴"
           }
@@ -313,6 +331,7 @@
             "sprite": "turista"
           },
           "x": 77.4,
+          "name": "Turista",
           "dialogue": {
             "text": "“Is this the line for dollars? ¿Acá cambian, sí?” 📸"
           }
@@ -324,6 +343,7 @@
             "sprite": "gordo"
           },
           "x": 78.8,
+          "name": "Gordo",
           "dialogue": {
             "text": "“Tengo un hambre... ¿cuánto falta para la cueva?” 🍔"
           }
@@ -335,6 +355,7 @@
             "sprite": "mujer"
           },
           "x": 80.2,
+          "name": "Señora",
           "dialogue": {
             "text": "“Yo vengo todos los días, ¿eh? No me corran.” 💅"
           }
@@ -346,6 +367,7 @@
             "sprite": "civil2"
           },
           "x": 81.6,
+          "name": "Pibe",
           "dialogue": {
             "text": "“Aguante, ya casi llego al arbolito.” 🧢"
           }
@@ -357,6 +379,7 @@
             "sprite": "civil4"
           },
           "x": 83,
+          "name": "Oficinista",
           "dialogue": {
             "text": "“Estoy en horario laboral, no le digas a nadie.” 💼"
           }
@@ -368,6 +391,7 @@
             "sprite": "conNino"
           },
           "x": 84.4,
+          "name": "Papá",
           "dialogue": {
             "text": "“Quedate quieto, nene, ya falta poco.” 👨‍👦"
           }
@@ -379,6 +403,7 @@
             "sprite": "nino"
           },
           "x": 85.8,
+          "name": "Nene",
           "dialogue": {
             "text": "“¿Faaalta muuucho, paaa?” 🍭"
           }
@@ -390,6 +415,7 @@
             "sprite": "civil3"
           },
           "x": 87.2,
+          "name": "Don",
           "dialogue": {
             "text": "“En mis tiempos el dólar valía dos mangos.” ☕"
           }
@@ -401,6 +427,7 @@
             "sprite": "mujer"
           },
           "x": 88.6,
+          "name": "Señora 2",
           "dialogue": {
             "text": "“No empujes que me sacan de la fila, atorrante.” 😤"
           }
@@ -412,9 +439,17 @@
             "sprite": "borracho_vino"
           },
           "x": 97,
+          "name": "Borrachín del vino",
           "interact": {
             "action": "borracho",
-            "want": "fiambre"
+            "want": "fiambre",
+            "lines": [
+              "Te tira un corcho a la cabeza. “¿Sabés qué pasa? El país está como yo: sin un mango, pero firme.” 🍷",
+              "Te alcanza un caramelo pegoteado del bolsillo. “Yo fui contador, ¿sabés? Contador... de chistes malos. Ja.”",
+              "Te escupe vino sin querer. “Este edificio de atrás es nuestro, eh. Pero no entra cualquiera.” 🏚️",
+              "Te encaja un botón que se le cayó. “El obelisco lo construí yo, no me creen.” 🏛️"
+            ],
+            "hint": "“Uff... lo que me arreglaría un SÁNDWICH DE FIAMBRE ahora, pibe... un saladito, mortadela, lo que sea. Compralo en el super chino, dale.” 🥓"
           }
         },
         {
@@ -424,9 +459,17 @@
             "sprite": "borracho_birra"
           },
           "x": 100,
+          "name": "Borrachín de la cerveza",
           "interact": {
             "action": "borracho",
-            "want": "diosa"
+            "want": "diosa",
+            "lines": [
+              "Te tira la tapita de la birra. “¡Boca campeón del mundo! ...¿no salió? Bueno, igual, salú.” ⚽",
+              "Te ofrece un sorbo de su lata y se arrepiente. “Salú... *hipo*... vos me querés, ¿no, hermano?”",
+              "Te encaja un posavasos mojado. “Nosotros cuidamos la entrada de ese edificio. Hay que ganarse el pase, eh.” 🚪",
+              "Te pasa una servilleta escrita. “Mañana arranco la dieta. Mañana, eh.”"
+            ],
+            "hint": "“Cerveza tengo, lo que quiero es una DIOSA TROPICAL, hermano... el vinito dulce de fruta. Conseguila en el super chino (góndola DIOSAS).” 🍹"
           }
         },
         {
@@ -436,9 +479,17 @@
             "sprite": "borracho_porro"
           },
           "x": 103,
+          "name": "Borrachín del porro",
           "interact": {
             "action": "borracho",
-            "want": "carne"
+            "want": "carne",
+            "lines": [
+              "Te tira el filtro armado. “Tranqui todo, loco... ¿escuchás los pájaros? No hay pájaros. Igual.” 🌬️",
+              "Te pasa un encendedor sin gas. “El sistema, viste... el sistema, hermano.”",
+              "Te encaja un papelito. “Si los tres quedamos contentos, te abrimos el edificio, ¿me entendés o no me entendés?” 🏚️",
+              "Te alcanza una galletita aplastada. “Este edificio antes era un banco. Ahora soy yo el banco. De nada.” 🏦"
+            ],
+            "hint": "“Loco... tengo un BAJÓN bárbaro. Me morfaría un CACHO DE CARNE, te juro. Conseguime carne en el super, dale.” 🥩"
           }
         },
         {
@@ -673,6 +724,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "salir a la calle",
           "inward": 1,
           "link": {
             "to": "florida-y-lavalle",
@@ -689,6 +741,7 @@
             "type": "elevator"
           },
           "x": 17,
+          "label": "subir al piso 8",
           "inward": -1,
           "link": {
             "to": "educacionit-piso-8",
@@ -705,6 +758,7 @@
             "sprite": "recepcionista"
           },
           "x": 4,
+          "name": "Recepción",
           "interact": {
             "action": "chat",
             "persona": "secretaria"
@@ -720,6 +774,7 @@
             "sprite": "maxi"
           },
           "x": 11,
+          "name": "Maxi",
           "dialogue": {
             "text": "“¡Eh, Maxi!” — el profe de Java. «Acordate: en Java, todo es un objeto.» 👋"
           }
@@ -815,6 +870,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar al piso 4",
           "inward": 1,
           "link": {
             "to": "educacionit-piso-4",
@@ -831,6 +887,7 @@
             "type": "elevator"
           },
           "x": 19,
+          "label": "subir al piso 9",
           "inward": -1,
           "link": {
             "to": "educacionit-piso-9",
@@ -847,6 +904,7 @@
             "sprite": "recepcionista"
           },
           "x": 4,
+          "name": "Recepción",
           "interact": {
             "action": "chat",
             "persona": "secretaria"
@@ -862,6 +920,7 @@
             "sprite": "guido"
           },
           "x": 8,
+          "name": "Guido",
           "dialogue": {
             "text": "“¡Guido, máquina!” 👋"
           }
@@ -873,6 +932,7 @@
             "sprite": "seba1"
           },
           "x": 12,
+          "name": "Sebastián",
           "dialogue": {
             "text": "Sebastián, uno de los CEOs. «Bienvenido a EducaciónIT.» 👔"
           }
@@ -884,6 +944,7 @@
             "sprite": "seba2"
           },
           "x": 16,
+          "name": "Sebastián",
           "dialogue": {
             "text": "El otro Sebastián, también CEO. «Sí, los dos nos llamamos Sebastián.» 😄"
           }
@@ -996,6 +1057,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar al piso 8",
           "inward": 1,
           "link": {
             "to": "educacionit-piso-8",
@@ -1012,6 +1074,7 @@
             "sprite": "recepcionista"
           },
           "x": 4,
+          "name": "Recepción",
           "interact": {
             "action": "chat",
             "persona": "secretaria"
@@ -1027,6 +1090,7 @@
             "sprite": "marcos"
           },
           "x": 12,
+          "name": "Marcos",
           "dialogue": {
             "text": "Te tomás unos mates con Marcos. 🧉 «Ahh, cebado en su punto.» Qué momento."
           }
@@ -1122,6 +1186,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "salir a la calle",
           "inward": 1,
           "link": {
             "to": "florida-y-lavalle",
@@ -1138,6 +1203,7 @@
             "type": "exit"
           },
           "x": 22,
+          "label": "seguir al tipo",
           "inward": -1,
           "link": {
             "to": "lugar-secreto",
@@ -1154,6 +1220,7 @@
             "sprite": "gamer1"
           },
           "x": 5,
+          "name": "Dueño",
           "dialogue": {
             "text": "“Flaco, esta es MI máquina. Querés jugar al Pac-Man, pagás... y cada vez te sale más.” 💸"
           }
@@ -1165,6 +1232,7 @@
             "sprite": "gamer2"
           },
           "x": 10,
+          "name": "Dueño",
           "dialogue": {
             "text": "“El Galaga es mío, maestro. Pagá la ficha, acá nada es gratis.” 💸"
           }
@@ -1176,6 +1244,7 @@
             "sprite": "chori"
           },
           "x": 17,
+          "name": "El del chori",
           "interact": {
             "action": "frogger"
           },
@@ -1190,6 +1259,7 @@
             "sprite": "gamer1"
           },
           "x": 20,
+          "name": "El flaco del Trucotron",
           "interact": {
             "action": "fifa"
           },
@@ -1222,7 +1292,8 @@
           "interact": {
             "action": "machine"
           },
-          "x": 6
+          "x": 6,
+          "name": "PAC-MAN"
         },
         {
           "id": "arcade-de-lavalle/machine7",
@@ -1233,7 +1304,8 @@
           "interact": {
             "action": "machine"
           },
-          "x": 11
+          "x": 11,
+          "name": "GALAGA"
         },
         {
           "id": "arcade-de-lavalle/machine8",
@@ -1244,7 +1316,8 @@
           "interact": {
             "action": "machine"
           },
-          "x": 16
+          "x": 16,
+          "name": "FROGGER"
         },
         {
           "id": "arcade-de-lavalle/machine9",
@@ -1255,7 +1328,8 @@
           "interact": {
             "action": "machine"
           },
-          "x": 21
+          "x": 21,
+          "name": "TRUCOTRON"
         },
         {
           "id": "arcade-de-lavalle/pickup10",
@@ -1327,6 +1401,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "salir a la calle",
           "inward": 1,
           "link": {
             "to": "florida-y-lavalle",
@@ -1343,6 +1418,7 @@
             "sprite": "choriVendor"
           },
           "x": 10,
+          "name": "Parrillero",
           "interact": {
             "action": "chori"
           },
@@ -1417,6 +1493,7 @@
             "type": "up"
           },
           "x": 3,
+          "label": "subir",
           "inward": 1,
           "link": {
             "to": "florida-y-lavalle",
@@ -1433,6 +1510,7 @@
             "type": "galeria"
           },
           "x": 39,
+          "label": "bajar",
           "inward": -1,
           "link": {
             "to": "sotano-subsuelo-2",
@@ -1449,6 +1527,7 @@
             "sprite": "erotica"
           },
           "x": 14,
+          "name": "Sex-shop “El Subte”",
           "interact": {
             "action": "shop",
             "sells": {
@@ -1470,6 +1549,7 @@
             "sprite": "comida"
           },
           "x": 28,
+          "name": "Comida rara",
           "interact": {
             "action": "shop",
             "sells": {
@@ -1490,6 +1570,7 @@
             "sprite": "misterioso"
           },
           "x": 36,
+          "name": "???",
           "interact": {
             "action": "armas"
           },
@@ -1614,6 +1695,7 @@
             "type": "up"
           },
           "x": 3,
+          "label": "subir",
           "inward": 1,
           "link": {
             "to": "galeria-subsuelo-1",
@@ -1630,6 +1712,7 @@
             "type": "galeria"
           },
           "x": 39,
+          "label": "bajar",
           "inward": -1,
           "link": {
             "to": "las-cuevas-del-dolar-subsuelo-3",
@@ -1646,6 +1729,7 @@
             "sprite": "masajes"
           },
           "x": 14,
+          "name": "Masajes Felices",
           "interact": {
             "action": "shop",
             "sells": {
@@ -1666,6 +1750,7 @@
             "sprite": "tenebroso"
           },
           "x": 30,
+          "name": "???",
           "interact": {
             "action": "shop",
             "sells": {
@@ -1794,6 +1879,7 @@
             "type": "up"
           },
           "x": 3,
+          "label": "subir",
           "inward": 1,
           "link": {
             "to": "sotano-subsuelo-2",
@@ -1810,6 +1896,7 @@
             "type": "disqueria"
           },
           "x": 9,
+          "label": "entrar a la disquería",
           "inward": -1
         },
         {
@@ -1819,6 +1906,7 @@
             "type": "superchino"
           },
           "x": 44,
+          "label": "entrar al chino por atrás",
           "inward": -1
         },
         {
@@ -1828,6 +1916,7 @@
             "sprite": "cuevero"
           },
           "x": 6,
+          "name": "Cuevero sin clientes",
           "interact": {
             "action": "chat",
             "persona": "cuevero"
@@ -1877,6 +1966,7 @@
             "to": "cueva-del-dolar-la-del-fondo"
           },
           "x": 14,
+          "name": "Cueva 1",
           "dialogue": {
             "text": "“Dale, pasá pibe, acá adentro te atiendo. Pasá, pasá, no muerdo...”"
           }
@@ -1890,6 +1980,7 @@
             "to": "cueva-del-dolar-la-de-al-lado"
           },
           "x": 26,
+          "name": "Cueva 2",
           "dialogue": {
             "text": "“Vení, entrá tranqui a la cueva, hablamos adentro.”"
           }
@@ -1903,6 +1994,7 @@
             "to": "cueva-del-dolar-la-que-te-cambia"
           },
           "x": 40,
+          "name": "Cueva 3",
           "dialogue": {
             "text": "“Pasá, pasá, que te cambio tranqui. Entrá a la cueva.”"
           }
@@ -1975,6 +2067,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "salir",
           "inward": 1,
           "link": {
             "to": "arcade-de-lavalle",
@@ -1991,6 +2084,7 @@
             "type": "exit"
           },
           "x": 23,
+          "label": "pasar a la trastienda",
           "inward": -1,
           "link": {
             "to": "trastienda-truco",
@@ -2007,6 +2101,7 @@
             "sprite": "naipero"
           },
           "x": 4,
+          "name": "Jugador",
           "dialogue": {
             "text": "“Acá no, pibe. Vos no viste nada.” 🤫"
           }
@@ -2018,6 +2113,7 @@
             "sprite": "naipero"
           },
           "x": 6,
+          "name": "Jugador",
           "dialogue": {
             "text": "“¿Y vos quién sos? Andá yendo.”"
           }
@@ -2029,6 +2125,7 @@
             "sprite": "naipero"
           },
           "x": 8,
+          "name": "Jugador",
           "dialogue": {
             "text": "“Shhh. Acá no se habla.”"
           }
@@ -2040,6 +2137,7 @@
             "sprite": "naipero"
           },
           "x": 10,
+          "name": "Jugador",
           "dialogue": {
             "text": "“Vos no viste nada, ¿estamos?”"
           }
@@ -2051,6 +2149,7 @@
             "sprite": "naipero"
           },
           "x": 5,
+          "name": "Jugador",
           "dialogue": {
             "text": "“Seguí derecho, pibe.”"
           }
@@ -2062,6 +2161,7 @@
             "sprite": "naipero"
           },
           "x": 9,
+          "name": "Jugador",
           "dialogue": {
             "text": "“Mejor pasá a la otra sala.”"
           }
@@ -2073,6 +2173,7 @@
             "sprite": "naipero"
           },
           "x": 15,
+          "name": "Naipero charlatán",
           "interact": {
             "action": "chat",
             "persona": "tahur"
@@ -2088,6 +2189,7 @@
             "sprite": "naipero"
           },
           "x": 17,
+          "name": "Jugador",
           "dialogue": {
             "text": "“Tranqui, seguí para el fondo.”"
           }
@@ -2099,6 +2201,7 @@
             "sprite": "naipero"
           },
           "x": 19,
+          "name": "Jugador",
           "dialogue": {
             "text": "“¿Buscás algo? No, no buscás nada.”"
           }
@@ -2110,6 +2213,7 @@
             "sprite": "naipero"
           },
           "x": 21,
+          "name": "Jugador",
           "dialogue": {
             "text": "“Callate y seguí.”"
           }
@@ -2121,6 +2225,7 @@
             "sprite": "naipero"
           },
           "x": 16,
+          "name": "Naipero veterano",
           "interact": {
             "action": "chat",
             "persona": "tahur"
@@ -2136,6 +2241,7 @@
             "sprite": "naipero"
           },
           "x": 20,
+          "name": "Jugador",
           "dialogue": {
             "text": "“Al fondo te esperan.”"
           }
@@ -2190,6 +2296,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "volver a la sala",
           "inward": 1,
           "link": {
             "to": "lugar-secreto",
@@ -2206,6 +2313,7 @@
             "type": "superchino"
           },
           "x": 18,
+          "label": "cruzar al chino (la puerta del tahúr)",
           "inward": -1
         },
         {
@@ -2215,6 +2323,7 @@
             "sprite": "tahur"
           },
           "x": 7,
+          "name": "El Tahúr",
           "interact": {
             "action": "truco"
           },
@@ -2296,6 +2405,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "salir a la calle",
           "inward": 1,
           "link": {
             "to": "florida-y-lavalle",
@@ -2311,7 +2421,19 @@
           "render": {
             "sprite": "vendedor"
           },
-          "x": 11
+          "x": 11,
+          "name": "Vendedor",
+          "interact": {
+            "lines": [
+              "“¿Te muestro el LED 65 pulgadas 8K? Una ganga... en 48 cuotas (mentira).” 📺",
+              "“No mires el chiquito, pibe. Llevate el premium.”",
+              "“Te hago un precio: el mismo, pero te lo hago.” 😬",
+              "“¿Vas a comparar precios? Acá es todo carísimo igual, ahorrá tiempo.”",
+              "“Llevá la garantía extendida, sale más que el producto.”",
+              "“Eso que estás mirando ya lo estás comprando, ¿no?”"
+            ],
+            "follow": true
+          }
         },
         {
           "id": "garbarino-electronica/npc1",
@@ -2320,6 +2442,7 @@
             "sprite": "recepcionista"
           },
           "x": 6,
+          "name": "Smart TV 8K",
           "interact": {
             "action": "shop",
             "sells": {
@@ -2340,6 +2463,7 @@
             "sprite": "recepcionista"
           },
           "x": 17,
+          "name": "Celular tope de gama",
           "interact": {
             "action": "shop",
             "sells": {
@@ -2427,6 +2551,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "salir a la calle",
           "inward": 1,
           "link": {
             "to": "florida-y-lavalle",
@@ -2443,6 +2568,7 @@
             "sprite": "iorio"
           },
           "x": 14,
+          "name": "Iorio (Almafuerte)",
           "interact": {
             "action": "iorio"
           },
@@ -2457,6 +2583,7 @@
             "sprite": "guitarrista"
           },
           "x": 11,
+          "name": "Guitarrista",
           "dialogue": {
             "text": "“Pará que afino, loco. Esta viola tiene más años que vos.” 🎸"
           }
@@ -2468,6 +2595,7 @@
             "sprite": "bajista"
           },
           "x": 17,
+          "name": "Bajista",
           "dialogue": {
             "text": "“Grave, todo grave, hermano. El bajo es la vida.” 🎸"
           }
@@ -2479,6 +2607,7 @@
             "sprite": "baterista"
           },
           "x": 20,
+          "name": "Baterista",
           "dialogue": {
             "text": "“¡Uno, dos, tres, cuatro! ...¿probamos de nuevo?” 🥁"
           }
@@ -2490,6 +2619,7 @@
             "sprite": "choriVendor"
           },
           "x": 7,
+          "name": "Asador",
           "dialogue": {
             "text": "“Tranqui que falta, el asado no se apura. ¿Querés un choripán de la previa?” 🔥"
           }
@@ -2602,6 +2732,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "salir a la calle",
           "inward": 1,
           "link": {
             "to": "florida-y-lavalle",
@@ -2618,6 +2749,7 @@
             "sprite": "recepcionista"
           },
           "x": 6,
+          "name": "Cajero",
           "dialogue": {
             "text": "“Número 247... ¿el 247? Bueno, el que sigue. Despacio que es uno solo.” 🪟"
           }
@@ -2629,6 +2761,7 @@
             "sprite": "recepcionista"
           },
           "x": 9,
+          "name": "Cajera",
           "dialogue": {
             "text": "“No hay billetes chicos, señor. ¿De cien nomás? No tengo.” 🪟"
           }
@@ -2640,6 +2773,7 @@
             "sprite": "gordo"
           },
           "x": 11,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Saqué número a las siete de la mañana, ¿eh? No me corran.” 🎫"
           }
@@ -2651,6 +2785,7 @@
             "sprite": "mujer"
           },
           "x": 12,
+          "name": "En la cola",
           "dialogue": {
             "text": "“¿Cómo que cerró la caja? ¡Si recién abrieron!” 😤"
           }
@@ -2662,6 +2797,7 @@
             "sprite": "viejo"
           },
           "x": 13,
+          "name": "En la cola",
           "dialogue": {
             "text": "“En mis tiempos esto se hacía en la vereda, más rápido.” 👴"
           }
@@ -2673,6 +2809,7 @@
             "sprite": "turista"
           },
           "x": 14,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Is this the official rate? ...¿el oficial? ¡Pero si es la mitad!” 📸"
           }
@@ -2684,6 +2821,7 @@
             "sprite": "civil2"
           },
           "x": 15,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Hace dos horas que no avanza un paso, hermano.” 🧢"
           }
@@ -2695,6 +2833,7 @@
             "sprite": "conNino"
           },
           "x": 16,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Aguantá, nene, ya casi... no, mentira, falta un montón.” 👨‍👦"
           }
@@ -2706,6 +2845,7 @@
             "sprite": "civil4"
           },
           "x": 17,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Pedí el día en el laburo para esto. Para ESTO.” 💼"
           }
@@ -2717,6 +2857,7 @@
             "sprite": "civil3"
           },
           "x": 18,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Está hasta las pelotas, no entra un alfiler más.” 😮‍💨"
           }
@@ -2794,6 +2935,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "salir a la calle",
           "inward": 1,
           "link": {
             "to": "florida-y-lavalle",
@@ -2810,6 +2952,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-2-ruina",
@@ -2827,7 +2970,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -2914,6 +3063,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-1-lujo",
@@ -2930,6 +3080,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-3-lujo",
@@ -2946,6 +3097,7 @@
             "sprite": "yonqui"
           },
           "x": 5.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -2960,6 +3112,7 @@
             "sprite": "linyera"
           },
           "x": 7.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -2974,6 +3127,7 @@
             "sprite": "yonqui"
           },
           "x": 9.5,
+          "name": "Linyera hecho mierda",
           "interact": {
             "action": "limosna"
           },
@@ -2988,6 +3142,7 @@
             "sprite": "yonqui"
           },
           "x": 11.5,
+          "name": "Linyera",
           "interact": {
             "action": "limosna"
           },
@@ -3051,6 +3206,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-2-ruina",
@@ -3067,6 +3223,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-4-ruina",
@@ -3084,7 +3241,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -3171,6 +3334,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-3-lujo",
@@ -3187,6 +3351,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-5-lujo",
@@ -3203,6 +3368,7 @@
             "sprite": "yonqui"
           },
           "x": 7.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -3217,6 +3383,7 @@
             "sprite": "yonqui"
           },
           "x": 9.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -3231,6 +3398,7 @@
             "sprite": "linyera"
           },
           "x": 11.5,
+          "name": "Linyera hecho mierda",
           "interact": {
             "action": "limosna"
           },
@@ -3294,6 +3462,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-4-ruina",
@@ -3310,6 +3479,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-6-ruina",
@@ -3327,7 +3497,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -3414,6 +3590,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-5-lujo",
@@ -3430,6 +3607,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-7-lujo",
@@ -3446,6 +3624,7 @@
             "sprite": "linyera"
           },
           "x": 9.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -3460,6 +3639,7 @@
             "sprite": "yonqui"
           },
           "x": 11.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -3523,6 +3703,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-6-ruina",
@@ -3539,6 +3720,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-8-ruina",
@@ -3556,7 +3738,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -3643,6 +3831,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-7-lujo",
@@ -3659,6 +3848,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-9-lujo",
@@ -3675,6 +3865,7 @@
             "sprite": "yonqui"
           },
           "x": 11.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -3689,6 +3880,7 @@
             "sprite": "linyera"
           },
           "x": 3.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -3703,6 +3895,7 @@
             "sprite": "yonqui"
           },
           "x": 5.5,
+          "name": "Linyera hecho mierda",
           "interact": {
             "action": "limosna"
           },
@@ -3717,6 +3910,7 @@
             "sprite": "yonqui"
           },
           "x": 7.5,
+          "name": "Linyera",
           "interact": {
             "action": "limosna"
           },
@@ -3780,6 +3974,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-8-ruina",
@@ -3796,6 +3991,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-10-ruina",
@@ -3813,7 +4009,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -3900,6 +4102,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-9-lujo",
@@ -3916,6 +4119,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-11-lujo",
@@ -3932,6 +4136,7 @@
             "sprite": "yonqui"
           },
           "x": 3.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -3946,6 +4151,7 @@
             "sprite": "yonqui"
           },
           "x": 5.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -3960,6 +4166,7 @@
             "sprite": "linyera"
           },
           "x": 7.5,
+          "name": "Linyera hecho mierda",
           "interact": {
             "action": "limosna"
           },
@@ -4023,6 +4230,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-10-ruina",
@@ -4039,6 +4247,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-12-ruina",
@@ -4056,7 +4265,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -4143,6 +4358,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-11-lujo",
@@ -4159,6 +4375,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-13-lujo",
@@ -4175,6 +4392,7 @@
             "sprite": "linyera"
           },
           "x": 5.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -4189,6 +4407,7 @@
             "sprite": "yonqui"
           },
           "x": 7.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -4252,6 +4471,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-12-ruina",
@@ -4268,6 +4488,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-14-ruina",
@@ -4285,7 +4506,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -4372,6 +4599,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-13-lujo",
@@ -4388,6 +4616,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-15-lujo",
@@ -4404,6 +4633,7 @@
             "sprite": "yonqui"
           },
           "x": 7.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -4418,6 +4648,7 @@
             "sprite": "linyera"
           },
           "x": 9.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -4432,6 +4663,7 @@
             "sprite": "yonqui"
           },
           "x": 11.5,
+          "name": "Linyera hecho mierda",
           "interact": {
             "action": "limosna"
           },
@@ -4446,6 +4678,7 @@
             "sprite": "yonqui"
           },
           "x": 3.5,
+          "name": "Linyera",
           "interact": {
             "action": "limosna"
           },
@@ -4509,6 +4742,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-14-ruina",
@@ -4525,6 +4759,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-16-ruina",
@@ -4542,7 +4777,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -4629,6 +4870,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-15-lujo",
@@ -4645,6 +4887,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-17-lujo",
@@ -4661,6 +4904,7 @@
             "sprite": "yonqui"
           },
           "x": 9.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -4675,6 +4919,7 @@
             "sprite": "yonqui"
           },
           "x": 11.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -4689,6 +4934,7 @@
             "sprite": "linyera"
           },
           "x": 3.5,
+          "name": "Linyera hecho mierda",
           "interact": {
             "action": "limosna"
           },
@@ -4752,6 +4998,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-16-ruina",
@@ -4768,6 +5015,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-18-ruina",
@@ -4785,7 +5033,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -4872,6 +5126,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-17-lujo",
@@ -4888,6 +5143,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-19-lujo",
@@ -4904,6 +5160,7 @@
             "sprite": "linyera"
           },
           "x": 11.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -4918,6 +5175,7 @@
             "sprite": "yonqui"
           },
           "x": 3.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -4981,6 +5239,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-18-ruina",
@@ -4997,6 +5256,7 @@
             "type": "elevator"
           },
           "x": 14,
+          "label": "subir un piso",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-20-ruina",
@@ -5014,7 +5274,13 @@
           },
           "x": 11.9,
           "interact": {
-            "action": "lujo"
+            "action": "lujo",
+            "lines": [
+              "“¡Pará, pibe! No toques eso. Vos solo, loco... ¿viste? Esto puede afectar el espacio-temporal y me convierto DE VUELTA en millonario. ¡Y yo NO quiero laburaaar! ...No entendés nada. Corréte, pibe, que me tapás el sol.” 🌞",
+              "“Dejá el maletín ahí, maestro. Yo ya fui rico, fue un garrón. Ahora: panza al sol y cero quilombo. Corréte que me hacés sombra.” 🌞",
+              "“¿Las joyas? Mías, de cuando era millonario. Las tocás y se rompe todo de nuevo, ¿me entendés? Andá, andá.” ✨",
+              "“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼"
+            ]
           },
           "lifecycle": {
             "invisible": true
@@ -5027,6 +5293,7 @@
             "sprite": "totem_monos"
           },
           "x": 8,
+          "name": "Tótem de 3 monos",
           "interact": {
             "action": "totem"
           }
@@ -5120,6 +5387,7 @@
             "type": "elevator"
           },
           "x": 2,
+          "label": "bajar un piso",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-19-lujo",
@@ -5136,6 +5404,7 @@
             "type": "exit"
           },
           "x": 14,
+          "label": "entrar al BÚNKER (secreto)",
           "inward": -1,
           "link": {
             "to": "el-bunker-de-los-linyeras",
@@ -5152,6 +5421,7 @@
             "sprite": "yonqui"
           },
           "x": 3.5,
+          "name": "Linyera tirado",
           "interact": {
             "action": "limosna"
           },
@@ -5166,6 +5436,7 @@
             "sprite": "linyera"
           },
           "x": 5.5,
+          "name": "Linyera durmiendo",
           "interact": {
             "action": "limosna"
           },
@@ -5180,6 +5451,7 @@
             "sprite": "yonqui"
           },
           "x": 7.5,
+          "name": "Linyera hecho mierda",
           "interact": {
             "action": "limosna"
           },
@@ -5194,6 +5466,7 @@
             "sprite": "yonqui"
           },
           "x": 9.5,
+          "name": "Linyera",
           "interact": {
             "action": "limosna"
           },
@@ -5257,6 +5530,7 @@
             "type": "exit"
           },
           "x": 2,
+          "label": "volver al piso 20",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-20-ruina",
@@ -5287,6 +5561,7 @@
             "sprite": "linyera"
           },
           "x": 5,
+          "name": "Linyera",
           "dialogue": {
             "text": "“Bienvenido al búnker, gurú. Acá nadie labura. Tirate en el catre cuando quieras pasar el día. 🛖”"
           }
@@ -5298,6 +5573,7 @@
             "sprite": "linyera"
           },
           "x": 13,
+          "name": "Linyera mayor",
           "interact": {
             "action": "tesoro"
           },
@@ -5312,6 +5588,7 @@
             "sprite": "linyera"
           },
           "x": 17,
+          "name": "Linyera",
           "dialogue": {
             "text": "“Si querés salir de verdad, andá al portal de la Casa de Cambio. Si no, quedate en el loop.” 🔁"
           }
@@ -5381,6 +5658,7 @@
             "type": "up"
           },
           "x": 2,
+          "label": "salir de la cueva",
           "inward": 1,
           "link": {
             "to": "las-cuevas-del-dolar-subsuelo-3",
@@ -5397,6 +5675,7 @@
             "sprite": "gordo"
           },
           "x": 6,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Todo legal, ¿eh? Es para mi hijo, para cuando sea grande.” 👶"
           }
@@ -5408,6 +5687,7 @@
             "sprite": "civil3"
           },
           "x": 9,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Si no ahorro en dólares, este país se va a la mierda, pibe.” 🇦🇷"
           }
@@ -5419,6 +5699,7 @@
             "sprite": "mujer"
           },
           "x": 11.5,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Yo en el peso no confío ni loca. Verde o nada.” 💵"
           }
@@ -5456,6 +5737,7 @@
             "outcome": "coins"
           },
           "x": 14,
+          "name": "El cuevero",
           "dialogue": {
             "text": "“Uh, venís cargado de monedas... eso te marca, pibe. Acá no te cambio. Andá.”"
           }
@@ -5485,6 +5767,7 @@
             "type": "up"
           },
           "x": 2,
+          "label": "salir de la cueva",
           "inward": 1,
           "link": {
             "to": "las-cuevas-del-dolar-subsuelo-3",
@@ -5501,6 +5784,7 @@
             "sprite": "viejo"
           },
           "x": 6,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Vengo todos los meses. Es mi cajita de ahorro, qué querés.” 🏦"
           }
@@ -5512,6 +5796,7 @@
             "sprite": "civil4"
           },
           "x": 9,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Shhh, acá no se habla de cuánto traés, pibe.” 🤫"
           }
@@ -5523,6 +5808,7 @@
             "sprite": "conNino"
           },
           "x": 11.5,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Es para el futuro del nene. Dólar, siempre dólar.” 👨‍👦"
           }
@@ -5560,6 +5846,7 @@
             "outcome": "garca"
           },
           "x": 14,
+          "name": "El cuevero",
           "dialogue": {
             "text": "“Mmm... tenés cara de garca. Nah, andá a otro lado, no te cambio nada.”"
           }
@@ -5588,6 +5875,7 @@
             "type": "up"
           },
           "x": 2,
+          "label": "salir de la cueva",
           "inward": 1,
           "link": {
             "to": "las-cuevas-del-dolar-subsuelo-3",
@@ -5604,6 +5892,7 @@
             "sprite": "civil2"
           },
           "x": 6,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Acá sí te cambian. El tipo es de confianza, eh.” 💵"
           }
@@ -5615,6 +5904,7 @@
             "sprite": "mujer"
           },
           "x": 9,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Es para mi hijo, todo legal. Bueno, legal-legal no, pero me entendés.” 👶"
           }
@@ -5626,6 +5916,7 @@
             "sprite": "gordo"
           },
           "x": 11.5,
+          "name": "En la cola",
           "dialogue": {
             "text": "“Apurate que se hace cola. Si no ahorro verde, ¿qué le dejo a los pibes?” 🇦🇷"
           }
@@ -5663,6 +5954,7 @@
             "outcome": "real"
           },
           "x": 14,
+          "name": "El cuevero",
           "dialogue": {
             "text": "“Dale, vení que te los cambio, tranqui...”"
           }

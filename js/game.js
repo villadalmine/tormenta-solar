@@ -67,8 +67,14 @@
   const room = () => rooms[current];
   const st = () => states[current];
 
+  // motor v2 (data-driven, experimental) detrás de un toggle; default v1. Sin mundo.js+level-data.js → v1.
+  function useV2() {
+    if (typeof Mundo === 'undefined' || typeof window === 'undefined' || !window.LEVEL1) return false;
+    try { if ((location.search || '').indexOf('engine=v2') >= 0) return true; } catch (e) {}
+    try { return localStorage.getItem('ts_engine') === 'v2'; } catch (e) { return false; }
+  }
   function reset() {
-    rooms = Level.build();
+    rooms = useV2() ? Mundo.fromModel(window.LEVEL1) : Level.build();   // motor v2 (data-driven) detrás del toggle; default v1
     states = rooms.map(r => ({
       enemies: r.enemies.map(Enemies.create),
       pickups: r.pickups.map(p => ({ ...p, taken: false })),
@@ -1067,6 +1073,20 @@
     if (e.key === 'Enter') { e.preventDefault(); chatSend(); }
     else if (e.key === 'Escape') { e.preventDefault(); closeChat(); }   // (el handler global también lo cubre si pierde foco)
   });
+
+  // toggle del MOTOR (v1/v2) en ⚙ Opciones. Persiste en localStorage; aplica al (re)empezar.
+  (function () {
+    const b = typeof document !== 'undefined' && document.getElementById ? document.getElementById('opt-engine') : null;
+    if (!b) return;
+    const cur = () => { try { return localStorage.getItem('ts_engine') === 'v2' ? 'v2' : 'v1'; } catch (e) { return 'v1'; } };
+    const refresh = () => { b.textContent = cur(); };
+    refresh();
+    b.addEventListener('click', () => {
+      const next = cur() === 'v2' ? 'v1' : 'v2';
+      try { localStorage.setItem('ts_engine', next); } catch (e) {}
+      refresh();
+    });
+  })();
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
   // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).

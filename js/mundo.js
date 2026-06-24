@@ -31,19 +31,21 @@ const Mundo = (() => {
         case 'door': {
           const link = e.link || {};
           const d = { id: e.id.split('/door-')[1] || e.id, art: e.render && e.render.type, facade: e.render && e.render.facade,
-            x: f.x, y: f.y, inward: e.inward, to: null, at: null, _toRoom: link.to,
+            label: e.label, x: f.x, y: f.y, inward: e.inward, to: null, at: null, _toRoom: link.to,
             _at: link.at ? { x: link.at.x * T + T / 2, y: link.at.y * T } : null };
           room.doors.push(d); room.doorById[d.id] = d; break;
         }
         case 'npc': {
-          const n = { sprite: e.render && e.render.sprite, action: e.interact && e.interact.action,
-            want: e.interact && e.interact.want, persona: (e.interact && e.interact.persona) || (e.chat && e.chat.persona),
-            dialog: e.dialogue && e.dialogue.text, invisible: e.lifecycle && e.lifecycle.invisible, x: f.x, y: f.y };
-          room.npcs.push(n); break;
+          const it = e.interact || {};
+          room.npcs.push({ name: e.name, sprite: e.render && e.render.sprite, dialog: e.dialogue && e.dialogue.text,
+            action: it.action, follow: it.follow, lines: it.lines, want: it.want, hint: it.hint,
+            invisible: e.lifecycle && e.lifecycle.invisible, persona: it.persona || (e.chat && e.chat.persona),
+            sells: it.sells && { ...it.sells }, x: f.x, y: f.y });
+          break;
         }
         case 'decor': room.decor.push({ type: e.render && e.render.type, x: f.x, feetY: f.y }); break;
-        case 'machine': room.machines.push({ game: e.render && e.render.game, x: f.x, y: f.y }); break;
-        case 'cuevero': room.cueveros.push({ sprite: e.render && e.render.sprite, outcome: e.interact && e.interact.outcome,
+        case 'machine': room.machines.push({ name: e.name, game: e.render && e.render.game, x: f.x, y: f.y }); break;
+        case 'cuevero': room.cueveros.push({ name: e.name, sprite: e.render && e.render.sprite, outcome: e.interact && e.interact.outcome,
           to: e.interact && e.interact.to, dialog: e.dialogue && e.dialogue.text, x: f.x, y: f.y }); break;
         case 'pickup': room.pickups.push({ type: e.give && e.give.item, amount: e.give && e.give.amount, x: f.x, y: f.y }); break;
         case 'enemy': room.enemies.push({ type: e.combat && e.combat.type, look: e.combat && e.combat.look,
@@ -58,6 +60,7 @@ const Mundo = (() => {
   function wireRooms(rooms) {
     const idx = {}; rooms.forEach((r, i) => idx[r._id] = i);
     for (const A of rooms) {
+      for (const c of A.cueveros) if (typeof c.to === 'string') c.to = idx[c.to];   // cuevero invita por ÍNDICE (spawnIn)
       for (const da of A.doors) {
         if (da._toRoom == null) continue;
         const bi = idx[da._toRoom]; if (bi == null) continue;

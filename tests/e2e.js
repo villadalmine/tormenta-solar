@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -81,6 +81,8 @@ const sandbox = {
   setTimeout: (fn) => { return 0; }, clearTimeout: () => {}, setInterval: () => 0, clearInterval: () => {},
   AudioContext: FakeAudioContext, webkitAudioContext: FakeAudioContext,
   Image: class { set src(_) { if (this.onload) this.onload(); } },
+  localStorage: (() => { const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: k => { delete m[k]; } }; })(),
+  location: { search: '' },
   __now: 0,
 };
 sandbox.window = sandbox;
@@ -255,6 +257,18 @@ if (require.main === module) {
   })()`, sandbox);
   if (chino !== 'OK') { console.error('❌ CHINO/CHANGUITO: ' + chino); process.exit(1); }
   console.log('✓ chino: changuito + pagar + vuelto en caramelos + ninjas (sin pagar) OK');
+
+  // ---- motor v2 (data-driven): Mundo.fromModel(LEVEL1) construye el nivel headless sin crash ----
+  const v2n = vm.runInContext('(typeof Mundo!=="undefined" && window.LEVEL1) ? Mundo.fromModel(window.LEVEL1).length : -1', sandbox);
+  if (v2n !== 38) { console.error('❌ motor v2: Mundo.fromModel(LEVEL1) construyó ' + v2n + ' salas (esperaba 38)'); process.exit(1); }
+  console.log('✓ motor v2: Mundo.fromModel(LEVEL1) construye ' + v2n + ' salas (headless)');
+
+  // ---- v2 JUGABLE headless: forzar el motor v2 y correr el loop sin crash ----
+  vm.runInContext('localStorage.setItem("ts_engine","v2")', sandbox);
+  document.getElementById('startBtn').dispatch('click', {});
+  step(90);
+  key('e'); step(5);
+  console.log('✓ motor v2: start + 95 frames jugando en v2 (con interact) sin crash');
 
   console.log('\n🎮 E2E OK — boot + calle + todos los sub-modos + chino corren sin crash.');
 }

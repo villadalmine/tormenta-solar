@@ -35,6 +35,8 @@ const LANG_EN = {
   'opt.validate': 'Validate',
   'opt.reset': 'Reset',
   'opt.close': 'Close',
+  'opt.engine': 'Engine (experimental)',
+  'opt.engineNote': 'v1 = stable · v2 = new data-driven engine (applies on (re)start).',
 
   // --- chat ---
   'chat.title': 'CHAT',
