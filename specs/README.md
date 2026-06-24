@@ -77,7 +77,7 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar autom�
 - [idiomas.md](idiomas.md) — i18n / soporte multi-idioma (inglés), transcreación del humor porteño (impl. completo v=59).
 - [glosario-transcreacion.md](glosario-transcreacion.md) — fuente única de las decisiones es-AR → inglés (términos, nombres propios, tono).
 - [publicidad.md](publicidad.md) — monetización por product placement (afiches/pantallas/fachadas/góndola), capa aditiva tipo `presence` (Draft).
-- [modelo-de-entidades.md](modelo-de-entidades.md) — **modelo de objetos único + motor data-driven** ("todo es un objeto": edificio/maceta/personaje/cartel). Análisis de técnicas (Component + Type Object + data-driven, NO ECS), idempotencia, coexistencia v1/v2, reuso multi-nivel (Draft).
+- [modelo-de-entidades.md](modelo-de-entidades.md) — **modelo de objetos único + motor data-driven** ("todo es un objeto": edificio/maceta/personaje/cartel). Component + Type Object + data-driven (NO ECS), idempotencia, IA acotada + asistente GraphRAG, meta-progresión, quests (DAG), abilities, freemium, coexistencia v1/v2 por fases. **Diseño ACORDADO, listo para F1** (Draft).
 
 **Nivel 1 — sistemas**
 | Spec | Estado |

@@ -5,7 +5,8 @@
 > genérico de `game/` data), validando con un **toggle v1/v2** + test de paridad. Idempotencia = modelo
 > declarativo puro + estado runtime aparte (el que ya guarda `save.js`).
 
-- **Estado:** **Draft** (solo diseño — no se implementa hasta acordar el alcance y el plan por fases de §10)
+- **Estado:** **Draft — diseño ACORDADO (decisiones cerradas 2026-06-24).** Listo para implementar por
+  fases (§10); arranca **F1** cuando el dueño lo decida. v1 sigue de default hasta paridad.
 - **Nivel:** transversal (es la base para Nivel 1 **y** Nivel 2+)
 - **Última actualización:** 2026-06-24
 
@@ -684,35 +685,30 @@ nada de las features ricas:**
 - Regla: **nada de lo rico bloquea F1**; F1 es "el mismo Nivel 1 de hoy, pero descrito como data". Recién con
   paridad verde se suma lo demás, una pieza por fase.
 
-## 11. Riesgos y preguntas abiertas
+## 11. Decisiones cerradas (2026-06-24) y riesgos
 
-1. **Tamaño.** Es el refactor más grande del proyecto. Mitigación: fases chicas, v1 siempre default hasta
-   paridad, todo cubierto por el test de paridad.
-2. **Random determinista.** Hoy varias salas usan `Math.random()` en el armado (pisos en ruina, posiciones).
-   Para idempotencia hay que **sembrar** por id. ¿Aceptamos que el layout quede fijo por sala (sí, mejor
-   para tests y para "saber dónde cambiar")?
-3. **Formato de autoría.** ¿`levels/*.json` (data pura) o fichas `.md` con bloques → generador (como
-   `gen-historia`)? Recomendado: **JSON por nivel** para el mapa, fichas para la prosa/personalidad.
-4. **Sub-modos** (super/arcade/vinilos) son mini-juegos con su propia lógica: ¿entran al modelo como
-   `room` con `tipo:modo` (sólo el lanzador es entidad) o quedan afuera? Propuesta: el **lanzador** es una
-   entidad `door`/`machine`; el mini-juego interno sigue como módulo.
-5. **¿Editor?** Con el modelo declarativo, un **editor visual** (tipo Tiled) es posible a futuro — fuera de
-   alcance, pero el schema debería no cerrarle la puerta.
-6. **Modelo vs runtime (entidades transitorias).** El modelo declara entidades **autoradas/persistentes**.
-   Las **efímeras** (FX de ninjas al pogo, fuego, el **linyera errante** que se spawnea por cercanía) NO van
-   al modelo: las crea un **system en runtime** y no se persisten. Hay que separarlas claro para no romper
-   idempotencia ni el save.
-7. **Geometría de la sala.** Hoy el `map` se deriva de `w` + `platforms`. F1 mantiene eso (suelo plano +
-   plataformas). Si más adelante se quiere layout libre, el modelo podría llevar un **tilemap** (estilo
-   Tiled) — pero NO en el MVP (sobre-ingeniería). Pregunta: ¿alcanza `w`+`platforms` para Nivel 2?
-8. **Schema + versionado + validación.** Conviene un **JSON Schema** del modelo (guardrails para que una IA
-   edite sin romper) + un `schemaVersion` por nivel/pack para migraciones. La validación corre en e2e. ¿Lo
-   hacemos desde F1 (recomendado: sí, aunque mínimo)?
-9. **i18n.** Todo string visible pasa a **id i18n** en el modelo (reemplaza el map `level.en.js` + `TX()`).
-   Migración gradual; en F1 se puede mantener el texto inline y migrar a ids en una fase aparte.
-10. **Alcance del test de paridad.** Definir QUÉ campos compara v1≡v2 (geometría, doors+wiring, posiciones de
-    npc/decor/enemy/pickup, themes). Las cosas no estructurales (random sembrado, FX) quedan fuera de la
-    comparación.
+**Decisiones acordadas con el dueño** (ya no son preguntas abiertas):
+- **D2 — Layout determinista:** el armado **no** usa `Math.random()` suelto; se **siembra por id**
+  (`hash(seed+id+runs)`). El layout queda fijo/reproducible (mejor para tests y para "saber dónde cambiar").
+- **D3 — Autoría:** **`levels/*.json`** (data pura) para el mapa + **fichas `.md`** para prosa/personalidad.
+- **D4 — Sub-modos** (super/arcade/vinilos): el **lanzador** es una entidad (`door`/`machine`); el
+  mini-juego interno sigue como **módulo** aparte (no se modela su interior).
+- **D6 — Efímeras = runtime:** las entidades transitorias (FX de ninjas/fuego, **linyera errante** por
+  cercanía) las crea un **system en runtime**, **NO** van al modelo ni se persisten (protege idempotencia/save).
+- **D7 — Geometría:** **`w` + `platforms`** alcanza para el MVP (y previsiblemente Nivel 2); un **tilemap**
+  estilo Tiled queda como opción futura, no MVP.
+- **D8 — Schema + versionado:** **sí desde F1** (mínimo): un **JSON Schema** del modelo (guardrails para
+  edición por IA) + `schemaVersion` por nivel/pack; valida en e2e.
+- **D10 — Paridad:** v1≡v2 compara **geometría + doors/wiring + posiciones de npc/decor/enemy/pickup +
+  themes**; excluye lo no estructural (random sembrado, FX).
+- **D9 — i18n:** migración **gradual**; en F1 el texto puede quedar inline y se migra a ids i18n en una fase
+  aparte.
+
+**Riesgos (se mitigan, no se cierran):**
+1. **Tamaño** — es el refactor más grande. Mitigación: fases chicas, **v1 siempre default hasta paridad**,
+   test de paridad como red. (Por eso F1 es sólo el esqueleto, §10.)
+2. **Editor visual** (tipo Tiled) — posible a futuro gracias al modelo declarativo; fuera de alcance, pero el
+   schema no debería cerrarle la puerta.
 
 ---
 
