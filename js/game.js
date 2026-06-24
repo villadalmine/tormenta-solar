@@ -459,10 +459,10 @@
     chatHistory.push({ role: 'assistant', content: reply });
     const mk = memKey(chatNpc); if (mk) oracleMem[mk] = chatHistory.slice(-12);   // guardá su memoria (cap 12 turnos)
     if (ground && typeof AI !== 'undefined' && AI.lastSource() === 'local') chatLine('npc', '💡 ' + ground.text);
-    // si había key pero la respuesta salió local → avisar (no confundir al jugador)
-    if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) {
-      chatLine('sys', T('g.chat.localWarn'));
-    }
+    // si se cortó por TIMEOUT → mensaje TEMÁTICO (la tormenta saturó la electrónica del modelo)
+    if (typeof AI !== 'undefined' && AI.lastTimedOut && AI.lastTimedOut()) chatLine('sys', T('g.chat.stormTimeout'));
+    // si no, y había key pero salió local → avisar (no confundir al jugador)
+    else if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) chatLine('sys', T('g.chat.localWarn'));
     chatBusy = false;
     if (elChatInput) elChatInput.focus();
   }

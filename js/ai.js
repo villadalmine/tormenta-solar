@@ -12,6 +12,7 @@ const AI = (() => {
   let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
   let _good = null;           // el último modelo que respondió bien → se usa primero (rápido)
   let lastSource = 'local';   // de dónde salió la última respuesta: 'proxy' | 'byok' | 'local'
+  let lastTimedOut = false;   // la última vez se cortó por TIMEOUT (la "tormenta" saturó el modelo)
   // default = un free CHICO y RÁPIDO (para el chat la velocidad importa más que el tamaño).
   // El user lo cambia en Opciones (ej. uno más grande/lindo si no le molesta esperar).
   const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free';   // el último que usamos y anduvo
@@ -214,7 +215,7 @@ const AI = (() => {
         if (!r.ok) { lastStatus = r.status; console.warn('[ai] OpenRouter', r.status, (await r.text().catch(() => '')).slice(0, 160)); break; }
         const d = await r.json(); const reply = d.choices?.[0]?.message?.content;
         if (reply) { _good = model; return reply.trim().slice(0, 400); }   // recordamos el que anduvo
-      } catch (e) { clearTimeout(t); console.warn('[ai] fetch falló (' + model + '):', e.message); }
+      } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; console.warn('[ai] fetch falló (' + model + '):', e.message); }
     }
     console.warn('[ai] sin respuesta (status ' + lastStatus + '). El free está saturado: probá de nuevo en unos segundos.');
     return null;
@@ -227,12 +228,13 @@ const AI = (() => {
       clearTimeout(t);
       if (!r.ok) return null;
       const d = await r.json(); return d && d.reply ? String(d.reply).slice(0, 400) : null;
-    } catch (e) { clearTimeout(t); return null; }
+    } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; return null; }
   }
 
   // PRIORIDAD: 1) proxy del dev (vos pagás) → 2) key del jugador (BYOK) → 3) líneas LOCALES
   // (las del script + hardcodeadas). Si la IA tarda/falla, cae a las locales y no te hace esperar más.
   async function chat(npc, message, history = [], grounding) {
+    lastTimedOut = false;
     if (typeof fetch === 'function') {
       if (PROXY) { try { const r = await viaProxy(npc, message, history, grounding); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
       const key = playerKey();
@@ -273,5 +275,5 @@ const AI = (() => {
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, get online() { return mode() !== 'offline'; } };
 })();

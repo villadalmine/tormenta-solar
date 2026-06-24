@@ -88,6 +88,7 @@
     'g.chat.offline': '(sin IA conectada — respuestas predefinidas. Pegá tu API key en ⚙ Opciones.)',
     'g.chat.online': '(charlando con IA — {mode})',
     'g.chat.remembers': '💭 (se acuerda de vos)',
+    'g.chat.stormTimeout': '⚡ La tormenta solar saturó la electrónica del modelo: se colgó y corté. Probá de nuevo en unos segundos, pibe.',
     'g.chat.error': '“...se me cruzó un cable, pibe. Repetí.”',
     'g.chat.localWarn': '(la IA no respondió con tu key — líneas locales. Abrí la consola F12 para ver el error: 429/404/CORS, etc.)',
     'g.chat.youPrefix': 'Vos: ',

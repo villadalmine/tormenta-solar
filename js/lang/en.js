@@ -30,7 +30,7 @@ const LANG_EN = {
   'opt.font': 'Font size',
   'opt.msgMs': 'Text duration',
   'opt.msgFade': 'Fade in / out',
-  'opt.aikeyLabel': 'AI chat — your OpenRouter API key (optional)',
+  'opt.aikeyLabel': 'AI chat — your OpenRouter API key (optional). It\'s ONLY yours and at your own risk: a free/slow model may lag or time out.',
   'opt.aikeyPh': 'sk-or-…  (stored ONLY in your browser)',
   'opt.aimodelPh': 'model (empty = auto)',
   'opt.validate': 'Validate',

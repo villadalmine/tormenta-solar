@@ -29,7 +29,7 @@ const LANG_ES = {
   'opt.font': 'Tamaño de la fuente',
   'opt.msgMs': 'Duración del texto',
   'opt.msgFade': 'Aparición / desaparición',
-  'opt.aikeyLabel': 'Chat con IA — tu API key de OpenRouter (opcional)',
+  'opt.aikeyLabel': 'Chat con IA — tu API key de OpenRouter (opcional). Es SOLO tuya y a tu riesgo: si el modelo es free/lento, puede tardar o cortarse.',
   'opt.aikeyPh': 'sk-or-…  (se guarda SOLO en tu navegador)',
   'opt.aimodelPh': 'modelo (vacío = auto)',
   'opt.validate': 'Validar',

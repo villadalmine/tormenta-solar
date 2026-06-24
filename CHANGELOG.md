@@ -9,6 +9,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v89] — 2026-06-24 — ⚡ Timeout temático + disclaimer BYOK claro
+
+### Hecho ✅
+- **Mensaje temático al timeout**: si la IA tarda y se corta (timeout), el chat avisa con flavor —
+  "⚡ La tormenta solar saturó la electrónica del modelo: se colgó y corté. Probá de nuevo." (`ai.js`
+  expone `lastTimedOut()`; el chat lo muestra). En vez de un error pelado, queda en clima.
+- **Disclaimer BYOK reforzado** en ⚙ Opciones: "tu API key... es SOLO tuya y a tu riesgo: si el modelo es
+  free/lento, puede tardar o cortarse" (es/en).
+
+### Estado
+- e2e + web-smoke verdes. Cache `v=89`. (Doc de infra `ia-routing-infra.md §3.0` con la tabla del modelo.)
+
+---
+
 ## [v88] — 2026-06-24 — 🧉 Tu amigo linyera: historia base + memoria + "no soy tu IA de laburo"
 
 ### Hecho ✅
