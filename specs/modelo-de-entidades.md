@@ -251,6 +251,11 @@ técnicas conocidas:
   `memory` son **estado runtime** (se serializan con `save.js`). Así el mundo se reconstruye igual y la IA
   no rompe el determinismo del armado.
 
+**Regla de costo (decisión del dueño): en runtime, todo `rule`/`utility` (determinista, gratis, testeable).
+El `llm` es sobre todo una herramienta OFFLINE de autoría** (patrón `gen-dialogos`: el LLM genera variantes
+**en la compu**, se guardan como data, el juego sólo elige). Así tenés variedad **sin latencia ni costo en
+vivo**, y `policy:"llm"` en runtime queda reservado para 1–2 entidades "vivas" puntuales (o nada).
+
 ### B) Trazabilidad total para que un asistente (o vos preguntándole a Claude) sepa **exactamente** el juego
 
 **Qué es / cómo se llama:** la combinación de tres técnicas:
@@ -281,6 +286,47 @@ un **asistente grounded en el estado real del juego**.
 
 > Las dos cosas comparten cimiento: **ids estables + estado separado + el modelo como grafo consultable**.
 > Por eso conviene que entren en el diseño de v2 desde el día 1 (aunque se implementen en fases tardías).
+
+## 6¾. Rejugabilidad, contenido vivo y multi-nivel (y por qué el modelo lo habilita)
+
+El objetivo del dueño: que el juego **no sea monótono** — que al rejugarlo **cambie visualmente o en las
+respuestas de NPCs**, destrabe **mejoras**, y que se le puedan **agregar quests/temporadas** ("la semana de
+nuevos quests, mi mundo cambia"), tipo **mundo abierto con misiones editables**; y a futuro **volver a
+niveles pasados** para resolver cosas (estructura **Metroidvania**). Cómo lo da v2:
+
+### Tres capas de estado (la base de "el mundo cambia mientras más jugás")
+1. **Definición** (modelo, estático): qué entidades existen y sus transiciones legales.
+2. **Estado de partida** (per-run): vida, flags, posición → lo que ya serializa `save.js`.
+3. **Meta-progresión** (cross-run, persistente): lo que se acumula entre **muchas** partidas (qué
+   descubriste, qué temporada está activa, qué se desbloqueó "para siempre"). **Acá vive "cuanto más jugás,
+   más cambia"**: las `transitions` de las entidades pueden mirar la meta-progresión, no solo la partida.
+   (New Game+ / mundo que evoluciona.) Es una 3ª "save" aparte de la de partida.
+
+### Variedad SIN costo en vivo (autoría offline)
+- **Respuestas de NPC que cambian**: ya tenés `gen-dialogos` (LLM **offline** → pools de líneas como data).
+  El estado de la entidad (§6½A) elige **qué pool/variante** mostrar. Cero costo en runtime.
+- **Cambios visuales por rejugada**: el `agent` con `policy:"rule"/"utility"` muta el `render` entre estados
+  declarados, **sembrado por run/loop/meta** → determinista pero distinto cada vuelta.
+
+### Contenido vivo / "temporadas" (content packs)
+- Como el nivel es **data**, un **quest nuevo = entradas nuevas en el modelo** (entidades + aristas del
+  **quest DAG**, ver [TECNICAS.md §2](TECNICAS.md)). No se toca el motor.
+- **Content pack / overlay**: un archivo que se **superpone** al modelo base y agrega/cambia entidades
+  (la "temporada de la semana"). Patrón **data packs / mods**. Se puede activar/desactivar por fecha
+  (como las campañas de [publicidad](publicidad.md)).
+
+### Multi-nivel + backtracking (Metroidvania)
+- El **grafo del mundo abarca varios niveles** y las conexiones se **gatean por lo que desbloqueaste**
+  (items/abilities/flags — ya tenés gating: ticket, `bunkerUnlocked`, `spitDmg`). Volver a un nivel pasado
+  con algo nuevo abre puertas antes cerradas. El **grafo de historia** explica el "qué está pasando".
+
+### Por qué la decisión del motor te da "cintura" (y es clave porque NO programás)
+- Un modelo **declarativo, con schema y fuente única** es **lo más fácil de editar para una IA** (de
+  cualquier proveedor): leer/escribir **JSON validado contra un schema** es muchísimo más confiable que
+  tocar código imperativo. El **schema = guardrails** de la IA, y los **tests de paridad/validación**
+  (§9) atrapan los errores. → vos pedís el cambio en lenguaje natural, la IA edita la **data**, los tests
+  cuidan que no se rompa. Esto es **exactamente** lo que hace viable "yo voy cambiando todo" sin saber
+  programar. (Es el argumento más fuerte a favor de v2.)
 
 ## 7. Coexistencia v1 / v2 + toggle en la UI (estrategia de migración)
 
@@ -315,6 +361,13 @@ Para no reescribir a ciegas (strangler-fig):
 - **RF-9 (trazabilidad, §6½B):** el motor emite un **event log append-only** por `id` de entidad y expone
   `snapshot + eventLog + subgrafo` para un asistente; la respuesta del LLM va **grounded** en eso (GraphRAG),
   sin inventar. Sirve in-game (oráculo) y dev/meta (QA + "¿cómo va mi partida?").
+- **RF-10 (rejugabilidad, §6¾):** existe una capa de **meta-progresión** persistente (cross-run, aparte de
+  la save de partida); las `transitions` pueden mirarla → el mundo evoluciona entre partidas (variación
+  **determinista**, sembrada por run/loop/meta). En runtime NO hay LLM.
+- **RF-11 (contenido vivo, §6¾):** el contenido se puede extender con **content packs** (overlays de data
+  sobre el modelo base, activables por fecha) **sin tocar el motor**. Un quest nuevo = data nueva.
+- **RF-12 (AI-authorable):** el modelo tiene **schema** y los cambios se validan (paridad + auditoría) → un
+  asistente puede editar la **data** de forma confiable sin tocar código.
 
 ## 9. Criterios de aceptación
 
