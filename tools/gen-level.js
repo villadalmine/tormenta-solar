@@ -1,0 +1,85 @@
+// gen-level.js — F1 del modelo v2: deriva levels/nivel-1.json del Level.build() REAL (fiel por
+// construcción, re-ejecutable). Patrón gen-historia/gen-dialogos. Reusa el sandbox del e2e para cargar
+// level.js (con Art/Dialogos mockeados). NO toca el runtime del juego. Uso: node tools/gen-level.js
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+// requiere e2e.js: carga TODOS los scripts en el sandbox (NO corre el smoke porque require.main!==module)
+const { sandbox } = require('../tests/e2e.js');
+const TILE = vm.runInContext('Art.TILE', sandbox);
+const rooms = vm.runInContext('Level.build()', sandbox);
+
+const tx = px => Math.round((px - TILE / 2) / TILE);   // pixel (feet, centrado) → tile
+const ty = py => Math.round(py / TILE);
+const slug = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'sala';
+
+// ids de sala estables y únicos (slug del nombre)
+const used = {};
+const roomId = rooms.map(r => { let id = slug(r.name); if (used[id] != null) id += '-' + (++used[slug(r.name)]); else used[slug(r.name)] = 0; return id; });
+
+// plataformas a partir del map (tiles sólidos interiores por encima del piso)
+function platforms(r) {
+  const out = [];
+  for (let y = 0; y < r.gTop; y++) {
+    let x = 1;
+    while (x < r.w - 1) {
+      if (r.map[y][x] === 1) { let w = 0; while (x + w < r.w - 1 && r.map[y][x + w] === 1) w++; out.push([x, y, w]); x += w; }
+      else x++;
+    }
+  }
+  return out;
+}
+
+function entities(r, ri) {
+  const E = [];
+  let n = 0;
+  const id = t => roomId[ri] + '/' + t + (n++);
+  const pos = (e, x, y) => { e.x = tx(x); const t = ty(y); if (t !== r.gTop) e.y = t; return e; };
+
+  if (r.playerStart) E.push(pos({ id: id('marker'), tipo: 'marker', render: { type: 'spawn' } }, r.playerStart.x, r.playerStart.y));
+  if (r.goal) E.push(pos({ id: id('marker'), tipo: 'marker', render: { type: 'goal' } }, r.goal.x, r.goal.y));
+  if (r.buy) E.push(pos({ id: id('marker'), tipo: 'marker', render: { type: 'buy' } }, r.buy.x, r.buy.y));
+
+  for (const d of r.doors || []) {
+    const e = pos({ id: roomId[ri] + '/door-' + slug(d.id), tipo: 'door', render: { type: d.art || 'door' } }, d.x, d.y);
+    if (d.facade) e.render.facade = d.facade;
+    if (d.to != null) e.link = { to: roomId[d.to] };       // conectividad (F1: ref one-way; F2 afina el par)
+    E.push(e);
+  }
+  for (const m of r.npcs || []) {
+    const e = pos({ id: id('npc'), tipo: 'npc', render: { sprite: m.sprite } }, m.x, m.gTop != null ? m.y : m.y);
+    if (m.action) { e.interact = { action: m.action }; if (m.want) e.interact.want = m.want; if (m.persona) e.interact.persona = m.persona; if (m.sells) e.interact.sells = m.sells; }
+    if (m.persona && !m.action) e.chat = { persona: m.persona };
+    if (m.dialog) e.dialogue = { text: m.dialog };
+    if (m.invisible) e.lifecycle = { invisible: true };
+    E.push(e);
+  }
+  for (const d of r.decor || []) E.push(pos({ id: id('decor'), tipo: 'decor', render: { type: d.type } }, d.x, d.feetY));
+  for (const mc of r.machines || []) E.push(pos({ id: id('machine'), tipo: 'machine', render: { game: mc.game }, interact: { action: 'machine' } }, mc.x, mc.y));
+  for (const c of r.cueveros || []) { const e = pos({ id: id('cuevero'), tipo: 'cuevero', render: { sprite: c.sprite }, interact: { action: 'cuevero' } }, c.x, c.y); if (c.outcome) e.interact.outcome = c.outcome; if (c.to != null) e.interact.to = roomId[c.to]; if (c.dialog) e.dialogue = { text: c.dialog }; E.push(e); }
+  for (const p of r.pickups || []) E.push(pos({ id: id('pickup'), tipo: 'pickup', give: { item: p.type, amount: p.amount || 1 } }, p.x, p.y));
+  for (const en of r.enemies || []) { const e = pos({ id: id('enemy'), tipo: 'enemy', combat: { type: en.type } }, en.x, en.y); if (en.look) e.combat.look = en.look; if (en.dormant) e.combat.dormant = true; E.push(e); }
+  return E;
+}
+
+const model = {
+  schemaVersion: 1,
+  id: 'nivel-1',
+  nombre: 'Florida y Lavalle',
+  seed: 'nivel-1',
+  rooms: rooms.map((r, ri) => {
+    const room = { id: roomId[ri], nombre: r.name, theme: r.theme, w: r.w };
+    if (r.light != null) room.light = r.light;
+    if (r.stormable) room.stormable = true;
+    const pl = platforms(r); if (pl.length) room.platforms = pl;
+    room.entities = entities(r, ri);
+    return room;
+  }),
+};
+
+const out = path.join(__dirname, '..', 'levels', 'nivel-1.json');
+fs.writeFileSync(out, JSON.stringify(model, null, 2) + '\n');
+const nEnt = model.rooms.reduce((s, r) => s + r.entities.length, 0);
+console.log('✓ escrito levels/nivel-1.json — ' + model.rooms.length + ' salas, ' + nEnt + ' entidades');

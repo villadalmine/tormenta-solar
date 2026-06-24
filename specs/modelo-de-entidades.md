@@ -671,10 +671,11 @@ Para no reescribir a ciegas (strangler-fig):
 ## 10. Plan por fases (cuando se apruebe implementar)
 
 1. **F0 — este SDD** (acordar schema + alcance). ← estás acá.
-2. **F1 — schema + modelo de Nivel 1 como data** (sin tocar runtime): el **schema ya está**
-   ([`levels/level.schema.json`](../levels/level.schema.json) + `levels/example.json`); falta escribir
-   `levels/nivel-1.json` derivándolo de `level.js` + un check e2e que valida contra el schema y cubre las 38
-   salas. ← **acá arranca la implementación.**
+2. **F1 — schema + modelo de Nivel 1 como data** (sin tocar runtime): ✅ **HECHO.** Schema
+   ([`levels/level.schema.json`](../levels/level.schema.json)) + `levels/example.json` +
+   **`tools/gen-level.js`** (deriva `levels/nivel-1.json` del `Level.build()` real, fiel y re-ejecutable) +
+   **`tests/levels.mjs`** (valida contra el schema). Resultado: **38 salas, 487 entidades, 71 links 0 rotos**,
+   valida. v1 intacto.
 3. **F2 — `buildWorld`/`Mundo.fromModel` + test de paridad** v1≡v2 (v1 sigue default).
 4. **F3 — toggle v1/v2 en ⚙ Opciones** + parity en CI. Jugar Nivel 1 en v2.
 5. **F4 — migrar los hardcodes** (`COLLAPSED`, `DOOR_ART`, gating, `ambientFor`) a atributos del modelo;

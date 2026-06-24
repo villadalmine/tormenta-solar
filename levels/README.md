@@ -13,6 +13,10 @@ runtime** (v1 = `js/level.js` sigue siendo el motor por default); esto es el esq
 - **`example.json`** — un nivel mínimo (2 salas, 8 entidades) que **valida** contra el schema. Plantilla de
   referencia: muestra `marker`/`npc`/`decor`/`sign`/`door` con `link` (wiring), `gate`, `interact`,
   `lifecycle.appearsWhen` y `pickup`.
+- **`nivel-1.json`** — el **Nivel 1 entero como data** (38 salas, 487 entidades), **generado** del
+  `Level.build()` real por `tools/gen-level.js` (fiel por construcción, re-ejecutable: `node tools/gen-level.js`).
+  Valida contra el schema; 71 links de puerta, 0 rotos. **No se consume en runtime todavía** (espera a F2:
+  `buildWorld`).
 
 ## MVP de F1 (lo único requerido al principio)
 Esqueleto **físico**: `rooms` (id + `w` + `platforms` + `entities`), entidades
