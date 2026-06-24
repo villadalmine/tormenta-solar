@@ -321,7 +321,25 @@ niveles pasados** para resolver cosas (estructura **Metroidvania**). Cómo lo da
   **quest DAG**, ver [TECNICAS.md §2](TECNICAS.md)). No se toca el motor.
 - **Content pack / overlay**: un archivo que se **superpone** al modelo base y agrega/cambia entidades
   (la "temporada de la semana"). Patrón **data packs / mods**. Se puede activar/desactivar por fecha
-  (como las campañas de [publicidad](publicidad.md)).
+  (como las campañas de [publicidad](publicidad.md)). Forma tentativa:
+  ```jsonc
+  // packs/temporada-2026-07.json — se aplica ENCIMA del modelo base por id (merge/patch)
+  {
+    "id": "temporada-jul26", "activo": { "from": "2026-07-01", "to": "2026-07-31" },
+    "add": [                                  // entidades nuevas
+      { "id": "calle/afiche-mundial", "room": "calle", "tipo": "sign", "x": 40, "render": {"type":"cartel"} },
+      { "id": "calle/quest-npc", "room": "calle", "tipo": "npc", "x": 52,
+        "interact": {"action":"quest"}, "story": {"edge":"quest_mundial"} }
+    ],
+    "patch": [                                // cambia atributos de entidades existentes por id
+      { "id": "abandonado", "set": { "collapsesOnStorm": true } },
+      { "id": "p19/totem", "set": { "render": {"sprite":"totem_mundial"} } }
+    ],
+    "remove": ["calle/oficinista-3"]          // saca entidades
+  }
+  ```
+  Reglas: **merge por `id`** (add/patch/remove); el pack **no** rompe el base (si falta un id en `patch`,
+  warning, no crash); validable con el mismo schema. Así "la semana de nuevos quests" = subir un JSON.
 
 ### Multi-nivel + backtracking (Metroidvania)
 - El **grafo del mundo abarca varios niveles** y las conexiones se **gatean por lo que desbloqueaste**
@@ -384,6 +402,9 @@ Esto se llama **freemium / feature-gating de IA**, y **reusa la cadena que ya te
   (un Stripe/Lemon Squeezy + un check de "suscripción activa" en el proxy). BYOK y free **ya funcionan**.
 - Nada de esto bloquea v2: el modelo declara los atributos; el cobro/gating es una capa externa (como
   `presence`/métricas de `ads`).
+- **El routing/serving (suscripción vs GPU propia vs externo, abuso, k8s) es un SDD de infra aparte:**
+  [ia-routing-infra.md](ia-routing-infra.md). No toca el juego: éste sólo habla con **un endpoint** y
+  **expone métricas** (el contrato está en §5 de ese spec).
 
 ## 7. Coexistencia v1 / v2 + toggle en la UI (estrategia de migración)
 

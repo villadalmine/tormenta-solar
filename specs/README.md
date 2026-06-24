@@ -73,6 +73,7 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar autom�
 - [TECNICAS.md](TECNICAS.md) — cómo se modela esto en game dev (grafo de entidades, quest DAG, RAG).
 - [configuracion.md](configuracion.md) — opciones/accesibilidad (fuente, duración del texto, volumen).
 - [ia-openrouter.md](ia-openrouter.md) — IA (OpenRouter, modelo free) para diálogos/contenido (Draft).
+- [ia-routing-infra.md](ia-routing-infra.md) — **infra** de IA: routing self-hosted (vLLM/LiteLLM/AI Gateway/k8s) por tier (pago/BYOK/free) + uso/carga → GPU propia. NO toca el juego (sólo pide buenas métricas) (Draft).
 - [idiomas.md](idiomas.md) — i18n / soporte multi-idioma (inglés), transcreación del humor porteño (impl. completo v=59).
 - [glosario-transcreacion.md](glosario-transcreacion.md) — fuente única de las decisiones es-AR → inglés (términos, nombres propios, tono).
 - [publicidad.md](publicidad.md) — monetización por product placement (afiches/pantallas/fachadas/góndola), capa aditiva tipo `presence` (Draft).
