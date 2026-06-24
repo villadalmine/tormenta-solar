@@ -96,6 +96,21 @@ Sumar la regla del hostname nuevo al backend que ya apunta a la VIP del gateway:
 kubectl -n ai create secret generic tormenta-ai-key --from-literal=apiKey=sk-hermes-internal
 ```
 
+## 4.5 Gotchas reales del deploy (vistos al levantarlo)
+
+- **Pull del registry interno**: `registry.registry:5000` solo lo resuelve containerd en los
+  nodos `rk1` (no en `super6c`). El pod arranca con `nodeSelector kubernetes.io/hostname=srv-rk1-nvme-01`
+  (donde corre hermes y se buildeó la imagen). Alternativa portable: buildear también en GitHub
+  Actions → ghcr.io (cualquier nodo pullea), como online-game; el registry local es solo más rápido.
+- **runAsNonRoot**: el Dockerfile usa `USER node` (no numérico) → k8s no puede verificar no-root.
+  El chart setea `securityContext.runAsUser/Group: 1000` (UID del user `node` en node:20-alpine).
+- **HAProxy (Mac mini)**: el `cybercirujas_backend` es UN server con `maxconn 5` + `timeout queue 5s`
+  compartido por TODOS los hosts cybercirujas. Las requests largas del chat (LLM, 5-30s) se encolan
+  y mueren a los 5s. Fix: subir `maxconn` (~100) y `timeout queue` (~120s) en ese backend. El
+  `timeout server/client` (50s) ya estaba bien; el asesino era la cola.
+- **Modelo**: `default` (nemotron) es de *reasoning* y FILTRA el pensamiento en la respuesta → usar
+  `gemma4-free` (gemma-4-31b:free, igual familia que la UI), que sale limpio y en personaje.
+
 ## 5. Deploy del chart
 
 ```sh

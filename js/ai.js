@@ -4,9 +4,10 @@
 //   2) PROXY: si configurás un proxy (ai-proxy/) en PROXY → tu key queda server-side y vos pagás.
 //   3) OFFLINE: si no hay ninguna → responde con líneas predefinidas (el juego anda igual).
 const AI = (() => {
-  const PROXY = '';   // (opcional) URL de tu proxy ai-proxy. Si está → "vos pagás" (prioridad 1).
+  const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';   // proxy ai-proxy del dev → "vos pagás" (prioridad 1). '' = sin proxy.
   const KEY_LS = 'ts_openrouter_key';
   const TIMEOUT = 11000;
+  const PROXY_TIMEOUT = 35000;   // el proxy va a tu LiteLLM (gemma free): puede tardar 5-30s → margen mayor que BYOK
   const MAX_TRIES = 3;        // no probar más de N modelos por mensaje (no colgar)
   let byokDead = false;       // tras varios fallos seguidos → de ahí en más, líneas locales
   let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
@@ -221,7 +222,7 @@ const AI = (() => {
     return null;
   }
   async function viaProxy(npc, message, history, grounding) {
-    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), PROXY_TIMEOUT);
     try {
       const r = await fetch(PROXY, { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ npc, message, history: (history || []).slice(-8), grounding: grounding || undefined }) });

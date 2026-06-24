@@ -85,6 +85,8 @@ securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
   runAsNonRoot: true
+  runAsUser: 1000          # UID del user `node` en node:20-alpine (no-numérico USER node no verificable)
+  runAsGroup: 1000
 nodeSelector: {}
 tolerations: []
 affinity: {}
