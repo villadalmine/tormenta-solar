@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://villadalmine.github.io/tormenta-solar/levels/level.schema.json",
+  "title": "Tormenta Solar — modelo de nivel (v2, data-driven)",
+  "description": "Esqueleto del modelo de entidades. MVP (F1) = campos requeridos del esqueleto físico; los componentes ricos (ai/agent/story/quest/ability) están definidos pero son OPCIONALES y se cuelgan en fases posteriores. Ver specs/modelo-de-entidades.md.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "rooms"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1, "description": "versión del schema (para migraciones, D8)" },
+    "id": { "type": "string", "description": "id del nivel, ej. 'nivel-1'" },
+    "nombre": { "type": "string" },
+    "seed": { "type": "string", "description": "semilla estable para variación determinista (D2)" },
+    "eventos": { "type": "array", "items": { "$ref": "#/$defs/evento" } },
+    "buildings": {
+      "type": "array",
+      "description": "agrupación + atributos transversales del edificio; las salas viven en 'rooms' y se referencian por id",
+      "items": { "$ref": "#/$defs/building" }
+    },
+    "rooms": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/room" } },
+    "quests": { "type": "array", "items": { "$ref": "#/$defs/quest" }, "description": "fase posterior (§6.95)" },
+    "abilities": { "type": "array", "items": { "$ref": "#/$defs/ability" }, "description": "fase posterior (§6.96)" }
+  },
+
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-zA-Z0-9_./-]+$", "description": "id estable (no índices); ej 'abandonado/p19', 'calle/quest-npc'" },
+
+    "cond": {
+      "description": "predicado unificado (§6.96). Lo usan pre/when/requires/gate/activo/tier. Una sola evalCond.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "all": { "type": "array", "items": { "$ref": "#/$defs/cond" } },
+        "any": { "type": "array", "items": { "$ref": "#/$defs/cond" } },
+        "not": { "$ref": "#/$defs/cond" },
+        "flag": { "type": "string", "description": "flag verdadero" },
+        "item": { "type": "string" },
+        "has": { "type": "string", "description": "ability desbloqueada" },
+        "at": { "type": "string", "description": "lugar actual (tag de zona)" },
+        "meta": { "type": "string", "description": "clave de meta-progresión" },
+        "entity": { "type": "string", "description": "id de otra entidad (con 'state')" },
+        "state": { "type": "string" },
+        "gte": { "type": "number" }, "lte": { "type": "number" },
+        "gt": { "type": "number" }, "lt": { "type": "number" }, "eq": {}
+      }
+    },
+
+    "evento": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "trigger": { "type": "string", "description": "qué lo dispara (ej. 'deal_cuevero_real')" },
+        "sets": { "type": "object", "description": "flags que setea (ej. {stormed:true})" }
+      }
+    },
+
+    "building": {
+      "type": "object",
+      "required": ["id", "rooms"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nombre": { "type": "string" },
+        "facade": { "type": "string", "description": "sprite de fachada (ex DOOR_ART)" },
+        "gate": { "$ref": "#/$defs/cond", "description": "condición para entrar/ver (ex ifs de gating)" },
+        "collapsesOnStorm": { "type": "boolean", "default": false, "description": "ex COLLAPSED" },
+        "ambient": { "type": "string", "enum": ["calle", "viento", "cueva", "recital", null] },
+        "music": { "type": ["string", "null"] },
+        "rooms": { "type": "array", "items": { "$ref": "#/$defs/id" }, "description": "ids de las salas que lo componen" }
+      }
+    },
+
+    "room": {
+      "type": "object",
+      "required": ["id", "w"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nombre": { "type": "string" },
+        "theme": { "type": "string" },
+        "w": { "type": "integer", "minimum": 4, "description": "ancho en tiles (alto es fijo, D7)" },
+        "light": { "type": "number" },
+        "stormable": { "type": "boolean" },
+        "platforms": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "integer" }, "minItems": 3, "maxItems": 3 },
+          "description": "[x, y, ancho] en tiles (geometría MVP: suelo plano + plataformas, D7)"
+        },
+        "ambient": { "type": ["string", "null"] },
+        "entities": { "type": "array", "items": { "$ref": "#/$defs/entity" } }
+      }
+    },
+
+    "entity": {
+      "type": "object",
+      "required": ["id", "tipo"],
+      "additionalProperties": false,
+      "description": "TODO es una entidad + componentes (los que use). MVP usa tipo/x/render/interact/link/gate; el resto es opcional.",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "tipo": { "type": "string", "enum": ["door", "npc", "decor", "machine", "cuevero", "enemy", "pickup", "sign", "marker", "trigger", "quest"] },
+        "x": { "type": "number", "description": "tile X" },
+        "y": { "type": "number", "description": "tile Y (opcional; default piso)" },
+
+        "render": { "type": "object", "description": "sprite|type de Art", "additionalProperties": true },
+        "interact": {
+          "type": "object",
+          "description": "verbo registrado + params (§6.97). action debe existir en el registry Actions.",
+          "required": ["action"],
+          "additionalProperties": true,
+          "properties": {
+            "action": { "type": "string" },
+            "want": { "type": "string" }, "persona": { "type": "string" }, "quest": { "type": "string" },
+            "sells": { "type": "object" }, "lines": { "type": "array" }
+          }
+        },
+        "link": {
+          "type": "object",
+          "description": "conexión entre puertas (ex wire). a/b = 'salaId#puertaId'",
+          "additionalProperties": false,
+          "properties": { "a": { "type": "string" }, "b": { "type": "string" }, "to": { "type": "string" }, "facade": { "type": "string" } }
+        },
+        "gate": { "$ref": "#/$defs/cond" },
+        "give": { "type": "object", "properties": { "item": { "type": "string" }, "amount": { "type": "number" } } },
+        "combat": { "type": "object", "additionalProperties": true, "description": "enemigos: hp/dmg/look/beh" },
+
+        "i18n": { "type": "string", "description": "id estable para traducir (reemplaza level.en.js)" },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "appearsWhen": { "$ref": "#/$defs/cond" }, "hideWhen": { "$ref": "#/$defs/cond" },
+            "invisible": { "type": "boolean" }, "oncePerLoop": { "type": "boolean" }
+          }
+        },
+
+        "story": { "type": "object", "properties": { "edge": { "type": "string" } }, "description": "ref a arista del grafo (§6½) — fase posterior" },
+        "dialogue": { "type": "object", "additionalProperties": true, "description": "pool/lines (gen-dialogos) — fase posterior" },
+        "chat": { "type": "object", "properties": { "persona": { "type": "string" } } },
+        "ai": {
+          "type": "object",
+          "description": "feature full-AI (§6.9) — fase posterior",
+          "additionalProperties": false,
+          "properties": {
+            "tier": { "type": "string", "enum": ["any", "sub", "byok"], "default": "any" },
+            "model": { "type": "string" }, "latencyMs": { "type": "number" }, "fallback": { "type": "string" }
+          }
+        },
+        "agent": {
+          "type": "object",
+          "description": "entidad con cerebro acotado (§6½A) — fase posterior",
+          "additionalProperties": false,
+          "properties": {
+            "traits": { "type": "object" },
+            "state": { "type": "string" },
+            "states": { "type": "array", "items": { "type": "string" } },
+            "transitions": { "type": "array", "items": {
+              "type": "object", "properties": { "to": { "type": "string" }, "when": { "$ref": "#/$defs/cond" } }, "required": ["to"]
+            } },
+            "memory": { "type": "string" },
+            "policy": { "type": "string", "enum": ["rule", "utility", "llm"], "default": "rule" }
+          }
+        },
+        "ad": { "type": "object", "additionalProperties": true, "description": "si es sign publicitario (§6.9 / publicidad.md)" }
+      }
+    },
+
+    "quest": {
+      "type": "object",
+      "required": ["id", "steps"],
+      "additionalProperties": false,
+      "description": "§6.95 — bundle declarativo de aristas (DAG). Fase posterior.",
+      "properties": {
+        "tipo": { "const": "quest" },
+        "id": { "$ref": "#/$defs/id" },
+        "i18n": { "type": "string" },
+        "giver": { "type": "string" },
+        "autostart": { "$ref": "#/$defs/cond" },
+        "requires": { "$ref": "#/$defs/cond" },
+        "scope": { "type": "string", "enum": ["run", "meta"], "default": "run" },
+        "repeatable": { "type": "boolean", "default": false },
+        "steps": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "at": { "type": "string" },
+              "when": { "$ref": "#/$defs/cond", "description": "dependencias (DAG; lineal = depende del anterior)" },
+              "sets": { "type": "object" },
+              "hints": { "type": "object", "description": "{es:[...],en:[...]} por nivel de spoiler" }
+            }
+          }
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": { "coins": { "type": "number" }, "flag": { "type": "string" }, "unlock": { "type": "string" }, "item": { "type": "string" } }
+        }
+      }
+    },
+
+    "ability": {
+      "type": "object",
+      "required": ["id", "effect"],
+      "additionalProperties": false,
+      "description": "§6.96 — desbloqueo. effect mapea a capacidad del motor (lista cerrada). Fase posterior.",
+      "properties": {
+        "tipo": { "const": "ability" },
+        "id": { "$ref": "#/$defs/id" },
+        "i18n": { "type": "string" },
+        "persists": { "type": "string", "enum": ["meta", "run"], "default": "meta" },
+        "effect": { "type": "string", "description": "double_jump|dash|spit_strong|break:<material>|open:<tag>|see_hidden|..." }
+      }
+    }
+  }
+}

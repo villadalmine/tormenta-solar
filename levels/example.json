@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "ejemplo",
+  "nombre": "Ejemplo mínimo (valida contra level.schema.json)",
+  "seed": "demo",
+  "eventos": [
+    { "id": "tormenta", "trigger": "deal_cuevero_real", "sets": { "stormed": true } }
+  ],
+  "buildings": [
+    { "id": "abandonado", "nombre": "Edificio Abandonado", "facade": "abandonado",
+      "gate": { "flag": "borrachosHappy" }, "collapsesOnStorm": false,
+      "ambient": "viento", "rooms": ["abandonado/p1"] }
+  ],
+  "rooms": [
+    {
+      "id": "calle", "nombre": "Florida y Lavalle", "theme": "street", "w": 40, "light": 1.0,
+      "stormable": true, "ambient": "calle",
+      "entities": [
+        { "id": "calle/spawn", "tipo": "marker", "x": 3, "render": { "type": "spawn" } },
+        { "id": "calle/linyera", "tipo": "npc", "x": 14, "render": { "sprite": "linyera" },
+          "interact": { "action": "chat", "persona": "filosofo" }, "i18n": "npc.linyera" },
+        { "id": "calle/maceta", "tipo": "decor", "x": 20, "render": { "type": "planta" } },
+        { "id": "calle/afiche", "tipo": "sign", "x": 30, "render": { "type": "cartel" },
+          "ad": { "slot": "calle-afiche-1", "format": "poster" } },
+        { "id": "calle/puerta-abandonado", "tipo": "door", "x": 36, "render": { "type": "abandonado" },
+          "gate": { "flag": "borrachosHappy" },
+          "link": { "a": "calle#abandonado", "b": "abandonado/p1#down" } }
+      ]
+    },
+    {
+      "id": "abandonado/p1", "theme": "ruina", "w": 17, "light": 0.42,
+      "platforms": [[6, 9, 4]],
+      "entities": [
+        { "id": "abandonado/p1/door-down", "tipo": "door", "x": 2, "render": { "type": "exit" },
+          "link": { "a": "abandonado/p1#down", "b": "calle#abandonado" } },
+        { "id": "abandonado/p1/linyera", "tipo": "npc", "x": 9, "render": { "sprite": "linyera" },
+          "interact": { "action": "limosna" },
+          "lifecycle": { "appearsWhen": { "flag": "stormed" } } },
+        { "id": "abandonado/p1/health", "tipo": "pickup", "x": 12, "give": { "item": "health", "amount": 1 } }
+      ]
+    }
+  ]
+}

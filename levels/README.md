@@ -1,0 +1,29 @@
+# `levels/` — el juego como DATA (modelo v2)
+
+Acá viven los **niveles declarados como datos** (modelo data-driven). Es la base de la migración a v2
+descrita en [`specs/modelo-de-entidades.md`](../specs/modelo-de-entidades.md). **Todavía NO se consume en
+runtime** (v1 = `js/level.js` sigue siendo el motor por default); esto es el esqueleto para arrancar **F1**.
+
+## Archivos
+- **`level.schema.json`** — el **JSON Schema** (draft 2020-12) del modelo (decisión **D8**). Define la forma
+  de un nivel: `rooms[]` (cada sala con su geometría y `entities[]`), `buildings[]` (agrupación + atributos
+  transversales: `facade`, `gate`, `collapsesOnStorm`, `ambient`), y —opcionales, para fases posteriores—
+  `quests[]`, `abilities[]`, `eventos[]`. **Todo es una entidad + componentes.** Sirve de **guardrails** para
+  que una IA edite contenido sin romper (RF-12/RF-20).
+- **`example.json`** — un nivel mínimo (2 salas, 8 entidades) que **valida** contra el schema. Plantilla de
+  referencia: muestra `marker`/`npc`/`decor`/`sign`/`door` con `link` (wiring), `gate`, `interact`,
+  `lifecycle.appearsWhen` y `pickup`.
+
+## MVP de F1 (lo único requerido al principio)
+Esqueleto **físico**: `rooms` (id + `w` + `platforms` + `entities`), entidades
+`door`/`npc`/`decor`/`machine`/`pickup`/`enemy`/`cuevero`/`marker`, con `render`, `interact.action`
+(referencia a un verbo del registry), `link` (ex `wire`), `gate` (`cond`), e **ids estables**. Objetivo:
+que un futuro `buildWorld(model)` reproduzca las 38 salas actuales (**test de paridad** v1≡v2).
+
+Los componentes ricos (`ai`, `agent`, `story`, `dialogue`, `quest`, `ability`, `ad`) están en el schema pero
+son **opcionales**: se cuelgan en fases posteriores (§6½–§6.96 del SDD).
+
+## Validación (cuando se implemente)
+Un check de e2e validará cada `levels/*.json` contra `level.schema.json` (con un validador mínimo o `ajv`),
+y la **auditoría de cobertura** confirmará que cada `action`/`render.sprite`/`effect` referenciado existe en
+su registry (mismo patrón que la auditoría de assets de hoy).
