@@ -15,6 +15,8 @@ El juego es 100% estático; se publica en
 
 - **Rotación en LiteLLM** (`specs/pruebas-modelos.md §2.7`): `gemma2:2b` en la GPU como primario
   (+ `keep_alive`) con **fallback a `gemma4-free`** (OpenRouter) si la GPU se apaga. El usuario lo itera aparte.
+- **Métricas reales de uso** (`specs/metricas.md`): por cada chat, qué modelo/backend (OpenRouter/GPU/NPU),
+  latencia y outcome — labels en el `/metrics` del proxy + ServiceMonitor + dashboard Grafana (patrón online-game).
 - **Suscripción / freemium** (`specs/suscripcion.md`): plan pago con modelo premium (el dev carga OpenRouter)
   que **no pasa por el tier free**; upsell cuando el free se satura. Define qué habilita y cómo rutea LiteLLM.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
