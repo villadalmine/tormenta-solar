@@ -1,0 +1,64 @@
+# Valores del chart del JUEGO estático (nginx) de Tormenta Solar.
+# Sirve los archivos del juego desde el cluster, en paralelo a GitHub Pages.
+replicaCount: 1
+
+image:
+  repository: registry.registry:5000/ai/tormenta-solar-web
+  tag: ""                 # vacío = usa Chart.appVersion
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+# nginx-unprivileged escucha en 8080 (rootless).
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 80                # expone 80 → contenedor 8080
+
+# Gateway API (Cilium) — HTTPRoute al `cluster-gateway` EXISTENTE (misma VIP 192.168.178.200 que el
+# proxy de IA y cruzdelsur). HAProxy (Mac mini G4 · OpenBSD) hace SNI passthrough a esa VIP; cada
+# hostname nuevo solo agrega un listener HTTPS. Deploy: gateway.enabled + tls.enabled + ensureListener.enabled.
+gateway:
+  enabled: false
+  host: tormenta-solar.cybercirujas.club
+  extraHosts: []
+  name: cluster-gateway            # reusamos el gateway compartido (misma IP)
+  namespace: gateway
+  className: cilium
+  create: false                    # false = reusar cluster-gateway (NO crear Gateway propio)
+  lbip: ""                         # solo aplica si create=true
+  tls:
+    enabled: false                 # true → Certificate (cert-manager) + listener HTTPS
+    secretName: ""                 # "" = <release>-tls
+    issuer: letsencrypt-prod       # ClusterIssuer ya existente (probá staging primero si querés)
+  ensureListener:
+    enabled: false                 # poné true en el deploy público (create=false)
+    name: ""                       # "" = <release>-https
+    image: bitnami/kubectl:latest  # imagen con kubectl
+
+# Let's Encrypt (DNS-01 acme-dns). Los issuers YA existen en el cluster → enabled=false (reuso).
+letsencrypt:
+  enabled: false
+  email: you@example.com
+  acmeDnsHost: https://auth.acme-dns.io
+  acmeDnsSecret: acme-dns-account
+
+resources:
+  requests: { cpu: 20m, memory: 32Mi }
+  limits: { cpu: 200m, memory: 128Mi }
+
+podAnnotations: {}
+podSecurityContext: {}
+# nginx-unprivileged escribe temporales en /tmp → readOnlyRootFilesystem queda en false.
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 101            # uid del nginx-unprivileged
+  runAsGroup: 101
+nodeSelector: {}
+tolerations: []
+affinity: {}

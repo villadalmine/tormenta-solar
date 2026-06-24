@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOLAR STORM — a Buenos Aires shooter with free AI</title>
+<meta name="description" content="You buy dollars on Florida &amp; Lavalle… and the sun goes out. A 2D shooter with Buenos Aires humor, open source, with a FREE AI chat against the bum-oracles. Runs on self-hosted infra.">
+<meta name="theme-color" content="#05080c">
+<meta property="og:title" content="SOLAR STORM — a Buenos Aires shooter with free AI">
+<meta property="og:description" content="You buy dollars on Florida &amp; Lavalle… and the sun goes out. FREE AI chat with the bum-oracles. Open source, self-hosted infra.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://villadalmine.github.io/tormenta-solar/info/index.en.html">
+<meta property="og:image" content="https://villadalmine.github.io/tormenta-solar/info/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="info.css?v=2">
+</head>
+<body>
+<header class="bar">
+  <span class="brand">☀ SOLAR STORM</span>
+  <nav>
+    <a href="../">▶ Play</a>
+    <a href="tech.en.html">How it works</a>
+    <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">GitHub</a>
+    <a href="index.html">ES</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>SOLAR STORM</h1>
+    <p class="tag">You buy dollars on Florida &amp; Lavalle… and the sun goes out. 🌞🔌</p>
+    <div class="cta">
+      <a class="btn play" href="../">▶ PLAY NOW</a>
+      <a class="btn" href="tech.en.html">⚙ How it works (the stack)</a>
+      <a class="btn" href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">★ GitHub</a>
+    </div>
+    <div class="badge">open source · GPLv3 · nothing to install, runs in the browser</div>
+  </div>
+
+  <div class="free">
+    <h2>🤖 The AI chat is FREE</h2>
+    <p>You chat with the <b>bum-oracles</b> (they drop hints, tell you about the solar storms and how AI rules
+    over us) and <b>we</b> pay for the AI: you don't need any API key. It runs on our own <b>self-hosted infra</b>
+    (Kubernetes + LiteLLM + GPU/NPU). If you'd still rather use your own OpenRouter key, you can — it stays as an
+    override in your browser.</p>
+  </div>
+
+  <section>
+    <h2 class="sec">What's it about?</h2>
+    <p>A 2D shooter with Buenos Aires humor. You start buying greenbacks in an <b>illegal money cave</b>, a
+    <b>solar storm</b> hits and tears space-time, and the neighborhood turns into a glitched mess you have to
+    survive and make sense of. You're <b>el Carpo</b>: a bum bluesman, bald, guitar on his back, zero glamour
+    (a fond tribute to the bums of Florida &amp; Lavalle — fiction/parody).</p>
+  </section>
+
+  <section>
+    <h2 class="sec">What you'll find</h2>
+    <div class="grid">
+      <div class="card"><h3>Bum-oracles</h3><p class="dim">NPCs with AI and their own memory: they recognize you, remember what you talked about, and give hints without spoiling. Each with its own voice.</p></div>
+      <div class="card"><h3>Story graph</h3><p class="dim">Chained puzzles: what unlocks what, two routes to the Chinese shop, the bums' bunker, the final portal (time jump).</p></div>
+      <div class="card"><h3>A world that reacts</h3><p class="dim">Money changers, the card-game Hustler, the shopkeeper and his ninjas, the drunks. A survival loop and replayability.</p></div>
+      <div class="card"><h3>Always alive</h3><p class="dim">Data-driven model: characters, quests and moments get added without recompiling. Every release brings more.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec">Built on real hardware</h2>
+    <p>It's not just a toy: the AI runs on a <b>self-hosted Kubernetes cluster</b> at home — HAProxy at the
+    edge, Cilium Gateway API, a Let's Encrypt TLS cert, <b>LiteLLM</b> centralizing models, and inference on an
+    <b>NVIDIA GPU</b> (shared via HAMi) and <b>RK1 NPUs</b>, with OpenRouter as the cloud fallback.
+    <a href="tech.en.html">Let me walk you through it, layer by layer →</a></p>
+  </section>
+
+  <section>
+    <h2 class="sec">Coming soon 🔜</h2>
+    <p>A <b>Telegram bot</b> wired to <b>Hermes</b> (an agent already running in the cluster) to
+    <b>run the game from chat</b>: administer it, generate new content and orchestrate the world from your phone.</p>
+  </section>
+
+  <footer>
+    SOLAR STORM — open source (GPLv3) · <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">github.com/villadalmine/tormenta-solar</a><br>
+    Made in Buenos Aires, with local humor and lots of AI.
+  </footer>
+</div>
+</body>
+</html>

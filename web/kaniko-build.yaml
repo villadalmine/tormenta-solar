@@ -1,0 +1,58 @@
+# Build de la imagen estática del juego (nginx) con Kaniko vía Argo Workflows (in-cluster, arm64).
+# Mismo patrón que ai-proxy/kaniko-build.yaml, pero el CONTEXTO es la RAÍZ del repo (para copiar
+# index.html + css/js/info/mobile/ads/levels) y el Dockerfile vive en web/Dockerfile.
+#
+# Aplicar:  kubectl create -f web/kaniko-build.yaml
+# Esperar:  kubectl wait workflow -l app=tormenta-web-build -n kaniko \
+#             --for=jsonpath='{.status.phase}'=Succeeded --timeout=900s
+# Imagen:   registry.registry:5000/ai/tormenta-solar-web:0.1.0
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: build-tormenta-web-
+  namespace: kaniko
+  labels:
+    app: tormenta-web-build
+spec:
+  entrypoint: build-image
+  ttlStrategy:
+    secondsAfterSuccess: 3600
+    secondsAfterFailure: 86400
+  nodeSelector:
+    kubernetes.io/hostname: srv-rk1-nvme-01     # arm64, igual que el resto del stack
+  tolerations:
+    - key: "node.kubernetes.io/unreachable"
+      operator: Exists
+      effect: NoExecute
+    - key: "node.kubernetes.io/not-ready"
+      operator: Exists
+      effect: NoExecute
+  volumeClaimTemplates:
+    - metadata:
+        name: workspace
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: longhorn-nvme
+        resources:
+          requests:
+            storage: 3Gi
+  templates:
+    - name: build-image
+      inputs:
+        artifacts:
+          - name: source
+            path: /workspace/source
+            git:
+              repo: "https://github.com/villadalmine/tormenta-solar.git"
+              revision: main
+              depth: 1
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+          - "--dockerfile=/workspace/source/web/Dockerfile"
+          - "--context=dir:///workspace/source"
+          - "--destination=registry.registry:5000/ai/tormenta-solar-web:0.1.0"
+          - "--insecure"
+          - "--skip-tls-verify"
+          - "--snapshot-mode=redo"
+          - "--compression=zstd"

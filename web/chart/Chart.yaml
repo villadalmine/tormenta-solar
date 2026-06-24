@@ -1,0 +1,14 @@
+apiVersion: v2
+name: tormenta-web
+description: >-
+  Sirve el juego estático "Tormenta Solar" (nginx) desde el cluster, en paralelo a GitHub Pages.
+  Expone por Cilium Gateway API (HTTPRoute al cluster-gateway) con TLS de Let's Encrypt (cert-manager).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords: [tormenta-solar, game, static, nginx, gateway-api]
+home: https://github.com/villadalmine/tormenta-solar
+sources:
+  - https://github.com/villadalmine/tormenta-solar
+maintainers:
+  - name: villadalmine

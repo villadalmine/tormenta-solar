@@ -19,6 +19,7 @@
     <a href="index.html">← Info</a>
     <a href="../">▶ Jugar</a>
     <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">GitHub</a>
+    <a href="tech.en.html">EN</a>
   </nav>
 </header>
 
@@ -123,7 +124,9 @@
       <div class="n">2</div>
       <div class="body">
         <h3>HAProxy — el borde (fuera del cluster)</h3>
-        <p>Una Mac mini corre HAProxy en <b>modo TCP</b> con <b>SNI passthrough</b>: mira el
+        <p>El borde es lo más cirujeado de todo: una <b>Mac mini G4 (PowerPC)</b> corriendo <b>OpenBSD</b> —
+        sí, una máquina de ~2005 reciclada como router TLS. Ahí vive HAProxy en <b>modo TCP</b> con
+        <b>SNI passthrough</b>: mira el
         <code>req.ssl_sni</code> del <i>hello</i> TLS y, según el hostname, manda el TCP crudo al backend que
         corresponde — <b>sin desencriptar nada</b> (el TLS lo termina el gateway, más adentro). Varios dominios
         comparten el mismo backend que apunta a la VIP del cluster. Acá ajustamos <code>maxconn</code> y

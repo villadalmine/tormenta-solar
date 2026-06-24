@@ -1,0 +1,17 @@
+✅ tormenta-web desplegado (juego estático, nginx).
+
+1) Probar dentro del cluster:
+   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "tormenta-web.fullname" . }} 8080:{{ .Values.service.port }}
+   curl -s localhost:8080/        # -> el index.html del juego
+
+{{- if .Values.gateway.enabled }}
+2) Público (Gateway API): https://{{ .Values.gateway.host }}
+   {{- if .Values.gateway.tls.enabled }}
+   Cert (cert-manager): kubectl get certificate {{ .Values.gateway.tls.secretName | default (printf "%s-tls" .Release.Name) }} -n {{ .Values.gateway.namespace }}
+   {{- end }}
+   Requiere: DNS (A → IP pública) + CNAME _acme-challenge + regla SNI en HAProxy → VIP del cluster-gateway.
+{{- else }}
+2) Gateway deshabilitado: --set gateway.enabled=true --set gateway.tls.enabled=true --set gateway.ensureListener.enabled=true --set gateway.host=tormenta-solar.cybercirujas.club
+{{- end }}
+
+El juego sigue también en GitHub Pages: los dos conviven (ver specs/juego-self-host.md §2.5).
