@@ -7,7 +7,8 @@ const AI = (() => {
   const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';   // proxy ai-proxy del dev → "vos pagás" (prioridad 1). '' = sin proxy.
   const KEY_LS = 'ts_openrouter_key';
   const TIMEOUT = 11000;
-  const PROXY_TIMEOUT = 35000;   // el proxy va a tu LiteLLM (gemma free): puede tardar 5-30s → margen mayor que BYOK
+  const PROXY_TIMEOUT = 9000;    // TOPE DURO: el linyera no puede tardar >10s. Si el proxy no contesta en 9s,
+                                 // cortamos y damos línea local + "la tormenta saturó el modelo" (el proxy corta a 8s).
   const MAX_TRIES = 3;        // no probar más de N modelos por mensaje (no colgar)
   let byokDead = false;       // tras varios fallos seguidos → de ahí en más, líneas locales
   let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
