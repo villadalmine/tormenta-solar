@@ -64,6 +64,31 @@ sin que el juego se entere. **El usuario lo está viendo por su lado; acá queda
 todavía** (cambio aditivo en el LiteLLM compartido vía Ansible de `infra-ai`). Falta además elegir el gemma
 final (ver §2.6 y la tanda de §3).
 
+## 2.8 `tormenta-free` — snippet LISTO PARA PEGAR en tu LiteLLM (NO aplicado)
+
+No lo apliqué yo: `infra-ai` lo está editando otro proceso en paralelo y no quiero pisar. Pegá esto en
+`roles/install-litellm-proxy/tasks/main.yml` (es **aditivo**, no toca model_names existentes) y aplicá con
+tu flujo de siempre:
+
+```yaml
+# (1) en model_list, cerca de gemma4-free:
+- model_name: tormenta-free
+  litellm_params:
+    model: openrouter/google/gemma-4-26b-a4b-it:free   # primario EXACTO del código (js/ai.js)
+    api_key: os.environ/OPENROUTER_API_KEY
+
+# (2) en litellm_settings.fallbacks (misma política: free primero, paid-final al final):
+- {"tormenta-free": ["gemma4-free", "gpt-oss-free", "llama70b-free", "paid-final"]}
+```
+
+Notas:
+- El primario es el `gemma-4-26b:free` que usa la UI; si satura, rota a `gemma4-free` (31b) y la cadena free.
+  No replico llama-3.2-3b / lfm-2.5 / mistral-7b como model_names aparte (serían 3 entradas más); la cadena
+  de arriba cubre el "gemma primero + rotación" con modelos ya probados de tu pool.
+- Para usarlo desde el juego: `helm upgrade tormenta-ai ai-proxy/chart -n ai --reuse-values --set upstream.model=tormenta-free`.
+- OJO: hoy el ConfigMap vivo y el Ansible están **diverged por 1 model_name** (alguien edita en vivo) →
+  conviene reconciliar antes de aplicar, para no perder cambios.
+
 ## 3. A probar (más modelos en la GPU para elegir el mejor)
 
 - **OpenRouter free** (nube): gemma4 (actual) vs otros free — calidad del criollo/personaje.
