@@ -9,6 +9,29 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v83] — 2026-06-24 — 🎸 "El Carpo": sprite del protagonista + cameos en inglés
+
+Cierre del homenaje de v82.
+
+### Hecho ✅
+- **Sprite del héroe re-tematizado como "el Carpo"** (`drawHero` en `art.js`): **pelado**, pelo gris a los
+  costados, **barba**, **lentes oscuros** y una **viola (guitarra) a la espalda**. Aplica a idle/run/jump.
+- **Cameos en inglés** (`level.en.js`): nombres (Diógenes→Diogenes, "Dante el poeta"→"Dante the poet",
+  Pechito) y los 3 diálogos transcreados → en modo EN ya no salen en español.
+
+### Pendiente / sin verificar ⚠️
+- **El sprite "el Carpo" FALTA REVISARLO EN PANTALLA**: renderiza sin error (e2e + web-smoke verdes) pero
+  **no es verificable headless** — hay que mirarlo en el navegador y ajustar proporciones/colores si hace
+  falta (la barba/pelo/viola son pixel-art procedural "a ciegas").
+- **No se re-tematizó la narración del juego** más allá de la intro: la historia/diálogos siguen tratando
+  al jugador genérico; "el Carpo" por ahora es nombre + sprite + nota de intro, no lore integrado.
+- Los cameos no tienen `action` (son charla simple, no chat-IA); si se quieren chateables, sumar `persona`.
+
+### Estado
+- e2e + paridad v1≡v2 + web-smoke verdes. Cache `v=83`.
+
+---
+
 ## [v82] — 2026-06-24 — 🎸 Homenaje: linyeras ilustres + el protagonista "el Carpo"
 
 Cameos cariñosos a personajes de Florida y Lavalle, como **parodia/homenaje** (para evitar líos de derechos:

@@ -3,6 +3,15 @@
 // pool wiring keep working); game.js translates ONLY at display time via TX() → levelTx().
 // Keep porteño humor; proper nouns stay. Pool-driven NPC lines are handled by Dialogos[en], not here.
 const LEVEL_EN = {
+  // ---- cameos (homenaje) ----
+  'Diógenes': 'Diogenes',
+  'Dante el poeta': 'Dante the poet',
+  '“Corréte que me tapás el sol, pibe. Lo demás es vento que no te hace falta.” ☀️🛢️':
+    '"Step aside, kid, you\'re blocking my sun. The rest is dough you don\'t even need." ☀️🛢️',
+  '“Te tiro unos versos en lunfardo y vos un puchito. Negocio redondo, maestro.” 📜':
+    '"I drop you some lunfardo verses, you drop me a smoke. Fair trade, maestro." 📜',
+  '“Soy el linyera más querido del barrio. Vení que charlamos, total el tiempo no se cobra.” 🫶':
+    '"I\'m the most beloved bum in the barrio. Come, let\'s chat — time\'s free anyway." 🫶',
   // ---- room names (static) ----
   'Florida y Lavalle': 'Florida & Lavalle',
   'Arcade de Lavalle': 'Lavalle Arcade',
