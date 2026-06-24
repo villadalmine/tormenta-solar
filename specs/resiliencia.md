@@ -78,16 +78,40 @@ sube el error rate — **por capa**, para saber qué se rompe primero (¿el G4? 
 
 ## 6.1 Perillas del borde G4 (HAProxy) — calibrar, no maximizar
 
-- **Estado actual:** `maxconn` ya se subió de **5 → 120** y `timeout queue` a 120s en una sesión previa (el
-  backend `cybercirujas_backend` es **1 server compartido** por todos los hosts cybercirujas). Verificar antes de
-  retocar.
-- **Principio:** el chat es conexión **larga** (~8-9s). `maxconn` no debe ser "lo más alto posible" sino **≈ cuántos
-  requests simultáneos el modelo sirve dentro de los 9s**. Más alto que eso → la cola se mueve al modelo y
-  **todos** responden lento (peor que fast-fail al Plan B).
-- **`timeout queue` corto (1-2s):** con el tope de 9s del cliente, encolar más es tirar la respuesta. Mejor
-  rechazar rápido → L2/L3.
-- Estas dos perillas son **lo que calibra el stress test §5**: medir la rodilla y poner `maxconn` justo por
-  debajo. **Subir a ciegas puede empeorar.**
+- **Estado REAL (verificado 2026-06-24, corrige la nota previa):** el server sigue en **`maxconn 5`** — lo que
+  se cambió antes fue solo `timeout queue` (a **120s**), que es la **perilla equivocada**. Además el `frontend
+  tcp_front` tiene **`maxconn 20`** (tope global de TODOS los backends). El `cybercirujas_backend` es **1 server
+  compartido** por cybercirujas.club / ha / cruzdelsur / tormenta-solar / llm-tormenta-solar.
+- **Por qué mata el chat:** `maxconn 5` = solo **5 conexiones concurrentes** para todos esos hosts; el chat es
+  conexión **larga** (~9s) → 5 jugadores la saturan y el 6º **encola hasta 120s** (inútil: el cliente corta a 9s).
+- **Config recomendada:** `server ... maxconn 5 → 50`; `timeout queue 120s → 2s` (fast-fail al Plan B);
+  `frontend maxconn 20 → 200`. Es **passthrough TCP** (sin TLS, barato) y el destino es el gateway del cluster
+  (aguanta cientos) → el 5 era límite artificial. Arrancar en 50, subir según stress test.
+- **DOS JUEGOS comparten el backend:** `cruzdelsur.cybercirujas.club` (online-game/galaxy, tiempo real) **y**
+  `tormenta-solar`+`llm-tormenta-solar` están en el **mismo `cybercirujas_backend` (maxconn 5)** → pelean por 5
+  slots. El online mantiene **1 conexión persistente por jugador** → 5 = ~5 jugadores TOTALES entre ambos.
+- **El online-game usa SSE, NO WebSockets** (verificado): `GET /api/v1/notifications/stream` (text/event-stream,
+  HTTP de larga vida server→cliente) + polling cada 4s. Implicancias:
+  - **`timeout tunnel` NO aplica a SSE** (solo a upgrade/CONNECT). En SSE mandan `timeout client`/`timeout server`.
+    El `defaults` (50s) **corta el stream a los 50s** si no hay heartbeat → EventSource reconecta (cortes cada ~50s).
+  - **El G4 es `mode tcp` (SNI passthrough):** NO ve el path (`/api/v1/...` va cifrado, TLS termina en el cluster)
+    → **no se puede** rutear el SSE por path acá; ese split por-path va en la capa HTTP del cluster. En el G4 solo
+    se puede subir el timeout del **SNI cruzdelsur entero**.
+  - **Fix recomendado: heartbeat en el SSE (`: ping` cada ~15s)** en el código del online-game → proxy-agnóstico,
+    ningún intermediario lo corta, no hay que aflojar timeouts. (Belt-and-suspenders: en el G4, `timeout
+    server/client 1h` en cruzdelsur_backend.)
+- **Mejora (recomendada): un backend por juego** (todos al mismo VIP `192.168.178.200`, separar solo da
+  presupuesto propio):
+  - `cruzdelsur_backend` (online/SSE): `maxconn 200`, `timeout queue 2s`, **`timeout server 1h` + `timeout client
+    1h`** (por el SSE; NO tunnel).
+  - `tormenta_backend` (juego+chat): `maxconn 50`, `timeout queue 2s`.
+  - `cybercirujas_backend` (web/ha resto): `maxconn 30`.
+  - `frontend maxconn 20 → 400` (suma + headroom).
+  - **OJO al reorganizar:** cada `use_backend X` necesita su `backend X` definido (si no, HAProxy no arranca:
+    "unable to find required use_backend") y **no borres** las rutas de leloir/nodocongreso/k8s_rk1.
+- **Principio:** `maxconn` no es "lo más alto posible" sino **≈ requests simultáneos que el modelo sirve dentro
+  de los 9s**; más que eso mueve la cola al modelo y todos van lento. Estas perillas son **lo que calibra el
+  stress test §5**.
 
 ## 7. Notas
 
