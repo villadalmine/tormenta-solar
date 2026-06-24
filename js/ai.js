@@ -208,13 +208,13 @@ const AI = (() => {
         const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST', signal: ctrl.signal,
           headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'X-Title': 'Tormenta Solar' },
-          body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 160 }),
+          body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 220 }),
         });
         clearTimeout(t);
         if (r.status === 429 || r.status === 404) { lastStatus = r.status; if (model === _good) _good = null; continue; }
         if (!r.ok) { lastStatus = r.status; console.warn('[ai] OpenRouter', r.status, (await r.text().catch(() => '')).slice(0, 160)); break; }
         const d = await r.json(); const reply = d.choices?.[0]?.message?.content;
-        if (reply) { _good = model; return reply.trim().slice(0, 400); }   // recordamos el que anduvo
+        if (reply) { _good = model; return reply.trim().slice(0, 1200); }   // recordamos el que anduvo (cap amplio: no cortar a la mitad)
       } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; console.warn('[ai] fetch falló (' + model + '):', e.message); }
     }
     console.warn('[ai] sin respuesta (status ' + lastStatus + '). El free está saturado: probá de nuevo en unos segundos.');
@@ -227,7 +227,7 @@ const AI = (() => {
         body: JSON.stringify({ npc, message, history: (history || []).slice(-8), grounding: grounding || undefined }) });
       clearTimeout(t);
       if (!r.ok) return null;
-      const d = await r.json(); return d && d.reply ? String(d.reply).slice(0, 400) : null;
+      const d = await r.json(); return d && d.reply ? String(d.reply).slice(0, 1200) : null;
     } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; return null; }
   }
 
