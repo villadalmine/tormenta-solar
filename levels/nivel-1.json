@@ -248,6 +248,10 @@
           },
           "x": 18,
           "name": "Diógenes",
+          "interact": {
+            "action": "chat",
+            "persona": "filosofo"
+          },
           "dialogue": {
             "text": "“Corréte que me tapás el sol, pibe. Lo demás es vento que no te hace falta.” ☀️🛢️"
           }
@@ -260,6 +264,10 @@
           },
           "x": 20,
           "name": "Dante el poeta",
+          "interact": {
+            "action": "chat",
+            "persona": "poeta"
+          },
           "dialogue": {
             "text": "“Te tiro unos versos en lunfardo y vos un puchito. Negocio redondo, maestro.” 📜"
           }
@@ -272,6 +280,10 @@
           },
           "x": 30,
           "name": "Pechito",
+          "interact": {
+            "action": "chat",
+            "persona": "pechito"
+          },
           "dialogue": {
             "text": "“Soy el linyera más querido del barrio. Vení que charlamos, total el tiempo no se cobra.” 🫶"
           }

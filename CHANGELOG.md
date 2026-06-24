@@ -9,6 +9,28 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v84] — 2026-06-24 — 💬 Los linyeras ilustres ahora son chateables (oráculos AI-friendly)
+
+Aplica el patrón "los íconos son los personajes AI-friendly" (ver `specs/modelo-de-entidades.md` §6).
+
+### Hecho ✅
+- **Cameos chateables**: **Diógenes** (`persona:'filosofo'` → es un **oráculo**: tira pistas + grounding),
+  **Dante el poeta** (`persona:'poeta'` nueva: habla casi en verso/lunfardo) y **Pechito**
+  (`persona:'pechito'` nueva: el linyera querido, cálido). Ahora se charla con ellos como con el linyera
+  filósofo / cuevero / tahúr.
+- Personas `poeta` y `pechito` agregadas a `js/ai.js` (+ canned **es/en** para chat offline) y al proxy
+  (`ai-proxy/personas.js`). `nivel-1.json` regenerado (las cameos llevan `interact.action:'chat'`+persona);
+  **paridad v1≡v2 sigue OK**.
+
+### Pendiente (de v83, sin cambios) ⚠️
+- El **sprite "el Carpo"** sigue **sin revisión visual** (mirarlo en el navegador).
+- La **narración del juego** no se re-tematizó alrededor de el Carpo (sólo nombre+sprite+intro).
+
+### Estado
+- e2e + levels + paridad + web-smoke verdes. Cache `v=84`.
+
+---
+
 ## [v83] — 2026-06-24 — 🎸 "El Carpo": sprite del protagonista + cameos en inglés
 
 Cierre del homenaje de v82.
