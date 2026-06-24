@@ -477,6 +477,10 @@ y el oráculo ya saben pistar "el próximo paso"; el quest sólo agrupa pasos + 
 ```
 - **`steps`** son aristas: reusan `preMet`/`done` del `HintEngine` (frontera + pistas escaladas por
   insistencia). Un step puede **referenciar** una arista ya existente (no duplicar) o declarar una nueva.
+- **Lineal vs DAG → un solo modelo (decisión 2026-06-24):** los `steps` forman un **DAG** (cada uno declara
+  de qué depende vía su `when`). Un quest **lineal es un DAG de un solo camino** (cada step depende del
+  anterior). No hay dos sistemas: autoreás lineal cuando querés simpleza, ramificás cuando querés "se puede
+  de 2 formas" (como las 2 puertas del chino). El motor trata a todos igual.
 - **`scope`** decide dónde vive el estado del quest: `run` → save de partida; `meta` → `questsDone` (no se
   repite nunca más). La historia principal tiende a `meta`; las side/temporada a `run`.
 - **`rewards`** al completar: `coins`/items, `flag` (entra al grafo), `unlock` (va a `meta.unlocked` →
@@ -488,6 +492,51 @@ y el oráculo ya saben pistar "el próximo paso"; el quest sólo agrupa pasos + 
 
 > Así, "misiones de mundo abierto que vas cambiando" = **quests declarados como data**, que se apoyan en el
 > grafo de historia y el HintEngine que **ya existen**. El oráculo/asistente (§6½B) ya sabe guiarlos.
+
+## 6.96. Condiciones unificadas + abilities/unlocks
+
+### Un solo lenguaje de condiciones (lo usa TODO)
+
+Hoy las condiciones están repartidas (ifs de gating, `pre` de aristas, fechas de ads…). En v2 hay **UN solo
+predicado declarativo** `cond`, evaluado por **una sola función** `evalCond(cond, ctx)` con
+`ctx = { flags, player, meta, entities, at, now }`. Lo usan **`pre`/`when` (aristas/steps/agent),
+`requires` (quest), `gate.requiere` (puerta/edificio), `activo` (content-pack), y `tier`/`ai` (freemium)**.
+
+```jsonc
+// forma del predicado (mínimo, estilo JSON-logic acotado)
+{ "all": [                                  // all | any | not  → composición
+    { "flag": "stormed" },                  // flag verdadero
+    { "item": "fiambre", "gte": 1 },        // inventario del player
+    { "coins": { "gte": 15 } },             // stat del player
+    { "has": "ability_doblesalto" },        // ability desbloqueada (meta o run)
+    { "meta": "runs", "gte": 3 },           // meta-progresión
+    { "entity": "p19/totem", "state": "tomado" },  // estado de otra entidad
+    { "at": "cueva" }                       // lugar actual
+] }
+```
+Beneficios: **una sola implementación testeable**, el **asistente/QA** (§6½B) puede **leer y razonar** las
+condiciones (¿este objetivo es alcanzable? ¿qué flag lo destraba?), y cambiar gating = cambiar **data**.
+
+### Abilities / unlocks (la columna vertebral Metroidvania)
+
+Una **ability** es un desbloqueo declarado como data; **gatea** lugares/acciones vía `cond` (`has:`).
+Distinción importante (decisión §6.95): **abilities = `meta` (permanentes, NG+/Metroidvania); upgrades de
+run (tipo `spitDmg` del tesoro) = `run` (se re-ganan por partida, mantienen tensión en el loop).**
+
+```jsonc
+{ "tipo":"ability", "id":"ability_doblesalto", "i18n":"ab.doblesalto",
+  "persists":"meta",                         // meta (permanente) | run (por partida)
+  "effect":"double_jump" }                   // capacidad que el motor entiende (lista cerrada, extensible)
+```
+- Se **otorga** por `rewards.unlock` de un quest/arista → va a `meta.unlocked` (si `persists:"meta"`) o al
+  estado de partida (`run`).
+- Se **chequea** con `cond` `{ "has":"ability_doblesalto" }` en `gate`/`pre`/`when` → abre puertas antes
+  cerradas (volvés a un nivel pasado **con** la ability y pasás) = **backtracking Metroidvania**, todo data.
+- El `effect` mapea a una **capacidad conocida del motor** (lista cerrada: `double_jump`, `spit_strong`,
+  `open_X`…); agregar una nueva capacidad sí es código del motor, pero **usarla/gatear con ella es data**.
+
+> Resumen: **condiciones** = el "¿puedo?" unificado; **abilities** = los "llaveros" permanentes que esas
+> condiciones revisan. Juntos dan el lock-and-key / Metroidvania **sin lógica nueva por puerta**.
 
 ## 7. Coexistencia v1 / v2 + toggle en la UI (estrategia de migración)
 
@@ -544,7 +593,13 @@ Para no reescribir a ciegas (strangler-fig):
   `hash(seed+id+runs)` (determinista, no `Math.random` suelto). Morir/NG+ conserva la meta.
 - **RF-17 (quests, §6.95):** un `quest` es una entidad **declarativa** = bundle de **aristas** (reusa
   `pre`/`sets`/`hints` del grafo y el `HintEngine`) + `requires`/`scope`/`rewards`; el **quest log** se
-  **deriva** del estado de los steps; los packs pueden agregar quests. No es un sistema nuevo.
+  **deriva** del estado de los steps; los packs pueden agregar quests. **Steps = DAG** (lineal = DAG de un
+  solo camino, un único modelo). No es un sistema nuevo.
+- **RF-18 (condiciones unificadas, §6.96):** existe **un** predicado `cond` y **una** `evalCond(cond, ctx)`
+  usada por `pre`/`when`/`requires`/`gate`/`activo`/`tier`. Testeable y **legible por el asistente/QA**.
+- **RF-19 (abilities/unlocks, §6.96):** una `ability` es data con `persists` (`meta`|`run`) y un `effect`
+  (capacidad del motor); se otorga por `rewards.unlock` y se chequea con `cond {has:…}` → lock-and-key /
+  **Metroidvania sin lógica nueva por puerta**. Abilities → `meta`; upgrades de run → `run`.
 
 ## 9. Criterios de aceptación
 
