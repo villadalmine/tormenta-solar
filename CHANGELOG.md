@@ -15,12 +15,27 @@ El juego es 100% estático; se publica en
 
 - **Rotación en LiteLLM** (`specs/pruebas-modelos.md §2.7`): `gemma2:2b` en la GPU como primario
   (+ `keep_alive`) con **fallback a `gemma4-free`** (OpenRouter) si la GPU se apaga. El usuario lo itera aparte.
+- **Suscripción / freemium** (`specs/suscripcion.md`): plan pago con modelo premium (el dev carga OpenRouter)
+  que **no pasa por el tier free**; upsell cuando el free se satura. Define qué habilita y cómo rutea LiteLLM.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Seguridad** (`specs/seguridad.md`): fase transversal — sin CVEs (todas las versiones), flujo cifrado,
   anti-DoS web/API/tokens (incl. "denial of wallet"), buenas prácticas de datos, anti-escalada. Con checklist
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v93] — 2026-06-24 — ⏱️ Tope de latencia del chat (≤10s) + cadena de 2 modelos + métricas
+
+### Hecho ✅
+- **El linyera ya no cuelga.** Estaba tardando 20-51s (gemma4-free saturado, sin fallback, + cliente esperaba
+  35s). Ahora **tope duro ≤10s**: cliente `PROXY_TIMEOUT=9s`; proxy con presupuesto **8s total / 4s por
+  modelo** que prueba una **cadena de 2** (`gemma4-free,kimi-free`) y, si ninguno contesta, devuelve una
+  **línea temática** ("la tormenta saturó el modelo") sin colgar. `max_tokens` 220→120.
+- **Métricas** (`/metrics` prometheus en el proxy): requests, timeouts, errores, fallback_lines, latencia
+  media → Grafana. SDD `specs/latencia-chat.md` (flujo + PromQL + alertas).
+- Proxy imagen **0.1.2** (rev 6). Verificado: corta a ~6s y degrada elegante cuando el free está saturado.
 
 ---
 
