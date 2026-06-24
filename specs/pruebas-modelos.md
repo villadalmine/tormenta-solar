@@ -59,6 +59,39 @@ una placa mejor. Para que la GPU sea usable habría que cambiar `local-gpu` de `
 (`litellm_params.model: openai/gemma2:2b`) — ya bajé el modelo a ollama-a/b. HAMi: hay margen para pedir más
 cores/mem, pero la placa es el techo.
 
+## 2.10 GPU/CPU del nodo srv-t7910 (= 192.168.178.90) — matriz cloud vs GPU vs CPU/RAM
+
+Hallazgos midiendo el hardware real (SSH al host):
+- **DOS GPUs**: Quadro **M4000 8GB** (1.6 usado → **6.5 libre**) + Tesla **P4 7.7GB** (1.6 usado → **6.0 libre**).
+  Los `ollama-a/b` (in-cluster, dual) usan solo ~1.5GB c/u (qwen2.5:1.5b) → **sobran ~12.5GB**: entran modelos
+  de **8b** (no estábamos limitados a 4GB; ese era el slice HAMi auto-impuesto).
+- **`llama3.1:8b` en la GPU real**: 100% GPU, 6.7GB, **buena calidad** en personaje (criollo). Mucho mejor que
+  qwen1.5b / gemma2:2b. → si se quiere GPU, conviene **subir el slice HAMi a ~6GB y correr un 8b** (llama3.1:8b
+  o gemma2:9b), no el 1.5b.
+- **CPU/RAM**: el host tiene **247GB RAM** y **32 cores** → puede correr modelos enormes en CPU, pero la latencia
+  por token en CPU es alta (decenas de segundos para una respuesta de chat) → sirve para calidad offline, no
+  para el chat en vivo. (No se midió pura-CPU para no martillar el host; ver nota HAMi.)
+
+**Matriz (resumen):** nube `gemma4-free` = mejor calidad + 2.4s, $0, simple (GANADOR para el chat). GPU con
+8b = buena calidad, latencia media en placas viejas, usa tu fierro (privacidad). CPU/RAM = calidad alta con
+modelo grande pero latencia mala → no para chat en vivo.
+
+### ⚠️ Gobernanza GPU / HAMi (importante)
+El **ollama del host** (`192.168.178.90`, fuera de k8s) consume VRAM **por fuera de HAMi** → HAMi no lo
+contabiliza y puede sobre-suscribir. Ese ollama **está consumido** (Holmes `gpt-5.4` → `:11434`; rutas
+`holmes-*`/`local-*` → LiteLLM del host `:4000`) → **NO apagar**. (Para pruebas se puede usar; recordar
+`ollama stop <modelo>` al terminar para no dejar VRAM tomada por fuera de HAMi.)
+
+**→ Riesgo de OOM PERMANENTE mientras convivan dos "dueños" de las mismas placas (HAMi + ollama host):**
+HAMi sobre-reporta el VRAM libre y puede colocar un pod (ollama-a/b u **otro juego**) en la GPU donde el
+host ya cargó su 8b → **CUDA OOM** bajo carga. (M4000 8GB + P4 7.7GB = ~15.7GB total; no alcanza si todo
+cae en una placa.) Fixes, de mejor a más rápido:
+- **A.** Migrar el ollama de Holmes a **k8s** (con request HAMi) → HAMi contabiliza todo, fin del problema.
+- **B.** **Dedicar GPUs** (hay 2): host ollama → P4 (`CUDA_VISIBLE_DEVICES`), HAMi gobierna solo la M4000
+  (excluir la P4 en el device-plugin). Cero overlap, sin migrar. **Recomendada.**
+- **C.** Reservar headroom en HAMi (reportar N GB menos). Parche.
+- **D.** Sacar el host: mover `gpt-5.4`/Holmes al ollama in-cluster o a la nube.
+
 ## 2.7 Diseño de rotación (LiteLLM) — PENDIENTE, se itera aparte
 
 Requisito del usuario: **si el server (GPU) se apaga, LiteLLM tiene que rotar solo a otro modelo**. Por eso
