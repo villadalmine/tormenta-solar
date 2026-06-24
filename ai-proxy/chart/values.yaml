@@ -69,6 +69,26 @@ ingress:
                           #   paths: [{ path: /, pathType: Prefix }]
   tls: []                 # - { secretName: tormenta-ai-tls, hosts: [tormenta-ai.example.com] }
 
+# --- Métricas (Prometheus + Grafana), mismo patrón que online-game ---
+# El proxy ya expone /metrics (prometheus). Esto lo conecta al stack del cluster:
+#  - serviceMonitor: que el Prometheus de `monitoring` scrapee el Service :80/metrics.
+#  - grafanaDashboard: ConfigMap con el dashboard, auto-importado por el sidecar de Grafana.
+metrics:
+  serviceMonitor:
+    enabled: false                       # poné true en el deploy (necesita el Prometheus Operator)
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /metrics
+    # Labels para que el Prometheus de kube-prometheus-stack lo seleccione
+    # (serviceMonitorSelector.matchLabels.release == kube-prometheus-stack en este cluster).
+    labels:
+      release: kube-prometheus-stack
+  grafanaDashboard:
+    enabled: false                       # poné true → crea el ConfigMap del dashboard
+    # El sidecar de Grafana importa todo ConfigMap con esta label = "1" (NAMESPACE=ALL en este cluster).
+    label: grafana_dashboard
+    labelValue: "1"
+
 resources:
   requests: { cpu: 50m, memory: 64Mi }
   limits: { cpu: 250m, memory: 256Mi }

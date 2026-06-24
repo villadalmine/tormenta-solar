@@ -1,0 +1,14 @@
+{{- if .Values.metrics.grafanaDashboard.enabled }}
+# Dashboard de Grafana como ConfigMap. El sidecar de Grafana (NAMESPACE=ALL) auto-importa
+# todo ConfigMap con la label grafana_dashboard="1". El JSON vive en chart/dashboards/.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-dashboard
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+    {{ .Values.metrics.grafanaDashboard.label | default "grafana_dashboard" }}: {{ .Values.metrics.grafanaDashboard.labelValue | default "1" | quote }}
+data:
+  tormenta-linyera.json: |-
+    {{- .Files.Get "dashboards/tormenta-linyera.json" | nindent 4 }}
+{{- end }}

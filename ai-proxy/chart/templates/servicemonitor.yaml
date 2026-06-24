@@ -1,0 +1,26 @@
+{{- if .Values.metrics.serviceMonitor.enabled }}
+# ServiceMonitor (Prometheus Operator) → scrapea el /metrics del proxy desde el Prometheus de `monitoring`.
+# Selecciona el Service por las selectorLabels del chart. La label de metadata (release: kube-prometheus-stack)
+# es la que hace que el Prometheus de kube-prometheus-stack lo tome (serviceMonitorSelector.matchLabels).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+    {{- with .Values.metrics.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "tormenta-ai-proxy.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: {{ .Values.metrics.serviceMonitor.path | default "/metrics" }}
+      interval: {{ .Values.metrics.serviceMonitor.interval | default "30s" }}
+      scrapeTimeout: {{ .Values.metrics.serviceMonitor.scrapeTimeout | default "10s" }}
+{{- end }}
