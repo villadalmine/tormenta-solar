@@ -100,17 +100,36 @@ const Mensajero = (() => {
   // registra "qué acaba de pasar" (lo llama game.js dentro de applyEdge)
   function evento(edgeId) { _lastEvent = edgeId; _lastEventTs = now(); }
 
-  // ----- TTS: leer el `full` al pasar el mouse -----
+  // ----- TTS: leer el `full` al pasar el mouse / cantar el truco -----
+  let _voice = null, _voiceTried = false;
+  function pickVoice() {                    // prioriza una voz ARGENTINA (es-AR), luego español rioplatense/latino
+    if (typeof window === 'undefined' || !window.speechSynthesis) return null;
+    const vs = window.speechSynthesis.getVoices() || [];
+    const by = pref => vs.find(v => (v.lang || '').toLowerCase().replace('_', '-').startsWith(pref));
+    return by('es-ar') || by('es-419') || by('es-uy') || by('es-mx') || by('es-us') || by('es') || null;
+  }
+  function ensureVoice() {
+    if (_voiceTried) return _voice;
+    _voice = pickVoice(); _voiceTried = !!_voice;        // si todavía no cargaron, reintenta en el próximo hablar
+    return _voice;
+  }
   function hablar(text, optLang) {
     if (_muted || !text || typeof window === 'undefined' || !window.speechSynthesis) return;
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = optLang || (lang() === 'en' ? 'en-US' : 'es-AR');
-      u.rate = 1.02; u.pitch = 0.95;
+      const v = ensureVoice();
+      if (v) u.voice = v;
+      u.lang = optLang || (v && v.lang) || (lang() === 'en' ? 'en-US' : 'es-AR');
+      u.rate = 1.0; u.pitch = 0.92;          // un poco grave = más "criollo"
       window.speechSynthesis.speak(u);
     } catch (e) {}
   }
+  // las voces cargan async: cuando aparezcan, refrescá la elegida
+  if (typeof window !== 'undefined' && window.speechSynthesis && 'onvoiceschanged' in window.speechSynthesis)
+    window.speechSynthesis.onvoiceschanged = () => { _voiceTried = false; ensureVoice(); };
+  // cantar un canto del truco SIEMPRE en criollo (es-AR), aunque el juego esté en inglés
+  function cantar(frase) { hablar(frase, 'es-AR'); }
   function callar() { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {} }
 
   function init(opts) {
@@ -122,7 +141,7 @@ const Mensajero = (() => {
   }
   function mute(v) { _muted = !!v; if (_muted) callar(); }
 
-  const Mensajero = { init, pedir, evento, hablar, callar, mute, refillPool, get muted() { return _muted; } };
+  const Mensajero = { init, pedir, evento, hablar, cantar, callar, mute, refillPool, get muted() { return _muted; } };
   return Mensajero;
 })();
 if (typeof window !== 'undefined') window.Mensajero = Mensajero;
