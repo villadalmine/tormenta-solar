@@ -9,6 +9,27 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v88] — 2026-06-24 — 🧉 Tu amigo linyera: historia base + memoria + "no soy tu IA de laburo"
+
+### Hecho ✅
+- **Historia base por linyera** (en su `persona`, `ai.js` + proxy): Diógenes (se hartó del laburo y tiró
+  todo), Dante (poeta que nadie pagó), Pechito (años en la misma esquina, querido por todos). Cada uno
+  "sabe su propia historia".
+- **Te trata como AMIGO**: usa la memoria de charla (lo que le contaste / lo que te gusta) con cariño.
+- **Guardrail con humor** (núcleo `LINYERA_CORE`): si lo querés usar de **terapeuta**, para que te haga la
+  **tarea/el código**, o pedís **textos largos**, se **niega en personaje** ("soy tu amigo linyera, no tu
+  terapeuta ni tu IA de laburo; me vas a fundir todos los tokens, loco... ¿qué te pensás?") y vuelve a la
+  charla. Frena el derroche de tokens y mantiene el clima.
+
+### Nota
+- El "aprende qué te gusta" funciona vía la **memoria de la conversación** (la del v86, persiste en el
+  guardado). Un **store de preferencias estructurado** (a largo plazo) sería el `agent` del motor v2.
+
+### Estado
+- e2e + web-smoke verdes. Cache `v=88`. (Persona = prompt; el comportamiento real se ve con IA conectada.)
+
+---
+
 ## [v87] — 2026-06-24 — 📖 Lore integrado en la narración (satélites rebeldes + los linyeras tenían razón)
 
 La historia ahora cierra coherente: lo que los linyeras te cuentan (satélites con IA rebeldes) **es la verdad**.
