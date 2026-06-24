@@ -29,7 +29,16 @@ service:
   type: ClusterIP
   port: 80                # expone 80 → contenedor 8788
 
-# Ingress opcional (si querés exponerlo fuera del cluster para que el juego en GitHub Pages lo use).
+# Gateway API (Cilium) — la forma EN QUE ESTE CLUSTER expone servicios (no Ingress). HTTPRoute al
+# `cluster-gateway`. host = el dominio (LAN .cluster.home para test; público necesita listener HTTPS+cert).
+gateway:
+  enabled: false
+  host: tormenta-ai.cluster.home
+  extraHosts: []
+  name: cluster-gateway
+  namespace: gateway
+
+# Ingress opcional (NO usado en este cluster; quedó por compatibilidad genérica).
 ingress:
   enabled: false
   className: ""
