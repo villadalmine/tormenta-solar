@@ -538,6 +538,53 @@ run (tipo `spitDmg` del tesoro) = `run` (se re-ganan por partida, mantienen tens
 > Resumen: **condiciones** = el "¿puedo?" unificado; **abilities** = los "llaveros" permanentes que esas
 > condiciones revisan. Juntos dan el lock-and-key / Metroidvania **sin lógica nueva por puerta**.
 
+## 6.97. Acciones, capacidades y el límite data↔código (registries)
+
+Las "acciones" (verbos de interacción) y los "effects" de las abilities son **lo mismo conceptualmente**:
+**primitivas que el motor sabe ejecutar**, que la **data compone**. La regla de oro de todo v2:
+
+> **El motor expone un conjunto CERRADO-pero-extensible de primitivas (registries). La DATA compone con
+> ellas (params + entidades + condiciones). Una primitiva nueva = código del motor (raro). Todo lo demás
+> (qué entidad la usa, con qué params, bajo qué condición) = data.**
+
+### Registry de acciones (verbos de interacción)
+Hoy `interact()` es un `if/else` gigante por `n.action`. En v2 es un **registry**:
+```js
+// motor: tabla verbo → handler(entity, ctx). El handler es código; la entidad trae los params.
+Actions = { chat, shop, borracho, lujo, totem, tesoro, loop, limosna, iorio, armas, fifa, truco, frogger, chori, quest }
+```
+- La entidad declara `interact: { action: "quest", quest: "quest_mundial" }`; el motor busca `Actions.quest`
+  y lo llama. **Sin `if/else`.** Auditoría (como la de assets): toda `action` del modelo tiene handler.
+- **¿Un pack puede sumar un verbo?** Un pack es **data**, así que **reusa verbos existentes con params
+  nuevos** y agrega entidades/quests. Un **verbo nuevo de verdad** (mecánica nueva) = código del motor. (El
+  90% del contenido nuevo no necesita verbos nuevos: usa `quest`/`chat`/`shop`/… con otra data.)
+
+### Registry de capacidades (el `effect` de las abilities)
+El `effect` de una ability mapea a una **capacidad del motor**. Hay tres clases (define el límite exacto):
+| Clase de ability | Ejemplo | ¿Código del motor? |
+|---|---|---|
+| **Llave pura** (sólo gatea) | `has:ability_pase_vip` abre una puerta con `gate` | **NO** — es data: la puerta chequea `cond {has:…}`. Cero código. |
+| **Stat/pasiva** (se aplica al otorgar) | `spit_strong`→`player.spitDmg`, `max_hp+` | Sí, pero **ya existe el hook** (aplicar stat). Agregar un stat nuevo = 1 línea. |
+| **Capacidad activa** (cambia controles/física) | `double_jump`, `dash`, `break:reja` | Sí — hook en el motor (`player.js`). Es lo único "pesado". |
+- Lista cerrada inicial sugerida: `double_jump`, `dash`, `spit_strong`, `break:<material>`, `open:<tag>`,
+  `see_hidden`. Parametrizable (`{effect:"open", tag:"reja"}`).
+- **La mayoría del lock-and-key son "llaves puras" → 100% data, cero código.** Sólo las capacidades activas
+  tocan el motor.
+
+## 6.98. UI derivada (quest log, prompts, HUD, badges) — nada hardcodeado
+
+Toda la UI contextual se **deriva del estado + el modelo**, no se escribe por caso:
+- **Quest log:** `activeQuests()` = quests con `requires` cumplido, aceptados (o `autostart`) y no `done`.
+  Por cada uno, el **objetivo actual** = el/los step(s) de la **frontera** (vía `HintEngine`); su texto = la
+  pista al nivel de spoiler elegido; su **marcador** = el `at`/`target` del step (resalta sala/entidad). →
+  agregás un quest (data) y **aparece solo** en el log, con guía. El **oráculo/asistente (§6½B) lee lo
+  mismo** → guía consistente.
+- **Prompts de interacción** ("[E] usar…"): se derivan de `interact.action` + estado (ya casi es así en
+  `updatePrompt`); en v2 sale de un mapa verbo→texto i18n.
+- **Badge "✨ IA"** y "modelo/latencia": se derivan del atributo `ai` de la entidad (§6.9). 
+- **HUD**: ítems/stats que se muestran se derivan de lo que el player tiene + abilities activas.
+> Principio: **la UI es una proyección del modelo+estado.** Contenido nuevo no necesita UI nueva.
+
 ## 7. Coexistencia v1 / v2 + toggle en la UI (estrategia de migración)
 
 Para no reescribir a ciegas (strangler-fig):
@@ -600,6 +647,11 @@ Para no reescribir a ciegas (strangler-fig):
 - **RF-19 (abilities/unlocks, §6.96):** una `ability` es data con `persists` (`meta`|`run`) y un `effect`
   (capacidad del motor); se otorga por `rewards.unlock` y se chequea con `cond {has:…}` → lock-and-key /
   **Metroidvania sin lógica nueva por puerta**. Abilities → `meta`; upgrades de run → `run`.
+- **RF-20 (registries, §6.97):** acciones (verbos) y `effect`s de abilities son **primitivas registradas**
+  en el motor; la entidad las **referencia por nombre** con params (sin `if/else`). Una primitiva nueva =
+  código; usarla/componerla = data. Auditoría: toda referencia del modelo existe en su registry.
+- **RF-21 (UI derivada, §6.98):** quest log, prompts, badges "✨ IA" y HUD se **derivan** del modelo+estado
+  (proyección), no se hardcodean por caso → contenido nuevo no requiere UI nueva.
 
 ## 9. Criterios de aceptación
 
@@ -621,6 +673,17 @@ Para no reescribir a ciegas (strangler-fig):
 6. **F5 — extraer el motor** (`engine/` genérico vs `game/` contenido, §2.5) y que **Nivel 2 nazca en v2**
    (sólo data). Eventualmente v1 se retira.
 
+### Qué entra en F1 (MVP del modelo) y qué NO — para no querer hacer todo junto
+Este SDD diseñó **el destino completo**; F1 debe ser **chico**. **Alcance F1 = sólo la estructura física,
+nada de las features ricas:**
+- **SÍ:** schema base + entidades `room`/`door`/`npc`/`decor`/`machine`/`pickup`/`enemy`/`cuevero`/`marker`,
+  geometría (`w`/`platforms`), `link` (wiring), `gate` simple, `render`, `interact.action` (referencia), e
+  ids estables. Que `buildWorld` reproduzca las 38 salas (paridad).
+- **NO (fases posteriores, ya diseñadas):** `agent`/IA, asistente/eventLog, meta-progresión, quests,
+  abilities, content-packs, freemium. Esos **se cuelgan** del modelo cuando el esqueleto ya da paridad.
+- Regla: **nada de lo rico bloquea F1**; F1 es "el mismo Nivel 1 de hoy, pero descrito como data". Recién con
+  paridad verde se suma lo demás, una pieza por fase.
+
 ## 11. Riesgos y preguntas abiertas
 
 1. **Tamaño.** Es el refactor más grande del proyecto. Mitigación: fases chicas, v1 siempre default hasta
@@ -635,6 +698,21 @@ Para no reescribir a ciegas (strangler-fig):
    entidad `door`/`machine`; el mini-juego interno sigue como módulo.
 5. **¿Editor?** Con el modelo declarativo, un **editor visual** (tipo Tiled) es posible a futuro — fuera de
    alcance, pero el schema debería no cerrarle la puerta.
+6. **Modelo vs runtime (entidades transitorias).** El modelo declara entidades **autoradas/persistentes**.
+   Las **efímeras** (FX de ninjas al pogo, fuego, el **linyera errante** que se spawnea por cercanía) NO van
+   al modelo: las crea un **system en runtime** y no se persisten. Hay que separarlas claro para no romper
+   idempotencia ni el save.
+7. **Geometría de la sala.** Hoy el `map` se deriva de `w` + `platforms`. F1 mantiene eso (suelo plano +
+   plataformas). Si más adelante se quiere layout libre, el modelo podría llevar un **tilemap** (estilo
+   Tiled) — pero NO en el MVP (sobre-ingeniería). Pregunta: ¿alcanza `w`+`platforms` para Nivel 2?
+8. **Schema + versionado + validación.** Conviene un **JSON Schema** del modelo (guardrails para que una IA
+   edite sin romper) + un `schemaVersion` por nivel/pack para migraciones. La validación corre en e2e. ¿Lo
+   hacemos desde F1 (recomendado: sí, aunque mínimo)?
+9. **i18n.** Todo string visible pasa a **id i18n** en el modelo (reemplaza el map `level.en.js` + `TX()`).
+   Migración gradual; en F1 se puede mantener el texto inline y migrar a ids en una fase aparte.
+10. **Alcance del test de paridad.** Definir QUÉ campos compara v1≡v2 (geometría, doors+wiring, posiciones de
+    npc/decor/enemy/pickup, themes). Las cosas no estructurales (random sembrado, FX) quedan fuera de la
+    comparación.
 
 ---
 
