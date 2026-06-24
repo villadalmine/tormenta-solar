@@ -2,6 +2,8 @@
 
 - **Estado:** Draft
 - **Última actualización:** 2026-06-24
+- **Incluye:** medición pasiva por uso (§2-§5), **benchmark activo cada 4h con costo y modelos pagos**
+  (§11), y **re-ruteo automático** del juego cuando un modelo se degrada (§12).
 - **Relacionado:** `metricas.md` (F1/F2/F3 — de donde sale el dato), `latencia-chat.md` (el tope de 10s y la
   cadena), `pruebas-modelos.md` / `reporte-modelos.md` (el banco manual de calidad), `suscripcion.md` (el
   upsell cuando el free satura).
@@ -194,8 +196,122 @@ score = 0.50 * ok_rate
 1. **F1** RF-1 (attempts por modelo) + RF-5 (`/stats.json`) en `server.js` → sube tag proxy. **Base mínima.**
 2. **F2** RF-6 página `/llm-metrics.html` (+ EN) + RF-7 paneles Grafana.
 3. **F3** RF-2 heurísticas de calidad → enriquecen tabla y fórmula.
-4. **F4** (opcional) RF-3 LLM-judge (CronJob) y/o RF-4 feedback 👍/👎.
-5. **F5** (futuro) auto-pilot: el proxy re-ordena su cadena por score.
+4. **F4** RF-8/RF-9 — **benchmark CronJob cada 4h** (free + pagos) con **costo** + `POST /bench` → proxy
+   expone `tormenta_ai_bench_*` y los fusiona en `/stats.json`; la página muestra free vs pago y US$ (RF-11).
+   (Incluye el LLM-judge RF-3 como dimensión de calidad del bench.)
+5. **F5** RF-10 — **auto-pilot**: política de ruteo dinámica en el proxy (con histéresis, piso fijo, override,
+   sólo-free por defecto) → el juego se re-rutea solo cuando un modelo se degrada. Cadena activa observable.
+6. **F6** (opcional) RF-4 feedback 👍/👎 del jugador como desempate.
+
+## 11. Benchmark activo cada 4h (costo + modelos pagos)
+
+La medición pasiva (§2-§5) sólo ve los modelos **que el juego usa** y sólo cuando hay jugadores. Para saber
+**cuál conviene** (incluyendo pagos, que el tier free nunca toca) y a **qué costo**, un **CronJob** que prueba
+de forma activa una batería fija contra una lista de candidatos. Hay **crédito en OpenRouter** → podemos probar
+pagos seguido sin drama.
+
+### 11.1 Qué corre
+
+- **CronJob** `tormenta-llm-bench`, schedule `0 */4 * * *` (cada 4h = 6 corridas/día), ns `ai`.
+- Script Node chico (imagen `node:alpine` o la del proxy) con:
+  - **Batería fija** de ~6-8 prompts en **ES y EN**, incluyendo un caso **multi-turno** (para medir uso de
+    memoria/contexto, como en `pruebas-modelos.md`). Versionada en un ConfigMap.
+  - **Candidatos** = dos grupos:
+    - *free* a vigilar: `gemma4-free, kimi-free, deepseek-free, gemini-free, gpt-oss-free, llama70b-free,
+      qwen36-free, r1-free` (lista TBD; los que existen en LiteLLM).
+    - *pagos* a comparar: `gemini-flash, cheap, deepseek-pro, qwen-pro, gpt-4o, claude-sonnet` (TBD). Estos
+      **no** entran a producción del tier free; se miden para el ranking y para `suscripcion.md` (qué modelo
+      pago vale la pena).
+  - Pega vía **LiteLLM** (`http://litellm-proxy:4000/v1`, key `sk-hermes-internal`) → así el costo lo calcula
+    LiteLLM y reusa el pool de keys.
+
+### 11.2 Qué mide por candidato
+
+- **Disponibilidad / fallo**: ok / 429 / timeout / error / empty (igual que §3.1 pero activo y parejo).
+- **Latencia**: p50/p95 sobre la batería.
+- **Costo**: LiteLLM devuelve el costo por request (header `x-litellm-response-cost` y/o `usage` × precio).
+  → `costo por respuesta` y `costo por 1k tokens` por modelo. Los `:free` dan ~0; los pagos, su número real.
+  **Esto es lo que te dice "este pago cuesta US$X por charla y es N% mejor".**
+- **Calidad (LLM-judge)**: un modelo barato/pago (p.ej. `gemini-flash`) puntúa cada respuesta 0-1 en
+  coherencia / en-personaje / idioma correcto / uso del contexto. Con crédito, el judge es viable.
+
+### 11.3 Cómo llegan esas métricas a Prometheus (vía elegida + Pushgateway)
+
+Un CronJob es **efímero** (no se puede scrapear) y el cluster **no tiene Pushgateway**. Dos caminos:
+
+**(A) `POST /bench` al proxy — RECOMENDADO para este caso, cero infra nueva.** El CronJob postea el snapshot al
+proxy (token `BENCH_TOKEN`); el proxy lo guarda en memoria y lo expone en:
+- `/metrics`: `tormenta_ai_bench_ok_ratio{model,tier}`, `tormenta_ai_bench_latency_seconds{model,tier}`,
+  `tormenta_ai_bench_cost_usd{model,tier}`, `tormenta_ai_bench_score{model,dim}` → lo scrapea el ServiceMonitor
+  que **YA existe**.
+- `/stats.json`: se fusiona con la vista pasiva → la página muestra **free vs pago, costo y score** juntos.
+
+Por qué A gana acá: **la página pública necesita un JSON público igual** (`/stats.json`), y el proxy es el
+único servicio público que lo sirve. Así que el dato tiene que pasar por el proxy **sí o sí**. Con A, una sola
+ruta alimenta página + Prometheus. Con Pushgateway harían falta **dos** rutas (push al gateway para Grafana +
+algo que lea Prometheus y republique el JSON público) → más piezas para el mismo fin.
+
+**(B) Pushgateway (rol nuevo en `infra-ai`).** Vale la pena **si se lo quiere general** para otros jobs batch
+del cluster (billing, agentes, etc.), no sólo este bench. En `infra-ai/infra` el patrón es claro: un rol
+`install-prometheus-pushgateway` calcando `install-kube-prometheus-stack` (Helm
+`prometheus-community/prometheus-pushgateway`, repo ya agregado, ns `monitoring`, + un ServiceMonitor o el
+`scrape_configs` honor-labels). El CronJob pushea ahí; **igual** hace falta el bridge a `/stats.json` para la
+página. → Es complementario, no reemplaza A.
+
+**Decisión:** arrancar con **(A)**; agregar el rol de Pushgateway en `infra-ai` sólo si aparecen más jobs batch
+que lo necesiten (entonces este bench también puede pushear ahí además de al proxy). Loki (`loki-gateway` en
+`monitoring`) queda como destino opcional del **detalle crudo por corrida** (filas JSON) si se quiere historia
+fina.
+
+### 11.4 Topes de gasto (guardrails)
+
+- `max_tokens` chico en la batería; lista de candidatos acotada; **6 corridas/día**. Estimado: centavos/día.
+- Tope duro `BENCH_BUDGET_USD` por corrida: si el costo acumulado lo supera, **saltea los pagos restantes** y
+  loguea. Nunca una corrida puede dispararse de precio.
+- El judge corre una sola vez por respuesta y con `max_tokens` mínimo (sólo el puntaje).
+
+## 12. Re-ruteo automático cuando un modelo se degrada (auto-pilot)
+
+Idea del usuario: **si el bench (o la métrica viva) detecta que un modelo anda mal, que el juego cambie su
+propia ruta solo.** Sí, es diseñable como lazo cerrado. Dos señales alimentan una **política de ruteo**:
+
+- **Métrica viva** (§3.1, continua): reacciona **rápido** a una caída (un modelo empieza a dar 429/timeout
+  ahora) → lo saca de la cadena al toque.
+- **Bench 4h** (§11): reordena **despacio** por calidad+costo (qué free conviene primero).
+
+### 12.1 Dónde se aplica la ruta
+
+- **Servidor (lo principal):** el proxy deja de leer una cadena **estática** (`AI_MODEL`) y arma su `MODELS`
+  **dinámicamente** desde la política: mejor free primero, saca los que pasan el umbral de fallo. Sin redeploy,
+  sin tocar nada — **el juego se re-rutea solo**. La política se recalcula tras cada bench y cada N minutos con
+  la métrica viva.
+- **Cliente (BYOK):** `js/ai.js` puede pedir `/stats.json` y reordenar su lista local de fallback igual.
+
+### 12.2 Seguridad (sin esto, no se prende)
+
+- **Piso fijo:** siempre queda una cadena **hardcodeada** de respaldo; la auto-ruta **nunca** puede vaciar la
+  lista ni dejar al linyera sin modelo.
+- **Histéresis / cooldown:** un modelo se saca sólo si está mal **varias ventanas seguidas**; se re-admite sólo
+  tras recuperarse. Evita el "flapping".
+- **Límites (costo):** por defecto la auto-ruta sólo reordena **dentro del set free**. Los **pagos NO se
+  auto-activan** para usuarios free (gasto) — el bench los mide y reporta, pero habilitarlos es decisión humana
+  / del tier pago (`suscripcion.md`). Un usuario pago sí puede rutearse a su modelo premium, pero eso lo decide
+  el entitlement, no el auto-pilot.
+- **Override manual:** poder **pinear** un modelo o **apagar** la auto-ruta (env / flag). El humano siempre
+  puede mandar.
+- **Presupuesto de latencia:** la cadena activa respeta el tope de §latencia (≤2 intentos en 8s) — no encadena
+  10 modelos.
+- **Observabilidad:** exponer la cadena activa (`tormenta_ai_active_chain` / en `/stats.json`) para **ver qué
+  eligió** y por qué. La página `/llm-metrics` muestra "ruta activa ahora".
+
+### 12.3 RF añadidos
+
+- **RF-8** CronJob `tormenta-llm-bench` (cada 4h) prueba free+pagos, mide fallo/latencia/**costo**/calidad y
+  hace `POST /bench` al proxy. Con tope `BENCH_BUDGET_USD`.
+- **RF-9** Proxy expone `tormenta_ai_bench_*` (incl. `_cost_usd`) en `/metrics` y los fusiona en `/stats.json`.
+- **RF-10** Política de ruteo dinámica en el proxy (mejor free primero, saca degradados con histéresis, piso
+  fijo, override, sólo-free por defecto) → cadena activa observable.
+- **RF-11** La página muestra **costo por modelo** (free=0, pagos su US$) y la **ruta activa**.
 
 ## 10. Preguntas abiertas
 
@@ -204,3 +320,9 @@ score = 0.50 * ok_rate
 - Lista de **candidatos** `:free` a vigilar (hoy la cadena es `gemma4-free,kimi-free`; ¿agregamos 1-2 más
   sólo-para-medir aunque no entren a producción?). Esto define cuánto "explora" el monitoreo.
 - ¿Vale el costo del LLM-judge (F4) o alcanza heurísticas + 👍/👎?
+- **Métricas del bench batch:** ¿`POST /bench` al proxy (cero infra, elegido) o desplegar un **Pushgateway**
+  en `infra-ai`? (El usuario ofrece agregarlo allá; si va Pushgateway, el CronJob pushea ahí y el proxy se
+  libera de guardar estado del bench. Ver §11.3.)
+- Lista final de candidatos free y pagos a vigilar + `BENCH_BUDGET_USD` por corrida.
+- Pesos de la fórmula §4 y umbral mínimo de muestras.
+- Histéresis del auto-pilot: ¿cuántas ventanas malas para sacar un modelo y cuántas buenas para re-admitirlo?
