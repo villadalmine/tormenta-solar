@@ -55,6 +55,62 @@ Aplicar y **validar que Holmes responde** (gpt-5.4) por el camino nuevo.
 del host. HAMi `free` = real. Smoke: Holmes/gpt-5.4 OK, juego OK, otro juego OK. **Rollback**: si algo falla,
 `systemctl enable --now ollama` en el host hasta reconciliar (por eso F4 va último y no se borra nada).
 
+## 3.5 Target con GPU nueva (RTX 3090 / L4, 24GB) — sizing + qué corre + snippets
+
+Cuando entre la placa recomendada (ver `reporte-modelos.md`: **3090 usada** por valor o **L4** por eficiencia,
+ambas **24GB**), HAMi reparte la VRAM entre tenants. Sizing propuesto (24GB):
+
+| Tenant | Modelo | Slice HAMi (gpumem) |
+|---|---|---|
+| **Linyera** (este juego) | `qwen2.5:7b` (o `gemma2:9b`) | ~8 GiB |
+| **Juego online** | el suyo | según necesite |
+| **Holmes** (si se migra del host) | `llama3.1:8b` | ~8 GiB |
+
+Entran los tres en 24GB con margen, **todo bajo HAMi** (cero bare-metal → cero OOM por doble-dueño).
+
+**Snippet — Deployment ollama del linyera (k8s, con request HAMi):**
+```yaml
+# ollama-linyera: pod GPU para el chat del linyera. nodeSelector al nodo de la placa nueva.
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: ollama-linyera, namespace: ai }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ollama-linyera } }
+  template:
+    metadata: { labels: { app: ollama-linyera } }
+    spec:
+      nodeSelector: { kubernetes.io/hostname: srv-t7910 }   # o el nodo de la GPU nueva
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports: [{ containerPort: 11434 }]
+          env: [{ name: OLLAMA_HOST, value: "0.0.0.0:11434" }, { name: OLLAMA_KEEP_ALIVE, value: "-1" }]
+          resources:
+            limits: { nvidia.com/gpu: 1, nvidia.com/gpumem: 8Gi, cpu: "4", memory: 12Gi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: ollama-linyera, namespace: ai }
+spec: { selector: { app: ollama-linyera }, ports: [{ port: 11434, targetPort: 11434 }] }
+# luego: kubectl -n ai exec deploy/ollama-linyera -- ollama pull qwen2.5:7b
+```
+
+**Snippet — LiteLLM (model_name `linyera` con fallback a la nube):**
+```yaml
+# model_list:
+- model_name: linyera
+  litellm_params:
+    model: openai/qwen2.5:7b
+    api_base: http://ollama-linyera.ai.svc.cluster.local:11434/v1
+    api_key: dummy
+# litellm_settings.fallbacks:
+- {"linyera": ["gemma4-free"]}   # si la GPU se cae/satura → nube, sin que el juego se entere
+```
+
+**Conectar el juego:** `helm upgrade tormenta-ai ai-proxy/chart -n ai --reuse-values --set upstream.model=linyera`.
+`keep_alive=-1` evita el cold-start (mantiene el modelo en VRAM).
+
 ## 4. Verificación
 
 - `nvidia-smi --query-compute-apps` → todos los PIDs son de contenedores k8s (ninguno del host).
