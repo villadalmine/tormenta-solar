@@ -1,0 +1,59 @@
+# Build de la imagen del proxy con Kaniko vía Argo Workflows (in-cluster, arm64).
+# Mismo patrón que online-game/deploy/build/online-game-kaniko.yaml: un Workflow clona el repo público
+# (inputs.artifacts.git) y Kaniko builda desde ai-proxy/Dockerfile, empujando al registry interno.
+#
+# Aplicar:  kubectl create -f ai-proxy/kaniko-build.yaml
+# Seguir:   kubectl logs -l app=tormenta-ai-proxy-build -n kaniko -f
+# Esperar:  kubectl wait workflow -l app=tormenta-ai-proxy-build -n kaniko \
+#             --for=jsonpath='{.status.phase}'=Succeeded --timeout=900s
+# Imagen:   registry.registry:5000/ai/tormenta-ai-proxy:0.1.0
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: build-tormenta-ai-proxy-
+  namespace: kaniko
+  labels:
+    app: tormenta-ai-proxy-build
+spec:
+  entrypoint: build-image
+  ttlStrategy:
+    secondsAfterSuccess: 3600
+    secondsAfterFailure: 86400
+  nodeSelector:
+    kubernetes.io/hostname: srv-rk1-nvme-01     # arm64, igual que el resto del stack AI
+  tolerations:
+    - key: "node.kubernetes.io/unreachable"
+      operator: Exists
+      effect: NoExecute
+    - key: "node.kubernetes.io/not-ready"
+      operator: Exists
+      effect: NoExecute
+  volumeClaimTemplates:
+    - metadata:
+        name: workspace
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: longhorn-nvme
+        resources:
+          requests:
+            storage: 3Gi
+  templates:
+    - name: build-image
+      inputs:
+        artifacts:
+          - name: source
+            path: /workspace/source
+            git:
+              repo: "https://github.com/villadalmine/tormenta-solar.git"
+              revision: main
+              depth: 1
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+          - "--dockerfile=/workspace/source/ai-proxy/Dockerfile"
+          - "--context=dir:///workspace/source/ai-proxy"
+          - "--destination=registry.registry:5000/ai/tormenta-ai-proxy:0.1.0"
+          - "--insecure"
+          - "--skip-tls-verify"
+          - "--snapshot-mode=redo"
+          - "--compression=zstd"
