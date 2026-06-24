@@ -111,6 +111,22 @@ lento (70b en 247GB correría a ~1-2 tok/s, inusable). El lever es cores + model
 híbrido descartado**: robaría GPU al juego online. → Linyera = **ollama CPU-only en k8s** (sin request de
 GPU, solo cpu/mem limits) con gemma2:2b; nube como fallback.
 
+### 2.10.2 Test de MEMORIA/contexto + idiomas (multi-turno: "me llamo Pocho y odio los drones")
+
+3 turnos por modelo (T1 se presenta, T2 pista, T3 "¿te acordás nombre+lo que odio?"), en ES y EN, mandando
+el historial completo (como el juego):
+
+| Modelo | Backend | ES recall | EN recall | Coherencia | Latencia |
+|---|---|---|---|---|---|
+| **gemma4-free** | nube | ✅ | ✅ | ★★★★ criollo y EN clavados | **2-7s** |
+| llama3.1:8b | CPU | ✅ | ✅ | ★★★ bien, recuerda | **13-26s** 🐢 |
+| gemma2:2b | CPU | ✅ | ⚠️ ("bots" no "drones") | ★★ suelto, algún error gramatical | 8-14s |
+
+**Conclusión:** los tres usan el contexto, pero **gemma4-free gana en TODO** (memoria perfecta ES+EN,
+coherencia, latencia). En CPU el más coherente es `llama3.1:8b` pero a 13-26s (placa/CPU vieja); `gemma2:2b`
+es más rápido pero menos coherente y flojea la memoria en EN. → **Linyera sigue en `gemma4-free` (nube).** La
+opción CPU queda documentada como fallback/privacidad pero es un downgrade en calidad y latencia.
+
 ### ⚠️ Gobernanza GPU / HAMi (importante)
 El **ollama del host** (`192.168.178.90`, fuera de k8s) consume VRAM **por fuera de HAMi** → HAMi no lo
 contabiliza y puede sobre-suscribir. Ese ollama **está consumido** (Holmes `gpt-5.4` → `:11434`; rutas
