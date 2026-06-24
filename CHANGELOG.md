@@ -11,12 +11,23 @@ El juego es 100% estático; se publica en
 
 ## 🔭 Próximamente — Roadmap (SDDs draft, sin implementar)
 
-- **Self-host del juego** en `tormenta-solar.cybercirujas.club` (`specs/juego-self-host.md`). HOY el juego
-  vive en GitHub Pages; el dominio propio tiene DNS + acme + HAProxy listos pero **nada lo sirve en el
-  cluster** todavía (falta imagen nginx + Helm + HTTPRoute + cert + listener).
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Pruebas de modelos** GPU (HAMi/Ollama) / NPU RK1 / OpenRouter + `model_name: tormenta-free` exacto en
   LiteLLM (`specs/pruebas-modelos.md`). Hoy el chat anda con `gemma4-free`.
+
+---
+
+## [infra] — 2026-06-24 — 🖥️ El juego también corre self-hosted + páginas en inglés
+
+### Hecho ✅
+- **Self-host del juego LIVE** en `https://tormenta-solar.cybercirujas.club`, **a la vez** que GitHub Pages
+  (los dos conviven). nginx-unprivileged (`web/Dockerfile`), build Kaniko/Argo (`web/kaniko-build.yaml`),
+  chart `web/chart` (release `tormenta-web`, ns `ai`), HTTPRoute + Certificate (LE prod) + ensure-listener
+  reusando `cluster-gateway`. Ver `specs/juego-self-host.md`.
+- **Páginas en inglés** para publicar: `info/index.en.html` + `info/tech.en.html`, con toggle EN/ES.
+- **Tech page**: gráfico "GitHub Pages vs infra propia" (estáticos vs chat) + dato del borde: HAProxy corre
+  en una **Mac mini G4 (PowerPC) con OpenBSD**.
+- *(No bumpea `?v`: los archivos del juego no cambiaron; es infra + páginas info.)*
 
 ---
 

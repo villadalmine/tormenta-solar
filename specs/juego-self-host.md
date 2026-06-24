@@ -1,7 +1,16 @@
 # SDD — Self-host del juego en `tormenta-solar.cybercirujas.club`
 
-- **Estado:** **Draft** (no implementado)
+- **Estado:** **✅ Implementado / LIVE** (convive con GitHub Pages)
 - **Última actualización:** 2026-06-24
+
+> **LIVE:** el juego se sirve desde el cluster en `https://tormenta-solar.cybercirujas.club` (cert LE prod),
+> **a la vez** que GitHub Pages. Imagen `registry.registry:5000/ai/tormenta-solar-web:0.1.0`
+> (nginx-unprivileged, build Kaniko `web/kaniko-build.yaml`), chart `web/chart` (release `tormenta-web`,
+> ns `ai`, nodeSelector rk1), HTTPRoute + Certificate + ensure-listener reusando `cluster-gateway`.
+> Deploy: `helm upgrade --install tormenta-web web/chart -n ai --set gateway.enabled=true
+> --set gateway.tls.enabled=true --set gateway.ensureListener.enabled=true
+> --set gateway.host=tormenta-solar.cybercirujas.club` (+ image/nodeSelector). El diagrama de los dos
+> modos está en `info/tech.html` (y `tech.en.html`).
 
 ## 1. Objetivo
 
