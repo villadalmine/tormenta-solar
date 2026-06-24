@@ -101,8 +101,9 @@
       "properties": {
         "id": { "$ref": "#/$defs/id" },
         "tipo": { "type": "string", "enum": ["door", "npc", "decor", "machine", "cuevero", "enemy", "pickup", "sign", "marker", "trigger", "quest"] },
-        "x": { "type": "number", "description": "tile X" },
+        "x": { "type": "number", "description": "tile X (puede ser fraccionario)" },
         "y": { "type": "number", "description": "tile Y (opcional; default piso)" },
+        "inward": { "type": "integer", "description": "sólo doors: dirección hacia adentro (-1/1) para calcular el spawn al cruzar" },
 
         "render": { "type": "object", "description": "sprite|type de Art", "additionalProperties": true },
         "interact": {
@@ -120,7 +121,8 @@
           "type": "object",
           "description": "conexión entre puertas (ex wire). a/b = 'salaId#puertaId'",
           "additionalProperties": false,
-          "properties": { "a": { "type": "string" }, "b": { "type": "string" }, "to": { "type": "string" }, "facade": { "type": "string" } }
+          "properties": { "a": { "type": "string" }, "b": { "type": "string" }, "to": { "type": "string" }, "facade": { "type": "string" },
+            "at": { "type": "object", "description": "spawn al cruzar (en tiles); si falta, se deriva de la puerta recíproca", "additionalProperties": false, "properties": { "x": { "type": "number" }, "y": { "type": "number" } } } }
         },
         "gate": { "$ref": "#/$defs/cond" },
         "give": { "type": "object", "properties": { "item": { "type": "string" }, "amount": { "type": "number" } } },

@@ -27,6 +27,13 @@ que un futuro `buildWorld(model)` reproduzca las 38 salas actuales (**test de pa
 Los componentes ricos (`ai`, `agent`, `story`, `dialogue`, `quest`, `ability`, `ad`) están en el schema pero
 son **opcionales**: se cuelgan en fases posteriores (§6½–§6.96 del SDD).
 
+## Estado: F1 + F2 hechas
+- **F1:** `levels/nivel-1.json` generado y validado (arriba).
+- **F2:** `js/mundo.js` (`Mundo.fromModel(model)` = `buildWorld`, función pura) reconstruye el nivel desde
+  la data, y **`node tests/parity.mjs`** verifica **paridad v1≡v2** (las 38 salas coinciden: geometría,
+  posiciones, doors+wiring). `mundo.js` **NO** está en `index.html` todavía → el runtime sigue en v1 (F3 = el
+  toggle). Si tocás `level.js`, regenerá (`node tools/gen-level.js`) y corré la paridad.
+
 ## Validación
 - **Ya corre:** `node tests/levels.mjs` — un **mini-validador de JSON Schema sin dependencias** (cubre el
   subset que usa el schema) que valida cada `levels/*.json` contra `level.schema.json`. Trae un **self-test

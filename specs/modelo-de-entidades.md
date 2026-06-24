@@ -676,7 +676,9 @@ Para no reescribir a ciegas (strangler-fig):
    **`tools/gen-level.js`** (deriva `levels/nivel-1.json` del `Level.build()` real, fiel y re-ejecutable) +
    **`tests/levels.mjs`** (valida contra el schema). Resultado: **38 salas, 487 entidades, 71 links 0 rotos**,
    valida. v1 intacto.
-3. **F2 — `buildWorld`/`Mundo.fromModel` + test de paridad** v1≡v2 (v1 sigue default).
+3. **F2 — `buildWorld`/`Mundo.fromModel` + test de paridad** v1≡v2 (v1 sigue default): ✅ **HECHO.**
+   `js/mundo.js` (`Mundo.fromModel`, función pura) + `tests/parity.mjs` → **las 38 salas coinciden**
+   (geometría/map, posiciones, doors+wiring). `mundo.js` NO está en `index.html` todavía (runtime intacto).
 4. **F3 — toggle v1/v2 en ⚙ Opciones** + parity en CI. Jugar Nivel 1 en v2.
 5. **F4 — migrar los hardcodes** (`COLLAPSED`, `DOOR_ART`, gating, `ambientFor`) a atributos del modelo;
    historia/ads/save pasan a **ids estables**.

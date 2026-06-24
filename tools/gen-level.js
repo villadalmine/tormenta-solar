@@ -10,8 +10,9 @@ const { sandbox } = require('../tests/e2e.js');
 const TILE = vm.runInContext('Art.TILE', sandbox);
 const rooms = vm.runInContext('Level.build()', sandbox);
 
-const tx = px => Math.round((px - TILE / 2) / TILE);   // pixel (feet, centrado) → tile
-const ty = py => Math.round(py / TILE);
+const r3 = v => Math.round(v * 1000) / 1000;            // 3 decimales (evita ruido float, preserva fracciones)
+const tx = px => r3((px - TILE / 2) / TILE);             // pixel (feet, centrado) → tile (EXACTO, fraccionario)
+const ty = py => r3(py / TILE);
 const slug = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'sala';
 
@@ -45,7 +46,8 @@ function entities(r, ri) {
   for (const d of r.doors || []) {
     const e = pos({ id: roomId[ri] + '/door-' + slug(d.id), tipo: 'door', render: { type: d.art || 'door' } }, d.x, d.y);
     if (d.facade) e.render.facade = d.facade;
-    if (d.to != null) e.link = { to: roomId[d.to] };       // conectividad (F1: ref one-way; F2 afina el par)
+    if (d.inward != null) e.inward = d.inward;             // para reproducir el spawn al cruzar (wire)
+    if (d.to != null) { e.link = { to: roomId[d.to] }; if (d.at) e.link.at = { x: tx(d.at.x), y: ty(d.at.y) }; }   // destino + spawn al cruzar
     E.push(e);
   }
   for (const m of r.npcs || []) {
@@ -59,7 +61,7 @@ function entities(r, ri) {
   for (const d of r.decor || []) E.push(pos({ id: id('decor'), tipo: 'decor', render: { type: d.type } }, d.x, d.feetY));
   for (const mc of r.machines || []) E.push(pos({ id: id('machine'), tipo: 'machine', render: { game: mc.game }, interact: { action: 'machine' } }, mc.x, mc.y));
   for (const c of r.cueveros || []) { const e = pos({ id: id('cuevero'), tipo: 'cuevero', render: { sprite: c.sprite }, interact: { action: 'cuevero' } }, c.x, c.y); if (c.outcome) e.interact.outcome = c.outcome; if (c.to != null) e.interact.to = roomId[c.to]; if (c.dialog) e.dialogue = { text: c.dialog }; E.push(e); }
-  for (const p of r.pickups || []) E.push(pos({ id: id('pickup'), tipo: 'pickup', give: { item: p.type, amount: p.amount || 1 } }, p.x, p.y));
+  for (const p of r.pickups || []) { const give = { item: p.type }; if (p.amount != null) give.amount = p.amount; E.push(pos({ id: id('pickup'), tipo: 'pickup', give }, p.x, p.y)); }
   for (const en of r.enemies || []) { const e = pos({ id: id('enemy'), tipo: 'enemy', combat: { type: en.type } }, en.x, en.y); if (en.look) e.combat.look = en.look; if (en.dormant) e.combat.dormant = true; E.push(e); }
   return E;
 }

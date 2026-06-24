@@ -65,8 +65,13 @@
             "facade": "educacionit"
           },
           "x": 10,
+          "inward": 1,
           "link": {
-            "to": "educacionit-piso-4"
+            "to": "educacionit-piso-4",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -77,8 +82,13 @@
             "facade": "arcade"
           },
           "x": 28,
+          "inward": 1,
           "link": {
-            "to": "arcade-de-lavalle"
+            "to": "arcade-de-lavalle",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -89,8 +99,13 @@
             "facade": "choris"
           },
           "x": 46,
+          "inward": 1,
           "link": {
-            "to": "choreria-de-florida"
+            "to": "choreria-de-florida",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -101,8 +116,13 @@
             "facade": "garbarino"
           },
           "x": 58,
+          "inward": -1,
           "link": {
-            "to": "garbarino-electronica"
+            "to": "garbarino-electronica",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -113,8 +133,13 @@
             "facade": "cemento"
           },
           "x": 61,
+          "inward": -1,
           "link": {
-            "to": "cemento-recital-under"
+            "to": "cemento-recital-under",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -125,8 +150,13 @@
             "facade": "galeria"
           },
           "x": 74,
+          "inward": -1,
           "link": {
-            "to": "galeria-subsuelo-1"
+            "to": "galeria-subsuelo-1",
+            "at": {
+              "x": 4.5,
+              "y": 12
+            }
           }
         },
         {
@@ -137,8 +167,13 @@
             "facade": "cambio"
           },
           "x": 90,
+          "inward": -1,
           "link": {
-            "to": "casa-de-cambio-oficial"
+            "to": "casa-de-cambio-oficial",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -149,8 +184,13 @@
             "facade": "abandonado"
           },
           "x": 101,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-1-lujo"
+            "to": "edificio-abandonado-piso-1-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -160,7 +200,8 @@
             "type": "superchino",
             "facade": "superchino"
           },
-          "x": 112
+          "x": 112,
+          "inward": -1
         },
         {
           "id": "florida-y-lavalle/npc1",
@@ -271,7 +312,7 @@
           "render": {
             "sprite": "turista"
           },
-          "x": 77,
+          "x": 77.4,
           "dialogue": {
             "text": "“Is this the line for dollars? ¿Acá cambian, sí?” 📸"
           }
@@ -282,7 +323,7 @@
           "render": {
             "sprite": "gordo"
           },
-          "x": 79,
+          "x": 78.8,
           "dialogue": {
             "text": "“Tengo un hambre... ¿cuánto falta para la cueva?” 🍔"
           }
@@ -293,7 +334,7 @@
           "render": {
             "sprite": "mujer"
           },
-          "x": 80,
+          "x": 80.2,
           "dialogue": {
             "text": "“Yo vengo todos los días, ¿eh? No me corran.” 💅"
           }
@@ -304,7 +345,7 @@
           "render": {
             "sprite": "civil2"
           },
-          "x": 82,
+          "x": 81.6,
           "dialogue": {
             "text": "“Aguante, ya casi llego al arbolito.” 🧢"
           }
@@ -326,7 +367,7 @@
           "render": {
             "sprite": "conNino"
           },
-          "x": 84,
+          "x": 84.4,
           "dialogue": {
             "text": "“Quedate quieto, nene, ya falta poco.” 👨‍👦"
           }
@@ -337,7 +378,7 @@
           "render": {
             "sprite": "nino"
           },
-          "x": 86,
+          "x": 85.8,
           "dialogue": {
             "text": "“¿Faaalta muuucho, paaa?” 🍭"
           }
@@ -348,7 +389,7 @@
           "render": {
             "sprite": "civil3"
           },
-          "x": 87,
+          "x": 87.2,
           "dialogue": {
             "text": "“En mis tiempos el dólar valía dos mangos.” ☕"
           }
@@ -359,7 +400,7 @@
           "render": {
             "sprite": "mujer"
           },
-          "x": 89,
+          "x": 88.6,
           "dialogue": {
             "text": "“No empujes que me sacan de la fila, atorrante.” 😤"
           }
@@ -478,8 +519,7 @@
           "id": "florida-y-lavalle/pickup31",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 37,
           "y": 10
@@ -488,8 +528,7 @@
           "id": "florida-y-lavalle/pickup32",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 53,
           "y": 10
@@ -508,8 +547,7 @@
           "id": "florida-y-lavalle/pickup34",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 24
         },
@@ -517,8 +555,7 @@
           "id": "florida-y-lavalle/pickup35",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 60
         },
@@ -636,8 +673,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "florida-y-lavalle"
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 11.5,
+              "y": 12
+            }
           }
         },
         {
@@ -647,8 +689,13 @@
             "type": "elevator"
           },
           "x": 17,
+          "inward": -1,
           "link": {
-            "to": "educacionit-piso-8"
+            "to": "educacionit-piso-8",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -713,8 +760,7 @@
           "id": "educacionit-piso-4/pickup6",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 9,
           "y": 9
@@ -723,8 +769,7 @@
           "id": "educacionit-piso-4/pickup7",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 14
         },
@@ -770,8 +815,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "educacionit-piso-4"
+            "to": "educacionit-piso-4",
+            "at": {
+              "x": 15.5,
+              "y": 12
+            }
           }
         },
         {
@@ -781,8 +831,13 @@
             "type": "elevator"
           },
           "x": 19,
+          "inward": -1,
           "link": {
-            "to": "educacionit-piso-9"
+            "to": "educacionit-piso-9",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -877,8 +932,7 @@
           "id": "educacionit-piso-8/pickup9",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 13,
           "y": 9
@@ -887,8 +941,7 @@
           "id": "educacionit-piso-8/pickup10",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 18
         },
@@ -943,8 +996,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "educacionit-piso-8"
+            "to": "educacionit-piso-8",
+            "at": {
+              "x": 17.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1009,8 +1067,7 @@
           "id": "educacionit-piso-9/pickup6",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 9,
           "y": 9
@@ -1019,8 +1076,7 @@
           "id": "educacionit-piso-9/pickup7",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 16
         },
@@ -1066,8 +1122,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "florida-y-lavalle"
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 29.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1077,8 +1138,13 @@
             "type": "exit"
           },
           "x": 22,
+          "inward": -1,
           "link": {
-            "to": "lugar-secreto"
+            "to": "lugar-secreto",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1195,8 +1261,7 @@
           "id": "arcade-de-lavalle/pickup10",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 23,
           "y": 9
@@ -1262,8 +1327,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "florida-y-lavalle"
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 47.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1300,8 +1370,7 @@
           "id": "choreria-de-florida/pickup3",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 13,
           "y": 9
@@ -1348,8 +1417,13 @@
             "type": "up"
           },
           "x": 3,
+          "inward": 1,
           "link": {
-            "to": "florida-y-lavalle"
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 72.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1359,8 +1433,13 @@
             "type": "galeria"
           },
           "x": 39,
+          "inward": -1,
           "link": {
-            "to": "sotano-subsuelo-2"
+            "to": "sotano-subsuelo-2",
+            "at": {
+              "x": 4.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1454,8 +1533,7 @@
           "id": "galeria-subsuelo-1/pickup7",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 20,
           "y": 9
@@ -1464,8 +1542,7 @@
           "id": "galeria-subsuelo-1/pickup8",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 34
         },
@@ -1537,8 +1614,13 @@
             "type": "up"
           },
           "x": 3,
+          "inward": 1,
           "link": {
-            "to": "galeria-subsuelo-1"
+            "to": "galeria-subsuelo-1",
+            "at": {
+              "x": 37.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1548,8 +1630,13 @@
             "type": "galeria"
           },
           "x": 39,
+          "inward": -1,
           "link": {
-            "to": "las-cuevas-del-dolar-subsuelo-3"
+            "to": "las-cuevas-del-dolar-subsuelo-3",
+            "at": {
+              "x": 4.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1627,8 +1714,7 @@
           "id": "sotano-subsuelo-2/pickup6",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 10
         },
@@ -1636,8 +1722,7 @@
           "id": "sotano-subsuelo-2/pickup7",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 36
         },
@@ -1709,8 +1794,13 @@
             "type": "up"
           },
           "x": 3,
+          "inward": 1,
           "link": {
-            "to": "sotano-subsuelo-2"
+            "to": "sotano-subsuelo-2",
+            "at": {
+              "x": 37.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1719,7 +1809,8 @@
           "render": {
             "type": "disqueria"
           },
-          "x": 9
+          "x": 9,
+          "inward": -1
         },
         {
           "id": "las-cuevas-del-dolar-subsuelo-3/door-chinoback",
@@ -1727,7 +1818,8 @@
           "render": {
             "type": "superchino"
           },
-          "x": 44
+          "x": 44,
+          "inward": -1
         },
         {
           "id": "las-cuevas-del-dolar-subsuelo-3/npc0",
@@ -1819,8 +1911,7 @@
           "id": "las-cuevas-del-dolar-subsuelo-3/pickup8",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 24,
           "y": 9
@@ -1829,8 +1920,7 @@
           "id": "las-cuevas-del-dolar-subsuelo-3/pickup9",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 36,
           "y": 9
@@ -1885,8 +1975,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "arcade-de-lavalle"
+            "to": "arcade-de-lavalle",
+            "at": {
+              "x": 20.5,
+              "y": 12
+            }
           }
         },
         {
@@ -1896,8 +1991,13 @@
             "type": "exit"
           },
           "x": 23,
+          "inward": -1,
           "link": {
-            "to": "trastienda-truco"
+            "to": "trastienda-truco",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2090,8 +2190,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "lugar-secreto"
+            "to": "lugar-secreto",
+            "at": {
+              "x": 21.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2100,7 +2205,8 @@
           "render": {
             "type": "superchino"
           },
-          "x": 18
+          "x": 18,
+          "inward": -1
         },
         {
           "id": "trastienda-truco/npc0",
@@ -2190,8 +2296,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "florida-y-lavalle"
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 56.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2316,8 +2427,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "florida-y-lavalle"
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 59.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2422,8 +2538,7 @@
           "id": "cemento-recital-under/pickup10",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 3
         },
@@ -2487,8 +2602,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "florida-y-lavalle"
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 88.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2654,8 +2774,7 @@
           "id": "casa-de-cambio-oficial/pickup18",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 19
         }
@@ -2675,8 +2794,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "florida-y-lavalle"
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 99.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2686,8 +2810,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-2-ruina"
+            "to": "edificio-abandonado-piso-2-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2696,7 +2825,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -2710,7 +2839,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/decor2",
@@ -2718,7 +2847,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/decor3",
@@ -2726,7 +2855,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/decor4",
@@ -2734,7 +2863,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/decor5",
@@ -2742,7 +2871,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/decor6",
@@ -2750,7 +2879,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/decor7",
@@ -2758,7 +2887,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/pickup8",
@@ -2785,8 +2914,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-1-lujo"
+            "to": "edificio-abandonado-piso-1-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2796,8 +2930,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-3-lujo"
+            "to": "edificio-abandonado-piso-3-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2806,7 +2945,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 6,
+          "x": 5.5,
           "interact": {
             "action": "limosna"
           },
@@ -2820,7 +2959,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 8,
+          "x": 7.5,
           "interact": {
             "action": "limosna"
           },
@@ -2834,7 +2973,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 10,
+          "x": 9.5,
           "interact": {
             "action": "limosna"
           },
@@ -2848,7 +2987,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 12,
+          "x": 11.5,
           "interact": {
             "action": "limosna"
           },
@@ -2870,7 +3009,7 @@
           "render": {
             "type": "caja"
           },
-          "x": 7
+          "x": 6.5
         },
         {
           "id": "edificio-abandonado-piso-2-ruina/decor6",
@@ -2878,7 +3017,7 @@
           "render": {
             "type": "bano_roto"
           },
-          "x": 10
+          "x": 9.5
         },
         {
           "id": "edificio-abandonado-piso-2-ruina/decor7",
@@ -2886,14 +3025,13 @@
           "render": {
             "type": "barril"
           },
-          "x": 13
+          "x": 12.5
         },
         {
           "id": "edificio-abandonado-piso-2-ruina/pickup8",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -2913,8 +3051,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-2-ruina"
+            "to": "edificio-abandonado-piso-2-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2924,8 +3067,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-4-ruina"
+            "to": "edificio-abandonado-piso-4-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -2934,7 +3082,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -2948,7 +3096,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/decor2",
@@ -2956,7 +3104,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/decor3",
@@ -2964,7 +3112,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/decor4",
@@ -2972,7 +3120,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/decor5",
@@ -2980,7 +3128,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/decor6",
@@ -2988,7 +3136,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/decor7",
@@ -2996,7 +3144,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/pickup8",
@@ -3023,8 +3171,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-3-lujo"
+            "to": "edificio-abandonado-piso-3-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3034,8 +3187,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-5-lujo"
+            "to": "edificio-abandonado-piso-5-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3044,7 +3202,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 8,
+          "x": 7.5,
           "interact": {
             "action": "limosna"
           },
@@ -3058,7 +3216,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 10,
+          "x": 9.5,
           "interact": {
             "action": "limosna"
           },
@@ -3072,7 +3230,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.5,
           "interact": {
             "action": "limosna"
           },
@@ -3086,7 +3244,7 @@
           "render": {
             "type": "caja"
           },
-          "x": 5
+          "x": 4.5
         },
         {
           "id": "edificio-abandonado-piso-4-ruina/decor4",
@@ -3094,7 +3252,7 @@
           "render": {
             "type": "bano_roto"
           },
-          "x": 8
+          "x": 7.5
         },
         {
           "id": "edificio-abandonado-piso-4-ruina/decor5",
@@ -3116,8 +3274,7 @@
           "id": "edificio-abandonado-piso-4-ruina/pickup7",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -3137,8 +3294,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-4-ruina"
+            "to": "edificio-abandonado-piso-4-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3148,8 +3310,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-6-ruina"
+            "to": "edificio-abandonado-piso-6-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3158,7 +3325,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -3172,7 +3339,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/decor2",
@@ -3180,7 +3347,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/decor3",
@@ -3188,7 +3355,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/decor4",
@@ -3196,7 +3363,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/decor5",
@@ -3204,7 +3371,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/decor6",
@@ -3212,7 +3379,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/decor7",
@@ -3220,7 +3387,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/pickup8",
@@ -3247,8 +3414,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-5-lujo"
+            "to": "edificio-abandonado-piso-5-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3258,8 +3430,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-7-lujo"
+            "to": "edificio-abandonado-piso-7-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3268,7 +3445,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 10,
+          "x": 9.5,
           "interact": {
             "action": "limosna"
           },
@@ -3282,7 +3459,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 12,
+          "x": 11.5,
           "interact": {
             "action": "limosna"
           },
@@ -3320,14 +3497,13 @@
           "render": {
             "type": "sillon_roto"
           },
-          "x": 12
+          "x": 11.5
         },
         {
           "id": "edificio-abandonado-piso-6-ruina/pickup6",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -3347,8 +3523,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-6-ruina"
+            "to": "edificio-abandonado-piso-6-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3358,8 +3539,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-8-ruina"
+            "to": "edificio-abandonado-piso-8-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3368,7 +3554,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -3382,7 +3568,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/decor2",
@@ -3390,7 +3576,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/decor3",
@@ -3398,7 +3584,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/decor4",
@@ -3406,7 +3592,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/decor5",
@@ -3414,7 +3600,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/decor6",
@@ -3422,7 +3608,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/decor7",
@@ -3430,7 +3616,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/pickup8",
@@ -3457,8 +3643,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-7-lujo"
+            "to": "edificio-abandonado-piso-7-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3468,8 +3659,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-9-lujo"
+            "to": "edificio-abandonado-piso-9-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3478,7 +3674,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 12,
+          "x": 11.5,
           "interact": {
             "action": "limosna"
           },
@@ -3492,7 +3688,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 4,
+          "x": 3.5,
           "interact": {
             "action": "limosna"
           },
@@ -3506,7 +3702,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 6,
+          "x": 5.5,
           "interact": {
             "action": "limosna"
           },
@@ -3520,7 +3716,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 8,
+          "x": 7.5,
           "interact": {
             "action": "limosna"
           },
@@ -3542,7 +3738,7 @@
           "render": {
             "type": "tele_rota"
           },
-          "x": 7
+          "x": 6.5
         },
         {
           "id": "edificio-abandonado-piso-8-ruina/decor6",
@@ -3550,7 +3746,7 @@
           "render": {
             "type": "sillon_roto"
           },
-          "x": 10
+          "x": 9.5
         },
         {
           "id": "edificio-abandonado-piso-8-ruina/decor7",
@@ -3558,14 +3754,13 @@
           "render": {
             "type": "escombros"
           },
-          "x": 13
+          "x": 12.5
         },
         {
           "id": "edificio-abandonado-piso-8-ruina/pickup8",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -3585,8 +3780,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-8-ruina"
+            "to": "edificio-abandonado-piso-8-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3596,8 +3796,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-10-ruina"
+            "to": "edificio-abandonado-piso-10-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3606,7 +3811,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -3620,7 +3825,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/decor2",
@@ -3628,7 +3833,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/decor3",
@@ -3636,7 +3841,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/decor4",
@@ -3644,7 +3849,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/decor5",
@@ -3652,7 +3857,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/decor6",
@@ -3660,7 +3865,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/decor7",
@@ -3668,7 +3873,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/pickup8",
@@ -3695,8 +3900,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-9-lujo"
+            "to": "edificio-abandonado-piso-9-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3706,8 +3916,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-11-lujo"
+            "to": "edificio-abandonado-piso-11-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3716,7 +3931,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 4,
+          "x": 3.5,
           "interact": {
             "action": "limosna"
           },
@@ -3730,7 +3945,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 6,
+          "x": 5.5,
           "interact": {
             "action": "limosna"
           },
@@ -3744,7 +3959,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 8,
+          "x": 7.5,
           "interact": {
             "action": "limosna"
           },
@@ -3758,7 +3973,7 @@
           "render": {
             "type": "tele_rota"
           },
-          "x": 5
+          "x": 4.5
         },
         {
           "id": "edificio-abandonado-piso-10-ruina/decor4",
@@ -3766,7 +3981,7 @@
           "render": {
             "type": "sillon_roto"
           },
-          "x": 8
+          "x": 7.5
         },
         {
           "id": "edificio-abandonado-piso-10-ruina/decor5",
@@ -3788,8 +4003,7 @@
           "id": "edificio-abandonado-piso-10-ruina/pickup7",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -3809,8 +4023,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-10-ruina"
+            "to": "edificio-abandonado-piso-10-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3820,8 +4039,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-12-ruina"
+            "to": "edificio-abandonado-piso-12-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3830,7 +4054,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -3844,7 +4068,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/decor2",
@@ -3852,7 +4076,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/decor3",
@@ -3860,7 +4084,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/decor4",
@@ -3868,7 +4092,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/decor5",
@@ -3876,7 +4100,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/decor6",
@@ -3884,7 +4108,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/decor7",
@@ -3892,7 +4116,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/pickup8",
@@ -3919,8 +4143,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-11-lujo"
+            "to": "edificio-abandonado-piso-11-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3930,8 +4159,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-13-lujo"
+            "to": "edificio-abandonado-piso-13-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -3940,7 +4174,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 6,
+          "x": 5.5,
           "interact": {
             "action": "limosna"
           },
@@ -3954,7 +4188,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 8,
+          "x": 7.5,
           "interact": {
             "action": "limosna"
           },
@@ -3992,14 +4226,13 @@
           "render": {
             "type": "caja"
           },
-          "x": 12
+          "x": 11.5
         },
         {
           "id": "edificio-abandonado-piso-12-ruina/pickup6",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -4019,8 +4252,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-12-ruina"
+            "to": "edificio-abandonado-piso-12-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4030,8 +4268,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-14-ruina"
+            "to": "edificio-abandonado-piso-14-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4040,7 +4283,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -4054,7 +4297,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/decor2",
@@ -4062,7 +4305,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/decor3",
@@ -4070,7 +4313,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/decor4",
@@ -4078,7 +4321,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/decor5",
@@ -4086,7 +4329,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/decor6",
@@ -4094,7 +4337,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/decor7",
@@ -4102,7 +4345,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/pickup8",
@@ -4129,8 +4372,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-13-lujo"
+            "to": "edificio-abandonado-piso-13-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4140,8 +4388,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-15-lujo"
+            "to": "edificio-abandonado-piso-15-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4150,7 +4403,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 8,
+          "x": 7.5,
           "interact": {
             "action": "limosna"
           },
@@ -4164,7 +4417,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 10,
+          "x": 9.5,
           "interact": {
             "action": "limosna"
           },
@@ -4178,7 +4431,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 12,
+          "x": 11.5,
           "interact": {
             "action": "limosna"
           },
@@ -4192,7 +4445,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 4,
+          "x": 3.5,
           "interact": {
             "action": "limosna"
           },
@@ -4214,7 +4467,7 @@
           "render": {
             "type": "mueble_roto"
           },
-          "x": 7
+          "x": 6.5
         },
         {
           "id": "edificio-abandonado-piso-14-ruina/decor6",
@@ -4222,7 +4475,7 @@
           "render": {
             "type": "caja"
           },
-          "x": 10
+          "x": 9.5
         },
         {
           "id": "edificio-abandonado-piso-14-ruina/decor7",
@@ -4230,14 +4483,13 @@
           "render": {
             "type": "bano_roto"
           },
-          "x": 13
+          "x": 12.5
         },
         {
           "id": "edificio-abandonado-piso-14-ruina/pickup8",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -4257,8 +4509,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-14-ruina"
+            "to": "edificio-abandonado-piso-14-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4268,8 +4525,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-16-ruina"
+            "to": "edificio-abandonado-piso-16-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4278,7 +4540,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -4292,7 +4554,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/decor2",
@@ -4300,7 +4562,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/decor3",
@@ -4308,7 +4570,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/decor4",
@@ -4316,7 +4578,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/decor5",
@@ -4324,7 +4586,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/decor6",
@@ -4332,7 +4594,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/decor7",
@@ -4340,7 +4602,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/pickup8",
@@ -4367,8 +4629,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-15-lujo"
+            "to": "edificio-abandonado-piso-15-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4378,8 +4645,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-17-lujo"
+            "to": "edificio-abandonado-piso-17-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4388,7 +4660,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 10,
+          "x": 9.5,
           "interact": {
             "action": "limosna"
           },
@@ -4402,7 +4674,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 12,
+          "x": 11.5,
           "interact": {
             "action": "limosna"
           },
@@ -4416,7 +4688,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 4,
+          "x": 3.5,
           "interact": {
             "action": "limosna"
           },
@@ -4430,7 +4702,7 @@
           "render": {
             "type": "mueble_roto"
           },
-          "x": 5
+          "x": 4.5
         },
         {
           "id": "edificio-abandonado-piso-16-ruina/decor4",
@@ -4438,7 +4710,7 @@
           "render": {
             "type": "caja"
           },
-          "x": 8
+          "x": 7.5
         },
         {
           "id": "edificio-abandonado-piso-16-ruina/decor5",
@@ -4460,8 +4732,7 @@
           "id": "edificio-abandonado-piso-16-ruina/pickup7",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -4481,8 +4752,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-16-ruina"
+            "to": "edificio-abandonado-piso-16-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4492,8 +4768,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-18-ruina"
+            "to": "edificio-abandonado-piso-18-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4502,7 +4783,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -4516,7 +4797,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/decor2",
@@ -4524,7 +4805,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/decor3",
@@ -4532,7 +4813,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/decor4",
@@ -4540,7 +4821,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/decor5",
@@ -4548,7 +4829,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/decor6",
@@ -4556,7 +4837,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/decor7",
@@ -4564,7 +4845,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/pickup8",
@@ -4591,8 +4872,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-17-lujo"
+            "to": "edificio-abandonado-piso-17-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4602,8 +4888,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-19-lujo"
+            "to": "edificio-abandonado-piso-19-lujo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4612,7 +4903,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.5,
           "interact": {
             "action": "limosna"
           },
@@ -4626,7 +4917,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 4,
+          "x": 3.5,
           "interact": {
             "action": "limosna"
           },
@@ -4664,14 +4955,13 @@
           "render": {
             "type": "tele_rota"
           },
-          "x": 12
+          "x": 11.5
         },
         {
           "id": "edificio-abandonado-piso-18-ruina/pickup6",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -4691,8 +4981,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-18-ruina"
+            "to": "edificio-abandonado-piso-18-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4702,8 +4997,13 @@
             "type": "elevator"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "edificio-abandonado-piso-20-ruina"
+            "to": "edificio-abandonado-piso-20-ruina",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4712,7 +5012,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 12,
+          "x": 11.9,
           "interact": {
             "action": "lujo"
           },
@@ -4737,7 +5037,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 3
+          "x": 3.4
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/decor3",
@@ -4745,7 +5045,7 @@
           "render": {
             "type": "cocina"
           },
-          "x": 5
+          "x": 4.8
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/decor4",
@@ -4753,7 +5053,7 @@
           "render": {
             "type": "bano"
           },
-          "x": 7
+          "x": 6.6
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/decor5",
@@ -4761,7 +5061,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 9
+          "x": 8.6
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/decor6",
@@ -4769,7 +5069,7 @@
           "render": {
             "type": "tvplasma"
           },
-          "x": 10
+          "x": 10.1
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/decor7",
@@ -4777,7 +5077,7 @@
           "render": {
             "type": "joyas"
           },
-          "x": 11
+          "x": 11.4
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/decor8",
@@ -4785,7 +5085,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 12
+          "x": 12.4
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/decor9",
@@ -4793,7 +5093,7 @@
           "render": {
             "type": "maniqui"
           },
-          "x": 9
+          "x": 9.3
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/pickup10",
@@ -4820,8 +5120,13 @@
             "type": "elevator"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-19-lujo"
+            "to": "edificio-abandonado-piso-19-lujo",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4831,8 +5136,13 @@
             "type": "exit"
           },
           "x": 14,
+          "inward": -1,
           "link": {
-            "to": "el-bunker-de-los-linyeras"
+            "to": "el-bunker-de-los-linyeras",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
           }
         },
         {
@@ -4841,7 +5151,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 4,
+          "x": 3.5,
           "interact": {
             "action": "limosna"
           },
@@ -4855,7 +5165,7 @@
           "render": {
             "sprite": "linyera"
           },
-          "x": 6,
+          "x": 5.5,
           "interact": {
             "action": "limosna"
           },
@@ -4869,7 +5179,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 8,
+          "x": 7.5,
           "interact": {
             "action": "limosna"
           },
@@ -4883,7 +5193,7 @@
           "render": {
             "sprite": "yonqui"
           },
-          "x": 10,
+          "x": 9.5,
           "interact": {
             "action": "limosna"
           },
@@ -4905,7 +5215,7 @@
           "render": {
             "type": "barril"
           },
-          "x": 7
+          "x": 6.5
         },
         {
           "id": "edificio-abandonado-piso-20-ruina/decor6",
@@ -4913,7 +5223,7 @@
           "render": {
             "type": "tele_rota"
           },
-          "x": 10
+          "x": 9.5
         },
         {
           "id": "edificio-abandonado-piso-20-ruina/decor7",
@@ -4921,14 +5231,13 @@
           "render": {
             "type": "sillon_roto"
           },
-          "x": 13
+          "x": 12.5
         },
         {
           "id": "edificio-abandonado-piso-20-ruina/pickup8",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 8
         }
@@ -4948,8 +5257,13 @@
             "type": "exit"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "edificio-abandonado-piso-20-ruina"
+            "to": "edificio-abandonado-piso-20-ruina",
+            "at": {
+              "x": 12.5,
+              "y": 12
+            }
           }
         },
         {
@@ -5024,7 +5338,7 @@
           "render": {
             "type": "maletin"
           },
-          "x": 14
+          "x": 13.5
         },
         {
           "id": "el-bunker-de-los-linyeras/decor7",
@@ -5038,8 +5352,7 @@
           "id": "el-bunker-de-los-linyeras/pickup8",
           "tipo": "pickup",
           "give": {
-            "item": "health",
-            "amount": 1
+            "item": "health"
           },
           "x": 12
         },
@@ -5068,8 +5381,13 @@
             "type": "up"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "las-cuevas-del-dolar-subsuelo-3"
+            "to": "las-cuevas-del-dolar-subsuelo-3",
+            "at": {
+              "x": 14,
+              "y": 12
+            }
           }
         },
         {
@@ -5100,7 +5418,7 @@
           "render": {
             "sprite": "mujer"
           },
-          "x": 12,
+          "x": 11.5,
           "dialogue": {
             "text": "“Yo en el peso no confío ni loca. Verde o nada.” 💵"
           }
@@ -5167,8 +5485,13 @@
             "type": "up"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "las-cuevas-del-dolar-subsuelo-3"
+            "to": "las-cuevas-del-dolar-subsuelo-3",
+            "at": {
+              "x": 26,
+              "y": 12
+            }
           }
         },
         {
@@ -5199,7 +5522,7 @@
           "render": {
             "sprite": "conNino"
           },
-          "x": 12,
+          "x": 11.5,
           "dialogue": {
             "text": "“Es para el futuro del nene. Dólar, siempre dólar.” 👨‍👦"
           }
@@ -5245,8 +5568,7 @@
           "id": "cueva-del-dolar-la-de-al-lado/pickup7",
           "tipo": "pickup",
           "give": {
-            "item": "ammo",
-            "amount": 1
+            "item": "ammo"
           },
           "x": 7
         }
@@ -5266,8 +5588,13 @@
             "type": "up"
           },
           "x": 2,
+          "inward": 1,
           "link": {
-            "to": "las-cuevas-del-dolar-subsuelo-3"
+            "to": "las-cuevas-del-dolar-subsuelo-3",
+            "at": {
+              "x": 40,
+              "y": 12
+            }
           }
         },
         {
@@ -5298,7 +5625,7 @@
           "render": {
             "sprite": "gordo"
           },
-          "x": 12,
+          "x": 11.5,
           "dialogue": {
             "text": "“Apurate que se hace cola. Si no ahorro verde, ¿qué le dejo a los pibes?” 🇦🇷"
           }
