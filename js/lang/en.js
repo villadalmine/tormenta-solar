@@ -11,6 +11,7 @@ const LANG_EN = {
   'intro.controls': '<strong>A/D or ←/→</strong> run · <strong>W / Space</strong> jump · <strong>Mouse</strong> aim · <strong>Click (hold)</strong> shoot · <strong>E</strong> use door / buy · <strong>M</strong> music',
   'intro.start': 'HIT THE STREET',
   'intro.continue': 'CONTINUE',
+  'intro.homenaje': "You're <strong>el Carpo</strong>: a bum bluesman, bald, guitar on his back, zero glamour. 🎸 A fond tribute to the bums of Florida & Lavalle (Pechito, Diógenes, Dante). Fiction/parody, no affiliation.",
   'intro.gh': 'Open source (GPLv3) ·',
 
   // --- HUD ---

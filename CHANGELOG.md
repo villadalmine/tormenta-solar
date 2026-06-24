@@ -9,6 +9,27 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v82] — 2026-06-24 — 🎸 Homenaje: linyeras ilustres + el protagonista "el Carpo"
+
+Cameos cariñosos a personajes de Florida y Lavalle, como **parodia/homenaje** (para evitar líos de derechos:
+nombres apenas guiñados + disclaimer "ficción/parodia, sin afiliación", el mismo criterio que Garbarino/Iorio).
+
+### Agregado
+- **Cameos de linyeras** en la calle: **Diógenes** (el cínico griego, dominio público), **Dante el poeta**
+  (guiño a Dante A. Linyera) y **Pechito** (homenaje al linyera más querido de BA). NPCs charlables.
+- **Protagonista = "el Carpo"** (homenaje de tono a Pappo, nombre alterado): nota en la intro
+  (`intro.homenaje`, es/en) + **disclaimer** "ficción/parodia, sin afiliación".
+- **El filósofo errante ahora VARÍA**: el oráculo que aparece/desaparece cerca de lo no hecho es uno de los
+  linyeras ilustres (distinto por sala), todos con la persona `filosofo` (las pistas siguen igual).
+
+### Notas
+- Diseño v2 (anotado en `specs/modelo-de-entidades.md` §6½): cada linyera errante = una entidad con
+  **memoria propia** (`agent.memory`), surfaceada por el HintEngine. Hoy v1 varía la identidad; la memoria
+  por entidad llega con el motor v2.
+- e2e (auditoría de sprites) + paridad v1≡v2 (490 entidades) + web-smoke verdes.
+
+---
+
 ## [v81] — 2026-06-24 — 🐛 Fix: salir del chino por la puerta trasera colgaba el juego
 
 ### Arreglado

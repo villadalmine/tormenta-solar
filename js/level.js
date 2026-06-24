@@ -95,6 +95,10 @@ const Level = (() => {
           { name:'Vecina', sprite:'civil1', x:8,  dialog:'“Ay, nene... ¿viste cómo está el dólar? Un espanto.” 🙄' },
           { name:'Linyera filósofo', sprite:'linyera', x:14, action:'chat', persona:'filosofo',
             dialog:'“Sentate, pibe, que el apuro es del que no entendió nada. Preguntame lo que quieras.” 🌞' },
+          // --- cameos: HOMENAJE cariñoso a linyeras ilustres (ficción/parodia, sin afiliación) ---
+          { name:'Diógenes', sprite:'linyera', x:18, dialog:'“Corréte que me tapás el sol, pibe. Lo demás es vento que no te hace falta.” ☀️🛢️' },
+          { name:'Dante el poeta', sprite:'viejo', x:20, dialog:'“Te tiro unos versos en lunfardo y vos un puchito. Negocio redondo, maestro.” 📜' },
+          { name:'Pechito', sprite:'linyera', x:30, dialog:'“Soy el linyera más querido del barrio. Vení que charlamos, total el tiempo no se cobra.” 🫶' },
           { name:'Músico', sprite:'musico', x:24, dialog:'“Una moneda y te toco una cumbia, maestro.” 🎶' },
           { name:'Canillita', sprite:'diariero', x:38, dialog:'“¡Diarios, revistas! ¿El de hoy, pibe? Está todo cada vez peor.” 📰' },
           { name:'Oficinista', sprite:'civil4', x:50, dialog:'“Tarde, tarde, ¡llego tarde!” 💼' },

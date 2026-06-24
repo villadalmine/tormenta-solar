@@ -10,6 +10,7 @@ const LANG_ES = {
   'intro.controls': '<strong>A/D o ←/→</strong> correr · <strong>W / Espacio</strong> saltar · <strong>Mouse</strong> apuntar · <strong>Click (mantené)</strong> disparar · <strong>E</strong> usar puerta / comprar · <strong>M</strong> música',
   'intro.start': 'ENTRAR A LA PEATONAL',
   'intro.continue': 'CONTINUAR',
+  'intro.homenaje': 'Sos <strong>el Carpo</strong>: rockero linyera, pelado, viola al hombro, cero glamour. 🎸 Homenaje cariñoso a los linyeras de Florida y Lavalle (Pechito, Diógenes, Dante). Ficción/parodia, sin afiliación.',
   'intro.gh': 'Código abierto (GPLv3) ·',
 
   // --- HUD ---
