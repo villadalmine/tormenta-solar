@@ -127,6 +127,23 @@ coherencia, latencia). En CPU el más coherente es `llama3.1:8b` pero a 13-26s (
 es más rápido pero menos coherente y flojea la memoria en EN. → **Linyera sigue en `gemma4-free` (nube).** La
 opción CPU queda documentada como fallback/privacidad pero es un downgrade en calidad y latencia.
 
+### 2.10.3 ¿Algún modelo LOCAL en GPU le gana a gemma4-free? (memoria multi-turno, tok/s real)
+
+Probado en el fierro (host GPU full, modelos 7-9b que entran en la VRAM libre):
+
+| Modelo | ES recall | tok/s | Latencia frío→cal. | Coherencia |
+|---|---|---|---|---|
+| qwen2.5:7b | ✅ | **~17** | 22s → 5-7s | ★★★ coherente, recuerda |
+| gemma2:9b | ✅ (ES+EN) | ~9 | 31s → ~14s | ★★★ buen criollo |
+| llama3.1:8b | ✅ | ~6 | 30s → ~13s | ★★★ se va de tema |
+| **gemma4-free (nube)** | ✅ (ES+EN) | — | **2-7s** | ★★★★ |
+
+**Conclusión: NINGÚN local le gana en este hardware.** Las GPUs (M4000/P4) son viejas → tok/s bajo. El mejor
+local es **qwen2.5:7b (17 tok/s)**: recuerda y es coherente, pero **más lento que la nube** (5-7s warm + cold
+22s) y **no mejor en calidad**. Todos usan bien la memoria (no es el cuello; el cuello es velocidad). **Para
+que un local gane hace falta GPU más nueva/rápida** → ahí qwen2.5:7b / gemma2:9b serían candidatos (calidad
+ok + privacidad + sin rate-limit). **Hoy: linyera sigue en `gemma4-free`.**
+
 ### ⚠️ Gobernanza GPU / HAMi (importante)
 El **ollama del host** (`192.168.178.90`, fuera de k8s) consume VRAM **por fuera de HAMi** → HAMi no lo
 contabiliza y puede sobre-suscribir. Ese ollama **está consumido** (Holmes `gpt-5.4` → `:11434`; rutas
