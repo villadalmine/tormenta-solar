@@ -336,6 +336,55 @@ niveles pasados** para resolver cosas (estructura **Metroidvania**). Cómo lo da
   cuidan que no se rompa. Esto es **exactamente** lo que hace viable "yo voy cambiando todo" sin saber
   programar. (Es el argumento más fuerte a favor de v2.)
 
+## 6.9. Acceso a la IA y monetización (freemium: gratis / suscripción / BYOK)
+
+Idea del dueño: una **feature paga**. Pagás (ej. **€1/mes**) → tenés el modelo de IA integrado y **todos los
+features de jugar con IA**; si no, el juego es **más estático** (pero **anda igual**). Alternativa: ponés
+**tu propia API key (BYOK)** → mismos features, los pagás vos y te bancás la latencia. Y como **todo está
+mapeado en el modelo, el código sabe** qué parte usa IA, qué tier requiere y qué modelo se testeó.
+
+Esto se llama **freemium / feature-gating de IA**, y **reusa la cadena que ya tenés** en
+[ia-openrouter §0](ia-openrouter.md): `proxy del dev (vos pagás) > BYOK (key del jugador) > local (canned)`.
+
+### Tres tiers de acceso (resuelven sobre la misma entidad)
+- **Gratis (sin IA en vivo):** toda entidad que sería `llm` cae a su **`fallback`** (rule/utility o pool
+  offline `gen-dialogos`). Juego 100% jugable, más estático. (Es lo que hoy hace el modo `local`.)
+- **Suscripción (€1/mes):** desbloquea el **proxy del dev** → las entidades `policy:"llm"` funcionan con un
+  **modelo testeado por el dev** (latencia conocida). El usuario no configura nada.
+- **BYOK:** el jugador pega su key → mismas features `llm`, **paga él**, con su modelo/latencia.
+
+> Suscripción y BYOK desbloquean **lo mismo** (las features full-AI). La diferencia es **quién paga** y
+> **qué latencia** te toca. El free nunca queda afuera del juego: sólo de la capa "viva".
+
+### Lo habilita el modelo (atributos en el componente `ai` de la entidad)
+```jsonc
+"ai": {
+  "tier": "sub | byok | any",     // qué acceso requiere esta feature full-AI
+  "model": "meta-llama/…:free",   // modelo TESTEADO para esta parte
+  "latencyMs": 1200,              // latencia medida (para decirle al user qué le conviene)
+  "fallback": "rule"              // qué hace si no hay acceso (determinista/offline) → el juego no se rompe
+}
+```
+- En runtime, `aiAccess()` (¿suscripción activa? ¿key BYOK? si no → free) decide. Si la entidad pide un
+  `tier` que no tenés → usa `fallback`. **Degradación graceful** = el mismo principio aditivo de todo el repo.
+- Como el código **lee estos atributos**, puede **sin hardcodear nada**: marcar las features full-AI (badge
+  "✨ IA"), **mostrar qué modelo/latencia** se testeó por feature, y gate/ocultar lo que no tenés. "No hay
+  que describir todo: el modelo ya lo sabe."
+
+### Qué puede ser "full AI" (a definir) y cómo degrada
+| Feature | Full-AI (sub/BYOK) | Free (fallback) |
+|---|---|---|
+| Chat con NPCs (linyera, cuevero, tahúr…) | charla libre con el LLM | pools pre-generados (`gen-dialogos`) + canned |
+| Entidades con `agent:llm` (objeto/zona "viva") | mutación razonada en vivo | mutación por `rule`/`utility` (sembrada) |
+| Oráculo/asistente con trazabilidad (§6½B) | explica tu partida (GraphRAG) | `HintEngine` rule-based (lo de hoy) |
+| Variedad de quests/respuestas | re-generación on-demand | variantes offline + reglas |
+
+### Infra (honesto)
+- El **proxy del dev ya existe** (`ai-proxy/`); falta **gating por suscripción** (auth/token) + el **cobro**
+  (un Stripe/Lemon Squeezy + un check de "suscripción activa" en el proxy). BYOK y free **ya funcionan**.
+- Nada de esto bloquea v2: el modelo declara los atributos; el cobro/gating es una capa externa (como
+  `presence`/métricas de `ads`).
+
 ## 7. Coexistencia v1 / v2 + toggle en la UI (estrategia de migración)
 
 Para no reescribir a ciegas (strangler-fig):
@@ -377,6 +426,11 @@ Para no reescribir a ciegas (strangler-fig):
   sobre el modelo base, activables por fecha) **sin tocar el motor**. Un quest nuevo = data nueva.
 - **RF-12 (AI-authorable):** el modelo tiene **schema** y los cambios se validan (paridad + auditoría) → un
   asistente puede editar la **data** de forma confiable sin tocar código.
+- **RF-13 (freemium IA, §6.9):** el acceso a las features `llm` resuelve por **suscripción / BYOK / gratis**
+  (reusa la cadena de [ia-openrouter §0](ia-openrouter.md)); sin acceso, cada entidad usa su `fallback`. El
+  **juego siempre es jugable en gratis** (más estático).
+- **RF-14 (transparencia de IA, §6.9):** cada entidad full-AI declara `tier` + `model` testeado + `latencyMs`;
+  la UI lo **deriva del modelo** (badge "✨ IA", qué modelo/latencia) sin hardcodear.
 
 ## 9. Criterios de aceptación
 
