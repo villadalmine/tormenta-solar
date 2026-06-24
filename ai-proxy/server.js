@@ -8,14 +8,19 @@
 import http from 'http';
 import { buildMessages } from './personas.js';
 
-const KEY = (process.env.OPENROUTER_API_KEY || '').trim();
+// Upstream configurable: por defecto OpenRouter directo, pero podés apuntarlo a tu LiteLLM (u otro
+// endpoint OpenAI-compatible) que ya hace pool de keys / GPU / fallback. Para LiteLLM:
+//   AI_BASE_URL=http://litellm-proxy.ai.svc.cluster.local:4000/v1  AI_API_KEY=sk-hermes-internal  AI_MODEL=default
+const BASE = (process.env.AI_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/+$/, '');
+const KEY = (process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || '').trim();
 const PORT = process.env.PORT || 8788;
-const MODELS = process.env.OPENROUTER_MODEL ? [process.env.OPENROUTER_MODEL] : [
+const MODEL_ENV = process.env.AI_MODEL || process.env.OPENROUTER_MODEL;
+const MODELS = MODEL_ENV ? MODEL_ENV.split(',').map(s => s.trim()).filter(Boolean) : [
   'meta-llama/llama-3.3-70b-instruct:free',
   'mistralai/mistral-7b-instruct:free',
   'deepseek/deepseek-chat-v3-0324:free',
 ];
-if (!KEY) { console.error('Falta OPENROUTER_API_KEY'); process.exit(1); }
+if (!KEY) { console.error('Falta AI_API_KEY (o OPENROUTER_API_KEY)'); process.exit(1); }
 
 const RATE = new Map();                 // ip -> [timestamps] (máx 12 por minuto)
 function allowed(ip) {
@@ -28,7 +33,7 @@ function allowed(ip) {
 async function ask(messages) {
   for (const model of MODELS) {
     try {
-      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const r = await fetch(BASE + '/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 220 }),
@@ -48,6 +53,7 @@ http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+  if (req.method === 'GET' && (req.url === '/health' || req.url === '/healthz')) { res.writeHead(200); return res.end('ok'); }   // probe k8s
   if (req.method !== 'POST') { res.writeHead(405); return res.end('POST'); }
 
   const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?').split(',')[0].trim();
@@ -66,4 +72,4 @@ http.createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ reply: '“Se me fue la idea... el sol me quema el bocho. Repetime.” 🌞' }));
     }
   });
-}).listen(PORT, () => console.log('ai-proxy escuchando en :' + PORT));
+}).listen(PORT, () => console.log('ai-proxy escuchando en :' + PORT + ' → upstream ' + BASE + ' (modelos: ' + MODELS.join(', ') + ')'));

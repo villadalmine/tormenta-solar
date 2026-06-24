@@ -1,0 +1,24 @@
+✅ tormenta-ai-proxy desplegado.
+
+Upstream:  {{ .Values.upstream.baseUrl }}  (modelo: {{ .Values.upstream.model }})
+
+1) Probar dentro del cluster:
+   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "tormenta-ai-proxy.fullname" . }} 8788:{{ .Values.service.port }}
+   curl -s localhost:8788/health        # -> ok
+   curl -s localhost:8788 -X POST -H 'content-type: application/json' \
+     -d '{"npc":"filosofo","message":"que onda con la tormenta solar?"}'
+
+2) Conectar el JUEGO: poné la URL pública del proxy en js/ai.js -> const PROXY = '...'
+   {{- if .Values.ingress.enabled }}
+   Ingress: {{- range .Values.ingress.hosts }} https://{{ .host }}{{- end }}
+   {{- else }}
+   (Ingress deshabilitado: habilitá ingress.enabled o exponé el Service como prefieras.)
+   {{- end }}
+
+{{- if and (not .Values.auth.existingSecret) (not .Values.auth.apiKey) }}
+
+⚠️  FALTA LA API KEY DEL UPSTREAM. El pod no va a arrancar bien.
+   Para tu LiteLLM, la master key (ej. sk-hermes-internal). Elegí una opción:
+   A) reusar un Secret:  --set auth.existingSecret=mi-secret --set auth.existingSecretKey=apiKey
+   B) pasarla directo:   --set auth.apiKey=sk-hermes-internal   (no la subas a git)
+{{- end }}

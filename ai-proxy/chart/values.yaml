@@ -1,0 +1,59 @@
+# Valores del chart del proxy de IA de Tormenta Solar. Defaults apuntados a un LiteLLM in-cluster.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/villadalmine/tormenta-ai-proxy
+  tag: ""                 # vacío = usa Chart.appVersion
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+# --- Upstream LLM (a dónde manda los pedidos el proxy) ---
+# Por defecto: tu LiteLLM in-cluster, que YA hace pool de keys / GPU / fallback.
+# OpenRouter directo: baseUrl "https://openrouter.ai/api/v1" y model "openrouter/...".
+upstream:
+  baseUrl: "http://litellm-proxy.ai.svc.cluster.local:4000/v1"
+  model: "default"        # nombre que tu LiteLLM conoce: default | free | gpt-oss-free | local-gpu (Ollama GPU) | rk1-npu-local (NPU) | ...
+
+# --- API key del upstream (para LiteLLM = su master key, p.ej. sk-hermes-internal) ---
+# Opción A (recomendada): referenciar un Secret YA existente (no commitea la key).
+# Opción B: poner apiKey acá → el chart crea el Secret (NO lo subas a git con la key real; usá --set).
+auth:
+  existingSecret: ""      # ej: "tormenta-ai-key"
+  existingSecretKey: ""   # ej: "apiKey"
+  apiKey: ""              # ej (solo --set): "sk-hermes-internal"
+
+service:
+  type: ClusterIP
+  port: 80                # expone 80 → contenedor 8788
+
+# Ingress opcional (si querés exponerlo fuera del cluster para que el juego en GitHub Pages lo use).
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []               # - host: tormenta-ai.example.com
+                          #   paths: [{ path: /, pathType: Prefix }]
+  tls: []                 # - { secretName: tormenta-ai-tls, hosts: [tormenta-ai.example.com] }
+
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits: { cpu: 250m, memory: 256Mi }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+nodeSelector: {}
+tolerations: []
+affinity: {}

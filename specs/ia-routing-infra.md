@@ -100,7 +100,26 @@ del lado cliente es un caso de nicho (sirve poco: un jugador no genera tanta con
 sería **más adelante**, y la rotación/paralelización "de verdad" igual conviene server-side. El seam de
 `AI` ya soporta una key; agregar un array es menor cuando se decida.
 
-## 4. Kubernetes (lo que define este SDD; pendiente de detallar)
+## 4. Kubernetes — estado REAL + chart del proxy
+
+> **Ya existe un LiteLLM corriendo** en el cluster del dueño (`infra-ai`): ns **`ai`**, service
+> **`litellm-proxy:4000`** (OpenAI-compatible), master key `sk-hermes-internal`. Hace **pool de keys**
+> (varias `OPENROUTER_API_KEY` por tenant), **GPU** (`ollama` en `ai`, modelo `local-gpu`), **pool de NPUs**
+> (`rk1-npu-local`, round-robin) y **fallback chains** entre modelos free/pago. → El gateway de §2/§3 **es
+> este LiteLLM**; no hay que montar uno nuevo.
+
+**El proxy del juego = un shim chico** (oculta la key, pone la persona del NPC, traduce el formato) que
+**routea a ese LiteLLM**. Se despliega con un **Helm chart** (`ai-proxy/chart/`, ver su README):
+- `ai-proxy/server.js` ahora tiene upstream **configurable** (`AI_BASE_URL` + `AI_API_KEY` + `AI_MODEL`):
+  por defecto el chart apunta a `litellm-proxy.ai.svc:4000/v1` con modelo `default` (o `local-gpu` para GPU,
+  `rk1-npu-local` para las NPUs).
+- Dockerfile + chart (Deployment/Service/Ingress/HPA/Secret) **probados con `helm lint`/`template`**.
+- El juego (GitHub Pages) sólo pone la URL del Ingress en `js/ai.js → PROXY`.
+
+*(Detalle de manifests del LiteLLM = repo `infra-ai` `roles/install-litellm-proxy`. Lo de abajo queda como
+referencia genérica de un gateway desde cero, por si se monta aparte.)*
+
+## 4b. Kubernetes (referencia genérica, si se monta un gateway desde cero)
 
 - **vLLM Deployment** en nodo con GPU (`nodeSelector`/`tolerations`, GPU Operator); modelo que **entre en
   la VRAM** disponible (elegir tamaño/quantización según la GPU del dueño).

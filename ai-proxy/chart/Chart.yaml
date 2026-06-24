@@ -1,0 +1,15 @@
+apiVersion: v2
+name: tormenta-ai-proxy
+description: >-
+  Proxy de chat IA para el juego "Tormenta Solar". Guarda la API key server-side, arma el prompt con
+  la persona del NPC, y routea a un endpoint OpenAI-compatible (por defecto tu LiteLLM in-cluster, que ya
+  hace pool de keys / GPU / fallback; o OpenRouter directo). Node puro, sin dependencias.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords: [tormenta-solar, llm, litellm, proxy, openrouter, ai]
+home: https://github.com/villadalmine/tormenta-solar
+sources:
+  - https://github.com/villadalmine/tormenta-solar
+maintainers:
+  - name: villadalmine
