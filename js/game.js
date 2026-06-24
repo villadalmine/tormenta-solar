@@ -388,6 +388,7 @@
   function applyEdge(id, fallbackFlag) {
     const edges = (typeof Historia !== 'undefined' && Historia.edges) ? Historia.edges : [];
     const e = edges.find(x => x.id === id);
+    if (typeof Mensajero !== 'undefined') Mensajero.evento(id);   // "qué acaba de pasar" (capa aditiva)
     if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); return true; }
     if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) FLAG_SETTERS[fallbackFlag](true);   // grafo ausente → red de seguridad
     return false;
@@ -1069,6 +1070,7 @@
   }
   function start() {
     reset();
+    if (typeof Mensajero !== 'undefined') Mensajero.init({ state: historiaState, at: currentAt });   // cablea el cerebro (grafo)
     elIntro.classList.add('hidden'); elEnd.classList.add('hidden');
     elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
     Sfx.init(); Sfx.startMusic(); Sfx.setAmbient(ambientFor(room()));

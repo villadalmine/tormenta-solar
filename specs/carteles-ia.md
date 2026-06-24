@@ -32,6 +32,58 @@ de OpenRouter):
 2. **Banco de propaganda ambiente (genérico):** las NPU generan en background un **pool de frases random** de
    propaganda trash post-apocalíptica, se **guardan en una base de datos** y los banners las van **rotando**.
 
+## 1.5 El Mensajero — invocación genérica agente-a-agente (la abstracción)
+
+**No** queremos código pegado a los banners. Queremos **una sola puerta** que cualquier objeto con frases
+(cartel, banner, NPC, vinilo, góndola, lo que sea, presente o futuro) **invoque igual**, pasando **su contexto**,
+y que **el Mensajero decida qué TIPO de mensaje** corresponde **según lo que pasó** en el juego. Es, literal,
+**un agente (el objeto) hablándole a otro agente (el Mensajero)**: el objeto dice "soy esto, estoy acá, mirá lo
+que viene pasando" y el Mensajero interpreta el **grafo anidado** y le devuelve el mensaje justo.
+
+### 1.5.1 Lo que ya existe (el "cerebro")
+
+- **`Historia`** (`historia.js`, generado del grafo): `edges[]` con `pre` (flags requeridos), `sets` (flags que
+  prende), `at` (lugar), `hints[lang][nivel]`. **Es el grafo anidado.**
+- **`HintEngine`**: dado el estado (flags) calcula la **frontera** (lo accionable-ahora-y-no-hecho) y la próxima
+  pista con spoiler escalado. **Ya sabe "qué falta".**
+- **`applyEdge(id, flag)`** (en `game.js`): **punto único** por donde pasa **toda** transición del grafo. Es el
+  hook de **"qué acaba de pasar"**.
+
+### 1.5.2 El contrato
+
+```js
+// Cableado una vez por game.js (que es dueño del estado):
+Mensajero.init({ state: () => historiaState(), at: () => currentAt() });
+game.js // dentro de applyEdge(id): Mensajero.evento(id)   // registra "qué acaba de pasar"
+
+// Lo invoca CUALQUIER objeto, siempre igual:
+const msg = Mensajero.pedir({ tipo:'cartel', id:'poster_super', at:'super', lang:'es' });
+//   -> { clase:'pista'|'ambiente'|'reaccion', short:'...', full:'...', src:'npu|pool|static' }
+```
+
+- **`short`** = el resumen que se **dibuja** en el cartel (corto, entra visualmente).
+- **`full`** = el texto entero que **se habla** con TTS al pasar el mouse (§4.4). Así el cartel no necesita
+  mostrar todo el texto, solo el resumen.
+
+### 1.5.3 Cómo decide la CLASE de mensaje (según lo que pasó)
+
+El Mensajero mira estado + frontera + último evento y clasifica:
+
+1. **`reaccion`** — si hubo un `applyEdge` reciente relevante a este objeto/lugar → comenta lo que **acabás de
+   hacer** ("bien ahí con los borrachines, pibe").
+2. **`pista`** — si hay una **arista de frontera `at` = lugar de este objeto** (estás trabado acá) → **pista
+   críptica** (el cartel-oráculo). Fuente: **NPU** (F2) cacheada por `hash(estado, id)`; mientras no esté lista o
+   en F1, el `HintEngine.hintText` (texto del grafo) envuelto como propaganda.
+3. **`ambiente`** — si no hay nada pendiente acá → **propaganda genérica** del **pool NPU** (`GET /propaganda`).
+
+Esto es la regla "el método te dice qué tipo de mensaje **basado en algo que pasó**". El mismo objeto, en
+distinto momento del grafo, recibe distinta clase. Reutilizable por todo lo que tenga frases.
+
+### 1.5.4 Capa aditiva
+
+`Mensajero` es opcional (guard `typeof`): sin red/pool, **siempre** cae a estático y el juego anda igual. No
+mete dependencias. Vive en `js/mensajero.js`.
+
 ## 2. Hardware (medido en vivo, 2026-06-24)
 
 - **NPU** 4× RK1 (RK3588, ~6 TOPS) en `srv-rk1-nvme-01`, pods `rk1-npu-0{1..4}`, PVCs 20-30GB (`longhorn-nvme`).
@@ -72,6 +124,17 @@ queda como **opción** si en el futuro se quiere bajar la latencia. Medible con
 - **Críptica pero justa:** alude a la acción que falta sin nombrarla; nunca dice "Pista:"; nunca spoilea algo
   indeducible. Lunfardo, formato aviso trash. Sigue el idioma del juego (ES/EN).
 
+### 4.4 Resumen visible + voz al pasar el mouse (TTS)
+
+- El cartel **dibuja solo `short`** (resumen corto) → no se satura de texto.
+- Al **pasar el mouse por encima** del cartel (hover sobre su región), se **lee `full` en voz alta** con el
+  **Web Speech API** (`speechSynthesis` / `SpeechSynthesisUtterance`) — **nativo del browser, sin dependencias**,
+  con voz en el idioma del juego (`lang='es-AR'`/`'es-ES'` o `'en'`). Al salir el mouse / cambiar de cartel, se
+  `cancel()` la locución para no encimar voces.
+- Degradación: si el browser no tiene `speechSynthesis` (o el user no interactuó aún — algunos exigen gesto),
+  no pasa nada, queda solo el `short`. Toggle de sonido del juego también silencia el TTS.
+- Detalle UX: throttle (no relee si ya está hablando ese cartel); en mobile el "hover" = tap sostenido (TBD).
+
 ## 5. Modo 2 — Banco de propaganda ambiente (NPU → base de datos)
 
 ### 5.1 Qué hace
@@ -105,6 +168,11 @@ queda como **opción** si en el futuro se quiere bajar la latencia. Medible con
   menos usado e incrementa `used_count`.
 - **RF-6** Los banners de `js/ads.js` consumen del pool (fallback a las frases estáticas actuales si no hay endpoint).
 - **RF-7** **El chat del linyera no cambia:** sigue en cloud (pago / free-tier / BYOK), **nunca GPU/NPU**.
+- **RF-8** (abstracción) `js/mensajero.js`: `Mensajero.init({state, at})`, `Mensajero.evento(edgeId)`,
+  `Mensajero.pedir(ctx) -> {clase, short, full, src}`. Clasifica reaccion/pista/ambiente según estado+frontera+
+  último evento. Capa aditiva (sin red → estático, juego anda igual). Lo usa cualquier objeto con frases.
+- **RF-9** (TTS) Hover sobre un cartel → `speechSynthesis` lee `full` en el idioma activo; `cancel()` al salir;
+  respeta el toggle de sonido; degrada si no hay API. El cartel dibuja solo `short`.
 
 ## 7. Privacidad / seguridad
 

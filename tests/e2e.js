@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
-const SCRIPTS = ['historia.js','hint-engine.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
+const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
   'enemies.js','arcade.js','super.js','vinilos.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
@@ -224,6 +224,28 @@ if (require.main === module) {
   const hb = JSON.parse(hint);
   if (hb.length) { console.error('❌ HINT ENGINE:\n' + hb.join('\n')); process.exit(1); }
   console.log('✓ grafo de historia (' + vm.runInContext('Historia.edges.length', sandbox) + ' aristas) + motor de pistas OK');
+
+  // ---- Mensajero (invocación genérica agente-a-agente): clasifica pista/ambiente/reaccion ----
+  const men = vm.runInContext(`(() => {
+    const out = [];
+    if (typeof Mensajero === 'undefined') { out.push('FAIL Mensajero no cargó'); return JSON.stringify(out); }
+    Mensajero.init({ state: () => ({}), at: () => 'cueva' });
+    // en la cueva, con estado vacío, hay frontera (tormenta) → debe dar una PISTA con short+full
+    const p = Mensajero.pedir({ tipo:'cartel', id:'t1', at:'cueva' });
+    if (!p || p.clase !== 'pista') out.push('FAIL cueva no dio pista: ' + JSON.stringify(p));
+    if (!p || !p.short || !p.full) out.push('FAIL pista sin short/full: ' + JSON.stringify(p));
+    // un lugar sin frontera → AMBIENTE (propaganda), con fallback estático
+    const a = Mensajero.pedir({ tipo:'banner', id:'b1', at:'lugar_inexistente' });
+    if (!a || a.clase !== 'ambiente' || !a.short) out.push('FAIL ambiente: ' + JSON.stringify(a));
+    // tras un evento reciente → REACCION
+    Mensajero.evento('tormenta');
+    const r = Mensajero.pedir({ tipo:'cartel', id:'t2', at:'cueva' });
+    if (!r || r.clase !== 'reaccion') out.push('FAIL reaccion tras evento: ' + JSON.stringify(r));
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const mb = JSON.parse(men);
+  if (mb.length) { console.error('❌ MENSAJERO:\n' + mb.join('\n')); process.exit(1); }
+  console.log('✓ Mensajero: pista/ambiente/reaccion + short/full OK');
 
   // ---- chino: changuito (agarrar sin pagar) → pagar → ninjas si rajás sin pagar ----
   const chino = vm.runInContext(`(() => {
