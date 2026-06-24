@@ -10,7 +10,7 @@
 <meta property="og:description" content="How a chat message travels: HAProxy SNI → Cilium Gateway → proxy → LiteLLM → GPU/NPU. Self-hosted Kubernetes, all via API.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://villadalmine.github.io/tormenta-solar/info/tech.en.html">
-<link rel="stylesheet" href="info.css?v=2">
+<link rel="stylesheet" href="info.css?v=3">
 </head>
 <body>
 <header class="bar">
@@ -73,6 +73,26 @@
     </div>
 
     <h3 style="margin-top:26px">The journey of a chat message</h3>
+    <div class="pipe">
+      <div class="pstep"><span class="ic">🖥️</span><span><span class="t">Browser / GitHub Pages</span><br><span class="s">the static game · does a fetch to the proxy</span></span></div>
+      <div class="parrow">▼<small>HTTPS</small></div>
+      <div class="pstep"><span class="ic">🌐</span><span><span class="t">Public DNS + WAN IP</span><br><span class="s">llm-tormenta-solar… → home IP · :443</span></span></div>
+      <div class="parrow">▼</div>
+      <div class="pstep edge"><span class="ic">🧱</span><span><span class="t">HAProxy — Mac mini G4 · OpenBSD</span><br><span class="s">TCP · SNI passthrough (doesn't terminate TLS)</span></span></div>
+      <div class="parrow">▼<small>raw TCP</small></div>
+      <div class="pstep gw"><span class="ic">🚪</span><span><span class="t">Cilium Gateway API · VIP .200</span><br><span class="s">TLS terminates HERE (Let's Encrypt)</span></span></div>
+      <div class="parrow">▼<small>HTTPRoute + cilium-envoy</small></div>
+      <div class="pstep"><span class="ic">⚙️</span><span><span class="t">Node proxy — tormenta-ai-proxy</span><br><span class="s">CORS · personas · guardrails</span></span></div>
+      <div class="parrow">▼<small>POST /v1/chat/completions</small></div>
+      <div class="pstep router"><span class="ic">🔀</span><span><span class="t">LiteLLM — router</span><br><span class="s">key pool · fallback · routing by model</span></span></div>
+      <div class="parrow">▼<small>by model</small></div>
+      <div class="pbranch">
+        <div class="pstep"><span class="ic">☁️</span><span><span class="t">OpenRouter</span><br><span class="s">cloud · free</span></span></div>
+        <div class="pstep"><span class="ic">🎮</span><span><span class="t">NVIDIA GPU</span><br><span class="s">HAMi + Ollama</span></span></div>
+        <div class="pstep"><span class="ic">🔌</span><span><span class="t">RK1 NPU ×4</span><br><span class="s">local inference</span></span></div>
+      </div>
+    </div>
+    <details class="alt-ascii"><summary>See the same path in ASCII</summary>
     <div class="flow"><pre>
    [ Browser / GitHub Pages ]              the game (static)
               │  HTTPS  fetch(llm-tormenta-solar.cybercirujas.club)
@@ -95,6 +115,7 @@
        [ OpenRouter ]   [ NVIDIA GPU ]   [ RK1 NPUs ]
         cloud · free     HAMi + Ollama    4× local inference
     </pre></div>
+    </details>
   </section>
 
   <section>
