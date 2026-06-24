@@ -1,9 +1,15 @@
 # SDD — Métricas reales de uso del chat IA (qué modelo/backend por cada uso)
 
-- **Estado:** **F1+F2+F3 IMPLEMENTADOS en el chart** (proxy 0.1.3, rev 7). `/metrics` etiqueta por
-  modelo/backend/outcome (F1); `ai-proxy/chart` trae ServiceMonitor (F2) y dashboard Grafana como ConfigMap
-  (F3), ambos opt-in (`metrics.serviceMonitor.enabled` / `metrics.grafanaDashboard.enabled`).
-  Falta el `helm upgrade` con esos flags en true + verificar scrape/panel en vivo.
+- **Estado:** **F1+F2+F3 LIVE Y VERIFICADOS** (release `tormenta-ai` rev 9, ns `ai`). `/metrics` etiqueta por
+  modelo/backend/outcome (F1); ServiceMonitor (F2) y dashboard Grafana como ConfigMap (F3) desplegados y
+  funcionando: Prometheus scrapea el target (`up`), `tormenta_ai_chat_total{model,backend,outcome}` consultable,
+  y el sidecar de Grafana importó `tormenta-linyera.json`. Ambos opt-in
+  (`metrics.serviceMonitor.enabled` / `metrics.grafanaDashboard.enabled`).
+- **GOTCHA `--reuse-values`:** ese flag **ignora los defaults nuevos del chart**, así que el ServiceMonitor
+  quedó sin la label `release: kube-prometheus-stack` (la que usa el Prometheus del cluster como selector) y no
+  se scrapeaba. Fix: pasar la label explícita →
+  `--set metrics.serviceMonitor.labels.release=kube-prometheus-stack`. Un `helm upgrade` SIN `--reuse-values`
+  (tomando el values.yaml del chart) ya la trae bien.
 - **Última actualización:** 2026-06-24
 - **Patrón base:** se calca el de `online-game` (`app/core/metrics.py` + ServiceMonitor + dashboard Grafana
   como ConfigMap, incluso tienen un `llm-usage.json`). Relacionado: `latencia-chat.md`, `suscripcion.md`.
