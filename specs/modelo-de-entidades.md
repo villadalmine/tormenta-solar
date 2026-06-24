@@ -217,6 +217,24 @@ archivo de datos**. Nivel 2 (el salto temporal que promete la intro) **nace decl
 edificios/entidades en el modelo y reusa todo. Lo único por nivel: data + arte nuevo si hace falta.
 (Hoy `level.js` mezcla motor y data del Nivel 1; el modelo los separa.)
 
+### Patrón de ELENCO por nivel (canónico — parte de la identidad del juego)
+Cada nivel **sigue el mismo patrón de diseño**, así se siente "del mismo juego" aunque cambie la época/lugar:
+- **Un protagonista DISTINTO por nivel** (en Nivel 1 = "el Carpo", el rockero linyera; cada salto temporal
+  trae otro). Es una entidad/identidad declarada en la data del nivel, no hardcodeada en el motor.
+- **Personajes ICÓNICOS recurrentes en su ROL**, no en su nombre: siempre hay **oráculos** (los que te tiran
+  pistas) y otros roles (mercader, quest-giver, antagonista…). Cambian de cara y voz por nivel, pero cumplen
+  la misma función — el motor los trata por **rol/persona + componentes**, no por quién son.
+- **Los íconos/oráculos son los más "AI-friendly"**: son las entidades con `chat`/`ai`/`agent` (las
+  charlables, con la IA dinámica) — las que te **ayudan / te dejan "chetear"** (pistas, atajos, lore). Es
+  **a propósito**: el alma del juego pasa por esos personajes. Los NPCs "de relleno" quedan deterministas.
+- En data: cada nivel declara su `protagonista` + un **roster de oráculos/íconos** (entidades con
+  `persona` + `ai`/`agent`). El **HintEngine + el grafo de historia** de ese nivel los surfacean (la
+  "didáctica"). → un nivel nuevo = nuevo protagonista + nuevo roster, **misma maquinaria**.
+
+> Resumen: **el motor es genérico; el "elenco" (protagonista + oráculos AI-friendly + roles) es data por
+> nivel siguiendo este patrón.** Por eso cada nivel se siente propio pero coherente, y siempre tenés esos
+> personajes-IA que te enganchan y te guían.
+
 ## 6½. IA en v2: entidades con "cerebro" + asistente con trazabilidad
 
 Dos pedidos del dueño, los dos caen redondos en el modelo de entidad-componente.
@@ -666,6 +684,9 @@ Para no reescribir a ciegas (strangler-fig):
   código; usarla/componerla = data. Auditoría: toda referencia del modelo existe en su registry.
 - **RF-21 (UI derivada, §6.98):** quest log, prompts, badges "✨ IA" y HUD se **derivan** del modelo+estado
   (proyección), no se hardcodean por caso → contenido nuevo no requiere UI nueva.
+- **RF-22 (elenco por nivel, §6):** cada nivel declara en su data un **protagonista propio** + un **roster
+  de oráculos/íconos** (entidades con `persona` + `ai`/`agent`, las "AI-friendly" que dan pistas/ayuda); el
+  motor los maneja por **rol/componentes**, no por nombre → todo nivel sigue el mismo patrón con caras nuevas.
 
 ## 9. Criterios de aceptación
 
