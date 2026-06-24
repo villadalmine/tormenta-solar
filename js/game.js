@@ -45,8 +45,9 @@
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0;
   let roamingNpc = null;   // el linyera ERRANTE: aparece cerca de lo que no hiciste (ver historia-grafo.md §3.4)
   // roster de linyeras ilustres (homenaje) — el oráculo errante VARÍA entre ellos por sala (cada uno su identidad)
-  const ORACULOS = [{ name: 'Diógenes', sprite: 'linyera' }, { name: 'Dante el poeta', sprite: 'viejo' },
-    { name: 'Pechito', sprite: 'linyera' }, { name: 'Linyera filósofo', sprite: 'linyera' }];
+  const ORACULOS = [{ name: 'Diógenes', sprite: 'linyera', persona: 'filosofo' },
+    { name: 'Dante el poeta', sprite: 'viejo', persona: 'poeta' },
+    { name: 'Pechito', sprite: 'linyera', persona: 'pechito' }];
   let ninjaRunT = -99, ninjaRunRoom = -1;   // FX transitorio: los ninjas rajan al mosh cuando Iorio toca
 
   let rooms, states, current, player, cam;
@@ -304,7 +305,7 @@
     }
     const rm = rooms[current];
     if (!rm || current === 0) return;                                   // en la calle ya está el linyera fijo
-    if ((rm.npcs || []).some(n => n.persona === 'filosofo')) return;    // ya hay un filósofo en esta sala
+    if ((rm.npcs || []).some(n => n.oracle || n.persona === 'filosofo')) return;   // ya hay un oráculo en esta sala
     const at = currentAt();
     if (!HintEngine.frontier(historiaState()).some(e => e.at === at)) return;   // nada pendiente acá
     const w = rm.w || 20;
@@ -312,7 +313,7 @@
     // el filósofo errante VARÍA: es uno de los linyeras ilustres (homenaje), distinto por sala. Todos
     // comparten la persona 'filosofo' (el oráculo de pistas). Identidad propia por entidad; memoria = v2.
     const o = ORACULOS[((current % ORACULOS.length) + ORACULOS.length) % ORACULOS.length];
-    roamingNpc = { name: o.name, sprite: o.sprite, action: 'chat', persona: 'filosofo',
+    roamingNpc = { name: o.name, sprite: o.sprite, action: 'chat', persona: o.persona, oracle: true,
       dialog: T('g.oraculo.greet'), roaming: true,
       x: tx * Level.TILE + Level.TILE/2, y: rm.gTop * Level.TILE };
     (rm.npcs = rm.npcs || []).push(roamingNpc);
@@ -405,7 +406,7 @@
     return 'calle';
   }
   // ¿es el linyera filósofo (el guía/oráculo)?
-  const isOraculo = n => n && n.persona === 'filosofo';
+  const isOraculo = n => !!(n && (n.oracle || n.persona === 'filosofo'));   // los linyeras ilustres son oráculos (dan pistas)
   function getHint(level) {
     if (typeof HintEngine === 'undefined') return null;
     return HintEngine.next(historiaState(), { at: currentAt(), insistencia: level });

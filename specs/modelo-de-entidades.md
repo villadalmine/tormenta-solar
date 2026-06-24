@@ -272,13 +272,16 @@ técnicas conocidas:
   LLM **elige una transición y la explica** (con la voz de la entidad). **No puede saltar a un estado no
   declarado** → "razonamiento, no aleatorio". La maceta "decide" mutar *porque* hubo tormenta y van 2 loops,
   y lo dice con onda; pero el conjunto de finales posibles lo fijás vos como atributo.
-- **Caso canónico — el oráculo errante = un ROSTER de linyeras, cada uno su entidad con memoria:** hoy
-  (v1, ya implementado) el filósofo que aparece/desaparece cerca de lo no hecho VARÍA entre linyeras
-  ilustres (Diógenes/Dante/Pechito/…) — un `roamingNpc` con identidad distinta por sala. En v2 cada uno es
-  una **entidad `npc` con `agent.memory` propia** (recuerda qué te dijo / qué hiciste), persona `filosofo`,
-  surfaceada por el **HintEngine** cerca de la arista de frontera (la "didáctica" del juego, ver
-  [historia-grafo §3.4](nivel-1/historia-grafo.md)). La memoria es **estado runtime por id** (se serializa);
-  la identidad/voz es **definición**.
+- **Caso canónico — los ORÁCULOS son los linyeras documentados (reemplazan al "filósofo" genérico):** se
+  borró el linyera filósofo genérico; ahora los oráculos son los **linyeras reales** (Diógenes/Dante/Pechito/…),
+  cada uno una **entidad con identidad propia** (`name`, `persona`, `oracle:true`) que **aparece/desaparece**
+  cerca de lo no hecho (`roamingNpc`, varía por sala) y **da pistas** (vía `HintEngine`, la "didáctica", ver
+  [historia-grafo §3.4](nivel-1/historia-grafo.md)). **Expertise compartida (en su `persona`):** son expertos
+  en **tormentas solares** y en **cómo la IA nos gobierna**; cuentan historias de **satélites rebeldes
+  gobernados por IA** y de linyeras que se liberaron; **siempre quieren explicar cómo funciona la IA y qué
+  modelos andan mejor**. **Por entidad:** su **backstory** se carga en `agent.memory` (contexto propio:
+  Diógenes el cínico, Dante el poeta, Pechito el querido) — memoria = **estado runtime por id** (se serializa);
+  identidad/voz/expertise = **definición**. Es **ampliable**: sumar lore = editar el `persona`/memoria (data).
 - **Idempotencia (§5):** los `states`/`transitions` son **definición** (modelo); el `state` actual y la
   `memory` son **estado runtime** (se serializan con `save.js`). Así el mundo se reconstruye igual y la IA
   no rompe el determinismo del armado.

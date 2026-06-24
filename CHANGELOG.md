@@ -9,6 +9,31 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v85] — 2026-06-24 — 🛰️ Los linyeras documentados SON los oráculos (expertos en tormentas/IA)
+
+Se cierra el círculo: el "linyera filósofo" genérico **desaparece**; los oráculos son los linyeras reales.
+
+### Hecho ✅
+- **Borrado el "Linyera filósofo" genérico** (el fijo de la calle y el del roster errante). Ahora los
+  oráculos son **Diógenes / Dante / Pechito** (`oracle:true`): aparecen/desaparecen cerca de lo no hecho y
+  **dan pistas** (antes sólo el de persona `filosofo`; ahora cualquiera con `oracle`).
+- **Personas enriquecidas** (núcleo compartido `LINYERA_CORE` en `ai.js` + proxy): los tres son **expertos
+  en tormentas solares y en cómo la IA nos gobierna**, cuentan historias de **satélites rebeldes gobernados
+  por IA** y de linyeras liberados, y **siempre quieren explicar cómo funciona la IA / qué modelos andan
+  mejor** — cada uno con su voz (Diógenes cínico, Dante en verso, Pechito cálido). Canned offline (es/en)
+  actualizado con la lore.
+- `oracle` viaja al modelo v2 (`gen-level` → `mundo`), así los oráculos funcionan también en v2. Paridad OK.
+
+### Pendiente ⚠️
+- **Memoria/backstory por entidad** (cada linyera recuerda su historia y lo charlado) = componente
+  `agent.memory` del **motor v2** (diseñado en `specs/modelo-de-entidades.md` §6½, no implementado aún).
+- Revisar el **sprite "el Carpo"** en pantalla (de v83). La narración del juego sigue sin re-tematizar.
+
+### Estado
+- e2e + levels + paridad v1≡v2 + web-smoke verdes. Cache `v=85`.
+
+---
+
 ## [v84] — 2026-06-24 — 💬 Los linyeras ilustres ahora son chateables (oráculos AI-friendly)
 
 Aplica el patrón "los íconos son los personajes AI-friendly" (ver `specs/modelo-de-entidades.md` §6).

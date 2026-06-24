@@ -38,7 +38,7 @@ const Mundo = (() => {
         case 'npc': {
           const it = e.interact || {};
           room.npcs.push({ name: e.name, sprite: e.render && e.render.sprite, dialog: e.dialogue && e.dialogue.text,
-            action: it.action, follow: it.follow, lines: it.lines, want: it.want, hint: it.hint,
+            action: it.action, follow: it.follow, lines: it.lines, want: it.want, hint: it.hint, oracle: it.oracle,
             invisible: e.lifecycle && e.lifecycle.invisible, persona: it.persona || (e.chat && e.chat.persona),
             sells: it.sells && { ...it.sells }, x: f.x, y: f.y });
           break;

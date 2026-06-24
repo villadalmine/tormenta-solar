@@ -55,7 +55,7 @@ function entities(r, ri) {
     const e = pos({ id: id('npc'), tipo: 'npc', render: { sprite: m.sprite } }, m.x, m.y);
     if (m.name) e.name = m.name;
     const it = {};
-    for (const k of ['action', 'want', 'persona', 'sells', 'lines', 'hint', 'follow']) if (m[k] != null) it[k] = m[k];
+    for (const k of ['action', 'want', 'persona', 'sells', 'lines', 'hint', 'follow', 'oracle']) if (m[k] != null) it[k] = m[k];
     if (Object.keys(it).length) e.interact = it;
     if (m.persona && !m.action) e.chat = { persona: m.persona };
     if (m.dialog) e.dialogue = { text: m.dialog };
