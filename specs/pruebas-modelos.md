@@ -183,7 +183,15 @@ sin que el juego se entere. **El usuario lo está viendo por su lado; acá queda
 todavía** (cambio aditivo en el LiteLLM compartido vía Ansible de `infra-ai`). Falta además elegir el gemma
 final (ver §2.6 y la tanda de §3).
 
-## 2.8 `tormenta-free` — snippet LISTO PARA PEGAR en tu LiteLLM (NO aplicado)
+## 2.8 `tormenta-free` — ❌ DESCARTADO (sería un downgrade sin probar)
+
+> **No usar.** `tormenta-free` apuntaba a `gemma-4-26b:free` (el primario del código) que es **más chico que
+> el `gemma4-free` (31b) que ya está live y GANÓ el banco** (88/100, mejor memoria ES+EN, 2-7s), y al 26b
+> **nunca lo medimos**. Cambiar a 26b = bajar calidad a ciegas. **Decisión: quedarse en `gemma4-free` (31b).**
+> Si se quiere alinear el código con el server, **subir `DEFAULT_MODEL` en `js/ai.js` al 31b** (no degradar el
+> server al 26b). El snippet de abajo queda solo como registro histórico.
+
+### (histórico) snippet original
 
 No lo apliqué yo: `infra-ai` lo está editando otro proceso en paralelo y no quiero pisar. Pegá esto en
 `roles/install-litellm-proxy/tasks/main.yml` (es **aditivo**, no toca model_names existentes) y aplicá con
