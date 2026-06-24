@@ -46,11 +46,31 @@ Nota infra: hay 2 ollama (`ai/ollama` = qwen2.5:1.5b; `gpu-llm/ollama` en srv-t7
 Setup nuevo del usuario en ns `ai`: `ollama-a` + `ollama-b` en la GPU `srv-t7910` (HAMi, 3GB/40cores c/u),
 balanceados bajo `local-gpu` en LiteLLM. La GPU es vieja (Pascal/Maxwell) y **se comparte con otro juego**.
 
+Tabla cualitativa (3 prompts):
+
 | Modelo | Backend | Latencia avg | Calidad |
 |---|---|---|---|
 | `gemma4-free` | OpenRouter (nube, live) | **2.4s** | ★★★★ criollo clavado, lore |
 | `local-gpu` (qwen2.5:1.5b) | GPU dual | **1.7s** ⚡ | ★ genérico, fuera de personaje |
 | `gemma2:2b` | GPU (ollama-a) | **5.3s** (sube a 8.9) | ★★ aceptable pero flojo y lento acá |
+
+**Matriz CUANTIFICADA** (4 prompts; score 0-100 = español + slang rioplatense + tema + sin refusal/leak +
+largo sano; latencia avg; tasa de éxito ok/4):
+
+| # | Modelo | Backend | Calidad/100 | Lat avg | OK |
+|---|---|---|---|---|---|
+| 1 | **gemma4-free** | OpenRouter | **88** | 3.2s | 4/4 |
+| 2 | kimi-free | OpenRouter | 75 | 2.5s | 1/4 (flaky/429) |
+| 3 | **gemma2:2b** | GPU | 70 | 6.6s | 4/4 |
+| 4 | local-gpu (qwen1.5b) | GPU | 59 | 5.1s | 4/4 |
+| 5 | rk1-npu-local | NPU | 55 | 28.9s | 1/4 |
+| 6 | nemotron | OpenRouter | 45 | 2.7s | 4/4 (filtra reasoning) |
+| 7 | gpt-oss-free | OpenRouter | 22 | 5.7s | 4/4 (corto/pobre) |
+| 8 | llama70b-free / qwen36-free / free | OpenRouter | 0 | — | 0/4 (timeout/429) |
+
+**Confirma todo:** `gemma4-free` gana por amplio margen (calidad + latencia + fiabilidad). El mejor local es
+`gemma2:2b` (70) pero a 6.6s; qwen (59) rápido pero flojo; NPU lenta+flaky; el resto de free o filtra
+reasoning (nemotron) o es poco fiable (llama70b/qwen36/free 429) o pobre (gpt-oss). **Default: gemma4-free.**
 
 **Conclusión:** la nube (`gemma4-free`) responde **mejor que la GPU actual** para el linyera (calidad + 2.4s).
 La GPU vieja+compartida hace que gemma2:2b rinda ~5s (peor que el 2.5s del test aislado). qwen es rápido
