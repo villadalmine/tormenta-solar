@@ -9,6 +9,28 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v92] — 2026-06-24 — 🌐 IA online GRATIS + landing /info + página tech del stack
+
+### Hecho ✅
+- **IA gratis en vivo**: el chat ya pega contra el proxy self-hosted del dev
+  (`js/ai.js → PROXY = https://llm-tormenta-solar.cybercirujas.club`). Los jugadores chatean con los
+  linyeras **sin poner API key**; BYOK queda como override opcional. `PROXY_TIMEOUT` 35s (gemma free tarda 5-30s).
+- **Deploy real** del proxy en Kubernetes (Helm chart `ai-proxy/chart`): imagen Kaniko/Argo (arm64) →
+  registry interno, HTTPRoute + Certificate (Let's Encrypt prod, DNS-01/acme-dns) reusando `cluster-gateway`,
+  upstream `gemma4-free` vía LiteLLM. Probado end-to-end por https público.
+- **Landing `/info`** (`info/index.html`): pitch, "el chat con IA es GRATIS", personajes, y CTA a jugar/GitHub.
+  Con Open Graph para preview lindo al compartir.
+- **Página tech `/info/tech.html`**: el stack **capa por capa** — GitHub Pages → HAProxy (SNI) → Cilium
+  Gateway API (TLS) → HTTPRoute/Envoy → proxy Node → LiteLLM → OpenRouter / GPU (HAMi+Ollama) / NPUs RK1;
+  observabilidad (Hubble/Prometheus/Grafana); build (Kaniko+Argo+registry); todo declarativo por API.
+  Incluye el feature que viene: **bot de Telegram → Hermes** para manejar el juego.
+- **Opciones**: el texto de la API key ahora aclara que la IA es gratis/incluida (es/en) + link a `/info` en la intro.
+
+### Estado
+- e2e + web-smoke verdes. Cache `v=92`. Infra documentada en `specs/proxy-ia-deploy.md`.
+
+---
+
 ## [v89] — 2026-06-24 — ⚡ Timeout temático + disclaimer BYOK claro
 
 ### Hecho ✅

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TORMENTA SOLAR — Cómo funciona, capa por capa</title>
+<meta name="description" content="El recorrido completo de un mensaje del chat: desde GitHub Pages, por HAProxy con SNI, el Cilium Gateway, el proxy del juego, LiteLLM y la inferencia en GPU/NPU/OpenRouter. Infra self-hosted, todo declarativo por API.">
+<meta name="theme-color" content="#05080c">
+<meta property="og:title" content="TORMENTA SOLAR — el stack, capa por capa">
+<meta property="og:description" content="Cómo viaja un mensaje del chat: HAProxy SNI → Cilium Gateway → proxy → LiteLLM → GPU/NPU. Kubernetes self-hosted, todo por API.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://villadalmine.github.io/tormenta-solar/info/tech.html">
+<link rel="stylesheet" href="info.css">
+</head>
+<body>
+<header class="bar">
+  <span class="brand">☀ TORMENTA SOLAR</span>
+  <nav>
+    <a href="index.html">← Info</a>
+    <a href="../">▶ Jugar</a>
+    <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <section>
+    <h2 class="sec">Cómo funciona, capa por capa</h2>
+    <p>El juego es <b>100% estático</b> (JS vanilla + HTML5 Canvas, sin build) servido por <b>GitHub Pages</b>.
+    Lo único que sale a la red es el <b>chat con los linyeras</b>: un <code>fetch</code> a nuestro proxy. Y ese
+    pedido atraviesa una <b>infra Kubernetes self-hosted</b> entera. Esto es el viaje completo de un mensaje,
+    de punta a punta. Nada es mágico ni una nube ajena: es <b>fierro propio</b>, y <b>todo se declara por API</b>.</p>
+
+    <div class="flow"><pre>
+   [ Navegador / GitHub Pages ]            el juego (estático)
+              │  HTTPS  fetch(llm-tormenta-solar.cybercirujas.club)
+              ▼
+   [ DNS público + IP WAN ]                A → IP de casa
+              │  :443
+              ▼
+   [ HAProxy  (borde, Mac mini) ]          modo TCP · SNI passthrough
+              │  reenvía TCP por hostname (no termina TLS)
+              ▼
+   [ Cilium Gateway API  192.168.178.200 ] ← acá TERMINA el TLS (Let's Encrypt)
+              │  cilium-envoy  +  HTTPRoute (hostname → Service)
+              ▼
+   [ Service → Pod: tormenta-ai-proxy ]    Node · CORS · personas · guardrails
+              │  POST /v1/chat/completions
+              ▼
+   [ LiteLLM  (el centralizador) ]         pool de keys · fallback · ruteo
+              ├──────────────┬──────────────┐
+              ▼              ▼              ▼
+       [ OpenRouter ]   [ GPU NVIDIA ]   [ NPUs RK1 ]
+        nube · free      HAMi + Ollama    4× inferencia local
+    </pre></div>
+  </section>
+
+  <section>
+    <div class="layer">
+      <div class="n">0</div>
+      <div class="body">
+        <h3>El cliente — el juego en tu navegador</h3>
+        <p>Vanilla JS + Canvas, <b>sin framework ni build</b>, hosteado en GitHub Pages. El chat hace un
+        <code>fetch</code> POST con el NPC, tu mensaje y un poco de contexto. <b>Tu API key es opcional</b>:
+        por defecto pega contra nuestro proxy (gratis); si ponés una key de OpenRouter, queda solo en tu
+        navegador como override. La key "buena" del servidor <b>nunca</b> toca el cliente.</p>
+        <div class="tagrow"><span>JS vanilla</span><span>HTML5 Canvas</span><span>GitHub Pages</span><span>i18n ES/EN</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">1</div>
+      <div class="body">
+        <h3>DNS + TLS — entrar sin abrir puertos de más</h3>
+        <p>El dominio <code>llm-tormenta-solar.cybercirujas.club</code> resuelve a la IP pública de casa.
+        El certificado es de <b>Let's Encrypt</b>, emitido por <b>cert-manager</b> con desafío <b>DNS-01 vía
+        acme-dns</b> — así no hace falta exponer el <code>:80</code> ni validar por HTTP. El cert se renueva solo.</p>
+        <div class="tagrow"><span>cert-manager</span><span>Let's Encrypt</span><span>DNS-01 / acme-dns</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">2</div>
+      <div class="body">
+        <h3>HAProxy — el borde (fuera del cluster)</h3>
+        <p>Una Mac mini corre HAProxy en <b>modo TCP</b> con <b>SNI passthrough</b>: mira el
+        <code>req.ssl_sni</code> del <i>hello</i> TLS y, según el hostname, manda el TCP crudo al backend que
+        corresponde — <b>sin desencriptar nada</b> (el TLS lo termina el gateway, más adentro). Varios dominios
+        comparten el mismo backend que apunta a la VIP del cluster. Acá ajustamos <code>maxconn</code> y
+        <code>timeout</code> para que las respuestas largas del LLM no se corten.</p>
+        <div class="tagrow"><span>HAProxy</span><span>TCP / L4</span><span>SNI routing</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">3</div>
+      <div class="body">
+        <h3>Cilium Gateway API — la puerta del cluster</h3>
+        <p>El tráfico entra al <b>cluster Kubernetes</b> por el <code>cluster-gateway</code>
+        (GatewayClass <code>cilium</code>), una VIP fija servida por <b>LB-IPAM de Cilium</b>. <b>Acá termina el
+        TLS</b>: un <i>listener</i> HTTPS por hostname presenta el certificado (el Secret que llenó cert-manager).
+        Es <b>Gateway API</b>, no Ingress: el routing es un recurso declarativo y estándar.</p>
+        <div class="tagrow"><span>Cilium 1.19</span><span>Gateway API</span><span>eBPF</span><span>LB-IPAM</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">4</div>
+      <div class="body">
+        <h3>HTTPRoute + Envoy — routing L7</h3>
+        <p>Un <b>HTTPRoute</b> matchea el hostname y enruta al <b>Service</b> del proxy. El plano de datos es
+        <b>cilium-envoy</b>, que hace de reverse-proxy HTTP dentro del cluster. Sumar un dominio nuevo es,
+        literalmente, agregar un HTTPRoute y un listener — sin tocar HAProxy más que la regla de SNI.</p>
+        <div class="tagrow"><span>HTTPRoute</span><span>cilium-envoy</span><span>L7</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">5</div>
+      <div class="body">
+        <h3>El proxy del juego — <code>tormenta-ai-proxy</code></h3>
+        <p>Un servicio chico en <b>Node</b> (imagen propia, arm64). Hace tres cosas: pone los <b>CORS</b> para que
+        GitHub Pages pueda llamarlo; guarda las <b>personas</b> (los system-prompts de cada linyera) del lado del
+        servidor; aplica los <b>guardrails</b> (si el modelo tarda, devuelve el "la tormenta solar interfiere con
+        el modelo" en vez de dejarte colgado). Después reenvía el pedido a LiteLLM con la key real, que jamás sale
+        al navegador.</p>
+        <div class="tagrow"><span>Node</span><span>CORS</span><span>personas server-side</span><span>Service ClusterIP</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">6</div>
+      <div class="body">
+        <h3>LiteLLM — el centralizador de modelos</h3>
+        <p>Un único endpoint <b>OpenAI-compatible</b> (<code>/v1/chat/completions</code>) que es el cerebro del
+        ruteo. Mantiene un <b>pool de API keys</b>, hace <b>fallback</b> entre modelos si uno falla o satura, y
+        decide a dónde mandar cada request según el <code>model_name</code>. Cambiar de "nube" a "fierro propio"
+        es cambiar un nombre de modelo — <b>el juego no se entera de nada</b>. Hoy el chat usa un modelo
+        <b>free</b> (familia Gemma) por defecto.</p>
+        <div class="tagrow"><span>LiteLLM</span><span>OpenAI API</span><span>pool de keys</span><span>fallbacks</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">7</div>
+      <div class="body">
+        <h3>La inferencia — nube y/o fierro propio</h3>
+        <p>Detrás de LiteLLM hay tres destinos, intercambiables:</p>
+        <ul>
+          <li><b>OpenRouter</b> (nube): modelos <b>free</b>, costo $0 — el default actual del chat.</li>
+          <li><b>GPU NVIDIA self-hosted</b>: un nodo con GPU, <b>compartida por HAMi</b> (vGPU slicing, varias
+          cargas sobre la misma placa), corriendo <b>Ollama</b>.</li>
+          <li><b>NPUs RK1 self-hosted</b>: <b>4 placas RK1</b> (una por nodo arm64) haciendo inferencia local,
+          en round-robin.</li>
+        </ul>
+        <p>La idea: empezar gratis en la nube y, cuando convenga, mover el chat al hardware propio sin tocar
+        ni el juego ni el proxy.</p>
+        <div class="tagrow"><span>OpenRouter</span><span>NVIDIA + HAMi</span><span>Ollama</span><span>RK1 NPU ×4</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">8</div>
+      <div class="body">
+        <h3>Observabilidad — ver todo lo que pasa</h3>
+        <p><b>Hubble</b> (de Cilium) muestra cada flujo de red L3/L4/L7 del cluster: se puede ver, en vivo, el
+        pedido saliendo del proxy hacia LiteLLM y de ahí a la inferencia. <b>Prometheus</b> junta las métricas
+        (LiteLLM expone requests, latencia, gasto, fallbacks) y <b>Grafana</b> las grafica. Si algo va lento o
+        falla, se ve en un tablero, no a ciegas.</p>
+        <div class="tagrow"><span>Hubble</span><span>Prometheus</span><span>Grafana</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">9</div>
+      <div class="body">
+        <h3>Build &amp; deploy — sin Docker daemon, todo reproducible</h3>
+        <p>La imagen del proxy se <b>buildea dentro del cluster</b> con <b>Kaniko</b> orquestado por
+        <b>Argo Workflows</b> (no hace falta un Docker daemon ni una CI externa), en un nodo arm64, y se empuja a
+        un <b>registry interno</b>. El deploy es un <b>Helm chart</b> que crea todo lo declarativo: el HTTPRoute,
+        el Certificate, y hasta un hook idempotente que suma el listener HTTPS al gateway compartido. Volver a
+        levantarlo en otro cluster es correr un comando.</p>
+        <div class="tagrow"><span>Kaniko</span><span>Argo Workflows</span><span>registry interno</span><span>Helm</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">∞</div>
+      <div class="body">
+        <h3>Todo es API / declarativo</h3>
+        <p>Nada de esto se hizo "a mano y a ver si anda": Gateway y HTTPRoute (Gateway API), Certificate y
+        ClusterIssuer (CRDs de cert-manager), el build (CRD de Argo), el deploy (Helm values). Todo es un
+        <b>objeto versionado</b> que se reaplica igual siempre. Eso es lo que hace que una infra casera sea
+        seria: es <b>reproducible</b>.</p>
+      </div>
+    </div>
+
+    <div class="layer soon">
+      <div class="n">🔜</div>
+      <div class="body">
+        <h3>Lo que viene — Telegram + Hermes</h3>
+        <p>Se va a agregar un <b>bot de Telegram</b> conectado a <b>Hermes</b> (un agente que ya corre en el
+        mismo cluster) para <b>manejar el juego desde el chat de Telegram</b>: administrarlo, generar contenido
+        nuevo y orquestar el mundo desde el celular. El juego pasa a tener un "panel de control" conversacional,
+        sobre la misma infra.</p>
+        <div class="tagrow"><span>Telegram Bot</span><span>Hermes (agente)</span><span>control conversacional</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Todo esto es open source · <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">github.com/villadalmine/tormenta-solar</a><br>
+    <a href="../">▶ Volver a jugar</a> · <a href="index.html">Info del juego</a>
+  </footer>
+</div>
+</body>
+</html>

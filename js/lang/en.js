@@ -13,6 +13,7 @@ const LANG_EN = {
   'intro.continue': 'CONTINUE',
   'intro.homenaje': "You're <strong>el Carpo</strong>: a bum bluesman, bald, guitar on his back, zero glamour. 🎸 A fond tribute to the bums of Florida & Lavalle (Pechito, Diógenes, Dante). Fiction/parody, no affiliation.",
   'intro.gh': 'Open source (GPLv3) ·',
+  'intro.info': 'What is this? · How it works (the stack)',
 
   // --- HUD ---
   'hud.life': 'LIFE',
@@ -30,7 +31,7 @@ const LANG_EN = {
   'opt.font': 'Font size',
   'opt.msgMs': 'Text duration',
   'opt.msgFade': 'Fade in / out',
-  'opt.aikeyLabel': 'AI chat — your OpenRouter API key (optional). It\'s ONLY yours and at your own risk: a free/slow model may lag or time out.',
+  'opt.aikeyLabel': 'AI chat — FREE, already included (no key needed): the server pays for it. Optional: your own OpenRouter key as an override (ONLY yours and at your own risk; a free/slow model may lag or time out).',
   'opt.aikeyPh': 'sk-or-…  (stored ONLY in your browser)',
   'opt.aimodelPh': 'model (empty = auto)',
   'opt.validate': 'Validate',

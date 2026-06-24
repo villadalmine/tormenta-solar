@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TORMENTA SOLAR — shooter porteño con IA gratis</title>
+<meta name="description" content="Comprás dólares en Florida y Lavalle… y el sol se apaga. Shooter 2D de humor porteño, open source, con chat de IA GRATIS contra los linyeras-oráculo. Corre sobre infra self-hosted.">
+<meta name="theme-color" content="#05080c">
+<!-- Open Graph / Twitter (preview lindo al pegar el link) -->
+<meta property="og:title" content="TORMENTA SOLAR — shooter porteño con IA gratis">
+<meta property="og:description" content="Comprás dólares en Florida y Lavalle… y el sol se apaga. Chat de IA GRATIS con los linyeras-oráculo. Open source, infra self-hosted.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://villadalmine.github.io/tormenta-solar/info/">
+<meta property="og:image" content="https://villadalmine.github.io/tormenta-solar/info/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="info.css">
+</head>
+<body>
+<header class="bar">
+  <span class="brand">☀ TORMENTA SOLAR</span>
+  <nav>
+    <a href="../">▶ Jugar</a>
+    <a href="tech.html">Cómo funciona</a>
+    <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>TORMENTA SOLAR</h1>
+    <p class="tag">Comprás dólares en Florida y Lavalle… y el sol se apaga. 🌞🔌</p>
+    <div class="cta">
+      <a class="btn play" href="../">▶ JUGAR AHORA</a>
+      <a class="btn" href="tech.html">⚙ Cómo funciona (el stack)</a>
+      <a class="btn" href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">★ GitHub</a>
+    </div>
+    <div class="badge">open source · GPLv3 · sin instalar nada, corre en el navegador</div>
+  </div>
+
+  <div class="free">
+    <h2>🤖 El chat con IA es GRATIS</h2>
+    <p>Charlás con los <b>linyeras-oráculo</b> (te tiran pistas, te cuentan de las tormentas solares y de
+    cómo la IA nos gobierna) y la IA <b>la pagamos nosotros</b>: no necesitás poner ninguna API key.
+    Corre sobre <b>infra self-hosted</b> propia (Kubernetes + LiteLLM + GPU/NPU). Si igual querés usar
+    tu propia key de OpenRouter, podés — queda como override en tu navegador.</p>
+  </div>
+
+  <section>
+    <h2 class="sec">¿De qué va?</h2>
+    <p>Shooter 2D de humor porteño. Arrancás comprando verdes en una <b>cueva de arbolitos</b>, estalla una
+    <b>tormenta solar</b> que rompe el espacio-tiempo, y el barrio se vuelve un quilombo glitcheado del que
+    tenés que sobrevivir y entender qué pasó. Sos <b>el Carpo</b>: rockero linyera, pelado, viola al hombro,
+    cero glamour (homenaje cariñoso a los linyeras de Florida y Lavalle — ficción/parodia).</p>
+  </section>
+
+  <section>
+    <h2 class="sec">Lo que te vas a encontrar</h2>
+    <div class="grid">
+      <div class="card"><h3>Linyeras-oráculo</h3><p class="dim">NPCs con IA y memoria propia: te reconocen, se acuerdan de lo que charlaron, y te dan pistas sin spoilear. Cada uno con su voz.</p></div>
+      <div class="card"><h3>Grafo de historia</h3><p class="dim">Enigmas encadenados: qué destraba qué, dos rutas al chino, el búnker de los linyeras, el portal final (salto temporal).</p></div>
+      <div class="card"><h3>Mundo que reacciona</h3><p class="dim">Cueveros, el Tahúr del truco, el chino y sus ninjas, los borrachines. Loop de supervivencia y rejugabilidad.</p></div>
+      <div class="card"><h3>Siempre vivo</h3><p class="dim">Modelo data-driven: se le agregan personajes, quests y momentos sin recompilar. Cada release suma cosas.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec">Hecho con fierro propio</h2>
+    <p>No es solo un jueguito: la IA corre sobre un <b>cluster Kubernetes self-hosted</b> en casa — HAProxy en
+    el borde, Cilium Gateway API, cert TLS de Let's Encrypt, <b>LiteLLM</b> centralizando modelos, e inferencia
+    en <b>GPU NVIDIA</b> (compartida con HAMi) y <b>NPUs RK1</b>, con OpenRouter como nube de respaldo.
+    <a href="tech.html">Te lo explico capa por capa →</a></p>
+  </section>
+
+  <section>
+    <h2 class="sec">Lo que viene 🔜</h2>
+    <p>Un <b>bot de Telegram</b> conectado a <b>Hermes</b> (el agente que ya corre en el cluster) para
+    <b>manejar el juego desde el chat</b>: administrar, generar contenido y orquestar el mundo desde el celular.</p>
+  </section>
+
+  <footer>
+    TORMENTA SOLAR — open source (GPLv3) · <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">github.com/villadalmine/tormenta-solar</a><br>
+    Hecho en Buenos Aires, con humor porteño y mucha IA.
+  </footer>
+</div>
+</body>
+</html>

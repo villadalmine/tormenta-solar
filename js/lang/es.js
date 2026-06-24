@@ -12,6 +12,7 @@ const LANG_ES = {
   'intro.continue': 'CONTINUAR',
   'intro.homenaje': 'Sos <strong>el Carpo</strong>: rockero linyera, pelado, viola al hombro, cero glamour. 🎸 Homenaje cariñoso a los linyeras de Florida y Lavalle (Pechito, Diógenes, Dante). Ficción/parodia, sin afiliación.',
   'intro.gh': 'Código abierto (GPLv3) ·',
+  'intro.info': '¿Qué es esto? · Cómo funciona (el stack)',
 
   // --- HUD ---
   'hud.life': 'VIDA',
@@ -29,7 +30,7 @@ const LANG_ES = {
   'opt.font': 'Tamaño de la fuente',
   'opt.msgMs': 'Duración del texto',
   'opt.msgFade': 'Aparición / desaparición',
-  'opt.aikeyLabel': 'Chat con IA — tu API key de OpenRouter (opcional). Es SOLO tuya y a tu riesgo: si el modelo es free/lento, puede tardar o cortarse.',
+  'opt.aikeyLabel': 'Chat con IA — GRATIS, ya incluido (no necesitás key): lo paga el server. Opcional: tu propia key de OpenRouter como override (SOLO tuya y a tu riesgo; un modelo free/lento puede tardar o cortarse).',
   'opt.aikeyPh': 'sk-or-…  (se guarda SOLO en tu navegador)',
   'opt.aimodelPh': 'modelo (vacío = auto)',
   'opt.validate': 'Validar',
