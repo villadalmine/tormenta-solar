@@ -9,6 +9,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## 🔭 Próximamente — Roadmap (SDDs draft, sin implementar)
+
+- **Self-host del juego** en `tormenta-solar.cybercirujas.club` (`specs/juego-self-host.md`). HOY el juego
+  vive en GitHub Pages; el dominio propio tiene DNS + acme + HAProxy listos pero **nada lo sirve en el
+  cluster** todavía (falta imagen nginx + Helm + HTTPRoute + cert + listener).
+- **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
+- **Pruebas de modelos** GPU (HAMi/Ollama) / NPU RK1 / OpenRouter + `model_name: tormenta-free` exacto en
+  LiteLLM (`specs/pruebas-modelos.md`). Hoy el chat anda con `gemma4-free`.
+
+---
+
 ## [v92] — 2026-06-24 — 🌐 IA online GRATIS + landing /info + página tech del stack
 
 ### Hecho ✅
