@@ -41,6 +41,24 @@ para que no se enfríe (evita los 17s), (b) un `model_name` en LiteLLM apuntando
 Nota infra: hay 2 ollama (`ai/ollama` = qwen2.5:1.5b; `gpu-llm/ollama` en srv-t7910 con GPU = llama3.2:3b
 + qwen2.5:1.5b + **gemma2:2b** que bajé). El slice GPU es chico (4GB / 40 cores HAMi) → entra hasta ~3-4b.
 
+## 2.9 Benchmark con el DUAL OLLAMA real (2026-06-24, 3 prompts c/u)
+
+Setup nuevo del usuario en ns `ai`: `ollama-a` + `ollama-b` en la GPU `srv-t7910` (HAMi, 3GB/40cores c/u),
+balanceados bajo `local-gpu` en LiteLLM. La GPU es vieja (Pascal/Maxwell) y **se comparte con otro juego**.
+
+| Modelo | Backend | Latencia avg | Calidad |
+|---|---|---|---|
+| `gemma4-free` | OpenRouter (nube, live) | **2.4s** | ★★★★ criollo clavado, lore |
+| `local-gpu` (qwen2.5:1.5b) | GPU dual | **1.7s** ⚡ | ★ genérico, fuera de personaje |
+| `gemma2:2b` | GPU (ollama-a) | **5.3s** (sube a 8.9) | ★★ aceptable pero flojo y lento acá |
+
+**Conclusión:** la nube (`gemma4-free`) responde **mejor que la GPU actual** para el linyera (calidad + 2.4s).
+La GPU vieja+compartida hace que gemma2:2b rinda ~5s (peor que el 2.5s del test aislado). qwen es rápido
+pero malo. → **seguir con `gemma4-free`**; la GPU vale solo si se prioriza privacidad/no-cloud o se mete
+una placa mejor. Para que la GPU sea usable habría que cambiar `local-gpu` de `qwen2.5:1.5b` a `gemma2:2b`
+(`litellm_params.model: openai/gemma2:2b`) — ya bajé el modelo a ollama-a/b. HAMi: hay margen para pedir más
+cores/mem, pero la placa es el techo.
+
 ## 2.7 Diseño de rotación (LiteLLM) — PENDIENTE, se itera aparte
 
 Requisito del usuario: **si el server (GPU) se apaga, LiteLLM tiene que rotar solo a otro modelo**. Por eso
