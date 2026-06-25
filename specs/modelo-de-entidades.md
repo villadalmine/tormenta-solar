@@ -719,9 +719,11 @@ Para no reescribir a ciegas (strangler-fig):
    - ✅ **`COLLAPSED` → `collapsesOnStorm`** (atributo de la puerta; fuente única `level.js` → gen-level →
      modelo → `mundo.js` → `game.js` lee `d.collapsesOnStorm`; const borrado). web 0.1.17. *(También se arregló
      el schema, que estaba roto para `fiche`/`comportamiento`.)*
-   - ⬜ `DOOR_ART` → usar el `facade`/`render.type` del modelo (el modelo ya trae `facade`).
-   - ⬜ `ambientFor` (hoy se deriva del `theme`; opcional pasarlo a atributo `ambient`).
-   - ⬜ gating ifs → componente `gate` · historia/ads/save → **ids estables**.
+   - ✅ **`DOOR_ART` eliminado**: el `art` de la puerta (level.js) YA es la key de `Art` (`up→doorUp`,
+     `galeria/shop→door`, resto identidad) → `game.js` hace `Art.items[d.art]` directo. web 0.1.18.
+   - ⬜ `ambientFor` (hoy se deriva del `theme`; opcional pasarlo a atributo `ambient` — bajo valor).
+   - ⬜ **gating ifs → componente `gate`** (cemento→ticket, bunker→bunkerUnlocked, secret, chinoback→stormed…).
+   - ⬜ historia/ads/save → **ids estables** (el chunk más grande; RF-4 — saca el save-por-índice frágil).
 6. **F5 — extraer el motor** (`engine/` genérico vs `game/` contenido, §2.5) y que **Nivel 2 nazca en v2**
    (sólo data). Eventualmente v1 se retira.
 
