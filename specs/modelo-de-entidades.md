@@ -722,7 +722,9 @@ Para no reescribir a ciegas (strangler-fig):
    - ✅ **`DOOR_ART` eliminado**: el `art` de la puerta (level.js) YA es la key de `Art` (`up→doorUp`,
      `galeria/shop→door`, resto identidad) → `game.js` hace `Art.items[d.art]` directo. web 0.1.18.
    - ⬜ `ambientFor` (hoy se deriva del `theme`; opcional pasarlo a atributo `ambient` — bajo valor).
-   - ⬜ **gating ifs → componente `gate`** (cemento→ticket, bunker→bunkerUnlocked, secret, chinoback→stormed…).
+   - ✅ **gating ifs → componente `gate`** (secret/cemento/bunker/chinoback): cond `{flag|item}`+all/any/not en
+     la puerta (level.js→modelo→mundo), `game.js` usa `gateMet()` + `FLAG_GETTERS`. web 0.1.19. *(La lógica
+     custom de interact —super/chinotruco/cambio/abandonado— queda: es comportamiento, no gating puro.)*
    - ⬜ historia/ads/save → **ids estables** (el chunk más grande; RF-4 — saca el save-por-índice frágil).
 6. **F5 — extraer el motor** (`engine/` genérico vs `game/` contenido, §2.5) y que **Nivel 2 nazca en v2**
    (sólo data). Eventualmente v1 se retira.
