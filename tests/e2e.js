@@ -351,6 +351,27 @@ if (require.main === module) {
   if (v2n !== 38) { console.error('❌ motor v2: Mundo.fromModel(LEVEL1) construyó ' + v2n + ' salas (esperaba 38)'); process.exit(1); }
   console.log('✓ motor v2: Mundo.fromModel(LEVEL1) construye ' + v2n + ' salas (headless)');
 
+  // ---- PARIDAD v1 vs v2: misma estructura de salas (puertas, máquinas, npcs) ----
+  const parity = vm.runInContext(`(() => {
+    const v1 = Level.build(), v2 = Mundo.fromModel(window.LEVEL1);
+    const out = [];
+    if (v1.length !== v2.length) out.push('salas: v1=' + v1.length + ' v2=' + v2.length);
+    const ids = (arr, k) => (arr || []).map(x => x.id || x.art || x.type || '?').sort().join(',');
+    for (let i = 0; i < Math.min(v1.length, v2.length); i++) {
+      const a = v1[i], b = v2[i];
+      const d1 = ids(a.doors), d2 = ids(b.doors);
+      if (d1 !== d2) out.push('sala ' + i + ' (' + a.name + ') puertas: v1[' + d1 + '] v2[' + d2 + ']');
+      const m1 = ids(a.machines), m2 = ids(b.machines);
+      if (m1 !== m2) out.push('sala ' + i + ' (' + a.name + ') máquinas: v1[' + m1 + '] v2[' + m2 + ']');
+      if ((a.npcs||[]).length !== (b.npcs||[]).length) out.push('sala ' + i + ' (' + a.name + ') npcs: v1=' + (a.npcs||[]).length + ' v2=' + (b.npcs||[]).length);
+      if ((a.cueveros||[]).length !== (b.cueveros||[]).length) out.push('sala ' + i + ' cueveros: v1=' + (a.cueveros||[]).length + ' v2=' + (b.cueveros||[]).length);
+    }
+    return JSON.stringify(out.slice(0, 25));
+  })()`, sandbox);
+  const pa = JSON.parse(parity);
+  if (pa.length) { console.error('⚠️  PARIDAD v1↔v2 (diferencias):\\n' + pa.join('\\n')); }
+  else console.log('✓ paridad v1↔v2: misma estructura (puertas/máquinas/npcs/cueveros) en las 38 salas');
+
   // ---- v2 JUGABLE headless: forzar el motor v2 y correr el loop sin crash ----
   vm.runInContext('localStorage.setItem("ts_engine","v2")', sandbox);
   document.getElementById('startBtn').dispatch('click', {});
