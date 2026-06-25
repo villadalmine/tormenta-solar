@@ -42,6 +42,13 @@ function loadNoticias() {
 }
 function saveNoticias() { try { fs.mkdirSync(NOTICIAS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(NOTICIAS_STORE, JSON.stringify({ days: NOTI_DAYS })); } catch (e) { console.error('noticias store save:', e.message); } }
 loadNoticias();
+// PROPAGANDA del CINE (carteles-ia.md): banco de carteles FALSOS estilo BsAs por rubro (comida/ropa/electronica/bizarro),
+// lo llena un cron (gen-propaganda.mjs, IA) y el juego lo rota en los carteles del cine (GET /propaganda). Persiste en PVC.
+let PROPAGANDA = [];
+const PROPAGANDA_STORE = process.env.PROPAGANDA_STORE || '/data/propaganda.json';
+function loadPropaganda() { try { const d = JSON.parse(fs.readFileSync(PROPAGANDA_STORE, 'utf8')); if (d && Array.isArray(d.carteles)) PROPAGANDA = d.carteles; } catch (e) {} }
+function savePropaganda() { try { fs.mkdirSync(PROPAGANDA_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(PROPAGANDA_STORE, JSON.stringify({ carteles: PROPAGANDA })); } catch (e) { console.error('propaganda store save:', e.message); } }
+loadPropaganda();
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -374,6 +381,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' });
     return res.end(JSON.stringify({ models: OR_NEWS, updated: OR_TS }));
   }
+  if (req.method === 'GET' && req.url === '/propaganda') {                          // banco de carteles del CINE
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
+    return res.end(JSON.stringify({ carteles: PROPAGANDA, updated: PROPAGANDA.length ? Date.now() : 0 }));
+  }
   if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)
     const u = new URL(req.url, 'http://x'), dias = Object.keys(NOTI_DAYS).sort();
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
@@ -556,6 +567,19 @@ http.createServer((req, res) => {
       try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) {
         if (d.noticias.length) { const day = (/^\d{4}-\d{2}-\d{2}$/.test(d.day || '') ? d.day : new Date().toISOString().slice(0, 10)); NOTI_DAYS[day] = { noticias: d.noticias.slice(0, 100), ts: Date.now() }; notiPrune(); notiSyncLatest(); saveNoticias(); }
         res.writeHead(200); return res.end(d.noticias.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
+      catch (e) { res.writeHead(400); res.end('bad json'); }
+    });
+    return;
+  }
+  // el cron de propaganda (gen-propaganda.mjs) postea acá (GEN_TOKEN): {carteles:[{cat,brand,slogan}]}. Sobrescribe; vacío no pisa.
+  if (req.method === 'POST' && req.url === '/propaganda') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 100000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.carteles)) {
+        if (d.carteles.length) { PROPAGANDA = d.carteles.slice(0, 200); savePropaganda(); }
+        res.writeHead(200); return res.end(d.carteles.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;

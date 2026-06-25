@@ -90,6 +90,13 @@ noticias:
   # Mundial: tabla del grupo de Argentina + goleadores, vía ESPN (sin key). Topics: mundial-tabla, mundial-goleadores.
   worldcup: "fifa.world"
 
+# CINE: carteles de propaganda FALSOS estilo BsAs por rubro (comida/ropa/electronica/bizarro), generados por IA.
+# El modelo SÍ inventa (es el punto). 1×/día. El juego los rota en los carteles del cine (GET /propaganda).
+propaganda:
+  enabled: true
+  schedule: "0 4 * * *"
+  model: gemma4-paid
+
 linyeraPool:
   cronjob:
     enabled: true

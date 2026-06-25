@@ -40,6 +40,13 @@ noticias:
   timezone: "America/Argentina/Buenos_Aires"
   summarizeModel: ""        # "captura IA" del titular (fiel). Validado: gemma4-paid (GPU inventa, NPU caída). "" = titular crudo
   sports: ""                # opt-in fútbol/ligas: "mundial:4406,primera-b:4391" (TheSportsDB)
+  worldcup: ""              # opt-in Mundial: "fifa.world" → tabla del grupo de Argentina + goleadores (ESPN)
+
+propaganda:                 # carteles FALSOS del cine generados por IA (comida/ropa/electronica/bizarro)
+  enabled: false
+  schedule: "0 4 * * *"
+  timezone: "America/Argentina/Buenos_Aires"
+  model: gemma4-paid
 
 # --- API key del upstream (para LiteLLM = su master key, p.ej. sk-hermes-internal) ---
 # Opción A (recomendada): referenciar un Secret YA existente (no commitea la key).

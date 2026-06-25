@@ -39,6 +39,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v132 / infra-17] — 2026-06-26 — 📣 Carteles del cine DINÁMICOS por rubro (propaganda IA) + SDDs nuevas
+
+- **Carteles de propaganda que CAMBIAN**: los carteles del cine ahora rotan **marcas FALSAS estilo Buenos Aires**
+  por rubro (🍕 comida / 👕 ropa / 📱 electrónica / 🛸 bizarros inventados), cada ~7s y distinto por cartel. Banco vivo
+  generado por IA (`gen-propaganda.mjs`, cron 1×/día 4am, `gemma4-paid` que SÍ inventa) + **fallback estático** BA en
+  `js/propaganda.js` (andan aunque el proxy esté caído). Proxy: `GET/POST /propaganda` persistido en PVC.
+- **SDDs nuevas anotadas** (ideas del dueño, NO implementadas): `spinoff-stargate.md` (SG-1+Atlantis fiel al canon),
+  `cine-noticias.md §9` (quest de los 2 hinchas + guarda), `quest-mundo-ai.md` (mundo random generado on-the-fly por
+  IA con plan premium — **sí se puede**: la IA genera los DATOS del mundo y el motor data-driven los corre).
+
+---
+
 ## [v131 / infra-16] — 2026-06-26 — 🏆 Mundial: tabla del grupo de Argentina + goleadores (ESPN) + cron 3×/día
 
 - **Tablas del Mundial vía ESPN** (sin key — lo que TheSportsDB gratis no daba): topics nuevos **`mundial-tabla`**

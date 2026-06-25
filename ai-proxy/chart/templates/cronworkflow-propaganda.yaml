@@ -1,0 +1,63 @@
+{{- if .Values.propaganda.enabled }}
+# Argo CronWorkflow: GENERA carteles de propaganda FALSOS estilo BsAs por rubro (gen-propaganda.mjs, con IA) y los
+# publica en el proxy (POST /propaganda) → banco del CINE. A diferencia de noticias, acá el modelo SÍ inventa.
+# Ver specs/carteles-ia.md. Reusa imagen del proxy + SA + GEN_TOKEN.
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-propaganda
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+spec:
+  schedules:
+    - {{ .Values.propaganda.schedule | default "0 4 * * *" | quote }}
+  timezone: {{ .Values.propaganda.timezone | default "America/Argentina/Buenos_Aires" | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  workflowSpec:
+    entrypoint: gen
+    serviceAccountName: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+    activeDeadlineSeconds: 300
+    ttlStrategy:
+      secondsAfterCompletion: 86400
+      secondsAfterSuccess: 43200
+      secondsAfterFailure: 172800
+    podGC:
+      strategy: OnWorkflowCompletion
+    {{- with .Values.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+    templates:
+      - name: gen
+        retryStrategy:
+          limit: "3"
+          retryPolicy: Always
+          backoff: { duration: "20s", maxDuration: "2m" }
+        container:
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "gen-propaganda.mjs"]
+          env:
+            - name: PROP_POST_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/propaganda"
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}
+            - name: PROP_MODEL
+              value: {{ .Values.propaganda.model | default "gemma4-paid" | quote }}
+            - name: AI_BASE_URL
+              value: {{ .Values.upstream.baseUrl | quote }}
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tormenta-ai-proxy.secretName" . }}
+                  key: {{ include "tormenta-ai-proxy.secretKey" . }}
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+{{- end }}

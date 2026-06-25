@@ -753,6 +753,27 @@
     for (const w of words) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
     if (line) lines.push(line); return lines.slice(0, cap || 8);
   }
+  // CARTELES de propaganda del cine: un panel arriba del cartel con marca+slogan FALSO estilo BsAs, ROTANDO por rubro
+  // (window.PROPAGANDA lo trae js/propaganda.js: banco vivo del proxy o estático). Cambia cada ~7s, distinto por cartel.
+  const _catCol = { comida: '#e8743b', ropa: '#d65ad6', electronica: '#3bb0e8', bizarro: '#7CFC00' };
+  function truncFit(s, maxW) { s = String(s); while (s.length > 2 && ctx.measureText(s).width > maxW) s = s.slice(0, -2) + '…'; return s; }
+  function drawCartelProp(d, img) {
+    const list = (typeof window !== 'undefined' && window.PROPAGANDA) || [];
+    if (!list.length) return;
+    const cx = d.x - cam.x, topY = d.feetY - cam.y - img.height;
+    const i = (Math.floor(time / 7) + (d.x | 0)) % list.length, p = list[(i % list.length + list.length) % list.length];
+    if (!p) return;
+    const W = 132, H = 40, x = cx - W / 2, y = topY - H - 6, col = _catCol[p.cat] || '#ffd54f';
+    ctx.save();
+    ctx.fillStyle = '#0c0f16'; ctx.fillRect(x - 2, y - 2, W + 4, H + 4);
+    ctx.fillStyle = '#161c28'; ctx.fillRect(x, y, W, H);
+    ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, W, H);
+    ctx.fillStyle = col; ctx.fillRect(cx - 1.5, topY - 6, 3, 6);   // patita que baja al cartel
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 10px monospace'; ctx.fillStyle = col; ctx.fillText(truncFit(p.brand, W - 10), cx, y + 15);
+    ctx.font = '9px monospace'; ctx.fillStyle = '#cdd6e4'; ctx.fillText(truncFit('“' + p.slogan + '”', W - 10), cx, y + 30);
+    ctx.restore();
+  }
   function drawCineScreen(r) {
     const ns = cineNoticias, pad = 16, W = 410;
     const cx = (r.w * Level.TILE) / 2 - cam.x, colW = W - pad * 2;
@@ -1020,6 +1041,7 @@
     for (const d of r.decor || []) {
       const img = Art.decor[d.type];
       if (img) ctx.drawImage(img, d.x - cam.x - img.width/2, d.feetY - cam.y - img.height);
+      if (img && d.type === 'cartel' && /Cine/.test(r.name)) drawCartelProp(d, img);   // propaganda rotativa por rubro
     }
     if (/Cine/.test(r.name)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
 
