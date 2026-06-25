@@ -1,7 +1,29 @@
 # SDD — Suscripción / Freemium del chat IA (free vs pago vs BYOK)
 
-- **Estado:** **Draft** (diseño; no implementado)
-- **Última actualización:** 2026-06-24
+- **Estado:** **F1+F2+F3 implementados y live** (proxy 0.1.18); **falta el PAGO automático** (pasarela + webhook + email) → ver "🔜 Próxima iteración" abajo.
+- **Última actualización:** 2026-06-25
+
+## 🔜 ESTADO + PRÓXIMA ITERACIÓN (leer esto primero) ⭐
+
+**Ya funciona (live):**
+- ✅ **F1** entitlement por código (`X-Sub-Code` → tier pago, salta free+cupo). [[proxy-ia-deploy]]
+- ✅ **F2** gasto **estimado** por código (métrica + Grafana).
+- ✅ **F3** **key-por-código** de OpenRouter (`POST /provision`), store en PVC, ruteo **directo a OpenRouter con la
+  key del usuario**, **gasto REAL + tope** por usuario leído de OpenRouter → todo **visible en Grafana** (fila
+  "💳 Suscripciones" del dashboard `tormenta-linyera`), sin comandos.
+- **Operación hoy (pseudo-manual):** el dueño dispara `POST /provision {email,limit}` (1 comando) y manda el
+  código por mail **a mano**. Detalle en §9.0 / §9.6 y en `ai-proxy/README.md`.
+
+**Falta para cobrar de verdad (PRÓXIMA ITERACIÓN — el usuario lo retoma cuando quiera, NO ahora):**
+- ⬜ **Pasarela de pago** (Mercado Pago AR / Stripe / Lemon Squeezy) — §9.6 / §9.4.
+- ⬜ **Webhook** "pagó OK" → llama a `/provision` **solo** (así el dueño no toca nada). §9.6 paso 5.
+- ⬜ **Email automático** del código (Resend/Mailgun/SES/SMTP) — §9.1.
+- ⬜ **UI "Suscribirme"** (modal → pide email → deriva a la pasarela) — §9.6 paso 1-3.
+- ⬜ (opc.) **DB** en vez del JSON-en-PVC si crece el volumen (§9.2).
+- **Decisiones abiertas:** qué pasarela, qué email provider (§9.6 "Componentes nuevos").
+
+---
+
 - **Disparador:** en hora pico los modelos **free se saturan** (medido 20-51s → ahora degrada a línea temática
   por el tope de 8s, ver `latencia-chat.md`). Para los que quieran IA **siempre rápida y mejor**, ofrecer un
   **plan pago** que usa un **modelo mejor** (el dev carga crédito en OpenRouter) y **no pasa por el tier free**.
