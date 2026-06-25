@@ -181,6 +181,35 @@ if (require.main === module) {
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));
 
+  // ---- TRUCO F2: jugar una PARTIDA completa (elige formato + tira cartas hasta el final) ----
+  const trucoMatch = vm.runInContext(`(() => {
+    const C = __mkCtx(); const K = Input.keys;
+    function play(fmtKey) {
+      const g = Arcade.create('truco');
+      for (const k in K) K[k] = false;
+      K[fmtKey] = true; g.update(0.2); g.draw(C, 960, 540);   // elegir formato
+      let guard = 0;
+      while (!g.done && guard++ < 600) {
+        K['q'] = true; K['1'] = true; K['2'] = true; K['3'] = true;  // resolver cantos (quiero) + tirar carta
+        g.update(0.2); g.draw(C, 960, 540);
+        for (const k of ['q','1','2','3']) K[k] = false;
+        g.update(0.2);                                          // dejar avanzar timers (reveal/pausa)
+      }
+      return g;
+    }
+    const out = [];
+    for (const [fmt, key] of [['3manos','3'], ['a15','1']]) {
+      const g = play(key);
+      if (!g.done) out.push('FAIL ' + fmt + ' no terminó');
+      else if (g.result !== 'win' && g.result !== 'lose') out.push('FAIL ' + fmt + ' result=' + g.result);
+      else if (typeof g.floresDelta !== 'number') out.push('FAIL ' + fmt + ' floresDelta no num');
+    }
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const tm = JSON.parse(trucoMatch);
+  if (tm.length) { console.error('❌ TRUCO PARTIDA:\n' + tm.join('\n')); process.exit(1); }
+  console.log('✓ truco F2: partida completa (3 manos + a 15) termina con win/lose + flores');
+
   // ---- grafo de historia + motor de pistas (HintEngine) ----
   const hint = vm.runInContext(`(() => {
     const out = [];

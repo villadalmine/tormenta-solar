@@ -268,37 +268,44 @@ const Arcade = (() => {
   function makeTruco() {
     const E = (typeof Truco !== 'undefined') ? Truco : null;
     const SUITSV = { e:{l:'E',c:'#141422'}, b:{l:'B',c:'#14240f'}, o:{l:'O',c:'#b8860b'}, c:{l:'C',c:'#a01020'} };
-    const TIER = 'crack';                                   // el tahúr juega bien
+    const TIER = 'crack';
     const pw = c => E ? E.power(c) : 0;
-    const d = E ? E.deal() : { p:[], a:[] };
-    const pHand = d.p.map(c => ({ c, used:false }));
-    const aiHand = d.a.map(c => ({ c, used:false }));
-    let round = 0, pTr = 0, aiTr = 0, results = [], phase = 'play', revealT = 0, over = 0, win = false;
-    let tableP = null, tableA = null, note = T('arc.truco.note0');
-    let pPts = 0, aiPts = 0;                                 // FLORES del deal
-    let trucoLevel = 0, trucoStake = 1, envidoDone = false, florDone = false, aiOpened = false;
-    let pending = null;                                      // { kind:'envido'|'truco', level, by:'p'|'a' }
-    const mano = 1;                                          // jugador es mano (desempate de parda)
     const say = f => { if (typeof Mensajero !== 'undefined' && Mensajero.cantar) Mensajero.cantar(f); };
     const TRUCOW = { 1:'¡Truco!', 2:'¡Quiero retruco!', 3:'¡Quiero vale cuatro!' };
     const ENVW   = { 1:'¡Envido!', 2:'¡Real envido!', 3:'¡Falta envido!' };
-    const trucoQ = { 1:2, 2:3, 3:4 };                        // valor si hay QUIERO
-    const trucoN = { 1:1, 2:2, 3:3 };                        // valor si NO QUIERO (lo gana el cantor)
-    const envQ   = { 1:2, 2:3, 3:5 };
-    const envN   = { 1:1, 2:2, 3:3 };
+    const trucoQ = { 1:2, 2:3, 3:4 }, trucoN = { 1:1, 2:2, 3:3 };
+    const envQ   = { 1:2, 2:3, 3:5 }, envN   = { 1:1, 2:2, 3:3 };
+    const mano = 1;
 
-    // ----- flor al repartir -----
-    (function flor() {
-      if (!E) return;
-      const pf = E.flor(pHand.map(h => h.c)), af = E.flor(aiHand.map(h => h.c));
-      if (af != null && (pf == null || af >= pf)) { aiPts += 3; florDone = true; envidoDone = true; note = T('arc.truco.florAi'); say('¡Flor!'); }
-      else if (pf != null) { pPts += 3; florDone = true; envidoDone = true; note = T('arc.truco.florYou'); }
-    })();
+    // ---- estado de la PARTIDA ----
+    let format = null;                       // '3manos' (mejor de 3 rondas) | 'a15' (primero a 15 puntos)
+    let pScore = 0, aiScore = 0;             // según formato: rondas ganadas o puntos
+    let pFlores = 0, aiFlores = 0;           // acumulado de puntos del jugador/tahúr (para el premio en flores)
+    let dealNum = 0, dealPause = 0;
+    let phase = 'choose', over = 0, win = false, note = T('arc.truco.ask');
+    // ---- estado del DEAL (lo resetea startDeal) ----
+    let pHand = [], aiHand = [], round = 0, pTr = 0, aiTr = 0, results = [], revealT = 0, tableP = null, tableA = null;
+    let pPts = 0, aiPts = 0, trucoLevel = 0, trucoStake = 1, envidoDone = false, florDone = false, aiOpened = false, pending = null;
 
-    // ----- resoluciones -----
+    function startDeal() {
+      dealNum++;
+      const d = E ? E.deal() : { p:[], a:[] };
+      pHand = d.p.map(c => ({ c, used:false })); aiHand = d.a.map(c => ({ c, used:false }));
+      round = 0; pTr = 0; aiTr = 0; results = []; revealT = 0; tableP = null; tableA = null;
+      pPts = 0; aiPts = 0; trucoLevel = 0; trucoStake = 1; envidoDone = false; florDone = false; aiOpened = false; pending = null;
+      phase = 'play'; note = T('arc.truco.yourTurn');
+      if (E) {
+        const pf = E.flor(pHand.map(h => h.c)), af = E.flor(aiHand.map(h => h.c));
+        if (af != null && (pf == null || af >= pf)) { aiPts += 3; florDone = true; envidoDone = true; note = T('arc.truco.florAi'); say('¡Flor!'); }
+        else if (pf != null) { pPts += 3; florDone = true; envidoDone = true; note = T('arc.truco.florYou'); }
+      }
+    }
+
+    // ---- envido / truco ----
+    const faltaPts = () => format === 'a15' ? Math.max(1, 15 - Math.max(pScore, aiScore)) : 5;
     function resolveEnvido(level) {
       const pe = E.envido(pHand.map(h => h.c)), ae = E.envido(aiHand.map(h => h.c));
-      const pts = envQ[level] || 2;
+      const pts = level === 3 ? faltaPts() : (envQ[level] || 2);
       if (pe >= ae) { pPts += pts; note = T('arc.truco.envWin', { pe, ae, pts }); }
       else { aiPts += pts; note = T('arc.truco.envLose', { pe, ae, pts }); }
       envidoDone = true; pending = null;
@@ -315,9 +322,8 @@ const Arcade = (() => {
       if (strong || Math.random() < 0.55) {
         if (strong && level < 3 && Math.random() < 0.5) { pending = { kind:'truco', level: level + 1, by:'a' }; say(TRUCOW[level + 1]); note = T('arc.truco.aiRaise'); }
         else { say('¡Quiero!'); trucoLevel = level; trucoStake = trucoQ[level]; pending = null; note = T('arc.truco.quiero', { stake: trucoStake }); }
-      } else { say('No quiero.'); pPts += trucoN[level]; pending = null; win = true; over = 1.8; note = T('arc.truco.noQuiero', { stake: trucoN[level] }); }
+      } else { say('No quiero.'); pPts += trucoN[level]; pending = null; concludeDeal(1, false); note = T('arc.truco.noQuiero', { stake: trucoN[level] }); }
     }
-    // jugador responde a un canto del tahúr (pending.by==='a')
     function playerQuiero() {
       if (!pending) return;
       if (pending.kind === 'envido') resolveEnvido(pending.level);
@@ -325,9 +331,8 @@ const Arcade = (() => {
     }
     function playerNoQuiero() {
       if (!pending) return;
-      if (pending.kind === 'envido') { aiPts += envN[pending.level] || 1; envidoDone = true; note = T('arc.truco.youNo'); }
-      else { aiPts += trucoN[pending.level]; win = false; over = 1.8; note = T('arc.truco.youNoTruco'); }
-      pending = null;
+      if (pending.kind === 'envido') { aiPts += envN[pending.level] || 1; envidoDone = true; note = T('arc.truco.youNo'); pending = null; }
+      else { aiPts += trucoN[pending.level]; pending = null; concludeDeal(-1, false); note = T('arc.truco.youNoTruco'); }
     }
 
     function aiPlay() {
@@ -343,20 +348,37 @@ const Arcade = (() => {
       else if (r === -1) { aiTr++; note = T('arc.truco.handLose'); }
       else note = T('arc.truco.tie');
     }
-    function dealEnd() {
-      const dw = E ? E.handWinner(results, mano) : (pTr > aiTr ? 1 : -1);
-      if (dw === 1) pPts += trucoStake; else aiPts += trucoStake;
-      win = dw === 1; over = 2.0;
-      note = win ? T('arc.truco.bigWin', { n: pPts }) : T('arc.truco.dealLose');
+
+    // cierra el DEAL: dw=1/-1 ganador; addStake = sumar el valor del truco al ganador
+    function concludeDeal(dw, addStake) {
+      if (addStake) { if (dw === 1) pPts += trucoStake; else aiPts += trucoStake; }
+      pFlores += pPts; aiFlores += aiPts;
+      if (format === '3manos') { if (dw === 1) pScore++; else aiScore++; }
+      else { pScore += pPts; aiScore += aiPts; }
+      const target = format === '3manos' ? 2 : 15;
+      if (pScore >= target || aiScore >= target) {
+        win = pScore > aiScore; over = 2.4; phase = 'matchover';
+        note = win ? T('arc.truco.matchWin', { n: pFlores }) : T('arc.truco.matchLose');
+      } else {
+        phase = 'dealover'; dealPause = 1.7;
+        note = (dw === 1 ? T('arc.truco.dealWin') : T('arc.truco.dealLose')) + '  ' + T('arc.truco.scoreNow', { p: pScore, ai: aiScore });
+      }
     }
 
     return {
       done: false, kind: 'truco', result: null, forrosDelta: 0, floresDelta: 0,
       update(dt) {
-        this.floresDelta = pPts; this.forrosDelta = 0;
+        this.floresDelta = pFlores; this.forrosDelta = 0;
         if (Input.keys['escape']) { this.done = true; this.result = 'lose'; this.floresDelta = 0; return; }
-        if (over > 0) { over -= dt; if (over <= 0) { this.done = true; this.result = win ? 'win' : 'lose'; this.floresDelta = win ? pPts : 0; } return; }
-        // el tahúr abre con un canto al empezar la mano (envido o truco)
+        // elegir formato (el tahúr pregunta)
+        if (phase === 'choose') {
+          if (Input.keys['3']) { Input.keys['3'] = false; format = '3manos'; startDeal(); }
+          else if (Input.keys['1']) { Input.keys['1'] = false; format = 'a15'; startDeal(); }
+          return;
+        }
+        if (over > 0) { over -= dt; if (over <= 0) { this.done = true; this.result = win ? 'win' : 'lose'; this.floresDelta = win ? pFlores : 0; } return; }
+        if (phase === 'dealover') { dealPause -= dt; if (dealPause <= 0) startDeal(); return; }
+        // el tahúr abre con un canto
         if (!aiOpened && round === 0 && !pending && !tableP && E) {
           aiOpened = true;
           const ae = E.envido(aiHand.map(h => h.c));
@@ -368,23 +390,20 @@ const Arcade = (() => {
           if (revealT <= 0) {
             round++; tableP = tableA = null;
             const dw = E ? E.handWinner(results, mano) : 0;
-            if (dw !== 0 || round >= 3) dealEnd();
+            if (dw !== 0 || round >= 3) concludeDeal(dw || (pTr > aiTr ? 1 : -1), true);
             else { phase = 'play'; note = T('arc.truco.yourTurn'); }
           }
           return;
         }
-        // responder a un canto del tahúr
         if (pending && pending.by === 'a') {
           if (Input.keys['q']) { Input.keys['q'] = false; playerQuiero(); }
           else if (Input.keys['n']) { Input.keys['n'] = false; playerNoQuiero(); }
           else if (Input.keys['t'] && pending.kind === 'truco' && pending.level < 3) { Input.keys['t'] = false; pending = { kind:'truco', level: pending.level + 1, by:'p' }; aiRespondTruco(pending.level); }
           else if (Input.keys['v'] && pending.kind === 'envido' && pending.level < 3) { Input.keys['v'] = false; pending = { kind:'envido', level: pending.level + 1, by:'p' }; aiRespondEnvido(pending.level); }
-          return;                                            // hasta no responder, no se juega carta
+          return;
         }
-        // cantos del jugador
         if (Input.keys['v'] && round === 0 && !envidoDone && !tableP && !pending) { Input.keys['v'] = false; pending = { kind:'envido', level:1, by:'p' }; aiRespondEnvido(1); return; }
         if (Input.keys['t'] && trucoLevel < 3 && !pending) { Input.keys['t'] = false; pending = { kind:'truco', level: trucoLevel + 1, by:'p' }; aiRespondTruco(trucoLevel + 1); return; }
-        // jugar carta (solo sin canto pendiente)
         if (!pending) for (let i = 0; i < 3; i++) {
           if (Input.keys[String(i + 1)] && !pHand[i].used) {
             pHand[i].used = true; tableP = pHand[i].c;
@@ -406,17 +425,29 @@ const Arcade = (() => {
           ctx.fillStyle = s.c; ctx.font = 'bold 22px monospace'; ctx.textAlign = 'center';
           ctx.fillText(c.n, cx, cy-2); ctx.font = 'bold 14px monospace'; ctx.fillText(s.l, cx, cy+18);
         }
+        // pantalla de elección de formato
+        if (phase === 'choose') {
+          ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.textAlign = 'center';
+          ctx.fillText(T('arc.truco.askTitle'), W/2, H/2 - 24);
+          ctx.fillStyle = '#cfe8c0'; ctx.font = '14px monospace';
+          ctx.fillText(T('arc.truco.opt3'), W/2, H/2 + 10);
+          ctx.fillText(T('arc.truco.opt15'), W/2, H/2 + 34);
+          header(ctx, W, 'TRUCO', T('arc.truco.controls'));
+          return;
+        }
         if (tableA) card(W/2, H/2-50, tableA, phase==='reveal'||over>0);
         if (tableP) card(W/2, H/2+50, tableP, true);
         for (let i = 0; i < 3; i++) {
           const cx = W/2 - 70 + i*70, cy = H - 60;
+          if (!pHand[i]) continue;
           if (pHand[i].used) { ctx.globalAlpha = 0.25; card(cx, cy, pHand[i].c, true); ctx.globalAlpha = 1; }
           else { card(cx, cy, pHand[i].c, true); ctx.fillStyle = '#ffe14d'; ctx.font = 'bold 11px monospace'; ctx.textAlign='center'; ctx.fillText('['+(i+1)+']', cx, cy+46); }
         }
         ctx.fillStyle = '#cfe8c0'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
-        ctx.fillText(T('arc.truco.score', { p: pPts, ai: aiPts }), W/2, 64);
-        ctx.fillStyle = '#ffd54f'; ctx.font = '13px monospace'; ctx.fillText(note, W/2, 92);
-        if (pending && pending.by === 'a') { ctx.fillStyle = '#ff9ed0'; ctx.font = 'bold 13px monospace'; ctx.fillText(T('arc.truco.respond'), W/2, 112); }
+        ctx.fillText(T('arc.truco.score', { p: pScore, ai: aiScore }) + '  ' + T('arc.truco.fmt' + (format === 'a15' ? '15' : '3')), W/2, 60);
+        ctx.fillStyle = '#9fd3ff'; ctx.font = '11px monospace'; ctx.fillText(T('arc.truco.dealPts', { p: pPts, ai: aiPts }), W/2, 78);
+        ctx.fillStyle = '#ffd54f'; ctx.font = '13px monospace'; ctx.fillText(note, W/2, 100);
+        if (pending && pending.by === 'a') { ctx.fillStyle = '#ff9ed0'; ctx.font = 'bold 13px monospace'; ctx.fillText(T('arc.truco.respond'), W/2, 118); }
         header(ctx, W, 'TRUCO', T('arc.truco.controls'));
         if (over > 0) banner(ctx, W, H, win ? T('arc.win') : T('arc.lose'), win ? '#7CFC00' : '#ff5252');
       },
