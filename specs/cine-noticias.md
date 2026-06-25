@@ -1,12 +1,15 @@
 # SDD — El CINE de noticias: pantalla con news capturadas por IA + el linyera que te manda y te corrobora
 
-- **Estado:** **Implementado** (F1 banco+cine, F2 quest, F3 7 pisos + TTS + arte propio — todo en prod 2026-06-25,
-  `cache v124` / `proxy 0.1.23`). **F4 (captura en NPU) NO se hizo** y queda descartado: la NPU alucina + es lenta;
-  la captura corre en `gemma4-paid` (ver §3.1). Este spec ya documenta la **intención realizada**, no un plan.
-- **Implementación:** banco en `ai-proxy/server.js` (`GET/POST /noticias`), fetch en `ai-proxy/gen-noticias.mjs`
-  (cron `cronworkflow-noticias.yaml`), cliente `js/noticias.js` (→ `window.NOTICIAS`), edificio+pisos en
-  `js/level.js`, lógica de pantalla/quest en `js/game.js` (`cineTopicsFor`/`pickNoticia`/`drawCineScreen`/`newsQuest`),
-  arte en `js/art.js` (`BUILDINGS.cine`).
+- **Estado:** **Implementado** (F1 banco+cine, F2 quest, F3 7 pisos + TTS + arte, **F5 archivo de 7 días + el GUARDA
+  con regateo** — todo en prod 2026-06-25, `cache v129` / `proxy 0.1.27`). **F4 (captura en NPU) NO se hizo** y queda
+  descartado: la NPU alucina + es lenta; la captura corre en `gemma4-paid` (ver §3.1). Este spec documenta la
+  **intención realizada**, no un plan.
+- **Implementación:** banco+archivo en `ai-proxy/server.js` (`GET/POST /noticias` con `?day=`/persistencia PVC),
+  fetch en `ai-proxy/gen-noticias.mjs` (cron `cronworkflow-noticias.yaml`), cliente `js/noticias.js`
+  (→ `window.NOTICIAS` + `window.NOTI_DIAS` + `window.fetchNoticiasDay`), edificio+pisos+guarda en `js/level.js`,
+  lógica de pantalla/quest/guarda en `js/game.js` (`cineTopicsFor`/`pickNoticias`/`drawCineScreen`/`newsQuest`/
+  `openGuarda`/`guardaRegatear`), arte en `js/art.js` (`BUILDINGS.cine`). TTS con fallback al server (espeak-ng) en
+  `js/mensajero.js` (ver §3.4).
 - **Relacionado:** [`modelo-de-entidades.md`](modelo-de-entidades.md) (el cine es un **edificio data-driven** + la
   pantalla un `sign`; el loop es un **quest** §6.95), [`carteles-ia.md`](carteles-ia.md) (carteles inteligentes
   NPU), [`openrouter-dinamico.md`](openrouter-dinamico.md) (patrón cron→banco, como `/novedades`),
@@ -127,11 +130,15 @@ Lista real en `gen-noticias.mjs` (`NEWS_TOPICS` env, ampliable). **15 topics**, 
   lectura. `pickNoticia(name)` elige al azar entre las noticias cuyos topics matchean el piso (siembra por visita).
 
 ### 3.4 La pantalla (cómo muestra la noticia)
-- `js/noticias.js` trae `GET /noticias` a `window.NOTICIAS` al cargar. Al entrar a un piso, `pickNoticia` elige
-  una noticia del banco filtrada por los topics del piso (semilla por visita) → `cineNoticia`. El jugador VE el
-  titular completo (y el `answer` queda implícito = lo que después le dice al linyera).
-- **TTS = ACCIÓN, no automático.** El dueño probó la versión auto-al-sentarse y el sonido "se escuchaba terrible"
-  → ahora la lectura por voz es la tecla **[R]** (`Mensajero.hablar`), opt-in. No se dispara solo.
+- `js/noticias.js` trae `GET /noticias` a `window.NOTICIAS` al cargar. Al entrar a un piso, `pickNoticias` toma
+  **varias** noticias del banco filtradas por los topics del piso → `cineNoticias` (1 sola → texto completo; varias
+  → 2 líneas c/u). Se **leen de un vistazo** sin depender del audio (igual en celular, mismo canvas).
+- **TTS = ACCIÓN, no automático.** Tecla **[R]** (`cineRead` → `Mensajero.hablar`), lee todas, opt-in. No se dispara
+  solo (la versión auto sonaba mal).
+- **TTS con fallback al SERVIDOR (clave en Linux):** si el navegador **no tiene voz** (`speechSynthesis` vacío —
+  típico en Chromium/Linux, donde la música WebAudio sí suena), `Mensajero.hablar` cae a **`GET /tts?text=…&lang=es|en`**
+  del proxy (**`espeak-ng`** → WAV) y lo reproduce por WebAudio. Respeta el acento (`es-419` / `en-us`). Así lee en
+  cualquier navegador sin tocar el sistema.
 
 ### 3.5 El quest del linyera (es un `quest` del modelo, §6.95)
 - El linyera-oráculo, al chatear, **tira el pedido**: elige un topic del banco y te manda al cine (`interact`
@@ -139,6 +146,25 @@ Lista real en `gen-noticias.mjs` (`NEWS_TOPICS` env, ampliable). **15 topics**, 
 - **Estado del mandado** (runtime, por sesión): `{ topic, asked:true, reported:false }`.
 - Al volver y reportar (chat), se **verifica** (§4). Es un quest **repetible** (`scope:run`, recompensa chica)
   → da rejugabilidad ("cada vez algo distinto").
+
+### 3.6 El ARCHIVO de 7 días + el GUARDA (funciones viejas por caramelos, con regateo) — F5
+La gracia (idea del dueño 2026-06-25): el cine no solo pasa la función de hoy; **guarda hasta 7 días** y un
+**guarda** en la entrada te **vende funciones viejas** por caramelos. Cierra el loop económico: los caramelos del
+quest del oráculo (§4) se **gastan** acá. 🍬↔📼
+
+- **Backend — archivo acotado (no "basura forever"):** el proxy guarda `NOTI_DAYS = { 'YYYY-MM-DD': {noticias, ts} }`
+  persistido en el PVC (`/data/noticias.json`, ver §3.1). El POST del cron **archiva el día de hoy** y **poda** a los
+  **7 más recientes** (`notiPrune`): entra el nuevo, se cae el más viejo. `GET /noticias` = día actual + `dias`
+  (lista); `GET /noticias?day=YYYY-MM-DD` = esa función vieja. (El POST acepta un `day` opcional para sembrar
+  pruebas; GEN_TOKEN.)
+- **El guarda (NPC, `js/level.js` cine1):** `action:'guarda'`. Al interactuar abre un **menú** (overlay
+  `#guardamenu`, `openGuarda`) con los días viejos disponibles y su precio. Elegís (no cicla).
+- **Precio:** la **1ª función vieja del run es GRATIS** (`guardaFreeUsed`); después el **precio base = días para
+  atrás** (más viejo = más caro). **Regateo** (`guardaRegatear`, botón 🤝): baja de a 1 caramelo hasta un **piso**
+  (`HAGGLE_FLOOR = 2`), así las muy viejas (caras) convergen al mismo precio que las otras. El guarda contesta en
+  personaje. El regateo y la función vieja se **resetean al salir del cine** y por partida.
+- **En pantalla:** al comprar, `cineArchive = {day, noticias}` y los pisos muestran ESA jornada; el header pasa a
+  **📼 FUNCIÓN VIEJA DD/MM**. `pickNoticias` usa `cineArchive` si está activo, si no el día de hoy.
 
 ## 4. Verificación (anti-mentira) + economía — **implementado en `js/game.js`**
 - **La verdad está en el banco** (`window.NOTICIAS`, que vino del server). El jugador reporta su respuesta **por el
@@ -179,6 +205,9 @@ Lista real en `gen-noticias.mjs` (`NEWS_TOPICS` env, ampliable). **15 topics**, 
    `gemma4-paid` (fiel, barato a 1×/día). **Pendiente real:** precios de `consolas-retro` con monto exacto
    (eBay/Marktplaats necesitan key; ML da 403), y resultados de fútbol exactos vía `NEWS_SPORTS` (opt-in, hecho
    pero no activado).
+5. **F5 — archivo de 7 días + el GUARDA** ✅ (`v127`-`v129`, ver §3.6): persistencia por día en el PVC, `GET
+   /noticias?day=`, NPC guarda con menú de elección, 1ª gratis, más viejo más caro, **regateo** hasta piso. Más el
+   **TTS con fallback al server** (espeak-ng, §3.4, `v126`) para que lea aunque el navegador no tenga voz.
 
 ## 8. Decisiones tomadas (cerradas en la implementación)
 - **Fuente por topic:** Google News RSS (público, sin key, cubre casi todo) + CoinGecko (crypto) + OpenRouter API

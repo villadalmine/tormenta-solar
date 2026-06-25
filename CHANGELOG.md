@@ -29,6 +29,14 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [docs] — 2026-06-25 — 📐 `cine-noticias.md` al día (archivo 7 días + guarda + regateo + TTS server)
+
+Sincroniza el SDD con lo implementado en v124→v129: §3.6 nueva (archivo de 7 días en PVC + el guarda con menú,
+1ª gratis, más viejo más caro, regateo hasta piso), §3.4 actualizada (varias noticias en pantalla + TTS con
+fallback al server espeak-ng), Estado y Fases con F5. Sin cambios de juego.
+
+---
+
 ## [v129] — 2026-06-25 — 🤝 El Guarda: REGATEÁS el precio de las funciones viejas
 
 Ahora a cada función vieja le podés **regatear** (botón 🤝): el precio baja de a 1 caramelo hasta un **piso** (2 🍬).
