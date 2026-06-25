@@ -21,6 +21,19 @@ const AI = (() => {
   let lastSource = 'local';   // de dónde salió la última respuesta: 'proxy' | 'byok' | 'local'
   let lastTimedOut = false;   // la última vez se cortó por TIMEOUT (la "tormenta" saturó el modelo)
   let lastCapped = false;     // el proxy cortó por CUPO del día (capped) → ofrecer BYOK/suscripción
+  let lastByokLimit = null;   // la key del jugador (BYOK) pegó contra SU límite de cuenta → {perDay, resetMs}
+  // Analiza el body de un 429 de OpenRouter: ¿es límite de CUENTA (free-models-per-day/min, compartido por
+  // TODOS los free) o del modelo puntual? Sirve para avisarle al jugador que el límite fue de SU key.
+  function parse429(text) {
+    try {
+      const perDay = /free-models-per-day/i.test(text), perMin = /free-models-per-min/i.test(text);
+      const m = text.match(/X-RateLimit-Reset"?\s*:\s*"?(\d{12,})/i);
+      let resetMs = m ? +m[1] : 0;
+      if (perDay && (!resetMs || resetMs < Date.now())) resetMs = Date.now() + 30 * 60000;
+      else if (perMin && !resetMs) resetMs = Date.now() + 90000;
+      return { account: perDay || perMin, perDay, resetMs };
+    } catch (e) { return { account: false, perDay: false, resetMs: 0 }; }
+  }
   // Pool de saturación FRESCO desde el proxy (lo regenera un CronJob 1×/día). Merge sobre el seed horneado
   // (js/linyera-pool.js): si el proxy trae ≥4 frases para una persona, gana. Best-effort, sin bloquear.
   if (PROXY && typeof fetch === 'function' && typeof window !== 'undefined') {
@@ -273,7 +286,13 @@ const AI = (() => {
           body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 220 }),
         });
         clearTimeout(t);
-        if (r.status === 429 || r.status === 404) { lastStatus = r.status; if (model === _good) _good = null; continue; }
+        if (r.status === 429) {                                  // límite: ¿de TU cuenta (free-models-per-day) o del modelo?
+          lastStatus = 429; if (model === _good) _good = null;
+          const info = parse429(await r.text().catch(() => ''));
+          if (info.account) { lastByokLimit = { perDay: info.perDay, resetMs: info.resetMs }; break; }  // tu cuota free se agotó → no probar otro free
+          continue;                                              // 429 del modelo puntual → probar el siguiente
+        }
+        if (r.status === 404) { lastStatus = r.status; if (model === _good) _good = null; continue; }
         if (!r.ok) { lastStatus = r.status; console.warn('[ai] OpenRouter', r.status, (await r.text().catch(() => '')).slice(0, 160)); break; }
         const d = await r.json(); const reply = d.choices?.[0]?.message?.content;
         if (reply) { _good = model; return reply.trim().slice(0, 1200); }   // recordamos el que anduvo (cap amplio: no cortar a la mitad)
@@ -304,7 +323,7 @@ const AI = (() => {
   // PRIORIDAD: 1) proxy del dev (vos pagás) → 2) key del jugador (BYOK) → 3) líneas LOCALES
   // (las del script + hardcodeadas). Si la IA tarda/falla, cae a las locales y no te hace esperar más.
   async function chat(npc, message, history = [], grounding) {
-    lastTimedOut = false; lastFallback = false; lastCapped = false;
+    lastTimedOut = false; lastFallback = false; lastCapped = false; lastByokLimit = null;
     if (typeof fetch === 'function') {
       if (PROXY) { try { const r = await viaProxy(npc, message, history, grounding); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
       const key = playerKey();
@@ -348,5 +367,5 @@ const AI = (() => {
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, setStormed, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, setStormed, get online() { return mode() !== 'offline'; } };
 })();

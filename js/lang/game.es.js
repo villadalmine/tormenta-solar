@@ -92,6 +92,8 @@
     'g.chat.error': '“...se me cruzó un cable, pibe. Repetí.”',
     'g.chat.localWarn': '(la IA no respondió con tu key — líneas locales. Abrí la consola F12 para ver el error: 429/404/CORS, etc.)',
     'g.chat.freeUpsell': '💸 (Se cortó: vas en el plan FREE y el sol lo satura. El día que haya plan pago, el linyera no se cuelga.) 😅',
+    'g.chat.byokLimitDay': '🔑 (Fue el límite FREE diario de TU key de OpenRouter: agotaste los modelos gratis de tu cuenta. Se resetea en ~{h}h, o metele crédito para subir el tope.) ',
+    'g.chat.byokLimitMin': '🔑 (Pegaste el límite por minuto de TU key de OpenRouter — esperá un cachito y dale de nuevo.) ',
     'g.chat.youPrefix': 'Vos: ',
     'g.oraculo.greet': '“Eh, pibe... yo veo el quilombo entero desde acá arriba. Preguntame, que algo sé.” 🧙',
 

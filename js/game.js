@@ -507,9 +507,15 @@
     if (ground && typeof AI !== 'undefined' && AI.lastSource() === 'local') chatLine('npc', '💡 ' + ground.text);
     // SATURACIÓN del free (la línea en personaje ya la dio el pool): cada tanto, avisá que es por el plan free
     // (upsell suave; sin spamear: 1ª vez de la sesión y luego cada 4).
+    const byokLim = (typeof AI !== 'undefined' && AI.lastByokLimit) ? AI.lastByokLimit() : null;
     if (typeof AI !== 'undefined' && AI.lastTimedOut && AI.lastTimedOut()) {
       chatFallbacks++;
       if (chatFallbacks === 1 || chatFallbacks % 4 === 0) chatLine('sys', T('g.chat.freeUpsell'));
+    }
+    // TU key de OpenRouter pegó contra TU propio límite de cuenta (free-models-per-day/min) → avisar con el reset
+    else if (byokLim) {
+      const hs = Math.max(1, Math.round((byokLim.resetMs - Date.now()) / 3600000));
+      chatLine('sys', T(byokLim.perDay ? 'g.chat.byokLimitDay' : 'g.chat.byokLimitMin', { h: hs }));
     }
     // si el jugador tiene SU key y aun así salió local (offline real, no saturación) → avisar
     else if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) chatLine('sys', T('g.chat.localWarn'));
