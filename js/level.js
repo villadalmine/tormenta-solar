@@ -523,14 +523,28 @@ const Level = (() => {
       pickups: [{t:'coins',x:7,amount:5}],
     }));
 
-    // CINE de noticias (cine-noticias.md F1b): butacas + pantalla (la pantalla la dibuja game.js con el banco
-    // /noticias). theme 'arcade' = reusa bg/tiles oscuros; se detecta como cine por el nombre.
-    const cineIdx = rooms.push(makeRoom({
-      name: 'Cine Lavalle', theme: 'arcade', light: 0.5, w: 22,
-      doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }],
-      decor: [{t:'sofa',x:6},{t:'sofa',x:9},{t:'sofa',x:12},{t:'sofa',x:15},{t:'sofa',x:7.5},{t:'sofa',x:10.5},{t:'sofa',x:13.5},
-              {t:'cartel',x:3},{t:'cartel',x:19}],   // carteles de propaganda a los costados
-      npcs: [{ name:'Espectador', sprite:'civil2', x:18, dialog:'“Shhh, callate que estoy mirando las noticias, pibe.” 🍿' }],
+    // CINE de noticias MULTI-PISO (cine-noticias.md F3): 3 salas por categoría (Deportes/Mundo/Tech), cada una
+    // con su pantalla (la dibuja game.js filtrando /noticias por el topic del piso) + butacas + propaganda.
+    // theme 'arcade' = bg/tiles oscuros; se detecta como cine por el nombre ("Cine ...").
+    const _seats = [{t:'sofa',x:6},{t:'sofa',x:9},{t:'sofa',x:12},{t:'sofa',x:15},{t:'sofa',x:7.5},{t:'sofa',x:10.5},{t:'sofa',x:13.5}];
+    const _ads = [{t:'cartel',x:3},{t:'cartel',x:19}];   // carteles de propaganda a los costados
+    const cine1 = rooms.push(makeRoom({
+      name: 'Cine Lavalle — Deportes', theme: 'arcade', light: 0.5, w: 22,
+      doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Mundo', x:20, inward:-1 }],
+      decor: [..._seats, ..._ads],
+      npcs: [{ name:'Espectador', sprite:'civil2', x:17, dialog:'“Shhh, callate que estoy mirando el fútbol, pibe.” 🍿' }],
+    })) - 1;
+    const cine2 = rooms.push(makeRoom({
+      name: 'Cine Lavalle — Mundo', theme: 'arcade', light: 0.5, w: 22,
+      doors: [{ id:'down', art:'doorUp', label:'bajar: Deportes', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Tecno', x:20, inward:-1 }],
+      decor: [..._seats, ..._ads],
+      npcs: [{ name:'Espectadora', sprite:'mujer', x:17, dialog:'“Qué barbaridad cómo está el mundo, nene.” 📰' }],
+    })) - 1;
+    const cine3 = rooms.push(makeRoom({
+      name: 'Cine Lavalle — Tecno', theme: 'arcade', light: 0.5, w: 22,
+      doors: [{ id:'down', art:'doorUp', label:'bajar: Mundo', x:2, inward:1 }],
+      decor: [..._seats, ..._ads],
+      npcs: [{ name:'Gamer', sprite:'civil4', x:17, dialog:'“¿Viste lo del GTA? Una locura, maestro.” 🎮' }],
     })) - 1;
 
     function wire(ai, ad, bi, bd) {
@@ -544,7 +558,9 @@ const Level = (() => {
     wire(0, 'arcade', 4, 'out');
     wire(0, 'choris', 5, 'out');
     wire(0, 'galeria', 6, 'up');
-    wire(0, 'cine', cineIdx, 'back');
+    wire(0, 'cine', cine1, 'back');     // CINE multi-piso: calle → Deportes → Mundo → Tecno
+    wire(cine1, 'up', cine2, 'down');
+    wire(cine2, 'up', cine3, 'down');
     wire(6, 'down', 7, 'up');
     wire(7, 'down', 8, 'up');
     wire(4, 'secret', 9, 'back');

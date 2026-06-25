@@ -33,6 +33,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v123] — 2026-06-25 — 🎬 Cine MULTI-PISO (F3): Deportes / Mundo / Tecno + propaganda
+
+El cine pasa de 1 sala a **3 pisos por categoría**, conectados por escaleras (como la galería):
+- **Deportes** (mundial, primera-b, bochas) → **Mundo** (mundo, guerra, argentina, países-bajos, árabe) →
+  **Tecno** (videojuegos, ia). Cada piso tiene su **pantalla** (filtra `/noticias` por su categoría), butacas,
+  un espectador temático y **carteles de propaganda**.
+- La pantalla muestra **🎬 CINE · CATEGORÍA** + el titular. El **quest del linyera** ahora te manda al piso del
+  topic (vas a Deportes a buscar el fútbol, a Mundo la guerra, etc.). Data-driven (paridad 41 salas).
+
+---
+
 ## [v122] — 2026-06-25 — 🎬 Cine: ajustes (fuera de la cola, fachada CINE, pantalla más grande, [R] leer)
 
 Feedback de jugarlo:

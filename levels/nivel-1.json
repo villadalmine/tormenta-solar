@@ -183,7 +183,7 @@
           "label": "entrar al CINE de noticias",
           "inward": 1,
           "link": {
-            "to": "cine-lavalle",
+            "to": "cine-lavalle-deportes",
             "at": {
               "x": 3.5,
               "y": 12
@@ -6076,14 +6076,14 @@
       ]
     },
     {
-      "id": "cine-lavalle",
-      "nombre": "Cine Lavalle",
+      "id": "cine-lavalle-deportes",
+      "nombre": "Cine Lavalle — Deportes",
       "theme": "arcade",
       "w": 22,
       "light": 0.5,
       "entities": [
         {
-          "id": "cine-lavalle/door-back",
+          "id": "cine-lavalle-deportes/door-back",
           "tipo": "door",
           "render": {
             "type": "doorUp"
@@ -6100,19 +6100,36 @@
           }
         },
         {
-          "id": "cine-lavalle/npc0",
+          "id": "cine-lavalle-deportes/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: Mundo",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-mundo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-deportes/npc0",
           "tipo": "npc",
           "render": {
             "sprite": "civil2"
           },
-          "x": 18,
+          "x": 17,
           "name": "Espectador",
           "dialogue": {
-            "text": "“Shhh, callate que estoy mirando las noticias, pibe.” 🍿"
+            "text": "“Shhh, callate que estoy mirando el fútbol, pibe.” 🍿"
           }
         },
         {
-          "id": "cine-lavalle/decor1",
+          "id": "cine-lavalle-deportes/decor1",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6120,7 +6137,7 @@
           "x": 6
         },
         {
-          "id": "cine-lavalle/decor2",
+          "id": "cine-lavalle-deportes/decor2",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6128,7 +6145,7 @@
           "x": 9
         },
         {
-          "id": "cine-lavalle/decor3",
+          "id": "cine-lavalle-deportes/decor3",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6136,7 +6153,7 @@
           "x": 12
         },
         {
-          "id": "cine-lavalle/decor4",
+          "id": "cine-lavalle-deportes/decor4",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6144,7 +6161,7 @@
           "x": 15
         },
         {
-          "id": "cine-lavalle/decor5",
+          "id": "cine-lavalle-deportes/decor5",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6152,7 +6169,7 @@
           "x": 7.5
         },
         {
-          "id": "cine-lavalle/decor6",
+          "id": "cine-lavalle-deportes/decor6",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6160,7 +6177,7 @@
           "x": 10.5
         },
         {
-          "id": "cine-lavalle/decor7",
+          "id": "cine-lavalle-deportes/decor7",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6168,7 +6185,7 @@
           "x": 13.5
         },
         {
-          "id": "cine-lavalle/decor8",
+          "id": "cine-lavalle-deportes/decor8",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -6176,7 +6193,244 @@
           "x": 3
         },
         {
-          "id": "cine-lavalle/decor9",
+          "id": "cine-lavalle-deportes/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 19
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-mundo",
+      "nombre": "Cine Lavalle — Mundo",
+      "theme": "arcade",
+      "w": 22,
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-mundo/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: Deportes",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-deportes",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-mundo/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: Tecno",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-tecno",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-mundo/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "mujer"
+          },
+          "x": 17,
+          "name": "Espectadora",
+          "dialogue": {
+            "text": "“Qué barbaridad cómo está el mundo, nene.” 📰"
+          }
+        },
+        {
+          "id": "cine-lavalle-mundo/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-mundo/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle-mundo/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 12
+        },
+        {
+          "id": "cine-lavalle-mundo/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 15
+        },
+        {
+          "id": "cine-lavalle-mundo/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 7.5
+        },
+        {
+          "id": "cine-lavalle-mundo/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-mundo/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-mundo/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 3
+        },
+        {
+          "id": "cine-lavalle-mundo/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 19
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-tecno",
+      "nombre": "Cine Lavalle — Tecno",
+      "theme": "arcade",
+      "w": 22,
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-tecno/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: Mundo",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-mundo",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-tecno/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "civil4"
+          },
+          "x": 17,
+          "name": "Gamer",
+          "dialogue": {
+            "text": "“¿Viste lo del GTA? Una locura, maestro.” 🎮"
+          }
+        },
+        {
+          "id": "cine-lavalle-tecno/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-tecno/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle-tecno/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 12
+        },
+        {
+          "id": "cine-lavalle-tecno/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 15
+        },
+        {
+          "id": "cine-lavalle-tecno/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 7.5
+        },
+        {
+          "id": "cine-lavalle-tecno/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-tecno/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-tecno/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 3
+        },
+        {
+          "id": "cine-lavalle-tecno/decor9",
           "tipo": "decor",
           "render": {
             "type": "cartel"
