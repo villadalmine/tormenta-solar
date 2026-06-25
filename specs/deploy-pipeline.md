@@ -35,7 +35,7 @@ WorkflowTemplate "tormenta-deploy" (params: component=proxy|web, tag)
 
 ## 3. Fases
 
-1. **F1** `values-prod.yaml` (committeado, genToken via secret) + `helm upgrade -f` a mano → **ya mata el gotcha**.
+1. **F1 HECHO** `ai-proxy/chart/values-prod.yaml` (committeado) + `helm upgrade -f values-prod.yaml --set image.tag=X --set linyeraPool.genToken=Y` (sin `--reuse-values`) → **gotcha muerto**. genToken via secret = mejora futura.
 2. **F2** WorkflowTemplate `tormenta-deploy` (build→upgrade→verify) + RBAC + imagen helm/kubectl. Disparo manual.
 3. **F3** Argo Events (webhook GitHub) → deploy automático on-push. Opcional: build solo si cambió el componente.
 

@@ -1,0 +1,55 @@
+# values-prod.yaml — valores de PRODUCCIÓN del proxy (deploy-pipeline.md F1).
+# Deploy SIEMPRE así (sin --reuse-values, que dropea defaults nuevos del chart y nos rompió toda la sesión):
+#   helm upgrade tormenta-ai ai-proxy/chart -n ai -f ai-proxy/chart/values-prod.yaml \
+#     --set image.tag=<TAG> --set linyeraPool.genToken=<TOKEN>
+# (image.tag varía por deploy; genToken es secreto → NO se commitea, va por --set o un Secret más adelante.)
+fullnameOverride: tormenta-ai-proxy
+
+image:
+  repository: registry.registry:5000/ai/tormenta-ai-proxy
+  tag: ""                          # SIEMPRE pasar --set image.tag=<X> en el deploy
+
+# key de LiteLLM (secret ya existente en el cluster)
+auth:
+  existingSecret: tormenta-ai-key
+  existingSecretKey: apiKey
+
+upstream:
+  model: gemma4-free,gpt-oss-free   # cadena del chat (gpt-oss-free 2º; el bench manda)
+
+# expone el proxy por el cluster-gateway compartido (SNI passthrough desde el G4) con TLS LE prod
+gateway:
+  enabled: true
+  ensureListener:
+    enabled: true
+  host: llm-tormenta-solar.cybercirujas.club
+  tls:
+    enabled: true
+    issuer: letsencrypt-prod
+
+# métricas → Prometheus (label release para que lo scrapee kube-prometheus-stack) + dashboards Grafana
+metrics:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /metrics
+    labels:
+      release: kube-prometheus-stack
+  grafanaDashboard:
+    enabled: true
+
+# crons Argo: pool del linyera (1×/día) + precios OpenRouter (cada 6h). genToken va por --set/secret.
+linyeraPool:
+  cronjob:
+    enabled: true
+    schedule: "0 5 * * *"
+    model: gemma4-free
+    n: 30
+  # genToken: <NO commitear — --set linyeraPool.genToken=...>
+
+# el registry interno solo resuelve en nodos rk1
+nodeSelector:
+  kubernetes.io/hostname: srv-rk1-nvme-01
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
