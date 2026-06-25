@@ -43,6 +43,7 @@
   const elChatLog = document.getElementById('chat-log');
   const elChatInput = document.getElementById('chat-input');
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
+  let newsQuest = null;   // F2 cine: {topic, answer} cuando el linyera te mandó a buscar noticias (efímero, no se guarda)
   let sessStart = 0, sessChats = 0, sessTrucoW = 0, sessTrucoL = 0;   // métricas de "Tu partida" (in-game, client-side)
   // memoria por IDENTIDAD (clave = persona): cada linyera/NPC RECUERDA lo charlado entre aperturas y entre
   // sesiones (persiste en el guardado). Es el `agent.memory` del modelo v2 (ver modelo-de-entidades §6½).
@@ -476,6 +477,9 @@
   }
   // ¿es el linyera filósofo (el guía/oráculo)?
   const isOraculo = n => !!(n && (n.oracle || n.persona === 'filosofo'));   // los linyeras ilustres son oráculos (dan pistas)
+  // F2 cine: verificá lo que el jugador reporta vs la noticia real (palabras significativas compartidas).
+  const _nw = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+  function newsMatch(report, answer) { const a = new Set(_nw(answer)); const r = _nw(report); return { shared: r.filter(w => a.has(w)).length, words: r.length }; }
   function getHint(level) {
     if (typeof HintEngine === 'undefined') return null;
     return HintEngine.next(historiaState(), { at: currentAt(), insistencia: level });
@@ -508,6 +512,13 @@
     const msg = (elChatInput.value || '').trim();
     if (!msg) return;
     elChatInput.value = ''; chatLine('you', msg);
+    // F2 CINE: si el linyera te mandó a buscar una noticia, tu mensaje es el REPORTE → lo corrobora.
+    if (newsQuest && isOraculo(chatNpc)) {
+      const m = newsMatch(msg, newsQuest.answer);
+      if (m.shared >= 1) { player.caramelos = (player.caramelos || 0) + 3; chatLine('npc', T('g.cine.questOk')); newsQuest = null; return; }
+      if (m.words >= 2) { const lost = Math.min(player.coins, 10); player.coins -= lost; chatLine('npc', T('g.cine.questLie', { n: lost })); newsQuest = null; return; }
+      // muy vago → no penaliza, sigue esperando el reporte (cae al chat normal abajo)
+    }
     chatHistory.push({ role: 'user', content: msg });
     chatBusy = true;
     const thinking = chatLine('sys', '...');
@@ -539,6 +550,12 @@
     }
     // si el jugador tiene SU key y aun así salió local (offline real, no saturación) → avisar
     else if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) chatLine('sys', T('g.chat.localWarn'));
+    // F2 CINE: el linyera (su IA rápida ve los carteles NPU) a veces te manda al cine a buscar un topic.
+    if (!newsQuest && isOraculo(chatNpc) && (typeof window !== 'undefined' && (window.NOTICIAS || []).length) && Math.random() < 0.35) {
+      const ns = window.NOTICIAS, pick = ns[(Math.random() * ns.length) | 0];
+      newsQuest = { topic: pick.topic, answer: pick.answer };
+      chatLine('npc', T('g.cine.questAsk', { topic: pick.topic }));
+    }
     chatBusy = false;
     if (elChatInput) elChatInput.focus();
   }

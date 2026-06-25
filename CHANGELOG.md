@@ -33,6 +33,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v120] — 2026-06-25 — 🗞️ El quest del linyera: mandados de noticias + corroboración (cine F2)
+
+Cierra el loop del cine (`specs/cine-noticias.md` F2): el linyera te manda a buscar data y te la **corrobora**.
+- Al chatear con un **linyera-oráculo**, a veces (su "IA rápida vio el cartel del cine") te **pide un topic**:
+  "andá al cine y averiguá qué decían de {topic}, pero no me mientas".
+- Vas al cine, leés, volvés y **se lo contás por el chat**. El juego **verifica** tu reporte contra el `answer`
+  REAL del banco (palabras significativas compartidas, `window.NOTICIAS`):
+  - **Acertás** → *"no me mentís, la IA me lo confirmó"* → **+3 caramelos**.
+  - **Mentís** (inventás) → *"hackié el cartel y NO es eso, chanta"* → **−10 monedas**.
+  - Vago/corto → te re-pregunta, sin penalizar.
+- Todo client-side (el banco tiene la verdad), efímero (no se guarda). i18n ES/EN. **El cine queda COMPLETO** (F1+F2).
+
+---
+
 ## [v119] — 2026-06-25 — 🎬 El CINE de noticias (F1b in-game)
 
 Segunda mitad del cine (`specs/cine-noticias.md` F1): el **edificio jugable** que muestra el banco `/noticias`.

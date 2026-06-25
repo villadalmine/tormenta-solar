@@ -49,6 +49,22 @@ X?") y, cuando volvés y se la decís, te la **corroboran** (hackean a la IA): s
 - **Hardware (carteles-ia.md):** si se usa el resumen, corre en la **NPU** (rockchip) sobre el texto que **ya
   trajo el cron**; el chat del linyera sigue en la **nube rápida**. Pero el **fetch siempre es del cron** (code).
 
+#### Validación de modelos para la captura (2026-06-25) — tabla comparativa
+Mismo titular con dato específico (para cazar alucinaciones). **Para noticias la FIDELIDAD es no-negociable**
+(el linyera las verifica → un modelo que inventa rompe la mecánica y es desinformación):
+
+| Modelo | ¿Anda? | Latencia | ¿Fiel? | Veredicto |
+|---|---|---|---|---|
+| GPU `local-gpu` (gemma2:2b) | ✅ | 2.3s | ❌ **inventó "10 veces seguidas"** | descartar (alucina) |
+| NPU `rk1-npu-local` | ❌ timeout | — | — | caído |
+| **`gemma4-paid`** | ✅ | **0.9s** | ✅ | ⭐ **elegido** (rápido+fiel+barato) |
+| `claude-sonnet` | ✅ | 1.6s | ✅ | bueno pero ~40× más caro |
+| `gpt-4o` | ✅ | 6.0s | ✅ | lento+caro |
+| `deepseek-pro` | ⚠️ | 1.2s | content vacío (reasoning) | inservible |
+
+> Aunque el dueño prefería GPU/NPU (gratis), para NOTICIAS **no sirven** (GPU inventa, NPU caída) → se usa
+> `gemma4-paid` (es "y sino el pago"). Corre 1×/día → costo despreciable. El `answer` queda CRUDO igual.
+
 ### 3.2 Las fuentes (topics — lista configurable, data del cron)
 Arranque sugerido (cada uno con su fetcher): **mundial** (resultados), **mundo**, **videojuegos**, **guerra**,
 **argentina**, **paises-bajos**, **arabe**, **primera-b** (fútbol AR), **bochas** (liga de algún país).
