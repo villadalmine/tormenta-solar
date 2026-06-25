@@ -35,6 +35,13 @@ function incChat(model, backend, outcome) {
   const k = `model="${model}",backend="${backend}",outcome="${outcome}"`;
   CHAT[k] = (CHAT[k] || 0) + 1;
 }
+// Intentos POR modelo de la cadena (llm-metrics F1): result ∈ ok|timeout|http_429|http_404|http_other|empty.
+// Así sabemos QUÉ free se está cayendo (antes los fallos iban a model="-").
+const ATTEMPT = {};
+function incAttempt(model, result) {
+  const k = `model="${model}",result="${result}"`;
+  ATTEMPT[k] = (ATTEMPT[k] || 0) + 1;
+}
 function obsLatency(model, backend, sec) {
   const k = `${model}|${backend}`;
   const h = LAT[k] || (LAT[k] = { c: new Array(LAT_BUCKETS.length).fill(0), inf: 0, sum: 0, n: 0 });
@@ -86,15 +93,16 @@ async function ask(messages) {
         body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 120 }),
       });
       clearTimeout(to);
-      if (r.status === 429 || r.status === 404) continue;   // saturado / no existe → próximo modelo
-      if (!r.ok) throw new Error('OpenRouter ' + r.status);
+      if (r.status === 429 || r.status === 404) { incAttempt(model, r.status === 429 ? 'http_429' : 'http_404'); continue; }   // saturado / no existe → próximo
+      if (!r.ok) { incAttempt(model, 'http_other'); throw new Error('OpenRouter ' + r.status); }
       const d = await r.json();
       const reply = d.choices?.[0]?.message?.content;
-      if (reply) return { reply: reply.trim(), model };       // ← qué modelo ganó la cadena
+      if (reply) { incAttempt(model, 'ok'); return { reply: reply.trim(), model }; }   // ← qué modelo ganó la cadena
+      incAttempt(model, 'empty');                            // 200 pero sin texto → próximo modelo
     } catch (e) {
       clearTimeout(to);
-      if (e.name === 'AbortError') { M.timeouts++; timedOut = true; continue; }  // este tardó → probá el siguiente
-      /* otro error → probá el siguiente modelo */
+      if (e.name === 'AbortError') { incAttempt(model, 'timeout'); M.timeouts++; timedOut = true; continue; }  // este tardó → probá el siguiente
+      /* otro error (ya contado http_other) → probá el siguiente modelo */
     }
   }
   const err = new Error(timedOut ? 'upstream timeout' : 'todos los modelos fallaron');
@@ -132,6 +140,11 @@ http.createServer((req, res) => {
       out += `tormenta_ai_chat_latency_seconds_sum{${lbl}} ${h.sum.toFixed(3)}\n`;
       out += `tormenta_ai_chat_latency_seconds_count{${lbl}} ${h.n}\n`;
     }
+    // intentos por modelo de la cadena (qué free se cae)
+    out += `# HELP tormenta_ai_model_attempts_total Intentos por modelo de la cadena y su resultado\n# TYPE tormenta_ai_model_attempts_total counter\n`;
+    const attKeys = Object.keys(ATTEMPT);
+    if (!attKeys.length) out += `tormenta_ai_model_attempts_total{model="-",result="none"} 0\n`;
+    for (const k of attKeys) out += `tormenta_ai_model_attempts_total{${k}} ${ATTEMPT[k]}\n`;
     // uso del JUEGO (engine v1/v2, storm, truco, death, win, error...)
     out += `# HELP tormenta_game_events_total Eventos de uso del juego (engine v1/v2 + funnel)\n# TYPE tormenta_game_events_total counter\n`;
     const gameKeys = Object.keys(GAME);

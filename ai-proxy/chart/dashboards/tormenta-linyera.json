@@ -55,6 +55,12 @@
       "type": "timeseries", "title": "Fallback lines (degradación)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "targets": [ { "expr": "sum(rate(tormenta_ai_fallback_lines_total[5m]))", "legendFormat": "fallback/s", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "Intentos por modelo y resultado (qué free se cae)", "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "custom": { "stacking": { "mode": "normal" } } } },
+      "targets": [ { "expr": "sum by (model, result) (increase(tormenta_ai_model_attempts_total[15m]))", "legendFormat": "{{model}} · {{result}}", "refId": "A" } ]
     }
   ]
 }
