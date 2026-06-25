@@ -10,7 +10,8 @@ metadata:
     {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
 spec:
   schedules:
-    - {{ .Values.noticias.schedule | default "0 */4 * * *" | quote }}
+    - {{ .Values.noticias.schedule | default "0 9 * * *" | quote }}
+  timezone: {{ .Values.noticias.timezone | default "America/Argentina/Buenos_Aires" | quote }}
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 300
   successfulJobsHistoryLimit: 2
@@ -50,6 +51,17 @@ spec:
             {{- with .Values.noticias.sports }}
             - name: NEWS_SPORTS
               value: {{ . | quote }}
+            {{- end }}
+            {{- if .Values.noticias.summarizeModel }}
+            - name: NEWS_SUMMARIZE_MODEL          # "captura por IA" del titular (fiel). Validado: gemma4-paid.
+              value: {{ .Values.noticias.summarizeModel | quote }}
+            - name: AI_BASE_URL
+              value: {{ .Values.upstream.baseUrl | quote }}
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tormenta-ai-proxy.secretName" . }}
+                  key: {{ include "tormenta-ai-proxy.secretKey" . }}
             {{- end }}
           resources:
             requests: { cpu: 25m, memory: 48Mi }

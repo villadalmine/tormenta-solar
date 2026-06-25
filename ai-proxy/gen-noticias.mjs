@@ -44,6 +44,25 @@ for (const [topic, q] of Object.entries(TOPICS)) {
   if (n) noticias.push({ topic, ...n, ts: Date.now() });
 }
 
+// "Captura por IA NPC" (opcional): un modelo FIEL rephrasea el TITULAR de display. El `answer` queda CRUDO
+// (el titular real, lo que el linyera verifica). Validado (2026-06-25): GPU/NPU NO sirven (GPU inventa datos,
+// NPU caída) → gemma4-paid. Corre 1×/día, así que el costo/latencia da igual. Si falla, queda el crudo.
+const SUM_MODEL = process.env.NEWS_SUMMARIZE_MODEL || '';
+const AI_BASE = (process.env.AI_BASE_URL || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
+const AI_KEY = (process.env.AI_API_KEY || process.env.AI_KEY || '').trim();
+async function capturar(headline) {
+  try {
+    const r = await fetch(AI_BASE + '/chat/completions', { method: 'POST', headers: { Authorization: 'Bearer ' + AI_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: SUM_MODEL, temperature: 0.4, max_tokens: 40, messages: [
+        { role: 'system', content: 'Resumí el titular a UNA frase corta, FIEL y clara en español rioplatense (máx 12 palabras). NO inventes ni agregues datos que no estén en el titular. Solo la frase, sin comillas.' },
+        { role: 'user', content: headline }] }) });
+    if (!r.ok) return null;
+    const t = (await r.json()).choices?.[0]?.message?.content;
+    return t ? t.trim().replace(/^["']+|["']+$/g, '').slice(0, 140) : null;
+  } catch (e) { return null; }
+}
+if (SUM_MODEL && AI_KEY) for (const n of noticias) { const c = await capturar(n.headline); if (c) n.headline = c; }   // answer queda crudo (fiel)
+
 // FÚTBOL con RESULTADO exacto (opt-in): NEWS_SPORTS="mundial:4406,primera-b:4391" → TheSportsDB (key prueba '3').
 // Pisa/agrega el topic con un answer numérico ("2-1"). Best-effort: si falla, queda lo de Google News.
 const SPORTS = (process.env.NEWS_SPORTS || '').split(',').map(s => s.trim()).filter(Boolean);

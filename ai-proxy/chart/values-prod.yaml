@@ -77,10 +77,12 @@ metrics:
     enabled: true
 
 # crons Argo: pool del linyera (1×/día) + precios OpenRouter (cada 6h). genToken va por --set/secret.
-# CINE de noticias: cron cada 4h que llena el banco /noticias (Hacker News, sin key). Fútbol = opt-in 'sports'.
+# CINE de noticias: cron 1×/día (9am AR) que llena /noticias (Google News, sin key) + "captura IA" fiel del
+# titular con gemma4-paid (validado: GPU inventa datos, NPU caída). El answer queda crudo (para verificación).
 noticias:
   enabled: true
-  schedule: "0 */4 * * *"
+  schedule: "0 9 * * *"
+  summarizeModel: gemma4-paid
 
 linyeraPool:
   cronjob:

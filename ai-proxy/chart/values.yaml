@@ -36,7 +36,9 @@ persistence:
 # CINE de noticias (specs/cine-noticias.md): cron que trae titulares por topic → banco /noticias.
 noticias:
   enabled: false
-  schedule: "0 */4 * * *"   # cada 4h
+  schedule: "0 9 * * *"     # 1×/día 9am
+  timezone: "America/Argentina/Buenos_Aires"
+  summarizeModel: ""        # "captura IA" del titular (fiel). Validado: gemma4-paid (GPU inventa, NPU caída). "" = titular crudo
   sports: ""                # opt-in fútbol/ligas: "mundial:4406,primera-b:4391" (TheSportsDB)
 
 # --- API key del upstream (para LiteLLM = su master key, p.ej. sk-hermes-internal) ---
