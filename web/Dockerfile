@@ -4,6 +4,8 @@
 FROM nginxinc/nginx-unprivileged:alpine
 
 # nginx-unprivileged corre como uid 101 y escucha en :8080 (no necesita root).
+# config que NO cachea los .html (para que agarren los ?v=N nuevos; GitHub Pages ya lo hace)
+COPY web/nginx-default.conf /etc/nginx/conf.d/default.conf
 COPY index.html /usr/share/nginx/html/
 COPY css        /usr/share/nginx/html/css
 COPY js         /usr/share/nginx/html/js
