@@ -39,8 +39,10 @@ for (const f of fs.readdirSync(DIR).filter(x => x.endsWith('.md'))) {
   const id = (idRaw.match(/`([a-z]+)`/) || [])[1];   // "Persona de chat: `tahur`"
   if (!id) { skipped.push(f + ' (sin Persona de chat → no chateable)'); continue; }
   const voz = field(block, 'Voz'), como = field(block, 'Cómo habla'), ctx = field(block, 'Contexto'),
-    quiere = field(block, 'Quiere'), nodice = field(block, 'Qué NO dice');
-  let alma = `Sos ${title}, en el juego de humor argentino "Tormenta Solar" (Florida y Lavalle, Buenos Aires).`;
+    quiere = field(block, 'Quiere'), nodice = field(block, 'Qué NO dice'),
+    tormenta = field(block, 'Tormenta'), semilla = field(block, 'Semilla').replace(/[«»]/g, '').replace(/[.\s]+$/, '').trim();
+  // identidad = la SEMILLA (concisa y específica del personaje; evita títulos de grupo tipo "Los Linyeras")
+  let alma = `Sos un personaje del juego de humor argentino "Tormenta Solar" (Florida y Lavalle, Buenos Aires): ${semilla || title}.`;
   if (voz) alma += ` Voz/tono: ${voz}`;
   if (como) alma += ` Cómo hablás: ${como}`;
   if (ctx) alma += ` Lo que sabés: ${ctx}`;
@@ -48,7 +50,9 @@ for (const f of fs.readdirSync(DIR).filter(x => x.endsWith('.md'))) {
   if (nodice) alma += ` ${nodice}`;
   if (LINYERA_CORE_IDS.has(id)) alma += LINYERA_CORE;
   alma += ` Slang rioplatense, frases CORTAS. Nunca decís que sos una IA. Respondé en español argentino.`;
-  personas[id] = { alma: clean(alma), fiche: f };
+  // contexto corto para el ROSTER (pool de saturación): voz + cómo habla
+  const contexto = clean([voz, como].filter(Boolean).join('; ')).slice(0, 160);
+  personas[id] = { alma: clean(alma), nombre: title, contexto, tormenta: clean(tormenta), fiche: f };
 }
 
 console.error('Personas generadas desde fichas:', Object.keys(personas).join(', '));
@@ -61,6 +65,14 @@ out += 'export const PERSONAS = {\n';
 for (const id of Object.keys(personas)) out += `  ${id}: ${JSON.stringify(personas[id].alma)},\n`;
 out += '};\n';
 out += "export const DEFAULT_PERSONA = `Sos un personaje del juego de humor argentino \"Tormenta Solar\" (Florida y Lavalle, Buenos Aires). Hablás en slang porteño, con humor y frases cortas. Nunca decís que sos una IA.`;\n\n";
+// ROSTER (lo usa gen-pool.mjs para el pool de saturación del chat): contexto + comportamiento de tormenta.
+out += '// ROSTER (chateables): fuente del pool de SATURACIÓN del chat (gen-pool.mjs). Derivado de las fichas.\n';
+out += 'export const ROSTER = {\n';
+for (const id of Object.keys(personas)) {
+  const p = personas[id];
+  out += `  ${id}: { nombre: ${JSON.stringify(p.nombre)}, contexto: ${JSON.stringify(p.contexto)}, tormenta: ${JSON.stringify(p.tormenta)} },\n`;
+}
+out += '};\n\n';
 out += `export function buildMessages(npc, message, history) {
   const system = PERSONAS[npc] || DEFAULT_PERSONA;
   const hist = (Array.isArray(history) ? history : [])
