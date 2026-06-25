@@ -11,6 +11,9 @@
 - ✅ **F3** **key-por-código** de OpenRouter (`POST /provision`), store en PVC, ruteo **directo a OpenRouter con la
   key del usuario**, **gasto REAL + tope** por usuario leído de OpenRouter → todo **visible en Grafana** (fila
   "💳 Suscripciones" del dashboard `tormenta-linyera`), sin comandos.
+- ✅ **El JUGADOR ve SU consumo** (proxy 0.1.20): `GET /my-sub` (auth = su propio código, sin GEN_TOKEN) →
+  solo lo suyo (usage/limit/expiresAt). En ⚙ Opciones → Suscripción muestra "✓ activa · usaste $X de $Y · vence
+  en Zd". Personal a la sesión con el token validado (ai.js `mySub()`).
 - **Operación hoy (pseudo-manual):** el dueño dispara `POST /provision {email,limit}` (1 comando) y manda el
   código por mail **a mano**. Detalle en §9.0 / §9.6 y en `ai-proxy/README.md`.
 
