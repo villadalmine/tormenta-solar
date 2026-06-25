@@ -31,7 +31,7 @@ const Mundo = (() => {
         case 'door': {
           const link = e.link || {};
           const d = { id: e.id.split('/door-')[1] || e.id, art: e.render && e.render.type, facade: e.render && e.render.facade,
-            label: e.label, x: f.x, y: f.y, inward: e.inward, to: null, at: null, _toRoom: link.to,
+            label: e.label, x: f.x, y: f.y, inward: e.inward, to: null, at: null, collapsesOnStorm: !!e.collapsesOnStorm, _toRoom: link.to,
             _at: link.at ? { x: link.at.x * T + T / 2, y: link.at.y * T } : null };
           room.doors.push(d); room.doorById[d.id] = d; break;
         }

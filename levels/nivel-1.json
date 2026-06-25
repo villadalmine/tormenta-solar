@@ -65,6 +65,7 @@
             "facade": "educacionit"
           },
           "x": 10,
+          "collapsesOnStorm": true,
           "label": "entrar a EducaciónIT",
           "inward": 1,
           "link": {
@@ -83,6 +84,7 @@
             "facade": "arcade"
           },
           "x": 28,
+          "collapsesOnStorm": true,
           "label": "entrar al arcade",
           "inward": 1,
           "link": {
@@ -101,6 +103,7 @@
             "facade": "choris"
           },
           "x": 46,
+          "collapsesOnStorm": true,
           "label": "entrar a la chorería",
           "inward": 1,
           "link": {
@@ -119,6 +122,7 @@
             "facade": "garbarino"
           },
           "x": 58,
+          "collapsesOnStorm": true,
           "label": "entrar a Garbarino",
           "inward": -1,
           "link": {

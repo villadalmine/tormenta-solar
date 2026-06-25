@@ -51,7 +51,7 @@ const Level = (() => {
     };
     for (const d of spec.doors || []) {
       const f = feet(d.x);
-      const door = { id: d.id, art: d.art, label: d.label, facade: d.facade, x: f.x, y: f.y, inward: d.inward, to: null, at: null };
+      const door = { id: d.id, art: d.art, label: d.label, facade: d.facade, x: f.x, y: f.y, inward: d.inward, to: null, at: null, collapsesOnStorm: !!d.collapsesOnStorm };
       room.doors.push(door); room.doorById[d.id] = door;
     }
     return room;
@@ -77,10 +77,10 @@ const Level = (() => {
         platforms: [[16,11,2],[36,11,2],[52,11,2],[68,11,2],[9,9,3],[27,9,3],[45,9,3]],
         playerStart: 5,
         doors: [
-          { id:'edu',     art:'educacionit', facade:'educacionit', label:'entrar a EducaciónIT', x:10, inward:1 },
-          { id:'arcade',  art:'arcade',      facade:'arcade',      label:'entrar al arcade',     x:28, inward:1 },
-          { id:'choris',  art:'shop',        facade:'choris',      label:'entrar a la chorería', x:46, inward:1 },
-          { id:'garbarino', art:'garbarino', facade:'garbarino',   label:'entrar a Garbarino',   x:58, inward:-1 },
+          { id:'edu',     art:'educacionit', facade:'educacionit', label:'entrar a EducaciónIT', x:10, inward:1, collapsesOnStorm:true },
+          { id:'arcade',  art:'arcade',      facade:'arcade',      label:'entrar al arcade',     x:28, inward:1, collapsesOnStorm:true },
+          { id:'choris',  art:'shop',        facade:'choris',      label:'entrar a la chorería', x:46, inward:1, collapsesOnStorm:true },
+          { id:'garbarino', art:'garbarino', facade:'garbarino',   label:'entrar a Garbarino',   x:58, inward:-1, collapsesOnStorm:true },
           { id:'cemento', art:'cemento',     facade:'cemento',     label:'entrar a Cemento',     x:61, inward:-1 },
           { id:'galeria', art:'galeria',     facade:'galeria',     label:'bajar a la galería',   x:74, inward:-1 },
           { id:'cambio',  art:'cambio',      facade:'cambio',      label:'entrar a la casa de cambio', x:90, inward:-1 },

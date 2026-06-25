@@ -63,7 +63,6 @@
 
   const DOOR_ART = { galeria: 'door', up: 'doorUp', exit: 'exit', educacionit: 'educacionit', arcade: 'arcade', elevator: 'elevator', superchino: 'superchino', garbarino: 'garbarino', disqueria: 'disqueria', cemento: 'cemento', cambio: 'cambio', abandonado: 'abandonado' };
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
-  const COLLAPSED = ['edu', 'arcade', 'choris', 'garbarino'];   // RUINA_MSG → TL('g.ruina')
   let arcadeGame = null, superGame = null, vinilosGame = null;
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
@@ -249,7 +248,7 @@
     const it = nearestInteract();
     if (!it) return;
     if (it.kind === 'door') {
-      if (stormed && COLLAPSED.includes(it.d.id)) { setMsg(TL('g.ruina'), '#b0a0a0', 4500); return; }
+      if (stormed && it.d.collapsesOnStorm) { setMsg(TL('g.ruina'), '#b0a0a0', 4500); return; }
       if (it.d.id === 'super') {
         if (!stormed) enterSuper();                              // pre-tormenta: changuito normal
         else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(); }  // Iorio corrió a los ninjas (una entrada)
@@ -873,8 +872,8 @@
         drawFlame(bx + 73, by + 50, 2.1);      // tacho derecho (desfasado)
         label(T('g.label.barricada'), d.x - cam.x, d.y - cam.y - b.height - 4, '#ff5252');
       }
-      // RF-7: edificios derrumbados tras la tormenta (tablones sobre la puerta)
-      if (stormed && COLLAPSED.includes(d.id)) {
+      // RF-7: edificios derrumbados tras la tormenta (tablones sobre la puerta) — atributo del modelo (F4)
+      if (stormed && d.collapsesOnStorm) {
         const tb = Art.decor.tablones;
         ctx.drawImage(tb, d.x - cam.x - tb.width/2, d.y - cam.y - tb.height);
         label(T('g.label.clausurado'), d.x - cam.x, d.y - cam.y - tb.height - 4, '#b0a0a0');
@@ -1010,7 +1009,7 @@
       else if (m.game === 'pacman' || m.game === 'galaga') txt = T('g.prompt.machinePay', { name: m.name, price: machinePrice(m) });
       else txt = T('g.prompt.machine', { name: m.name });
     }
-    else if (stormed && COLLAPSED.includes(it.d.id)) txt = T('g.prompt.collapsed');
+    else if (stormed && it.d.collapsesOnStorm) txt = T('g.prompt.collapsed');
     else txt = TX(it.d.label);
     elPrompt.innerHTML = '<span class="key">E</span>' + txt;
     elPrompt.classList.remove('hidden');

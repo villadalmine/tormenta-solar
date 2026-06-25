@@ -106,6 +106,7 @@
         "x": { "type": "number", "description": "tile X (puede ser fraccionario)" },
         "y": { "type": "number", "description": "tile Y (opcional; default piso)" },
         "inward": { "type": "integer", "description": "sólo doors: dirección hacia adentro (-1/1) para calcular el spawn al cruzar" },
+        "collapsesOnStorm": { "type": "boolean", "description": "sólo doors: el destino se derrumba con la tormenta (ex COLLAPSED hardcode, F4)" },
 
         "render": { "type": "object", "description": "sprite|type de Art", "additionalProperties": true },
         "interact": {
@@ -129,6 +130,8 @@
         "give": { "type": "object", "properties": { "item": { "type": "string" }, "amount": { "type": "number" } } },
         "combat": { "type": "object", "additionalProperties": true, "description": "enemigos: hp/dmg/look/beh" },
 
+        "fiche": { "type": "string", "description": "npc: ruta de la ficha .md fuente (autoría/grounding)" },
+        "comportamiento": { "type": "object", "additionalProperties": true, "description": "npc: comportamiento derivado de la ficha (p.ej. qué sabe de la tormenta)" },
         "i18n": { "type": "string", "description": "id estable para traducir (reemplaza level.en.js)" },
         "lifecycle": {
           "type": "object",
