@@ -180,14 +180,36 @@ function allowed(ip) {
   hits.push(now); RATE.set(ip, hits); return true;
 }
 
+// Cuando OpenRouter tira 429 por "free-models-per-day/min" el límite es de la CUENTA del dev (todos los free
+// comparten esa cuota), NO del modelo puntual. Entonces probar otro free es al pedo: bloqueamos TODOS los free
+// hasta el reset y vamos derecho al pago/pool. Esto ahorra latencia con muchos usuarios jugando.
+let FREE_BLOCKED_UNTIL = 0;
+async function read429(r) {
+  try {
+    const body = await r.text();
+    const perDay = /free-models-per-day/i.test(body);
+    const perMin = /free-models-per-min/i.test(body);
+    const account = perDay || perMin;                       // límite de CUENTA (no del modelo)
+    let resetMs = 0;
+    const m = body.match(/X-RateLimit-Reset"?\s*:\s*"?(\d{12,})/i);   // viene en ms (epoch) en metadata.headers
+    if (m) resetMs = +m[1];
+    if (perDay) { if (!resetMs || resetMs < Date.now()) resetMs = Date.now() + 30 * 60000; resetMs = Math.min(resetMs, Date.now() + 3 * 3600000); } // cap 3h
+    else if (perMin) { resetMs = Date.now() + 90000; }      // per-min se libera solo en ~1 min
+    return { account, perDay, resetMs };
+  } catch (e) { return { account: false, perDay: false, resetMs: 0 }; }
+}
+
 async function ask(messages) {
   const deadline = Date.now() + UPSTREAM_TIMEOUT;        // presupuesto TOTAL (tope duro)
   let timedOut = false;
   for (const model of activeChain()) {                   // cadena (auto-pilot F2 o estática): si el 1º no contesta, prueba el 2º
     const left = deadline - Date.now();
     if (left <= 500) break;                              // sin tiempo → cortar y caer a la línea temática
+    const isPaid = PAID_MODELS.has(model);
     // modelo PAGO sin presupuesto del día → saltarlo (no se gasta): el chat cae al pool del cliente
-    if (PAID_MODELS.has(model) && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
+    if (isPaid && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
+    // free con la cuota de CUENTA agotada → no lo probamos (sería 429 seguro): derecho al pago/pool
+    if (!isPaid && Date.now() < FREE_BLOCKED_UNTIL) { incAttempt(model, 'free_blocked'); continue; }
     const slice = Math.min(left, PER_MODEL_TIMEOUT);     // tope POR modelo (deja tiempo para el siguiente)
     const ctrl = new AbortController();
     const to = setTimeout(() => ctrl.abort(), slice);
@@ -198,7 +220,13 @@ async function ask(messages) {
         body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 120 }),
       });
       clearTimeout(to);
-      if (r.status === 429 || r.status === 404) { incAttempt(model, r.status === 429 ? 'http_429' : 'http_404'); continue; }   // saturado / no existe → próximo
+      if (r.status === 429) {
+        const info = await read429(r);                     // ¿es límite de CUENTA (free-models-per-day) o del modelo?
+        incAttempt(model, info.account ? 'http_429_acct' : 'http_429');
+        if (info.account && !isPaid && info.resetMs > Date.now()) FREE_BLOCKED_UNTIL = Math.max(FREE_BLOCKED_UNTIL, info.resetMs);  // bloquea TODOS los free
+        continue;                                           // → próximo (los free se saltean solos; queda el pago)
+      }
+      if (r.status === 404) { incAttempt(model, 'http_404'); continue; }   // no existe → próximo
       if (!r.ok) { incAttempt(model, 'http_other'); throw new Error('OpenRouter ' + r.status); }
       const d = await r.json();
       const reply = d.choices?.[0]?.message?.content;
@@ -276,6 +304,7 @@ http.createServer((req, res) => {
       `# HELP tormenta_ai_paid_calls_today Respuestas pagas servidas hoy (cuenta contra el presupuesto)\n# TYPE tormenta_ai_paid_calls_today gauge\ntormenta_ai_paid_calls_today ${paidRoll().n}\n` +
       `# HELP tormenta_ai_paid_budget_daily Tope diario de respuestas pagas\n# TYPE tormenta_ai_paid_budget_daily gauge\ntormenta_ai_paid_budget_daily ${PAID_DAILY_CAP}\n` +
       `# HELP tormenta_ai_daily_cap Cupo de chats/día por sesión\n# TYPE tormenta_ai_daily_cap gauge\ntormenta_ai_daily_cap ${DAILY_CAP}\n` +
+      `# HELP tormenta_ai_free_blocked_seconds Segundos hasta que la cuota free de la CUENTA se libera (0 = free OK)\n# TYPE tormenta_ai_free_blocked_seconds gauge\ntormenta_ai_free_blocked_seconds ${Math.max(0, Math.round((FREE_BLOCKED_UNTIL - Date.now()) / 1000))}\n` +
       `# HELP tormenta_ai_unique_sessions_today Session-ids distintos vistos hoy (usuarios aprox)\n# TYPE tormenta_ai_unique_sessions_today gauge\ntormenta_ai_unique_sessions_today ${UNIQ.sids.size}\n` +
       `# HELP tormenta_ai_unique_ips_today IPs remotas distintas vistas hoy (real con PROXY protocol)\n# TYPE tormenta_ai_unique_ips_today gauge\ntormenta_ai_unique_ips_today ${UNIQ.ips.size}\n`;
     // F2 ModelScorer: score/disponibilidad/latencia/precio por candidato + posición en la cadena (best/cheapest)
