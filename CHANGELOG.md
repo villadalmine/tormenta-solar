@@ -19,11 +19,34 @@ El juego es 100% estático; se publica en
   (**Mollie** NL/EU · Mercado Pago/dLocal AR) → webhook → `/provision`. El entitlement por código YA está (ver
   infra-2..6). *(Métricas reales y suscripción por código: HECHO, ver entradas de abajo.)*
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
+- **Cine de noticias** (`specs/cine-noticias.md`): edificio cine (butacas+pantalla) que muestra **noticias reales
+  capturadas por IA** (Mundial, mundo, videojuegos, guerra, AR/NL/árabe, Primera B, bochas), random cada visita,
+  traídas por un cron→banco. Los linyeras te mandan a buscar data y te la **corroboran**: acertás → caramelos,
+  mentís → te sacan plata. Encaja con el modelo data-driven + quests + grounding.
 - **Seguridad** (`specs/seguridad.md`): fase transversal — sin CVEs (todas las versiones), flujo cifrado,
   anti-DoS web/API/tokens (incl. "denial of wallet"), buenas prácticas de datos, anti-escalada. Con checklist
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v115–v118] — 2026-06-25 — 🧩 Modelo de entidades F4: hardcodes → data (motor data-driven más limpio)
+
+`modelo-de-entidades.md` F4: los hardcodes del juego pasan a ser **atributos del modelo** (fuente única en
+`level.js` → `gen-level` → `nivel-1.json`/`level-data.js` → `mundo.js` → `game.js`). Sin cambios de jugabilidad;
+paridad v1≡v2 + e2e + levels + web-smoke verdes en cada paso.
+
+- **v115** — `COLLAPSED` (qué edificios se derrumban con la tormenta) → atributo **`collapsesOnStorm`** de la
+  puerta. Borrado el const. *(De paso se arregló el schema, roto para `fiche`/`comportamiento`.)*
+- **v116** — `DOOR_ART` (map art→sprite) eliminado: el `art` de la puerta YA es la key de `Art` directa.
+- **v117** — gating de puertas (secret/cemento/bunker/chinoback) → componente **`gate`** declarativo
+  (`{flag|item}`+all/any/not) + `gateMet()`/`FLAG_GETTERS`. Sin ifs por-id.
+- **v118** — **save anclado por POSICIÓN `(sala, x)`, no por índice** (RF-4): el estado de pickups/npcs se
+  identifica por su `x` (su id natural) → robusto a reordenar entidades. Save v2 con compat de v1.
+
+> Resultado: F1–F4 del modelo de entidades completos; v2 data-driven sigue siendo el default. Queda F5
+> (extraer `engine/` vs `game/`, el rewrite mayor).
 
 ---
 
