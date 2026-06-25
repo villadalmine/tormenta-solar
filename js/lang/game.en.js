@@ -163,7 +163,7 @@
     'g.prompt.armasStorm': 'buy criollo steel ⚔️',
     'g.prompt.armas': 'talk to the mysterious guy',
     'g.prompt.chat': 'chat 💬 with {name}',
-    'g.prompt.guarda': 'watch an old screening 📼 ({n} 🍬)',
+    'g.prompt.guarda': 'watch an old screening 📼 (1st free)',
     'g.prompt.loop': 'lie down to sleep (pass a day) 😴',
     'g.prompt.talk': 'talk to {name}',
     'g.prompt.machinePossessed': 'possessed machine!',

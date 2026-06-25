@@ -1160,7 +1160,7 @@
         : a === 'iorio' ? (stormed ? T('g.prompt.iorioStorm') : T('g.prompt.iorio'))
         : a === 'armas' ? (stormed ? T('g.prompt.armasStorm') : T('g.prompt.armas'))
         : a === 'chat' ? T('g.prompt.chat', { name: TX(it.n.name) || TX('el linyera') })
-        : a === 'guarda' ? T('g.prompt.guarda', { n: GUARDA_COST })
+        : a === 'guarda' ? T('g.prompt.guarda')
         : a === 'loop' ? T('g.prompt.loop')
         : T('g.prompt.talk', { name: TX(it.n.name) });
     }

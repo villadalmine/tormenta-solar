@@ -80,16 +80,21 @@ try {
     if (parts.length) noticias.push({ topic: 'openrouter', headline: 'Modelos OpenRouter (US$/1M): ' + parts.join(' · '), answer: parts[0], ts: Date.now() }); }
 } catch (e) {}
 
-// FÚTBOL con RESULTADO exacto (opt-in): NEWS_SPORTS="mundial:4406,primera-b:4391" → TheSportsDB (key prueba '3').
-// Pisa/agrega el topic con un answer numérico ("2-1"). Best-effort: si falla, queda lo de Google News.
+// FÚTBOL con RESULTADO exacto (opt-in): NEWS_SPORTS="mundial:4429,primera-b:team:137785" → TheSportsDB (key prueba '3').
+// Soporta por LIGA ("topic:ligaId" → último partido de la liga) o por EQUIPO ("topic:team:teamId" → último partido
+// de ESE equipo, ej. Villa Dálmine 137785, sin importar cómo etiqueten la liga). Pisa/agrega el topic con un answer
+// numérico ("2-1"). Best-effort: si falla, queda lo de Google News.
 const SPORTS = (process.env.NEWS_SPORTS || '').split(',').map(s => s.trim()).filter(Boolean);
 for (const pair of SPORTS) {
-  const [topic, id] = pair.split(':');
+  const parts = pair.split(':'), topic = parts[0], isTeam = parts[1] === 'team', id = isTeam ? parts[2] : parts[1];
   if (!topic || !id) continue;
   try {
-    const r = await fetch('https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=' + id);
+    const url = isTeam
+      ? 'https://www.thesportsdb.com/api/v1/json/3/eventslast.php?id=' + id        // por EQUIPO → {results:[...]}
+      : 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=' + id; // por LIGA   → {events:[...]}
+    const r = await fetch(url);
     if (!r.ok) continue;
-    const ev = ((await r.json()).events || [])[0];
+    const j = await r.json(), ev = ((isTeam ? j.results : j.events) || [])[0];
     if (ev && ev.intHomeScore != null && ev.intAwayScore != null) {
       const i = noticias.findIndex(n => n.topic === topic);
       const item = { topic, headline: `${ev.strHomeTeam} ${ev.intHomeScore}-${ev.intAwayScore} ${ev.strAwayTeam}`, answer: `${ev.intHomeScore}-${ev.intAwayScore}`, ts: Date.now() };

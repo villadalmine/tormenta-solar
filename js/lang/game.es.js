@@ -181,7 +181,7 @@
     'g.prompt.armasStorm': 'comprar fierro criollo ⚔️',
     'g.prompt.armas': 'hablar con el misterioso',
     'g.prompt.chat': 'charlar 💬 con {name}',
-    'g.prompt.guarda': 'ver una función vieja 📼 ({n} 🍬)',
+    'g.prompt.guarda': 'ver una función vieja 📼 (1ª gratis)',
     'g.prompt.loop': 'tirarte a dormir (pasar un día) 😴',
     'g.prompt.talk': 'hablar con {name}',
     'g.prompt.machinePossessed': '¡máquina poseída!',

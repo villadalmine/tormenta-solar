@@ -33,6 +33,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v130 / infra-15] — 2026-06-25 — 🐛 Fix freeze del guarda + ⚽ Villa Dálmine en el cine
+
+- **BUG CRÍTICO arreglado:** al acercarte al guarda el juego se **congelaba** (no te podías mover). Causa:
+  `GUARDA_COST` quedó referenciado en el prompt (línea 1163) pero lo borré al pasar al menú con regateo →
+  ReferenceError cada frame → loop muerto. Sacado el `{n}` del prompt.
+- **⚽ Villa Dálmine:** `NEWS_SPORTS` ahora soporta `topic:team:<id>` (por EQUIPO vía `eventslast.php`) →
+  `primera-b:team:137785` muestra **el último partido de Villa Dálmine** ("Villa Dálmine 2-1 Sportivo Italiano").
+- **Tablas del Mundial (goleadores + grupo de Argentina): BLOQUEADO por API key** — la key gratis de TheSportsDB
+  trunca la tabla (Argentina ni aparece) y no tiene endpoint de goleadores. Necesita key real (api-football /
+  football-data.org / Patreon). Documentado en `cine-noticias.md §7.2`. NO se inventa la data.
+
+---
+
 ## [infra-14] — 2026-06-25 — ⚽ Cine: fútbol con RESULTADO EXACTO (NEWS_SPORTS activado)
 
 Activado el opt-in `NEWS_SPORTS` del cron de noticias: los topics `mundial` y `primera-b` ahora traen el

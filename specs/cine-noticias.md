@@ -208,6 +208,15 @@ quest del oráculo (§4) se **gastan** acá. 🍬↔📼
    = "mundial:4429,primera-b:4616"` (TheSportsDB) → los topics `mundial`/`primera-b` traen el score real
    ("Ecuador 1-1 Germany"). El `answer` pasa a ser numérico → la verificación del oráculo (§4) tiene dato preciso.
 
+### 7.2 BLOQUEADO por API key — tabla de goleadores + posiciones del grupo de Argentina (Mundial)
+Idea del dueño (2026-06-25): que el piso Deportes muestre la **tabla de goleadores** y la **tabla de posiciones del
+grupo de Argentina** del Mundial. **NO se puede con fuente gratis/sin key** (verificado 2026-06-25):
+- TheSportsDB key de prueba `3`: `lookuptable.php?l=4429&s=2026` **trunca a 5 filas** (solo líderes de grupo) →
+  Argentina **ni aparece**, no da el grupo completo. Y **no hay endpoint de goleadores** en el tier gratis (devuelve HTML).
+- **Para hacerlo:** necesita una **API key** — opciones: api-football (api-sports.io, free 100 req/día), football-data.org
+  (free con key), o el Patreon de TheSportsDB (key real → tabla completa + goleadores). El dueño tiene que conseguir una.
+- **NO inventar** la data (rompería la verificación del cine §4 y sería desinformación). Queda pendiente de la key.
+
 ### 7.1 PENDIENTE (idea del dueño 2026-06-25, NO implementado) — news EN VIVO horario + Villa Dálmine
 - **Refresh cada 1 h** (hoy el cron es 1×/día 9am): para lo que cambia rápido (fútbol/Mundial, crypto). Diseño
   recomendado: un **2º CronWorkflow `0 * * * *`** que corra `gen-noticias.mjs` en modo **live-only** (solo sports +
@@ -215,11 +224,9 @@ quest del oráculo (§4) se **gastan** acá. 🍬↔📼
   **reemplaza** el día entero (`NOTI_DAYS[day] = …`), así que un POST parcial **borraría** los 13 topics de Google
   News. → falta: (a) modo `NEWS_LIVE_ONLY` en `gen-noticias.mjs`, (b) `merge:true` en `POST /noticias` (update por
   topic, no replace), (c) el cronworkflow horario.
-- **Villa Dálmine en especial:** su **team id TheSportsDB = `137785`**. Juega en la **Primera B Nacional** (el
-  dueño confirma; TheSportsDB la etiqueta "Metropolitana" — dato viejo, NO confiar en la liga). → **lo robusto es
-  traerlo POR EQUIPO** con **`eventslast.php?id=137785`** (su último partido, sin importar cómo nombren la liga),
-  no por id de liga. Extender `NEWS_SPORTS` para aceptar `topic:team:<id>` además de `topic:<ligaId>`. Idea: topic
-  propio `villa-dalmine` (o pisar `primera-b` con el club local), refrescado por el cron horario.
+- **Villa Dálmine** ✅ **HECHO** (`infra-15`): `NEWS_SPORTS` ahora acepta `topic:team:<id>` (por EQUIPO vía
+  `eventslast.php`, no por liga) → `primera-b:team:137785` muestra el **último partido de Villa Dálmine**
+  ("Villa Dálmine 2-1 Sportivo Italiano"), sin importar cómo etiqueten la liga. Falta solo el **refresh horario**.
 5. **F5 — archivo de 7 días + el GUARDA** ✅ (`v127`-`v129`, ver §3.6): persistencia por día en el PVC, `GET
    /noticias?day=`, NPC guarda con menú de elección, 1ª gratis, más viejo más caro, **regateo** hasta piso. Más el
    **TTS con fallback al server** (espeak-ng, §3.4, `v126`) para que lea aunque el navegador no tenga voz.
