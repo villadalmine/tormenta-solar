@@ -56,13 +56,14 @@ Mismo titular con dato específico (para cazar alucinaciones). **Para noticias l
 | Modelo | ¿Anda? | Latencia | ¿Fiel? | Veredicto |
 |---|---|---|---|---|
 | GPU `local-gpu` (gemma2:2b) | ✅ | 2.3s | ❌ **inventó "10 veces seguidas"** | descartar (alucina) |
-| NPU `rk1-npu-local` | ❌ timeout | — | — | caído |
+| NPU `rk1-npu-local` (llama-3.1-8b) | ✅ (pods rk1 Running) | **18–34s** (cold start arma prompt cache) | ❌ **inventó "32 partidos"** | NO caída, pero **lenta + alucina** → no sirve para noticias |
 | **`gemma4-paid`** | ✅ | **0.9s** | ✅ | ⭐ **elegido** (rápido+fiel+barato) |
 | `claude-sonnet` | ✅ | 1.6s | ✅ | bueno pero ~40× más caro |
 | `gpt-4o` | ✅ | 6.0s | ✅ | lento+caro |
 | `deepseek-pro` | ⚠️ | 1.2s | content vacío (reasoning) | inservible |
 
-> Aunque el dueño prefería GPU/NPU (gratis), para NOTICIAS **no sirven** (GPU inventa, NPU caída) → se usa
+> Aunque el dueño prefería GPU/NPU (gratis), para NOTICIAS **no sirven**: GPU y NPU **inventan** (la NPU además
+> tarda 18-34s) → se usa
 > `gemma4-paid` (es "y sino el pago"). Corre 1×/día → costo despreciable. El `answer` queda CRUDO igual.
 
 ### 3.2 Las fuentes (topics — lista configurable, data del cron)

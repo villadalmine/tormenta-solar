@@ -702,7 +702,11 @@
     updateCam();
     const r = room();
     elFloor.textContent = TX(r.name);
-    if (/Cine/.test(r.name)) cineNoticia = pickNoticia();   // CINE: noticia random distinta cada visita
+    if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS del cine al cambiar de sala
+    if (/Cine/.test(r.name)) {   // CINE: noticia random distinta cada visita + la pantalla te la LEE (voz es-AR)
+      cineNoticia = pickNoticia();
+      if (cineNoticia && typeof Mensajero !== 'undefined' && Mensajero.hablar) Mensajero.hablar(cineNoticia.topic + '. ' + cineNoticia.headline);
+    }
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }

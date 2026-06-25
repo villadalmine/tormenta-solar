@@ -33,6 +33,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v121] — 2026-06-25 — 🔊 El cine te LEE la noticia (TTS) + corrección NPU
+
+- **TTS en el cine:** al entrar, la pantalla **lee el titular en voz alta** (voz es-AR, `Mensajero.hablar`) y
+  corta al salir (`Mensajero.callar`). Estaba en la idea original del cine. Client-only, respeta el mute.
+- **Corrección (investigación NPU):** la NPU **NO estaba caída** — los 4 pods rk1 están Running. El "timeout"
+  era **lentitud**: 18–34s por inferencia (cold start arma el prompt cache de rkllama). Igual **alucina**
+  (inventó "32 partidos") → sigue sin servir para noticias, pero **no es una caída**. SDD/tabla corregidos.
+
+---
+
 ## [v120] — 2026-06-25 — 🗞️ El quest del linyera: mandados de noticias + corroboración (cine F2)
 
 Cierra el loop del cine (`specs/cine-noticias.md` F2): el linyera te manda a buscar data y te la **corrobora**.
