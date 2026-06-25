@@ -1,0 +1,62 @@
+{{- if .Values.linyeraPool.cronjob.enabled }}
+# Argo CronWorkflow 1×/día: regenera el POOL del linyera (gemma4-free offline) y lo publica (POST /linyera-pool).
+# Argo maneja mejor errores/reintentos que un CronJob k8s. Auto-limpieza: podGC + ttlStrategy.
+# Usa la imagen del proxy (trae gen-pool.mjs) + la key de LiteLLM + GEN_TOKEN. Ver specs/resiliencia.md §6.2.
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.linyeraPool.cronjob.schedule | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  workflowSpec:
+    entrypoint: gen
+    activeDeadlineSeconds: 1800             # tope 30 min (batch; puede tardar por saturación del free)
+    ttlStrategy:                            # AUTO-LIMPIEZA del workflow terminado
+      secondsAfterCompletion: 86400
+      secondsAfterSuccess: 43200
+      secondsAfterFailure: 172800
+    podGC:
+      strategy: OnWorkflowCompletion        # AUTO-LIMPIEZA de los pods al terminar
+    {{- with .Values.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+    templates:
+      - name: gen
+        retryStrategy:                      # Argo: reintentos ante fallo (lo que pediste)
+          limit: "3"
+          retryPolicy: Always
+          backoff: { duration: "30s", maxDuration: "5m" }
+        container:
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "gen-pool.mjs"]
+          env:
+            - name: AI_BASE
+              value: {{ .Values.upstream.baseUrl | quote }}
+            - name: AI_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tormenta-ai-proxy.secretName" . }}
+                  key: {{ include "tormenta-ai-proxy.secretKey" . }}
+            - name: MODEL
+              value: {{ .Values.linyeraPool.cronjob.model | quote }}
+            - name: "N"
+              value: {{ .Values.linyeraPool.cronjob.n | quote }}
+            - name: POOL_POST_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/linyera-pool"
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 192Mi }
+{{- end }}
