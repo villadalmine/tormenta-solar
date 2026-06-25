@@ -29,6 +29,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v128] — 2026-06-25 — 🎟️ El Guarda: elegís el día · 1ª gratis · más viejo más caro
+
+Mejoras al guarda (feedback del dueño): ahora **abrís un menú y ELEGÍS** qué función vieja ver (no cicla). La
+**primera del run es gratis**; después **cuanto más viejo el día, más caro** (cuesta = días para atrás, en
+caramelos). El menú muestra cada día con su precio (o "gratis") y tu saldo de 🍬; los que no podés pagar salen
+deshabilitados. ESC o "Cerrar" lo cierra.
+
+---
+
 ## [v127 / infra-12] — 2026-06-25 — 🎟️ El GUARDA del cine: funciones VIEJAS por caramelos (archivo de 7 días)
 
 En la entrada del cine hay un **guarda**. Le pagás **2 🍬 caramelos** y te pone una **función vieja**: las noticias

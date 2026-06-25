@@ -66,7 +66,7 @@
   let arcadeGame = null, superGame = null, vinilosGame = null;
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
-  let cineDayIdx = -1;     // qué día viejo estás viendo (cicla por los disponibles)
+  let guardaFreeUsed = false;  // la 1ª función vieja del run es gratis; después se cobra (más viejo más caro)
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
@@ -131,6 +131,7 @@
     player = Player.create(s.x, s.y);
     cam = { x: 0, y: 0 };
     stormed = false; bought = false; hasVale = false; challengeForVale = false; time = 0;
+    cineArchive = null; guardaFreeUsed = false; newsQuest = null;   // cine: función vieja y freebie del guarda se resetean por run
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
@@ -706,7 +707,7 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
-    if (!/Cine/.test(r.name)) { cineArchive = null; cineDayIdx = -1; }   // saliste del cine → la función vieja se descarta (volvés a hoy)
+    if (!/Cine/.test(r.name)) cineArchive = null;   // saliste del cine → la función vieja se descarta (volvés a hoy)
     if (/Cine/.test(r.name)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
@@ -785,17 +786,39 @@
     if (typeof Mensajero !== 'undefined' && Mensajero.hablar) Mensajero.hablar(txt);
     setMsg(T('g.cine.reading'), '#9fd3ff', 1600);
   }
-  // EL GUARDA del cine: le pagás caramelos y te pone una FUNCIÓN VIEJA (noticias de otro día del archivo de 7).
-  const GUARDA_COST = 2;   // caramelos por función vieja
+  // EL GUARDA del cine: abre un MENÚ para ELEGIR la función vieja (otro día). La 1ª del run es GRATIS; después,
+  // más viejo = más caro (cuesta = días para atrás, en caramelos). Archivo de 7 días.
   function humanDay(d) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? (m[3] + '/' + m[2]) : (d || ''); }
-  function guardaCine(n) {
+  function guardaCost(day, today) { return Math.max(1, Math.round((Date.parse(today) - Date.parse(day)) / 86400000)); }   // días para atrás = más viejo más caro
+  function guardaCine(n) { openGuarda(); }
+  function openGuarda() {
+    const ov = document.getElementById('guardamenu'), body = document.getElementById('guardaBody');
+    if (!ov || !body) return;
     const dias = ((typeof window !== 'undefined' && window.NOTI_DIAS) || []).slice().sort();   // asc
-    const old = dias.slice(0, -1);                                  // todos menos hoy (el último)
-    if (!old.length) { setMsg(T('g.cine.guardaNone'), '#ffd54f', 4800); Sfx.pickup(); return; }
-    if ((player.caramelos || 0) < GUARDA_COST) { setMsg(T('g.cine.guardaPoor', { n: GUARDA_COST }), '#ff5252', 4800); return; }
-    cineDayIdx = (cineDayIdx + 1) % old.length;                     // ciclá del más nuevo al más viejo
-    const day = old[old.length - 1 - cineDayIdx];
-    player.caramelos -= GUARDA_COST;
+    const today = dias[dias.length - 1], old = dias.slice(0, -1).reverse();   // viejos, más reciente primero
+    const free = !guardaFreeUsed;
+    let html = '<div class="end-stats-title">' + T('g.cine.guardaTitle') + '</div>';
+    html += '<div style="text-align:center;margin:.3em 0 .7em;opacity:.85">' + T('g.cine.guardaSub', { c: (player.caramelos || 0) }) + '</div>';
+    if (!old.length) html += '<div style="text-align:center;opacity:.7;margin:1em 0">' + T('g.cine.guardaNone') + '</div>';
+    else {
+      html += '<div style="display:flex;flex-direction:column;gap:.4em">';
+      for (const day of old) {
+        const cost = free ? 0 : guardaCost(day, today), can = free || (player.caramelos || 0) >= cost;
+        const price = cost === 0 ? T('g.cine.free') : (cost + ' 🍬');
+        html += '<button class="guarda-day" data-day="' + day + '"' + (can ? '' : ' disabled') + ' style="display:flex;justify-content:space-between;padding:.6em .9em;font:inherit;cursor:' + (can ? 'pointer' : 'not-allowed') + ';opacity:' + (can ? '1' : '.45') + '">📼 ' + humanDay(day) + ' <b>' + price + '</b></button>';
+      }
+      html += '</div>';
+    }
+    body.innerHTML = html;
+    body.querySelectorAll('.guarda-day').forEach(b => b.addEventListener('click', () => pickGuardaDay(b.getAttribute('data-day'))));
+    ov.classList.remove('hidden');
+  }
+  function closeGuarda() { const ov = document.getElementById('guardamenu'); if (ov) ov.classList.add('hidden'); }
+  function pickGuardaDay(day) {
+    const dias = ((typeof window !== 'undefined' && window.NOTI_DIAS) || []).slice().sort(), today = dias[dias.length - 1];
+    const cost = guardaFreeUsed ? guardaCost(day, today) : 0;
+    if ((player.caramelos || 0) < cost) { setMsg(T('g.cine.guardaPoor', { n: cost }), '#ff5252', 3500); return; }
+    player.caramelos -= cost; guardaFreeUsed = true; closeGuarda();
     setMsg(T('g.cine.guardaWait'), '#9fd3ff', 1500);
     (window.fetchNoticiasDay ? window.fetchNoticiasDay(day) : Promise.resolve([])).then(ns => {
       cineArchive = { day, noticias: ns || [] };
@@ -1310,6 +1333,8 @@
     if (e.key === 'Escape' && state === 'chat') { e.preventDefault(); closeChat(); return; }
     const myst = document.getElementById('mystats');
     if (e.key === 'Escape' && myst && !myst.classList.contains('hidden')) { e.preventDefault(); closeMyStats(); return; }
+    const gm = document.getElementById('guardamenu');
+    if (e.key === 'Escape' && gm && !gm.classList.contains('hidden')) { e.preventDefault(); closeGuarda(); return; }
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
@@ -1320,6 +1345,7 @@
   document.getElementById('startBtn').addEventListener('click', start);
   document.getElementById('restartBtn').addEventListener('click', start);
   { const b = document.getElementById('myStatsClose'); if (b) b.addEventListener('click', closeMyStats); }
+  { const b = document.getElementById('guardaClose'); if (b) b.addEventListener('click', closeGuarda); }
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {
