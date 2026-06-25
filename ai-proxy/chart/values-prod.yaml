@@ -23,7 +23,7 @@ upstream:
 # timeouts (el pago tarda 5-7s → presupuesto más amplio) + cupo/día por sesión + tope DURO de gasto pago
 extraEnv:
   - { name: UPSTREAM_TIMEOUT_MS, value: "10500" }   # presupuesto TOTAL (el cliente espera 11s)
-  - { name: PER_MODEL_TIMEOUT_MS, value: "9500" }   # el pago (cheap) tarda 5-8s → 9.5s para que ENTRE; gemma 429ea al toque
+  - { name: PER_MODEL_TIMEOUT_MS, value: "6000" }   # gemma4-paid ~1.5s, claude-sonnet ~5s → 6s alcanza y capea cuelgues (antes 9.5s era para 'cheap' lento)
   - { name: DAILY_CAP, value: "40" }                # chats/día por sesión (anti-DoS honesto)
   - { name: PAID_MODELS, value: "gemma4-paid,claude-sonnet,cheap,paid-final" }  # qué model_names cuestan plata
   - { name: PAID_DAILY_CAP, value: "600" }          # tope DURO: respuestas pagas/día (todos los users)
