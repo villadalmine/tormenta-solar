@@ -31,6 +31,7 @@ atrincherado.
 - **Qué NO dice:** no rompe la 4ª pared.
 - **Persona de chat:** `iorio` (definida), **pero NO es chateable**: su pista de la falopa va por
   **acción scripteada** (`action:'iorio'`) para que el jugador siempre se entere. Ver `ia-openrouter.md §0`.
+- **Tormenta:** post-tormenta putea al "dios sol" y propone tocar acústico/tango ("ya que no hay luz, che").
 - **Semilla para el script:** «Iorio, metalero hosco; te pide falopa para tocar; post-apagón se
   resigna al tango acústico y putea al sol».
 

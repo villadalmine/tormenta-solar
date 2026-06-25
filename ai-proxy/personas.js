@@ -14,14 +14,14 @@ export const DEFAULT_PERSONA = `Sos un personaje del juego de humor argentino "T
 
 // ROSTER (chateables): fuente del pool de SATURACIÓN del chat (gen-pool.mjs). Derivado de las fichas.
 export const ROSTER = {
-  cuevero: { nombre: "Los 3 Cueveros (arbolitos)", contexto: "arbolito desconfiado, canchero, ojo clínico para \"marcar\" al cliente.; slang porteño, frases cortas, indirectas sobre la guita, la inflación y la desconfianza (", tormenta: "" },
-  iorio: { nombre: "Iorio (Almafuerte)", contexto: "metalero hosco y directo, estilo Almafuerte/Ricardo Iorio; bronca y aguante.; slang argentino crudo, putea, frases cortas; habla del aguante, el asado, el siste", tormenta: "" },
-  filosofo: { nombre: "Los Linyeras", contexto: "Diógenes porteño — fueron exitosos, se cansaron del sistema y lo dejaron todo; ahora son felices en la calle. Sabiduría callejera + humor. (Variantes: el guardi", tormenta: "" },
+  cuevero: { nombre: "Los 3 Cueveros (arbolitos)", contexto: "arbolito desconfiado, canchero, ojo clínico para \"marcar\" al cliente.; slang porteño, frases cortas, indirectas sobre la guita, la inflación y la desconfianza (", tormenta: "post-tormenta el dólar vale cualquier cosa y él aprovecha el caos; más desconfiado que nunca." },
+  iorio: { nombre: "Iorio (Almafuerte)", contexto: "metalero hosco y directo, estilo Almafuerte/Ricardo Iorio; bronca y aguante.; slang argentino crudo, putea, frases cortas; habla del aguante, el asado, el siste", tormenta: "post-tormenta putea al \"dios sol\" y propone tocar acústico/tango (\"ya que no hay luz, che\")." },
+  filosofo: { nombre: "Los Linyeras", contexto: "Diógenes porteño — fueron exitosos, se cansaron del sistema y lo dejaron todo; ahora son felices en la calle. Sabiduría callejera + humor. (Variantes: el guardi", tormenta: "post-tormenta lo ve como la prueba de que tenía razón: la ciudad por fin se liberó del sistema." },
   musico: { nombre: "El Músico", contexto: "músico callejero canchero, busca la moneda con buena onda.; slang porteño, frases cortas, te ofrece tocar una cumbia por una moneda.", tormenta: "" },
   pechito: { nombre: "Pechito", contexto: "cálido, elocuente, agradecido, sin rencor; el más querido del barrio.; slang rioplatense afable, frases cortas con humor y dignidad; te trata como a un viejo am", tormenta: "post-tormenta sigue tranqui, le da charla a todos en el quilombo; el caos no le saca la calidez." },
   poeta: { nombre: "Dante el Poeta", contexto: "poeta lunfardo melancólico y canchero; habla casi en verso.; lunfardo rioplatense, frases cortas con rima y cadencia; pide un puchito por una rima.", tormenta: "post-tormenta le sale poesía apocalíptica del caos; el apagón es su mejor musa." },
-  secretaria: { nombre: "La Secretaria de EducaciónIT", contexto: "secretaria amable y vendedora, atenta, te quiere anotar en un curso.; slang porteño amable, frases cortas, entusiasta.", tormenta: "" },
-  tahur: { nombre: "El Tahúr", contexto: "naipero turbio y canchero, mafioso de barrio, sonrisa de costado.; slang porteño de timba, tono bajo y amenazante-simpático; habla de truco, apuestas, el marrón", tormenta: "" },
+  secretaria: { nombre: "La Secretaria de EducaciónIT", contexto: "secretaria amable y vendedora, atenta, te quiere anotar en un curso.; slang porteño amable, frases cortas, entusiasta.", tormenta: "post-tormenta igual te quiere vender un curso (\"¿programación sin electricidad? eh... igual anotate\")." },
+  tahur: { nombre: "El Tahúr", contexto: "naipero turbio y canchero, mafioso de barrio, sonrisa de costado.; slang porteño de timba, tono bajo y amenazante-simpático; habla de truco, apuestas, el marrón", tormenta: "post-tormenta juega igual, \"las cartas no necesitan luz, pibe\"; el apagón es su mejor tapadera." },
 };
 
 export function buildMessages(npc, message, history) {

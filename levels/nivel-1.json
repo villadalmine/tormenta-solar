@@ -237,6 +237,10 @@
             "persona": "filosofo",
             "oracle": true
           },
+          "fiche": "filosofo",
+          "comportamiento": {
+            "tormenta": "post-tormenta lo ve como la prueba de que tenía razón: la ciudad por fin se liberó del sistema."
+          },
           "dialogue": {
             "text": "“Corréte que me tapás el sol, pibe. Lo demás es vento que no te hace falta.” ☀️🛢️"
           }
@@ -254,6 +258,10 @@
             "persona": "poeta",
             "oracle": true
           },
+          "fiche": "poeta",
+          "comportamiento": {
+            "tormenta": "post-tormenta le sale **poesía apocalíptica** del caos; el apagón es su mejor musa."
+          },
           "dialogue": {
             "text": "“Te tiro unos versos en lunfardo y vos un puchito. Negocio redondo, maestro.” 📜"
           }
@@ -270,6 +278,10 @@
             "action": "chat",
             "persona": "pechito",
             "oracle": true
+          },
+          "fiche": "pechito",
+          "comportamiento": {
+            "tormenta": "post-tormenta sigue tranqui, le da charla a todos en el quilombo; el caos no le saca la calidez."
           },
           "dialogue": {
             "text": "“Soy el linyera más querido del barrio. Vení que charlamos, total el tiempo no se cobra.” 🫶"
@@ -798,6 +810,10 @@
             "action": "chat",
             "persona": "secretaria"
           },
+          "fiche": "secretaria",
+          "comportamiento": {
+            "tormenta": "post-tormenta igual te quiere vender un curso (\"¿programación sin electricidad? eh... igual anotate\")."
+          },
           "dialogue": {
             "text": "“Bienvenido a EducaciónIT. Te cuento de los cursos, horarios, profes, descuentos y formas de pago. ¿Qué querés saber?” ☎️"
           }
@@ -943,6 +959,10 @@
           "interact": {
             "action": "chat",
             "persona": "secretaria"
+          },
+          "fiche": "secretaria",
+          "comportamiento": {
+            "tormenta": "post-tormenta igual te quiere vender un curso (\"¿programación sin electricidad? eh... igual anotate\")."
           },
           "dialogue": {
             "text": "“Piso 8: acá están los CEOs. ¿Te anoto en un curso o querés ver horarios y descuentos?” ☎️"
@@ -1113,6 +1133,10 @@
           "interact": {
             "action": "chat",
             "persona": "secretaria"
+          },
+          "fiche": "secretaria",
+          "comportamiento": {
+            "tormenta": "post-tormenta igual te quiere vender un curso (\"¿programación sin electricidad? eh... igual anotate\")."
           },
           "dialogue": {
             "text": "“Piso 9: relax y mates con Marcos. ¿Te cuento de los cursos, los horarios o las formas de pago?” ☎️"
@@ -1956,6 +1980,10 @@
             "action": "chat",
             "persona": "cuevero"
           },
+          "fiche": "cuevero",
+          "comportamiento": {
+            "tormenta": "post-tormenta el dólar vale cualquier cosa y él aprovecha el caos; más desconfiado que nunca."
+          },
           "dialogue": {
             "text": "“Día flojo, pibe... ni clientes. ¿Venís a cambiar o a charlar un rato?” 💵"
           }
@@ -2213,6 +2241,10 @@
             "action": "chat",
             "persona": "tahur"
           },
+          "fiche": "tahur",
+          "comportamiento": {
+            "tormenta": "post-tormenta juega igual, \"las cartas no necesitan luz, pibe\"; el apagón es su mejor tapadera."
+          },
           "dialogue": {
             "text": "“Bueno, vos parecés piola. Sentate que tiramos unas manos de truco y charlamos.” 🃏"
           }
@@ -2264,6 +2296,10 @@
           "interact": {
             "action": "chat",
             "persona": "tahur"
+          },
+          "fiche": "tahur",
+          "comportamiento": {
+            "tormenta": "post-tormenta juega igual, \"las cartas no necesitan luz, pibe\"; el apagón es su mejor tapadera."
           },
           "dialogue": {
             "text": "“¿Vos jugás al truco o sos de los que cantan envido sin nada? Vení, contame.” 😏"

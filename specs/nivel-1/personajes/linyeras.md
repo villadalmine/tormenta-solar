@@ -77,6 +77,7 @@ Pool de relatos (Draft, hacer variantes — cada uno distinto):
 - **Quiere:** nada material — que lo dejen tomar sol; ayudarte si sos "gurú".
 - **Qué NO dice:** no rompe la 4ª pared, no admite ser IA; el guardián NO te deja tocar las joyas.
 - **Persona de chat:** `filosofo` (el de la calle). **No guía**: es color/filosofía, sin data de quest.
+- **Tormenta:** post-tormenta lo ve como la prueba de que tenía razón: la ciudad por fin se liberó del sistema.
 - **Semilla para el script:** «linyera filósofo ex-exitoso, feliz en la calle, sabiduría + humor;
   variantes: resignado en ruina / ex-millonario que llora y te muestra la plata».
 

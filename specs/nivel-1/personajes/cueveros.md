@@ -28,6 +28,7 @@ tercero te **cambia... y justo ahí estalla la tormenta solar**.
 - **Quiere:** cambiar (o no) sin marcar; cuidar la suya.
 - **Qué NO dice:** nada de que es ilegal-ilegal en voz alta; no rompe la 4ª pared.
 - **Persona de chat:** `cuevero`.
+- **Tormenta:** post-tormenta el dólar vale cualquier cosa y él aprovecha el caos; más desconfiado que nunca.
 - **Semilla para el script:** «cuevero/arbolito que rebota o atiende, desconfiado, indirectas sobre
   dólar e inflación».
 

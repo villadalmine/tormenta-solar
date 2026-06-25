@@ -25,6 +25,7 @@ ganando los 3 arcades (puerta secreta).
 - **Quiere:** que juegues y pierdas.
 - **Qué NO dice:** no rompe la 4ª pared.
 - **Persona de chat:** `tahur` (definible). Hoy su interacción principal es el **truco** (acción).
+- **Tormenta:** post-tormenta juega igual, "las cartas no necesitan luz, pibe"; el apagón es su mejor tapadera.
 - **Semilla para el script:** «tahúr de trastienda, timbero turbio y canchero, te invita al truco y
   te amenaza con humor».
 

@@ -33,6 +33,20 @@ function platforms(r) {
   return out;
 }
 
+// ENTITY-MODEL (§6.3 paso 3): la entidad v2 referencia su FICHA y trae su comportamiento de tormenta
+// (fuente única). Leemos persona-id → tormenta de specs/nivel-1/personajes/*.md.
+const ficheTormenta = {};
+{
+  const dir = path.join(__dirname, '..', 'specs', 'nivel-1', 'personajes');
+  for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.md'))) {
+    const pm = fs.readFileSync(path.join(dir, f), 'utf8').match(/##\s*Personalidad[\s\S]*?(?=\n##\s|$)/i);
+    if (!pm) continue;
+    const id = (pm[0].match(/\*\*Persona de chat:\*\*[^\n]*`([a-z]+)`/i) || [])[1];
+    const t = (pm[0].match(/\*\*Tormenta:\*\*\s*([^\n]+)/i) || [])[1];
+    if (id && t) ficheTormenta[id] = t.trim();
+  }
+}
+
 function entities(r, ri) {
   const E = [];
   let n = 0;
@@ -58,6 +72,7 @@ function entities(r, ri) {
     for (const k of ['action', 'want', 'persona', 'sells', 'lines', 'hint', 'follow', 'oracle']) if (m[k] != null) it[k] = m[k];
     if (Object.keys(it).length) e.interact = it;
     if (m.persona && !m.action) e.chat = { persona: m.persona };
+    if (m.persona) { e.fiche = m.persona; if (ficheTormenta[m.persona]) e.comportamiento = { tormenta: ficheTormenta[m.persona] }; }   // §6.3-3: entidad → ficha (alma/comportamiento)
     if (m.dialog) e.dialogue = { text: m.dialog };
     if (m.invisible) e.lifecycle = { invisible: true };
     E.push(e);
