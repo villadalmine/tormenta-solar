@@ -172,10 +172,12 @@
     'g.label.barricada': '🔥 ATRINCHERADO',
     'g.label.clausurado': 'CLAUSURADO',
     'g.label.psst': '¡psst! vení',
+    'g.label.tahurDoor': '🔒 puerta del tahúr',
 
     // --- arcade resultados ---
     'g.truco.win': 'Le ganás al tahúr... pero las minas se te tiran encima 💃💃, no te dejan ni caminar y te afanan {n} monedas. 😵 (Igual: el tahúr abre una puerta al fondo que cruza derecho al CHINO — usala antes de irte.)',
     'g.truco.lose': 'Perdés. El tahúr te sonríe de costado... dicen que al tipo le gusta el marrón. Salís medio incómodo, sin saber bien por qué. (−25 vida)',
+    'g.truco.doorLocked': 'La puerta del tahúr está cerrada. Sentate y GANALE AL TRUCO (con E) y se abre el paso al chino.',
     'g.frogger.valeWin': '¡Le ganaste al Frogger! Tenés un VALE por un choripán gratis 🌭. Canjealo en la chorería.',
     'g.frogger.valeLose': 'Te ganó el del chori. Sin vale... pedile revancha.',
     'g.frogger.win': '🐸 ¡Cruzaste! +8 monedas.',
@@ -304,7 +306,7 @@
     'arc.truco.tie': 'Parda.',
     'arc.truco.dealLose': 'Perdiste la mano.',
     'arc.truco.dealWin': 'Ganaste la mano.',
-    'arc.truco.yourTurn': 'Tu turno: carta 1/2/3',
+    'arc.truco.yourTurn': 'Tu turno · 1/2/3 carta · V envido · T truco',
     'arc.truco.ask': 'El tahúr baraja y te mira...',
     'arc.truco.askTitle': 'El tahúr: “¿Cómo la jugamos, pibe?”',
     'arc.truco.opt3': '[3]  a TRES MANOS  (mejor de 3)',

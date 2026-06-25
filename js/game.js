@@ -189,7 +189,7 @@
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
       if (d.id === 'bunker' && !bunkerUnlocked) continue;
       if (d.id === 'chinoback' && !stormed) continue;   // la puerta trasera aparece con la tormenta
-      if (d.id === 'chinotruco' && !trucoWon) continue; // la puerta del tahúr se abre al ganar el truco
+      // la puerta del tahúr SIEMPRE es interactuable: abierta si ganaste el truco, si no muestra la pista
       const dist = Math.hypot(pcx - d.x, pf - d.y);
       if (dist < bd) { bd = dist; best = { kind: 'door', d }; }
     }
@@ -219,7 +219,10 @@
         else setMsg(T('g.super.barricada'), '#ff5252', 6500);
       }
       else if (it.d.id === 'chinoback') enterSuper();           // entrada de servicio desde el refugio
-      else if (it.d.id === 'chinotruco') { trucoWon = false; enterSuper(); }  // puerta del tahúr (se consume)
+      else if (it.d.id === 'chinotruco') {
+        if (trucoWon) { trucoWon = false; enterSuper(); }              // ganaste → cruzás (se consume; la puerta queda cerrada)
+        else setMsg(T('g.truco.doorLocked'), '#ffd54f', 5200);        // cerrada: hay que ganarle al tahúr al truco
+      }
       else if (it.d.id === 'vinilos') enterVinilos();
       else if (it.d.id === 'cambio' && !stormed) {
         // la casa de cambio oficial está HASTA LAS PELOTAS: la cola no te deja entrar
@@ -804,9 +807,10 @@
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
       if (d.id === 'bunker' && !bunkerUnlocked) continue;
       if (d.id === 'chinoback' && !stormed) continue;
-      if (d.id === 'chinotruco' && !trucoWon) continue;
       const img = Art.items[DOOR_ART[d.art] || 'door'];
       ctx.drawImage(img, d.x - cam.x - img.width/2, d.y - cam.y - img.height);
+      // la puerta del tahúr: si todavía no le ganaste, queda CERRADA con un cartelito
+      if (d.id === 'chinotruco' && !trucoWon) label(T('g.label.tahurDoor'), d.x - cam.x, d.y - cam.y - img.height - 4, '#ffd54f');
       // frente del chino atrincherado tras la tormenta (hasta que Iorio corra a los ninjas)
       if (d.id === 'super' && stormed && !chinoFrontOpen) {
         const b = Art.decor.barricada;

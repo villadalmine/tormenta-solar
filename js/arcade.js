@@ -382,8 +382,8 @@ const Arcade = (() => {
         if (!aiOpened && round === 0 && !pending && !tableP && E) {
           aiOpened = true;
           const ae = E.envido(aiHand.map(h => h.c));
-          if (!envidoDone && ae >= 28) { pending = { kind:'envido', level:1, by:'a' }; say(ENVW[1]); note = T('arc.truco.aiCantaEnv'); }
-          else if (aiHand.some(h => pw(h.c) >= 11)) { pending = { kind:'truco', level:1, by:'a' }; say(TRUCOW[1]); note = T('arc.truco.aiCantaTruco'); }
+          if (!envidoDone && ae >= 26) { pending = { kind:'envido', level:1, by:'a' }; say(ENVW[1]); note = T('arc.truco.aiCantaEnv'); }
+          else { pending = { kind:'truco', level:1, by:'a' }; say(TRUCOW[1]); note = T('arc.truco.aiCantaTruco'); }   // el tahúr es jugado: si no canta envido, canta truco
         }
         if (phase === 'reveal') {
           revealT -= dt;
