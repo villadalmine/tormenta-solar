@@ -129,7 +129,12 @@ const SUB_USAGE = {};                          // code(corto) -> count (volumen 
 const SUB_COST = {};                           // code(corto) -> US$ acumulado (gasto por código)
 const SUB_TOK = {};                            // code(corto) -> tokens acumulados
 const subShort = c => (c || '').slice(0, 12).replace(/[^a-zA-Z0-9_-]/g, '');
-const isSub = code => !!code && (SUB_CODES.has(code) || !!STORE[code]);   // env (compartido) o provisionado (key propia)
+function isSub(code) {                                    // env (compartido) o provisionado (key propia, no vencido)
+  if (!code) return false;
+  if (SUB_CODES.has(code)) return true;
+  const r = STORE[code];
+  return !!r && (!r.expiresAt || r.expiresAt > Date.now());   // vencido → ya no es pago
+}
 function subHit(code) { const k = subShort(code) || '-'; SUB_USAGE[k] = (SUB_USAGE[k] || 0) + 1; }
 // Precios US$/1M tokens {in,out} de los modelos PAGOS que usamos (para estimar gasto por código). Override
 // por env MODEL_PRICES (JSON). Estimación: tokens del usage × precio → cuánto gastó cada usuario que pagó.
@@ -152,7 +157,8 @@ const OR_BASE = 'https://openrouter.ai/api/v1';
 const PROV_KEY = (process.env.OPENROUTER_PROVISIONING_KEY || '').trim();   // Secret tormenta-or-provisioning
 const SUB_OR_MODELS = (process.env.SUB_OR_MODELS || 'google/gemma-4-31b-it,anthropic/claude-sonnet-4.5').split(',').map(s => s.trim()).filter(Boolean);
 const SUBS_STORE = process.env.SUBS_STORE || '/data/subs.json';            // mapeo código→key (PVC)
-const DEFAULT_SUB_LIMIT = +process.env.SUB_LIMIT_USD || 2;                 // budget US$ por key (tope por usuario)
+const DEFAULT_SUB_LIMIT = +process.env.SUB_LIMIT_USD || 1;                 // budget US$ por key (tope por usuario)
+const SUB_TTL_DAYS = +process.env.SUB_TTL_DAYS || 30;                      // vencimiento del código (1 mes)
 let STORE = {};                                                            // { code: {email, orKey, hash, limit, createdAt} }
 function loadStore() { try { STORE = JSON.parse(fs.readFileSync(SUBS_STORE, 'utf8')) || {}; } catch (e) { STORE = {}; } }
 function saveStore() { try { fs.mkdirSync(SUBS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(SUBS_STORE, JSON.stringify(STORE)); } catch (e) { console.error('subs store save:', e.message); } }
@@ -355,10 +361,11 @@ http.createServer((req, res) => {
         if (!email) { res.writeHead(400); return res.end('email requerido'); }
         const code = genCode();
         const { key, hash } = await orCreateKey(email + ' · ' + code, limit);   // label = email+código (OpenRouter sabe de quién es)
-        STORE[code] = { email, orKey: key, hash, limit, createdAt: Date.now() };
+        const expiresAt = Date.now() + SUB_TTL_DAYS * 86400000;                 // vence en 1 mes
+        STORE[code] = { email, orKey: key, hash, limit, createdAt: Date.now(), expiresAt };
         saveStore();
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ code, email, limit, hash }));                  // ← el código se lo mandás al usuario
+        res.end(JSON.stringify({ code, email, limit, hash, expiresAt }));       // ← el código se lo mandás al usuario
       } catch (e) { res.writeHead(502, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: e.message })); }
     });
     return;
@@ -370,7 +377,8 @@ http.createServer((req, res) => {
       const out = [];
       for (const [code, r] of Object.entries(STORE)) {
         const info = await orKeyInfo(r.hash);
-        out.push({ code, email: r.email, limit: r.limit, usage: info ? info.usage : null, disabled: info ? info.disabled : null });
+        out.push({ code, email: r.email, limit: r.limit, usage: info ? info.usage : null, disabled: info ? info.disabled : null,
+          expiresAt: r.expiresAt || null, expired: !!(r.expiresAt && r.expiresAt <= Date.now()) });
       }
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ subs: out }));

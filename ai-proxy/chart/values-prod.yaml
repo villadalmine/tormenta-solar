@@ -40,7 +40,8 @@ extraEnv:
   - { name: SUB_MODELS, value: "gemma4-paid,claude-sonnet" }
   # F3 (key-por-código): el sub provisionado va DIRECTO a OpenRouter con su key → estos son ids de OpenRouter
   - { name: SUB_OR_MODELS, value: "google/gemma-4-31b-it,anthropic/claude-sonnet-4.5" }
-  - { name: SUB_LIMIT_USD, value: "2" }             # budget por key (tope US$/usuario) al provisionar
+  - { name: SUB_LIMIT_USD, value: "1" }             # budget por key (tope US$1/usuario) al provisionar
+  - { name: SUB_TTL_DAYS, value: "30" }             # la suscripción vence en 1 mes
 
 # suscripción F3: provisioning key de OpenRouter (Secret ya creado a mano; NO commitear el valor)
 provisioning:
@@ -80,7 +81,9 @@ linyeraPool:
   cronjob:
     enabled: true
     schedule: "0 5 * * *"
-    model: gemma4-free
+    # gemma4-PAID (no gemma4-free): el free se cancela al pegar el límite de cuenta y arruinaba la generación.
+    # Mismo modelo (google/gemma-4-31b-it), confiable, sin límite. Cuesta centavos (1×/día).
+    model: gemma4-paid
     n: 30
   # genToken: <NO commitear — --set linyeraPool.genToken=...>
 
