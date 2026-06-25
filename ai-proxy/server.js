@@ -347,6 +347,16 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ paid: isSub(code) }));
   }
+  // mi consumo: el JUGADOR ve SU propio uso (gasto/tope/vencimiento) con SU código como auth. Solo lo suyo,
+  // sin GEN_TOKEN (el código es la llave). Personal a la sesión que tiene el token validado.
+  if (req.method === 'GET' && req.url.startsWith('/my-sub')) {
+    const code = (req.headers['x-sub-code'] || '').toString().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    if (!isSub(code)) return res.end(JSON.stringify({ paid: false }));
+    const r = STORE[code], real = SUB_REAL[code];
+    return res.end(JSON.stringify({ paid: true, provisioned: !!r,
+      usage: real ? real.usage : null, limit: r ? r.limit : null, expiresAt: r ? r.expiresAt : null }));
+  }
   // F3: PROVISIONAR un código con KEY de OpenRouter propia + budget (GEN_TOKEN). {email, limit?} → {code}.
   // Pseudo-manual: vos lo disparás y mandás el código por mail a mano. Guarda código→key en el store (PVC).
   if (req.method === 'POST' && req.url === '/provision') {

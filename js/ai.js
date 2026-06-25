@@ -22,6 +22,12 @@ const AI = (() => {
     try { const r = await fetch(PROXY + '/sub-check', { headers: { 'X-Sub-Code': (code != null ? code : subCode()) } }); return r.ok ? await r.json() : { paid: false }; }
     catch (e) { return { paid: false, error: e.message }; }
   }
+  async function mySub() {          // MI consumo (gasto/tope/vencimiento) — personal, con mi código como auth
+    if (!PROXY || typeof fetch !== 'function') return null;
+    const c = subCode(); if (!c) return null;
+    try { const r = await fetch(PROXY + '/my-sub', { headers: { 'X-Sub-Code': c } }); return r.ok ? await r.json() : null; }
+    catch (e) { return null; }
+  }
   const MAX_TRIES = 3;        // no probar más de N modelos por mensaje (no colgar)
   let byokDead = false;       // tras varios fallos seguidos → de ahí en más, líneas locales
   let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
@@ -375,19 +381,25 @@ const AI = (() => {
       });
       // suscripción: pegar/activar el código → valida contra el proxy y muestra estado
       const sci = document.getElementById('opt-subcode'), sst = document.getElementById('sub-status'), ssb = document.getElementById('opt-subsave');
-      const updSub = (txt) => { if (sst) sst.textContent = (txt != null) ? txt : (subCode() ? T('opt.subActive') : ''); };
+      const updSub = (txt) => { if (sst) sst.textContent = txt || ''; };
+      const fmtSub = (m) => {   // "✓ activa · usaste $X de $Y · vence en Zd"
+        let s = T('opt.subActive');
+        if (m && m.usage != null && m.limit != null) s += ' · ' + T('opt.subUsage', { used: (+m.usage).toFixed(3), limit: m.limit });
+        if (m && m.expiresAt) { const d = Math.max(0, Math.ceil((m.expiresAt - Date.now()) / 86400000)); s += ' · ' + T('opt.subExpiry', { d }); }
+        return s;
+      };
+      const showSub = async () => { if (!subCode()) return updSub(''); const m = await mySub(); updSub(m && m.paid ? fmtSub(m) : T('opt.subInvalid')); };
       if (sci) sci.value = subCode();
       if (ssb) ssb.addEventListener('click', async () => {
         const c = (sci && sci.value.trim()) || '';
         setSubCode(c);
         if (!c) { updSub(T('opt.subCleared')); return; }
         updSub(T('opt.subChecking')); ssb.disabled = true;
-        const r = await checkSub(c); ssb.disabled = false;
-        updSub(r.paid ? T('opt.subActive') : T('opt.subInvalid'));
+        await showSub(); ssb.disabled = false;
       });
-      upd(); updModel(); updSub();
+      upd(); updModel(); showSub();
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, setSubCode, getSubCode: subCode, checkSub, setStormed, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, setSubCode, getSubCode: subCode, checkSub, mySub, setStormed, get online() { return mode() !== 'offline'; } };
 })();
