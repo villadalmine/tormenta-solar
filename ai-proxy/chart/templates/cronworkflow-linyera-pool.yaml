@@ -17,7 +17,8 @@ spec:
   failedJobsHistoryLimit: 2
   workflowSpec:
     entrypoint: gen
-    activeDeadlineSeconds: 1800             # tope 30 min (batch; puede tardar por saturación del free)
+    serviceAccountName: {{ include "tormenta-ai-proxy.fullname" . }}-pool   # permisos de Argo (workflowtaskresults)
+    activeDeadlineSeconds: 2700             # tope 45 min (batch; puede tardar por saturación del free)
     ttlStrategy:                            # AUTO-LIMPIEZA del workflow terminado
       secondsAfterCompletion: 86400
       secondsAfterSuccess: 43200

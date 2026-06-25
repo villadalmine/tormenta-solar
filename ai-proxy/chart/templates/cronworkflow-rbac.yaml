@@ -1,0 +1,36 @@
+{{- if .Values.linyeraPool.cronjob.enabled }}
+# RBAC para que el executor de Argo (emissary) pueda reportar resultados (workflowtaskresults).
+# Sin esto, el `wait` sidecar falla: "cannot create workflowtaskresults" → el workflow queda en Error.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["argoproj.io"]
+    resources: ["workflowtaskresults"]
+    verbs: ["create", "patch", "get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+    namespace: {{ .Release.Namespace }}
+{{- end }}
