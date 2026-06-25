@@ -91,6 +91,42 @@ Rápidos, baratos y buenos para el linyera (criollo + memoria), vía OpenRouter 
 Entitlement por **código** que el jugador pide y pega en Settings. **El pago real va DESPUÉS**; primero el
 mecanismo de código + DB + métricas (emisión manual/gratis al principio).
 
+### 9.0 Operación TEMPORAL (fase manual) + cómo se rastrean los códigos
+
+> **Esto es temporal** — hasta tener email (§9.1) + DB (§9.2) + pago (§9.4). Hoy los códigos se emiten a mano.
+
+**Emitir un código (dos formas):**
+- **Durable (recomendado, sobrevive reinicios del pod) — env del proxy:** se redeploya agregando el código a
+  `SUB_CODES` (lista separada por coma). Los códigos son **secretos → NO se commitean**; van por `--set`:
+  ```
+  helm upgrade tormenta-ai ai-proxy/chart -n ai -f ai-proxy/chart/values-prod.yaml \
+    --set image.tag=<TAG> --set linyeraPool.genToken=<TOK> \
+    --set 'extraEnv[11].name=SUB_CODES' --set 'extraEnv[11].value=COD1\,COD2'
+  ```
+- **Efímero (al instante, se PIERDE si el pod reinicia) — API protegida por GEN_TOKEN:**
+  ```
+  curl -X POST https://llm-tormenta-solar.cybercirujas.club/sub-codes \
+    -H 'X-Gen-Token: <TOK>' -H 'Content-Type: application/json' -d '{"code":"OTRO"}'
+  # revocar: -d '{"code":"OTRO","revoke":true}'
+  ```
+- **Usar:** el jugador pega el código en ⚙ Opciones → Suscripción → Activar (se guarda en su localStorage
+  `ts_sub_code` y se manda en cada chat por el header `X-Sub-Code`).
+
+**¿Cómo sabe el sistema QUIÉN/qué sesión usa un código? (estado actual, honesto):**
+- **El código NO está atado a una persona ni a una sesión** — es un secreto **compartible**: cualquiera que lo
+  tenga y lo pegue obtiene el tier pago. (Atarlo a una persona = flujo email→código §9.1 + DB code↔email §9.2,
+  **pendiente**.)
+- **Sesión:** el header `X-Sub-Code` (el código) es **independiente** del `X-Session-Id` (la sesión del browser,
+  que se usa para el cupo del free). Un mismo código puede usarse desde varias sesiones/dispositivos.
+- **Trazabilidad que SÍ hay hoy:**
+  - **Volumen por código:** métrica `tormenta_ai_sub_usage_total{code="<hash corto>"}` → en Grafana ves
+    **cuánto se usa cada código** (para detectar uno que se disparó / se compartió de más).
+  - **Cruce fino:** el proxy loguea por request (`reqLog` → Loki) `{code, sid, ip, npc, model}` → podés ver
+    **qué sesiones/IPs usaron cada código** (si un código aparece en 50 IPs, se filtró).
+- **Lo que falta para aislar por usuario de verdad:** (a) **key de OpenRouter por código** (§9.3 opción B) →
+  costo y **límite/budget por código**, revocable sin tocar a los demás; (b) **DB + email** (§9.1/§9.2) para
+  atar código↔persona y un estado `paid/revoked`; (c) **pago** (§9.4) que flippea el estado.
+
 ### 9.1 Flujo
 1. **Settings → "Pedir código"**: el jugador pone su **email** → backend genera un código y se lo **manda por
    mail**. (Por eso se guarda el email: porque al pedirlo te lo envía ahí.)
