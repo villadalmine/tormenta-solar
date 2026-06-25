@@ -137,9 +137,24 @@ backup pago (calidad top, centavos) si el free batch no rinde.
 gemma4-free ~5-15 min según saturación (no importa, es de noche). **GPU/NPU descartados por calidad.**
 
 **Pendiente del generador:** gemma4-free **converge** (repite "se me tildó el bocho") → el cron rota
-micro-escenarios (`SCENARIOS` en `gen-linyera-pool.mjs`) + dedup para más variedad. **Cron a montar:** CronJob
-`tormenta-linyera-pool` 1×/día que corre `gen-linyera-pool.mjs` contra LiteLLM y publica `js/linyera-pool.js`
-(commit+push, o servido por el proxy). El cliente ya lo usa (`ai.js satLine` prefiere `window.LINYERA_POOL`).
+micro-escenarios (`SCENARIOS`) + dedup para más variedad.
+
+**MONTADO (2026-06-25):** **Argo CronWorkflow** `tormenta-ai-proxy-pool` 1×/día (05:00), corre `gen-pool.mjs`
+(en la imagen del proxy) contra LiteLLM gemma4-free → **POST `/linyera-pool`** al proxy (token `GEN_TOKEN`). El
+proxy lo sirve por **`GET /linyera-pool`** (en memoria); el cliente lo trae fresco y mergea sobre el seed
+horneado (`js/linyera-pool.js`) si una persona tiene ≥4. Argo elegido sobre CronJob k8s por reintentos
+(`retryStrategy` 3×) + **auto-limpieza** (`podGC` + `ttlStrategy`). Opt-in `linyeraPool.cronjob.enabled`.
+Probado end-to-end (30 frases/persona, lunfardo lindo).
+
+### 6.3 (PROPUESTA) Extender el cron a frases por ENTIDAD para NPCs sin IA
+
+Idea del usuario: el mismo cron podría generar **frases relevantes para cada personaje que NO tiene chat IA**
+(borrachines, Iorio, jubilados, turista, etc.). Como **cada personaje es una ENTIDAD con atributos**
+(`specs/modelo-de-entidades.md`), el generador usa esos atributos en el prompt → frases **coherentes con quién
+es** cada uno. Encaja con el **Mensajero** (`carteles-ia.md`), que ya sirve mensajes por objeto: hoy los NPCs
+sin IA dicen líneas hardcodeadas; con esto dirían frases generadas, variadas y fieles a su entidad. **A diseñar:**
+(a) fuente de las entidades+atributos para el prompt, (b) endpoint/pool por-entidad en el proxy (extiende
+`/linyera-pool` o uno nuevo), (c) wiring en `dialogos.js` para que el NPC sin IA consuma su pool.
 
 ## 7. Notas
 
