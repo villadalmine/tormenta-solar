@@ -125,9 +125,24 @@ function paidHit() { paidRoll().n++; }
 const SUB_CODES = new Set((process.env.SUB_CODES || '').split(',').map(s => s.trim()).filter(Boolean));
 const SUB_MODELS = (process.env.SUB_MODELS || 'gemma4-paid,claude-sonnet').split(',').map(s => s.trim()).filter(Boolean);
 const SUB_USAGE = {};                          // code(corto) -> count (volumen por código; cardinalidad = #códigos)
+const SUB_COST = {};                           // code(corto) -> US$ acumulado (gasto por código)
+const SUB_TOK = {};                            // code(corto) -> tokens acumulados
 const subShort = c => (c || '').slice(0, 12).replace(/[^a-zA-Z0-9_-]/g, '');
 const isSub = code => !!code && SUB_CODES.has(code);
 function subHit(code) { const k = subShort(code) || '-'; SUB_USAGE[k] = (SUB_USAGE[k] || 0) + 1; }
+// Precios US$/1M tokens {in,out} de los modelos PAGOS que usamos (para estimar gasto por código). Override
+// por env MODEL_PRICES (JSON). Estimación: tokens del usage × precio → cuánto gastó cada usuario que pagó.
+let MODEL_PRICES = { 'gemma4-paid': { in: 0.12, out: 0.35 }, 'claude-sonnet': { in: 3, out: 15 } };
+try { if (process.env.MODEL_PRICES) MODEL_PRICES = Object.assign(MODEL_PRICES, JSON.parse(process.env.MODEL_PRICES)); } catch (e) {}
+function costUsd(model, usage) {               // US$ estimado de una respuesta (0 si no sé el precio del modelo)
+  const p = MODEL_PRICES[model]; if (!p || !usage) return 0;
+  return (usage.prompt_tokens || 0) / 1e6 * p.in + (usage.completion_tokens || 0) / 1e6 * p.out;
+}
+function subCharge(code, model, usage) {       // acumula gasto + tokens del código (por uso pago)
+  const k = subShort(code) || '-';
+  SUB_COST[k] = (SUB_COST[k] || 0) + costUsd(model, usage);
+  SUB_TOK[k] = (SUB_TOK[k] || 0) + ((usage && usage.total_tokens) || 0);
+}
 
 // Log estructurado por request (JSON a stdout) → promtail/Loki. Acá SÍ va el detalle fino
 // (session-id, ip, npc, modelo, resultado) para cruzar "qué hace cada sesión/IP" sin inflar
@@ -229,7 +244,7 @@ async function ask(messages, opts = {}) {
       const r = await fetch(BASE + '/chat/completions', {
         method: 'POST', signal: ctrl.signal,
         headers: { 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 120 }),
+        body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 120, ...(opts.user ? { user: opts.user } : {}) }),
       });
       clearTimeout(to);
       if (r.status === 429) {
@@ -242,7 +257,7 @@ async function ask(messages, opts = {}) {
       if (!r.ok) { incAttempt(model, 'http_other'); throw new Error('OpenRouter ' + r.status); }
       const d = await r.json();
       const reply = d.choices?.[0]?.message?.content;
-      if (reply) { incAttempt(model, 'ok'); if (!opts.sub && PAID_MODELS.has(model)) paidHit(); return { reply: reply.trim(), model }; }   // ← qué modelo ganó (si fue pago de free-user, descuenta del presupuesto)
+      if (reply) { incAttempt(model, 'ok'); if (!opts.sub && PAID_MODELS.has(model)) paidHit(); return { reply: reply.trim(), model, usage: d.usage }; }   // ← qué modelo ganó (+ tokens para el gasto por código)
       incAttempt(model, 'empty');                            // 200 pero sin texto → próximo modelo
     } catch (e) {
       clearTimeout(to);
@@ -348,6 +363,13 @@ http.createServer((req, res) => {
     const subKeys = Object.keys(SUB_USAGE);
     if (!subKeys.length) out += `tormenta_ai_sub_usage_total{code="-"} 0\n`;
     for (const k of subKeys) out += `tormenta_ai_sub_usage_total{code="${k}"} ${SUB_USAGE[k]}\n`;
+    // GASTO estimado US$ + tokens por código (suscripcion.md §9.3: quién pagó cuánto gasta)
+    out += `# HELP tormenta_ai_sub_cost_usd US$ estimado gastado por código (tokens × precio del modelo pago)\n# TYPE tormenta_ai_sub_cost_usd counter\n`;
+    const costKeys = Object.keys(SUB_COST);
+    if (!costKeys.length) out += `tormenta_ai_sub_cost_usd{code="-"} 0\n`;
+    for (const k of costKeys) out += `tormenta_ai_sub_cost_usd{code="${k}"} ${SUB_COST[k].toFixed(6)}\n`;
+    out += `# HELP tormenta_ai_sub_tokens_total Tokens (total) consumidos por código\n# TYPE tormenta_ai_sub_tokens_total counter\n`;
+    for (const k of Object.keys(SUB_TOK)) out += `tormenta_ai_sub_tokens_total{code="${k}"} ${SUB_TOK[k]}\n`;
     // F2 ModelScorer: score/disponibilidad/latencia/precio por candidato + posición en la cadena (best/cheapest)
     const rk = ranking();
     out += `# HELP tormenta_ai_model_score Score del ModelScorer por candidato (mayor = mejor para rutear)\n# TYPE tormenta_ai_model_score gauge\n`;
@@ -432,11 +454,12 @@ http.createServer((req, res) => {
     M.requests++; const t0 = Date.now();
     const npcLbl = cleanLbl(npc, 24);
     try {
-      const { reply, model } = await ask(buildMessages(npc, message, history), { sub });
+      const { reply, model, usage } = await ask(buildMessages(npc, message, history), { sub, user: sub ? subCode : undefined });
       const dt = Date.now() - t0; M.durMsSum += dt; M.durCount++;
       const be = backendOf(model);
       incChat(model, be, sub ? 'ai_sub' : 'ai'); obsLatency(model, be, dt / 1000);   // ← modelo/backend/tier + latencia
-      reqLog({ sid, ip, npc: npcLbl, model, be, outcome: sub ? 'ai_sub' : 'ai', code: sub ? subShort(subCode) : undefined, ms: dt });
+      if (sub) subCharge(subCode, model, usage);   // gasto US$ + tokens por código (quién gastó cuánto)
+      reqLog({ sid, ip, npc: npcLbl, model, be, outcome: sub ? 'ai_sub' : 'ai', code: sub ? subShort(subCode) : undefined, usd: sub ? +costUsd(model, usage).toFixed(5) : undefined, ms: dt });
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ reply, tier: sub ? 'paid' : 'free' }));
     } catch (e) {
       const outcome = e.timedOut ? 'timeout' : 'error';
