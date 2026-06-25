@@ -1,7 +1,26 @@
 # SDD — Carteles con IA: pistas inteligentes + banco de propaganda (ambos en NPU)
 
-- **Estado:** Draft
-- **Última actualización:** 2026-06-24
+- **Estado:** Draft · **banco de propaganda del CINE = IMPLEMENTADO** (2026-06-26, ver §9).
+- **Última actualización:** 2026-06-26
+
+## 9. Banco de propaganda del CINE (IMPLEMENTADO) — carteles dinámicos por rubro
+
+Los carteles del cine **cambian solos**, rotando **marcas FALSAS estilo Buenos Aires** por **rubro**:
+🍕 `comida` · 👕 `ropa` · 📱 `electronica` · 🛸 `bizarro` (rubros inventados absurdos). Cada cartel rota cada ~7s y
+muestra uno distinto (seed por `x`). Color del panel según rubro.
+- **Generación:** `ai-proxy/gen-propaganda.mjs` (cron `cronworkflow-propaganda.yaml`, **1×/día 4am**) le pide a
+  **`gemma4-paid`** que **invente** 8 marcas+slogans por rubro (acá el modelo SÍ inventa, es el punto — al revés que
+  las noticias). Devuelve JSON, se parsea defensivo. POST → `/propaganda` (GEN_TOKEN), **persistido en PVC**
+  (`/data/propaganda.json`), servido por `GET /propaganda`.
+- **Cliente:** `js/propaganda.js` trae el banco a `window.PROPAGANDA` y tiene un **fallback ESTÁTICO** BA (anda sin
+  proxy/sin red). `js/game.js` `drawCartelProp()` dibuja un panel sobre cada cartel `decor` del cine.
+- **NOTA de ruteo:** el §0 decía "propaganda en NPU". Quedó en **`gemma4-paid` (nube)** porque la NPU alucina+lenta
+  (mismo veredicto que noticias, `cine-noticias.md §3.1`). Corre 1×/día → costo despreciable.
+- Ejemplos generados: "La Muchacha del Carbón — si no sale humo no es parrilla", "TrucoPhone — casi un iPhone pero
+  más barato", "UFO-Taxis — te llevamos a Marte pero no te quejes del tráfico".
+
+> Lo de abajo (§0-§8) es el diseño original (pistas NPU + propaganda); el banco del cine es la primera parte llevada
+> a producción.
 - **Relacionado:** `publicidad.md` (los carteles/banners de `js/ads.js`), `llm-metrics.md` (ruteo/medición de
   modelos), `hami-gpu-plan.md` (GPU/HAMi), `proxy-ia-deploy.md` (el proxy), el **grafo de historia** (story
   graph / flags).
