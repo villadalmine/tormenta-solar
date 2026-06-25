@@ -29,6 +29,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v129] — 2026-06-25 — 🤝 El Guarda: REGATEÁS el precio de las funciones viejas
+
+Ahora a cada función vieja le podés **regatear** (botón 🤝): el precio baja de a 1 caramelo hasta un **piso** (2 🍬).
+Así las más viejas (que arrancan caras) las negociás hasta dejarlas **al mismo precio** que las otras cuando el
+precio sube mucho. El guarda contesta en personaje (“te la dejo en N, no jodás más” / “hasta acá, ni en pedo”).
+El regateo se resetea al salir del cine y por partida.
+
+---
+
 ## [v128] — 2026-06-25 — 🎟️ El Guarda: elegís el día · 1ª gratis · más viejo más caro
 
 Mejoras al guarda (feedback del dueño): ahora **abrís un menú y ELEGÍS** qué función vieja ver (no cicla). La

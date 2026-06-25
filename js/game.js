@@ -67,6 +67,7 @@
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
   let guardaFreeUsed = false;  // la 1ª función vieja del run es gratis; después se cobra (más viejo más caro)
+  let guardaAsk = {};          // día → precio ya regateado (si no está, vale el base); se resetea al salir del cine
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
@@ -131,7 +132,7 @@
     player = Player.create(s.x, s.y);
     cam = { x: 0, y: 0 };
     stormed = false; bought = false; hasVale = false; challengeForVale = false; time = 0;
-    cineArchive = null; guardaFreeUsed = false; newsQuest = null;   // cine: función vieja y freebie del guarda se resetean por run
+    cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null;   // cine: función vieja, freebie y regateo se resetean por run
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
@@ -707,7 +708,7 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
-    if (!/Cine/.test(r.name)) cineArchive = null;   // saliste del cine → la función vieja se descarta (volvés a hoy)
+    if (!/Cine/.test(r.name)) { cineArchive = null; guardaAsk = {}; }   // saliste del cine → función vieja y regateo se descartan (volvés a hoy)
     if (/Cine/.test(r.name)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
@@ -787,9 +788,12 @@
     setMsg(T('g.cine.reading'), '#9fd3ff', 1600);
   }
   // EL GUARDA del cine: abre un MENÚ para ELEGIR la función vieja (otro día). La 1ª del run es GRATIS; después,
-  // más viejo = más caro (cuesta = días para atrás, en caramelos). Archivo de 7 días.
+  // más viejo = más caro (precio base = días para atrás). PERO le REGATEÁS: baja de a 1 hasta un PISO, así las
+  // muy viejas (precio alto) las negociás hasta dejarlas al mismo precio que las otras. Archivo de 7 días.
+  const HAGGLE_FLOOR = 2;   // piso del regateo: el guarda no baja de acá (las viejas caras convergen a esto)
   function humanDay(d) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? (m[3] + '/' + m[2]) : (d || ''); }
-  function guardaCost(day, today) { return Math.max(1, Math.round((Date.parse(today) - Date.parse(day)) / 86400000)); }   // días para atrás = más viejo más caro
+  function guardaBase(day, today) { return Math.max(1, Math.round((Date.parse(today) - Date.parse(day)) / 86400000)); }   // precio base: días para atrás = más viejo más caro
+  function guardaAskOf(day, today) { return (guardaAsk[day] != null) ? guardaAsk[day] : guardaBase(day, today); }   // precio actual (ya regateado o base)
   function guardaCine(n) { openGuarda(); }
   function openGuarda() {
     const ov = document.getElementById('guardamenu'), body = document.getElementById('guardaBody');
@@ -803,20 +807,33 @@
     else {
       html += '<div style="display:flex;flex-direction:column;gap:.4em">';
       for (const day of old) {
-        const cost = free ? 0 : guardaCost(day, today), can = free || (player.caramelos || 0) >= cost;
-        const price = cost === 0 ? T('g.cine.free') : (cost + ' 🍬');
-        html += '<button class="guarda-day" data-day="' + day + '"' + (can ? '' : ' disabled') + ' style="display:flex;justify-content:space-between;padding:.6em .9em;font:inherit;cursor:' + (can ? 'pointer' : 'not-allowed') + ';opacity:' + (can ? '1' : '.45') + '">📼 ' + humanDay(day) + ' <b>' + price + '</b></button>';
+        const ask = free ? 0 : guardaAskOf(day, today), can = free || (player.caramelos || 0) >= ask;
+        const price = ask === 0 ? T('g.cine.free') : (ask + ' 🍬');
+        const canHag = !free && ask > HAGGLE_FLOOR;   // se puede regatear hasta el piso
+        html += '<div style="display:flex;gap:.4em;align-items:stretch">';
+        html += '<button class="guarda-day" data-day="' + day + '"' + (can ? '' : ' disabled') + ' style="flex:1;display:flex;justify-content:space-between;padding:.6em .9em;font:inherit;cursor:' + (can ? 'pointer' : 'not-allowed') + ';opacity:' + (can ? '1' : '.45') + '">📼 ' + humanDay(day) + ' <b>' + price + '</b></button>';
+        if (canHag) html += '<button class="guarda-hag" data-day="' + day + '" style="padding:.6em .7em;font:inherit;cursor:pointer" title="' + T('g.cine.haggle') + '">🤝</button>';
+        html += '</div>';
       }
       html += '</div>';
     }
     body.innerHTML = html;
     body.querySelectorAll('.guarda-day').forEach(b => b.addEventListener('click', () => pickGuardaDay(b.getAttribute('data-day'))));
+    body.querySelectorAll('.guarda-hag').forEach(b => b.addEventListener('click', () => guardaRegatear(b.getAttribute('data-day'))));
     ov.classList.remove('hidden');
+  }
+  function guardaRegatear(day) {
+    const dias = ((typeof window !== 'undefined' && window.NOTI_DIAS) || []).slice().sort(), today = dias[dias.length - 1];
+    const ask = guardaAskOf(day, today);
+    if (ask <= HAGGLE_FLOOR) { setMsg(T('g.cine.haggleFloor'), '#ffd54f', 2800); return; }   // no baja más
+    guardaAsk[day] = ask - 1;
+    setMsg(T(guardaAsk[day] <= HAGGLE_FLOOR ? 'g.cine.haggleFloor' : 'g.cine.haggleOk', { n: guardaAsk[day] }), '#9fd3ff', 2600);
+    Sfx.pickup(); openGuarda();   // re-render con el precio nuevo
   }
   function closeGuarda() { const ov = document.getElementById('guardamenu'); if (ov) ov.classList.add('hidden'); }
   function pickGuardaDay(day) {
     const dias = ((typeof window !== 'undefined' && window.NOTI_DIAS) || []).slice().sort(), today = dias[dias.length - 1];
-    const cost = guardaFreeUsed ? guardaCost(day, today) : 0;
+    const cost = guardaFreeUsed ? guardaAskOf(day, today) : 0;
     if ((player.caramelos || 0) < cost) { setMsg(T('g.cine.guardaPoor', { n: cost }), '#ff5252', 3500); return; }
     player.caramelos -= cost; guardaFreeUsed = true; closeGuarda();
     setMsg(T('g.cine.guardaWait'), '#9fd3ff', 1500);
