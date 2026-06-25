@@ -78,3 +78,49 @@ Rápidos, baratos y buenos para el linyera (criollo + memoria), vía OpenRouter 
 - Mecanismo de **pago** y de **token** (§4, §7).
 - ¿Free sigue teniendo IA (degradada) o en pico el free pasa 100% a líneas locales y la IA es "feature pago"?
   (Decisión de producto: hoy el free igual intenta IA y degrada elegante — mantenerlo así es lo más amable.)
+
+## 9. Diseño CODE-BASED (idea del usuario, 2026-06-25) — el camino elegido
+
+Entitlement por **código** que el jugador pide y pega en Settings. **El pago real va DESPUÉS**; primero el
+mecanismo de código + DB + métricas (emisión manual/gratis al principio).
+
+### 9.1 Flujo
+1. **Settings → "Pedir código"**: el jugador pone su **email** → backend genera un código y se lo **manda por
+   mail**. (Por eso se guarda el email: porque al pedirlo te lo envía ahí.)
+2. **Una lógica valida si pagó o no** (al principio: manual / gratis; cuando haya pago, lo decide el pago).
+3. **Settings → "Pegar código"**: el jugador escribe el código → queda guardado (localStorage) y el cliente lo
+   **manda en cada request** del chat.
+4. **El proxy**, con un código válido y pago, **rutea al MODELO PAGO** usando **la API key del dev** (la que ya
+   tenés). El código mapea **qué key usar** → así mañana podés darle a un código **otra api key** (rotás/segmentás
+   sin compartirla; es todo local).
+
+### 9.2 Base de datos (usuarios pagos)
+`paid_users(code, email, api_key_id, status, created_at, last_used)` — `status` ∈ pending|paid|revoked;
+`api_key_id` = cuál key del dev usa ese código. Misma decisión de DB que el resto (SQLite-en-PVC vía el proxy,
+o reusar Postgres). El proxy: nuevo endpoint `POST /request-code` (email→genera+manda+guarda pending) y, en el
+chat, valida el código contra la DB → si paid, rutea al modelo pago con su `api_key_id`.
+
+### 9.3 Métricas por CÓDIGO (clave: saber quién consume mucho)
+- **Label `code`** (o un hash corto del código / `app` id) en `tormenta_ai_chat_total{...,code="..."}` → en
+  Grafana ves **qué código consume más**. OJO cardinalidad: si hay muchos códigos, hashear/acotar o usar la
+  opción B.
+- **Costo — dos vías (la B la sugiere el usuario, suele ser mejor):**
+  - **A) Prometheus / LiteLLM spend** con el label `code`. Simple, pero sin aislar el gasto real por código.
+  - **B) Una API key de OpenRouter POR código** (o por grupo): el proxy rutea ese código por SU key, y el dev
+    **fetchea el spend por key desde la API de OpenRouter**. Ventajas: **costo aislado por código** + podés
+    **ponerle límite/budget a cada key** (cap por usuario) + responde nativo "quién gasta". Es el `api_key_id`
+    de la DB. **Recomendado para el costo/límites**; el label `code` en Prometheus queda para el **volumen** de
+    queries (barato si hay pocos pagos).
+
+### 9.4 Pago (después)
+Cuando se ponga: desde Settings → derivar a una **página de pago** (TBD: Mercado Pago / Stripe / link). El pago
+exitoso flippea `status` a `paid` en la DB. Hasta entonces, emisión manual.
+
+### 9.5 Mi lectura
+- El **código + email + DB + key-por-código** es un diseño limpio y desacoplado del pago (podés arrancar
+  emitiendo códigos a mano para probar el modelo pago vos/amigos). 
+- **Recomendado: opción B** (key de OpenRouter por código) para costo+límites por usuario, y el **label `code`**
+  en métricas solo para volumen. Así "qué código consume mucho" lo ves por **las dos** (volumen en Grafana,
+  US$ en OpenRouter), y podés **capar** un código que se dispara sin tocar a los demás.
+- **Pendiente de infra:** servicio de **email** (SMTP/API) para mandar el código; el endpoint `/request-code` +
+  la DB en el proxy; crear/rotar keys de OpenRouter vía su API (o a mano al principio).
