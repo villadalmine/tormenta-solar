@@ -15,16 +15,75 @@ El juego es 100% estático; se publica en
 
 - **Rotación en LiteLLM** (`specs/pruebas-modelos.md §2.7`): `gemma2:2b` en la GPU como primario
   (+ `keep_alive`) con **fallback a `gemma4-free`** (OpenRouter) si la GPU se apaga. El usuario lo itera aparte.
-- **Métricas reales de uso** (`specs/metricas.md`): por cada chat, qué modelo/backend (OpenRouter/GPU/NPU),
-  latencia y outcome — labels en el `/metrics` del proxy + ServiceMonitor + dashboard Grafana (patrón online-game).
-- **Suscripción / freemium** (`specs/suscripcion.md`): plan pago con modelo premium (el dev carga OpenRouter)
-  que **no pasa por el tier free**; upsell cuando el free se satura. Define qué habilita y cómo rutea LiteLLM.
+- **Pago de la suscripción** (research hecho en `specs/pasarela-pago.md`): falta enganchar una pasarela
+  (**Mollie** NL/EU · Mercado Pago/dLocal AR) → webhook → `/provision`. El entitlement por código YA está (ver
+  infra-2..6). *(Métricas reales y suscripción por código: HECHO, ver entradas de abajo.)*
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Seguridad** (`specs/seguridad.md`): fase transversal — sin CVEs (todas las versiones), flujo cifrado,
   anti-DoS web/API/tokens (incl. "denial of wallet"), buenas prácticas de datos, anti-escalada. Con checklist
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v94–v114] — 2026-06-25 — 🃏 Truco real + motor v2 por defecto + suscripción en el cliente
+
+Tanda grande del lado del JUEGO (cache `v94`→`v114`). Lo de infra (proxy/métricas/modelos) está en `infra-2..6`.
+
+### Motor v2 (data-driven) AHORA es el DEFAULT
+- `useV2()` true por defecto; v1 = opt-out (`?engine=v1` / `localStorage ts_engine=v1`). **Red de seguridad doble**:
+  auto-fallback a v1 si la construcción falla/degenera + auto-degrade si el watchdog detecta freeze >5s. Paridad
+  v1↔v2 testeada (misma estructura en las 38 salas). Telemetría v1/v2 + freezes.
+
+### Truco REAL 🃏
+- Motor puro (`js/truco.js`): **envido / real envido / falta envido / flor / truco / retruco / quiero vale cuatro**,
+  parda, reparto. Voces criollas (es-AR) cuando el NPC canta (vía Mensajero).
+- **TRUCOTRON = MÁQUINA**: una mano rápida, `[E]` otra / `[Esc]` salir, premio en flores, sin voz ni minas.
+- **EL TAHÚR (antro) = la partida**: mejor de 3 / a 15, voz criolla, las minas te afanan y abre la puerta al chino.
+- **"El envido está primero"**: si te cantan TRUCO en la 1ª mano sin envido jugado, `V` mete el envido y, al
+  cerrarlo, el truco vuelve a la mesa.
+
+### Chat / suscripción (cliente)
+- **"Tu partida"** (tecla `P`): métricas de tu sesión (motor, charlas, truco, monedas, flores, hitos).
+- **Suscripción** en ⚙ Opciones: pegás un código → chat **premium**; ves **TU consumo** ("usaste $X de $Y ·
+  vence en Zd", vía `/my-sub`, personal por código).
+- Avisos en personaje: timeout ("se colgó, reintento"); y si usás **TU** key de OpenRouter y pegás **tu** límite
+  de cuenta, te avisa que fue tu cuota (no la del juego).
+
+---
+
+## [infra-2..6] — 2026-06-25 — 🤖 Métricas reales + red paga rápida (gemma4-paid) + suscripción por código
+
+Proxy `0.1.3`→`0.1.20`. El gran salto de la IA del juego.
+
+### Métricas de uso REALES (F1/F2/F3) + telemetría del juego
+- `/metrics` del proxy etiquetado: **chat por modelo/backend/outcome** + histograma de **latencia** + **intentos
+  por modelo** (qué free se cae). **Telemetría del juego** (v1 vs v2 + funnel) cliente→proxy→Prometheus. Dashboards
+  Grafana **`tormenta-linyera`** y **`tormenta-juego`** (+ paneles de gasto/cupo/scorer/suscripciones).
+
+### 🐛 Fix CORS (¡el chat caía al pool en el navegador!)
+- Al sumar el header `X-Session-Id` faltó autorizarlo en el preflight → el navegador **bloqueaba el POST** → caía
+  al pool. Arreglado: `Access-Control-Allow-Headers: Content-Type, X-Session-Id, X-Sub-Code`.
+
+### Red paga RÁPIDA + cupos + tope de gasto
+- Cadena: `gemma4-free → gemma4-paid → claude-sonnet`. **`gemma4-paid`** = el **gemelo PAGO** del free
+  (`google/gemma-4-31b-it`, ~1.5s, $0.47/1M, **sin límite diario**): cuando el free se agota, responde igual de
+  bien y rápido. (Antes el pago era `cheap`=deepseek reasoning → 9s; descartado.)
+- **Cupo por sesión** (`X-Session-Id`; la IP colapsa tras el G4) + **tope DURO de gasto** global (`PAID_DAILY_CAP`).
+- **Detección del límite de CUENTA** (`free-models-per-day`): cuando se agota el free de la cuenta, **no prueba
+  otro free al pedo** → derecho al pago. Métrica `free_blocked_seconds`.
+- **F2 ModelScorer**: arma la cadena "más barato-bueno" sola (disponibilidad+latencia+precio) → `GET /ranking`.
+
+### 💳 Suscripción por CÓDIGO (F1/F2/F3)
+- Código en `X-Sub-Code` → tier pago (salta free+cupo). **Una key de OpenRouter POR código** (`POST /provision`,
+  budget **$1**, **vence 30 días**) → **gasto y tope REALES por usuario**, leídos de OpenRouter
+  (`/sub-spend` admin · `/my-sub` el jugador ve lo suyo). Store JSON en PVC. **Todo sigue por LiteLLM** (no se
+  pierden métricas). Research de pasarelas en `specs/pasarela-pago.md`.
+
+### Otros
+- **Pool del linyera** ahora se genera con `gemma4-paid` (el free se cancelaba al límite y arruinaba la tanda).
+- `gemma4-paid` agregado a LiteLLM (infra-ai). **`web/chart/values-prod.yaml`** para deploy seguro del self-host.
 
 ---
 
