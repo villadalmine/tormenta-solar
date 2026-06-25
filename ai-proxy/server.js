@@ -14,6 +14,8 @@ import { buildMessages } from './personas.js';
 const BASE = (process.env.AI_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/+$/, '');
 const KEY = (process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || '').trim();
 const PORT = process.env.PORT || 8788;
+const GEN_TOKEN = (process.env.GEN_TOKEN || '').trim();   // protege POST /linyera-pool (que el cron escriba, no cualquiera)
+let LINYERA_POOL = null, LINYERA_POOL_TS = 0;             // pool de saturación del linyera (lo llena el CronJob 1×/día)
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -116,6 +118,10 @@ http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
   if (req.method === 'GET' && (req.url === '/health' || req.url === '/healthz')) { res.writeHead(200); return res.end('ok'); }   // probe k8s
+  if (req.method === 'GET' && req.url === '/linyera-pool') {                       // pool de saturación (lo trae el cliente)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
+    return res.end(JSON.stringify({ pool: LINYERA_POOL || {}, updated: LINYERA_POOL_TS }));
+  }
   if (req.method === 'GET' && req.url === '/metrics') {                            // prometheus → Grafana
     const avg = M.durCount ? (M.durMsSum / M.durCount) : 0;
     let out =
@@ -152,6 +158,20 @@ http.createServer((req, res) => {
     for (const k of gameKeys) out += `tormenta_game_events_total{${k}} ${GAME[k]}\n`;
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     return res.end(out);
+  }
+  // el CronJob publica el pool del linyera acá (protegido por GEN_TOKEN). Reemplaza el pool en memoria.
+  if (req.method === 'POST' && req.url === '/linyera-pool') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
+    req.on('end', () => {
+      try {
+        const d = JSON.parse(pb || '{}');
+        if (d && d.pool && typeof d.pool === 'object') { LINYERA_POOL = d.pool; LINYERA_POOL_TS = Date.now(); res.writeHead(200); return res.end('ok'); }
+        res.writeHead(400); res.end('bad pool');
+      } catch (e) { res.writeHead(400); res.end('bad json'); }
+    });
+    return;
   }
   // ingest de telemetría del juego (cliente → proxy). Acotado: máx 50 eventos por request, body chico.
   if (req.method === 'POST' && req.url === '/game-metrics') {

@@ -15,6 +15,15 @@ const AI = (() => {
   let _good = null;           // el último modelo que respondió bien → se usa primero (rápido)
   let lastSource = 'local';   // de dónde salió la última respuesta: 'proxy' | 'byok' | 'local'
   let lastTimedOut = false;   // la última vez se cortó por TIMEOUT (la "tormenta" saturó el modelo)
+  // Pool de saturación FRESCO desde el proxy (lo regenera un CronJob 1×/día). Merge sobre el seed horneado
+  // (js/linyera-pool.js): si el proxy trae ≥4 frases para una persona, gana. Best-effort, sin bloquear.
+  if (PROXY && typeof fetch === 'function' && typeof window !== 'undefined') {
+    fetch(PROXY + '/linyera-pool').then(r => r.ok ? r.json() : null).then(d => {
+      if (!d || !d.pool) return;
+      window.LINYERA_POOL = window.LINYERA_POOL || {};
+      for (const k in d.pool) if (Array.isArray(d.pool[k]) && d.pool[k].length >= 4) window.LINYERA_POOL[k] = d.pool[k];
+    }).catch(() => {});
+  }
   let lastFallback = false;   // la última respuesta NO fue IA real (cayó al pool local) → para métricas
   // default = un free CHICO y RÁPIDO (para el chat la velocidad importa más que el tamaño).
   // El user lo cambia en Opciones (ej. uno más grande/lindo si no le molesta esperar).

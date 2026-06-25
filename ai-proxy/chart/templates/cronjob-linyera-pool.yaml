@@ -1,0 +1,61 @@
+{{- if .Values.linyeraPool.cronjob.enabled }}
+# CronJob 1×/día: regenera el POOL del linyera (gemma4-free offline) y lo publica en el proxy (POST /linyera-pool).
+# Usa la MISMA imagen del proxy (trae gen-pool.mjs) y la misma key de LiteLLM. Ver specs/resiliencia.md §6.2.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.linyeraPool.cronjob.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800            # 30 min tope (es batch, puede tardar por saturación del free)
+      template:
+        metadata:
+          labels:
+            {{- include "tormenta-ai-proxy.selectorLabels" . | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+          containers:
+            - name: gen-pool
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["node", "gen-pool.mjs"]
+              env:
+                - name: AI_BASE
+                  value: {{ .Values.upstream.baseUrl | quote }}
+                - name: AI_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "tormenta-ai-proxy.secretName" . }}
+                      key: {{ include "tormenta-ai-proxy.secretKey" . }}
+                - name: MODEL
+                  value: {{ .Values.linyeraPool.cronjob.model | quote }}
+                - name: "N"
+                  value: {{ .Values.linyeraPool.cronjob.n | quote }}
+                - name: POOL_POST_URL
+                  value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/linyera-pool"
+                - name: GEN_TOKEN
+                  value: {{ .Values.linyeraPool.genToken | quote }}
+              resources:
+                requests: { cpu: 50m, memory: 64Mi }
+                limits: { cpu: 250m, memory: 192Mi }
+{{- end }}

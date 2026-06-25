@@ -89,6 +89,16 @@ metrics:
     label: grafana_dashboard
     labelValue: "1"
 
+# --- Pool del linyera (fallback cuando el free se satura), regenerado por CronJob 1×/día ---
+# El cron genera con gemma4-free (offline = gratis + mejor calidad; GPU/NPU descartados) y POSTea a /linyera-pool.
+linyeraPool:
+  genToken: ""                  # token compartido proxy<->cron (poné uno con --set; protege POST /linyera-pool)
+  cronjob:
+    enabled: false              # poné true en el deploy
+    schedule: "0 5 * * *"       # 05:00 (de noche, off-peak del free)
+    model: gemma4-free          # ganador del bench (specs/resiliencia.md §6.2)
+    n: 30                       # frases por persona
+
 resources:
   requests: { cpu: 50m, memory: 64Mi }
   limits: { cpu: 250m, memory: 256Mi }

@@ -3,8 +3,8 @@
 # Push:   docker push ghcr.io/villadalmine/tormenta-ai-proxy:0.1.0
 FROM node:20-alpine
 WORKDIR /app
-# sólo los archivos del proxy (no hay node_modules: cero deps)
-COPY package.json server.js personas.js ./
+# sólo los archivos del proxy (no hay node_modules: cero deps) + el generador del pool (lo usa el CronJob)
+COPY package.json server.js personas.js gen-pool.mjs ./
 ENV PORT=8788
 EXPOSE 8788
 # usuario no-root (el nodo 'node' ya existe en la imagen oficial)

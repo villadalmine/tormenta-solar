@@ -51,6 +51,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "tormenta-ai-proxy.secretName" . }}
                   key: {{ include "tormenta-ai-proxy.secretKey" . }}
+            {{- if .Values.linyeraPool.genToken }}
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}    # comparte token con el CronJob (POST /linyera-pool)
+            {{- end }}
           livenessProbe:
             httpGet: { path: /health, port: http }
             initialDelaySeconds: 5
