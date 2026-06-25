@@ -538,7 +538,9 @@ http.createServer((req, res) => {
     let pb = '';
     req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
     req.on('end', () => {
-      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) { NOTICIAS = d.noticias.slice(0, 100); NOTICIAS_TS = Date.now(); saveNoticias(); res.writeHead(200); return res.end('ok'); } res.writeHead(400); res.end('bad'); }
+      // SOBRESCRITURA total (no acumula basura): el cron manda un set fresco y pisa el anterior. PERO un POST
+      // vacío NO borra el banco bueno (una corrida fallida no debe dejar el cine "sin señal").
+      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) { if (d.noticias.length) { NOTICIAS = d.noticias.slice(0, 100); NOTICIAS_TS = Date.now(); saveNoticias(); } res.writeHead(200); return res.end(d.noticias.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;

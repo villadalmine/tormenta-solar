@@ -29,6 +29,14 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-11] — 2026-06-25 — 🧹 POST /noticias: sobrescribe (no acumula) + un POST vacío no borra el banco
+
+El cron **pisa** el banco entero cada corrida (reemplazo, no append) → no se acumula basura vieja. Y se blinda el
+caso borde: si una corrida fallara y POSTeara **vacío**, ya **no** borra el banco bueno (responde `empty-ignored`)
+— el cine no queda "sin señal" por un cron que falló. Proxy `0.1.26`.
+
+---
+
 ## [infra-10] — 2026-06-25 — 💾 El banco de noticias PERSISTE (JSON en el PVC) — no se vacía al redesplegar
 
 Bug: el banco de noticias del cine vivía **solo en memoria** (`let NOTICIAS = []`) y el cron lo llena **1×/día**,
