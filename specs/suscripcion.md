@@ -117,6 +117,25 @@ mecanismo de código + DB + métricas (emisión manual/gratis al principio).
 
 > **Esto es temporal** — hasta tener email (§9.1) + DB (§9.2) + pago (§9.4). Hoy los códigos se emiten a mano.
 
+#### 👉 PASO A PASO: darle una suscripción a alguien (HOY, manual)
+
+1. **Alguien te paga** (como sea: transferencia / link / lo que arregles aparte — por ahora vos lo manejás).
+2. **Le creás el código** — copiá/pegá esto en tu terminal, cambiando SOLO el email (el `TOK` lo saca solo del deploy):
+   ```bash
+   TOK=$(kubectl get deploy tormenta-ai-proxy -n ai -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="GEN_TOKEN")].value}')
+   curl -s -X POST https://llm-tormenta-solar.cybercirujas.club/provision \
+     -H "X-Gen-Token: $TOK" -H 'Content-Type: application/json' \
+     -d '{"email":"PERSONA@gmail.com","limit":2}'
+   # → {"code":"TS-AB12CD34", ...}   ← ese 'code' ES la suscripción ('limit' = US$ que puede gastar, OpenRouter la corta sola)
+   ```
+3. **Le mandás el código** por mail/WhatsApp (a mano).
+4. **La persona lo activa**: en el juego → ⚙ Opciones → Suscripción → pega el código → **Activar** → "✓ activa". Chatea premium.
+5. **Vos ves cuánto gasta** en Grafana (fila "💳 Suscripciones") — sin hacer nada.
+
+Único "comando" = el paso 2. Cuando esté el pago, ese paso lo hace **solo el webhook** y vos no tocás nada.
+
+> Borrar/revocar un código de prueba (env codes): `POST /sub-codes {code, revoke:true}` con el mismo `X-Gen-Token`.
+
 **Emitir un código (dos formas):**
 - **Durable (recomendado, sobrevive reinicios del pod) — env del proxy:** se redeploya agregando el código a
   `SUB_CODES` (lista separada por coma). Los códigos son **secretos → NO se commitean**; van por `--set`:
