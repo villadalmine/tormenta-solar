@@ -19,6 +19,8 @@ El juego es 100% estático; se publica en
   (**Mollie** NL/EU · Mercado Pago/dLocal AR) → webhook → `/provision`. El entitlement por código YA está (ver
   infra-2..6). *(Métricas reales y suscripción por código: HECHO, ver entradas de abajo.)*
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
+- **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
+  interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.
 - **Cine de noticias** (`specs/cine-noticias.md`): edificio cine (butacas+pantalla) que muestra **noticias reales
   capturadas por IA** (Mundial, mundo, videojuegos, guerra, AR/NL/árabe, Primera B, bochas), random cada visita,
   traídas por un cron→banco. Los linyeras te mandan a buscar data y te la **corroboran**: acertás → caramelos,
