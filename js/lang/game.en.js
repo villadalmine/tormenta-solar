@@ -79,6 +79,7 @@
     'g.chat.remembers': '💭 (he remembers you)',
     'g.chat.stormTimeout': '⚡ The solar storm fried the model\'s circuits: it hung, so I cut it. Try again in a few seconds, kid.',
     'g.chat.error': '"...a wire crossed in my head, kid. Say it again."',
+    'g.chat.freeUpsell': '💸 (Cut off: you\'re on the FREE tier and the sun jams it. Someday there\'ll be a paid tier where the bum won\'t freeze.) 😅',
     'g.chat.localWarn': '(the AI didn\'t reply with your key — local lines. Open the console F12 to see the error: 429/404/CORS, etc.)',
     'g.chat.youPrefix': 'You: ',
     'g.oraculo.greet': '"Hey, kid... I see the whole mess from up here. Ask me, I know a thing or two." 🧙',

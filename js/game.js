@@ -42,7 +42,7 @@
   const elChatTitle = document.getElementById('chat-title');
   const elChatLog = document.getElementById('chat-log');
   const elChatInput = document.getElementById('chat-input');
-  let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0;
+  let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
   // memoria por IDENTIDAD (clave = persona): cada linyera/NPC RECUERDA lo charlado entre aperturas y entre
   // sesiones (persiste en el guardado). Es el `agent.memory` del modelo v2 (ver modelo-de-entidades §6½).
   const oracleMem = {};
@@ -499,9 +499,14 @@
     tel('chat', { engine: engineUsed, result: (typeof AI !== 'undefined' && AI.lastFallback && AI.lastFallback()) ? 'fallback' : (typeof AI !== 'undefined' && AI.lastSource ? AI.lastSource() : 'ai') });
     const mk = memKey(chatNpc); if (mk) oracleMem[mk] = chatHistory.slice(-12);   // guardá su memoria (cap 12 turnos)
     if (ground && typeof AI !== 'undefined' && AI.lastSource() === 'local') chatLine('npc', '💡 ' + ground.text);
-    // NO duplicar: la línea del pool de saturación YA dice (en personaje) que la tormenta lo cortó.
-    // Solo avisamos si el jugador tiene SU key y aun así salió local (offline real, no saturación).
-    if (typeof AI !== 'undefined' && !AI.lastTimedOut() && AI.lastSource() === 'local' && AI.getKey()) chatLine('sys', T('g.chat.localWarn'));
+    // SATURACIÓN del free (la línea en personaje ya la dio el pool): cada tanto, avisá que es por el plan free
+    // (upsell suave; sin spamear: 1ª vez de la sesión y luego cada 4).
+    if (typeof AI !== 'undefined' && AI.lastTimedOut && AI.lastTimedOut()) {
+      chatFallbacks++;
+      if (chatFallbacks === 1 || chatFallbacks % 4 === 0) chatLine('sys', T('g.chat.freeUpsell'));
+    }
+    // si el jugador tiene SU key y aun así salió local (offline real, no saturación) → avisar
+    else if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) chatLine('sys', T('g.chat.localWarn'));
     chatBusy = false;
     if (elChatInput) elChatInput.focus();
   }

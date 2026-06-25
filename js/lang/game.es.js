@@ -91,6 +91,7 @@
     'g.chat.stormTimeout': '⚡ La tormenta solar saturó la electrónica del modelo: se colgó y corté. Probá de nuevo en unos segundos, pibe.',
     'g.chat.error': '“...se me cruzó un cable, pibe. Repetí.”',
     'g.chat.localWarn': '(la IA no respondió con tu key — líneas locales. Abrí la consola F12 para ver el error: 429/404/CORS, etc.)',
+    'g.chat.freeUpsell': '💸 (Se cortó: vas en el plan FREE y el sol lo satura. El día que haya plan pago, el linyera no se cuelga.) 😅',
     'g.chat.youPrefix': 'Vos: ',
     'g.oraculo.greet': '“Eh, pibe... yo veo el quilombo entero desde acá arriba. Preguntame, que algo sé.” 🧙',
 
