@@ -29,6 +29,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-10] — 2026-06-25 — 💾 El banco de noticias PERSISTE (JSON en el PVC) — no se vacía al redesplegar
+
+Bug: el banco de noticias del cine vivía **solo en memoria** (`let NOTICIAS = []`) y el cron lo llena **1×/día**,
+así que **cada redeploy/restart del proxy lo dejaba vacío** → la pantalla del cine quedaba "sin señal" hasta las
+9am. Ahora **persiste en JSON sobre el PVC** (`/data/noticias.json`, mismo mecanismo que `subs.json`): se **guarda
+en cada POST** del cron y se **carga al arrancar**. El cliente (incl. GitHub Pages) lo sigue trayendo igual con
+`GET /noticias`. *(Prometheus NO sirve para esto: es para números/series, no para guardar el texto.)* Proxy `0.1.25`.
+
+---
+
 ## [v126 / infra-9] — 2026-06-25 — 🔊 TTS con fallback al servidor (lee aunque el navegador no tenga voz)
 
 El [R] del cine no leía en Chromium/Linux porque el navegador no trae voces (`speechSynthesis` vacío) y

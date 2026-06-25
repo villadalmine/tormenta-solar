@@ -25,7 +25,13 @@ let LINYERA_POOL = null, LINYERA_POOL_TS = 0;             // pool de saturación
 let OR_PRICES = {}, OR_NEWS = [], OR_TS = 0;   // poblado por el CronWorkflow vía POST /precios
 // NOTICIAS del CINE (cine-noticias.md): banco de titulares por topic, lo llena un cron (gen-noticias.mjs) que
 // FETCHEA (código, no modelo) y postea acá. El juego lo lee en GET /noticias (pantalla del cine + linyera).
+// PERSISTE en JSON-en-PVC (como SUBS_STORE): el cron corre 1×/día, así que si NO se guardara, cada redeploy/restart
+// del proxy dejaría el banco vacío hasta las 9am (la pantalla del cine quedaría "sin señal"). Se carga al arrancar.
 let NOTICIAS = [], NOTICIAS_TS = 0;
+const NOTICIAS_STORE = process.env.NOTICIAS_STORE || '/data/noticias.json';
+function loadNoticias() { try { const d = JSON.parse(fs.readFileSync(NOTICIAS_STORE, 'utf8')); if (d && Array.isArray(d.noticias)) { NOTICIAS = d.noticias; NOTICIAS_TS = d.ts || 0; } } catch (e) {} }
+function saveNoticias() { try { fs.mkdirSync(NOTICIAS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(NOTICIAS_STORE, JSON.stringify({ noticias: NOTICIAS, ts: NOTICIAS_TS })); } catch (e) { console.error('noticias store save:', e.message); } }
+loadNoticias();
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -532,7 +538,7 @@ http.createServer((req, res) => {
     let pb = '';
     req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
     req.on('end', () => {
-      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) { NOTICIAS = d.noticias.slice(0, 100); NOTICIAS_TS = Date.now(); res.writeHead(200); return res.end('ok'); } res.writeHead(400); res.end('bad'); }
+      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) { NOTICIAS = d.noticias.slice(0, 100); NOTICIAS_TS = Date.now(); saveNoticias(); res.writeHead(200); return res.end('ok'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;
