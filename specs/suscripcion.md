@@ -159,6 +159,44 @@ chat, valida el código contra la DB → si paid, rutea al modelo pago con su `a
 Cuando se ponga: desde Settings → derivar a una **página de pago** (TBD: Mercado Pago / Stripe / link). El pago
 exitoso flippea `status` a `paid` en la DB. Hasta entonces, emisión manual.
 
+### 9.6 Arquitectura del flujo de PAGO (diseño, 2026-06-25)
+
+**Flujo completo (lo que querés):**
+1. **UI:** ⚙ Opciones → botón **"Suscribirme"** → abre una **ventana/modal nueva** (o página hosteada).
+2. La modal pide el **EMAIL** (para mandarte el código ahí) → botón "Pagar".
+3. **Deriva a la PASARELA** de pago (pasando el email/un id de orden).
+4. **Pago OK** → la pasarela pega un **WEBHOOK** al backend de billing.
+5. **Backend (webhook):**
+   a. Verifica el pago (firma del webhook).
+   b. **Crea una KEY de OpenRouter** (`POST /api/v1/keys`) con `label=<email>` y `limit=<budget>` (tope US$/mes).
+   c. **Genera un CÓDIGO** y guarda el mapeo `code → openrouter_key` (+ email, status, paid_at).
+   d. **Manda el CÓDIGO por EMAIL**.
+6. **Usuario:** mira el mail → pega el código en Settings → Activar → el proxy lo valida (DB) → rutea premium
+   **con SU key** de OpenRouter.
+7. **Gasto:** se lee de OpenRouter por key (`GET /api/v1/key`) → "el email/key X gastó US$ Y"; **el budget de la
+   key lo CAPEA solo** (un usuario no puede gastar más que su tope, sin que toques nada).
+
+**El almacenamiento (tu duda — la parte clave):**
+- **Lo MÍNIMO que hay que guardar: `code → openrouter_key_hash`** (el proxy tiene que resolver el código a su key).
+- **Tu intuición es correcta:** el "registro de quién pagó y cuánto gasta" puede **vivir en OpenRouter** — el
+  **label de la key = el email**, y el **spend se lee de su API**. Así la DB local es **mínima** (solo el mapeo
+  `code↔key`) y NO duplicás el gasto ni tenés que sumarlo vos. OpenRouter es la fuente de verdad + el cap.
+- **Opciones de DB en casa:** **SQLite-en-PVC** (lo más simple: 1 archivo en Longhorn; Node 22 trae `node:sqlite`
+  nativo, sin dependencias) · **reusar el Postgres** de online-game (robusto, compartido) · KV/Redis.
+- **Recomendación:** un **servicio de "billing" separado** (cold path) que tenga la DB + el webhook + el email +
+  el provisioning de OpenRouter, y que le **pase al proxy los códigos válidos↔keys** (igual que el cron le pasa
+  el pool del linyera). Así el **proxy (hot path) queda simple** y el billing es un servicio aparte que casi no
+  corre. DB: **SQLite-en-PVC para arrancar** (esto es bajo volumen), Postgres si querés robustez/compartir.
+
+**Componentes nuevos (dependencias de infra a resolver):**
+- **Email transaccional** para mandar el código: Resend / Mailgun / SES (free tier) o un SMTP propio.
+- **Pasarela + webhook:** **Mercado Pago** (AR, lo más natural para vos) o Stripe / Lemon Squeezy / Ko-fi.
+- **Provisioning de OpenRouter** (`POST /keys`, `GET /key`) con la **provisioning key** del dev.
+- **DB en casa** (SQLite-en-PVC o Postgres).
+
+**Privacidad/seguridad:** el email es PII → guardar lo mínimo y seguro; los **datos de la tarjeta NUNCA tocan tu
+infra** (los maneja la pasarela, vos solo recibís el webhook "pagó OK"); el código y la provisioning key son secretos.
+
 ### 9.5 Mi lectura
 - El **código + email + DB + key-por-código** es un diseño limpio y desacoplado del pago (podés arrancar
   emitiendo códigos a mano para probar el modelo pago vos/amigos). 
