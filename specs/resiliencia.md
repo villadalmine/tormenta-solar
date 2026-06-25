@@ -113,6 +113,34 @@ sube el error rate — **por capa**, para saber qué se rompe primero (¿el G4? 
   de los 9s**; más que eso mueve la cola al modelo y todos van lento. Estas perillas son **lo que calibra el
   stress test §5**.
 
+## 6.2 Pool del linyera generado por cron — REPORTE de backends (2026-06-25)
+
+El L2 (pool por persona) pasó de 2-3 líneas hardcodeadas a un **pool generado** (`js/linyera-pool.js`,
+`tools/gen-linyera-pool.mjs`), regenerado por un **cron 1×/día** (offline/batch → que tarde y reintente da igual).
+Probé 6 backends (5 frases c/u, persona filósofo, in-cluster) para elegir el generador:
+
+| Backend | s/frase | ok | Costo | Calidad |
+|---|---|---|---|---|
+| **gemma4-free** (FREE, cloud) | 1.6s | **5/5** | **$0** | ✅ **Mejor** — lunfardo perfecto, variado ("se me recalibró el bocho") |
+| cheap = gpt-4o-mini (PAGO) | 6.8s | 3/5 | ~$0.00004/frase | ✅ Excelente ("el sol me dejó la mente en remojo") |
+| gpt-oss-free (FREE) | 2.4s | 1/5 | $0 | ⚠️ flaky (devuelve vacío) |
+| local-gpu = qwen2.5:1.5b (GPU) | 1.2s | 5/5 | $0 | ❌ gibberish ("¡Qué tejedorazo!", español de España) |
+| gemma2:2b (GPU directo) | 6.4s | 5/5 | $0 | ❌ gibberish ("Pata chiquita, cha!") |
+| rk1-npu-local (NPU) | ~28s | timeout | $0 | ❌ (modelo chico = misma mala calidad + lentísimo) |
+
+**Conclusión (contraintuitiva):** la **GPU/NPU NO sirve** para esto — los modelos chicos locales escupen gibberish,
+no lunfardo porteño. El **ganador es `gemma4-free` corrido OFFLINE/batch**: gratis + mejor calidad. La ironía: el
+modelo free que se satura EN VIVO funciona genial para un batch lento (poca carga + reintentos). `gpt-4o-mini` =
+backup pago (calidad top, centavos) si el free batch no rinde.
+
+**Proyección del cron** (~300 frases, 1×/día): con **gemma4-free = $0**; con gpt-4o-mini ≈ **$0.45/mes**. Tiempo:
+gemma4-free ~5-15 min según saturación (no importa, es de noche). **GPU/NPU descartados por calidad.**
+
+**Pendiente del generador:** gemma4-free **converge** (repite "se me tildó el bocho") → el cron rota
+micro-escenarios (`SCENARIOS` en `gen-linyera-pool.mjs`) + dedup para más variedad. **Cron a montar:** CronJob
+`tormenta-linyera-pool` 1×/día que corre `gen-linyera-pool.mjs` contra LiteLLM y publica `js/linyera-pool.js`
+(commit+push, o servido por el proxy). El cliente ya lo usa (`ai.js satLine` prefiere `window.LINYERA_POOL`).
+
 ## 7. Notas
 
 - **No romper el principio:** el cliente jamás bloquea esperando; el tope duro (9s) y el pool garantizan respuesta

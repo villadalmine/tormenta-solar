@@ -162,7 +162,12 @@ const AI = (() => {
     default: ['"...solar storm cut me off. Hit me again, kid." ⚡', '"Everything\'s jammed by the sun. Wait a sec." ☀️'],
   };
   const satLine = npc => {
-    const table = curLang() === 'en' ? SAT_EN : SAT;
+    // pool GENERADO por cron (gemma4-free offline, js/linyera-pool.js) → mucha variedad. Solo ES (se generó en ES).
+    if (curLang() !== 'en' && typeof window !== 'undefined' && window.LINYERA_POOL) {
+      const g = window.LINYERA_POOL[npc] || window.LINYERA_POOL.default;
+      if (g && g.length >= 4) return g[(Math.random() * g.length) | 0];   // ≥4 para variar; si no, hardcodeado
+    }
+    const table = curLang() === 'en' ? SAT_EN : SAT;     // fallback hardcodeado (siempre presente)
     const a = table[npc] || table.default;
     return a[(Math.random() * a.length) | 0];
   };
