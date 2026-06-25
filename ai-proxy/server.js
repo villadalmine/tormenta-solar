@@ -16,6 +16,11 @@ const KEY = (process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || '').tri
 const PORT = process.env.PORT || 8788;
 const GEN_TOKEN = (process.env.GEN_TOKEN || '').trim();   // protege POST /linyera-pool (que el cron escriba, no cualquiera)
 let LINYERA_POOL = null, LINYERA_POOL_TS = 0;             // pool de saturación del linyera (lo llena el CronJob 1×/día)
+
+// --- OpenRouter DINÁMICO (specs/openrouter-dinamico.md F1 precios + F3 novedades) ---
+// El proxy SOLO guarda y sirve; un Argo CronWorkflow (gen-prices.mjs) hace el fetch de /api/v1/models y
+// postea acá (POST /precios). Sirve precios → /metrics + /precios, y novedades → /novedades. Sin key en el cliente.
+let OR_PRICES = {}, OR_NEWS = [], OR_TS = 0;   // poblado por el CronWorkflow vía POST /precios
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -122,6 +127,14 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ pool: LINYERA_POOL || {}, updated: LINYERA_POOL_TS }));
   }
+  if (req.method === 'GET' && req.url === '/precios') {                            // precios de modelos (OpenRouter)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
+    return res.end(JSON.stringify({ prices: OR_PRICES, updated: OR_TS }));
+  }
+  if (req.method === 'GET' && req.url === '/novedades') {                          // modelos interesantes (landing/juego)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' });
+    return res.end(JSON.stringify({ models: OR_NEWS, updated: OR_TS }));
+  }
   if (req.method === 'GET' && req.url === '/metrics') {                            // prometheus → Grafana
     const avg = M.durCount ? (M.durMsSum / M.durCount) : 0;
     let out =
@@ -156,8 +169,25 @@ http.createServer((req, res) => {
     const gameKeys = Object.keys(GAME);
     if (!gameKeys.length) out += `tormenta_game_events_total{event="none",engine="",result="",lang=""} 0\n`;
     for (const k of gameKeys) out += `tormenta_game_events_total{${k}} ${GAME[k]}\n`;
+    // precios de OpenRouter (US$/token) de los candidatos → Grafana precios en el tiempo
+    out += `# HELP tormenta_openrouter_price_usd Precio US$/token de modelos candidatos (OpenRouter)\n# TYPE tormenta_openrouter_price_usd gauge\n`;
+    for (const [id, p] of Object.entries(OR_PRICES)) {
+      out += `tormenta_openrouter_price_usd{model="${id}",kind="prompt"} ${p.prompt}\n`;
+      out += `tormenta_openrouter_price_usd{model="${id}",kind="completion"} ${p.completion}\n`;
+    }
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     return res.end(out);
+  }
+  // el CronWorkflow de precios postea acá (protegido por GEN_TOKEN): {prices, news}.
+  if (req.method === 'POST' && req.url === '/precios') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 100000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(pb || '{}'); if (d.prices) OR_PRICES = d.prices; if (Array.isArray(d.news)) OR_NEWS = d.news; OR_TS = Date.now(); res.writeHead(200); res.end('ok'); }
+      catch (e) { res.writeHead(400); res.end('bad json'); }
+    });
+    return;
   }
   // el CronJob publica el pool del linyera acá (protegido por GEN_TOKEN). Reemplaza el pool en memoria.
   if (req.method === 'POST' && req.url === '/linyera-pool') {

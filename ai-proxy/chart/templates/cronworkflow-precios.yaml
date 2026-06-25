@@ -1,0 +1,53 @@
+{{- if .Values.linyeraPool.cronjob.enabled }}
+# Argo CronWorkflow cada 6h: lee precios+novedades de OpenRouter (/api/v1/models, público) y los publica en el
+# proxy (POST /precios). Cron = siempre Argo (versatilidad: reintentos, GC, observabilidad). Ver
+# specs/openrouter-dinamico.md. Reusa la imagen del proxy (gen-prices.mjs), el SA y el GEN_TOKEN del pool.
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-precios
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+spec:
+  schedules:
+    - "0 */6 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  workflowSpec:
+    entrypoint: gen
+    serviceAccountName: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+    activeDeadlineSeconds: 300
+    ttlStrategy:
+      secondsAfterCompletion: 86400
+      secondsAfterSuccess: 43200
+      secondsAfterFailure: 172800
+    podGC:
+      strategy: OnWorkflowCompletion
+    {{- with .Values.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+    templates:
+      - name: gen
+        retryStrategy:
+          limit: "3"
+          retryPolicy: Always
+          backoff: { duration: "20s", maxDuration: "2m" }
+        container:
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "gen-prices.mjs"]
+          env:
+            - name: PRICES_POST_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/precios"
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+{{- end }}
