@@ -31,13 +31,23 @@ X?") y, cuando volvés y se la decís, te la **corroboran** (hackean a la IA): s
 ## 3. Arquitectura (encaja con lo que YA hay)
 
 ### 3.1 Recolección de noticias — Argo CronWorkflow → banco (patrón `novedades`/`linyera-pool`)
-- Un **CronWorkflow** (cada N horas) corre un `gen-noticias.mjs` que, por cada **topic**, trae el dato y lo
-  **resume con IA a un titular corto** ("captura por IA NPC"): `{ topic, headline, answer, ts }`.
+
+> **CLAVE (decisión del dueño 2026-06-25): el FETCH lo hace el CRON (código Node), NO el modelo.** Ningún modelo
+> —ni el NPU ni el de la nube— sale a buscar a internet (no tienen tool-use de fetching, y no hace falta). El
+> cron pega el **HTTP** (API/RSS), y el **modelo, si se usa, SOLO resume/da formato** al texto ya traído. El
+> "siempre se refresca con info nueva" lo da el **schedule del cron**, no el modelo.
+
+- Un **CronWorkflow** (cada N horas) corre `gen-noticias.mjs` (Node, igual que `gen-prices.mjs`): por cada
+  **topic** hace `fetch()` a su fuente (API/RSS) → extrae el dato → arma `{ topic, headline, answer, ts }`.
   - Ej.: `{topic:"mundial", headline:"Argentina 2-1 Brasil (semi)", answer:"2-1", ts:...}`.
+  - **El resumen a "titular" es OPCIONAL:** muchas fuentes ya dan el titular/resultado directo (el cron lo toma
+    tal cual, **sin modelo**). El modelo se usa **solo** si querés "capturar/redactar con onda" un texto largo
+    (RSS de noticias) → ahí el cron le pasa el **texto ya fetcheado** a un LLM para resumir (NPU o nube).
 - **POST `/noticias`** al proxy (protegido por `GEN_TOKEN`, igual que `/precios` y `/linyera-pool`). El proxy
-  guarda el banco en memoria y lo sirve: **`GET /noticias`** (JSON, `Cache-Control` corto).
-- **Hardware (carteles-ia.md):** el **resumen/captura corre en la NPU** (rockchip) — "los carteles NPU ya tienen
-  el dato". El chat del linyera sigue en la **nube rápida** (no GPU). Coherente con el ruteo por hardware.
+  guarda el banco en memoria y lo sirve: **`GET /noticias`** (JSON, `Cache-Control` corto). Se refresca cada
+  corrida del cron.
+- **Hardware (carteles-ia.md):** si se usa el resumen, corre en la **NPU** (rockchip) sobre el texto que **ya
+  trajo el cron**; el chat del linyera sigue en la **nube rápida**. Pero el **fetch siempre es del cron** (code).
 
 ### 3.2 Las fuentes (topics — lista configurable, data del cron)
 Arranque sugerido (cada uno con su fetcher): **mundial** (resultados), **mundo**, **videojuegos**, **guerra**,
