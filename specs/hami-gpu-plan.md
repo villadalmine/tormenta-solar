@@ -124,3 +124,10 @@ spec: { selector: { app: ollama-linyera }, ports: [{ port: 11434, targetPort: 11
 - Placas viejas (Pascal/Maxwell): un 8b por placa es lo razonable; no apilar dos modelos grandes en una.
 - Esto vive en **`infra-ai`** (config LiteLLM + manifiestos ollama) — lo ejecuta el dueño de esa infra; acá
   queda el plan. Relacionado con `pruebas-modelos.md §2.10` (gobernanza HAMi) y `seguridad.md` (anti-DoS/OOM).
+
+## 6. Referencias a evaluar
+
+- **KEDA GPU scaler** — https://github.com/pmady/keda-gpu-scaler — autoescalado de cargas GPU con KEDA (scale-to-zero
+  cuando no hay demanda). A **probar para usar poco GPU**: que la GPU/inferencia escale a 0 en idle y suba con la
+  carga, en vez de tener un modelo cargado 24/7. Encaja con que HAMi sea el único dueño de la GPU (este plan) y con
+  la rotación `gemma2:2b` + `keep_alive` de `pruebas-modelos.md §2.7`. (Dato del dueño, 2026-06-25.)
