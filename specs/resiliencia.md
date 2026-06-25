@@ -156,6 +156,21 @@ sin IA dicen líneas hardcodeadas; con esto dirían frases generadas, variadas y
 (a) fuente de las entidades+atributos para el prompt, (b) endpoint/pool por-entidad en el proxy (extiende
 `/linyera-pool` o uno nuevo), (c) wiring en `dialogos.js` para que el NPC sin IA consuma su pool.
 
+**Contexto que cada personaje debe "saber" (idea del usuario):** las frases no son genéricas — el personaje
+es **consciente del estado del mundo**:
+- **La tormenta (`stormed`):** pre vs post-tormenta el personaje **cambia** (personalidad/ánimo), o hasta **se
+  mueve/aparece distinto**. El generador produce pools **por estado** (pre/post) y el atributo del personaje
+  puede definir su transición.
+- **Tu progreso en los hitos (`historiaState()` + `HintEngine.frontier()`):** el personaje **sabe en qué punto
+  del juego estás** y, **aleatoriamente**, te puede **saltar con una pista de cómo avanzar** (clase `pista` del
+  Mensajero) — un NPC random que te tira "che, ¿probaste hablar con el tahúr?" según tu frontera. Esto **reusa
+  el `HintEngine`** (ya calcula la frontera) + el **Mensajero** (ya clasifica pista/ambiente/reacción). O sea:
+  el pool ambiente del personaje + pistas contextuales del grafo, mezcladas según tu estado.
+
+→ El generador del cron entonces produce, **por personaje y por estado/hito relevante**, frases coherentes; el
+Mensajero elige en runtime cuál servir según `stormed` + la frontera del jugador. Es la convergencia de
+`carteles-ia.md` (Mensajero) + `hint-engine` + el entity-model.
+
 ## 7. Notas
 
 - **No romper el principio:** el cliente jamás bloquea esperando; el tope duro (9s) y el pool garantizan respuesta

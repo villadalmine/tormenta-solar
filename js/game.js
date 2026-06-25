@@ -77,9 +77,11 @@
 
   // motor v2 (data-driven, experimental) detrás de un toggle; default v1. Sin mundo.js+level-data.js → v1.
   function useV2() {
-    if (typeof Mundo === 'undefined' || typeof window === 'undefined' || !window.LEVEL1) return false;
+    if (typeof Mundo === 'undefined' || typeof window === 'undefined' || !window.LEVEL1) return false;   // v2 no disponible → v1
+    try { if ((location.search || '').indexOf('engine=v1') >= 0) return false; } catch (e) {}   // opt-out explícito a v1
     try { if ((location.search || '').indexOf('engine=v2') >= 0) return true; } catch (e) {}
-    try { return localStorage.getItem('ts_engine') === 'v2'; } catch (e) { return false; }
+    try { const s = localStorage.getItem('ts_engine'); if (s === 'v1') return false; if (s === 'v2') return true; } catch (e) {}
+    return true;   // DEFAULT = v2 (data-driven, "todo es un objeto"). v1 = respaldo (auto-fallback al construir + auto-degrade si se traba).
   }
   let engineUsed = 'v1';
   // Reporta un error del cliente al beacon (window.ERR_BEACON) si está configurado. Best-effort, sin PII.
@@ -1140,7 +1142,12 @@
     if (!running || freezeReported) return;
     if (typeof document !== 'undefined' && document.hidden) return;          // pestaña en 2º plano no cuenta
     const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-    if (lastBeat && now - lastBeat > 5000) { freezeReported = true; tel('freeze', { engine: engineUsed }); console.warn('[ts] freeze detectado (' + ((now - lastBeat)/1000 | 0) + 's) motor=' + engineUsed); }
+    if (lastBeat && now - lastBeat > 5000) {
+      freezeReported = true; tel('freeze', { engine: engineUsed });
+      // si v2 se trabó → auto-degradar a v1 en la PRÓXIMA carga (completa el auto-fallback para el caso runtime)
+      if (engineUsed === 'v2') { try { localStorage.setItem('ts_engine', 'v1'); } catch (e) {} }
+      console.warn('[ts] freeze detectado (' + ((now - lastBeat)/1000 | 0) + 's) motor=' + engineUsed + (engineUsed === 'v2' ? ' → degradado a v1' : ''));
+    }
   }, 2500);
   document.addEventListener('keydown', e => {
     // ESC cierra el chat SIEMPRE (tenga o no el foco el input; si no, quedás trabado en state='chat')
@@ -1163,7 +1170,7 @@
   (function () {
     const b = typeof document !== 'undefined' && document.getElementById ? document.getElementById('opt-engine') : null;
     if (!b) return;
-    const cur = () => { try { return localStorage.getItem('ts_engine') === 'v2' ? 'v2' : 'v1'; } catch (e) { return 'v1'; } };
+    const cur = () => { try { return localStorage.getItem('ts_engine') === 'v1' ? 'v1' : 'v2'; } catch (e) { return 'v2'; } };   // default v2
     const refresh = () => { b.textContent = cur(); };
     refresh();
     b.addEventListener('click', () => {
