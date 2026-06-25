@@ -81,6 +81,13 @@ Rápidos, baratos y buenos para el linyera (criollo + memoria), vía OpenRouter 
 
 ## 9. Diseño CODE-BASED (idea del usuario, 2026-06-25) — el camino elegido
 
+> **F1 HECHO (proxy 0.1.15, cliente v112):** entitlement por código MANUAL. Códigos válidos por env `SUB_CODES`
+> (+ `POST /sub-codes` con GEN_TOKEN en runtime; secretos → NO se commitean). Header `X-Sub-Code` en el chat →
+> tier PAGO: salta free+cupo, va directo a `SUB_MODELS` (gemma4-paid,claude-sonnet) sin candados. `GET /sub-check`
+> valida. Métrica `tormenta_ai_sub_usage_total{code}` (volumen por código, hash corto) + `tormenta_ai_sub_codes`.
+> Cliente: Settings "Suscripción" pega/activa el código (ai.js `setSubCode`/`checkSub`, header), i18n ES/EN.
+> **Falta (fases siguientes):** §9.1 email `/request-code`, §9.2 DB (hoy in-memory + env), §9.4 pago, key-por-código (§9.3 B).
+
 Entitlement por **código** que el jugador pide y pega en Settings. **El pago real va DESPUÉS**; primero el
 mecanismo de código + DB + métricas (emisión manual/gratis al principio).
 
