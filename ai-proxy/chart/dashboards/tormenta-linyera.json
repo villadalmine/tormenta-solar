@@ -61,6 +61,12 @@
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": { "defaults": { "custom": { "stacking": { "mode": "normal" } } } },
       "targets": [ { "expr": "sum by (model, result) (increase(tormenta_ai_model_attempts_total[15m]))", "legendFormat": "{{model}} · {{result}}", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "Precios OpenRouter (US$/token, completion) — en el tiempo", "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "targets": [ { "expr": "tormenta_openrouter_price_usd{kind=\"completion\"}", "legendFormat": "{{model}}", "refId": "A" } ]
     }
   ]
 }
