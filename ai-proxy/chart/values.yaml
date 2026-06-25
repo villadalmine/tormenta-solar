@@ -33,6 +33,12 @@ persistence:
   storageClass: ""
   size: 1Gi
 
+# CINE de noticias (specs/cine-noticias.md): cron que trae titulares por topic → banco /noticias.
+noticias:
+  enabled: false
+  schedule: "0 */4 * * *"   # cada 4h
+  sports: ""                # opt-in fútbol/ligas: "mundial:4406,primera-b:4391" (TheSportsDB)
+
 # --- API key del upstream (para LiteLLM = su master key, p.ej. sk-hermes-internal) ---
 # Opción A (recomendada): referenciar un Secret YA existente (no commitea la key).
 # Opción B: poner apiKey acá → el chart crea el Secret (NO lo subas a git con la key real; usá --set).

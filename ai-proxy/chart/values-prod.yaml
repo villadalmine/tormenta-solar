@@ -77,6 +77,11 @@ metrics:
     enabled: true
 
 # crons Argo: pool del linyera (1×/día) + precios OpenRouter (cada 6h). genToken va por --set/secret.
+# CINE de noticias: cron cada 4h que llena el banco /noticias (Hacker News, sin key). Fútbol = opt-in 'sports'.
+noticias:
+  enabled: true
+  schedule: "0 */4 * * *"
+
 linyeraPool:
   cronjob:
     enabled: true

@@ -22,6 +22,9 @@ let LINYERA_POOL = null, LINYERA_POOL_TS = 0;             // pool de saturación
 // El proxy SOLO guarda y sirve; un Argo CronWorkflow (gen-prices.mjs) hace el fetch de /api/v1/models y
 // postea acá (POST /precios). Sirve precios → /metrics + /precios, y novedades → /novedades. Sin key en el cliente.
 let OR_PRICES = {}, OR_NEWS = [], OR_TS = 0;   // poblado por el CronWorkflow vía POST /precios
+// NOTICIAS del CINE (cine-noticias.md): banco de titulares por topic, lo llena un cron (gen-noticias.mjs) que
+// FETCHEA (código, no modelo) y postea acá. El juego lo lee en GET /noticias (pantalla del cine + linyera).
+let NOTICIAS = [], NOTICIAS_TS = 0;
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -337,6 +340,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' });
     return res.end(JSON.stringify({ models: OR_NEWS, updated: OR_TS }));
   }
+  if (req.method === 'GET' && req.url === '/noticias') {                           // banco de noticias del CINE
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
+    return res.end(JSON.stringify({ noticias: NOTICIAS, updated: NOTICIAS_TS }));
+  }
   if (req.method === 'GET' && req.url === '/ranking') {                            // F2: mejor/más-barato (juego/landing/Grafana)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' });
     return res.end(JSON.stringify({ autopilot: AUTOPILOT, chain: activeChain(), models: ranking(), updated: Date.now() }));
@@ -497,6 +504,17 @@ http.createServer((req, res) => {
     req.on('data', c => { pb += c; if (pb.length > 100000) req.destroy(); });
     req.on('end', () => {
       try { const d = JSON.parse(pb || '{}'); if (d.prices) OR_PRICES = d.prices; if (Array.isArray(d.news)) OR_NEWS = d.news; OR_TS = Date.now(); res.writeHead(200); res.end('ok'); }
+      catch (e) { res.writeHead(400); res.end('bad json'); }
+    });
+    return;
+  }
+  // el cron de noticias (gen-noticias.mjs) postea acá (GEN_TOKEN): {noticias:[{topic,headline,answer,ts}]}.
+  if (req.method === 'POST' && req.url === '/noticias') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) { NOTICIAS = d.noticias.slice(0, 100); NOTICIAS_TS = Date.now(); res.writeHead(200); return res.end('ok'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;

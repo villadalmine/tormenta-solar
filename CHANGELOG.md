@@ -78,6 +78,18 @@ Tanda grande del lado del JUEGO (cache `v94`→`v114`). Lo de infra (proxy/métr
 
 ---
 
+## [infra-7] — 2026-06-25 — 🎬 Banco de NOTICIAS del Cine (F1a backend)
+
+Primera mitad del cine de noticias (`specs/cine-noticias.md` F1): el **banco de noticias** que después consume la
+pantalla del cine in-game (F1b).
+- **`gen-noticias.mjs`** (cron, Node puro): **fetchea** noticias por topic desde **Google News RSS** (público,
+  sin key, español AR; `fetch()` sigue el redirect solo) → titular real por topic. Cubre **mundo, mundial,
+  primera-b, videojuegos, guerra, argentina, países-bajos, árabe, ia, bochas** y **refresca cada corrida**.
+  Fútbol con resultado exacto = opt-in `NEWS_SPORTS` (TheSportsDB). **El fetch es del cron, no de un modelo.**
+- **Proxy**: `POST /noticias` (GEN_TOKEN) llena el banco + `GET /noticias` lo sirve (como `/precios`).
+- **Chart**: `cronworkflow-noticias.yaml` (cada 4h) + `noticias.enabled` en values. Imagen del proxy copia el script.
+- Falta **F1b**: el edificio **CINE** (butacas + pantalla) que muestra un titular random del banco al entrar.
+
 ## [infra-2..6] — 2026-06-25 — 🤖 Métricas reales + red paga rápida (gemma4-paid) + suscripción por código
 
 Proxy `0.1.3`→`0.1.20`. El gran salto de la IA del juego.

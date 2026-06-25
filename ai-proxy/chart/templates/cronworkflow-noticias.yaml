@@ -1,0 +1,57 @@
+{{- if .Values.noticias.enabled }}
+# Argo CronWorkflow: trae NOTICIAS por topic (gen-noticias.mjs hace el FETCH; sin tool-use de modelos) y las
+# publica en el proxy (POST /noticias) → banco del CINE. Ver specs/cine-noticias.md. Reusa la imagen del proxy,
+# el SA y el GEN_TOKEN del pool. Cron = siempre Argo.
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-noticias
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+spec:
+  schedules:
+    - {{ .Values.noticias.schedule | default "0 */4 * * *" | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  workflowSpec:
+    entrypoint: gen
+    serviceAccountName: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+    activeDeadlineSeconds: 300
+    ttlStrategy:
+      secondsAfterCompletion: 86400
+      secondsAfterSuccess: 43200
+      secondsAfterFailure: 172800
+    podGC:
+      strategy: OnWorkflowCompletion
+    {{- with .Values.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+    templates:
+      - name: gen
+        retryStrategy:
+          limit: "3"
+          retryPolicy: Always
+          backoff: { duration: "20s", maxDuration: "2m" }
+        container:
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "gen-noticias.mjs"]
+          env:
+            - name: NEWS_POST_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/noticias"
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- with .Values.noticias.sports }}
+            - name: NEWS_SPORTS
+              value: {{ . | quote }}
+            {{- end }}
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+{{- end }}

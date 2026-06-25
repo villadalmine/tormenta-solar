@@ -4,7 +4,7 @@
 FROM node:20-alpine
 WORKDIR /app
 # sólo los archivos del proxy (no hay node_modules: cero deps) + el generador del pool (lo usa el CronJob)
-COPY package.json server.js personas.js gen-pool.mjs gen-prices.mjs ./
+COPY package.json server.js personas.js gen-pool.mjs gen-prices.mjs gen-noticias.mjs ./
 ENV PORT=8788
 EXPOSE 8788
 # usuario no-root (el nodo 'node' ya existe en la imagen oficial)
