@@ -5,9 +5,9 @@
 > genérico de `game/` data), validando con un **toggle v1/v2** + test de paridad. Idempotencia = modelo
 > declarativo puro + estado runtime aparte (el que ya guarda `save.js`).
 
-- **Estado:** **F1+F2+F3 IMPLEMENTADOS (v2 data-driven es el DEFAULT, 2026-06-25).** **F4 en curso** (migrar
-  hardcodes a atributos del modelo: `COLLAPSED`→`collapsesOnStorm` ✅; faltan `DOOR_ART`/gating/ids estables).
-  Ver §10.
+- **Estado:** **F1+F2+F3+F4 IMPLEMENTADOS (v2 data-driven DEFAULT, 2026-06-25).** Hardcodes migrados a data
+  (`COLLAPSED`→`collapsesOnStorm`, `DOOR_ART`→`art`, gating→`gate`) + save anclado por posición (RF-4). Queda
+  opcional `ambient` + **F5** (extraer el motor `engine/`+`game/`, rewrite mayor). Ver §10.
 - **Nivel:** transversal (es la base para Nivel 1 **y** Nivel 2+)
 - **Última actualización:** 2026-06-24
 
@@ -725,7 +725,12 @@ Para no reescribir a ciegas (strangler-fig):
    - ✅ **gating ifs → componente `gate`** (secret/cemento/bunker/chinoback): cond `{flag|item}`+all/any/not en
      la puerta (level.js→modelo→mundo), `game.js` usa `gateMet()` + `FLAG_GETTERS`. web 0.1.19. *(La lógica
      custom de interact —super/chinotruco/cambio/abandonado— queda: es comportamiento, no gating puro.)*
-   - ⬜ historia/ads/save → **ids estables** (el chunk más grande; RF-4 — saca el save-por-índice frágil).
+   - ✅ **save → anclado por POSICIÓN `(sala, x)`, no por índice** (RF-4): pickups/npcs se identifican por su `x`
+     en la sala (su id natural) → robusto a reordenar, igual en v1/v2. Save v2 con compat de v1 (path legacy).
+     web 0.1.20. *(historia ya es id-based —edges del grafo—; ads usa room+x, mismo espíritu.)*
+
+> **F4 esencialmente COMPLETO**: los 3 hardcodes (`COLLAPSED`/`DOOR_ART`/gating) son data + el save por posición.
+> Queda opcional `ambientFor`→`ambient` (bajo valor) y F5 (extraer `engine/` vs `game/`, el rewrite mayor).
 6. **F5 — extraer el motor** (`engine/` genérico vs `game/` contenido, §2.5) y que **Nivel 2 nazca en v2**
    (sólo data). Eventualmente v1 se retira.
 
