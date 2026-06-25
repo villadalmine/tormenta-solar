@@ -83,6 +83,9 @@ noticias:
   enabled: true
   schedule: "0 9 * * *"
   summarizeModel: gemma4-paid
+  # fútbol con RESULTADO EXACTO (TheSportsDB, key de prueba): pisa el topic con un score numérico ("2-1").
+  # mundial=FIFA World Cup (4429, en juego jun-2026) · primera-b=Primera B Nacional AR (4616). IDs verificados 2026-06-25.
+  sports: "mundial:4429,primera-b:4616"
 
 linyeraPool:
   cronjob:

@@ -29,6 +29,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-14] — 2026-06-25 — ⚽ Cine: fútbol con RESULTADO EXACTO (NEWS_SPORTS activado)
+
+Activado el opt-in `NEWS_SPORTS` del cron de noticias: los topics `mundial` y `primera-b` ahora traen el
+**resultado numérico real** vía TheSportsDB (pisa el titular de Google News con "Equipo 2-1 Equipo"). IDs
+verificados: **mundial = FIFA World Cup `4429`** (en juego jun-2026, ej. "Ecuador 1-1 Germany"), **primera-b =
+Primera B Nacional AR `4616`**. Solo `values-prod.yaml` (sin rebuild; la imagen 0.1.28 ya lee el env).
+
+---
+
 ## [infra-13] — 2026-06-25 — 🚀 `deploy/deploy.sh`: build + deploy + verify en un comando (mata el gotcha del genToken)
 
 Automatiza el deploy (F2 de `deploy-pipeline.md`). `deploy/deploy.sh <proxy|web> [tag]` hace **build (Kaniko) →
