@@ -21,15 +21,22 @@ El juego es 100% estático; se publica en
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
   interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.
-- **Cine de noticias** (`specs/cine-noticias.md`): edificio cine (butacas+pantalla) que muestra **noticias reales
-  capturadas por IA** (Mundial, mundo, videojuegos, guerra, AR/NL/árabe, Primera B, bochas), random cada visita,
-  traídas por un cron→banco. Los linyeras te mandan a buscar data y te la **corroboran**: acertás → caramelos,
-  mentís → te sacan plata. Encaja con el modelo data-driven + quests + grounding.
 - **Seguridad** (`specs/seguridad.md`): fase transversal — sin CVEs (todas las versiones), flujo cifrado,
   anti-DoS web/API/tokens (incl. "denial of wallet"), buenas prácticas de datos, anti-escalada. Con checklist
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [docs] — 2026-06-25 — 📐 SDD `cine-noticias.md` al día (Diseño → Implementado)
+
+Barrido de SDDs faltantes/desactualizados. Primero: `specs/cine-noticias.md` pasó de "Diseño por fases" a
+**Implementado** y se sincronizó con el código real — los 7 pisos y su mapeo piso→topic, las 3 clases de fuente
+(Google News RSS / CoinGecko / OpenRouter API), la verificación local `newsMatch` (+3 caramelos / −10 monedas),
+el TTS por **[R]** (no auto), el cron **1×/día 9am AR**, y el **gotcha del `genToken`** (helm sin `--set
+linyeraPool.genToken` → 403 silencioso, banco vacío). Sacado del roadmap "Próximamente" + agregado al índice de
+`specs/README.md`. Sin cambios de código (no bumpea `?v`).
 
 ---
 

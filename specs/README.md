@@ -71,6 +71,7 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar autom�
 
 **Transversal**
 - [TECNICAS.md](TECNICAS.md) — cómo se modela esto en game dev (grafo de entidades, quest DAG, RAG).
+- [cine-noticias.md](cine-noticias.md) — el **CINE** de 7 pisos: pantalla con noticias reales (Google News/CoinGecko/OpenRouter) capturadas por un cron 1×/día + el linyera que te manda y corrobora (quest) (**Implementado** v124).
 - [configuracion.md](configuracion.md) — opciones/accesibilidad (fuente, duración del texto, volumen).
 - [ia-openrouter.md](ia-openrouter.md) — IA (OpenRouter, modelo free) para diálogos/contenido (Draft).
 - [ia-routing-infra.md](ia-routing-infra.md) — **infra** de IA: routing self-hosted (vLLM/LiteLLM/AI Gateway/k8s) por tier (pago/BYOK/free) + uso/carga → GPU propia. NO toca el juego (sólo pide buenas métricas) (Draft).

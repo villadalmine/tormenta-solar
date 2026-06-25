@@ -1,6 +1,12 @@
 # SDD — El CINE de noticias: pantalla con news capturadas por IA + el linyera que te manda y te corrobora
 
-- **Estado:** Diseño (para implementar por fases). Idea del dueño (2026-06-25).
+- **Estado:** **Implementado** (F1 banco+cine, F2 quest, F3 7 pisos + TTS + arte propio — todo en prod 2026-06-25,
+  `cache v124` / `proxy 0.1.23`). **F4 (captura en NPU) NO se hizo** y queda descartado: la NPU alucina + es lenta;
+  la captura corre en `gemma4-paid` (ver §3.1). Este spec ya documenta la **intención realizada**, no un plan.
+- **Implementación:** banco en `ai-proxy/server.js` (`GET/POST /noticias`), fetch en `ai-proxy/gen-noticias.mjs`
+  (cron `cronworkflow-noticias.yaml`), cliente `js/noticias.js` (→ `window.NOTICIAS`), edificio+pisos en
+  `js/level.js`, lógica de pantalla/quest en `js/game.js` (`cineTopicsFor`/`pickNoticia`/`drawCineScreen`/`newsQuest`),
+  arte en `js/art.js` (`BUILDINGS.cine`).
 - **Relacionado:** [`modelo-de-entidades.md`](modelo-de-entidades.md) (el cine es un **edificio data-driven** + la
   pantalla un `sign`; el loop es un **quest** §6.95), [`carteles-ia.md`](carteles-ia.md) (carteles inteligentes
   NPU), [`openrouter-dinamico.md`](openrouter-dinamico.md) (patrón cron→banco, como `/novedades`),
@@ -37,17 +43,27 @@ X?") y, cuando volvés y se la decís, te la **corroboran** (hackean a la IA): s
 > cron pega el **HTTP** (API/RSS), y el **modelo, si se usa, SOLO resume/da formato** al texto ya traído. El
 > "siempre se refresca con info nueva" lo da el **schedule del cron**, no el modelo.
 
-- Un **CronWorkflow** (cada N horas) corre `gen-noticias.mjs` (Node, igual que `gen-prices.mjs`): por cada
-  **topic** hace `fetch()` a su fuente (API/RSS) → extrae el dato → arma `{ topic, headline, answer, ts }`.
+- El **CronWorkflow** `tormenta-ai-proxy-noticias` corre `gen-noticias.mjs` **1×/día a las 09:00** (`schedule:
+  ["0 9 * * *"]`, `timezone: America/Argentina/Buenos_Aires` — slow OK porque es diario): por cada **topic** hace
+  `fetch()` a su fuente → extrae el dato → arma `{ topic, headline, answer, ts }`.
   - Ej.: `{topic:"mundial", headline:"Argentina 2-1 Brasil (semi)", answer:"2-1", ts:...}`.
-  - **El resumen a "titular" es OPCIONAL:** muchas fuentes ya dan el titular/resultado directo (el cron lo toma
-    tal cual, **sin modelo**). El modelo se usa **solo** si querés "capturar/redactar con onda" un texto largo
-    (RSS de noticias) → ahí el cron le pasa el **texto ya fetcheado** a un LLM para resumir (NPU o nube).
+  - **El resumen a "titular" es OPCIONAL y FIEL:** el `headline` se rephrasea con `gemma4-paid` (12 palabras máx,
+    "no inventes datos"), pero el **`answer` queda CRUDO** (el titular real que el linyera verifica). **crypto y
+    openrouter NO se resumen** (son números/precios): se pushean *después* del loop de resumen para que el dato
+    quede exacto. Si el resumen falla, queda el crudo.
 - **POST `/noticias`** al proxy (protegido por `GEN_TOKEN`, igual que `/precios` y `/linyera-pool`). El proxy
-  guarda el banco en memoria y lo sirve: **`GET /noticias`** (JSON, `Cache-Control` corto). Se refresca cada
-  corrida del cron.
-- **Hardware (carteles-ia.md):** si se usa el resumen, corre en la **NPU** (rockchip) sobre el texto que **ya
-  trajo el cron**; el chat del linyera sigue en la **nube rápida**. Pero el **fetch siempre es del cron** (code).
+  guarda el banco **en memoria** (`let NOTICIAS = []`, 1 réplica) y lo sirve: **`GET /noticias`** (JSON,
+  `Cache-Control: 300`). Se refresca cada corrida del cron.
+  - ⚠️ **Gotcha operativo (mordió en prod 2026-06-25):** `GEN_TOKEN` sale de `.Values.linyeraPool.genToken`, que
+    es secreto (default `""`). Un `helm upgrade tormenta-ai ... --set image.tag=X` **SIN** `--set
+    linyeraPool.genToken=<TOK>` lo resetea a vacío → el proxy devuelve **403** a TODO POST interno
+    (`/noticias`, `/precios`, `/linyera-pool`, `/sub-codes`, `/provision`) y el cron ni POSTea (`if (POST_URL &&
+    TOKEN)`), pero el workflow igual termina **"Succeeded"** (cae al `else` que imprime JSON) → falla silenciosa,
+    banco vacío. **Siempre desplegar el proxy con `--set linyeraPool.genToken=<TOK>`.** Verificar mirando la línea
+    `POST http://tormenta-ai-proxy/noticias -> 200` en los logs del cron, no solo el "Succeeded".
+- **Hardware:** el `gen-noticias.mjs` (fetch + resumen) corre en el pod del proxy (arquitectura del cron); el
+  resumen usa `gemma4-paid` (nube). La NPU quedó **descartada** para esto (alucina + lenta, §3.1 tabla). El
+  **fetch siempre es del cron** (code), nunca un modelo.
 
 #### Validación de modelos para la captura (2026-06-25) — tabla comparativa
 Mismo titular con dato específico (para cazar alucinaciones). **Para noticias la FIDELIDAD es no-negociable**
@@ -66,28 +82,53 @@ Mismo titular con dato específico (para cazar alucinaciones). **Para noticias l
 > tarda 18-34s) → se usa
 > `gemma4-paid` (es "y sino el pago"). Corre 1×/día → costo despreciable. El `answer` queda CRUDO igual.
 
-### 3.2 Las fuentes (topics — lista configurable, data del cron)
-Arranque sugerido (cada uno con su fetcher): **mundial** (resultados), **mundo**, **videojuegos**, **guerra**,
-**argentina**, **paises-bajos**, **arabe**, **primera-b** (fútbol AR), **bochas** (liga de algún país).
-- Fuentes: APIs/RSS públicas por topic (deportes: API de fútbol; noticias: RSS por país/tema). **Si una falla,
-  ese topic queda con su última captura** (best-effort, como precios). Lista de topics = **data/env**, ampliable.
+### 3.2 Las fuentes (topics — 15 implementados, data del cron)
+Lista real en `gen-noticias.mjs` (`NEWS_TOPICS` env, ampliable). **15 topics**, 3 clases de fuente:
 
-### 3.3 El CINE — edificio DATA-DRIVEN (usa el modelo v2 que acabamos de cerrar)
-- Es **otra entrada de `levels/nivel-1.json`** (o un content-pack §6¾ de modelo-de-entidades): un `edificio`
-  con su `facade` (puerta en la calle) + una `room` con:
-  - **butacas** = `decor` (filas de sillas) + **pantalla** = una entidad `sign` con componente nuevo
-    **`news`** (en vez de `ad`): `{ source:"/noticias", rotate:true }`.
-  - La pantalla **rota aleatorio** entre las noticias del banco **cada vez que entrás** (siembra por visita).
-- **Arte nuevo:** fachada de cine + interior (pantalla grande iluminada + butacas). Render immediate-mode como el
-  resto. *(Si no hay arte aún: F1 puede reusar un cartel grande tipo "pantalla" y butacas simples.)*
-- **Idea F3 (dueño 2026-06-25):** el cine podría ser **multi-piso** (varias salas/pantallas, distintos topics por
-  piso) o un **complejo de varios edificios**, con **carteles de propaganda** adentro (reusa `ads`/`js/ads.js` o
-  decor `cartel`). Todo data-driven (más `rooms` + un `link` entre pisos, como la galería/abandonado). Pendiente.
+| Clase | Topics | Fuente (sin key) | Resumen IA |
+|---|---|---|---|
+| **Google News RSS** | `mundo`, `mundial`, `primera-b`, `videojuegos`, `guerra`, `argentina`, `paises-bajos`, `arabe`, `ia`, `bochas`, `finanzas`, `colombofila`, `consolas-retro` | `news.google.com/rss/search?q=…&hl=es-419&gl=AR&ceid=AR:es` (fetch sigue el 302 solo) | sí (`gemma4-paid`, fiel) |
+| **CoinGecko** | `crypto` | `api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum…` | **no** (números exactos) |
+| **OpenRouter** | `openrouter` | `openrouter.ai/api/v1/models` (precios US$/1M de modelos populares) | **no** (precios exactos) |
+
+- **Fútbol con resultado exacto:** opt-in `NEWS_SPORTS="mundial:4406,…"` → TheSportsDB (key de prueba `3`), pisa el
+  topic con un `answer` numérico ("2-1"). Best-effort; si falla queda lo de Google News.
+- **Fuentes que NO sirvieron (probadas 2026-06-25):** API de MercadoLibre → **403** (bloqueada sin key, era para
+  `consolas-retro` con precios reales); Reddit → **403**. Por eso `consolas-retro` cae a Google News; eBay/
+  Marktplaats necesitan key (pendiente). **Si una fuente falla, ese topic queda sin entrada esa corrida**
+  (best-effort, como precios).
+
+### 3.3 El CINE — edificio DATA-DRIVEN de 7 PISOS (implementado)
+- Es parte de `levels/nivel-1.json` (generado por `tools/gen-level.js`): puerta `cine` en la calle (x:52, **fuera**
+  de la cola de la casa de cambio — se movió del 84 por feedback del dueño) con `facade:'cine'` + arte propio
+  `BUILDINGS.cine` (`js/art.js`, marquesina "🎬 CINE", NO "galería"). Adentro, **7 salas/pisos** (`cine1..cine7`)
+  encadenadas por puertas `up`/`down` (la planta baja tiene `back` a la calle), cada una con `_seats` (7 sofás
+  compartidos) + `_ads` (2 carteles de propaganda, reúsa decor `cartel`).
+- **Cada piso = una categoría temática**, su pantalla muestra noticias del banco filtradas por sus topics
+  (`cineTopicsFor(name)` en `js/game.js`, detección por nombre `/Cine/`):
+
+  | Piso | Sala | Topics que muestra | NPC temático |
+  |---|---|---|---|
+  | 1 · **Deportes** | `cine1` | `mundial`, `primera-b`, `bochas` | — |
+  | 2 · **Mundo** | `cine2` | `mundo`, `guerra`, `argentina`, `paises-bajos`, `arabe` | — |
+  | 3 · **Tecno** | `cine3` | `videojuegos`, `ia` | — |
+  | 4 · **Finanzas** | `cine4` | `finanzas`, `crypto` | Broker |
+  | 5 · **Colombofilia** | `cine5` | `colombofila` | Colombófilo |
+  | 6 · **Consolas** | `cine6` | `consolas-retro` | Coleccionista |
+  | 7 · **OpenRouter** | `cine7` | `openrouter` | "El Linyera IA" (oráculo chateable) |
+
+- **Colombofilia (investigado 2026-06-25):** asociaciones reales activas = **FCI** (Fed. Colombófila Internacional),
+  **RFCE** (Real Fed. Colombófila Española), **FECOAR** (Argentina). No hay API pública → vía Google News.
+- **La pantalla** (`drawCineScreen(r)` en `js/game.js`): 360×168, header "🎬 CINE · CATEGORÍA", topic + **titular
+  completo** (`wrapLines`, hasta 8 líneas — se agrandó porque antes cortaba el texto), footer con la acción de
+  lectura. `pickNoticia(name)` elige al azar entre las noticias cuyos topics matchean el piso (siembra por visita).
 
 ### 3.4 La pantalla (cómo muestra la noticia)
-- Lee `GET /noticias`, elige **1+ topics al azar** (semilla por visita) y dibuja el/los **titular(es)** en la
-  pantalla (texto grande estilo marquesina). Opcional: **TTS al sentarte** (lee el titular con voz, como el hover
-  de carteles-ia). El jugador VE el `answer` (lo que después le dice al linyera).
+- `js/noticias.js` trae `GET /noticias` a `window.NOTICIAS` al cargar. Al entrar a un piso, `pickNoticia` elige
+  una noticia del banco filtrada por los topics del piso (semilla por visita) → `cineNoticia`. El jugador VE el
+  titular completo (y el `answer` queda implícito = lo que después le dice al linyera).
+- **TTS = ACCIÓN, no automático.** El dueño probó la versión auto-al-sentarse y el sonido "se escuchaba terrible"
+  → ahora la lectura por voz es la tecla **[R]** (`Mensajero.hablar`), opt-in. No se dispara solo.
 
 ### 3.5 El quest del linyera (es un `quest` del modelo, §6.95)
 - El linyera-oráculo, al chatear, **tira el pedido**: elige un topic del banco y te manda al cine (`interact`
@@ -96,16 +137,16 @@ Arranque sugerido (cada uno con su fetcher): **mundial** (resultados), **mundo**
 - Al volver y reportar (chat), se **verifica** (§4). Es un quest **repetible** (`scope:run`, recompensa chica)
   → da rejugabilidad ("cada vez algo distinto").
 
-## 4. Verificación (anti-mentira) + economía
-- **La verdad está en el banco** (`/noticias`, server-side). El jugador reporta su respuesta **por el chat**.
-- **Chequeo (grounded, NUNCA inventa):** el proxy/juego compara lo que dijiste contra el `answer` real del topic
-  (match flexible: número exacto del resultado, o el LLM del linyera evalúa "¿esto coincide con la data real?"
-  con la data **inyectada en el prompt** — grounding, como las pistas). 
-  - **Acertás** → el linyera "corrobora" en personaje (*"hackeo el cartel... y sí, no me mentís, genio"*) →
-    **+caramelos** (sink/fuente: caramelos ya existen).
-  - **Mentís** (no coincide) → *"¿Me querés cagar? La IA me sopló la posta, chanta"* → **−plata** (monedas).
-- **Anti-abuso:** el topic del mandado se fija al pedírtelo (no podés "adivinar" cambiando de topic); 1 mandado
-  activo por vez; cooldown para no farmear caramelos. (Mismo espíritu que el cupo del chat.)
+## 4. Verificación (anti-mentira) + economía — **implementado en `js/game.js`**
+- **La verdad está en el banco** (`window.NOTICIAS`, que vino del server). El jugador reporta su respuesta **por el
+  chat** del linyera (`chatSend`): el reporte se evalúa **antes** de mandar al modelo.
+- **Chequeo `newsMatch` (local, NUNCA inventa):** compara las **palabras significativas** de lo que dijiste contra
+  el `answer`/headline real del topic activo:
+  - **≥1 palabra significativa compartida** → **verdad** → *"no me mentís, genio"* → **+3 caramelos**.
+  - **≥2 palabras y 0 compartidas** → **mentira** → *"¿Me querés cagar?"* → **−10 monedas**.
+  - (Pocas palabras / ambiguo → no penaliza.) Mensajes en `g.cine.questOk` / `g.cine.questLie`.
+- **El pedido (`newsQuest`):** con ~35% de chance, después de responderte, el linyera te tira un topic disponible
+  ("andá al cine, quiero saber de X") → quest repetible. 1 mandado activo por vez.
 
 ## 5. Cómo encaja (reúso, no reinventar)
 | Pieza | Reúsa |
@@ -124,21 +165,24 @@ Arranque sugerido (cada uno con su fetcher): **mundial** (resultados), **mundo**
   "coincide / no coincide" **en personaje**. La "data" nunca sale al cliente hasta que la traés del cine.
 
 ## 7. Fases
-1. **F1 — el banco + el cine estático:** `gen-noticias.mjs` (1-2 topics reales, ej. mundial + argentina) →
-   `POST/GET /noticias`; el **CINE** como edificio data-driven con pantalla que muestra un titular random del
-   banco al entrar. Sin quest todavía (solo "entrás y ves noticias distintas").
-2. **F2 — el quest del linyera:** el oráculo te pide un topic (grounded) → vas → reportás → **verificación** +
-   caramelos/plata. Repetible, con cooldown.
-3. **F3 — más topics + TTS + arte:** todos los topics (videojuegos/guerra/NL/árabe/primera-b/bochas), voz al
-   sentarte, fachada/interior de cine propios. Topics como **content-pack** (temporada).
-4. **F4 — captura en NPU** (mover el summary a la rockchip, carteles-ia) + feed más rico (varias noticias en
-   pantalla, rotación).
+1. **F1 — el banco + el cine** ✅ (`v119`): `gen-noticias.mjs` → `POST/GET /noticias`; CINE como edificio
+   data-driven con pantalla que muestra un titular random del banco al entrar.
+2. **F2 — el quest del linyera** ✅ (`v120`): el oráculo te pide un topic → vas → reportás → `newsMatch` +
+   caramelos/plata. Repetible (~35% chance).
+3. **F3 — multipiso + TTS + arte** ✅ (`v122`-`v124`): fachada/arte de cine propios, TTS por **[R]** (no auto),
+   carteles de propaganda adentro, y **7 pisos temáticos** (Deportes/Mundo/Tecno/Finanzas/Colombofilia/Consolas/
+   OpenRouter) con 15 topics (incl. crypto CoinGecko + precios OpenRouter). Cron a **1×/día 9am AR**.
+4. **F4 — captura en NPU** ❌ **descartada**: la NPU alucina + tarda 18-34s (§3.1). La captura se queda en
+   `gemma4-paid` (fiel, barato a 1×/día). **Pendiente real:** precios de `consolas-retro` con monto exacto
+   (eBay/Marktplaats necesitan key; ML da 403), y resultados de fútbol exactos vía `NEWS_SPORTS` (opt-in, hecho
+   pero no activado).
 
-## 8. Mi lectura / decisiones abiertas
-- **Encaja redondo** con el repo: es "novedades + un edificio data-driven + un quest", todo patrones que ya
-  existen. El riesgo no es técnico sino de **fuentes de datos** (APIs/RSS por topic, rate limits, formato).
-- **Abierto:** ¿qué fuente por topic (API key de deportes? RSS?)? ¿el reporte del jugador es **texto libre**
-  (más divertido, necesita el LLM para verificar) o **elegir de opciones** (más simple, sin LLM)? ¿caramelos
-  por acierto = cuántos, y cooldown? ¿el cine es del Nivel 1 o un content-pack de "temporada Mundial"?
-- **Recomendación de arranque:** F1 con **mundial + argentina** (fuentes fáciles) y **reporte por texto libre
-  verificado por el LLM** (es lo que le da la gracia del "no me mentís"). El resto escala agregando topics (data).
+## 8. Decisiones tomadas (cerradas en la implementación)
+- **Fuente por topic:** Google News RSS (público, sin key, cubre casi todo) + CoinGecko (crypto) + OpenRouter API
+  (precios). Lo que pedía key/estaba bloqueado (deportes exactos, ML para consolas) quedó como opt-in/pendiente.
+- **Reporte del jugador:** **texto libre** verificado **local** (`newsMatch` por palabras compartidas, sin LLM ni
+  costo) — más simple que mandar a un modelo y suficiente para el "no me mentís".
+- **Economía:** +3 caramelos por acierto, −10 monedas por mentira (§4). Quest repetible, ~35% chance, no cron-gated.
+- **El cine es del Nivel 1** (no content-pack) — 7 pisos data-driven en `levels/nivel-1.json`.
+- **Pendientes** (no bloquean): precios exactos de consolas (eBay/Marktplaats con key), `NEWS_SPORTS` activado para
+  resultados de fútbol, y eventualmente más pisos/topics como content-pack de "temporada".
