@@ -18,27 +18,31 @@ const TOKEN = process.env.GEN_TOKEN || '';
 const PERSONAS = Object.fromEntries(
   Object.entries(ROSTER).map(([k, e]) => [k, e.contexto])
 );
-// rotamos micro-escenarios para que no converja siempre a la misma frase
-const SCENARIOS = [
-  'pedile que repita porque te distrajiste',
-  'pedile que espere un cachito que ya volves',
-  'quejate del sol/la tormenta que te frio la cabeza',
-  'manda una metafora rara de por que no podes pensar ahora',
-  'decile que la radio/los cables del bocho se te cortaron',
-];
-const ASK = (p, sc) => `Sos ${p}, post tormenta solar. La tormenta te dejo distraido y no podes seguir bien la `
-  + `charla. ${sc}. Devolve UNA sola frase CORTA (max 12 palabras), en personaje, lunfardo argentino, con humor. `
-  + `Sin comillas, sin explicar, sin mencionar IA ni "API key". Que sea DISTINTA y original. Solo la frase.`;
+// PRE vs POST tormenta (§6.4 paso 2): pre-tormenta NO se menciona el sol/apagón (todavía no pasó);
+// post-tormenta sí, con el cambio de ese personaje (ROSTER[].tormenta). Rotamos micro-escenarios por variedad.
+const SCEN = {
+  pre: ['pedile que repita porque te colgaste pensando', 'decile que se te fue la idea, estabas en otra',
+        'quejate de que algo de la calle te distrajo', 'mandá una excusa rara de por qué te perdiste'],
+  post: ['quejate del sol/la tormenta que te frió la cabeza', 'decile que los cables del bocho se cortaron con el apagón',
+         'pedile que espere que el sol te dejó en pausa', 'mandá una metáfora apocalíptica de por qué no pensás'],
+};
+const ASK = (p, mode, sc, tormenta) => {
+  const quien = mode === 'post' ? `${p}. ${tormenta || 'Tras la tormenta solar quedaste medio distraído.'}` : `${p}`;
+  return `Sos ${quien}. No podés seguir bien la charla: ${sc}. Devolvé UNA sola frase CORTA (máx 12 palabras), `
+    + `en personaje, lunfardo argentino, con humor. ${mode === 'pre' ? 'NO menciones tormenta solar ni apagón (todavía no pasó). ' : ''}`
+    + `Sin comillas, sin explicar, sin mencionar IA ni "API key". Que sea DISTINTA. Solo la frase.`;
+};
 
-async function gen(persona) {
+async function gen(persona, mode, tormenta) {
+  const want = Math.ceil(N / 2);              // mitad pre, mitad post → total ~N por persona
   const out = new Set(); let tries = 0;
-  while (out.size < N && tries < N * 4) {
+  while (out.size < want && tries < want * 4) {
     tries++;
     try {
       const r = await fetch(BASE + '/chat/completions', {
         method: 'POST', headers: { 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: MODEL, temperature: 1.1, max_tokens: 40,
-          messages: [{ role: 'user', content: ASK(PERSONAS[persona], SCENARIOS[tries % SCENARIOS.length]) }] }),
+          messages: [{ role: 'user', content: ASK(PERSONAS[persona], mode, SCEN[mode][tries % SCEN[mode].length], tormenta) }] }),
       });
       if (!r.ok) { await sleep(400); continue; }
       const d = await r.json();
@@ -46,14 +50,18 @@ async function gen(persona) {
       if (t && t.length > 6 && t.length < 120 && !/API|inteligencia artificial|modelo de leng/i.test(t)) out.add(t);
     } catch (e) { await sleep(400); }
   }
-  console.error(`  ${persona}: ${out.size}`);
   return [...out];
 }
 const sleep = ms => new Promise(s => setTimeout(s, ms));
 
 const pool = {};
-for (const p of Object.keys(PERSONAS)) { console.error('generando', p, 'con', MODEL); pool[p] = await gen(p); }
-const total = Object.values(pool).reduce((a, b) => a + b.length, 0);
+for (const p of Object.keys(PERSONAS)) {
+  console.error('generando', p, 'con', MODEL);
+  const pre = await gen(p, 'pre'), post = await gen(p, 'post', ROSTER[p].tormenta);
+  pool[p] = { pre, post };
+  console.error(`  ${p}: pre=${pre.length} post=${post.length}`);
+}
+const total = Object.values(pool).reduce((a, b) => a + b.pre.length + b.post.length, 0);
 console.error('total frases:', total);
 
 if (POST_URL && TOKEN) {

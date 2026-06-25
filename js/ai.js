@@ -170,11 +170,15 @@ const AI = (() => {
     tahur: ['"Hold up, the sun shuffled my thoughts. Deal again." 🃏'],
     default: ['"...solar storm cut me off. Hit me again, kid." ⚡', '"Everything\'s jammed by the sun. Wait a sec." ☀️'],
   };
+  let _stormed = false;   // lo setea game.js → elige variante pre/post del pool (pre NO menciona la tormenta)
+  function setStormed(b) { _stormed = !!b; }
   const satLine = npc => {
-    // pool GENERADO por cron (gemma4-free offline, js/linyera-pool.js) → mucha variedad. Solo ES (se generó en ES).
+    // pool GENERADO por cron (gemma4-free offline) → variedad. Estructura nueva: {pre,post} por estado de tormenta;
+    // estructura vieja (seed): array plano. Solo ES (se generó en ES).
     if (curLang() !== 'en' && typeof window !== 'undefined' && window.LINYERA_POOL) {
-      const g = window.LINYERA_POOL[npc] || window.LINYERA_POOL.default;
-      if (g && g.length >= 4) return g[(Math.random() * g.length) | 0];   // ≥4 para variar; si no, hardcodeado
+      let g = window.LINYERA_POOL[npc] || window.LINYERA_POOL.default;
+      if (g && !Array.isArray(g)) g = (_stormed ? g.post : g.pre) || g.post || g.pre;   // {pre,post} → por estado
+      if (Array.isArray(g) && g.length >= 4) return g[(Math.random() * g.length) | 0];
     }
     const table = curLang() === 'en' ? SAT_EN : SAT;     // fallback hardcodeado (siempre presente)
     const a = table[npc] || table.default;
@@ -327,5 +331,5 @@ const AI = (() => {
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, setStormed, get online() { return mode() !== 'offline'; } };
 })();

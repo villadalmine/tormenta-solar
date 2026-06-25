@@ -482,6 +482,8 @@
   }
   async function chatSend() {
     if (chatBusy || !chatNpc) return;
+    if (typeof AI !== 'undefined' && AI.setStormed) AI.setStormed(stormed);   // pool pre/post según la tormenta
+
     const msg = (elChatInput.value || '').trim();
     if (!msg) return;
     elChatInput.value = ''; chatLine('you', msg);
