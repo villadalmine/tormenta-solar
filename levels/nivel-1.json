@@ -99,7 +99,7 @@
           "id": "florida-y-lavalle/door-choris",
           "tipo": "door",
           "render": {
-            "type": "shop",
+            "type": "door",
             "facade": "choris"
           },
           "x": 46,
@@ -155,7 +155,7 @@
           "id": "florida-y-lavalle/door-galeria",
           "tipo": "door",
           "render": {
-            "type": "galeria",
+            "type": "door",
             "facade": "galeria"
           },
           "x": 74,
@@ -1553,7 +1553,7 @@
           "id": "galeria-subsuelo-1/door-up",
           "tipo": "door",
           "render": {
-            "type": "up"
+            "type": "doorUp"
           },
           "x": 3,
           "label": "subir",
@@ -1570,7 +1570,7 @@
           "id": "galeria-subsuelo-1/door-down",
           "tipo": "door",
           "render": {
-            "type": "galeria"
+            "type": "door"
           },
           "x": 39,
           "label": "bajar",
@@ -1755,7 +1755,7 @@
           "id": "sotano-subsuelo-2/door-up",
           "tipo": "door",
           "render": {
-            "type": "up"
+            "type": "doorUp"
           },
           "x": 3,
           "label": "subir",
@@ -1772,7 +1772,7 @@
           "id": "sotano-subsuelo-2/door-down",
           "tipo": "door",
           "render": {
-            "type": "galeria"
+            "type": "door"
           },
           "x": 39,
           "label": "bajar",
@@ -1939,7 +1939,7 @@
           "id": "las-cuevas-del-dolar-subsuelo-3/door-up",
           "tipo": "door",
           "render": {
-            "type": "up"
+            "type": "doorUp"
           },
           "x": 3,
           "label": "subir",
@@ -5730,7 +5730,7 @@
           "id": "cueva-del-dolar-la-del-fondo/door-back",
           "tipo": "door",
           "render": {
-            "type": "up"
+            "type": "doorUp"
           },
           "x": 2,
           "label": "salir de la cueva",
@@ -5839,7 +5839,7 @@
           "id": "cueva-del-dolar-la-de-al-lado/door-back",
           "tipo": "door",
           "render": {
-            "type": "up"
+            "type": "doorUp"
           },
           "x": 2,
           "label": "salir de la cueva",
@@ -5947,7 +5947,7 @@
           "id": "cueva-del-dolar-la-que-te-cambia/door-back",
           "tipo": "door",
           "render": {
-            "type": "up"
+            "type": "doorUp"
           },
           "x": 2,
           "label": "salir de la cueva",

@@ -79,10 +79,10 @@ const Level = (() => {
         doors: [
           { id:'edu',     art:'educacionit', facade:'educacionit', label:'entrar a EducaciónIT', x:10, inward:1, collapsesOnStorm:true },
           { id:'arcade',  art:'arcade',      facade:'arcade',      label:'entrar al arcade',     x:28, inward:1, collapsesOnStorm:true },
-          { id:'choris',  art:'shop',        facade:'choris',      label:'entrar a la chorería', x:46, inward:1, collapsesOnStorm:true },
+          { id:'choris',  art:'door',        facade:'choris',      label:'entrar a la chorería', x:46, inward:1, collapsesOnStorm:true },
           { id:'garbarino', art:'garbarino', facade:'garbarino',   label:'entrar a Garbarino',   x:58, inward:-1, collapsesOnStorm:true },
           { id:'cemento', art:'cemento',     facade:'cemento',     label:'entrar a Cemento',     x:61, inward:-1 },
-          { id:'galeria', art:'galeria',     facade:'galeria',     label:'bajar a la galería',   x:74, inward:-1 },
+          { id:'galeria', art:'door',     facade:'galeria',     label:'bajar a la galería',   x:74, inward:-1 },
           { id:'cambio',  art:'cambio',      facade:'cambio',      label:'entrar a la casa de cambio', x:90, inward:-1 },
           { id:'abandonado', art:'abandonado', facade:'abandonado', label:'entrar al edificio abandonado', x:101, inward:-1 },
           { id:'super',   art:'superchino',  facade:'superchino',  label:'entrar al super chino', x:112, inward:-1 },
@@ -232,8 +232,8 @@ const Level = (() => {
         name: 'Galería — Subsuelo 1', theme: 'concrete', light: 0.6, w: 42,
         platforms: [[10,9,3],[20,9,4],[30,9,3]],
         doors: [
-          { id:'up', art:'up', label:'subir', x:3, inward:1 },
-          { id:'down', art:'galeria', label:'bajar', x:39, inward:-1 },
+          { id:'up', art:'doorUp', label:'subir', x:3, inward:1 },
+          { id:'down', art:'door', label:'bajar', x:39, inward:-1 },
         ],
         npcs: [
           { name:'Sex-shop “El Subte”', sprite:'erotica', x:14, action:'shop',
@@ -254,8 +254,8 @@ const Level = (() => {
         name: 'Sótano — Subsuelo 2', theme: 'concrete', light: 0.48, w: 42,
         platforms: [[12,9,3],[22,9,4],[32,9,3]],
         doors: [
-          { id:'up', art:'up', label:'subir', x:3, inward:1 },
-          { id:'down', art:'galeria', label:'bajar', x:39, inward:-1 },
+          { id:'up', art:'doorUp', label:'subir', x:3, inward:1 },
+          { id:'down', art:'door', label:'bajar', x:39, inward:-1 },
         ],
         npcs: [
           { name:'Masajes Felices', sprite:'masajes', x:14, action:'shop',
@@ -274,7 +274,7 @@ const Level = (() => {
         name: 'LAS CUEVAS del dólar — Subsuelo 3', theme: 'rock', light: 0.4, w: 48,
         platforms: [[16,9,4],[26,9,3],[36,9,4]],
         doors: [
-          { id:'up', art:'up', label:'subir', x:3, inward:1 },
+          { id:'up', art:'doorUp', label:'subir', x:3, inward:1 },
           { id:'vinilos', art:'disqueria', label:'entrar a la disquería', x:9, inward:-1 },
           { id:'chinoback', art:'superchino', label:'entrar al chino por atrás', x:44, inward:-1 },
         ],
@@ -484,7 +484,7 @@ const Level = (() => {
     // 35,36,37 — las TRES cuevas del dólar (cada cuevero te invita a la suya): gente esperando + el deal
     rooms.push(makeRoom({
       name: 'Cueva del dólar — la del fondo', theme: 'rock', light: 0.36, w: 18,
-      doors: [{ id:'back', art:'up', label:'salir de la cueva', x:2, inward:1 }],
+      doors: [{ id:'back', art:'doorUp', label:'salir de la cueva', x:2, inward:1 }],
       cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'coins',
         dialog:'“Uh, venís cargado de monedas... eso te marca, pibe. Acá no te cambio. Andá.”' }],
       npcs: [
@@ -497,7 +497,7 @@ const Level = (() => {
     }));
     rooms.push(makeRoom({
       name: 'Cueva del dólar — la de al lado', theme: 'rock', light: 0.36, w: 18,
-      doors: [{ id:'back', art:'up', label:'salir de la cueva', x:2, inward:1 }],
+      doors: [{ id:'back', art:'doorUp', label:'salir de la cueva', x:2, inward:1 }],
       cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'garca',
         dialog:'“Mmm... tenés cara de garca. Nah, andá a otro lado, no te cambio nada.”' }],
       npcs: [
@@ -510,7 +510,7 @@ const Level = (() => {
     }));
     rooms.push(makeRoom({
       name: 'Cueva del dólar — la que te cambia', theme: 'rock', light: 0.36, w: 18,
-      doors: [{ id:'back', art:'up', label:'salir de la cueva', x:2, inward:1 }],
+      doors: [{ id:'back', art:'doorUp', label:'salir de la cueva', x:2, inward:1 }],
       cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'real',
         dialog:'“Dale, vení que te los cambio, tranqui...”' }],
       npcs: [

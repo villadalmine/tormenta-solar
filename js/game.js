@@ -61,7 +61,6 @@
   const arcadeWon = { pacman: false, galaga: false, frogger: false };
   let lastT = 0, running = false, msgUntil = 0, shakeUntil = 0, time = 0, transCd = 0;
 
-  const DOOR_ART = { galeria: 'door', up: 'doorUp', exit: 'exit', educacionit: 'educacionit', arcade: 'arcade', elevator: 'elevator', superchino: 'superchino', garbarino: 'garbarino', disqueria: 'disqueria', cemento: 'cemento', cambio: 'cambio', abandonado: 'abandonado' };
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
   let arcadeGame = null, superGame = null, vinilosGame = null;
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
@@ -859,7 +858,7 @@
       if (d.id === 'cemento' && !player.hasCementoTicket) continue;
       if (d.id === 'bunker' && !bunkerUnlocked) continue;
       if (d.id === 'chinoback' && !stormed) continue;
-      const img = Art.items[DOOR_ART[d.art] || 'door'];
+      const img = Art.items[d.art] || Art.items.door;   // F4: el art YA es la key de Art (ex DOOR_ART)
       ctx.drawImage(img, d.x - cam.x - img.width/2, d.y - cam.y - img.height);
       // la puerta del tahúr: si todavía no le ganaste, queda CERRADA con un cartelito
       if (d.id === 'chinotruco' && !trucoWon) label(T('g.label.tahurDoor'), d.x - cam.x, d.y - cam.y - img.height - 4, '#ffd54f');
