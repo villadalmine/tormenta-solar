@@ -6,6 +6,7 @@
 //
 // Después poné la URL pública en js/ai.js -> ENDPOINT.
 import http from 'http';
+import fs from 'node:fs';
 import { buildMessages } from './personas.js';
 
 // Upstream configurable: por defecto OpenRouter directo, pero podés apuntarlo a tu LiteLLM (u otro
@@ -128,7 +129,7 @@ const SUB_USAGE = {};                          // code(corto) -> count (volumen 
 const SUB_COST = {};                           // code(corto) -> US$ acumulado (gasto por código)
 const SUB_TOK = {};                            // code(corto) -> tokens acumulados
 const subShort = c => (c || '').slice(0, 12).replace(/[^a-zA-Z0-9_-]/g, '');
-const isSub = code => !!code && SUB_CODES.has(code);
+const isSub = code => !!code && (SUB_CODES.has(code) || !!STORE[code]);   // env (compartido) o provisionado (key propia)
 function subHit(code) { const k = subShort(code) || '-'; SUB_USAGE[k] = (SUB_USAGE[k] || 0) + 1; }
 // Precios US$/1M tokens {in,out} de los modelos PAGOS que usamos (para estimar gasto por código). Override
 // por env MODEL_PRICES (JSON). Estimación: tokens del usage × precio → cuánto gastó cada usuario que pagó.
@@ -142,6 +143,33 @@ function subCharge(code, model, usage) {       // acumula gasto + tokens del có
   const k = subShort(code) || '-';
   SUB_COST[k] = (SUB_COST[k] || 0) + costUsd(model, usage);
   SUB_TOK[k] = (SUB_TOK[k] || 0) + ((usage && usage.total_tokens) || 0);
+}
+
+// --- F3: key-por-código (OpenRouter provisioning) + store JSON-en-PVC (suscripcion.md §9.6) ----------
+// El proxy crea una key de OpenRouter POR código (con budget) y la guarda en un archivo JSON (PVC). Un sub con
+// key provisionada va DIRECTO a OpenRouter con SU key → gasto y tope reales por usuario. Sin DB ni deps (Node20).
+const OR_BASE = 'https://openrouter.ai/api/v1';
+const PROV_KEY = (process.env.OPENROUTER_PROVISIONING_KEY || '').trim();   // Secret tormenta-or-provisioning
+const SUB_OR_MODELS = (process.env.SUB_OR_MODELS || 'google/gemma-4-31b-it,anthropic/claude-sonnet-4.5').split(',').map(s => s.trim()).filter(Boolean);
+const SUBS_STORE = process.env.SUBS_STORE || '/data/subs.json';            // mapeo código→key (PVC)
+const DEFAULT_SUB_LIMIT = +process.env.SUB_LIMIT_USD || 2;                 // budget US$ por key (tope por usuario)
+let STORE = {};                                                            // { code: {email, orKey, hash, limit, createdAt} }
+function loadStore() { try { STORE = JSON.parse(fs.readFileSync(SUBS_STORE, 'utf8')) || {}; } catch (e) { STORE = {}; } }
+function saveStore() { try { fs.mkdirSync(SUBS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(SUBS_STORE, JSON.stringify(STORE)); } catch (e) { console.error('subs store save:', e.message); } }
+loadStore();
+const genCode = () => 'TS-' + [...crypto.getRandomValues(new Uint8Array(7))].map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+async function orCreateKey(label, limitUsd) {        // POST /keys con la provisioning key → {key, hash}
+  if (!PROV_KEY) throw new Error('falta OPENROUTER_PROVISIONING_KEY');
+  const r = await fetch(OR_BASE + '/keys', { method: 'POST', headers: { 'Authorization': 'Bearer ' + PROV_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: label, limit: limitUsd }) });
+  if (!r.ok) throw new Error('OR createKey ' + r.status + ' ' + (await r.text().catch(() => '')).slice(0, 200));
+  const d = await r.json();
+  return { key: d.key, hash: d.data && d.data.hash };
+}
+async function orKeyInfo(hash) {                     // GET /keys/{hash} → usage/limit (gasto real)
+  if (!PROV_KEY || !hash) return null;
+  const r = await fetch(OR_BASE + '/keys/' + hash, { headers: { 'Authorization': 'Bearer ' + PROV_KEY } });
+  if (!r.ok) return null;
+  return (await r.json()).data || null;
 }
 
 // Log estructurado por request (JSON a stdout) → promtail/Loki. Acá SÍ va el detalle fino
@@ -228,22 +256,25 @@ async function read429(r) {
 async function ask(messages, opts = {}) {
   const deadline = Date.now() + UPSTREAM_TIMEOUT;        // presupuesto TOTAL (tope duro)
   let timedOut = false;
-  const chain = opts.sub ? SUB_MODELS : activeChain();   // SUB = cadena paga directa (pagó → sin tier free)
+  const direct = !!opts.orKey;                           // F3: sub con key propia → DIRECTO a OpenRouter (su gasto/tope)
+  const base = direct ? OR_BASE : BASE;
+  const authKey = direct ? opts.orKey : KEY;
+  const chain = direct ? SUB_OR_MODELS : (opts.sub ? SUB_MODELS : activeChain());
   for (const model of chain) {                           // cadena: si el 1º no contesta, prueba el 2º
     const left = deadline - Date.now();
     if (left <= 500) break;                              // sin tiempo → cortar y caer a la línea temática
     const isPaid = PAID_MODELS.has(model);
-    // modelo PAGO sin presupuesto del día → saltarlo (los SUB no se capan: pagaron aparte)
-    if (!opts.sub && isPaid && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
-    // free con la cuota de CUENTA agotada → no lo probamos (sería 429 seguro): derecho al pago/pool
-    if (!isPaid && Date.now() < FREE_BLOCKED_UNTIL) { incAttempt(model, 'free_blocked'); continue; }
+    // modelo PAGO sin presupuesto del día → saltarlo (sub no se capa; direct va con la key del usuario)
+    if (!direct && !opts.sub && isPaid && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
+    // free con la cuota de CUENTA agotada → no lo probamos (direct no aplica: key propia)
+    if (!direct && !isPaid && Date.now() < FREE_BLOCKED_UNTIL) { incAttempt(model, 'free_blocked'); continue; }
     const slice = Math.min(left, PER_MODEL_TIMEOUT);     // tope POR modelo (deja tiempo para el siguiente)
     const ctrl = new AbortController();
     const to = setTimeout(() => ctrl.abort(), slice);
     try {
-      const r = await fetch(BASE + '/chat/completions', {
+      const r = await fetch(base + '/chat/completions', {
         method: 'POST', signal: ctrl.signal,
-        headers: { 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': 'Bearer ' + authKey, 'Content-Type': 'application/json', ...(direct ? { 'X-Title': 'Tormenta Solar' } : {}) },
         body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 120, ...(opts.user ? { user: opts.user } : {}) }),
       });
       clearTimeout(to);
@@ -257,7 +288,7 @@ async function ask(messages, opts = {}) {
       if (!r.ok) { incAttempt(model, 'http_other'); throw new Error('OpenRouter ' + r.status); }
       const d = await r.json();
       const reply = d.choices?.[0]?.message?.content;
-      if (reply) { incAttempt(model, 'ok'); if (!opts.sub && PAID_MODELS.has(model)) paidHit(); return { reply: reply.trim(), model, usage: d.usage }; }   // ← qué modelo ganó (+ tokens para el gasto por código)
+      if (reply) { incAttempt(model, 'ok'); if (!opts.sub && !direct && PAID_MODELS.has(model)) paidHit(); return { reply: reply.trim(), model, usage: d.usage }; }   // ← qué modelo ganó (+ tokens para el gasto por código)
       incAttempt(model, 'empty');                            // 200 pero sin texto → próximo modelo
     } catch (e) {
       clearTimeout(to);
@@ -300,6 +331,42 @@ http.createServer((req, res) => {
     const code = (req.headers['x-sub-code'] || '').toString();
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ paid: isSub(code) }));
+  }
+  // F3: PROVISIONAR un código con KEY de OpenRouter propia + budget (GEN_TOKEN). {email, limit?} → {code}.
+  // Pseudo-manual: vos lo disparás y mandás el código por mail a mano. Guarda código→key en el store (PVC).
+  if (req.method === 'POST' && req.url === '/provision') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 10000) req.destroy(); });
+    req.on('end', async () => {
+      try {
+        const d = JSON.parse(pb || '{}');
+        const email = (d.email || '').toString().trim().slice(0, 120);
+        const limit = +d.limit || DEFAULT_SUB_LIMIT;
+        if (!email) { res.writeHead(400); return res.end('email requerido'); }
+        const code = genCode();
+        const { key, hash } = await orCreateKey(email + ' · ' + code, limit);   // label = email+código (OpenRouter sabe de quién es)
+        STORE[code] = { email, orKey: key, hash, limit, createdAt: Date.now() };
+        saveStore();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ code, email, limit, hash }));                  // ← el código se lo mandás al usuario
+      } catch (e) { res.writeHead(502, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: e.message })); }
+    });
+    return;
+  }
+  // F3: GASTO por código (GEN_TOKEN) — lee el spend REAL de OpenRouter por key. "quién pagó cuánto gasta".
+  if (req.method === 'GET' && req.url === '/sub-spend') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    (async () => {
+      const out = [];
+      for (const [code, r] of Object.entries(STORE)) {
+        const info = await orKeyInfo(r.hash);
+        out.push({ code, email: r.email, limit: r.limit, usage: info ? info.usage : null, disabled: info ? info.disabled : null });
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ subs: out }));
+    })();
+    return;
   }
   // emisión MANUAL de códigos (protegido por GEN_TOKEN). En runtime; persistencia real = DB (fase siguiente).
   if (req.method === 'POST' && req.url === '/sub-codes') {
@@ -454,7 +521,8 @@ http.createServer((req, res) => {
     M.requests++; const t0 = Date.now();
     const npcLbl = cleanLbl(npc, 24);
     try {
-      const { reply, model, usage } = await ask(buildMessages(npc, message, history), { sub, user: sub ? subCode : undefined });
+      const rec = sub ? STORE[subCode] : null;          // si el código tiene key propia → directo a OpenRouter
+      const { reply, model, usage } = await ask(buildMessages(npc, message, history), { sub, user: sub ? subCode : undefined, orKey: rec && rec.orKey });
       const dt = Date.now() - t0; M.durMsSum += dt; M.durCount++;
       const be = backendOf(model);
       incChat(model, be, sub ? 'ai_sub' : 'ai'); obsLatency(model, be, dt / 1000);   // ← modelo/backend/tier + latencia

@@ -59,6 +59,17 @@ spec:
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
+            {{- if .Values.provisioning.existingSecret }}
+            - name: OPENROUTER_PROVISIONING_KEY        # suscripción F3: crea keys-por-código (NO commitear)
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.provisioning.existingSecret }}
+                  key: {{ .Values.provisioning.existingSecretKey | default "provisioningKey" }}
+            {{- end }}
+            {{- if .Values.persistence.enabled }}
+            - name: SUBS_STORE
+              value: {{ printf "%s/subs.json" .Values.persistence.mountPath | quote }}
+            {{- end }}
           livenessProbe:
             httpGet: { path: /health, port: http }
             initialDelaySeconds: 5
@@ -71,6 +82,17 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+          {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "tormenta-ai-proxy.fullname" . }}-data
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

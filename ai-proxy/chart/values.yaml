@@ -21,6 +21,18 @@ upstream:
 # Ej.: - { name: DAILY_CAP, value: "40" }  - { name: PAID_DAILY_CAP, value: "600" }
 extraEnv: []
 
+# suscripción F3: provisioning key de OpenRouter (crea keys-por-código). Secret YA existente (no commitear).
+provisioning:
+  existingSecret: ""              # ej: tormenta-or-provisioning
+  existingSecretKey: provisioningKey
+
+# PVC para el store de suscripciones (código→key, JSON). Off por defecto.
+persistence:
+  enabled: false
+  mountPath: /data
+  storageClass: ""
+  size: 1Gi
+
 # --- API key del upstream (para LiteLLM = su master key, p.ej. sk-hermes-internal) ---
 # Opción A (recomendada): referenciar un Secret YA existente (no commitea la key).
 # Opción B: poner apiKey acá → el chart crea el Secret (NO lo subas a git con la key real; usá --set).

@@ -38,6 +38,21 @@ extraEnv:
   # Suscripción (suscripcion.md §9 F1): un código válido → cadena paga directa (salta free+cupo). Los CÓDIGOS
   # son SECRETOS → NO se commitean: van por --set 'extraEnv...' al deploy, o por POST /sub-codes (GEN_TOKEN).
   - { name: SUB_MODELS, value: "gemma4-paid,claude-sonnet" }
+  # F3 (key-por-código): el sub provisionado va DIRECTO a OpenRouter con su key → estos son ids de OpenRouter
+  - { name: SUB_OR_MODELS, value: "google/gemma-4-31b-it,anthropic/claude-sonnet-4.5" }
+  - { name: SUB_LIMIT_USD, value: "2" }             # budget por key (tope US$/usuario) al provisionar
+
+# suscripción F3: provisioning key de OpenRouter (Secret ya creado a mano; NO commitear el valor)
+provisioning:
+  existingSecret: tormenta-or-provisioning
+  existingSecretKey: provisioningKey
+
+# PVC para el store código→key (JSON). Longhorn en rk1.
+persistence:
+  enabled: true
+  mountPath: /data
+  storageClass: longhorn-nvme
+  size: 1Gi
 
 # expone el proxy por el cluster-gateway compartido (SNI passthrough desde el G4) con TLS LE prod
 gateway:
@@ -75,3 +90,6 @@ nodeSelector:
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
+# fsGroup para que el uid 1000 pueda ESCRIBIR el PVC del store (subs.json) de Longhorn
+podSecurityContext:
+  fsGroup: 1000
