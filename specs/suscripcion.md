@@ -15,7 +15,7 @@
   código por mail **a mano**. Detalle en §9.0 / §9.6 y en `ai-proxy/README.md`.
 
 **Falta para cobrar de verdad (PRÓXIMA ITERACIÓN — el usuario lo retoma cuando quiera, NO ahora):**
-- ⬜ **Pasarela de pago** (Mercado Pago AR / Stripe / Lemon Squeezy) — §9.6 / §9.4.
+- ⬜ **Pasarela de pago** → **research hecho en [`pasarela-pago.md`](pasarela-pago.md)**: recomendado **Mollie** (NL/EU, iDEAL, micropagos, webhook fácil); **Mercado Pago/dLocal** para AR (fase 2).
 - ⬜ **Webhook** "pagó OK" → llama a `/provision` **solo** (así el dueño no toca nada). §9.6 paso 5.
 - ⬜ **Email automático** del código (Resend/Mailgun/SES/SMTP) — §9.1.
 - ⬜ **UI "Suscribirme"** (modal → pide email → deriva a la pasarela) — §9.6 paso 1-3.
