@@ -171,6 +171,15 @@ async function orKeyInfo(hash) {                     // GET /keys/{hash} → usa
   if (!r.ok) return null;
   return (await r.json()).data || null;
 }
+// Poller: cada 5 min refresca el gasto REAL por código desde OpenRouter → a /metrics (Grafana lo muestra
+// solo, sin comandos). Así "quién pagó cuánto gasta" se LEE en el dashboard, no por curl.
+let SUB_REAL = {};                                   // code -> { usage(US$), limit(US$), disabled }
+async function refreshSpend() {
+  for (const [code, r] of Object.entries(STORE)) {
+    try { const info = await orKeyInfo(r.hash); if (info) SUB_REAL[code] = { usage: +info.usage || 0, limit: +r.limit || 0, disabled: !!info.disabled }; } catch (e) {}
+  }
+}
+if (PROV_KEY) { refreshSpend(); setInterval(refreshSpend, 5 * 60 * 1000).unref?.(); }
 
 // Log estructurado por request (JSON a stdout) → promtail/Loki. Acá SÍ va el detalle fino
 // (session-id, ip, npc, modelo, resultado) para cruzar "qué hace cada sesión/IP" sin inflar
@@ -437,6 +446,14 @@ http.createServer((req, res) => {
     for (const k of costKeys) out += `tormenta_ai_sub_cost_usd{code="${k}"} ${SUB_COST[k].toFixed(6)}\n`;
     out += `# HELP tormenta_ai_sub_tokens_total Tokens (total) consumidos por código\n# TYPE tormenta_ai_sub_tokens_total counter\n`;
     for (const k of Object.keys(SUB_TOK)) out += `tormenta_ai_sub_tokens_total{code="${k}"} ${SUB_TOK[k]}\n`;
+    // GASTO REAL por código (de OpenRouter, refrescado por el poller) + su tope → Grafana sin comandos
+    out += `# HELP tormenta_ai_sub_real_cost_usd Gasto REAL US$ por código (leído de OpenRouter)\n# TYPE tormenta_ai_sub_real_cost_usd gauge\n`;
+    const realKeys = Object.keys(SUB_REAL);
+    if (!realKeys.length) out += `tormenta_ai_sub_real_cost_usd{code="-"} 0\n`;
+    for (const c of realKeys) out += `tormenta_ai_sub_real_cost_usd{code="${subShort(c)}"} ${(SUB_REAL[c].usage || 0).toFixed(6)}\n`;
+    out += `# HELP tormenta_ai_sub_limit_usd Tope US$ por código (budget de su key)\n# TYPE tormenta_ai_sub_limit_usd gauge\n`;
+    for (const c of realKeys) out += `tormenta_ai_sub_limit_usd{code="${subShort(c)}"} ${SUB_REAL[c].limit || 0}\n`;
+    out += `# HELP tormenta_ai_sub_provisioned Códigos con key propia provisionada (F3)\n# TYPE tormenta_ai_sub_provisioned gauge\ntormenta_ai_sub_provisioned ${Object.keys(STORE).length}\n`;
     // F2 ModelScorer: score/disponibilidad/latencia/precio por candidato + posición en la cadena (best/cheapest)
     const rk = ranking();
     out += `# HELP tormenta_ai_model_score Score del ModelScorer por candidato (mayor = mejor para rutear)\n# TYPE tormenta_ai_model_score gauge\n`;

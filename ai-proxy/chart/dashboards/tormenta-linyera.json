@@ -118,6 +118,55 @@
       "type": "timeseries", "title": "Gasto pago: respuestas pagas hoy vs tope", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 50 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "targets": [ { "expr": "tormenta_ai_paid_calls_today", "legendFormat": "pagas hoy", "refId": "A" }, { "expr": "tormenta_ai_paid_budget_daily", "legendFormat": "tope", "refId": "B" } ]
+    },
+    {
+      "type": "row", "title": "💳 Suscripciones (por código)", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 58 }
+    },
+    {
+      "type": "stat", "title": "Códigos provisionados (con key propia)", "gridPos": { "h": 5, "w": 6, "x": 0, "y": 59 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "max(tormenta_ai_sub_provisioned)", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "Códigos válidos (env + provisionados)", "gridPos": { "h": 5, "w": 6, "x": 6, "y": 59 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "max(tormenta_ai_sub_codes)", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "Gasto REAL total de subs (US$)", "gridPos": { "h": 5, "w": 6, "x": 12, "y": 59 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "targets": [ { "expr": "sum(tormenta_ai_sub_real_cost_usd)", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "Chats premium (sub) /min", "gridPos": { "h": 5, "w": 6, "x": 18, "y": 59 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "sum(rate(tormenta_ai_chat_total{outcome=\"ai_sub\"}[5m])) * 60", "refId": "A" } ]
+    },
+    {
+      "type": "bargauge", "title": "GASTO REAL por código (US$, de OpenRouter)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 64 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" },
+      "targets": [ { "expr": "tormenta_ai_sub_real_cost_usd", "legendFormat": "{{code}}", "instant": true, "refId": "A" } ]
+    },
+    {
+      "type": "bargauge", "title": "Tope (budget) por código (US$)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 64 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "options": { "orientation": "horizontal", "displayMode": "lcd" },
+      "targets": [ { "expr": "tormenta_ai_sub_limit_usd", "legendFormat": "{{code}}", "instant": true, "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "Gasto ESTIMADO por código (US$) — por modelo×tokens", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 72 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "targets": [ { "expr": "tormenta_ai_sub_cost_usd", "legendFormat": "{{code}}", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "Chats por código (1h)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 72 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "sum by (code) (increase(tormenta_ai_sub_usage_total[1h]))", "legendFormat": "{{code}}", "refId": "A" } ]
     }
   ]
 }
