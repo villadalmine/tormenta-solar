@@ -83,7 +83,7 @@ const Level = (() => {
           { id:'garbarino', art:'garbarino', facade:'garbarino',   label:'entrar a Garbarino',   x:58, inward:-1, collapsesOnStorm:true },
           { id:'cemento', art:'cemento',     facade:'cemento',     label:'entrar a Cemento',     x:61, inward:-1, gate:{ item:'hasCementoTicket' } },
           { id:'galeria', art:'door',     facade:'galeria',     label:'bajar a la galería',   x:74, inward:-1 },
-          { id:'cine',    art:'cine',       facade:'cine',        label:'entrar al CINE de noticias', x:84, inward:-1 },
+          { id:'cine',    art:'cine',       facade:'cine',        label:'entrar al CINE de noticias', x:52, inward:1 },
           { id:'cambio',  art:'cambio',      facade:'cambio',      label:'entrar a la casa de cambio', x:90, inward:-1 },
           { id:'abandonado', art:'abandonado', facade:'abandonado', label:'entrar al edificio abandonado', x:101, inward:-1 },
           { id:'super',   art:'superchino',  facade:'superchino',  label:'entrar al super chino', x:112, inward:-1 },
@@ -528,7 +528,8 @@ const Level = (() => {
     const cineIdx = rooms.push(makeRoom({
       name: 'Cine Lavalle', theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }],
-      decor: [{t:'sofa',x:6},{t:'sofa',x:9},{t:'sofa',x:12},{t:'sofa',x:15},{t:'sofa',x:7.5},{t:'sofa',x:10.5},{t:'sofa',x:13.5}],
+      decor: [{t:'sofa',x:6},{t:'sofa',x:9},{t:'sofa',x:12},{t:'sofa',x:15},{t:'sofa',x:7.5},{t:'sofa',x:10.5},{t:'sofa',x:13.5},
+              {t:'cartel',x:3},{t:'cartel',x:19}],   // carteles de propaganda a los costados
       npcs: [{ name:'Espectador', sprite:'civil2', x:18, dialog:'“Shhh, callate que estoy mirando las noticias, pibe.” 🍿' }],
     })) - 1;
 

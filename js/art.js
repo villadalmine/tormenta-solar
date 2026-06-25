@@ -1040,6 +1040,7 @@ const Art = (() => {
     superchino:  { w: 152, h: 180, c: '#7a1414', c2: '#560d0d', win: '#ffd54f', sign: '超市 SUPER', sc: '#ffd54f' },
     garbarino:   { w: 150, h: 200, c: '#e65100', c2: '#bf360c', win: '#fff3e0', sign: 'GARBARINO', sc: '#fff' },
     cemento:     { w: 150, h: 170, c: '#161616', c2: '#0a0a0a', win: '#b71c1c', sign: 'CEMENTO', sc: '#fff' },
+    cine:        { w: 156, h: 220, c: '#2a1840', c2: '#1a0f2a', win: '#ffd54f', sign: '🎬 CINE', sc: '#ffe14d' },
   };
   function drawBuilding(g, sx, gy, style) {
     const s = BUILDINGS[style] || BUILDINGS.galeria;

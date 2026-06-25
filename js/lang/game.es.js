@@ -141,6 +141,7 @@
     'g.trans.arcadeStorm': '¡El arcade está poseído! Pac-Man y Galaga te atacan.',
     'g.trans.arcade': 'Arcade — apretá E en una máquina para jugar.',
     'g.trans.cine': '🎬 El CINE: la pantalla muestra las noticias del día (capturadas por IA). Cada vez algo distinto.',
+    'g.cine.read': '[R] que la IA te lea la noticia · [E] salir',
     'g.cine.questAsk': '🗞️ Che, mi IA vio el cartel del CINE pero no me tiró la data... andá y averiguá qué decían de “{topic}”. Volvé y contame (pero no me mientas, eh).',
     'g.cine.questOk': '🍬 Ahí está, no me mentís... la IA me lo confirmó. Tomá unos caramelos por la data. (+3)',
     'g.cine.questLie': '😠 ¿Me querés cagar? Hackié el cartel y NO es eso, chanta. Te cobro la mentira. (−{n} monedas)',

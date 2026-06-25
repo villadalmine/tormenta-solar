@@ -33,6 +33,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v122] — 2026-06-25 — 🎬 Cine: ajustes (fuera de la cola, fachada CINE, pantalla más grande, [R] leer)
+
+Feedback de jugarlo:
+- **Movido fuera de la cola del dólar** (x84→x52): antes tapaba la entrada de la casa de cambio.
+- **Fachada propia "🎬 CINE"** (marquesina violeta) en vez de caer a "GALERÍA". + **carteles de propaganda** adentro.
+- **Pantalla más grande** (360×168) que muestra el **titular COMPLETO** (hasta 8 líneas) + footer con la acción.
+- **TTS = ACCIÓN, no auto** (sonaba mal forzado): apretás **[R]** y la IA te lee la noticia (voz es-AR); ya no
+  se reproduce solo al entrar.
+- Idea anotada (SDD): cine multi-piso / complejo de edificios con más pantallas y propaganda (F3).
+
+---
+
 ## [v121] — 2026-06-25 — 🔊 El cine te LEE la noticia (TTS) + corrección NPU
 
 - **TTS en el cine:** al entrar, la pantalla **lee el titular en voz alta** (voz es-AR, `Mensajero.hablar`) y

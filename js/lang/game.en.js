@@ -124,6 +124,7 @@
     'g.trans.arcadeStorm': 'The arcade is possessed! Pac-Man and Galaga attack you.',
     'g.trans.arcade': 'Arcade — press E on a machine to play.',
     'g.trans.cine': '🎬 The CINEMA: the screen shows the day\'s news (AI-captured). Different every time.',
+    'g.cine.read': '[R] have the AI read the news · [E] leave',
     'g.cine.questAsk': '🗞️ Hey, my AI saw the CINEMA screen but wouldn\'t hand over the data... go find out what they said about “{topic}”. Come back and tell me (no lying, eh).',
     'g.cine.questOk': '🍬 There it is, you\'re not lying... the AI confirmed it. Here, some candy for the data. (+3)',
     'g.cine.questLie': '😠 You trying to scam me? I hacked the screen and that\'s NOT it, chump. Lying costs you. (−{n} coins)',

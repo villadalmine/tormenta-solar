@@ -179,9 +179,9 @@
             "type": "cine",
             "facade": "cine"
           },
-          "x": 84,
+          "x": 52,
           "label": "entrar al CINE de noticias",
-          "inward": -1,
+          "inward": 1,
           "link": {
             "to": "cine-lavalle",
             "at": {
@@ -6094,7 +6094,7 @@
           "link": {
             "to": "florida-y-lavalle",
             "at": {
-              "x": 82.5,
+              "x": 53.5,
               "y": 12
             }
           }
@@ -6166,6 +6166,22 @@
             "type": "sofa"
           },
           "x": 13.5
+        },
+        {
+          "id": "cine-lavalle/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 3
+        },
+        {
+          "id": "cine-lavalle/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 19
         }
       ]
     }

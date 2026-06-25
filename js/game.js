@@ -702,11 +702,8 @@
     updateCam();
     const r = room();
     elFloor.textContent = TX(r.name);
-    if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS del cine al cambiar de sala
-    if (/Cine/.test(r.name)) {   // CINE: noticia random distinta cada visita + la pantalla te la LEE (voz es-AR)
-      cineNoticia = pickNoticia();
-      if (cineNoticia && typeof Mensajero !== 'undefined' && Mensajero.hablar) Mensajero.hablar(cineNoticia.topic + '. ' + cineNoticia.headline);
-    }
+    if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
+    if (/Cine/.test(r.name)) cineNoticia = pickNoticia();   // CINE: noticia random distinta cada visita (la leés con [R], no auto)
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
@@ -730,20 +727,21 @@
   function wrapLines(ctx, text, maxW) {
     const words = String(text).split(/\s+/), lines = []; let line = '';
     for (const w of words) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
-    if (line) lines.push(line); return lines.slice(0, 5);
+    if (line) lines.push(line); return lines.slice(0, 8);
   }
   function drawCineScreen(r) {
-    const sx = (r.w * Level.TILE) / 2 - cam.x, sy = 1.6 * Level.TILE - cam.y, W = 300, H = 132;
+    const sx = (r.w * Level.TILE) / 2 - cam.x, sy = 1.3 * Level.TILE - cam.y, W = 360, H = 168;   // pantalla grande
     ctx.fillStyle = '#06080d'; ctx.fillRect(sx - W/2 - 10, sy - 10, W + 20, H + 20);   // marco
     ctx.fillStyle = '#0d1626'; ctx.fillRect(sx - W/2, sy, W, H);                        // pantalla
     ctx.strokeStyle = '#2f5a8f'; ctx.lineWidth = 2; ctx.strokeRect(sx - W/2, sy, W, H);
     ctx.save(); ctx.textAlign = 'center';
     const n = cineNoticia;
     if (!n) { ctx.fillStyle = '#5a6a7a'; ctx.font = '14px monospace'; ctx.fillText('— sin señal (volvé luego) —', sx, sy + H/2); ctx.restore(); return; }
-    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.fillText('📰 ' + String(n.topic || '').toUpperCase(), sx, sy + 20);
-    ctx.fillStyle = '#dfeaff'; ctx.font = '13px monospace';
-    const lines = wrapLines(ctx, n.headline || '', W - 24);
-    lines.forEach((ln, i) => ctx.fillText(ln, sx, sy + 44 + i * 18));
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 13px monospace'; ctx.fillText('📰 ' + String(n.topic || '').toUpperCase(), sx, sy + 22);
+    ctx.fillStyle = '#eef4ff'; ctx.font = '13px monospace';
+    const lines = wrapLines(ctx, n.headline || '', W - 28);
+    lines.forEach((ln, i) => ctx.fillText(ln, sx, sy + 48 + i * 17));   // titular completo (hasta 8 líneas)
+    ctx.fillStyle = '#7fa6cf'; ctx.font = '11px monospace'; ctx.fillText(T('g.cine.read'), sx, sy + H - 10);   // [R] leer
     ctx.restore();
   }
   function ambientFor(r) {
@@ -1255,6 +1253,7 @@
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
+    else if (k === 'r' && state === 'playing' && /Cine/.test(room().name) && cineNoticia && typeof Mensajero !== 'undefined' && Mensajero.hablar) Mensajero.hablar(String(cineNoticia.topic) + '. ' + String(cineNoticia.headline));   // CINE: [R] que la IA te lea la noticia
     else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? T('g.music.on') : T('g.music.off'), '#9fd3ff', 1200); }
     else if (k === 'p' && (state === 'playing')) { if (myst && myst.classList.contains('hidden')) showMyStats(); else closeMyStats(); }   // "Tu partida"
   });

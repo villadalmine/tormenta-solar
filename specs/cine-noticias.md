@@ -80,6 +80,9 @@ Arranque sugerido (cada uno con su fetcher): **mundial** (resultados), **mundo**
   - La pantalla **rota aleatorio** entre las noticias del banco **cada vez que entrás** (siembra por visita).
 - **Arte nuevo:** fachada de cine + interior (pantalla grande iluminada + butacas). Render immediate-mode como el
   resto. *(Si no hay arte aún: F1 puede reusar un cartel grande tipo "pantalla" y butacas simples.)*
+- **Idea F3 (dueño 2026-06-25):** el cine podría ser **multi-piso** (varias salas/pantallas, distintos topics por
+  piso) o un **complejo de varios edificios**, con **carteles de propaganda** adentro (reusa `ads`/`js/ads.js` o
+  decor `cartel`). Todo data-driven (más `rooms` + un `link` entre pisos, como la galería/abandonado). Pendiente.
 
 ### 3.4 La pantalla (cómo muestra la noticia)
 - Lee `GET /noticias`, elige **1+ topics al azar** (semilla por visita) y dibuja el/los **titular(es)** en la
