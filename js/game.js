@@ -275,11 +275,11 @@
     else if (it.kind === 'machine') handleMachine(it.m);
     else if (it.kind === 'cuevero') handleCuevero(it.c);
   }
-  function launchArcade(game) { arcadeGame = Arcade.create(game); state = 'arcade'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); }
+  function launchArcade(game, opts) { arcadeGame = Arcade.create(game, opts); state = 'arcade'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); }
   function handleNpc(n) {
     if (n.action === 'frogger') { challengeForVale = true; setMsg(T('g.frogger.start'), '#ff2e88', 1000); launchArcade('frogger'); }
     else if (n.action === 'chori') redeemChori();
-    else if (n.action === 'truco') { setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco'); }
+    else if (n.action === 'truco') { setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' }); }
     else if (n.action === 'shop') buyFromShop(n);
     else if (n.action === 'borracho') giveBorracho(n);
     else if (n.action === 'lujo') handleLujo(n);
@@ -620,7 +620,7 @@
     }
     // TrucoTron: el tipo del fondo oscuro no juega con peleles
     if (m.game === 'trucotron') {
-      if (arcadeWon.pacman && arcadeWon.galaga && arcadeWon.frogger) { challengeForVale = false; launchArcade('truco'); }
+      if (arcadeWon.pacman && arcadeWon.galaga && arcadeWon.frogger) { challengeForVale = false; launchArcade('truco', { opp: 'maquina' }); }
       else setMsg(T('g.machine.trucotron'), '#d8c8b0', 5500);
       return;
     }
@@ -1105,14 +1105,18 @@
     if (state === 'arcade' && arcadeGame) {
       arcadeGame.update(dt); arcadeGame.draw(ctx, W, H);
       if (arcadeGame.done) {
-        const kind = arcadeGame.kind, res = arcadeGame.result, flores = arcadeGame.floresDelta || 0;
+        const kind = arcadeGame.kind, res = arcadeGame.result, flores = arcadeGame.floresDelta || 0, oppTruco = arcadeGame.opp;
         arcadeGame = null; state = 'playing'; transCd = 0.35;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         if (res === 'win' && (kind === 'pacman' || kind === 'galaga' || kind === 'frogger')) arcadeWon[kind] = true;
         if (kind === 'truco') {
-          tel('truco', { result: res }); if (res === 'win') sessTrucoW++; else sessTrucoL++;   // "Tu partida"
-          if (res === 'win') {
-            player.flores = (player.flores || 0) + flores;   // ganar el truco da FLORES (sink: cabarulo)
+          tel('truco', { result: res, engine: oppTruco }); if (res === 'win') sessTrucoW++; else sessTrucoL++;   // "Tu partida"
+          if (oppTruco === 'maquina') {
+            // TRUCOTRON (máquina arcade): premio en FLORES, sin minas/puerta/penalidad — jugás de a una mano
+            if (flores > 0) player.flores = (player.flores || 0) + flores;
+            setMsg(T(res === 'win' ? 'g.truco.mWin' : 'g.truco.mLose', { n: flores }), res === 'win' ? '#7CFC00' : '#d8c8b0', 5000);
+          } else if (res === 'win') {   // EL TAHÚR (antro): flores + las minas te afanan + abre la puerta al chino
+            player.flores = (player.flores || 0) + flores;
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
             player.coins -= robbed; stunUntil = performance.now() + 2600;
             applyEdge('truco', 'trucoWon');   // ganar abre la PUERTA DEL TAHÚR al chino (se cruza una vez)

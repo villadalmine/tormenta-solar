@@ -265,12 +265,16 @@ const Arcade = (() => {
   }
 
   // ---------------- TRUCO (motor real: js/truco.js) ----------------
-  function makeTruco() {
+  function makeTruco(opts) {
+    opts = opts || {};
+    const opp = opts.opp === 'maquina' ? 'maquina' : 'tahur';   // máquina (arcade, 1 mano, rápida) vs tahúr (antro, partida)
+    const isMachine = opp === 'maquina';
     const E = (typeof Truco !== 'undefined') ? Truco : null;
     const SUITSV = { e:{l:'E',c:'#141422'}, b:{l:'B',c:'#14240f'}, o:{l:'O',c:'#b8860b'}, c:{l:'C',c:'#a01020'} };
     const TIER = 'crack';
     const pw = c => E ? E.power(c) : 0;
-    const say = f => { if (typeof Mensajero !== 'undefined' && Mensajero.cantar) Mensajero.cantar(f); };
+    // voz criolla SOLO con el tahúr (es una persona); la máquina no habla con voz (es una máquina)
+    const say = f => { if (!isMachine && typeof Mensajero !== 'undefined' && Mensajero.cantar) Mensajero.cantar(f); };
     const TRUCOW = { 1:'¡Truco!', 2:'¡Quiero retruco!', 3:'¡Quiero vale cuatro!' };
     const ENVW   = { 1:'¡Envido!', 2:'¡Real envido!', 3:'¡Falta envido!' };
     const trucoQ = { 1:2, 2:3, 3:4 }, trucoN = { 1:1, 2:2, 3:3 };
@@ -285,14 +289,14 @@ const Arcade = (() => {
     let phase = 'choose', over = 0, win = false, note = T('arc.truco.ask');
     // ---- estado del DEAL (lo resetea startDeal) ----
     let pHand = [], aiHand = [], round = 0, pTr = 0, aiTr = 0, results = [], revealT = 0, tableP = null, tableA = null;
-    let pPts = 0, aiPts = 0, trucoLevel = 0, trucoStake = 1, envidoDone = false, florDone = false, aiOpened = false, pending = null;
+    let pPts = 0, aiPts = 0, trucoLevel = 0, trucoStake = 1, envidoDone = false, florDone = false, aiOpened = false, pending = null, heldTruco = null;
 
     function startDeal() {
       dealNum++;
       const d = E ? E.deal() : { p:[], a:[] };
       pHand = d.p.map(c => ({ c, used:false })); aiHand = d.a.map(c => ({ c, used:false }));
       round = 0; pTr = 0; aiTr = 0; results = []; revealT = 0; tableP = null; tableA = null;
-      pPts = 0; aiPts = 0; trucoLevel = 0; trucoStake = 1; envidoDone = false; florDone = false; aiOpened = false; pending = null;
+      pPts = 0; aiPts = 0; trucoLevel = 0; trucoStake = 1; envidoDone = false; florDone = false; aiOpened = false; pending = null; heldTruco = null;
       phase = 'play'; note = T('arc.truco.yourTurn');
       if (E) {
         const pf = E.flor(pHand.map(h => h.c)), af = E.flor(aiHand.map(h => h.c));
@@ -308,14 +312,21 @@ const Arcade = (() => {
       const pts = level === 3 ? faltaPts() : (envQ[level] || 2);
       if (pe >= ae) { pPts += pts; note = T('arc.truco.envWin', { pe, ae, pts }); }
       else { aiPts += pts; note = T('arc.truco.envLose', { pe, ae, pts }); }
-      envidoDone = true; pending = null;
+      envidoDone = true; pending = null; afterEnvido();
+    }
+    // "el envido está primero": si el rival cantó truco y el jugador respondió envido, al cerrar el envido
+    // el truco vuelve a la mesa (sigue pendiente). heldTruco guarda ese truco mientras se juega el envido.
+    function afterEnvido() {
+      if (!heldTruco) return;
+      const lv = heldTruco.level; heldTruco = null;
+      pending = { kind: 'truco', level: lv, by: 'a' }; say(TRUCOW[lv]); note = T('arc.truco.envFirstThen');
     }
     function aiRespondEnvido(level) {
       const ae = E.envido(aiHand.map(h => h.c));
       if (E.aiAcceptEnvido(ae, TIER)) {
         if (ae >= 30 && level < 3) { pending = { kind:'envido', level: level + 1, by:'a' }; say(ENVW[level + 1]); note = T('arc.truco.aiRaise'); }
         else { say('¡Quiero!'); resolveEnvido(level); }
-      } else { say('No quiero.'); pPts += envN[level] || 1; envidoDone = true; pending = null; note = T('arc.truco.envNo', { pts: envN[level] || 1 }); }
+      } else { say('No quiero.'); pPts += envN[level] || 1; envidoDone = true; pending = null; note = T('arc.truco.envNo', { pts: envN[level] || 1 }); afterEnvido(); }
     }
     function aiRespondTruco(level) {
       const strong = aiHand.some(h => !h.used && pw(h.c) >= 10);
@@ -331,7 +342,7 @@ const Arcade = (() => {
     }
     function playerNoQuiero() {
       if (!pending) return;
-      if (pending.kind === 'envido') { aiPts += envN[pending.level] || 1; envidoDone = true; note = T('arc.truco.youNo'); pending = null; }
+      if (pending.kind === 'envido') { aiPts += envN[pending.level] || 1; envidoDone = true; note = T('arc.truco.youNo'); pending = null; afterEnvido(); }
       else { aiPts += trucoN[pending.level]; pending = null; concludeDeal(-1, false); note = T('arc.truco.youNoTruco'); }
     }
 
@@ -352,6 +363,13 @@ const Arcade = (() => {
     // cierra el DEAL: dw=1/-1 ganador; addStake = sumar el valor del truco al ganador
     function concludeDeal(dw, addStake) {
       if (addStake) { if (dw === 1) pPts += trucoStake; else aiPts += trucoStake; }
+      // MÁQUINA: una sola mano → premio en flores si ganaste, y a jugar de nuevo (no hay "partida")
+      if (isMachine) {
+        if (dw === 1) pFlores += Math.max(1, pPts);
+        win = dw === 1; phase = 'handover';
+        note = (win ? T('arc.truco.mWin') : T('arc.truco.mLose')) + '  ' + T('arc.truco.replay');
+        return;
+      }
       pFlores += pPts; aiFlores += aiPts;
       if (format === '3manos') { if (dw === 1) pScore++; else aiScore++; }
       else { pScore += pPts; aiScore += aiPts; }
@@ -366,16 +384,20 @@ const Arcade = (() => {
     }
 
     return {
-      done: false, kind: 'truco', result: null, forrosDelta: 0, floresDelta: 0,
+      done: false, kind: 'truco', opp, result: null, forrosDelta: 0, floresDelta: 0,
       update(dt) {
         this.floresDelta = pFlores; this.forrosDelta = 0;
-        if (Input.keys['escape']) { this.done = true; this.result = 'lose'; this.floresDelta = 0; return; }
-        // elegir formato (el tahúr pregunta)
+        // Esc: la máquina te DEJA las flores ganadas; con el tahúr (partida) abandonar = perder
+        if (Input.keys['escape']) { this.done = true; this.result = isMachine ? (pFlores > 0 ? 'win' : 'lose') : 'lose'; this.floresDelta = isMachine ? pFlores : 0; return; }
+        // elegir formato: el tahúr pregunta; la MÁQUINA arranca sola (una mano rápida)
         if (phase === 'choose') {
+          if (isMachine) { format = '1mano'; startDeal(); return; }
           if (Input.keys['3']) { Input.keys['3'] = false; format = '3manos'; startDeal(); }
           else if (Input.keys['1']) { Input.keys['1'] = false; format = 'a15'; startDeal(); }
           return;
         }
+        // MÁQUINA: terminada la mano → [E] otra · [Esc] salir
+        if (phase === 'handover') { if (Input.keys['e']) { Input.keys['e'] = false; startDeal(); } return; }
         if (over > 0) { over -= dt; if (over <= 0) { this.done = true; this.result = win ? 'win' : 'lose'; this.floresDelta = win ? pFlores : 0; } return; }
         if (phase === 'dealover') { dealPause -= dt; if (dealPause <= 0) startDeal(); return; }
         // el tahúr abre con un canto
@@ -383,7 +405,7 @@ const Arcade = (() => {
           aiOpened = true;
           const ae = E.envido(aiHand.map(h => h.c));
           if (!envidoDone && ae >= 26) { pending = { kind:'envido', level:1, by:'a' }; say(ENVW[1]); note = T('arc.truco.aiCantaEnv'); }
-          else { pending = { kind:'truco', level:1, by:'a' }; say(TRUCOW[1]); note = T('arc.truco.aiCantaTruco'); }   // el tahúr es jugado: si no canta envido, canta truco
+          else { pending = { kind:'truco', level:1, by:'a' }; say(TRUCOW[1]); note = T(!envidoDone ? 'arc.truco.aiCantaTrucoEnv' : 'arc.truco.aiCantaTruco'); }   // si el envido sigue disponible → avisa que va primero (V)
         }
         if (phase === 'reveal') {
           revealT -= dt;
@@ -400,6 +422,11 @@ const Arcade = (() => {
           else if (Input.keys['n']) { Input.keys['n'] = false; playerNoQuiero(); }
           else if (Input.keys['t'] && pending.kind === 'truco' && pending.level < 3) { Input.keys['t'] = false; pending = { kind:'truco', level: pending.level + 1, by:'p' }; aiRespondTruco(pending.level); }
           else if (Input.keys['v'] && pending.kind === 'envido' && pending.level < 3) { Input.keys['v'] = false; pending = { kind:'envido', level: pending.level + 1, by:'p' }; aiRespondEnvido(pending.level); }
+          // EL ENVIDO ESTÁ PRIMERO: te cantaron TRUCO en la 1ª mano sin envido jugado → respondés con envido
+          else if (Input.keys['v'] && pending.kind === 'truco' && round === 0 && !envidoDone) {
+            Input.keys['v'] = false; heldTruco = { level: pending.level };   // guardo el truco; vuelve al cerrar el envido
+            pending = { kind:'envido', level:1, by:'p' }; note = T('arc.truco.envFirst'); aiRespondEnvido(1);
+          }
           return;
         }
         if (Input.keys['v'] && round === 0 && !envidoDone && !tableP && !pending) { Input.keys['v'] = false; pending = { kind:'envido', level:1, by:'p' }; aiRespondEnvido(1); return; }
@@ -509,11 +536,11 @@ const Arcade = (() => {
     };
   }
 
-  function create(kind) {
+  function create(kind, opts) {
     if (kind === 'galaga') return makeGalaga();
     if (kind === 'fighter') return makeFighter();
     if (kind === 'frogger') return makeFrogger();
-    if (kind === 'truco') return makeTruco();
+    if (kind === 'truco') return makeTruco(opts);
     return makePac();
   }
   return { create };
