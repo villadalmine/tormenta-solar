@@ -29,6 +29,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v125] — 2026-06-25 — 🎬 Cine: la pantalla muestra VARIAS noticias (no hace falta que te lean)
+
+Feedback del dueño: la [R] no leía (en Linux el navegador no trae voz TTS) y la pantalla grande desaprovechada.
+- La pantalla ahora lista **hasta 4 noticias** del piso a la vez (1 sola → texto completo; varias → 2 líneas c/u),
+  así se **leen de un vistazo** sin depender del audio. Mismo canvas → **se ve igual en celular** (solo leés).
+- **[R]** ahora lee TODAS en voz alta y, si el navegador no tiene voz instalada, avisa *"leé la pantalla nomás"*
+  en vez de no hacer nada (antes parecía roto). En celular (Android/iOS sí tienen voz) la lectura funcionaría;
+  por ahora en mobile se lee la pantalla (sin botón [R] aún).
+
+---
+
 ## [docs] — 2026-06-25 — 📐 SDD `cine-noticias.md` al día (Diseño → Implementado)
 
 Barrido de SDDs faltantes/desactualizados. Primero: `specs/cine-noticias.md` pasó de "Diseño por fases" a

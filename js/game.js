@@ -64,7 +64,7 @@
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
   let arcadeGame = null, superGame = null, vinilosGame = null;
-  let cineNoticia = null;   // noticia que muestra la pantalla del cine (random al entrar, del banco /noticias)
+  let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
@@ -703,7 +703,7 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
-    if (/Cine/.test(r.name)) cineNoticia = pickNoticia(r.name);   // CINE: noticia del piso (Deportes/Mundo/Tecno), distinta cada visita; la leés con [R]
+    if (/Cine/.test(r.name)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
@@ -733,33 +733,51 @@
     if (/OpenRouter/.test(name)) return ['openrouter'];
     return null;   // sin filtro
   }
-  // elegí una noticia random del banco (window.NOTICIAS lo trae js/noticias.js), filtrada por el piso. Null si no hay.
-  function pickNoticia(name) {
+  // todas las noticias del banco (window.NOTICIAS lo trae js/noticias.js) del piso, deduplicadas por topic, máx 4.
+  function pickNoticias(name) {
     const ns = (typeof window !== 'undefined' && window.NOTICIAS) || [];
     const t = cineTopicsFor(name || ''), pool = t ? ns.filter(n => t.includes(n.topic)) : ns, use = pool.length ? pool : ns;
-    return use.length ? use[(Math.random() * use.length) | 0] : null;
+    const seen = new Set(), out = [];
+    for (const n of use) { if (seen.has(n.topic)) continue; seen.add(n.topic); out.push(n); if (out.length >= 4) break; }
+    return out;
   }
-  function wrapLines(ctx, text, maxW) {
+  function wrapLines(ctx, text, maxW, cap) {
     const words = String(text).split(/\s+/), lines = []; let line = '';
     for (const w of words) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
-    if (line) lines.push(line); return lines.slice(0, 8);
+    if (line) lines.push(line); return lines.slice(0, cap || 8);
   }
   function drawCineScreen(r) {
-    const sx = (r.w * Level.TILE) / 2 - cam.x, sy = 1.3 * Level.TILE - cam.y, W = 360, H = 168;   // pantalla grande
-    ctx.fillStyle = '#06080d'; ctx.fillRect(sx - W/2 - 10, sy - 10, W + 20, H + 20);   // marco
-    ctx.fillStyle = '#0d1626'; ctx.fillRect(sx - W/2, sy, W, H);                        // pantalla
-    ctx.strokeStyle = '#2f5a8f'; ctx.lineWidth = 2; ctx.strokeRect(sx - W/2, sy, W, H);
-    ctx.save(); ctx.textAlign = 'center';
-    const n = cineNoticia;
-    const cat = (String(r.name).split('—')[1] || '').trim();   // piso: Deportes / Mundo / Tecno
-    ctx.fillStyle = '#b38bd6'; ctx.font = 'bold 11px monospace'; ctx.fillText('🎬 CINE · ' + cat.toUpperCase(), sx, sy + 16);
-    if (!n) { ctx.fillStyle = '#5a6a7a'; ctx.font = '14px monospace'; ctx.fillText('— sin señal (volvé luego) —', sx, sy + H/2); ctx.restore(); return; }
-    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 13px monospace'; ctx.fillText('📰 ' + String(n.topic || '').toUpperCase(), sx, sy + 36);
-    ctx.fillStyle = '#eef4ff'; ctx.font = '13px monospace';
-    const lines = wrapLines(ctx, n.headline || '', W - 28);
-    lines.forEach((ln, i) => ctx.fillText(ln, sx, sy + 58 + i * 16));   // titular completo (hasta 8 líneas)
-    ctx.fillStyle = '#7fa6cf'; ctx.font = '11px monospace'; ctx.fillText(T('g.cine.read'), sx, sy + H - 10);   // [R] leer
+    const ns = cineNoticias, pad = 16, W = 400, H = 206;          // pantalla grande: varias noticias
+    const cx = (r.w * Level.TILE) / 2 - cam.x, sy = 1.15 * Level.TILE - cam.y, left = cx - W/2;
+    ctx.fillStyle = '#06080d'; ctx.fillRect(left - 10, sy - 10, W + 20, H + 20);   // marco
+    ctx.fillStyle = '#0d1626'; ctx.fillRect(left, sy, W, H);                        // pantalla
+    ctx.strokeStyle = '#2f5a8f'; ctx.lineWidth = 2; ctx.strokeRect(left, sy, W, H);
+    ctx.save();
+    const cat = (String(r.name).split('—')[1] || '').trim();   // piso: Deportes / Mundo / Tecno…
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#b38bd6'; ctx.font = 'bold 12px monospace'; ctx.fillText('🎬 CINE · ' + cat.toUpperCase(), cx, sy + 17);
+    if (!ns.length) { ctx.fillStyle = '#5a6a7a'; ctx.font = '14px monospace'; ctx.fillText('— sin señal (volvé luego) —', cx, sy + H/2); ctx.restore(); return; }
+    ctx.textAlign = 'left';
+    const colW = W - pad * 2, maxY = sy + H - 18, perItem = ns.length === 1 ? 6 : 2;   // 1 sola → texto completo; varias → 2 líneas c/u
+    let y = sy + 38;
+    for (const n of ns) {
+      if (y > maxY - 12) break;
+      ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.fillText('📰 ' + String(n.topic || '').toUpperCase(), left + pad, y); y += 16;
+      ctx.fillStyle = '#eef4ff'; ctx.font = '12px monospace';
+      for (const ln of wrapLines(ctx, n.headline || '', colW, perItem)) { if (y > maxY) break; ctx.fillText(ln, left + pad, y); y += 15; }
+      y += 9;   // separación entre noticias
+    }
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#7fa6cf'; ctx.font = '11px monospace'; ctx.fillText(T('g.cine.read'), cx, sy + H - 6);
     ctx.restore();
+  }
+  // [R] (o botón táctil): leé TODAS las noticias en voz alta. Si el navegador no tiene voz (típico en Linux), avisá.
+  function cineRead() {
+    const ns = cineNoticias; if (!ns.length) return;
+    const txt = ns.map(n => String(n.topic) + '. ' + String(n.headline)).join('. ');
+    const voices = (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.getVoices()) || [];
+    if (typeof Mensajero !== 'undefined' && Mensajero.hablar) Mensajero.hablar(txt);
+    setMsg(T(voices.length ? 'g.cine.reading' : 'g.cine.novoice'), voices.length ? '#9fd3ff' : '#ffb74d', voices.length ? 1600 : 2800);
   }
   function ambientFor(r) {
     if (current === 0) return stormed ? 'viento' : 'calle';
@@ -1270,7 +1288,7 @@
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
-    else if (k === 'r' && state === 'playing' && /Cine/.test(room().name) && cineNoticia && typeof Mensajero !== 'undefined' && Mensajero.hablar) Mensajero.hablar(String(cineNoticia.topic) + '. ' + String(cineNoticia.headline));   // CINE: [R] que la IA te lea la noticia
+    else if (k === 'r' && state === 'playing' && /Cine/.test(room().name) && cineNoticias.length) cineRead();   // CINE: [R] leer todas en voz alta
     else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? T('g.music.on') : T('g.music.off'), '#9fd3ff', 1200); }
     else if (k === 'p' && (state === 'playing')) { if (myst && myst.classList.contains('hidden')) showMyStats(); else closeMyStats(); }   // "Tu partida"
   });
