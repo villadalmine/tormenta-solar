@@ -33,6 +33,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v124 / infra-8] — 2026-06-25 — 🎬 Cine: 7 pisos (Finanzas/Crypto, Colombofilia, Consolas retro, OpenRouter)
+
+El cine pasa a **7 pisos**, cada uno con su pantalla de data REAL (Google News + fuentes propias, sin key):
+- **4 Finanzas** (acciones/Merval + **crypto BTC/ETH** real vía CoinGecko) · **5 Colombofilia** (palomas
+  mensajeras — FCI/RFCE/FECOAR activas, vía Google News) · **6 Consolas retro** (8/16/32 bit; la API de
+  MercadoLibre quedó cerrada (403) → por ahora Google News, eBay/Marktplaats necesitan key) · **7 OpenRouter**
+  (modelos + precios US$/1M de la API pública, con el Linyera-IA oráculo).
+- **crypto/openrouter** se traen DESPUÉS del resumen IA para que los **números queden exactos** (no se rephrasean).
+- Espectadores temáticos por piso (broker, colombófilo, coleccionista). Data-driven (paridad 45 salas).
+
+---
+
 ## [v123] — 2026-06-25 — 🎬 Cine MULTI-PISO (F3): Deportes / Mundo / Tecno + propaganda
 
 El cine pasa de 1 sala a **3 pisos por categoría**, conectados por escaleras (como la galería):

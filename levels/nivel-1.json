@@ -6354,6 +6354,23 @@
           }
         },
         {
+          "id": "cine-lavalle-tecno/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: Finanzas",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-finanzas",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
           "id": "cine-lavalle-tecno/npc0",
           "tipo": "npc",
           "render": {
@@ -6431,6 +6448,506 @@
         },
         {
           "id": "cine-lavalle-tecno/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 19
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-finanzas",
+      "nombre": "Cine Lavalle — Finanzas",
+      "theme": "arcade",
+      "w": 22,
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-finanzas/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: Tecno",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-tecno",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-finanzas/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: Colombofilia",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-colombofilia",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-finanzas/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "civil1"
+          },
+          "x": 17,
+          "name": "Broker",
+          "dialogue": {
+            "text": "“El dólar, el bitcoin, el Merval... todo para arriba o todo para abajo, nene.” 📉"
+          }
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 12
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 15
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 7.5
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 3
+        },
+        {
+          "id": "cine-lavalle-finanzas/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 19
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-colombofilia",
+      "nombre": "Cine Lavalle — Colombofilia",
+      "theme": "arcade",
+      "w": 22,
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-colombofilia/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: Finanzas",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-finanzas",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-colombofilia/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: Consolas",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-consolas",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-colombofilia/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "viejo"
+          },
+          "x": 17,
+          "name": "Colombófilo",
+          "dialogue": {
+            "text": "“Mis palomas vuelan 700 km y vuelven solas. ¿Vos podés decir lo mismo, pibe?” 🕊️"
+          }
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 12
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 15
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 7.5
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 3
+        },
+        {
+          "id": "cine-lavalle-colombofilia/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 19
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-consolas",
+      "nombre": "Cine Lavalle — Consolas",
+      "theme": "arcade",
+      "w": 22,
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-consolas/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: Colombofilia",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-colombofilia",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-consolas/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: OpenRouter",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-openrouter",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-consolas/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "gordo"
+          },
+          "x": 17,
+          "name": "Coleccionista",
+          "dialogue": {
+            "text": "“8, 16, 32 bits... la Family, la Mega, la Super Nintendo. Las busco en MercadoLibre.” 🕹️"
+          }
+        },
+        {
+          "id": "cine-lavalle-consolas/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-consolas/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle-consolas/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 12
+        },
+        {
+          "id": "cine-lavalle-consolas/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 15
+        },
+        {
+          "id": "cine-lavalle-consolas/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 7.5
+        },
+        {
+          "id": "cine-lavalle-consolas/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-consolas/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-consolas/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 3
+        },
+        {
+          "id": "cine-lavalle-consolas/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 19
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-openrouter",
+      "nombre": "Cine Lavalle — OpenRouter",
+      "theme": "arcade",
+      "w": 22,
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-openrouter/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: Consolas",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-consolas",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-openrouter/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "linyera"
+          },
+          "x": 17,
+          "name": "El Linyera IA",
+          "interact": {
+            "action": "chat",
+            "persona": "filosofo",
+            "oracle": true
+          },
+          "fiche": "filosofo",
+          "comportamiento": {
+            "tormenta": "post-tormenta lo ve como la prueba de que tenía razón: la ciudad por fin se liberó del sistema."
+          },
+          "dialogue": {
+            "text": "“Acá ves qué modelo de IA conviene y cuánto sale. Yo sé de eso, pibe.” 🤖"
+          }
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 12
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 15
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 7.5
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 3
+        },
+        {
+          "id": "cine-lavalle-openrouter/decor9",
           "tipo": "decor",
           "render": {
             "type": "cartel"

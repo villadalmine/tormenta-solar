@@ -727,6 +727,10 @@
     if (/Deportes/.test(name)) return ['mundial', 'primera-b', 'bochas'];
     if (/Mundo/.test(name)) return ['mundo', 'guerra', 'argentina', 'paises-bajos', 'arabe'];
     if (/Tecno/.test(name)) return ['videojuegos', 'ia'];
+    if (/Finanzas/.test(name)) return ['finanzas', 'crypto'];
+    if (/Colombofilia/.test(name)) return ['colombofila'];
+    if (/Consolas/.test(name)) return ['consolas-retro'];
+    if (/OpenRouter/.test(name)) return ['openrouter'];
     return null;   // sin filtro
   }
   // elegí una noticia random del banco (window.NOTICIAS lo trae js/noticias.js), filtrada por el piso. Null si no hay.

@@ -14,6 +14,8 @@ const TOPICS = JSON.parse(process.env.NEWS_TOPICS || JSON.stringify({
   videojuegos: 'videojuegos', guerra: 'guerra conflicto', argentina: 'argentina noticias',
   'paises-bajos': 'países bajos holanda', arabe: 'arabia mundo árabe', ia: 'inteligencia artificial',
   bochas: 'bochas liga',
+  finanzas: 'bolsa acciones mercado financiero', colombofila: 'colombofilia palomas mensajeras competencia',
+  'consolas-retro': 'consolas retro coleccionistas precio 8 bits 16 bits',
 }));
 
 function decode(s) {
@@ -62,6 +64,21 @@ async function capturar(headline) {
   } catch (e) { return null; }
 }
 if (SUM_MODEL && AI_KEY) for (const n of noticias) { const c = await capturar(n.headline); if (c) n.headline = c; }   // answer queda crudo (fiel)
+
+// CRYPTO (CoinGecko, sin key) — DESPUÉS del resumen para que los NÚMEROS no se toquen. Precio real BTC/ETH.
+try {
+  const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true', { headers: { Accept: 'application/json' } });
+  if (r.ok) { const d = await r.json(), fmt = c => `US$${Math.round(c.usd).toLocaleString('es-AR')} (${c.usd_24h_change >= 0 ? '+' : ''}${(+c.usd_24h_change).toFixed(1)}%)`;
+    if (d.bitcoin && d.ethereum) noticias.push({ topic: 'crypto', headline: `Bitcoin ${fmt(d.bitcoin)} · Ethereum ${fmt(d.ethereum)}`, answer: `BTC ${Math.round(d.bitcoin.usd)} / ETH ${Math.round(d.ethereum.usd)}`, ts: Date.now() }); }
+} catch (e) {}
+
+// OPENROUTER — modelos + precios (API pública sin key). Unos populares con su US$/1M (NO se resume: son datos).
+try {
+  const r = await fetch('https://openrouter.ai/api/v1/models', { headers: { Accept: 'application/json' } });
+  if (r.ok) { const ms = (await r.json()).data || [], pop = ['openai/gpt-4o-mini', 'google/gemini-2.5-flash-lite', 'anthropic/claude-sonnet-4.5', 'deepseek/deepseek-v4-flash', 'google/gemma-4-31b-it'];
+    const parts = pop.map(id => { const m = ms.find(x => x.id === id); if (!m) return null; const p = (+m.pricing?.prompt + +m.pricing?.completion) * 1e6; return `${id.split('/').pop()} $${p.toFixed(2)}`; }).filter(Boolean);
+    if (parts.length) noticias.push({ topic: 'openrouter', headline: 'Modelos OpenRouter (US$/1M): ' + parts.join(' · '), answer: parts[0], ts: Date.now() }); }
+} catch (e) {}
 
 // FÚTBOL con RESULTADO exacto (opt-in): NEWS_SPORTS="mundial:4406,primera-b:4391" → TheSportsDB (key prueba '3').
 // Pisa/agrega el topic con un answer numérico ("2-1"). Best-effort: si falla, queda lo de Google News.
