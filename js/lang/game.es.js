@@ -201,6 +201,12 @@
 
     // --- resumen de la partida (pantalla de fin) ---
     'g.stats.title': 'CÓMO TE FUE',
+    'g.mystats.title': '📊 TU PARTIDA',
+    'g.mystats.engine': 'Motor',
+    'g.mystats.time': 'Tiempo',
+    'g.mystats.chats': 'Charlas',
+    'g.mystats.truco': 'Truco (gan/jug)',
+    'g.mystats.flores': 'Flores',
     'g.stats.coins': 'Guita en el bolsillo',
     'g.stats.days':  'Días en el quilombo',
     'g.stats.items': 'Cosas que juntaste',

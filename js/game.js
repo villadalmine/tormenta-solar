@@ -43,6 +43,7 @@
   const elChatLog = document.getElementById('chat-log');
   const elChatInput = document.getElementById('chat-input');
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
+  let sessStart = 0, sessChats = 0, sessTrucoW = 0, sessTrucoL = 0;   // métricas de "Tu partida" (in-game, client-side)
   // memoria por IDENTIDAD (clave = persona): cada linyera/NPC RECUERDA lo charlado entre aperturas y entre
   // sesiones (persiste en el guardado). Es el `agent.memory` del modelo v2 (ver modelo-de-entidades §6½).
   const oracleMem = {};
@@ -499,6 +500,7 @@
     thinking.remove();
     chatLine('npc', reply);
     chatHistory.push({ role: 'assistant', content: reply });
+    sessChats++;   // "Tu partida": cuántas veces charlaste
     // métrica: ¿el chat dio IA real o cayó al pool? + con qué MOTOR (para ver tu "v1 chat no anda")
     tel('chat', { engine: engineUsed, result: (typeof AI !== 'undefined' && AI.lastFallback && AI.lastFallback()) ? 'fallback' : (typeof AI !== 'undefined' && AI.lastSource ? AI.lastSource() : 'ai') });
     const mk = memKey(chatNpc); if (mk) oracleMem[mk] = chatHistory.slice(-12);   // guardá su memoria (cap 12 turnos)
@@ -1042,6 +1044,27 @@
       '<li class="' + (h.done ? 'done' : 'miss') + '">' + (h.done ? '✓' : '·') + ' ' + T(h.k) + '</li>').join('') + '</ul>';
     elEndStats.innerHTML = html;
   }
+  // "TU PARTIDA" (métricas in-game, client-side — specs/metricas-in-game.md F1). Abrible con [P] mientras jugás.
+  function showMyStats() {
+    const el = document.getElementById('myStatsBody'), ov = document.getElementById('mystats');
+    if (!el || !ov) return;
+    const s = gameStats(false);
+    const mins = Math.max(0, sessStart ? (((typeof performance !== 'undefined' ? performance.now() : Date.now()) - sessStart) / 60000) : 0) | 0;
+    const row = (icon, label, val) => '<div class="end-stat"><span>' + icon + ' ' + label + '</span><b>' + val + '</b></div>';
+    let html = '<div class="end-stats-title">' + T('g.mystats.title') + '</div><div class="end-stats-grid">';
+    html += row('⚙️', T('g.mystats.engine'), (engineUsed || 'v1').toUpperCase());
+    html += row('⏱️', T('g.mystats.time'), mins + 'm');
+    html += row('💬', T('g.mystats.chats'), sessChats);
+    html += row('🃏', T('g.mystats.truco'), sessTrucoW + '/' + (sessTrucoW + sessTrucoL));
+    html += row('🪙', T('g.stats.coins'), (player && player.coins) | 0);
+    html += row('🌸', T('g.mystats.flores'), (player && player.flores) | 0);
+    html += row('🌙', T('g.stats.days'), s.days);
+    html += row('🏆', T('g.stats.hitos'), s.done + '/' + s.total);
+    html += '</div><ul class="end-hitos">' + s.hitos.map(h =>
+      '<li class="' + (h.done ? 'done' : 'miss') + '">' + (h.done ? '✓' : '·') + ' ' + T(h.k) + '</li>').join('') + '</ul>';
+    el.innerHTML = html; ov.classList.remove('hidden');
+  }
+  function closeMyStats() { const ov = document.getElementById('mystats'); if (ov) ov.classList.add('hidden'); }
   function win() {
     if (state === 'win') return;
     state = 'win'; running = false; Sfx.stopHum(); Sfx.stopAmbient(); Sfx.win();
@@ -1081,7 +1104,7 @@
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         if (res === 'win' && (kind === 'pacman' || kind === 'galaga' || kind === 'frogger')) arcadeWon[kind] = true;
         if (kind === 'truco') {
-          tel('truco', { result: res });
+          tel('truco', { result: res }); if (res === 'win') sessTrucoW++; else sessTrucoL++;   // "Tu partida"
           if (res === 'win') {
             player.flores = (player.flores || 0) + flores;   // ganar el truco da FLORES (sink: cabarulo)
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
@@ -1126,6 +1149,7 @@
   }
   function start() {
     reset();
+    sessStart = (typeof performance !== 'undefined' ? performance.now() : Date.now()); sessChats = 0; sessTrucoW = 0; sessTrucoL = 0;
     tel('session', { engine: engineUsed, lang: (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es' });   // ¿cuántos en v1 vs v2?
     if (typeof Mensajero !== 'undefined') Mensajero.init({ state: historiaState, at: currentAt });   // cablea el cerebro (grafo)
     elIntro.classList.add('hidden'); elEnd.classList.add('hidden');
@@ -1154,13 +1178,17 @@
   document.addEventListener('keydown', e => {
     // ESC cierra el chat SIEMPRE (tenga o no el foco el input; si no, quedás trabado en state='chat')
     if (e.key === 'Escape' && state === 'chat') { e.preventDefault(); closeChat(); return; }
+    const myst = document.getElementById('mystats');
+    if (e.key === 'Escape' && myst && !myst.classList.contains('hidden')) { e.preventDefault(); closeMyStats(); return; }
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
     else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? T('g.music.on') : T('g.music.off'), '#9fd3ff', 1200); }
+    else if (k === 'p' && (state === 'playing')) { if (myst && myst.classList.contains('hidden')) showMyStats(); else closeMyStats(); }   // "Tu partida"
   });
   document.getElementById('startBtn').addEventListener('click', start);
   document.getElementById('restartBtn').addEventListener('click', start);
+  { const b = document.getElementById('myStatsClose'); if (b) b.addEventListener('click', closeMyStats); }
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {

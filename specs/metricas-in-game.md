@@ -39,7 +39,7 @@ del chat.
 
 ## 3. Fases
 
-1. **F1** Pantalla "**Tus estadísticas**" in-game (client-side, 2.1). Alto valor, sin infra. **Recomendado primero.**
+1. **F1 HECHO** Pantalla "**Tu partida**" in-game (tecla [P]): motor v1/v2, tiempo, charlas, truco gan/jug, monedas, flores, días, hitos. Client-side, sin infra, GitHub+self-host.
 2. **F2** `GET /stats.json` agregado en el proxy + sección "comunidad" en el juego (2.2).
 3. **F3** (opcional) OTel en el proxy → Collector → Tempo → Grafana (2.3) para trazabilidad de latencia del chat.
 

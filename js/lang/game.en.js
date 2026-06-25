@@ -180,6 +180,12 @@
 
     // --- run summary (end screen) ---
     'g.stats.title': 'HOW YOU DID',
+    'g.mystats.title': '📊 YOUR RUN',
+    'g.mystats.engine': 'Engine',
+    'g.mystats.time': 'Time',
+    'g.mystats.chats': 'Chats',
+    'g.mystats.truco': 'Truco (won/played)',
+    'g.mystats.flores': 'Flowers',
     'g.stats.coins': 'Cash in your pocket',
     'g.stats.days':  'Days in the mess',
     'g.stats.items': 'Stuff you grabbed',
