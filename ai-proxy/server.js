@@ -27,10 +27,20 @@ let OR_PRICES = {}, OR_NEWS = [], OR_TS = 0;   // poblado por el CronWorkflow v�
 // FETCHEA (código, no modelo) y postea acá. El juego lo lee en GET /noticias (pantalla del cine + linyera).
 // PERSISTE en JSON-en-PVC (como SUBS_STORE): el cron corre 1×/día, así que si NO se guardara, cada redeploy/restart
 // del proxy dejaría el banco vacío hasta las 9am (la pantalla del cine quedaría "sin señal"). Se carga al arrancar.
-let NOTICIAS = [], NOTICIAS_TS = 0;
+let NOTICIAS = [], NOTICIAS_TS = 0;                 // día ACTUAL (último) — compat con GET /noticias
+let NOTI_DAYS = {};                                 // ARCHIVO: { 'YYYY-MM-DD': {noticias:[...], ts} } — el guarda del cine vende funciones viejas
 const NOTICIAS_STORE = process.env.NOTICIAS_STORE || '/data/noticias.json';
-function loadNoticias() { try { const d = JSON.parse(fs.readFileSync(NOTICIAS_STORE, 'utf8')); if (d && Array.isArray(d.noticias)) { NOTICIAS = d.noticias; NOTICIAS_TS = d.ts || 0; } } catch (e) {} }
-function saveNoticias() { try { fs.mkdirSync(NOTICIAS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(NOTICIAS_STORE, JSON.stringify({ noticias: NOTICIAS, ts: NOTICIAS_TS })); } catch (e) { console.error('noticias store save:', e.message); } }
+const NOTI_KEEP_DAYS = 7;                            // ring acotado: 7 días, entra el nuevo y se cae el más viejo (no "basura forever")
+function notiSyncLatest() { const ds = Object.keys(NOTI_DAYS).sort(), last = ds[ds.length - 1]; if (last) { NOTICIAS = NOTI_DAYS[last].noticias || []; NOTICIAS_TS = NOTI_DAYS[last].ts || 0; } else { NOTICIAS = []; NOTICIAS_TS = 0; } }
+function notiPrune() { const ds = Object.keys(NOTI_DAYS).sort(); while (ds.length > NOTI_KEEP_DAYS) delete NOTI_DAYS[ds.shift()]; }
+function loadNoticias() {
+  try { const d = JSON.parse(fs.readFileSync(NOTICIAS_STORE, 'utf8'));
+    if (d && d.days && typeof d.days === 'object') NOTI_DAYS = d.days;                                  // formato nuevo (archivo por día)
+    else if (d && Array.isArray(d.noticias)) NOTI_DAYS = { [new Date(d.ts || Date.now()).toISOString().slice(0, 10)]: { noticias: d.noticias, ts: d.ts || Date.now() } };   // legacy → 1 día
+    notiPrune(); notiSyncLatest();
+  } catch (e) {}
+}
+function saveNoticias() { try { fs.mkdirSync(NOTICIAS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(NOTICIAS_STORE, JSON.stringify({ days: NOTI_DAYS })); } catch (e) { console.error('noticias store save:', e.message); } }
 loadNoticias();
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
@@ -364,9 +374,12 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' });
     return res.end(JSON.stringify({ models: OR_NEWS, updated: OR_TS }));
   }
-  if (req.method === 'GET' && req.url === '/noticias') {                           // banco de noticias del CINE
+  if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)
+    const u = new URL(req.url, 'http://x'), dias = Object.keys(NOTI_DAYS).sort();
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
-    return res.end(JSON.stringify({ noticias: NOTICIAS, updated: NOTICIAS_TS }));
+    const day = u.searchParams.get('day');                                          // ?day=YYYY-MM-DD → función vieja (la pide el guarda)
+    if (day && NOTI_DAYS[day]) return res.end(JSON.stringify({ noticias: NOTI_DAYS[day].noticias, updated: NOTI_DAYS[day].ts, day, dias }));
+    return res.end(JSON.stringify({ noticias: NOTICIAS, updated: NOTICIAS_TS, dias }));   // default = día actual + lista de días disponibles
   }
   if (req.method === 'GET' && req.url === '/ranking') {                            // F2: mejor/más-barato (juego/landing/Grafana)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' });
@@ -538,9 +551,11 @@ http.createServer((req, res) => {
     let pb = '';
     req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
     req.on('end', () => {
-      // SOBRESCRITURA total (no acumula basura): el cron manda un set fresco y pisa el anterior. PERO un POST
-      // vacío NO borra el banco bueno (una corrida fallida no debe dejar el cine "sin señal").
-      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) { if (d.noticias.length) { NOTICIAS = d.noticias.slice(0, 100); NOTICIAS_TS = Date.now(); saveNoticias(); } res.writeHead(200); return res.end(d.noticias.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
+      // ARCHIVO por día (ring de 7): el cron escribe el día de HOY (pisa si ya corrió hoy) y poda los > 7 días.
+      // Un POST vacío NO toca nada (corrida fallida no debe dejar el cine "sin señal").
+      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) {
+        if (d.noticias.length) { const day = (/^\d{4}-\d{2}-\d{2}$/.test(d.day || '') ? d.day : new Date().toISOString().slice(0, 10)); NOTI_DAYS[day] = { noticias: d.noticias.slice(0, 100), ts: Date.now() }; notiPrune(); notiSyncLatest(); saveNoticias(); }
+        res.writeHead(200); return res.end(d.noticias.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;

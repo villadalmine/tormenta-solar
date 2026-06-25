@@ -6120,6 +6120,18 @@
           "id": "cine-lavalle-deportes/npc0",
           "tipo": "npc",
           "render": {
+            "sprite": "civil3"
+          },
+          "x": 5,
+          "name": "El Guarda",
+          "interact": {
+            "action": "guarda"
+          }
+        },
+        {
+          "id": "cine-lavalle-deportes/npc1",
+          "tipo": "npc",
+          "render": {
             "sprite": "civil2"
           },
           "x": 17,
@@ -6129,7 +6141,7 @@
           }
         },
         {
-          "id": "cine-lavalle-deportes/decor1",
+          "id": "cine-lavalle-deportes/decor2",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6137,7 +6149,7 @@
           "x": 6
         },
         {
-          "id": "cine-lavalle-deportes/decor2",
+          "id": "cine-lavalle-deportes/decor3",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6145,7 +6157,7 @@
           "x": 9
         },
         {
-          "id": "cine-lavalle-deportes/decor3",
+          "id": "cine-lavalle-deportes/decor4",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6153,7 +6165,7 @@
           "x": 12
         },
         {
-          "id": "cine-lavalle-deportes/decor4",
+          "id": "cine-lavalle-deportes/decor5",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6161,7 +6173,7 @@
           "x": 15
         },
         {
-          "id": "cine-lavalle-deportes/decor5",
+          "id": "cine-lavalle-deportes/decor6",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6169,7 +6181,7 @@
           "x": 7.5
         },
         {
-          "id": "cine-lavalle-deportes/decor6",
+          "id": "cine-lavalle-deportes/decor7",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6177,7 +6189,7 @@
           "x": 10.5
         },
         {
-          "id": "cine-lavalle-deportes/decor7",
+          "id": "cine-lavalle-deportes/decor8",
           "tipo": "decor",
           "render": {
             "type": "sofa"
@@ -6185,7 +6197,7 @@
           "x": 13.5
         },
         {
-          "id": "cine-lavalle-deportes/decor8",
+          "id": "cine-lavalle-deportes/decor9",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -6193,7 +6205,7 @@
           "x": 3
         },
         {
-          "id": "cine-lavalle-deportes/decor9",
+          "id": "cine-lavalle-deportes/decor10",
           "tipo": "decor",
           "render": {
             "type": "cartel"

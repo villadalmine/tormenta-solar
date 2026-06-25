@@ -532,7 +532,10 @@ const Level = (() => {
       name: 'Cine Lavalle — Deportes', theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Mundo', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
-      npcs: [{ name:'Espectador', sprite:'civil2', x:17, dialog:'“Shhh, callate que estoy mirando el fútbol, pibe.” 🍿' }],
+      npcs: [
+        { name:'El Guarda', sprite:'civil3', x:5, action:'guarda' },   // en la entrada: vende FUNCIONES VIEJAS por caramelos (archivo de 7 días)
+        { name:'Espectador', sprite:'civil2', x:17, dialog:'“Shhh, callate que estoy mirando el fútbol, pibe.” 🍿' },
+      ],
     })) - 1;
     const cine2 = rooms.push(makeRoom({
       name: 'Cine Lavalle — Mundo', theme: 'arcade', light: 0.5, w: 22,

@@ -65,6 +65,8 @@
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
   let arcadeGame = null, superGame = null, vinilosGame = null;
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
+  let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
+  let cineDayIdx = -1;     // qué día viejo estás viendo (cicla por los disponibles)
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
@@ -295,6 +297,7 @@
     else if (n.action === 'iorio') giveIorio(n);
     else if (n.action === 'armas') buyArmas(n);
     else if (n.action === 'chat') openChat(n);
+    else if (n.action === 'guarda') guardaCine(n);
     else if (n.action === 'fifa') playFifa();
     else { setMsg(TX(n.dialog) || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
   }
@@ -703,6 +706,7 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
+    if (!/Cine/.test(r.name)) { cineArchive = null; cineDayIdx = -1; }   // saliste del cine → la función vieja se descarta (volvés a hoy)
     if (/Cine/.test(r.name)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
@@ -733,9 +737,10 @@
     if (/OpenRouter/.test(name)) return ['openrouter'];
     return null;   // sin filtro
   }
-  // todas las noticias del banco (window.NOTICIAS lo trae js/noticias.js) del piso, deduplicadas por topic, máx 4.
+  // todas las noticias del piso, deduplicadas por topic, máx 4. Si el guarda te vendió una función vieja
+  // (cineArchive), salen de ese día; si no, del día de hoy (window.NOTICIAS).
   function pickNoticias(name) {
-    const ns = (typeof window !== 'undefined' && window.NOTICIAS) || [];
+    const ns = (cineArchive && cineArchive.noticias) || (typeof window !== 'undefined' && window.NOTICIAS) || [];
     const t = cineTopicsFor(name || ''), pool = t ? ns.filter(n => t.includes(n.topic)) : ns, use = pool.length ? pool : ns;
     const seen = new Set(), out = [];
     for (const n of use) { if (seen.has(n.topic)) continue; seen.add(n.topic); out.push(n); if (out.length >= 4) break; }
@@ -755,7 +760,8 @@
     ctx.save();
     const cat = (String(r.name).split('—')[1] || '').trim();   // piso: Deportes / Mundo / Tecno…
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#b38bd6'; ctx.font = 'bold 12px monospace'; ctx.fillText('🎬 CINE · ' + cat.toUpperCase(), cx, sy + 17);
+    ctx.fillStyle = cineArchive ? '#ffb74d' : '#b38bd6'; ctx.font = 'bold 12px monospace';
+    ctx.fillText((cineArchive ? '📼 FUNCIÓN VIEJA ' + humanDay(cineArchive.day) + ' · ' : '🎬 CINE · ') + cat.toUpperCase(), cx, sy + 17);
     if (!ns.length) { ctx.fillStyle = '#5a6a7a'; ctx.font = '14px monospace'; ctx.fillText('— sin señal (volvé luego) —', cx, sy + H/2); ctx.restore(); return; }
     ctx.textAlign = 'left';
     const colW = W - pad * 2, maxY = sy + H - 18, perItem = ns.length === 1 ? 6 : 2;   // 1 sola → texto completo; varias → 2 líneas c/u
@@ -778,6 +784,24 @@
     const txt = ns.map(n => String(n.topic) + '. ' + String(n.headline)).join('. ');
     if (typeof Mensajero !== 'undefined' && Mensajero.hablar) Mensajero.hablar(txt);
     setMsg(T('g.cine.reading'), '#9fd3ff', 1600);
+  }
+  // EL GUARDA del cine: le pagás caramelos y te pone una FUNCIÓN VIEJA (noticias de otro día del archivo de 7).
+  const GUARDA_COST = 2;   // caramelos por función vieja
+  function humanDay(d) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? (m[3] + '/' + m[2]) : (d || ''); }
+  function guardaCine(n) {
+    const dias = ((typeof window !== 'undefined' && window.NOTI_DIAS) || []).slice().sort();   // asc
+    const old = dias.slice(0, -1);                                  // todos menos hoy (el último)
+    if (!old.length) { setMsg(T('g.cine.guardaNone'), '#ffd54f', 4800); Sfx.pickup(); return; }
+    if ((player.caramelos || 0) < GUARDA_COST) { setMsg(T('g.cine.guardaPoor', { n: GUARDA_COST }), '#ff5252', 4800); return; }
+    cineDayIdx = (cineDayIdx + 1) % old.length;                     // ciclá del más nuevo al más viejo
+    const day = old[old.length - 1 - cineDayIdx];
+    player.caramelos -= GUARDA_COST;
+    setMsg(T('g.cine.guardaWait'), '#9fd3ff', 1500);
+    (window.fetchNoticiasDay ? window.fetchNoticiasDay(day) : Promise.resolve([])).then(ns => {
+      cineArchive = { day, noticias: ns || [] };
+      cineNoticias = pickNoticias(room().name);
+      setMsg(T('g.cine.guardaOk', { day: humanDay(day) }), '#ffd54f', 5000); Sfx.pickup();
+    });
   }
   function ambientFor(r) {
     if (current === 0) return stormed ? 'viento' : 'calle';
@@ -1096,6 +1120,7 @@
         : a === 'iorio' ? (stormed ? T('g.prompt.iorioStorm') : T('g.prompt.iorio'))
         : a === 'armas' ? (stormed ? T('g.prompt.armasStorm') : T('g.prompt.armas'))
         : a === 'chat' ? T('g.prompt.chat', { name: TX(it.n.name) || TX('el linyera') })
+        : a === 'guarda' ? T('g.prompt.guarda', { n: GUARDA_COST })
         : a === 'loop' ? T('g.prompt.loop')
         : T('g.prompt.talk', { name: TX(it.n.name) });
     }

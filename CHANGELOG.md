@@ -29,6 +29,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v127 / infra-12] — 2026-06-25 — 🎟️ El GUARDA del cine: funciones VIEJAS por caramelos (archivo de 7 días)
+
+En la entrada del cine hay un **guarda**. Le pagás **2 🍬 caramelos** y te pone una **función vieja**: las noticias
+de **otro día**. El proxy archiva **hasta 7 días** (ring acotado: entra el nuevo, se cae el más viejo → no se
+acumula basura). Cada vez que le pagás, te muestra un día más atrás (cicla); la pantalla marca **📼 FUNCIÓN VIEJA
+DD/MM**. Al salir del cine volvés a la función de hoy.
+- Loop económico redondo: el oráculo te da caramelos por el quest de noticias → los gastás con el guarda. 🍬↔📼
+- Backend: `GET /noticias?day=YYYY-MM-DD` + lista `dias`; el POST del cron archiva por día y poda > 7. Proxy `0.1.27`.
+
+---
+
 ## [infra-11] — 2026-06-25 — 🧹 POST /noticias: sobrescribe (no acumula) + un POST vacío no borra el banco
 
 El cron **pisa** el banco entero cada corrida (reemplazo, no append) → no se acumula basura vieja. Y se blinda el
