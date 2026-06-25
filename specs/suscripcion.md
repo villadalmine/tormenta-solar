@@ -161,6 +161,14 @@ exitoso flippea `status` a `paid` en la DB. Hasta entonces, emisión manual.
 
 ### 9.6 Arquitectura del flujo de PAGO (diseño, 2026-06-25)
 
+> **F3 HECHO (proxy 0.1.17, pseudo-manual SIN pago):** `POST /provision {email,limit}` (GEN_TOKEN) → crea key de
+> OpenRouter con budget vía `OPENROUTER_PROVISIONING_KEY` (Secret `tormenta-or-provisioning`), genera código, guarda
+> `código→{email,orKey,hash,limit}` en `/data/subs.json` (PVC Longhorn, fsGroup 1000). El sub provisionado va
+> **DIRECTO a OpenRouter con SU key** (`SUB_OR_MODELS`=ids OR) → gasto y tope **reales por usuario** (probado:
+> chat 1.1s tier=paid). `GET /sub-spend` (GEN_TOKEN) lee el spend por código de OpenRouter. Códigos `SUB_CODES`
+> (env) siguen por LiteLLM (compartido). **Falta:** pasarela de pago + webhook + email automático (§9.1/§9.4) →
+> hoy se dispara a mano y el código se manda por mail manualmente.
+
 **Flujo completo (lo que querés):**
 1. **UI:** ⚙ Opciones → botón **"Suscribirme"** → abre una **ventana/modal nueva** (o página hosteada).
 2. La modal pide el **EMAIL** (para mandarte el código ahí) → botón "Pagar".
