@@ -203,8 +203,23 @@ quest del oráculo (§4) se **gastan** acá. 🍬↔📼
    OpenRouter) con 15 topics (incl. crypto CoinGecko + precios OpenRouter). Cron a **1×/día 9am AR**.
 4. **F4 — captura en NPU** ❌ **descartada**: la NPU alucina + tarda 18-34s (§3.1). La captura se queda en
    `gemma4-paid` (fiel, barato a 1×/día). **Pendiente real:** precios de `consolas-retro` con monto exacto
-   (eBay/Marktplaats necesitan key; ML da 403), y resultados de fútbol exactos vía `NEWS_SPORTS` (opt-in, hecho
-   pero no activado).
+   (eBay/Marktplaats necesitan key; ML da 403).
+6. **F6 — fútbol con resultado exacto (`NEWS_SPORTS`)** ✅ **activado** (`infra-14`, 2026-06-25): `noticias.sports
+   = "mundial:4429,primera-b:4616"` (TheSportsDB) → los topics `mundial`/`primera-b` traen el score real
+   ("Ecuador 1-1 Germany"). El `answer` pasa a ser numérico → la verificación del oráculo (§4) tiene dato preciso.
+
+### 7.1 PENDIENTE (idea del dueño 2026-06-25, NO implementado) — news EN VIVO horario + Villa Dálmine
+- **Refresh cada 1 h** (hoy el cron es 1×/día 9am): para lo que cambia rápido (fútbol/Mundial, crypto). Diseño
+  recomendado: un **2º CronWorkflow `0 * * * *`** que corra `gen-noticias.mjs` en modo **live-only** (solo sports +
+  crypto, sin el resumen `gemma4-paid` de Google News) y **POSTee con MERGE por topic** — porque hoy el POST
+  **reemplaza** el día entero (`NOTI_DAYS[day] = …`), así que un POST parcial **borraría** los 13 topics de Google
+  News. → falta: (a) modo `NEWS_LIVE_ONLY` en `gen-noticias.mjs`, (b) `merge:true` en `POST /noticias` (update por
+  topic, no replace), (c) el cronworkflow horario.
+- **Villa Dálmine en especial:** su **team id TheSportsDB = `137785`**. Juega en la **Primera B Nacional** (el
+  dueño confirma; TheSportsDB la etiqueta "Metropolitana" — dato viejo, NO confiar en la liga). → **lo robusto es
+  traerlo POR EQUIPO** con **`eventslast.php?id=137785`** (su último partido, sin importar cómo nombren la liga),
+  no por id de liga. Extender `NEWS_SPORTS` para aceptar `topic:team:<id>` además de `topic:<ligaId>`. Idea: topic
+  propio `villa-dalmine` (o pisar `primera-b` con el club local), refrescado por el cron horario.
 5. **F5 — archivo de 7 días + el GUARDA** ✅ (`v127`-`v129`, ver §3.6): persistencia por día en el PVC, `GET
    /noticias?day=`, NPC guarda con menú de elección, 1ª gratis, más viejo más caro, **regateo** hasta piso. Más el
    **TTS con fallback al server** (espeak-ng, §3.4, `v126`) para que lea aunque el navegador no tenga voz.

@@ -21,6 +21,10 @@ El juego es 100% estático; se publica en
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
   interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.
+- **Cine: news EN VIVO horario + Villa Dálmine** (`specs/cine-noticias.md §7.1`, idea 2026-06-25): 2º cron `0 * * * *`
+  en modo live-only (sports+crypto) + **`POST /noticias` con merge por topic** (hoy reemplaza todo). Y los partidos
+  de **Villa Dálmine** (team id `137785`, Primera B **Nacional**; TheSportsDB la etiqueta mal como "Metropolitana"
+  → traer POR EQUIPO con `eventslast.php?id=137785`, no por liga). **NO implementado** — retomar.
 - **Seguridad** (`specs/seguridad.md`): fase transversal — sin CVEs (todas las versiones), flujo cifrado,
   anti-DoS web/API/tokens (incl. "denial of wallet"), buenas prácticas de datos, anti-escalada. Con checklist
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
