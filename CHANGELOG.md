@@ -29,6 +29,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v126 / infra-9] — 2026-06-25 — 🔊 TTS con fallback al servidor (lee aunque el navegador no tenga voz)
+
+El [R] del cine no leía en Chromium/Linux porque el navegador no trae voces (`speechSynthesis` vacío) y
+speech-dispatcher no las expone. Ahora **las dos vías con fallback**:
+- Si el navegador **tiene** voz → la usa (mejor calidad, gratis, como antes).
+- Si **no** tiene → el **proxy genera el audio** con `espeak-ng` (`GET /tts?text=…&lang=es|en`, WAV) y el juego lo
+  reproduce por **WebAudio** (el mismo canal que la música, que sí suena). Funciona en cualquier navegador.
+- **Respeta el acento**: español/criollo (`es-419`) o inglés (`en-us`) según el idioma del juego.
+- `Mensajero.callar()` corta también el audio del server. Imagen proxy `0.1.24` (suma `espeak-ng`, ~2MB).
+
+---
+
 ## [v125] — 2026-06-25 — 🎬 Cine: la pantalla muestra VARIAS noticias (no hace falta que te lean)
 
 Feedback del dueño: la [R] no leía (en Linux el navegador no trae voz TTS) y la pantalla grande desaprovechada.

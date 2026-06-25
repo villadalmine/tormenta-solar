@@ -113,24 +113,45 @@ const Mensajero = (() => {
     _voice = pickVoice(); _voiceTried = !!_voice;        // si todavía no cargaron, reintenta en el próximo hablar
     return _voice;
   }
-  function hablar(text, optLang) {
-    if (_muted || !text || typeof window === 'undefined' || !window.speechSynthesis) return;
+  // Fallback de TTS por SERVIDOR (proxy espeak-ng → WAV) para navegadores SIN voz (Chromium/Linux). Suena por
+  // WebAudio (mismo canal que la música). Respeta el idioma: 'en' → acento inglés, 'es' → español/criollo.
+  const TTS_BASE = 'https://llm-tormenta-solar.cybercirujas.club';   // mismo proxy que ai.js/noticias.js
+  let _ttsAudio = null;
+  function speakServer(text, optLang) {
     try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      const v = ensureVoice();
-      if (v) u.voice = v;
-      u.lang = optLang || (v && v.lang) || (lang() === 'en' ? 'en-US' : 'es-AR');
-      u.rate = 1.0; u.pitch = 0.92;          // un poco grave = más "criollo"
-      window.speechSynthesis.speak(u);
+      if (_ttsAudio) { try { _ttsAudio.pause(); } catch (e) {} _ttsAudio = null; }
+      const L = String(optLang || (lang() === 'en' ? 'en' : 'es')).toLowerCase().startsWith('en') ? 'en' : 'es';
+      const a = new Audio(TTS_BASE + '/tts?lang=' + L + '&text=' + encodeURIComponent(String(text).slice(0, 600)));
+      _ttsAudio = a; a.play().catch(() => {});
     } catch (e) {}
+  }
+  function hablar(text, optLang) {
+    if (_muted || !text || typeof window === 'undefined') return;
+    const ss = window.speechSynthesis;
+    const hasVoice = ss && (ss.getVoices() || []).length > 0;   // Chromium/Linux suele tener 0 voces → server
+    if (hasVoice) {
+      try {
+        ss.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        const v = ensureVoice();
+        if (v) u.voice = v;
+        u.lang = optLang || (v && v.lang) || (lang() === 'en' ? 'en-US' : 'es-AR');
+        u.rate = 1.0; u.pitch = 0.92;          // un poco grave = más "criollo"
+        ss.speak(u);
+        return;
+      } catch (e) {}            // si el navegador falla, cae al server
+    }
+    speakServer(text, optLang);
   }
   // las voces cargan async: cuando aparezcan, refrescá la elegida
   if (typeof window !== 'undefined' && window.speechSynthesis && 'onvoiceschanged' in window.speechSynthesis)
     window.speechSynthesis.onvoiceschanged = () => { _voiceTried = false; ensureVoice(); };
   // cantar un canto del truco SIEMPRE en criollo (es-AR), aunque el juego esté en inglés
   function cantar(frase) { hablar(frase, 'es-AR'); }
-  function callar() { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {} }
+  function callar() {
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+    try { if (_ttsAudio) { _ttsAudio.pause(); _ttsAudio = null; } } catch (e) {}   // corta también el audio del server
+  }
 
   function init(opts) {
     opts = opts || {};

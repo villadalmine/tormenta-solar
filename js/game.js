@@ -771,13 +771,13 @@
     ctx.fillStyle = '#7fa6cf'; ctx.font = '11px monospace'; ctx.fillText(T('g.cine.read'), cx, sy + H - 6);
     ctx.restore();
   }
-  // [R] (o botón táctil): leé TODAS las noticias en voz alta. Si el navegador no tiene voz (típico en Linux), avisá.
+  // [R] (o botón táctil): leé TODAS las noticias en voz alta. Mensajero.hablar usa la voz del navegador y, si no
+  // hay (Chromium/Linux), cae al TTS del servidor (espeak-ng vía WebAudio) — con acento según el idioma del juego.
   function cineRead() {
     const ns = cineNoticias; if (!ns.length) return;
     const txt = ns.map(n => String(n.topic) + '. ' + String(n.headline)).join('. ');
-    const voices = (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.getVoices()) || [];
     if (typeof Mensajero !== 'undefined' && Mensajero.hablar) Mensajero.hablar(txt);
-    setMsg(T(voices.length ? 'g.cine.reading' : 'g.cine.novoice'), voices.length ? '#9fd3ff' : '#ffb74d', voices.length ? 1600 : 2800);
+    setMsg(T('g.cine.reading'), '#9fd3ff', 1600);
   }
   function ambientFor(r) {
     if (current === 0) return stormed ? 'viento' : 'calle';

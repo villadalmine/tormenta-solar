@@ -7,6 +7,7 @@
 // Después poné la URL pública en js/ai.js -> ENDPOINT.
 import http from 'http';
 import fs from 'node:fs';
+import { spawn } from 'node:child_process';
 import { buildMessages } from './personas.js';
 
 // Upstream configurable: por defecto OpenRouter directo, pero podés apuntarlo a tu LiteLLM (u otro
@@ -328,6 +329,23 @@ http.createServer((req, res) => {
   res.setHeader('Access-Control-Max-Age', '86400');   // cachea el preflight 1 día (menos OPTIONS)
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
   if (req.method === 'GET' && (req.url === '/health' || req.url === '/healthz')) { res.writeHead(200); return res.end('ok'); }   // probe k8s
+  // TTS del servidor (espeak-ng) → WAV. Para navegadores SIN voz (Chromium/Linux): el juego pide el audio y lo
+  // reproduce por WebAudio (el mismo canal que la música, que sí suena). GET ?text=...&lang=es|en. Texto acotado.
+  if (req.method === 'GET' && req.url.startsWith('/tts')) {
+    const u = new URL(req.url, 'http://x');
+    const text = (u.searchParams.get('text') || '').slice(0, 600).trim();
+    const voice = (u.searchParams.get('lang') || 'es').toLowerCase().startsWith('en') ? 'en-us' : 'es-419';
+    if (!text) { res.writeHead(400); return res.end('no text'); }
+    try {
+      const ng = spawn('espeak-ng', ['-v', voice, '-s', '160', '-p', '35', '--stdout']);   // grave+criollo, lee de stdin (sin shell = sin inyección)
+      const chunks = [];
+      ng.stdout.on('data', d => chunks.push(d));
+      ng.on('error', () => { try { res.writeHead(500); res.end('tts-err'); } catch (e) {} });
+      ng.on('close', () => { try { res.writeHead(200, { 'Content-Type': 'audio/wav', 'Cache-Control': 'public, max-age=86400' }); res.end(Buffer.concat(chunks)); } catch (e) {} });
+      ng.stdin.on('error', () => {}); ng.stdin.write(text); ng.stdin.end();
+    } catch (e) { res.writeHead(500); res.end('tts-spawn'); }
+    return;
+  }
   if (req.method === 'GET' && req.url === '/linyera-pool') {                       // pool de saturación (lo trae el cliente)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ pool: LINYERA_POOL || {}, updated: LINYERA_POOL_TS }));
