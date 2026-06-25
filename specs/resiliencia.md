@@ -179,3 +179,19 @@ Mensajero elige en runtime cuál servir según `stormed` + la frontera del jugad
   corre en ventana controlada para no ensuciar las métricas de uso real (etiquetar o correr fuera de horario).
 - **Prioridad:** iterar **después** del Plan B mínimo (L2 pool) — ese ya cubre el 80% del problema "infra lenta"
   sin necesitar el stress test. El stress test dice **cuándo** se necesita, pero el pool **siempre** ayuda.
+
+### 6.4 (EN CURSO) Unificación con v2: la ficha como fuente única del alma (gen-personas)
+
+Objetivo (usuario): que AI y no-AI tengan su **alma+comportamiento+frases** integrados en v2, fuente única.
+Decisión: **la ficha `specs/nivel-1/personajes/*.md` es la fuente**; el build emite los artefactos
+(`gen-historia`→historia.js, `gen-dialogos`→dialogos.js, **`gen-personas` (NUEVO)→ai-proxy/personas.js**).
+El alma queda SERVER-SIDE (no va al cliente). Hecho: `tools/gen-personas.mjs` compone el alma desde el
+`## Personalidad` de cada ficha (determinista, sin LLM); genera un CANDIDATO (no pisa el `personas.js` que anda).
+
+**GAP a cerrar antes de adoptarlo (validado comparando):** las fichas no cubren 1:1 las personas del chat.
+- Fichas generan: cuevero, iorio, filosofo, musico, secretaria, tahur.
+- `personas.js` actual: + **poeta, pechito** (sin ficha) ; falta **musico** (lo agregan las fichas).
+→ Antes de `gen-personas --write`: **crear las fichas/entradas de `poeta` y `pechito`** (hoy solo `linyeras.md`→filosofo)
+  y revisar `musico`. Mover el `LINYERA_CORE` a una ficha compartida. Luego regenerar y comparar calidad.
+Próximo del plan: (2) campo `tormenta:` por ficha (variantes pre/post) ; (3) la entidad v2 (level-data) referencia
+el id de la ficha para resolver alma+frases+comportamiento.
