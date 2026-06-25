@@ -9,7 +9,8 @@ metadata:
   labels:
     {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
 spec:
-  schedule: {{ .Values.linyeraPool.cronjob.schedule | quote }}
+  schedules:
+    - {{ .Values.linyeraPool.cronjob.schedule | quote }}
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 600
   successfulJobsHistoryLimit: 2
