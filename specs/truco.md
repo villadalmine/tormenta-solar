@@ -1,12 +1,16 @@
 # SDD — Truco de verdad: reglas completas, truco de a 6, reclutamiento y Calle Lavalle
 
-- **Estado:** **F1 IMPLEMENTADO** (motor 1v1 real + cantos voceados). Resto en fases (ver §12).
+- **Estado:** **F1 + F2 IMPLEMENTADOS** (motor 1v1 real + cantos voceados + formatos/partida). Resto en fases (§12).
 - **Última actualización:** 2026-06-24
 - **Tamaño:** **GRANDE** (es el feature más pesado del backlog — ver §12 mi lectura). Multi-fase.
 - **F1 hecho:** `js/truco.js` (motor puro: jerarquía/envido/flor/parda, testeado e2e) + `arcade.js makeTruco`
   reescrito sobre él: cantos reales (envido/real/falta, truco/retruco/vale4, flor) con quiero/no quiero,
   IA por tier, premio en **flores** (`player.flores`). **Voces criollas:** el tahúr canta en voz alta
-  (`Mensajero.cantar()`, voz es-AR). Falta: formatos 3manos/a15 (F2), tabla skill (F4), a6 (F5), cabarulo, Lavalle.
+  (`Mensajero.cantar()`, voz es-AR).
+- **F2 hecho:** el tahúr **pregunta el formato** (fase 'choose': [3] mejor de 3 manos / [1] a 15 puntos);
+  `makeTruco` ahora es una **PARTIDA multi-mano** (startDeal/concludeDeal, marcador de partida, falta envido
+  dinámico en a15). e2e juega una partida completa en ambos formatos.
+- **Falta:** tabla skill (F4, el `bias` del reparto ya está en el motor), a6 (F5), cabarulo, Lavalle.
 - **Relacionado:** `js/arcade.js` (`makeTruco`, hoy un placeholder), el grafo (`historia.js`/`hint-engine.js`),
   `carteles-ia.md` (generación de excusas con NPU/GPU/cloud + el Mensajero), `nivel-1/**` (personajes).
 
