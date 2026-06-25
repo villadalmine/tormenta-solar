@@ -5,8 +5,9 @@
 > genérico de `game/` data), validando con un **toggle v1/v2** + test de paridad. Idempotencia = modelo
 > declarativo puro + estado runtime aparte (el que ya guarda `save.js`).
 
-- **Estado:** **Draft — diseño ACORDADO (decisiones cerradas 2026-06-24).** Listo para implementar por
-  fases (§10); arranca **F1** cuando el dueño lo decida. v1 sigue de default hasta paridad.
+- **Estado:** **F1+F2+F3 IMPLEMENTADOS (v2 data-driven es el DEFAULT, 2026-06-25).** **F4 en curso** (migrar
+  hardcodes a atributos del modelo: `COLLAPSED`→`collapsesOnStorm` ✅; faltan `DOOR_ART`/gating/ids estables).
+  Ver §10.
 - **Nivel:** transversal (es la base para Nivel 1 **y** Nivel 2+)
 - **Última actualización:** 2026-06-24
 
@@ -710,9 +711,17 @@ Para no reescribir a ciegas (strangler-fig):
 3. **F2 — `buildWorld`/`Mundo.fromModel` + test de paridad** v1≡v2 (v1 sigue default): ✅ **HECHO.**
    `js/mundo.js` (`Mundo.fromModel`, función pura) + `tests/parity.mjs` → **las 38 salas coinciden**
    (geometría/map, posiciones, doors+wiring). `mundo.js` NO está en `index.html` todavía (runtime intacto).
-4. **F3 — toggle v1/v2 en ⚙ Opciones** + parity en CI. Jugar Nivel 1 en v2.
-5. **F4 — migrar los hardcodes** (`COLLAPSED`, `DOOR_ART`, gating, `ambientFor`) a atributos del modelo;
-   historia/ads/save pasan a **ids estables**.
+4. **F3 — toggle v1/v2 en ⚙ Opciones + parity en CI + v2 default**: ✅ **HECHO (2026-06-25).** `mundo.js`+
+   `level-data.js` en `index.html`; `buildRooms()` usa `Mundo.fromModel(window.LEVEL1)` con **auto-fallback a
+   v1** + auto-degrade por watchdog de freeze; toggle "Motor v1/v2" en Opciones; **v2 es el DEFAULT**.
+   Paridad en e2e (las 38 salas) + `tests/levels.mjs` (schema). web 0.1.7.
+5. **F4 — migrar los hardcodes** a atributos del modelo (historia/ads/save → ids estables). **En curso:**
+   - ✅ **`COLLAPSED` → `collapsesOnStorm`** (atributo de la puerta; fuente única `level.js` → gen-level →
+     modelo → `mundo.js` → `game.js` lee `d.collapsesOnStorm`; const borrado). web 0.1.17. *(También se arregló
+     el schema, que estaba roto para `fiche`/`comportamiento`.)*
+   - ⬜ `DOOR_ART` → usar el `facade`/`render.type` del modelo (el modelo ya trae `facade`).
+   - ⬜ `ambientFor` (hoy se deriva del `theme`; opcional pasarlo a atributo `ambient`).
+   - ⬜ gating ifs → componente `gate` · historia/ads/save → **ids estables**.
 6. **F5 — extraer el motor** (`engine/` genérico vs `game/` contenido, §2.5) y que **Nivel 2 nazca en v2**
    (sólo data). Eventualmente v1 se retira.
 
