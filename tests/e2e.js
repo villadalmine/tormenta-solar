@@ -130,7 +130,7 @@ if (require.main === module) {
     if (!window.Game || !Game.serialize || !Game.continueGame) return JSON.stringify(['FAIL no se expone Game.serialize/continueGame']);
     const snap = Game.serialize();
     if (!snap) return JSON.stringify(['FAIL serialize devolvió null jugando']);
-    if (snap.v !== 1 || typeof snap.current !== 'number' || !snap.player || !snap.flags) out.push('FAIL snapshot incompleto');
+    if (snap.v !== 2 || typeof snap.current !== 'number' || !snap.player || !snap.flags) out.push('FAIL snapshot incompleto');
     // modificamos un snapshot y lo restauramos: debe quedar reflejado en el estado real
     const mod = JSON.parse(JSON.stringify(snap));
     mod.player.coins = 777; mod.flags.stormed = true; mod.player.hasMegaDrive = true;
@@ -153,13 +153,12 @@ if (require.main === module) {
   // ---- auditoría estática de assets de TODOS los cuartos ----
   const audit = vm.runInContext(`(() => {
     const A = Art, R = Level.build(), bad = [];
-    const DOOR_ART = { galeria:'door', up:'doorUp', exit:'exit', educacionit:'educacionit', arcade:'arcade', elevator:'elevator', superchino:'superchino', garbarino:'garbarino', disqueria:'disqueria', cemento:'cemento' };
     R.forEach((r, ri) => {
       (r.npcs||[]).forEach(n => { if (!A.npc[n.sprite]) bad.push(ri + ' npc ' + n.name + ' -> ' + n.sprite); });
       (r.enemies||[]).forEach(e => { if (e.look && A.enemy && !A.enemy[e.look]) bad.push(ri + ' enemy -> ' + e.look); });
       (r.machines||[]).forEach(mc => { if (!A.machines[mc.game]) bad.push(ri + ' machine -> ' + mc.game); });
       (r.decor||[]).forEach(d => { if (d.type && A.decor && !A.decor[d.type]) bad.push(ri + ' decor -> ' + d.type); });
-      (r.doors||[]).forEach(d => { const k = DOOR_ART[d.art] || d.art || 'door'; if (!A.items[k]) bad.push(ri + ' door -> ' + d.art); });
+      (r.doors||[]).forEach(d => { const k = d.art || 'door'; if (!A.items[k]) bad.push(ri + ' door -> ' + d.art); });   // art ya es la key de Art (F4, ex DOOR_ART)
     });
     return JSON.stringify({ bad: bad, n: R.length });
   })()`, sandbox);

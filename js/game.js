@@ -147,21 +147,23 @@
     if ((state !== 'playing' && state !== 'chat') || !player) return null;   // 'chat' también: el jugador está quieto y la pos es válida
     const p = player;
     return {
-      v: 1, current, px: p.x, py: p.y,
+      v: 2, current, px: p.x, py: p.y,
       player: { hp: p.hp, ammo: p.ammo, coins: p.coins, forros: p.forros, flores: p.flores, caramelos: p.caramelos,
         birras: p.birras, carne: p.carne, fiambre: p.fiambre, diosa: p.diosa, falopa: p.falopa,
         spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
         borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, armado, tesoroTaken, chinoEntered },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
-      pickups: states.map(s => s.pickups.map(pk => !!pk.taken)),
-      npcs: rooms.map(rm => (rm.npcs || []).map(n => ({ f: !!n.falopaTaken, l: !!n.limosnaTaken }))),
+      // RF-4: estado anclado por POSICIÓN (sala, x), no por índice de array → robusto a reordenar entidades.
+      // El pickup/npc se identifica por su x en la sala (su "id" natural), no por su lugar en el array.
+      pickups: states.map(s => s.pickups.filter(pk => pk.taken).map(pk => Math.round(pk.x))),
+      npcs: rooms.map(rm => (rm.npcs || []).filter(n => n.falopaTaken || n.limosnaTaken).map(n => ({ x: Math.round(n.x), f: !!n.falopaTaken, l: !!n.limosnaTaken }))),
       oracleMem,   // memoria de los linyeras por identidad (agent.memory)
     };
   }
   // restore(snap): reconstruye el mundo (reset) y le aplica el snapshot. true si cargó.
   function restore(snap) {
-    if (!snap || snap.v !== 1 || typeof snap.current !== 'number') return false;
+    if (!snap || (snap.v !== 1 && snap.v !== 2) || typeof snap.current !== 'number') return false;
     reset();                                              // mundo fresco + defaults
     current = Math.max(0, Math.min(rooms.length - 1, snap.current));
     Object.assign(player, snap.player || {});
@@ -173,8 +175,14 @@
     bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
     trucoWon = !!f.trucoWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
-    if (snap.pickups) states.forEach((s, i) => s.pickups.forEach((pk, j) => { if (snap.pickups[i]) pk.taken = !!snap.pickups[i][j]; }));
-    if (snap.npcs) rooms.forEach((rm, i) => (rm.npcs || []).forEach((n, j) => { const d = snap.npcs[i] && snap.npcs[i][j]; if (d) { n.falopaTaken = d.f; n.limosnaTaken = d.l; } }));
+    if (snap.pickups) {
+      if (snap.v >= 2) states.forEach((s, i) => { const xs = snap.pickups[i] || []; s.pickups.forEach(pk => { if (xs.includes(Math.round(pk.x))) pk.taken = true; }); });   // por posición (RF-4)
+      else states.forEach((s, i) => s.pickups.forEach((pk, j) => { if (snap.pickups[i]) pk.taken = !!snap.pickups[i][j]; }));   // legacy por índice (saves v1)
+    }
+    if (snap.npcs) {
+      if (snap.v >= 2) rooms.forEach((rm, i) => { const arr = snap.npcs[i] || []; (rm.npcs || []).forEach(n => { const d = arr.find(o => o.x === Math.round(n.x)); if (d) { n.falopaTaken = d.f; n.limosnaTaken = d.l; } }); });
+      else rooms.forEach((rm, i) => (rm.npcs || []).forEach((n, j) => { const d = snap.npcs[i] && snap.npcs[i][j]; if (d) { n.falopaTaken = d.f; n.limosnaTaken = d.l; } }));
+    }
     for (const k in oracleMem) delete oracleMem[k];   // restaurá la memoria de los linyeras del snapshot
     if (snap.oracleMem) Object.assign(oracleMem, snap.oracleMem);
     if (stormed) Sfx.startHum();
