@@ -86,7 +86,11 @@ candados (piso fijo, histéresis, sólo-free por defecto salvo tier pago, overri
 
 1. **F1** `OpenRouterClient` + cron de **precios** (`GET /models` → métricas `tormenta_openrouter_price_usd` +
    `GET /precios`). Panel Grafana de precios. *(Solo lectura, gratis, sin riesgo.)*
-2. **F2** `ModelScorer` (precio × calidad) → **auto-arma la cadena** del proxy (auto-pilot con precio).
+2. **F2 HECHO** `ModelScorer` en el proxy: cruza disponibilidad real (`tormenta_ai_model_attempts_total`) +
+   latencia (`LAT`) + precio (`OR_PRICES`) → **auto-arma la cadena** (`AUTOPILOT=1`, candados: PISO fijo,
+   PAGO siempre último, histéresis `CHAIN_TTL`, override por `AI_MODEL`). Expone `GET /ranking` (juego/landing)
+   + métricas `tormenta_ai_model_score|okrate|chain_position` (Grafana: mejor/más-barato). CANDIDATES =
+   pool free (varios → si gemma4-free se satura, otro free responde) + el pago entra solo como red.
 3. **F3** `NewsFeed` → `GET /novedades` → landing/juego ("modelos interesantes"). Dinámico.
 4. **F4** keys por código (provisioning) + el flujo code+email de `suscripcion §9` + pago.
 

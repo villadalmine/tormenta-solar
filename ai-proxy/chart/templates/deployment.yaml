@@ -55,6 +55,10 @@ spec:
             - name: GEN_TOKEN
               value: {{ .Values.linyeraPool.genToken | quote }}    # comparte token con el CronJob (POST /linyera-pool)
             {{- end }}
+            {{- range .Values.extraEnv }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
           livenessProbe:
             httpGet: { path: /health, port: http }
             initialDelaySeconds: 5

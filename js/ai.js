@@ -7,14 +7,20 @@ const AI = (() => {
   const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';   // proxy ai-proxy del dev → "vos pagás" (prioridad 1). '' = sin proxy.
   const KEY_LS = 'ts_openrouter_key';
   const TIMEOUT = 11000;
-  const PROXY_TIMEOUT = 9000;    // TOPE DURO: el linyera no puede tardar >10s. Si el proxy no contesta en 9s,
-                                 // cortamos y damos línea local + "la tormenta saturó el modelo" (el proxy corta a 8s).
+  const PROXY_TIMEOUT = 11000;   // TOPE DURO. El proxy puede caer al modelo PAGO (5-7s) cuando el free se agota,
+                                 // así que esperamos 11s (el proxy corta su upstream a ~9s; dejamos margen).
+  // session-id estable del jugador (no PII): el proxy lo usa para el cupo/día (la IP colapsa detrás del G4).
+  function sessionId() {
+    try { let s = localStorage.getItem('ts_sid'); if (!s) { s = (crypto.randomUUID ? crypto.randomUUID() : 's' + Date.now() + Math.random().toString(36).slice(2)); localStorage.setItem('ts_sid', s); } return s; }
+    catch (e) { return null; }
+  }
   const MAX_TRIES = 3;        // no probar más de N modelos por mensaje (no colgar)
   let byokDead = false;       // tras varios fallos seguidos → de ahí en más, líneas locales
   let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
   let _good = null;           // el último modelo que respondió bien → se usa primero (rápido)
   let lastSource = 'local';   // de dónde salió la última respuesta: 'proxy' | 'byok' | 'local'
   let lastTimedOut = false;   // la última vez se cortó por TIMEOUT (la "tormenta" saturó el modelo)
+  let lastCapped = false;     // el proxy cortó por CUPO del día (capped) → ofrecer BYOK/suscripción
   // Pool de saturación FRESCO desde el proxy (lo regenera un CronJob 1×/día). Merge sobre el seed horneado
   // (js/linyera-pool.js): si el proxy trae ≥4 frases para una persona, gana. Best-effort, sin bloquear.
   if (PROXY && typeof fetch === 'function' && typeof window !== 'undefined') {
@@ -279,11 +285,17 @@ const AI = (() => {
   async function viaProxy(npc, message, history, grounding) {
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), PROXY_TIMEOUT);
     try {
-      const r = await fetch(PROXY, { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
+      const sid = sessionId();
+      const headers = { 'Content-Type': 'application/json' };
+      if (sid) headers['X-Session-Id'] = sid;     // el proxy llavea el cupo/día por esto (la IP colapsa tras el G4)
+      const r = await fetch(PROXY, { method: 'POST', signal: ctrl.signal, headers,
         body: JSON.stringify({ npc, message, history: (history || []).slice(-8), grounding: grounding || undefined }) });
       clearTimeout(t);
+      const d = r.ok || r.status === 429 ? await r.json().catch(() => null) : null;
+      // CUPO del día agotado → el proxy manda el mensaje en personaje (esperá/BYOK/suscripción). Lo mostramos
+      // tal cual (no caemos al pool genérico) y marcamos lastCapped para que la UI ofrezca key/suscripción.
+      if (d && d.capped) { lastCapped = true; return d.reply ? String(d.reply).slice(0, 1200) : null; }
       if (!r.ok) return null;
-      const d = await r.json();
       if (d && d.fallback) { lastTimedOut = true; return null; }   // el proxy saturó (línea genérica) → caemos a NUESTRO pool por persona
       return d && d.reply ? String(d.reply).slice(0, 1200) : null;
     } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; return null; }
@@ -292,7 +304,7 @@ const AI = (() => {
   // PRIORIDAD: 1) proxy del dev (vos pagás) → 2) key del jugador (BYOK) → 3) líneas LOCALES
   // (las del script + hardcodeadas). Si la IA tarda/falla, cae a las locales y no te hace esperar más.
   async function chat(npc, message, history = [], grounding) {
-    lastTimedOut = false; lastFallback = false;
+    lastTimedOut = false; lastFallback = false; lastCapped = false;
     if (typeof fetch === 'function') {
       if (PROXY) { try { const r = await viaProxy(npc, message, history, grounding); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
       const key = playerKey();
@@ -336,5 +348,5 @@ const AI = (() => {
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, setStormed, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, setStormed, get online() { return mode() !== 'offline'; } };
 })();
