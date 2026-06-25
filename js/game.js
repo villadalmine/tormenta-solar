@@ -730,7 +730,7 @@
   // zona → cama de ambiente (calle/viento/cueva/recital); null = sin ambiente
   // CINE multi-piso: cada piso muestra noticias de SU categoría (topics). El linyera te manda al piso del topic.
   function cineTopicsFor(name) {
-    if (/Deportes/.test(name)) return ['mundial', 'primera-b', 'bochas'];
+    if (/Deportes/.test(name)) return ['mundial', 'mundial-tabla', 'mundial-goleadores', 'primera-b', 'bochas'];
     if (/Mundo/.test(name)) return ['mundo', 'guerra', 'argentina', 'paises-bajos', 'arabe'];
     if (/Tecno/.test(name)) return ['videojuegos', 'ia'];
     if (/Finanzas/.test(name)) return ['finanzas', 'crypto'];
@@ -745,7 +745,7 @@
     const ns = (cineArchive && cineArchive.noticias) || (typeof window !== 'undefined' && window.NOTICIAS) || [];
     const t = cineTopicsFor(name || ''), pool = t ? ns.filter(n => t.includes(n.topic)) : ns, use = pool.length ? pool : ns;
     const seen = new Set(), out = [];
-    for (const n of use) { if (seen.has(n.topic)) continue; seen.add(n.topic); out.push(n); if (out.length >= 4) break; }
+    for (const n of use) { if (seen.has(n.topic)) continue; seen.add(n.topic); out.push(n); if (out.length >= 6) break; }
     return out;
   }
   function wrapLines(ctx, text, maxW, cap) {
@@ -754,26 +754,33 @@
     if (line) lines.push(line); return lines.slice(0, cap || 8);
   }
   function drawCineScreen(r) {
-    const ns = cineNoticias, pad = 16, W = 400, H = 206;          // pantalla grande: varias noticias
-    const cx = (r.w * Level.TILE) / 2 - cam.x, sy = 1.15 * Level.TILE - cam.y, left = cx - W/2;
+    const ns = cineNoticias, pad = 16, W = 410;
+    const cx = (r.w * Level.TILE) / 2 - cam.x, colW = W - pad * 2;
+    ctx.save();
+    // pre-medir: cuántas líneas ocupa cada noticia → alto DINÁMICO (que "entre todo")
+    const perItem = ns.length <= 1 ? 7 : 3;
+    ctx.font = '12px monospace';
+    const items = ns.map(n => ({ topic: String(n.topic || '').toUpperCase(), lines: wrapLines(ctx, n.headline || '', colW, perItem) }));
+    const bodyH = items.reduce((a, it) => a + 16 + it.lines.length * 15 + 8, 0);
+    const H = Math.min(330, 34 + (ns.length ? bodyH : 30) + 14);
+    const sy = 1.05 * Level.TILE - cam.y, left = cx - W / 2;
     ctx.fillStyle = '#06080d'; ctx.fillRect(left - 10, sy - 10, W + 20, H + 20);   // marco
     ctx.fillStyle = '#0d1626'; ctx.fillRect(left, sy, W, H);                        // pantalla
     ctx.strokeStyle = '#2f5a8f'; ctx.lineWidth = 2; ctx.strokeRect(left, sy, W, H);
-    ctx.save();
     const cat = (String(r.name).split('—')[1] || '').trim();   // piso: Deportes / Mundo / Tecno…
     ctx.textAlign = 'center';
     ctx.fillStyle = cineArchive ? '#ffb74d' : '#b38bd6'; ctx.font = 'bold 12px monospace';
     ctx.fillText((cineArchive ? '📼 FUNCIÓN VIEJA ' + humanDay(cineArchive.day) + ' · ' : '🎬 CINE · ') + cat.toUpperCase(), cx, sy + 17);
-    if (!ns.length) { ctx.fillStyle = '#5a6a7a'; ctx.font = '14px monospace'; ctx.fillText('— sin señal (volvé luego) —', cx, sy + H/2); ctx.restore(); return; }
+    if (!ns.length) { ctx.fillStyle = '#5a6a7a'; ctx.font = '14px monospace'; ctx.fillText('— sin señal (volvé luego) —', cx, sy + H / 2); ctx.restore(); return; }
     ctx.textAlign = 'left';
-    const colW = W - pad * 2, maxY = sy + H - 18, perItem = ns.length === 1 ? 6 : 2;   // 1 sola → texto completo; varias → 2 líneas c/u
-    let y = sy + 38;
-    for (const n of ns) {
+    const maxY = sy + H - 16;
+    let y = sy + 34;
+    for (const it of items) {
       if (y > maxY - 12) break;
-      ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.fillText('📰 ' + String(n.topic || '').toUpperCase(), left + pad, y); y += 16;
+      ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.fillText('📰 ' + it.topic, left + pad, y); y += 16;
       ctx.fillStyle = '#eef4ff'; ctx.font = '12px monospace';
-      for (const ln of wrapLines(ctx, n.headline || '', colW, perItem)) { if (y > maxY) break; ctx.fillText(ln, left + pad, y); y += 15; }
-      y += 9;   // separación entre noticias
+      for (const ln of it.lines) { if (y > maxY) break; ctx.fillText(ln, left + pad, y); y += 15; }
+      y += 8;   // separación entre noticias
     }
     ctx.textAlign = 'center';
     ctx.fillStyle = '#7fa6cf'; ctx.font = '11px monospace'; ctx.fillText(T('g.cine.read'), cx, sy + H - 6);

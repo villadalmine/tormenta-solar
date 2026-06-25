@@ -33,6 +33,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v131 / infra-16] — 2026-06-26 — 🏆 Mundial: tabla del grupo de Argentina + goleadores (ESPN) + cron 3×/día
+
+- **Tablas del Mundial vía ESPN** (sin key — lo que TheSportsDB gratis no daba): topics nuevos **`mundial-tabla`**
+  (grupo de Argentina completo: "Group J: Argentina 6 · Austria 3 · Algeria 3 · Jordan 0") y **`mundial-goleadores`**
+  ("Messi 5 · Vinícius 4 · Haaland 4 · Mbappé 4", resolviendo los `$ref` de atletas). Opt-in `NEWS_WORLDCUP=fifa.world`.
+- **Cron 3×/día**: `0 5,9,23 * * *` (5am, 9am, 23h AR) — el Mundial/Villa Dálmine se refrescan varias veces.
+- **Pantalla del cine con alto DINÁMICO**: se agranda para que **entre todo** (piso Deportes ahora muestra hasta 6:
+  resultado + tabla + goleadores + Villa Dálmine + bochas). Tope por piso 4→6.
+
+---
+
 ## [v130 / infra-15] — 2026-06-25 — 🐛 Fix freeze del guarda + ⚽ Villa Dálmine en el cine
 
 - **BUG CRÍTICO arreglado:** al acercarte al guarda el juego se **congelaba** (no te podías mover). Causa:

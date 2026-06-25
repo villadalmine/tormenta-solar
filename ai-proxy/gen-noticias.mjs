@@ -103,6 +103,37 @@ for (const pair of SPORTS) {
   } catch (e) {}
 }
 
+// MUNDIAL: tabla del GRUPO DE ARGENTINA + GOLEADORES (ESPN, sin key — TheSportsDB gratis no los da). Opt-in
+// NEWS_WORLDCUP=fifa.world. Topics nuevos: mundial-tabla, mundial-goleadores (texto compacto que entra en la pantalla).
+const WC = (process.env.NEWS_WORLDCUP || '').trim();
+if (WC) {
+  const YEAR = new Date().getFullYear();
+  // tabla del grupo donde está Argentina
+  try {
+    const st = await (await fetch('https://site.api.espn.com/apis/v2/sports/soccer/' + WC + '/standings')).json();
+    for (const g of (st.children || [])) {
+      const entries = g.standings?.entries || [];
+      if (entries.some(e => /argentin/i.test(e.team?.displayName || ''))) {
+        const rows = entries.map(e => { const p = (e.stats || []).find(s => s.name === 'points'); return `${e.team?.displayName} ${p ? p.displayValue : '?'}`; });
+        if (rows.length) noticias.push({ topic: 'mundial-tabla', headline: (g.name || 'Grupo') + ': ' + rows.join(' · '), answer: rows[0], ts: Date.now() });
+        break;
+      }
+    }
+  } catch (e) {}
+  // goleadores (los leaders son $ref → se resuelven al nombre)
+  try {
+    const ld = await (await fetch('https://sports.core.api.espn.com/v2/sports/soccer/leagues/' + WC + '/seasons/' + YEAR + '/types/1/leaders')).json();
+    const gl = (ld.categories || []).find(c => c.name === 'goalsLeaders');
+    const names = [];
+    for (const l of (gl?.leaders || []).slice(0, 5)) {
+      const ref = l.athlete?.$ref;
+      if (!ref) continue;
+      try { const a = await (await fetch(ref)).json(); if (a.displayName) names.push(`${a.displayName} ${Math.round(l.value)}`); } catch (e) {}
+    }
+    if (names.length) noticias.push({ topic: 'mundial-goleadores', headline: 'Goleadores: ' + names.join(' · '), answer: names[0], ts: Date.now() });
+  } catch (e) {}
+}
+
 console.error('noticias=' + noticias.length + ' topics=' + noticias.map(n => n.topic).join(','));
 
 if (POST_URL && TOKEN) {

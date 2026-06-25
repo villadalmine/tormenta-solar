@@ -52,6 +52,10 @@ spec:
             - name: NEWS_SPORTS
               value: {{ . | quote }}
             {{- end }}
+            {{- with .Values.noticias.worldcup }}
+            - name: NEWS_WORLDCUP          # ESPN: tabla del grupo de Argentina + goleadores del Mundial
+              value: {{ . | quote }}
+            {{- end }}
             {{- if .Values.noticias.summarizeModel }}
             - name: NEWS_SUMMARIZE_MODEL          # "captura por IA" del titular (fiel). Validado: gemma4-paid.
               value: {{ .Values.noticias.summarizeModel | quote }}
