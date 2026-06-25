@@ -83,6 +83,7 @@ const Level = (() => {
           { id:'garbarino', art:'garbarino', facade:'garbarino',   label:'entrar a Garbarino',   x:58, inward:-1, collapsesOnStorm:true },
           { id:'cemento', art:'cemento',     facade:'cemento',     label:'entrar a Cemento',     x:61, inward:-1, gate:{ item:'hasCementoTicket' } },
           { id:'galeria', art:'door',     facade:'galeria',     label:'bajar a la galería',   x:74, inward:-1 },
+          { id:'cine',    art:'cine',       facade:'cine',        label:'entrar al CINE de noticias', x:84, inward:-1 },
           { id:'cambio',  art:'cambio',      facade:'cambio',      label:'entrar a la casa de cambio', x:90, inward:-1 },
           { id:'abandonado', art:'abandonado', facade:'abandonado', label:'entrar al edificio abandonado', x:101, inward:-1 },
           { id:'super',   art:'superchino',  facade:'superchino',  label:'entrar al super chino', x:112, inward:-1 },
@@ -522,6 +523,15 @@ const Level = (() => {
       pickups: [{t:'coins',x:7,amount:5}],
     }));
 
+    // CINE de noticias (cine-noticias.md F1b): butacas + pantalla (la pantalla la dibuja game.js con el banco
+    // /noticias). theme 'arcade' = reusa bg/tiles oscuros; se detecta como cine por el nombre.
+    const cineIdx = rooms.push(makeRoom({
+      name: 'Cine Lavalle', theme: 'arcade', light: 0.5, w: 22,
+      doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }],
+      decor: [{t:'sofa',x:6},{t:'sofa',x:9},{t:'sofa',x:12},{t:'sofa',x:15},{t:'sofa',x:7.5},{t:'sofa',x:10.5},{t:'sofa',x:13.5}],
+      npcs: [{ name:'Espectador', sprite:'civil2', x:18, dialog:'“Shhh, callate que estoy mirando las noticias, pibe.” 🍿' }],
+    })) - 1;
+
     function wire(ai, ad, bi, bd) {
       const A = rooms[ai], B = rooms[bi], da = A.doorById[ad], db = B.doorById[bd];
       da.to = bi; da.at = { x: db.x + db.inward*48, y: db.y };
@@ -533,6 +543,7 @@ const Level = (() => {
     wire(0, 'arcade', 4, 'out');
     wire(0, 'choris', 5, 'out');
     wire(0, 'galeria', 6, 'up');
+    wire(0, 'cine', cineIdx, 'back');
     wire(6, 'down', 7, 'up');
     wire(7, 'down', 8, 'up');
     wire(4, 'secret', 9, 'back');

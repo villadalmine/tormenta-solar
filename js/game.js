@@ -63,6 +63,7 @@
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
   let arcadeGame = null, superGame = null, vinilosGame = null;
+  let cineNoticia = null;   // noticia que muestra la pantalla del cine (random al entrar, del banco /noticias)
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
@@ -684,9 +685,11 @@
     updateCam();
     const r = room();
     elFloor.textContent = TX(r.name);
+    if (/Cine/.test(r.name)) cineNoticia = pickNoticia();   // CINE: noticia random distinta cada visita
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
+    else if (/Cine/.test(r.name)) setMsg(T('g.trans.cine'), '#9fd3ff', 5000);   // CINE de noticias (antes que arcade)
     else if (current === 0) setMsg(T('g.trans.street'), '#4FC3F7', 2500);
     else if (r.theme === 'cambio') { flash(); setMsg(stormed ? T('g.trans.cambioStorm') : T('g.trans.cambioFull'), stormed ? '#ff5252' : '#ffd54f', 6000); }
     else if (r.theme === 'cemento') setMsg(T('g.trans.cemento'), '#ff5252', 5500);
@@ -701,6 +704,27 @@
     else setMsg(T('g.trans.deeper'), '#9fb4c4', 3000);
   }
   // zona → cama de ambiente (calle/viento/cueva/recital); null = sin ambiente
+  // CINE: elegí una noticia random del banco (window.NOTICIAS lo trae js/noticias.js). Null si no hay.
+  function pickNoticia() { const ns = (typeof window !== 'undefined' && window.NOTICIAS) || []; return ns.length ? ns[(Math.random() * ns.length) | 0] : null; }
+  function wrapLines(ctx, text, maxW) {
+    const words = String(text).split(/\s+/), lines = []; let line = '';
+    for (const w of words) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+    if (line) lines.push(line); return lines.slice(0, 5);
+  }
+  function drawCineScreen(r) {
+    const sx = (r.w * Level.TILE) / 2 - cam.x, sy = 1.6 * Level.TILE - cam.y, W = 300, H = 132;
+    ctx.fillStyle = '#06080d'; ctx.fillRect(sx - W/2 - 10, sy - 10, W + 20, H + 20);   // marco
+    ctx.fillStyle = '#0d1626'; ctx.fillRect(sx - W/2, sy, W, H);                        // pantalla
+    ctx.strokeStyle = '#2f5a8f'; ctx.lineWidth = 2; ctx.strokeRect(sx - W/2, sy, W, H);
+    ctx.save(); ctx.textAlign = 'center';
+    const n = cineNoticia;
+    if (!n) { ctx.fillStyle = '#5a6a7a'; ctx.font = '14px monospace'; ctx.fillText('— sin señal (volvé luego) —', sx, sy + H/2); ctx.restore(); return; }
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.fillText('📰 ' + String(n.topic || '').toUpperCase(), sx, sy + 20);
+    ctx.fillStyle = '#dfeaff'; ctx.font = '13px monospace';
+    const lines = wrapLines(ctx, n.headline || '', W - 24);
+    lines.forEach((ln, i) => ctx.fillText(ln, sx, sy + 44 + i * 18));
+    ctx.restore();
+  }
   function ambientFor(r) {
     if (current === 0) return stormed ? 'viento' : 'calle';
     if (!r) return null;
@@ -872,6 +896,7 @@
       const img = Art.decor[d.type];
       if (img) ctx.drawImage(img, d.x - cam.x - img.width/2, d.feetY - cam.y - img.height);
     }
+    if (/Cine/.test(r.name)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
 
     // puertas
     for (const d of r.doors) {

@@ -33,6 +33,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v119] — 2026-06-25 — 🎬 El CINE de noticias (F1b in-game)
+
+Segunda mitad del cine (`specs/cine-noticias.md` F1): el **edificio jugable** que muestra el banco `/noticias`.
+- **Nuevo edificio CINE** ("Cine Lavalle"): puerta en la calle (x84, sprite marquesina) + sala con **butacas** +
+  un **espectador**. Hecho como **data** (level.js → modelo → v1/v2; paridad ahora 39 salas).
+- **Pantalla de noticias**: al entrar, elige un **titular RANDOM** del banco (`js/noticias.js` trae `/noticias`)
+  y lo dibuja en una pantalla grande con su topic (📰). **Cada visita, algo distinto.** Sin señal/red → "sin
+  señal" (el juego anda igual). Mensaje de entrada temático.
+- Falta **F2**: el **quest del linyera** (te pide un topic → vas → reportás → te corrobora → caramelos/plata).
+
+---
+
 ## [v115–v118] — 2026-06-25 — 🧩 Modelo de entidades F4: hardcodes → data (motor data-driven más limpio)
 
 `modelo-de-entidades.md` F4: los hardcodes del juego pasan a ser **atributos del modelo** (fuente única en
@@ -86,8 +98,13 @@ pantalla del cine in-game (F1b).
   sin key, español AR; `fetch()` sigue el redirect solo) → titular real por topic. Cubre **mundo, mundial,
   primera-b, videojuegos, guerra, argentina, países-bajos, árabe, ia, bochas** y **refresca cada corrida**.
   Fútbol con resultado exacto = opt-in `NEWS_SPORTS` (TheSportsDB). **El fetch es del cron, no de un modelo.**
+- **"Captura por IA" FIEL del titular** con `gemma4-paid` (opcional, `noticias.summarizeModel`). **Validado
+  (2026-06-25):** la **GPU inventa datos** (resumió y agregó equipos/días que no estaban → inseguro) y la **NPU
+  está caída** → se usa el pago, que es **fiel** ("Así quedó la tabla de la Primera Nacional 2026"). El `answer`
+  (lo que el linyera verifica) queda **CRUDO**; el modelo solo rephrasea el titular de display.
 - **Proxy**: `POST /noticias` (GEN_TOKEN) llena el banco + `GET /noticias` lo sirve (como `/precios`).
-- **Chart**: `cronworkflow-noticias.yaml` (cada 4h) + `noticias.enabled` en values. Imagen del proxy copia el script.
+- **Chart**: `cronworkflow-noticias.yaml` **1×/día 9am (TZ AR)** + `noticias.enabled` en values. Imagen del proxy
+  copia el script. Verificado en vivo: 10 topics reales de hoy, capturados fieles.
 - Falta **F1b**: el edificio **CINE** (butacas + pantalla) que muestra un titular random del banco al entrar.
 
 ## [infra-2..6] — 2026-06-25 — 🤖 Métricas reales + red paga rápida (gemma4-paid) + suscripción por código

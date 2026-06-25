@@ -123,6 +123,7 @@
     'g.trans.edu': 'EducaciónIT — say hi to the people (E) and go up in the elevator.',
     'g.trans.arcadeStorm': 'The arcade is possessed! Pac-Man and Galaga attack you.',
     'g.trans.arcade': 'Arcade — press E on a machine to play.',
+    'g.trans.cine': '🎬 The CINEMA: the screen shows the day\'s news (AI-captured). Different every time.',
     'g.trans.shop': 'Choripán stand — redeem your voucher with the grill guy (E).',
     'g.trans.bunker': "The bums' BUNKER 🛖: the safest place in the city, nobody gets in here. Touch the cot (E) to stay in the LOOP, or go back to the Exchange House portal to really get out.",
     'g.trans.trucoStore': 'The back room: the card sharp is waiting for a game of truco. 🃏',

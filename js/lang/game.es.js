@@ -140,6 +140,7 @@
     'g.trans.edu': 'EducaciónIT — saludá a la gente (E) y subí en ascensor.',
     'g.trans.arcadeStorm': '¡El arcade está poseído! Pac-Man y Galaga te atacan.',
     'g.trans.arcade': 'Arcade — apretá E en una máquina para jugar.',
+    'g.trans.cine': '🎬 El CINE: la pantalla muestra las noticias del día (capturadas por IA). Cada vez algo distinto.',
     'g.trans.shop': 'Chorería — canjeá tu vale con el parrillero (E).',
     'g.trans.bunker': 'El BÚNKER de los linyeras 🛖: el lugar más seguro de la city, acá no entra nadie. Tocá el catre (E) para quedarte en el LOOP, o volvé y andá al portal de la Casa de Cambio para salir de verdad.',
     'g.trans.trucoStore': 'La trastienda: el tahúr te espera para el truco. 🃏',

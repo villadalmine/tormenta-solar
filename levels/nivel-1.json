@@ -173,6 +173,24 @@
           }
         },
         {
+          "id": "florida-y-lavalle/door-cine",
+          "tipo": "door",
+          "render": {
+            "type": "cine",
+            "facade": "cine"
+          },
+          "x": 84,
+          "label": "entrar al CINE de noticias",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
           "id": "florida-y-lavalle/door-cambio",
           "tipo": "door",
           "render": {
@@ -6054,6 +6072,100 @@
             "amount": 5
           },
           "x": 7
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle",
+      "nombre": "Cine Lavalle",
+      "theme": "arcade",
+      "w": 22,
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle/door-back",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "salir del cine",
+          "inward": 1,
+          "link": {
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 82.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "civil2"
+          },
+          "x": 18,
+          "name": "Espectador",
+          "dialogue": {
+            "text": "“Shhh, callate que estoy mirando las noticias, pibe.” 🍿"
+          }
+        },
+        {
+          "id": "cine-lavalle/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 12
+        },
+        {
+          "id": "cine-lavalle/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 15
+        },
+        {
+          "id": "cine-lavalle/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 7.5
+        },
+        {
+          "id": "cine-lavalle/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
         }
       ]
     }
