@@ -21,7 +21,10 @@ const AI = (() => {
     fetch(PROXY + '/linyera-pool').then(r => r.ok ? r.json() : null).then(d => {
       if (!d || !d.pool) return;
       window.LINYERA_POOL = window.LINYERA_POOL || {};
-      for (const k in d.pool) if (Array.isArray(d.pool[k]) && d.pool[k].length >= 4) window.LINYERA_POOL[k] = d.pool[k];
+      for (const k in d.pool) {
+        const v = d.pool[k];   // array plano (≥4) o {pre,post} (estructura nueva)
+        if (Array.isArray(v) ? v.length >= 4 : (v && (Array.isArray(v.pre) || Array.isArray(v.post)))) window.LINYERA_POOL[k] = v;
+      }
     }).catch(() => {});
   }
   let lastFallback = false;   // la última respuesta NO fue IA real (cayó al pool local) → para métricas
@@ -300,8 +303,10 @@ const AI = (() => {
       }
     }
     lastSource = 'local'; lastFallback = true;
-    // SATURACIÓN (la IA está pero no contestó a tiempo) → pool temático; OFFLINE real → pool "poné una key"
-    return lastTimedOut ? satLine(npc) : canned(npc);
+    // Con el proxy del dev configurado (caso GitHub Pages), CUALQUIER falla del proxy → línea EN PERSONAJE
+    // (pool de saturación), NUNCA el disclaimer "poné una API key". canned() (con la key) SOLO si NO hay proxy
+    // (offline real / self-host sin proxy). Así el jugador con proxy jamás ve "poné una key".
+    return (PROXY || lastTimedOut) ? satLine(npc) : canned(npc);
   }
 
   function mode() { return PROXY ? 'proxy' : (playerKey() && !byokDead ? 'byok' : 'offline'); }
