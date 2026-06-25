@@ -4,6 +4,8 @@
 //
 //   AI_BASE=http://litellm-proxy:4000/v1  AI_KEY=sk-hermes-internal  MODEL=gemma4-free  N=30 \
 //   POOL_POST_URL=http://tormenta-ai-proxy/linyera-pool  GEN_TOKEN=...  node gen-pool.mjs
+import { ROSTER } from './personas.js';                    // FUENTE ÚNICA del contexto de cada personaje (§6.3)
+
 const BASE = (process.env.AI_BASE || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
 const KEY = process.env.AI_KEY || 'sk-hermes-internal';
 const MODEL = process.env.MODEL || 'gemma4-free';
@@ -11,13 +13,11 @@ const N = +(process.env.N || 30);                          // frases objetivo po
 const POST_URL = process.env.POOL_POST_URL || '';         // si vacío: imprime el JSON (modo prueba)
 const TOKEN = process.env.GEN_TOKEN || '';
 
-const PERSONAS = {
-  filosofo: 'un filosofo linyera de Buenos Aires, sabio y melancolico',
-  poeta: 'un poeta linyera que habla en verso lunfardo',
-  pechito: 'un linyera bonachon y tranquilo que cuenta historias de la calle',
-  cuevero: 'un cuevero (cambista ilegal) desconfiado de la cueva',
-  tahur: 'un tahur (fullero de cartas) canchero y burlon',
-};
+// el pool de SATURACIÓN del chat es para los CHATEABLES (cuando la IA no contesta a tiempo, dicen una línea
+// de "pará que me distraje"). Se arma desde el ROSTER (contexto de cada uno) → fuente única, sin duplicar.
+const PERSONAS = Object.fromEntries(
+  Object.entries(ROSTER).filter(([, e]) => e.chateable).map(([k, e]) => [k, e.contexto])
+);
 // rotamos micro-escenarios para que no converja siempre a la misma frase
 const SCENARIOS = [
   'pedile que repita porque te distrajiste',

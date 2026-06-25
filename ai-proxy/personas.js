@@ -13,6 +13,27 @@ export const PERSONAS = {
 };
 export const DEFAULT_PERSONA = `Sos un personaje del juego de humor argentino "Tormenta Solar" (Florida y Lavalle, Buenos Aires). Hablás en slang porteño, con humor y frases cortas. Nunca decís que sos una IA.`;
 
+// ROSTER (entity-model, §6.3): la FUENTE ÚNICA de cada personaje para GENERAR sus frases (el cron) y para que
+// el juego sepa quién es cada uno. `chateable`=tiene chat IA (su alma está en PERSONAS); el resto son NPCs sin
+// IA que igual dicen frases generadas. `contexto`=quién es + cómo habla (para el prompt de generación).
+// `tormenta`=cómo cambia pre/post tormenta solar (define ánimo/comportamiento; el motor puede usarlo). Cada
+// personaje "sabe" del estado del mundo: el cron genera variantes y el Mensajero elige según stormed + hitos.
+export const ROSTER = {
+  // ---- chateables (alma completa en PERSONAS) ----
+  filosofo: { nombre: 'Diógenes', chateable: true, contexto: 'un linyera filósofo cínico e iluminado de Florida y Lavalle, "corréte que me tapás el sol"', tormenta: 'post-tormenta lo ve todo como la prueba de que tenía razón: la ciudad se liberó' },
+  poeta:    { nombre: 'Dante', chateable: true, contexto: 'un viejo linyera poeta que habla casi en verso lunfardo, melancólico, pide un puchito por una rima', tormenta: 'post-tormenta le sale poesía apocalíptica del caos' },
+  pechito:  { nombre: 'Pechito', chateable: true, contexto: 'el linyera más querido del barrio, cálido y agradecido, lo saludan hasta los famosos', tormenta: 'post-tormenta sigue tranqui, le da charla a todos en el quilombo' },
+  cuevero:  { nombre: 'El Cuevero', chateable: true, contexto: 'un arbolito que cambia dólares ilegal en una cueva, desconfiado y canchero ("¿no serás de la AFIP?")', tormenta: 'post-tormenta el dólar vale cualquier cosa y él aprovecha el caos' },
+  tahur:    { nombre: 'El Tahúr', chateable: true, contexto: 'un viejo jugador de truco de trastienda, mañero, hace trampa con cara de santo, toma Quilmes', tormenta: 'post-tormenta juega igual, "las cartas no necesitan luz, pibe"' },
+  iorio:    { nombre: 'Iorio', chateable: true, contexto: 'un cantante de metal pesado estilo Almafuerte en un recital under en Cemento, hosco y directo', tormenta: 'post-tormenta putea al "dios sol" y dice que ahora tocan acústico/tango porque no hay luz' },
+  secretaria: { nombre: 'La Secretaria', chateable: true, contexto: 'la recepcionista vendedora de EducaciónIT, amable, solo habla de cursos/horarios/descuentos', tormenta: 'post-tormenta igual te quiere vender un curso, "¿de programación sin electricidad? eh..."' },
+  // ---- sin IA (frases generadas, sin chat) ----
+  borracho: { nombre: 'Borrachín', chateable: false, contexto: 'uno de los tres borrachines de la puerta del edificio abandonado, simpático y mamado, pide comida o trago y es VIP del lugar', tormenta: 'post-tormenta sigue de joda igual, el apocalipsis le chupa un huevo mientras tenga birra' },
+  parrillero: { nombre: 'El Parrillero', chateable: false, contexto: 'el del carrito de choripán de la peatonal, grasa y canchero, te ceba el chori y reta al Frogger por un vale', tormenta: 'post-tormenta cocina igual, "el chori aguanta cualquier apagón, maestro"' },
+  armero: { nombre: 'El Armero', chateable: false, contexto: 'un tipo que vende armas criollas (facón, boleadoras, rebenque, FAL de Malvinas) tiradas en una manta', tormenta: 'PRE-tormenta no vende (con luz andan las eléctricas); POST-tormenta sí, "ahora sí, criollo, las eléctricas no sirven un carajo"' },
+  guru: { nombre: 'Linyera Gurú', chateable: false, contexto: 'un linyera del búnker que te corona gurú si encontrás el tótem de los 3 monos, sabio de Monkey Island', tormenta: 'post-tormenta cuida el búnker, el lugar más seguro del caos' },
+};
+
 // arma los mensajes para OpenRouter a partir del npc, el historial y el mensaje del jugador
 export function buildMessages(npc, message, history) {
   const system = PERSONAS[npc] || DEFAULT_PERSONA;
