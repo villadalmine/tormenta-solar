@@ -51,7 +51,7 @@ const Level = (() => {
     };
     for (const d of spec.doors || []) {
       const f = feet(d.x);
-      const door = { id: d.id, art: d.art, label: d.label, facade: d.facade, x: f.x, y: f.y, inward: d.inward, to: null, at: null, collapsesOnStorm: !!d.collapsesOnStorm };
+      const door = { id: d.id, art: d.art, label: d.label, facade: d.facade, x: f.x, y: f.y, inward: d.inward, to: null, at: null, collapsesOnStorm: !!d.collapsesOnStorm, gate: d.gate || null };
       room.doors.push(door); room.doorById[d.id] = door;
     }
     return room;
@@ -81,7 +81,7 @@ const Level = (() => {
           { id:'arcade',  art:'arcade',      facade:'arcade',      label:'entrar al arcade',     x:28, inward:1, collapsesOnStorm:true },
           { id:'choris',  art:'door',        facade:'choris',      label:'entrar a la chorería', x:46, inward:1, collapsesOnStorm:true },
           { id:'garbarino', art:'garbarino', facade:'garbarino',   label:'entrar a Garbarino',   x:58, inward:-1, collapsesOnStorm:true },
-          { id:'cemento', art:'cemento',     facade:'cemento',     label:'entrar a Cemento',     x:61, inward:-1 },
+          { id:'cemento', art:'cemento',     facade:'cemento',     label:'entrar a Cemento',     x:61, inward:-1, gate:{ item:'hasCementoTicket' } },
           { id:'galeria', art:'door',     facade:'galeria',     label:'bajar a la galería',   x:74, inward:-1 },
           { id:'cambio',  art:'cambio',      facade:'cambio',      label:'entrar a la casa de cambio', x:90, inward:-1 },
           { id:'abandonado', art:'abandonado', facade:'abandonado', label:'entrar al edificio abandonado', x:101, inward:-1 },
@@ -197,7 +197,7 @@ const Level = (() => {
         platforms: [[18,9,3]],
         doors: [
           { id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 },
-          { id:'secret', art:'exit', label:'seguir al tipo', x:22, inward:-1 },
+          { id:'secret', art:'exit', label:'seguir al tipo', x:22, inward:-1, gate:{ flag:'secretUnlocked' } },
         ],
         machines: [
           { name:'PAC-MAN',   game:'pacman',    x:6 },
@@ -276,7 +276,7 @@ const Level = (() => {
         doors: [
           { id:'up', art:'doorUp', label:'subir', x:3, inward:1 },
           { id:'vinilos', art:'disqueria', label:'entrar a la disquería', x:9, inward:-1 },
-          { id:'chinoback', art:'superchino', label:'entrar al chino por atrás', x:44, inward:-1 },
+          { id:'chinoback', art:'superchino', label:'entrar al chino por atrás', x:44, inward:-1, gate:{ flag:'stormed' } },
         ],
         npcs: [
           { name:'Cuevero sin clientes', sprite:'cuevero', x:6, action:'chat', persona:'cuevero',
@@ -421,7 +421,7 @@ const Level = (() => {
       const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar un piso', x:2, inward:1 }];
       if (n < 20) doors.push({ id:'up', art:'elevator', label:'subir un piso', x:w-3, inward:-1 });
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
-      if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1 });
+      if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1, gate:{ flag:'bunkerUnlocked' } });
       const spec = { name:'Edificio Abandonado — Piso ' + n + (lux ? ' · LUJO' : ' · ruina'),
         theme: lux ? 'lujo' : 'ruina', light: lux ? 1.0 : 0.42, w, doors };
       if (lux) {

@@ -141,6 +141,9 @@
             "facade": "cemento"
           },
           "x": 61,
+          "gate": {
+            "item": "hasCementoTicket"
+          },
           "label": "entrar a Cemento",
           "inward": -1,
           "link": {
@@ -1266,6 +1269,9 @@
             "type": "exit"
           },
           "x": 22,
+          "gate": {
+            "flag": "secretUnlocked"
+          },
           "label": "seguir al tipo",
           "inward": -1,
           "link": {
@@ -1969,6 +1975,9 @@
             "type": "superchino"
           },
           "x": 44,
+          "gate": {
+            "flag": "stormed"
+          },
           "label": "entrar al chino por atrás",
           "inward": -1
         },
@@ -5479,6 +5488,9 @@
             "type": "exit"
           },
           "x": 14,
+          "gate": {
+            "flag": "bunkerUnlocked"
+          },
           "label": "entrar al BÚNKER (secreto)",
           "inward": -1,
           "link": {

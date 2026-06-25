@@ -61,6 +61,7 @@ function entities(r, ri) {
     const e = pos({ id: roomId[ri] + '/door-' + slug(d.id), tipo: 'door', render: { type: d.art || 'door' } }, d.x, d.y);
     if (d.facade) e.render.facade = d.facade;
     if (d.collapsesOnStorm) e.collapsesOnStorm = true;   // F4: colapso por tormenta = atributo del modelo (ex COLLAPSED hardcode)
+    if (d.gate) e.gate = d.gate;                         // F4: gating declarativo (ex ifs por-id)
     if (d.label) e.label = d.label;
     if (d.inward != null) e.inward = d.inward;             // para reproducir el spawn al cruzar (wire)
     if (d.to != null) { e.link = { to: roomId[d.to] }; if (d.at) e.link.at = { x: tx(d.at.x), y: ty(d.at.y) }; }   // destino + spawn al cruzar

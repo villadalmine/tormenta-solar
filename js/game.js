@@ -220,10 +220,7 @@
     const pcx = player.x+player.w/2, pf = player.y+player.h;
     let best = null, bd = 52;
     for (const d of r.doors) {
-      if (d.id === 'secret' && !secretUnlocked) continue;
-      if (d.id === 'cemento' && !player.hasCementoTicket) continue;
-      if (d.id === 'bunker' && !bunkerUnlocked) continue;
-      if (d.id === 'chinoback' && !stormed) continue;   // la puerta trasera aparece con la tormenta
+      if (d.gate && !gateMet(d.gate)) continue;   // gating declarativo: puerta oculta hasta cumplir su `gate` (ex ifs por-id)
       // la puerta del tahúr SIEMPRE es interactuable: abierta si ganaste el truco, si no muestra la pista
       const dist = Math.hypot(pcx - d.x, pf - d.y);
       if (dist < bd) { bd = dist; best = { kind: 'door', d }; }
@@ -423,6 +420,22 @@
     hasMegaDrive:     v => { if (player) player.hasMegaDrive = v; },
     hasCementoTicket: v => { if (player) player.hasCementoTicket = v; },
   };
+  // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
+  const FLAG_GETTERS = {
+    stormed: () => stormed, bunkerUnlocked: () => bunkerUnlocked, secretUnlocked: () => secretUnlocked,
+    trucoWon: () => trucoWon, borrachosHappy: () => borrachosHappy, chinoFrontOpen: () => chinoFrontOpen,
+  };
+  // evalúa el componente `gate` de una puerta (cond declarativa: flag/item + all/any/not). Reemplaza los
+  // ifs por-id de visibilidad (secret/cemento/bunker/chinoback). Versión acotada del evalCond del SDD §6.96.
+  function gateMet(g) {
+    if (!g) return true;
+    if (g.item) return !!(player && player[g.item]);
+    if (g.flag) { const get = FLAG_GETTERS[g.flag]; return get ? !!get() : false; }
+    if (g.all) return g.all.every(gateMet);
+    if (g.any) return g.any.some(gateMet);
+    if (g.not) return !gateMet(g.not);
+    return true;
+  }
   function applyEdge(id, fallbackFlag) {
     const edges = (typeof Historia !== 'undefined' && Historia.edges) ? Historia.edges : [];
     const e = edges.find(x => x.id === id);
@@ -854,10 +867,7 @@
 
     // puertas
     for (const d of r.doors) {
-      if (d.id === 'secret' && !secretUnlocked) continue;
-      if (d.id === 'cemento' && !player.hasCementoTicket) continue;
-      if (d.id === 'bunker' && !bunkerUnlocked) continue;
-      if (d.id === 'chinoback' && !stormed) continue;
+      if (d.gate && !gateMet(d.gate)) continue;   // gating declarativo (ex ifs por-id) — render
       const img = Art.items[d.art] || Art.items.door;   // F4: el art YA es la key de Art (ex DOOR_ART)
       ctx.drawImage(img, d.x - cam.x - img.width/2, d.y - cam.y - img.height);
       // la puerta del tahúr: si todavía no le ganaste, queda CERRADA con un cartelito
