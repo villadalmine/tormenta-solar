@@ -118,6 +118,17 @@ function paidRoll() { const d = dayKey(); if (PAID.day !== d) PAID = { day: d, n
 function paidLeft() { return PAID_DAILY_CAP <= 0 ? 0 : Math.max(0, PAID_DAILY_CAP - paidRoll().n); }
 function paidHit() { paidRoll().n++; }
 
+// --- SUSCRIPCIÓN por CÓDIGO (suscripcion.md §9 F1) -----------------------------------
+// Entitlement MANUAL: códigos válidos por env SUB_CODES (+ POST /sub-codes con GEN_TOKEN en runtime).
+// Un código válido en el header X-Sub-Code → tier PAGO: salta el free y el cupo del free, va DIRECTO a la
+// cadena paga (SUB_MODELS) → siempre IA real rápida, sin pool. Email/DB/pago/key-por-código = fases que siguen.
+const SUB_CODES = new Set((process.env.SUB_CODES || '').split(',').map(s => s.trim()).filter(Boolean));
+const SUB_MODELS = (process.env.SUB_MODELS || 'gemma4-paid,claude-sonnet').split(',').map(s => s.trim()).filter(Boolean);
+const SUB_USAGE = {};                          // code(corto) -> count (volumen por código; cardinalidad = #códigos)
+const subShort = c => (c || '').slice(0, 12).replace(/[^a-zA-Z0-9_-]/g, '');
+const isSub = code => !!code && SUB_CODES.has(code);
+function subHit(code) { const k = subShort(code) || '-'; SUB_USAGE[k] = (SUB_USAGE[k] || 0) + 1; }
+
 // Log estructurado por request (JSON a stdout) → promtail/Loki. Acá SÍ va el detalle fino
 // (session-id, ip, npc, modelo, resultado) para cruzar "qué hace cada sesión/IP" sin inflar
 // la cardinalidad de Prometheus. Si la ip real llega (PROXY protocol), queda registrada igual.
@@ -199,15 +210,16 @@ async function read429(r) {
   } catch (e) { return { account: false, perDay: false, resetMs: 0 }; }
 }
 
-async function ask(messages) {
+async function ask(messages, opts = {}) {
   const deadline = Date.now() + UPSTREAM_TIMEOUT;        // presupuesto TOTAL (tope duro)
   let timedOut = false;
-  for (const model of activeChain()) {                   // cadena (auto-pilot F2 o estática): si el 1º no contesta, prueba el 2º
+  const chain = opts.sub ? SUB_MODELS : activeChain();   // SUB = cadena paga directa (pagó → sin tier free)
+  for (const model of chain) {                           // cadena: si el 1º no contesta, prueba el 2º
     const left = deadline - Date.now();
     if (left <= 500) break;                              // sin tiempo → cortar y caer a la línea temática
     const isPaid = PAID_MODELS.has(model);
-    // modelo PAGO sin presupuesto del día → saltarlo (no se gasta): el chat cae al pool del cliente
-    if (isPaid && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
+    // modelo PAGO sin presupuesto del día → saltarlo (los SUB no se capan: pagaron aparte)
+    if (!opts.sub && isPaid && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
     // free con la cuota de CUENTA agotada → no lo probamos (sería 429 seguro): derecho al pago/pool
     if (!isPaid && Date.now() < FREE_BLOCKED_UNTIL) { incAttempt(model, 'free_blocked'); continue; }
     const slice = Math.min(left, PER_MODEL_TIMEOUT);     // tope POR modelo (deja tiempo para el siguiente)
@@ -230,7 +242,7 @@ async function ask(messages) {
       if (!r.ok) { incAttempt(model, 'http_other'); throw new Error('OpenRouter ' + r.status); }
       const d = await r.json();
       const reply = d.choices?.[0]?.message?.content;
-      if (reply) { incAttempt(model, 'ok'); if (PAID_MODELS.has(model)) paidHit(); return { reply: reply.trim(), model }; }   // ← qué modelo ganó (si fue pago, descuenta del presupuesto)
+      if (reply) { incAttempt(model, 'ok'); if (!opts.sub && PAID_MODELS.has(model)) paidHit(); return { reply: reply.trim(), model }; }   // ← qué modelo ganó (si fue pago de free-user, descuenta del presupuesto)
       incAttempt(model, 'empty');                            // 200 pero sin texto → próximo modelo
     } catch (e) {
       clearTimeout(to);
@@ -245,8 +257,11 @@ async function ask(messages) {
 
 http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  // OJO: estos headers custom (X-Session-Id cupo, X-Sub-Code suscripción) DEBEN estar acá o el navegador
+  // bloquea el POST cross-origin en el preflight → el chat caía al pool. Es CORS, no el modelo.
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session-Id, X-Sub-Code');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Max-Age', '86400');   // cachea el preflight 1 día (menos OPTIONS)
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
   if (req.method === 'GET' && (req.url === '/health' || req.url === '/healthz')) { res.writeHead(200); return res.end('ok'); }   // probe k8s
   if (req.method === 'GET' && req.url === '/linyera-pool') {                       // pool de saturación (lo trae el cliente)
@@ -264,6 +279,26 @@ http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/ranking') {                            // F2: mejor/más-barato (juego/landing/Grafana)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' });
     return res.end(JSON.stringify({ autopilot: AUTOPILOT, chain: activeChain(), models: ranking(), updated: Date.now() }));
+  }
+  // suscripción: el cliente valida su código al pegarlo en Settings (no expone nada del backend)
+  if (req.method === 'GET' && req.url.startsWith('/sub-check')) {
+    const code = (req.headers['x-sub-code'] || '').toString();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ paid: isSub(code) }));
+  }
+  // emisión MANUAL de códigos (protegido por GEN_TOKEN). En runtime; persistencia real = DB (fase siguiente).
+  if (req.method === 'POST' && req.url === '/sub-codes') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 10000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(pb || '{}'); const code = (d.code || '').toString().trim();
+        if (!code) { res.writeHead(400); return res.end('no code'); }
+        if (d.revoke) SUB_CODES.delete(code); else SUB_CODES.add(code);
+        res.writeHead(200); res.end(JSON.stringify({ ok: true, codes: SUB_CODES.size }));
+      } catch (e) { res.writeHead(400); res.end('bad json'); }
+    });
+    return;
   }
   if (req.method === 'GET' && req.url === '/metrics') {                            // prometheus → Grafana
     const avg = M.durCount ? (M.durMsSum / M.durCount) : 0;
@@ -306,7 +341,13 @@ http.createServer((req, res) => {
       `# HELP tormenta_ai_daily_cap Cupo de chats/día por sesión\n# TYPE tormenta_ai_daily_cap gauge\ntormenta_ai_daily_cap ${DAILY_CAP}\n` +
       `# HELP tormenta_ai_free_blocked_seconds Segundos hasta que la cuota free de la CUENTA se libera (0 = free OK)\n# TYPE tormenta_ai_free_blocked_seconds gauge\ntormenta_ai_free_blocked_seconds ${Math.max(0, Math.round((FREE_BLOCKED_UNTIL - Date.now()) / 1000))}\n` +
       `# HELP tormenta_ai_unique_sessions_today Session-ids distintos vistos hoy (usuarios aprox)\n# TYPE tormenta_ai_unique_sessions_today gauge\ntormenta_ai_unique_sessions_today ${UNIQ.sids.size}\n` +
-      `# HELP tormenta_ai_unique_ips_today IPs remotas distintas vistas hoy (real con PROXY protocol)\n# TYPE tormenta_ai_unique_ips_today gauge\ntormenta_ai_unique_ips_today ${UNIQ.ips.size}\n`;
+      `# HELP tormenta_ai_unique_ips_today IPs remotas distintas vistas hoy (real con PROXY protocol)\n# TYPE tormenta_ai_unique_ips_today gauge\ntormenta_ai_unique_ips_today ${UNIQ.ips.size}\n` +
+      `# HELP tormenta_ai_sub_codes Códigos de suscripción válidos (pagos)\n# TYPE tormenta_ai_sub_codes gauge\ntormenta_ai_sub_codes ${SUB_CODES.size}\n`;
+    // volumen de chats por CÓDIGO de suscripción (suscripcion.md §9.3: quién consume más; cardinalidad = #códigos)
+    out += `# HELP tormenta_ai_sub_usage_total Chats servidos por código de suscripción\n# TYPE tormenta_ai_sub_usage_total counter\n`;
+    const subKeys = Object.keys(SUB_USAGE);
+    if (!subKeys.length) out += `tormenta_ai_sub_usage_total{code="-"} 0\n`;
+    for (const k of subKeys) out += `tormenta_ai_sub_usage_total{code="${k}"} ${SUB_USAGE[k]}\n`;
     // F2 ModelScorer: score/disponibilidad/latencia/precio por candidato + posición en la cadena (best/cheapest)
     const rk = ranking();
     out += `# HELP tormenta_ai_model_score Score del ModelScorer por candidato (mayor = mejor para rutear)\n# TYPE tormenta_ai_model_score gauge\n`;
@@ -364,13 +405,15 @@ http.createServer((req, res) => {
 
   const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?').split(',')[0].trim();
   const sid = (req.headers['x-session-id'] || '').toString().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64) || null;
+  const subCode = (req.headers['x-sub-code'] || '').toString().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+  const sub = isSub(subCode);            // tier PAGO: salta free + cupo, va directo a la cadena paga
   const key = sid || ip;                 // detrás del G4 la ip colapsa → llaveamos por session-id del cliente
   seenToday(sid, ip);                    // únicos del día (usuarios)
-  // ráfaga (12/min) → "pará un cacho" (no es el cupo del día, es anti-spam instantáneo)
+  // ráfaga (12/min) → "pará un cacho" (no es el cupo del día, es anti-spam instantáneo). Los SUB también
+  // (anti-abuso de la key), pero podríamos subirles el límite más adelante.
   if (!allowed(key)) { incChat('-', '-', 'ratelimited'); res.writeHead(429, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ reply: '“Pará, pará... dejame respirar un cacho y seguimos, ¿dale?” 😮‍💨' })); }
-  // CUPO DEL DÍA agotado → NO se llama al upstream (no se quema token): mensaje en personaje + upsell.
-  // capped:true → el cliente muestra esto (y puede abrir BYOK/suscripción), no cae al pool genérico.
-  if (dailyLeft(key) <= 0) {
+  // CUPO DEL DÍA agotado → mensaje + upsell. Los SUB NO se capan (pagaron) → se saltan este chequeo.
+  if (!sub && dailyLeft(key) <= 0) {
     incChat('-', '-', 'capped');
     res.writeHead(429, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({
@@ -385,16 +428,16 @@ http.createServer((req, res) => {
     let npc, message, history;
     try { ({ npc, message, history } = JSON.parse(body || '{}')); } catch (e) {}
     if (!message) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ reply: '“¿Eh? No te escuché, pibe.”' })); }
-    dailyHit(key);                      // cuenta este chat contra el cupo del día (sea IA o fallback)
+    if (sub) subHit(subCode); else dailyHit(key);   // sub → volumen por código; free → cupo del día
     M.requests++; const t0 = Date.now();
     const npcLbl = cleanLbl(npc, 24);
     try {
-      const { reply, model } = await ask(buildMessages(npc, message, history));
+      const { reply, model } = await ask(buildMessages(npc, message, history), { sub });
       const dt = Date.now() - t0; M.durMsSum += dt; M.durCount++;
       const be = backendOf(model);
-      incChat(model, be, 'ai'); obsLatency(model, be, dt / 1000);   // ← qué modelo/backend + latencia, por uso
-      reqLog({ sid, ip, npc: npcLbl, model, be, outcome: 'ai', ms: dt });   // cruce fino en Loki (qué hace cada sesión/ip)
-      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ reply }));
+      incChat(model, be, sub ? 'ai_sub' : 'ai'); obsLatency(model, be, dt / 1000);   // ← modelo/backend/tier + latencia
+      reqLog({ sid, ip, npc: npcLbl, model, be, outcome: sub ? 'ai_sub' : 'ai', code: sub ? subShort(subCode) : undefined, ms: dt });
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ reply, tier: sub ? 'paid' : 'free' }));
     } catch (e) {
       const outcome = e.timedOut ? 'timeout' : 'error';
       if (!e.timedOut) M.errors++;     // timeout ya contado en ask()

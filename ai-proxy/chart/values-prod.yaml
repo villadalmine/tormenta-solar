@@ -35,6 +35,9 @@ extraEnv:
   - { name: FLOOR_MODEL, value: "gemma4-free" }
   - { name: CHAIN_MAX, value: "4" }                 # 2 free + gemma4-paid + claude-sonnet (respaldo)
   - { name: PAID_IN_CHAIN, value: "2" }             # gemma4-paid (barato) primero, claude-sonnet de respaldo
+  # Suscripción (suscripcion.md §9 F1): un código válido → cadena paga directa (salta free+cupo). Los CÓDIGOS
+  # son SECRETOS → NO se commitean: van por --set 'extraEnv...' al deploy, o por POST /sub-codes (GEN_TOKEN).
+  - { name: SUB_MODELS, value: "gemma4-paid,claude-sonnet" }
 
 # expone el proxy por el cluster-gateway compartido (SNI passthrough desde el G4) con TLS LE prod
 gateway:

@@ -14,6 +14,14 @@ const AI = (() => {
     try { let s = localStorage.getItem('ts_sid'); if (!s) { s = (crypto.randomUUID ? crypto.randomUUID() : 's' + Date.now() + Math.random().toString(36).slice(2)); localStorage.setItem('ts_sid', s); } return s; }
     catch (e) { return null; }
   }
+  // suscripción: código que el jugador pega en Settings → se manda en cada chat (X-Sub-Code) → tier pago.
+  function subCode() { try { return (localStorage.getItem('ts_sub_code') || '').trim(); } catch (e) { return ''; } }
+  function setSubCode(c) { try { c ? localStorage.setItem('ts_sub_code', String(c).trim()) : localStorage.removeItem('ts_sub_code'); } catch (e) {} }
+  async function checkSub(code) {   // valida el código contra el proxy (Settings) → {paid}
+    if (!PROXY || typeof fetch !== 'function') return { paid: false, error: 'no-proxy' };
+    try { const r = await fetch(PROXY + '/sub-check', { headers: { 'X-Sub-Code': (code != null ? code : subCode()) } }); return r.ok ? await r.json() : { paid: false }; }
+    catch (e) { return { paid: false, error: e.message }; }
+  }
   const MAX_TRIES = 3;        // no probar más de N modelos por mensaje (no colgar)
   let byokDead = false;       // tras varios fallos seguidos → de ahí en más, líneas locales
   let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
@@ -307,6 +315,8 @@ const AI = (() => {
       const sid = sessionId();
       const headers = { 'Content-Type': 'application/json' };
       if (sid) headers['X-Session-Id'] = sid;     // el proxy llavea el cupo/día por esto (la IP colapsa tras el G4)
+      const sc = subCode();
+      if (sc) headers['X-Sub-Code'] = sc;         // suscripción: tier pago (salta free + cupo)
       const r = await fetch(PROXY, { method: 'POST', signal: ctrl.signal, headers,
         body: JSON.stringify({ npc, message, history: (history || []).slice(-8), grounding: grounding || undefined }) });
       clearTimeout(t);
@@ -363,9 +373,21 @@ const AI = (() => {
           ? T('ai.model.ok', { ms: res.ms, speed: res.ms < 3500 ? T('ai.speed.fast') : res.ms < 8000 ? T('ai.speed.ok') : T('ai.speed.slow') })
           : '✗ ' + res.error + (res.ms ? (' · ' + res.ms + ' ms') : ''));
       });
-      upd(); updModel();
+      // suscripción: pegar/activar el código → valida contra el proxy y muestra estado
+      const sci = document.getElementById('opt-subcode'), sst = document.getElementById('sub-status'), ssb = document.getElementById('opt-subsave');
+      const updSub = (txt) => { if (sst) sst.textContent = (txt != null) ? txt : (subCode() ? T('opt.subActive') : ''); };
+      if (sci) sci.value = subCode();
+      if (ssb) ssb.addEventListener('click', async () => {
+        const c = (sci && sci.value.trim()) || '';
+        setSubCode(c);
+        if (!c) { updSub(T('opt.subCleared')); return; }
+        updSub(T('opt.subChecking')); ssb.disabled = true;
+        const r = await checkSub(c); ssb.disabled = false;
+        updSub(r.paid ? T('opt.subActive') : T('opt.subInvalid'));
+      });
+      upd(); updModel(); updSub();
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, setStormed, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, setSubCode, getSubCode: subCode, checkSub, setStormed, get online() { return mode() !== 'offline'; } };
 })();
