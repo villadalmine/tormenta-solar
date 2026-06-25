@@ -29,6 +29,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-13] — 2026-06-25 — 🚀 `deploy/deploy.sh`: build + deploy + verify en un comando (mata el gotcha del genToken)
+
+Automatiza el deploy (F2 de `deploy-pipeline.md`). `deploy/deploy.sh <proxy|web> [tag]` hace **build (Kaniko) →
+helm upgrade → rollout → smoke** encapsulando todo lo que rompimos a mano esta sesión: release/ns/chart fijos por
+componente, `-f values-prod.yaml` SIEMPRE (sin `--reuse-values`), y el **genToken re-leído del release actual** y
+re-pasado con `--set` → **el 403 por token vacío no vuelve a pasar**. `DRY_RUN=1` valida el helm sin aplicar
+(probado proxy+web). Pre-requisito: pushear a `main` antes (el build clona main). F3 (Argo Events on-push) queda pendiente.
+
+---
+
 ## [docs] — 2026-06-25 — 📐 `cine-noticias.md` al día (archivo 7 días + guarda + regateo + TTS server)
 
 Sincroniza el SDD con lo implementado en v124→v129: §3.6 nueva (archivo de 7 días en PVC + el guarda con menú,

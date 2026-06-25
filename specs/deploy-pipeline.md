@@ -1,9 +1,11 @@
 # SDD — Pipeline de deploy con Argo Workflow (en vez de helm upgrade a mano)
 
-- **Estado:** Diseño (para implementar). Resuelve dolor real: ~12 `helm upgrade` a mano esta sesión, con
-  bugs recurrentes (el gotcha de `--reuse-values`, el typo de `schedules`, olvidar un `--set`).
+- **Estado:** **F1 + F2 (script) IMPLEMENTADOS** (`deploy/deploy.sh`, 2026-06-25). Resuelve el dolor real: ~16
+  `helm upgrade` a mano esta sesión, con bugs recurrentes (gotcha de `--reuse-values`/genToken vacío → 403, typo de
+  `schedules`, olvidar un `--set`, confundir release/ns). **F3 (Argo Events on-push) pendiente.**
 - **Última actualización:** 2026-06-25
-- **Relacionado:** `ai-proxy/kaniko-build.yaml` (build ya es Argo), `proxy-ia-deploy.md`, `web/kaniko-build.yaml`.
+- **Relacionado:** `deploy/deploy.sh` (el script), `ai-proxy/kaniko-build.yaml` (build Argo), `proxy-ia-deploy.md`,
+  `web/kaniko-build.yaml`, [[proxy-helm-gentoken]] (el gotcha que esto mata).
 
 ## 1. Objetivo
 
@@ -35,9 +37,19 @@ WorkflowTemplate "tormenta-deploy" (params: component=proxy|web, tag)
 
 ## 3. Fases
 
-1. **F1 HECHO** `ai-proxy/chart/values-prod.yaml` (committeado) + `helm upgrade -f values-prod.yaml --set image.tag=X --set linyeraPool.genToken=Y` (sin `--reuse-values`) → **gotcha muerto**. genToken via secret = mejora futura.
-2. **F2** WorkflowTemplate `tormenta-deploy` (build→upgrade→verify) + RBAC + imagen helm/kubectl. Disparo manual.
-3. **F3** Argo Events (webhook GitHub) → deploy automático on-push. Opcional: build solo si cambió el componente.
+1. **F1 ✅ HECHO** `values-prod.yaml` committeado + `helm upgrade -f values-prod.yaml` (sin `--reuse-values`).
+2. **F2 ✅ HECHO (script):** [`deploy/deploy.sh`](../deploy/deploy.sh) `<proxy|web> [tag]` hace **build (Kaniko) →
+   helm upgrade → rollout → smoke** en un comando. Encapsula lo que rompimos toda la sesión:
+   - **release/ns/chart/values fijos por componente** (proxy=`tormenta-ai`, web=`tormenta-web`, ambos ns `ai`).
+   - **`-f values-prod.yaml` SIEMPRE** (nunca `--reuse-values`).
+   - **genToken auto:** lo **re-lee del release actual** (`helm get values … | jq genToken`) y lo re-pasa con
+     `--set` → **mata el gotcha del 403** sin tipearlo ni crear un Secret.
+   - **`DRY_RUN=1`** valida el helm (`--dry-run`) sin buildear ni aplicar (probado proxy+web 2026-06-25).
+   - *(El `argo` CLI no está instalado → el build sigue por `kubectl create -f kaniko-build.yaml`, que el script hace.)*
+   - **Pre-requisito:** el código tiene que estar **pusheado a `main`** antes (el build clona main).
+3. **F3 (pendiente)** WorkflowTemplate `tormenta-deploy` in-cluster + **Argo Events** (webhook GitHub) → deploy
+   **automático on-push** (build solo del componente que cambió). El script (F2) ya da el 80% del valor manual;
+   F3 es el CI/CD real para cuando haya ritmo de cambios.
 
 ## 4. Mi lectura
 
