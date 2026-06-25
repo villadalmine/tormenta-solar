@@ -16,7 +16,7 @@ const TOKEN = process.env.GEN_TOKEN || '';
 // el pool de SATURACIÓN del chat es para los CHATEABLES (cuando la IA no contesta a tiempo, dicen una línea
 // de "pará que me distraje"). Se arma desde el ROSTER (contexto de cada uno) → fuente única, sin duplicar.
 const PERSONAS = Object.fromEntries(
-  Object.entries(ROSTER).filter(([, e]) => e.chateable).map(([k, e]) => [k, e.contexto])
+  Object.entries(ROSTER).map(([k, e]) => [k, e.contexto])
 );
 // rotamos micro-escenarios para que no converja siempre a la misma frase
 const SCENARIOS = [
