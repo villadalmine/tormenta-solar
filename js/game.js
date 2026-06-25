@@ -495,6 +495,8 @@
     thinking.remove();
     chatLine('npc', reply);
     chatHistory.push({ role: 'assistant', content: reply });
+    // métrica: ¿el chat dio IA real o cayó al pool? + con qué MOTOR (para ver tu "v1 chat no anda")
+    tel('chat', { engine: engineUsed, result: (typeof AI !== 'undefined' && AI.lastFallback && AI.lastFallback()) ? 'fallback' : (typeof AI !== 'undefined' && AI.lastSource ? AI.lastSource() : 'ai') });
     const mk = memKey(chatNpc); if (mk) oracleMem[mk] = chatHistory.slice(-12);   // guardá su memoria (cap 12 turnos)
     if (ground && typeof AI !== 'undefined' && AI.lastSource() === 'local') chatLine('npc', '💡 ' + ground.text);
     // si se cortó por TIMEOUT → mensaje TEMÁTICO (la tormenta saturó la electrónica del modelo)
@@ -1056,8 +1058,11 @@
   }
 
   // ---- loop ----
+  let lastBeat = 0, freezeReported = false;
   function loop(t) {
     if (!running) return;
+    lastBeat = (typeof performance !== 'undefined' ? performance.now() : Date.now());   // latido para el watchdog de freeze
+    if (freezeReported) freezeReported = false;                                          // se recuperó del freeze
     const dt = Math.min(0.04, (t - lastT)/1000) || 0; lastT = t;
     autosave(t);
     if (state === 'arcade' && arcadeGame) {
@@ -1126,6 +1131,13 @@
   // red de visibilidad: errores JS de runtime → beacon (con el tag del motor) para verlos en Grafana
   if (typeof window !== 'undefined' && window.addEventListener)
     window.addEventListener('error', e => { reportClientError('runtime: ' + (e && e.message), e && e.error); });
+  // WATCHDOG de FREEZE: si el loop se cuelga (gap > 5s con la pestaña visible) → reporta 'freeze' (caza "v2 se traba")
+  if (typeof setInterval !== 'undefined') setInterval(() => {
+    if (!running || freezeReported) return;
+    if (typeof document !== 'undefined' && document.hidden) return;          // pestaña en 2º plano no cuenta
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    if (lastBeat && now - lastBeat > 5000) { freezeReported = true; tel('freeze', { engine: engineUsed }); console.warn('[ts] freeze detectado (' + ((now - lastBeat)/1000 | 0) + 's) motor=' + engineUsed); }
+  }, 2500);
   document.addEventListener('keydown', e => {
     // ESC cierra el chat SIEMPRE (tenga o no el foco el input; si no, quedás trabado en state='chat')
     if (e.key === 'Escape' && state === 'chat') { e.preventDefault(); closeChat(); return; }

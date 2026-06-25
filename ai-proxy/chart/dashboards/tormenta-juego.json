@@ -66,6 +66,24 @@
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": { "defaults": { "unit": "percentunit" } },
       "targets": [ { "expr": "sum(increase(tormenta_game_events_total{event=\"win\"}[24h])) / clamp_min(sum(increase(tormenta_game_events_total{event=\"session\"}[24h])), 1)", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "Chat por MOTOR y resultado (ai vs fallback)", "gridPos": { "h": 7, "w": 12, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "custom": { "stacking": { "mode": "normal" } } } },
+      "targets": [ { "expr": "sum by (engine, result) (rate(tormenta_game_events_total{event=\"chat\"}[10m]))", "legendFormat": "{{engine}} {{result}}", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "% chat OK (ai / total) — 24h", "gridPos": { "h": 7, "w": 6, "x": 12, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 0.4 }, { "color": "green", "value": 0.7 } ] } } },
+      "targets": [ { "expr": "sum(increase(tormenta_game_events_total{event=\"chat\",result=~\"proxy|byok|ai\"}[24h])) / clamp_min(sum(increase(tormenta_game_events_total{event=\"chat\"}[24h])), 1)", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "Freezes por motor (6h) — \"se traba\"", "gridPos": { "h": 7, "w": 6, "x": 18, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
+      "targets": [ { "expr": "sum by (engine) (increase(tormenta_game_events_total{event=\"freeze\"}[6h]))", "legendFormat": "{{engine}}", "refId": "A" } ]
     }
   ]
 }

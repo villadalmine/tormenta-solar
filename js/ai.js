@@ -15,6 +15,7 @@ const AI = (() => {
   let _good = null;           // el último modelo que respondió bien → se usa primero (rápido)
   let lastSource = 'local';   // de dónde salió la última respuesta: 'proxy' | 'byok' | 'local'
   let lastTimedOut = false;   // la última vez se cortó por TIMEOUT (la "tormenta" saturó el modelo)
+  let lastFallback = false;   // la última respuesta NO fue IA real (cayó al pool local) → para métricas
   // default = un free CHICO y RÁPIDO (para el chat la velocidad importa más que el tamaño).
   // El user lo cambia en Opciones (ej. uno más grande/lindo si no le molesta esperar).
   const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free';   // el último que usamos y anduvo
@@ -134,6 +135,38 @@ const AI = (() => {
     return a[(Math.random() * a.length) | 0];
   };
 
+  // Pool de SATURACIÓN (Plan B, specs/resiliencia.md L2): cuando la IA está pero SATURADA (el modelo free no
+  // contesta a tiempo). En personaje, temático de la tormenta, VARIADO — sin decir "poné una API key" (no hace
+  // falta). Mucho mejor que una sola línea genérica repetida.
+  const SAT = {
+    filosofo: ['"Pará, pibe... la tormenta me comió la idea a mitad de camino. Tirámela de nuevo." ⚡',
+      '"El sol está jodiendo la señal del más allá. Dame un respiro y seguimos." ☀️',
+      '"Se me cortó el pensamiento como la luz en el \'89, che. Repetime." 🕯️'],
+    poeta: ['"...la rima se me fue con la ráfaga solar. Recitámela otra vez." 📜',
+      '"El verso quedó colgado en la tormenta, pibe. Dale de nuevo." 🎶'],
+    pechito: ['"Uh, se me trabó la lengua con el sol este. Contame de nuevo, tranqui." 🫶',
+      '"Pará que la tormenta me dejó sordo un toque... ¿qué decías?" ☀️'],
+    cuevero: ['"Shh... la señal se cayó con el apagón. Esperá un cacho y arreglamos, che." 💵',
+      '"Se cortó todo con la tormenta, pibe. Insistí en un rato." 🔌'],
+    tahur: ['"Pará la mano que el sol me barajó las ideas. Tirá de nuevo." 🃏',
+      '"Se me trabó el mazo con la tormenta, rookie. Repetí." 🎴'],
+    default: ['"...la tormenta solar me cortó. Dale de nuevo, pibe." ⚡', '"Se saturó todo con el sol. Esperá un toque y seguimos." ☀️'],
+  };
+  const SAT_EN = {
+    filosofo: ['"Hold on, kid... the storm ate my thought halfway. Throw it again." ⚡',
+      '"The sun\'s jamming the signal from the beyond. Give me a sec." ☀️'],
+    poeta: ['"...the rhyme blew away with the solar gust. Recite it again." 📜'],
+    pechito: ['"Whoa, the sun tied my tongue. Tell me again, easy." 🫶'],
+    cuevero: ['"Shh... signal dropped with the blackout. Hang on, che." 💵'],
+    tahur: ['"Hold up, the sun shuffled my thoughts. Deal again." 🃏'],
+    default: ['"...solar storm cut me off. Hit me again, kid." ⚡', '"Everything\'s jammed by the sun. Wait a sec." ☀️'],
+  };
+  const satLine = npc => {
+    const table = curLang() === 'en' ? SAT_EN : SAT;
+    const a = table[npc] || table.default;
+    return a[(Math.random() * a.length) | 0];
+  };
+
   function playerKey() { try { return (localStorage.getItem(KEY_LS) || '').trim(); } catch (e) { return ''; } }
   function setKey(k) { try { localStorage.setItem(KEY_LS, (k || '').trim()); } catch (e) {} byokDead = false; byokFails = 0; _good = null; _freeModels = null; }
 
@@ -229,14 +262,16 @@ const AI = (() => {
         body: JSON.stringify({ npc, message, history: (history || []).slice(-8), grounding: grounding || undefined }) });
       clearTimeout(t);
       if (!r.ok) return null;
-      const d = await r.json(); return d && d.reply ? String(d.reply).slice(0, 1200) : null;
+      const d = await r.json();
+      if (d && d.fallback) { lastTimedOut = true; return null; }   // el proxy saturó (línea genérica) → caemos a NUESTRO pool por persona
+      return d && d.reply ? String(d.reply).slice(0, 1200) : null;
     } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; return null; }
   }
 
   // PRIORIDAD: 1) proxy del dev (vos pagás) → 2) key del jugador (BYOK) → 3) líneas LOCALES
   // (las del script + hardcodeadas). Si la IA tarda/falla, cae a las locales y no te hace esperar más.
   async function chat(npc, message, history = [], grounding) {
-    lastTimedOut = false;
+    lastTimedOut = false; lastFallback = false;
     if (typeof fetch === 'function') {
       if (PROXY) { try { const r = await viaProxy(npc, message, history, grounding); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
       const key = playerKey();
@@ -246,8 +281,9 @@ const AI = (() => {
         if (++byokFails >= MAX_TRIES) { byokDead = true; console.warn('[ai] ' + byokFails + ' fallos seguidos → líneas locales por la sesión. Cambiá la key (o esperá) para reintentar.'); }
       }
     }
-    lastSource = 'local';
-    return canned(npc);   // LOCAL: sin IA, o si falló/tardó
+    lastSource = 'local'; lastFallback = true;
+    // SATURACIÓN (la IA está pero no contestó a tiempo) → pool temático; OFFLINE real → pool "poné una key"
+    return lastTimedOut ? satLine(npc) : canned(npc);
   }
 
   function mode() { return PROXY ? 'proxy' : (playerKey() && !byokDead ? 'byok' : 'offline'); }
@@ -277,5 +313,5 @@ const AI = (() => {
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, get online() { return mode() !== 'offline'; } };
 })();
