@@ -52,8 +52,11 @@ X?") y, cuando volvés y se la decís, te la **corroboran** (hackean a la IA): s
     openrouter NO se resumen** (son números/precios): se pushean *después* del loop de resumen para que el dato
     quede exacto. Si el resumen falla, queda el crudo.
 - **POST `/noticias`** al proxy (protegido por `GEN_TOKEN`, igual que `/precios` y `/linyera-pool`). El proxy
-  guarda el banco **en memoria** (`let NOTICIAS = []`, 1 réplica) y lo sirve: **`GET /noticias`** (JSON,
-  `Cache-Control: 300`). Se refresca cada corrida del cron.
+  **persiste el banco en JSON sobre el PVC** (`/data/noticias.json`, mismo patrón que `subs.json`): `saveNoticias()`
+  en cada POST + `loadNoticias()` al arrancar. **Por qué:** el cron corre 1×/día, así que sin persistir, cada
+  redeploy/restart dejaría el cine "sin señal" hasta las 9am. Lo sirve por **`GET /noticias`** (JSON,
+  `Cache-Control: 300`). El POST **sobrescribe** el banco entero (no acumula); un POST **vacío** (corrida fallida)
+  **no** lo borra (`empty-ignored`).
   - ⚠️ **Gotcha operativo (mordió en prod 2026-06-25):** `GEN_TOKEN` sale de `.Values.linyeraPool.genToken`, que
     es secreto (default `""`). Un `helm upgrade tormenta-ai ... --set image.tag=X` **SIN** `--set
     linyeraPool.genToken=<TOK>` lo resetea a vacío → el proxy devuelve **403** a TODO POST interno
