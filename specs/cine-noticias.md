@@ -240,3 +240,37 @@ grupo de Argentina** del Mundial. **NO se puede con fuente gratis/sin key** (ver
 - **El cine es del Nivel 1** (no content-pack) — 7 pisos data-driven en `levels/nivel-1.json`.
 - **Pendientes** (no bloquean): precios exactos de consolas (eBay/Marktplaats con key), `NEWS_SPORTS` activado para
   resultados de fútbol, y eventualmente más pisos/topics como content-pack de "temporada".
+
+## 9. Quest del MUNDIAL — los dos hinchas + el guarda (idea del dueño 2026-06-26, NO implementado)
+
+En el **piso Deportes/Mundial** hay **dos hinchas** parados (NPCs **con IA**, chateables). El loop:
+1. Les hablás → te preguntan **"¿sabés cómo salió [equipo random que jugó el Mundial]?"** (un equipo al azar de los
+   que **realmente jugaron**). Vos **no sabés** (no se te dio el dato).
+2. Vas al **guarda** y le pedís ese resultado → el guarda **te cambia la pantalla en el momento** con el partido de
+   ese equipo. Lo leés.
+3. Volvés a los hinchas → te **agradecen** (quest cumplida). **En el momento que lo activás con el guarda, uno de
+   los hinchas ya se te arrima a dar las gracias** (el NPC "entiende el entorno mediante los grafos" → grounding:
+   sabe que conseguiste el dato porque el estado/flag cambió).
+4. Si volvés a hablarles, **pasa lo mismo** (repetible, otro equipo). **Al salir del piso/cine, todo vuelve como
+   estaba** (estado efímero por visita, como `cineArchive`).
+
+### 9.1 Requisito de datos (clave)
+- Los hinchas tienen que **saber TODOS los resultados** de los equipos que jugaron el Mundial → hay que **poblar
+  todos los partidos una vez al día y guardarlos** (no solo el último). **Fuente: ESPN** `…/fifa.world/scoreboard`
+  (da todos los `events` con marcador) — o `eventsseason`/por fecha. Persistir como un **mapa equipo→último
+  resultado** (o lista de partidos) en el banco (PVC), junto a `mundial-tabla`/`mundial-goleadores`.
+- Endpoint sugerido: `GET /mundial` → `{ partidos:[{home,away,score,date}], porEquipo:{ "Argentina":"2-1 vs X" } }`.
+  El cron lo llena 1×/día (o 3×, ya hay schedule múltiple). El guarda y los hinchas leen de ahí (grounding).
+
+### 9.2 Cómo encaja con lo que ya hay
+- **Guarda** (ya existe, `openGuarda`): se le agrega "mostrar el resultado de un equipo" → set `cineArchive`-like
+  o un `cineMatch` que la pantalla dibuja. Ya cambia la pantalla; acá la cambia a un **partido puntual**.
+- **NPCs IA + grounding por grafo** (Mensajero/historia-grafo): a los hinchas se les inyecta el equipo pedido + el
+  resultado real (server-side) → preguntan y agradecen **en personaje**, sin inventar. El "ya sabe que cumpliste"
+  = un **flag** (`mundialQuest = {equipo, resultado, done}`) que el grafo lee.
+- **Estado efímero**: `mundialQuest` se resetea al salir (como `cineArchive`/`guardaAsk`).
+
+### 9.3 Pendiente de definir con el dueño
+- ¿Recompensa? (caramelos/monedas como el quest del oráculo §4). · ¿Los dos hinchas son uno que pregunta y otro que
+  agradece, o ambos? · ¿El guarda cobra por este "favor" o es gratis (es parte de la quest)? · ¿Verificación al
+  reportar, o alcanza con haber abierto el dato en el guarda (el flag)?
