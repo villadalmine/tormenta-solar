@@ -133,6 +133,7 @@ const AUTOPILOT = /^(1|true|on|yes)$/i.test(process.env.AUTOPILOT || '');
 const FLOOR = (process.env.FLOOR_MODEL || MODELS[0] || '').trim();    // modelo que NUNCA puede faltar de la cadena
 const CHAIN_TTL = +process.env.CHAIN_TTL_MS || 60000;                 // histéresis: no recalcular más de 1×/min
 const CHAIN_MAX = +process.env.CHAIN_MAX || 3;                        // tope de largo (presupuesto de tiempo)
+const PAID_IN_CHAIN = +process.env.PAID_IN_CHAIN || 1;               // cuántos pagos entran al final (cheap-first + premium de respaldo)
 function priceOf(m) {                                                 // US$/token (prompt+completion); free → 0
   const p = OR_PRICES[m];                                             // best-effort (match directo por model_name)
   return p ? (+p.prompt || 0) + (+p.completion || 0) : 0;
@@ -156,12 +157,11 @@ function buildChain() {
   const free = stats.filter(s => !s.paid).sort((a, b) => b.score - a.score).map(s => s.model);   // mejor-disponible primero
   if (FLOOR && !PAID_MODELS.has(FLOOR) && !free.includes(FLOOR)) free.push(FLOOR);                // PISO: nunca falta
   const paid = stats.filter(s => s.paid).sort((a, b) => a.price - b.price).map(s => s.model);     // pago: más barato primero
-  // Reservo el ÚLTIMO slot para la RED PAGA (si hay): así el pago siempre cierra la cadena (candado B),
-  // y el resto del presupuesto va a los free mejor-rankeados. Si no hay pago, todo free.
-  const nFree = paid.length ? Math.max(1, CHAIN_MAX - 1) : CHAIN_MAX;
-  const chain = free.slice(0, nFree);
-  if (paid.length) chain.push(paid[0]);
-  return chain;
+  // Reservo los ÚLTIMOS slots para la RED PAGA (hasta PAID_IN_CHAIN): el pago cierra la cadena (candado B),
+  // más barato primero (gemma4-paid) y un premium de respaldo (claude-sonnet). El resto va a los free.
+  const nPaid = Math.min(paid.length, PAID_IN_CHAIN);
+  const nFree = Math.max(1, CHAIN_MAX - nPaid);
+  return [...free.slice(0, nFree), ...paid.slice(0, nPaid)].slice(0, CHAIN_MAX);
 }
 function activeChain() {                                              // la que usa ask()
   if (!AUTOPILOT) return MODELS;                                      // override: cadena estática AI_MODEL

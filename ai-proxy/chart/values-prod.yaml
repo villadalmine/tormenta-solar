@@ -15,25 +15,26 @@ auth:
   existingSecretKey: apiKey
 
 upstream:
-  # cadena del chat: free primero (gemma4-free, $0 cuando hay cupo) → RED PAGA (cheap) cuando el free se
-  # agota (429). gpt-oss-free salía (sólo timeouteaba 4s y gastaba presupuesto), lo sacamos. El pago sólo
-  # se llama si el free falla Y queda presupuesto pago del día (PAID_DAILY_CAP).
-  model: gemma4-free,cheap
+  # cadena del chat: free primero (gemma4-free, $0 cuando hay cupo) → RED PAGA cuando el free se agota.
+  # Red paga = gemma4-paid (gemelo EXACTO del free, rápido/no-reasoning, $0.47/1M, SIN límite diario) con
+  # claude-sonnet de respaldo premium. cheap (deepseek-v4-flash) salió: era reasoning → lento 9s.
+  model: gemma4-free,gemma4-paid,claude-sonnet
 
 # timeouts (el pago tarda 5-7s → presupuesto más amplio) + cupo/día por sesión + tope DURO de gasto pago
 extraEnv:
-  - { name: UPSTREAM_TIMEOUT_MS, value: "9500" }    # presupuesto TOTAL (el cliente espera 11s)
-  - { name: PER_MODEL_TIMEOUT_MS, value: "8000" }   # el pago necesita ~7s; gemma4-free 429ea al toque
+  - { name: UPSTREAM_TIMEOUT_MS, value: "10500" }   # presupuesto TOTAL (el cliente espera 11s)
+  - { name: PER_MODEL_TIMEOUT_MS, value: "9500" }   # el pago (cheap) tarda 5-8s → 9.5s para que ENTRE; gemma 429ea al toque
   - { name: DAILY_CAP, value: "40" }                # chats/día por sesión (anti-DoS honesto)
-  - { name: PAID_MODELS, value: "cheap,paid-final" }# qué model_names cuestan plata
+  - { name: PAID_MODELS, value: "gemma4-paid,claude-sonnet,cheap,paid-final" }  # qué model_names cuestan plata
   - { name: PAID_DAILY_CAP, value: "600" }          # tope DURO: respuestas pagas/día (todos los users)
   # F2 ModelScorer (auto-pilot "más barato-bueno"): cruza disponibilidad+latencia+precio reales y arma la
   # cadena sola. CANDIDATES = pool free (varios, así si gemma4-free se satura, otro free responde) + el pago
   # entra solo como red (último). FLOOR = piso que nunca falta. CHAIN_MAX 3 = 2 free + 1 pago.
   - { name: AUTOPILOT, value: "1" }
-  - { name: CANDIDATES, value: "gemma4-free,gpt-oss-free,llama70b-free,kimi-free,cheap" }
+  - { name: CANDIDATES, value: "gemma4-free,gpt-oss-free,llama70b-free,kimi-free,gemma4-paid,claude-sonnet" }
   - { name: FLOOR_MODEL, value: "gemma4-free" }
-  - { name: CHAIN_MAX, value: "3" }
+  - { name: CHAIN_MAX, value: "4" }                 # 2 free + gemma4-paid + claude-sonnet (respaldo)
+  - { name: PAID_IN_CHAIN, value: "2" }             # gemma4-paid (barato) primero, claude-sonnet de respaldo
 
 # expone el proxy por el cluster-gateway compartido (SNI passthrough desde el G4) con TLS LE prod
 gateway:
