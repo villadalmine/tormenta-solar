@@ -1,0 +1,22 @@
+# values-prod.yaml — valores de PRODUCCIÓN del juego self-host (tormenta-web).
+# Deploy SIEMPRE así (sin --reuse-values, que dropea defaults y renombró/rompió el deploy):
+#   helm upgrade tormenta-web web/chart -n ai -f web/chart/values-prod.yaml --set image.tag=<TAG>
+fullnameOverride: tormenta-web        # OJO: sin esto el deploy se llama tormenta-web-tormenta-web y rompe
+
+image:
+  repository: registry.registry:5000/ai/tormenta-solar-web
+  tag: ""                             # SIEMPRE pasar --set image.tag=<X>
+
+# expone el juego por el cluster-gateway compartido (SNI passthrough desde el G4) con TLS LE prod
+gateway:
+  enabled: true
+  ensureListener:
+    enabled: true
+  host: tormenta-solar.cybercirujas.club
+  tls:
+    enabled: true
+    issuer: letsencrypt-prod
+
+# el registry interno solo resuelve en nodos rk1
+nodeSelector:
+  kubernetes.io/hostname: srv-rk1-nvme-01
