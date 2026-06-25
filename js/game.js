@@ -81,8 +81,42 @@
     try { if ((location.search || '').indexOf('engine=v2') >= 0) return true; } catch (e) {}
     try { return localStorage.getItem('ts_engine') === 'v2'; } catch (e) { return false; }
   }
+  let engineUsed = 'v1';
+  // Reporta un error del cliente al beacon (window.ERR_BEACON) si está configurado. Best-effort, sin PII.
+  // Apagado por defecto (sin endpoint = no-op). Tag con el motor para distinguir fallas de v2 vs v1.
+  function tel(name, labels) { try { if (typeof Telemetry !== 'undefined') Telemetry.event(name, labels); } catch (e) {} }
+  function telOnce(key, name, labels) { try { if (typeof Telemetry !== 'undefined') Telemetry.once(key, name, labels); } catch (e) {} }
+  function reportClientError(msg, err) {
+    try {
+      console.warn('[ts] ' + msg, err || '');
+      tel('error', { engine: engineUsed });
+      const url = (typeof window !== 'undefined') && window.ERR_BEACON;
+      if (!url || typeof fetch === 'undefined') return;
+      const body = JSON.stringify({ msg: String(msg).slice(0, 300), engine: engineUsed,
+        stack: err && err.stack ? String(err.stack).slice(0, 600) : '', ua: (navigator && navigator.userAgent || '').slice(0, 160), ts: Date.now() });
+      if (navigator && navigator.sendBeacon) navigator.sendBeacon(url, body);
+      else fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+    } catch (e) {}
+  }
+  // Construye el mundo con RED DE SEGURIDAD: si v2 (data-driven) falla o sale degenerado, cae solo a v1.
+  function buildRooms() {
+    if (useV2()) {
+      try {
+        const r = Mundo.fromModel(window.LEVEL1);
+        if (Array.isArray(r) && r.length >= 30) { engineUsed = 'v2'; return r; }   // sanity: tiene que dar el nivel entero
+        throw new Error('v2 build degenerado (' + (r && r.length) + ' salas)');
+      } catch (e) {
+        engineUsed = 'v1-fallback';
+        reportClientError('motor v2 falló al construir → fallback a v1: ' + (e && e.message), e);
+        tel('engine_fallback', { engine: 'v2' });
+        return Level.build();                                                       // self-heal: el jugador sigue jugando en v1
+      }
+    }
+    engineUsed = 'v1';
+    return Level.build();
+  }
   function reset() {
-    rooms = useV2() ? Mundo.fromModel(window.LEVEL1) : Level.build();   // motor v2 (data-driven) detrás del toggle; default v1
+    rooms = buildRooms();   // v2 (data-driven) con auto-fallback a v1 si falla; default v1
     states = rooms.map(r => ({
       enemies: r.enemies.map(Enemies.create),
       pickups: r.pickups.map(p => ({ ...p, taken: false })),
@@ -638,6 +672,7 @@
   function triggerStorm() {
     if (stormed) return;
     applyEdge('tormenta', 'stormed');
+    telOnce('storm', 'storm');
     Sfx.stormBoom(); Sfx.startHum();
     shakeUntil = performance.now() + 900;
     for (const s of states) for (const e of s.enemies) e.hostile = true;
@@ -1000,6 +1035,7 @@
   function win() {
     if (state === 'win') return;
     state = 'win'; running = false; Sfx.stopHum(); Sfx.stopAmbient(); Sfx.win();
+    tel('win', { engine: engineUsed });
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // terminaste: borrá el guardado
     elEndTitle.textContent = T('g.win.title'); elEndTitle.style.color = '#4FC3F7';
     elEndText.innerHTML = T('g.win.text'); renderStats(true);
@@ -1008,6 +1044,7 @@
   function die() {
     if (state === 'dead') return;
     state = 'dead'; running = false; Sfx.stopHum(); Sfx.stopAmbient();
+    tel('death', { engine: engineUsed });
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // moriste de verdad: guardado a la basura
     elEndTitle.textContent = T('g.die.title'); elEndTitle.style.color = '#ff5252';
     elEndText.innerHTML = T('g.die.text'); renderStats(false);
@@ -1031,6 +1068,7 @@
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         if (res === 'win' && (kind === 'pacman' || kind === 'galaga' || kind === 'frogger')) arcadeWon[kind] = true;
         if (kind === 'truco') {
+          tel('truco', { result: res });
           if (res === 'win') {
             player.flores = (player.flores || 0) + flores;   // ganar el truco da FLORES (sink: cabarulo)
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
@@ -1075,6 +1113,7 @@
   }
   function start() {
     reset();
+    tel('session', { engine: engineUsed, lang: (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es' });   // ¿cuántos en v1 vs v2?
     if (typeof Mensajero !== 'undefined') Mensajero.init({ state: historiaState, at: currentAt });   // cablea el cerebro (grafo)
     elIntro.classList.add('hidden'); elEnd.classList.add('hidden');
     elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
@@ -1084,6 +1123,9 @@
   }
 
   Input.bind(canvas);
+  // red de visibilidad: errores JS de runtime → beacon (con el tag del motor) para verlos en Grafana
+  if (typeof window !== 'undefined' && window.addEventListener)
+    window.addEventListener('error', e => { reportClientError('runtime: ' + (e && e.message), e && e.error); });
   document.addEventListener('keydown', e => {
     // ESC cierra el chat SIEMPRE (tenga o no el foco el input; si no, quedás trabado en state='chat')
     if (e.key === 'Escape' && state === 'chat') { e.preventDefault(); closeChat(); return; }

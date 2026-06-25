@@ -1,0 +1,71 @@
+{
+  "title": "Tormenta Solar — El Juego (uso, motor v1/v2, funnel)",
+  "uid": "tormenta-juego",
+  "tags": ["tormenta-solar", "juego", "gameplay"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": {
+    "list": [
+      { "name": "datasource", "type": "datasource", "query": "prometheus", "current": {}, "hide": 0, "label": "Datasource" }
+    ]
+  },
+  "panels": [
+    {
+      "type": "piechart", "title": "Sesiones por MOTOR (v1 vs v2) — 24h", "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "sum by (engine) (increase(tormenta_game_events_total{event=\"session\"}[24h]))", "legendFormat": "{{engine}}", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "Sesiones / hora", "gridPos": { "h": 7, "w": 10, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "sum(rate(tormenta_game_events_total{event=\"session\"}[10m])) * 3600", "legendFormat": "sesiones/h", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "Auto-fallbacks v2→v1 (6h)", "gridPos": { "h": 7, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
+      "targets": [ { "expr": "sum(increase(tormenta_game_events_total{event=\"engine_fallback\"}[6h]))", "refId": "A" } ]
+    },
+    {
+      "type": "timeseries", "title": "Errores JS por motor (5m)", "gridPos": { "h": 7, "w": 12, "x": 0, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "custom": { "stacking": { "mode": "normal" } } } },
+      "targets": [ { "expr": "sum by (engine) (rate(tormenta_game_events_total{event=\"error\"}[5m]))", "legendFormat": "{{engine}}", "refId": "A" } ]
+    },
+    {
+      "type": "piechart", "title": "Truco (ganados / perdidos) — 24h", "gridPos": { "h": 7, "w": 6, "x": 12, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "sum by (result) (increase(tormenta_game_events_total{event=\"truco\"}[24h]))", "legendFormat": "{{result}}", "refId": "A" } ]
+    },
+    {
+      "type": "piechart", "title": "Idioma (es / en) — 24h", "gridPos": { "h": 7, "w": 6, "x": 18, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "sum by (lang) (increase(tormenta_game_events_total{event=\"session\"}[24h]))", "legendFormat": "{{lang}}", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "Tormenta disparada (24h)", "gridPos": { "h": 6, "w": 6, "x": 0, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [ { "expr": "sum(increase(tormenta_game_events_total{event=\"storm\"}[24h]))", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "Muertes (24h)", "gridPos": { "h": 6, "w": 6, "x": 6, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "orange", "mode": "fixed" } } },
+      "targets": [ { "expr": "sum(increase(tormenta_game_events_total{event=\"death\"}[24h]))", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "Nivel completado / WIN (24h)", "gridPos": { "h": 6, "w": 6, "x": 12, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "green", "mode": "fixed" } } },
+      "targets": [ { "expr": "sum(increase(tormenta_game_events_total{event=\"win\"}[24h]))", "refId": "A" } ]
+    },
+    {
+      "type": "stat", "title": "% que termina (win / sesión, 24h)", "gridPos": { "h": 6, "w": 6, "x": 18, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [ { "expr": "sum(increase(tormenta_game_events_total{event=\"win\"}[24h])) / clamp_min(sum(increase(tormenta_game_events_total{event=\"session\"}[24h])), 1)", "refId": "A" } ]
+    }
+  ]
+}

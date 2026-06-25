@@ -43,6 +43,17 @@ function obsLatency(model, backend, sec) {
   for (let i = 0; i < LAT_BUCKETS.length; i++) { if (sec <= LAT_BUCKETS[i]) { h.c[i] += 1; placed = true; break; } }
   if (!placed) h.inf += 1;
 }
+// Métricas de USO DEL JUEGO (telemetría del cliente, agregada, SIN PII). Labels acotados por whitelist
+// para que no explote la cardinalidad. Sirve para "¿cuántos en v1 vs v2?" + funnel (storm/truco/win/death).
+const GAME = {};                          // 'event="..",engine="..",result="..",lang=".."' -> count
+const GAME_EVENTS = new Set(['session', 'storm', 'truco', 'death', 'win', 'error', 'engine_fallback', 'chat']);
+const cleanLbl = (v, max) => String(v == null ? '' : v).replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, max || 16);
+function incGame(ev) {
+  const e = cleanLbl(ev && ev.e, 24);
+  if (!GAME_EVENTS.has(e)) return;        // solo eventos conocidos (anti-cardinalidad / anti-abuso)
+  const k = `event="${e}",engine="${cleanLbl(ev.engine)}",result="${cleanLbl(ev.result)}",lang="${cleanLbl(ev.lang, 4)}"`;
+  GAME[k] = (GAME[k] || 0) + 1;
+}
 const MODEL_ENV = process.env.AI_MODEL || process.env.OPENROUTER_MODEL;
 const MODELS = MODEL_ENV ? MODEL_ENV.split(',').map(s => s.trim()).filter(Boolean) : [
   'meta-llama/llama-3.3-70b-instruct:free',
@@ -121,8 +132,23 @@ http.createServer((req, res) => {
       out += `tormenta_ai_chat_latency_seconds_sum{${lbl}} ${h.sum.toFixed(3)}\n`;
       out += `tormenta_ai_chat_latency_seconds_count{${lbl}} ${h.n}\n`;
     }
+    // uso del JUEGO (engine v1/v2, storm, truco, death, win, error...)
+    out += `# HELP tormenta_game_events_total Eventos de uso del juego (engine v1/v2 + funnel)\n# TYPE tormenta_game_events_total counter\n`;
+    const gameKeys = Object.keys(GAME);
+    if (!gameKeys.length) out += `tormenta_game_events_total{event="none",engine="",result="",lang=""} 0\n`;
+    for (const k of gameKeys) out += `tormenta_game_events_total{${k}} ${GAME[k]}\n`;
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     return res.end(out);
+  }
+  // ingest de telemetría del juego (cliente → proxy). Acotado: máx 50 eventos por request, body chico.
+  if (req.method === 'POST' && req.url === '/game-metrics') {
+    let gb = '';
+    req.on('data', c => { gb += c; if (gb.length > 16000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(gb || '{}'); if (Array.isArray(d.events)) for (const ev of d.events.slice(0, 50)) incGame(ev); } catch (e) {}
+      res.writeHead(204); res.end();
+    });
+    return;
   }
   if (req.method !== 'POST') { res.writeHead(405); return res.end('POST'); }
 
