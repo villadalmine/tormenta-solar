@@ -14,6 +14,19 @@
 - ✅ **El JUGADOR ve SU consumo** (proxy 0.1.20): `GET /my-sub` (auth = su propio código, sin GEN_TOKEN) →
   solo lo suyo (usage/limit/expiresAt). En ⚙ Opciones → Suscripción muestra "✓ activa · usaste $X de $Y · vence
   en Zd". Personal a la sesión con el token validado (ai.js `mySub()`).
+
+> **⚠️ BUG CONOCIDO a investigar (2026-06-25):** el consumo (`/my-sub`) **no aparece en GitHub Pages**
+> (`villadalmine.github.io`) ni en incógnito, PERO **el chat SÍ anda ahí** (el POST al proxy funciona) y en el
+> **self-host SÍ se muestra** el consumo. Mismo código (v114) en los dos lados → no es caché ni el código.
+> Raro: el chat (POST con `X-Session-Id`+`X-Sub-Code`) llega, pero el `GET /my-sub` (mismo proxy, mismo header)
+> no se ve. **Diagnóstico pendiente** — correr en la consola (F12) de la pestaña de GitHub:
+> ```js
+> fetch('https://llm-tormenta-solar.cybercirujas.club/my-sub',{headers:{'X-Sub-Code':AI.getSubCode()}}).then(r=>r.text()).then(t=>alert('code='+AI.getSubCode()+'\nmy-sub='+t)).catch(e=>alert('ERROR: '+e))
+> ```
+> Árbol: `code` vacío → no se guardó · `ERROR/Failed to fetch` → CORS/red bloquea el GET (raro, el POST anda) ·
+> `{"paid":false}` → el proxy no reconoce el código desde ese origen · `{"paid":true,"usage":...}` → el dato
+> llega → es **bug del display** en `ai.js` (`showSub`/`fmtSub`). Sospecha principal: el display, o un preflight
+> CORS del GET que el POST no dispara igual.
 - **Operación hoy (pseudo-manual):** el dueño dispara `POST /provision {email,limit}` (1 comando) y manda el
   código por mail **a mano**. Detalle en §9.0 / §9.6 y en `ai-proxy/README.md`.
 
