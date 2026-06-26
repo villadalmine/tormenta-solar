@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v178] — 2026-06-26 — 📄 Página /info y /tech ACTUALIZADA con todas las mejoras (motor, máquina de niveles, dólares, resiliencia)
+
+La página de presentación ahora SÍ muestra lo que nos hace distintos de un juego normal. **`info/tech.html`**
+(+EN): 4 capas nuevas → 🎮 motor data-driven (entidades+componentes, paridad v1≡v2, registros), 🏭 la máquina de
+niveles por IA + la RED de jugabilidad (validador formal: solo niveles jugables llegan), 🔮 niveles a tu medida
+(la IA usa tu memoria/charlas), 🛡️ resiliencia (GPU caída → estático al toque, circuit breaker). **`info/index.html`**
+(+EN): 3 cards nuevas (niveles que crea la IA, disparás dólares/cámaras/AFIP, siempre vivo y resiliente). HTML
+balanceado verificado.
+
+---
+
 ## [v177] — 2026-06-26 — 🛡️ Resiliencia GPU: circuit breaker (si se cae la IA, modo estático al toque, NO se cuelga) + docs
 
 Premisa del dueño: *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático"*. Agregado

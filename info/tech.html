@@ -261,6 +261,56 @@
       </div>
     </div>
 
+    <div class="layer">
+      <div class="n">🎮</div>
+      <div class="body">
+        <h3>El motor del juego — data-driven (todo es un objeto)</h3>
+        <p>El juego no está "hardcodeado": corre desde un <b>modelo de datos</b> (un JSON del nivel) que un loader
+        convierte en salas. Las cosas son <b>entidades + componentes</b> (interactuar, combatir, ser cartel, tener
+        memoria, tener grafo social). Un nivel nuevo = <b>cambiar datos, no código</b>. Hay un <b>test de paridad</b>
+        que garantiza que el motor data-driven da <b>exactamente lo mismo</b> que la versión vieja. El despacho es por
+        <b>registros</b> (verbo→handler), sin <code>if/else</code> gigantes; hasta el balance es dato.</p>
+        <div class="tagrow"><span>entidades + componentes</span><span>schema validado</span><span>paridad v1≡v2</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🏭</div>
+      <div class="body">
+        <h3>La máquina de niveles por IA + la RED de jugabilidad</h3>
+        <p>Te colás a la trastienda del chino y <b>se GENERA un nivel</b> que corre en <b>el motor de verdad</b>
+        (saltás, hay enemigos, cámara, art real). La parte interesante: la IA puede proponer mil layouts, pero
+        <b>solo los jugables llegan</b>. Hay un <b>validador formal</b> (la "red") que chequea que el nivel sea
+        transitable (puertas no tapadas, salida alcanzable) <b>antes</b> de cargarlo; si no pasa, se re-pide o se
+        auto-repara. Anécdota: la red <b>caza hasta un bug que metió un humano</b> (y queda como test de regresión).</p>
+        <div class="tagrow"><span>generación procedural</span><span>+ IA</span><span>+ validación formal</span><span>= sin niveles rotos</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🔮</div>
+      <div class="body">
+        <h3>Niveles a tu medida — la IA usa lo que sabe de vos</h3>
+        <p>Los linyeras-oráculo chatean con IA y <b>tienen memoria</b>: se acuerdan de lo que hablaste. Con eso, el
+        oráculo puede <b>inventarte un nivel a medida</b> de lo que parecés querer (te junta tus charlas y la IA arma
+        el tema, las frases y hasta elige la estructura). <b>Tu memoria → el mundo generado.</b> Además los NPC saben
+        del ecosistema (tu progreso, los carteles, el Mundial) y chusmean entre ellos por un <b>grafo social</b>.</p>
+        <div class="tagrow"><span>memoria por NPC</span><span>grounding del mundo</span><span>nivel personalizado</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🛡️</div>
+      <div class="body">
+        <h3>Si la GPU se cae, no se cae el juego — modo estático al toque</h3>
+        <p>Toda feature de IA <b>degrada a estático</b> cuando el fierro (la GPU/los modelos) no está. Hay un
+        <b>circuit breaker</b>: si una llamada falla o tarda, se abre el circuito un rato y todo cae a contenido
+        estático <b>al instante</b>, sin colgarse esperando timeouts. Cuando la GPU vuelve, se cierra solo. Lo mismo
+        con los bancos de noticias/propaganda y el chat: <b>siempre hay un plan B</b>.</p>
+        <div class="tagrow"><span>circuit breaker</span><span>fallback estático</span><span>cero "se tildó"</span></div>
+      </div>
+    </div>
+
     <div class="layer soon">
       <div class="n">🔜</div>
       <div class="body">

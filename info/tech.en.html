@@ -262,6 +262,56 @@
       </div>
     </div>
 
+    <div class="layer">
+      <div class="n">🎮</div>
+      <div class="body">
+        <h3>The game engine — data-driven (everything is an object)</h3>
+        <p>The game isn't hardcoded: it runs from a <b>data model</b> (a level JSON) that a loader turns into rooms.
+        Things are <b>entities + components</b> (interact, fight, be a billboard, have memory, have a social graph).
+        A new level = <b>change data, not code</b>. A <b>parity test</b> guarantees the data-driven engine produces
+        <b>exactly</b> what the old hardcoded one did. Dispatch is by <b>registries</b> (verb→handler), no giant
+        <code>if/else</code>; even balance is data.</p>
+        <div class="tagrow"><span>entities + components</span><span>validated schema</span><span>parity v1≡v2</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🏭</div>
+      <div class="body">
+        <h3>The AI level machine + the playability NET</h3>
+        <p>You sneak into the chino's back room and <b>a level is GENERATED</b> that runs in <b>the real engine</b>
+        (you jump, there are enemies, camera, real art). The interesting part: the AI can propose a thousand layouts,
+        but <b>only playable ones get through</b>. A <b>formal validator</b> (the "net") checks the level is
+        traversable (doors not blocked, exit reachable) <b>before</b> loading it; if it fails, it re-asks or
+        auto-repairs. Fun fact: the net <b>even catches a bug a human introduced</b> (kept as a regression test).</p>
+        <div class="tagrow"><span>procedural generation</span><span>+ AI</span><span>+ formal validation</span><span>= no broken levels</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🔮</div>
+      <div class="body">
+        <h3>Levels tailored to you — the AI uses what it knows about you</h3>
+        <p>The hobo-oracles chat with AI and <b>have memory</b>: they remember what you talked about. With that, the
+        oracle can <b>invent a level tailored</b> to what you seem to be into (it gathers your chats and the AI builds
+        the theme, the lines, and even picks the structure). <b>Your memory → the generated world.</b> NPCs also know
+        the ecosystem (your progress, the billboards, the World Cup) and gossip among themselves via a <b>social graph</b>.</p>
+        <div class="tagrow"><span>per-NPC memory</span><span>world grounding</span><span>personalized level</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🛡️</div>
+      <div class="body">
+        <h3>If the GPU dies, the game doesn't — static mode instantly</h3>
+        <p>Every AI feature <b>degrades to static</b> when the hardware (the GPU/models) isn't there. There's a
+        <b>circuit breaker</b>: if a call fails or stalls, it opens for a while and everything falls back to static
+        content <b>instantly</b>, without hanging on timeouts. When the GPU comes back, it closes on its own. Same for
+        the news/ads banks and the chat: <b>there's always a plan B</b>.</p>
+        <div class="tagrow"><span>circuit breaker</span><span>static fallback</span><span>never freezes</span></div>
+      </div>
+    </div>
+
     <div class="layer soon">
       <div class="n">🔜</div>
       <div class="body">
