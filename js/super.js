@@ -36,6 +36,7 @@ const Super = (() => {
   function create(ctx) {
     const P = ctx.player;
     const stormed = !!ctx.stormed;   // post-tormenta: comprar = comer (cura), y solo salís por atrás
+    const raid = !!ctx.raid;         // entraste por el frente que abrió Iorio → el chino ENTRA EN PÁNICO y robás GRATIS
     const map = Array.from({ length: H }, () => new Array(W).fill(0));
     const cat = Array.from({ length: H }, () => new Array(W).fill(null));
     for (let x = 0; x < W; x++) { map[0][x] = 1; map[H-1][x] = 1; }
@@ -54,8 +55,9 @@ const Super = (() => {
     const player = { x: 6.5*CS, y: 12.5*CS, r: 11 };
     // changuito (inventario virtual): lo que AGARRÁS queda acá SIN pagar hasta que pasás por la CAJA
     let cart = [], eject = 0, ninjaX = 0;
+    const chino = { x: (caja.x + 0.5) * CS, y: (caja.y + 0.5) * CS, vx: 95, vy: 70, t: 0 };   // el chino corriendo en pánico (raid)
     let done = false, exitTo = null, msg = '', msgT = 0, prompt = '', eHeld = false, cHeld = false;
-    setMsg(T('sup.intro'), 9);
+    setMsg(T(raid ? 'sup.raid' : 'sup.intro'), 9);
 
     function setMsg(t, s = 3.5) { msg = t; msgT = s; }
     function finish(to) { exitTo = to; done = true; }
@@ -108,6 +110,12 @@ const Super = (() => {
     }
     // intento de IRSE: si llevás cosas sin pagar, salen los NINJAS y te rajan sin la mercadería
     function tryLeave(to) {
+      if (raid) {   // RAID: el chino está en pánico, te llevás todo GRATIS y salís por donde quieras
+        const n = cart.length; for (const c of cart) deposit(c); cart = [];
+        if (stormed && n) { const heal = Math.min(100, P.hp + n * 15) - P.hp; P.hp += heal; }
+        if (n) setMsg(T('sup.raid.loot', { n, s: n === 1 ? '' : 's' }), 4);
+        finish(to); return;
+      }
       if (cart.length > 0 && eject <= 0) {
         const robo = cart.length; cart = [];
         eject = 2.8; ninjaX = -40;
@@ -142,6 +150,13 @@ const Super = (() => {
           eject -= dt; ninjaX += 220*dt; prompt = '';
           if (eject <= 0) finish(exitTo || 'street');
           return;
+        }
+        if (raid) {   // el chino corre como loco por todo el super ("¿¡cómo entraste!?")
+          chino.t -= dt; chino.x += chino.vx*dt; chino.y += chino.vy*dt;
+          if (chino.x < CS*1.2 || chino.x > (W-1.2)*CS) chino.vx *= -1;
+          if (chino.y < CS*1.2 || chino.y > (H-1.2)*CS) chino.vy *= -1;
+          chino.x = Math.max(CS, Math.min((W-1)*CS, chino.x)); chino.y = Math.max(CS, Math.min((H-1)*CS, chino.y));
+          if (chino.t <= 0) { chino.t = 0.5 + Math.random()*0.5; chino.vx = (Math.random()<.5?-1:1)*(80+Math.random()*80); chino.vy = (Math.random()<.5?-1:1)*(60+Math.random()*70); }
         }
         const sp = 170*dt;
         if (Input.keys['arrowleft'] || Input.keys['a']) { if (freeAt(player.x-sp, player.y)) player.x -= sp; }
@@ -199,6 +214,13 @@ const Super = (() => {
         ctx.fillStyle = '#36567f'; ctx.beginPath(); ctx.arc(ox+player.x, oy+player.y, player.r, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#d9a878'; ctx.beginPath(); ctx.arc(ox+player.x, oy+player.y-3, 5, 0, Math.PI*2); ctx.fill();
         ctx.strokeStyle = '#999'; ctx.lineWidth = 2; ctx.strokeRect(ox+player.x+8, oy+player.y-4, 10, 8);
+        // EL CHINO EN PÁNICO corriendo por el super (raid)
+        if (raid) {
+          const cxp = ox + chino.x, cyp = oy + chino.y, wob = Math.sin(Date.now()/80)*2;
+          ctx.fillStyle = '#c62828'; ctx.beginPath(); ctx.arc(cxp, cyp+wob, 10, 0, Math.PI*2); ctx.fill();           // cuerpo
+          ctx.fillStyle = '#e8c9a0'; ctx.beginPath(); ctx.arc(cxp, cyp-7+wob, 5, 0, Math.PI*2); ctx.fill();          // cabeza
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.fillText('!', cxp, cyp-16+Math.sin(Date.now()/110)*2);
+        }
         // NINJAS SAMURÁI echándote (mientras dura la paliza)
         if (eject > 0) {
           ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 28, VW, VH-28);

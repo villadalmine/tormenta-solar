@@ -74,6 +74,7 @@
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
   let trucoWon = false;                             // ganar el truco abre una puerta al chino (se consume al cruzar)
+  let trucoEverWon = false;                          // ¿alguna vez le ganaste al tahúr? (para el HITO; NO se consume)
   let armado = false;                               // espejo de n.armado: compraste fierro criollo (lo lee el grafo de historia)
   let tesoroTaken = false;                           // reclamaste el TESORO de los linyeras en el búnker (premio del edificio, 1×)
   let chinoEntered = false;                           // entraste al chino post-tormenta por CUALQUIER puerta (lo lee el grafo: arista chino_back)
@@ -138,7 +139,7 @@
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
-    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
+    loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
@@ -160,7 +161,7 @@
         birras: p.birras, carne: p.carne, fiambre: p.fiambre, diosa: p.diosa, falopa: p.falopa,
         spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
-        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, armado, tesoroTaken, chinoEntered },
+        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       // RF-4: estado anclado por POSICIÓN (sala, x), no por índice de array → robusto a reordenar entidades.
       // El pickup/npc se identifica por su x en la sala (su "id" natural), no por su lugar en el array.
@@ -181,7 +182,7 @@
     secretUnlocked = !!f.secretUnlocked; gaveBeers = !!f.gaveBeers; borrachosFed = f.borrachosFed | 0;
     borrachosHappy = !!f.borrachosHappy; moneyRecovered = !!f.moneyRecovered; fifaWon = !!f.fifaWon;
     bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
-    trucoWon = !!f.trucoWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
+    trucoWon = !!f.trucoWon; trucoEverWon = !!f.trucoEverWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
     if (snap.pickups) {
       if (snap.v >= 2) states.forEach((s, i) => { const xs = snap.pickups[i] || []; s.pickups.forEach(pk => { if (xs.includes(Math.round(pk.x))) pk.taken = true; }); });   // por posición (RF-4)
@@ -263,7 +264,7 @@
       if (stormed && it.d.collapsesOnStorm) { setMsg(TL('g.ruina'), '#b0a0a0', 4500); return; }
       if (it.d.id === 'super') {
         if (!stormed) enterSuper();                              // pre-tormenta: changuito normal
-        else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(); }  // Iorio corrió a los ninjas (una entrada)
+        else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(true); }  // Iorio corrió a los ninjas → RAID (chino en pánico, robás gratis)
         else setMsg(T('g.super.barricada'), '#ff5252', 6500);
       }
       else if (it.d.id === 'chinoback') enterSuper();           // entrada de servicio desde el refugio
@@ -650,7 +651,7 @@
     if (n.hint && (n.talks >= 6 || Math.random() < 0.3)) setMsg(n.hint, '#ffd54f', 5500);
     else setMsg(n.lines ? pick(n.lines) : T('g.borracho.askDefault'), '#ffd54f', 4200);
   }
-  function enterSuper() { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
+  function enterSuper(raid) { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed, raid: !!raid }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   function enterCuevaFromSecret() {
     const idx = rooms.findIndex(r => r.cueveros && r.cueveros.length);   // la CUEVA real (no cualquier sala con cueveros:[] vacío)
@@ -1290,8 +1291,8 @@
       { k: 'g.hito.tormenta',  done: stormed },
       { k: 'g.hito.edificio',  done: borrachosHappy },
       { k: 'g.hito.bunker',    done: bunkerUnlocked },
-      { k: 'g.hito.iorio',     done: chinoFrontOpen },
-      { k: 'g.hito.truco',     done: trucoWon },
+      { k: 'g.hito.iorio',     done: chinoEntered },
+      { k: 'g.hito.truco',     done: trucoEverWon },
       { k: 'g.hito.fifa',      done: fifaWon },
       { k: 'g.hito.megadrive', done: !!(player && player.hasMegaDrive) },
       { k: 'g.hito.cemento',   done: !!(player && player.hasCementoTicket) },
@@ -1384,7 +1385,7 @@
             player.flores = (player.flores || 0) + flores;
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
             player.coins -= robbed; stunUntil = performance.now() + 2600;
-            applyEdge('truco', 'trucoWon');   // ganar abre la PUERTA DEL TAHÚR al chino (se cruza una vez)
+            applyEdge('truco', 'trucoWon'); trucoEverWon = true;   // abre la puerta (se consume) + marca el hito (permanente)
             setMsg(T('g.truco.win', { n: robbed }), '#ff5252', 7000);
           }
           else { player.hp = Math.max(1, player.hp - 25); setMsg(T('g.truco.lose'), '#ff5252', 6800); }

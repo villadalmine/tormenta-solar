@@ -254,6 +254,8 @@
 
     // ===== SUPER CHINO (super.js) =====
     'sup.intro': 'Agarrá de las góndolas [E] (se mete al changuito SIN pagar). Después pagás en la CAJA del chino — te da el vuelto en caramelos. Si rajás sin pagar... salen los ninjas. ESC: salir.',
+    'sup.raid': '😱 ¡El chino entró en PÁNICO! ("¿¡cómo entraste!?") corre por todo el super. Agarrá lo que quieras [E] y rajá GRATIS por donde quieras. ESC: salir.',
+    'sup.raid.loot': '🛒 Te llevaste {n} producto{s} GRATIS mientras el chino corría en pánico. 😎',
     'sup.title': 'SUPER CHINO 超市',
     'sup.till': 'CAJA 超市',
     'sup.exitLabel': 'SALIDA',

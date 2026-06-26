@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v137] — 2026-06-26 — 🐛 Hito del tahúr + 🥷 RAID al chino (pánico + robo gratis)
+
+- **FIX hito del tahúr:** ganarle al truco no marcaba el hito en [P] porque `trucoWon` se **consume** al cruzar la
+  puerta. Ahora hay un flag permanente `trucoEverWon` para el hito (igual el hito de Iorio pasó a `chinoEntered`,
+  que también se des-marcaba al consumirse `chinoFrontOpen`).
+- **RAID al chino:** al darle falopa a Iorio y entrar por el frente, el chino **entra en PÁNICO** y corre por todo
+  el super ("¿¡cómo entraste!?"); **agarrás lo que quieras y te vas GRATIS** (sin pagar, sin ninjas), por cualquier
+  puerta. El hito se marca al **entrar** (no al dar la falopa). Es un **loop reusable**: das falopa de nuevo → otro raid.
+
+---
+
 ## [v136] — 2026-06-26 — ⚽ Quest del Mundial: ajuste fino (el hincha se te acerca + marcador + sesgo de equipos)
 
 - **El hincha SE ACERCA:** al sacar el dato en el guarda, un hincha **camina hacia vos** y te agradece **en el

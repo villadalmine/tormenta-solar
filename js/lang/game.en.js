@@ -233,6 +233,8 @@
 
     // ===== CHINESE SUPERMARKET (super.js) =====
     'sup.intro': 'Grab stuff off the shelves [E] (goes in the cart UNPAID). Then pay at the corner-shop TILL — he gives change in candy. Bolt without paying... and the ninjas come out. ESC: quit.',
+    'sup.raid': '😱 The shopkeeper PANICS! ("how\'d you get in?!") and runs all over the shop. Grab whatever you want [E] and bolt FREE through any door. ESC: quit.',
+    'sup.raid.loot': '🛒 You walked off with {n} item{s} FREE while the shopkeeper ran around in a panic. 😎',
     'sup.title': 'CHINESE SUPERMARKET 超市',
     'sup.till': 'TILL 超市',
     'sup.exitLabel': 'EXIT',
