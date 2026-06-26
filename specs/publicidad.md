@@ -11,8 +11,15 @@
 > la pestaña (`sendBeacon`). Sin endpoint, **cero red** (default). Contrato del endpoint a implementar
 > (reusando `presence-server/`): `POST {ADS_METRICS}` body `{"views": { "<slotId>": <n>, … }, "ts": <ms>}`;
 > el server agrega por slot/campaña. `Ads.stats()` devuelve los conteos en memoria (debug).
+- **Primera marca REAL (v186, 2026-06-26):** `ads/manifest.json` ya no es 100% ficticio — **EducaciónIT**
+  (instituto de tecnología de Florida y Lavalle, ya presente en el lore con la persona `secretaria`) ocupa el
+  slot **`arcade-pantalla-1`** (formato `screen`, LED animado) con su slogan real *"¡Transformá tu vida
+  profesional!"* y sus colores de marca (azul/cyan). Las demás campañas siguen **ficticias** (Cumbia Cola, Telo
+  El Edén, Blue Bank, Pizza Obelisco, Fideos Mamushka). El render ya soporta `img` (logo) con fallback a texto;
+  por ahora EducaciónIT va como texto+colores (sin hotlink, para no taintear el canvas). `real:true` + `url` en
+  la campaña la marcan como real.
 - **Nivel:** transversal (cualquier nivel; se estrena en Nivel 1)
-- **Última actualización:** 2026-06-23
+- **Última actualización:** 2026-06-26
 
 ## 1. Contexto y objetivo
 

@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v186] — 2026-06-26 — 📣 Primera marca REAL en la publicidad (EducaciónIT) + intro: tecla P y el súper chino
+
+- **Publicidad — 1ª marca real:** `ads/manifest.json` deja de ser 100% ficticio. **EducaciónIT** (instituto de
+  tecnología de Florida y Lavalle, ya en el lore con la `secretaria`) ocupa el slot **`arcade-pantalla-1`**
+  (pantalla LED animada) con su slogan real *"¡Transformá tu vida profesional!"* y colores de marca. Las demás
+  campañas siguen ficticias (Cumbia Cola, Telo El Edén, Blue Bank, Pizza Obelisco, Fideos Mamushka). El render ya
+  soporta `img` con fallback a texto; EducaciónIT va como texto+colores (sin hotlink → no taintea el canvas).
+- **Intro (la pantalla que ves al entrar):** los **controles** ahora incluyen **`P` — tu partida** (panel de tus
+  métricas de sesión: motor, tiempo, chats, truco…). Y a los locales se sumó el **súper chino** ("comprá algo para
+  no pasar hambre 🥟"). En ES/EN + el default del HTML.
+
+---
+
 ## [v185] — 2026-06-26 — 🚶 Enemigos que respetan los pozos + 2 temas nuevos (lavadero de billetes, farmacia vencida)
 
 Pulido y contenido nuevo de la máquina de niveles:

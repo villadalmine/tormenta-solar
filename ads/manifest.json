@@ -1,5 +1,5 @@
 {
-  "_comment": "EJEMPLO de manifiesto de campañas (marcas FICTICIAS, sin imagen → placeholder de texto). En producción esto vive afuera del repo GPL o en un endpoint remoto (window.ADS_MANIFEST). Ver specs/publicidad.md.",
+  "_comment": "Manifiesto de campañas. UNA marca REAL (EducaciónIT — instituto de tecnología de Florida y Lavalle, ya presente en el lore con la persona 'secretaria'); el resto son marcas FICTICIAS (placeholder de texto). En producción esto vive afuera del repo GPL o en un endpoint remoto (window.ADS_MANIFEST). Ver specs/publicidad.md.",
   "campaigns": [
     {
       "slot": "calle-afiche-1",
@@ -26,9 +26,10 @@
     },
     {
       "slot": "arcade-pantalla-1",
-      "brand": "RetroByte",
-      "alt": { "es": "RETROBYTE — fichas infinitas 🕹️", "en": "RETROBYTE — infinite credits 🕹️" },
-      "bg": "#0a0a22", "fg": "#7CFC00"
+      "brand": "EducaciónIT",
+      "alt": { "es": "EducaciónIT — ¡Transformá tu vida profesional! 💻", "en": "EducaciónIT — transform your career! 💻" },
+      "bg": "#06283d", "fg": "#1fb6e8",
+      "real": true, "url": "https://www.educacionit.com/"
     },
     {
       "slot": "super-gondola-1",
