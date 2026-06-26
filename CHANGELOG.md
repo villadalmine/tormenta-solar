@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v145] — 2026-06-26 — 🧩 v2 #1 (F2): runtime GENÉRICO de quests (dispatch por data, primitivas nombradas)
+
+Segundo paso de la migración v2 de quests. Ahora hay un **runtime `Quests`** cuyo FLUJO lo decide el **registro
+de DATOS** (`QUEST_DEFS`: giver/chance/scope/reward/penalty/mensajes + hooks `onGive`/`onReport`/`onGreet`), y la
+lógica específica son **primitivas nombradas** (`QUEST_PRIMS`, §6.97 "primitiva=código, componer=dato").
+- `Quests.maybeGive(giver)` / `Quests.report(giver,msg)` / `Quests.greet(giver)` despachan por el registro.
+- **Las DOS quests migradas** (cine/oráculo + Mundial/hinchas) → los call-sites en `chatSend`/`hinchaGreeting` ya
+  no tienen lógica inline, llaman al runtime. Expuesto en `window.Game.questRuntime`.
+- **Agregar una quest = una entrada de DATA** (+ una primitiva si es mecánica nueva). Próximo: quests como aristas
+  del grafo de historia (que el oráculo las "vea" y las pista salga del grafo).
+
+---
+
 ## [v144 / infra-23] — 2026-06-26 — 🔌 Chusmerío por API + métricas Prometheus del ecosistema
 
 - **Chusmerío full API:** las frases ambiente de los NPCs vivos ya NO son un array en game.js → banco

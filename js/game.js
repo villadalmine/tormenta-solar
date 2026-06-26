@@ -49,11 +49,40 @@
   // números sueltos. El runtime y la IA leen de acá; expuesto en window.Game.quests + worldSnapshot. La verificación
   // sigue siendo función (primitiva=código, componer=dato, modelo-de-entidades §6.97). Migrar a entidades+grafo = F2.
   const QUEST_DEFS = {
-    news:    { id:'news',    scope:'run', giver:'oraculo', chance:0.35, reward:{ caramelos:3 }, penalty:{ coins:10 }, ask:'g.cine.questAsk', ok:'g.cine.questOk', lie:'g.cine.questLie' },
-    mundial: { id:'mundial', scope:'run', giver:'hincha',  reward:{ caramelos:5 }, ask:'g.mundial.pregunta', back:'g.mundial.gracias', remind:'g.mundial.recorda' },
+    news:    { id:'news',    scope:'run', giver:'oraculo', chance:0.35, reward:{ caramelos:3 }, penalty:{ coins:10 }, ask:'g.cine.questAsk', ok:'g.cine.questOk', lie:'g.cine.questLie', onGive:'newsGive', onReport:'newsReport' },
+    mundial: { id:'mundial', scope:'run', giver:'hincha',  reward:{ caramelos:5 }, ask:'g.mundial.pregunta', back:'g.mundial.gracias', remind:'g.mundial.recorda', onGreet:'mundialGreet', onReport:'mundialReport' },
   };
   // aplica una recompensa/penalidad DECLARADA (data → efecto). 'coins' resta (tope al saldo); el resto suma. Devuelve lo aplicado.
   function applyReward(rw) { const out = {}; for (const k in (rw || {})) { if (k === 'coins') { const lost = Math.min(player.coins, rw.coins); player.coins -= lost; out.coins = lost; } else { player[k] = (player[k] || 0) + rw[k]; out[k] = rw[k]; } } return out; }
+  // PRIMITIVAS de quest (código; el FLUJO lo decide el registro = data, §6.97). Devuelven {line} o null.
+  const QUEST_PRIMS = {
+    newsGive() { const ns = (typeof window !== 'undefined' && window.NOTICIAS) || []; if (!ns.length) return null; const p = ns[(Math.random() * ns.length) | 0]; newsQuest = { topic: p.topic, answer: p.answer }; return { line: T(QUEST_DEFS.news.ask, { topic: p.topic }) }; },
+    newsReport(msg) { if (!newsQuest) return null; const m = newsMatch(msg, newsQuest.answer);
+      if (m.shared >= 1) { applyReward(QUEST_DEFS.news.reward); newsQuest = null; return { line: T(QUEST_DEFS.news.ok) }; }
+      if (m.words >= 2) { const out = applyReward(QUEST_DEFS.news.penalty); newsQuest = null; return { line: T(QUEST_DEFS.news.lie, { n: out.coins }) }; }
+      return null; },   // muy vago → sigue esperando
+    // §9 mundial: el hincha te SALUDA (al abrir chat) → pregunta / recuerda / agradece según el estado.
+    mundialGreet() {
+      if (mundialQuest && mundialQuest.shown) { applyReward(QUEST_DEFS.mundial.reward); Sfx.pickup(); const line = T(QUEST_DEFS.mundial.back, { res: mundialQuest.resultado }); mundialQuest = null; return { line }; }
+      if (mundialQuest) return { line: T(QUEST_DEFS.mundial.remind, { eq: mundialQuest.equipo }) };
+      const eqs = Object.keys(((typeof window !== 'undefined' && window.MUNDIAL && window.MUNDIAL.equipos) || {}));
+      if (!eqs.length) return { line: T('g.mundial.nodata') };
+      const eq = pickEquipoJugoso(eqs); mundialQuest = { equipo: eq, resultado: window.MUNDIAL.equipos[eq], shown: false };
+      return { line: T(QUEST_DEFS.mundial.ask, { eq }) };
+    },
+    // si ya tenés el dato del guarda, cualquier mensaje al hincha = te agradece + premio.
+    mundialReport() { if (mundialQuest && mundialQuest.shown) { applyReward(QUEST_DEFS.mundial.reward); Sfx.pickup(); const line = T(QUEST_DEFS.mundial.back, { res: mundialQuest.resultado }); mundialQuest = null; return { line }; } return null; },
+  };
+  // RUNTIME genérico: el dispatch se decide por DATA (giver/chance/scope); las primitivas son código.
+  const Quests = {
+    activeId(id) { return id === 'news' ? !!newsQuest : id === 'mundial' ? !!mundialQuest : false; },
+    // intenta DAR una quest cuyo giver matchea el tipo de NPC (según el registro). Devuelve {id,line} o null.
+    maybeGive(giverKind) { for (const id in QUEST_DEFS) { const q = QUEST_DEFS[id]; if (q.giver !== giverKind || this.activeId(id) || !q.onGive) continue; if (q.chance != null && Math.random() >= q.chance) continue; const r = QUEST_PRIMS[q.onGive] && QUEST_PRIMS[q.onGive](); if (r) return { id, ...r }; } return null; },
+    // reporte/verificación contra la quest activa de ese giver. Devuelve {id,line} o null.
+    report(giverKind, msg) { for (const id in QUEST_DEFS) { const q = QUEST_DEFS[id]; if (q.giver !== giverKind || !this.activeId(id) || !q.onReport) continue; const r = QUEST_PRIMS[q.onReport] && QUEST_PRIMS[q.onReport](msg); if (r) return { id, ...r }; } return null; },
+    // SALUDO del giver al abrir el chat (pregunta/recuerda/agradece). Devuelve {id,line} o null.
+    greet(giverKind) { for (const id in QUEST_DEFS) { const q = QUEST_DEFS[id]; if (q.giver !== giverKind || !q.onGreet) continue; const r = QUEST_PRIMS[q.onGreet] && QUEST_PRIMS[q.onGreet](); if (r) return { id, ...r }; } return null; },
+  };
   let mundialApproach = null;   // §9: {npc, homeX} cuando un hincha se ACERCA a agradecerte tras el dato del guarda
   let sessStart = 0, sessChats = 0, sessTrucoW = 0, sessTrucoL = 0;   // métricas de "Tu partida" (in-game, client-side)
   // memoria por IDENTIDAD (clave = persona): cada linyera/NPC RECUERDA lo charlado entre aperturas y entre
@@ -586,15 +615,7 @@
     return eqs[(Math.random() * eqs.length) | 0];
   }
   // el hincha te pregunta por un equipo random del Mundial; si ya conseguiste el dato (guarda) te agradece + premio.
-  function hinchaGreeting() {
-    if (mundialQuest && mundialQuest.shown) { applyReward(QUEST_DEFS.mundial.reward); chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return; }
-    if (mundialQuest) { chatLine('npc', T('g.mundial.recorda', { eq: mundialQuest.equipo })); return; }
-    const eqs = Object.keys(((typeof window !== 'undefined' && window.MUNDIAL && window.MUNDIAL.equipos) || {}));
-    if (!eqs.length) { chatLine('npc', T('g.mundial.nodata')); return; }
-    const eq = pickEquipoJugoso(eqs);
-    mundialQuest = { equipo: eq, resultado: window.MUNDIAL.equipos[eq], shown: false };
-    chatLine('npc', T('g.mundial.pregunta', { eq }));
-  }
+  function hinchaGreeting() { const r = Quests.greet('hincha'); if (r) chatLine('npc', r.line); }   // §9: el runtime arma el saludo (pregunta/recuerda/agradece)
   // F2 cine: verificá lo que el jugador reporta vs la noticia real (palabras significativas compartidas).
   const _nw = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 3);
   function newsMatch(report, answer) { const a = new Set(_nw(answer)); const r = _nw(report); return { shared: r.filter(w => a.has(w)).length, words: r.length }; }
@@ -631,17 +652,10 @@
     const msg = (elChatInput.value || '').trim();
     if (!msg) return;
     elChatInput.value = ''; chatLine('you', msg);
-    // F2 CINE: si el linyera te mandó a buscar una noticia, tu mensaje es el REPORTE → lo corrobora.
-    if (newsQuest && isOraculo(chatNpc)) {
-      const m = newsMatch(msg, newsQuest.answer);
-      if (m.shared >= 1) { applyReward(QUEST_DEFS.news.reward); chatLine('npc', T(QUEST_DEFS.news.ok)); newsQuest = null; return; }
-      if (m.words >= 2) { const out = applyReward(QUEST_DEFS.news.penalty); chatLine('npc', T(QUEST_DEFS.news.lie, { n: out.coins })); newsQuest = null; return; }
-      // muy vago → no penaliza, sigue esperando el reporte (cae al chat normal abajo)
-    }
-    // §9: al hincha, si ya conseguiste el resultado en el guarda, te agradece + premio (sin importar qué escribiste)
-    if (isHincha(chatNpc) && mundialQuest && mundialQuest.shown) {
-      applyReward(QUEST_DEFS.mundial.reward); chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return;
-    }
+    // CINE: si el linyera te mandó a buscar una noticia, tu mensaje es el REPORTE → runtime de quests lo corrobora.
+    if (isOraculo(chatNpc)) { const r = Quests.report('oraculo', msg); if (r) { chatLine('npc', r.line); return; } }
+    // §9: al hincha, si ya conseguiste el resultado en el guarda, te agradece + premio (runtime).
+    if (isHincha(chatNpc)) { const r = Quests.report('hincha', msg); if (r) { chatLine('npc', r.line); return; } }
     chatHistory.push({ role: 'user', content: msg });
     chatBusy = true;
     const thinking = chatLine('sys', '...');
@@ -676,12 +690,8 @@
     }
     // si el jugador tiene SU key y aun así salió local (offline real, no saturación) → avisar
     else if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) chatLine('sys', T('g.chat.localWarn'));
-    // F2 CINE: el linyera (su IA rápida ve los carteles NPU) a veces te manda al cine a buscar un topic.
-    if (!newsQuest && isOraculo(chatNpc) && (typeof window !== 'undefined' && (window.NOTICIAS || []).length) && Math.random() < QUEST_DEFS.news.chance) {
-      const ns = window.NOTICIAS, pick = ns[(Math.random() * ns.length) | 0];
-      newsQuest = { topic: pick.topic, answer: pick.answer };
-      chatLine('npc', T('g.cine.questAsk', { topic: pick.topic }));
-    }
+    // CINE: el linyera a veces te manda al cine a buscar un topic → runtime decide (chance/giver desde el registro).
+    if (isOraculo(chatNpc)) { const g = Quests.maybeGive('oraculo'); if (g) chatLine('npc', g.line); }
     chatBusy = false;
     if (elChatInput) elChatInput.focus();
   }
@@ -1592,5 +1602,5 @@
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
   // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).
-  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS });
+  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS, questRuntime: Quests });
 })();
