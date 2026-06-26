@@ -3215,17 +3215,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -3271,7 +3271,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -3375,7 +3375,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/pickup10",
@@ -3385,7 +3385,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/pickup11",
@@ -3395,7 +3395,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -3411,17 +3411,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -3467,7 +3467,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -3586,7 +3586,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-2-ruina/pickup10",
@@ -3596,7 +3596,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-2-ruina/pickup11",
@@ -3606,7 +3606,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -3622,17 +3622,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -3678,7 +3678,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -3782,7 +3782,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/pickup10",
@@ -3792,7 +3792,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/pickup11",
@@ -3802,7 +3802,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -3818,17 +3818,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -3874,7 +3874,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -3978,7 +3978,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-4-ruina/pickup9",
@@ -3988,7 +3988,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-4-ruina/pickup10",
@@ -3998,7 +3998,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -4014,17 +4014,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -4070,7 +4070,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -4174,7 +4174,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/pickup10",
@@ -4184,7 +4184,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/pickup11",
@@ -4194,7 +4194,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -4210,17 +4210,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -4266,7 +4266,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -4355,7 +4355,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-6-ruina/pickup8",
@@ -4365,7 +4365,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-6-ruina/pickup9",
@@ -4375,7 +4375,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -4391,17 +4391,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -4447,7 +4447,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -4551,7 +4551,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/pickup10",
@@ -4561,7 +4561,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/pickup11",
@@ -4571,7 +4571,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -4587,17 +4587,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -4643,7 +4643,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -4762,7 +4762,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-8-ruina/pickup10",
@@ -4772,7 +4772,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-8-ruina/pickup11",
@@ -4782,7 +4782,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -4798,17 +4798,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -4854,7 +4854,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -4958,7 +4958,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/pickup10",
@@ -4968,7 +4968,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/pickup11",
@@ -4978,7 +4978,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -4994,17 +4994,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -5050,7 +5050,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -5154,7 +5154,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-10-ruina/pickup9",
@@ -5164,7 +5164,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-10-ruina/pickup10",
@@ -5174,7 +5174,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -5190,17 +5190,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -5246,7 +5246,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -5350,7 +5350,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/pickup10",
@@ -5360,7 +5360,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/pickup11",
@@ -5370,7 +5370,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -5386,17 +5386,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -5442,7 +5442,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -5531,7 +5531,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-12-ruina/pickup8",
@@ -5541,7 +5541,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-12-ruina/pickup9",
@@ -5551,7 +5551,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -5567,17 +5567,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -5623,7 +5623,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -5727,7 +5727,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/pickup10",
@@ -5737,7 +5737,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/pickup11",
@@ -5747,7 +5747,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -5763,17 +5763,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -5819,7 +5819,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -5938,7 +5938,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-14-ruina/pickup10",
@@ -5948,7 +5948,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-14-ruina/pickup11",
@@ -5958,7 +5958,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -5974,17 +5974,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -6030,7 +6030,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -6134,7 +6134,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/pickup10",
@@ -6144,7 +6144,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/pickup11",
@@ -6154,7 +6154,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -6170,17 +6170,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -6226,7 +6226,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -6330,7 +6330,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-16-ruina/pickup9",
@@ -6340,7 +6340,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-16-ruina/pickup10",
@@ -6350,7 +6350,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -6366,17 +6366,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -6422,7 +6422,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -6526,7 +6526,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/pickup10",
@@ -6536,7 +6536,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/pickup11",
@@ -6546,7 +6546,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -6562,17 +6562,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -6618,7 +6618,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -6707,7 +6707,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-18-ruina/pickup8",
@@ -6717,7 +6717,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-18-ruina/pickup9",
@@ -6727,7 +6727,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },
@@ -6743,17 +6743,17 @@
       "platforms": [
         [
           21,
-          6,
+          5,
           2
         ],
         [
           19,
-          8,
+          7,
           2
         ],
         [
           17,
-          10,
+          9,
           2
         ]
       ],
@@ -6799,7 +6799,7 @@
             "type": "exit"
           },
           "x": 21,
-          "y": 4,
+          "y": 3,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
@@ -6923,7 +6923,7 @@
             "amount": 3
           },
           "x": 18,
-          "y": 9
+          "y": 8
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/pickup12",
@@ -6933,7 +6933,7 @@
             "amount": 5
           },
           "x": 20,
-          "y": 7
+          "y": 6
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/pickup13",
@@ -6943,7 +6943,7 @@
             "amount": 0
           },
           "x": 22,
-          "y": 5
+          "y": 4
         }
       ]
     },

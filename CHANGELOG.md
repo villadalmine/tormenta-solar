@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v188] — 2026-06-26 — 🪜 Fix escalera edificio (parte 2): el 1er escalón hacía de PARED y te encerraba
+
+El rightward-staircase de v187 dejó el 1er escalón en y10 (2 filas sobre el piso). Como el Carpo mide ~1.25 tiles,
+al caminar por el piso **la cabeza chocaba ese bloque** → el escalón actuaba de **PARED**: al caer por la escalera
+quedabas atrapado a la derecha, **sin llegar al ascensor ni poder trepar** (la escalera "flotando"). Fix: subir los
+escalones a **y9/7/5** (el 1ero a 3 filas del piso) → el piso queda **TRANSITABLE por debajo** (la cabeza pasa) y
+sigue saltable desde el piso. Puerta `up-stairs` a y3. Regenerado `level-data.js` → paridad v1≡v2 OK. Tests verdes.
+
+---
+
 ## [v187] — 2026-06-26 — 🏚️ Fix edificio borrachines: el cajón de la falopa + la escalera de incendios (2 bugs del rework de ascensores)
 
 Dos regresiones que dejó el rework de los ascensores del edificio (cuando pasó de ancho 17 a 24):

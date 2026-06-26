@@ -433,7 +433,7 @@ const Level = (() => {
       const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar (ascensor)', x:14, inward:1 }];
       if (n < 20) {
         doors.push({ id:'up', art:'elevator', label:'subir (ascensor)', x:16, inward:-1 });                               // ASCENSORES JUNTOS (x14 bajar · x16 subir)
-        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:21, y:4, inward:-1 });        // ESCALERA: puerta ARRIBA-DERECHA, sobre el último escalón (x21,y6)
+        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:21, y:3, inward:-1 });        // ESCALERA: puerta ARRIBA-DERECHA, sobre el último escalón (x21,y5)
       }
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
       if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1, gate:{ flag:'bunkerUnlocked' } });
@@ -481,10 +481,12 @@ const Level = (() => {
       }
       // ESCALERA DE INCENDIOS al COSTADO derecho (x17..22). Sube SIEMPRE A LA DERECHA (17→19→21), NO zigzag: así
       // ningún escalón queda ENCIMA de otro (en un zigzag de 2 columnas el 3er bloque cae sobre el 1ero, 4 filas
-      // arriba = el apex del salto → te choca la cabeza). Cada salto (2 de alto, 2 al costado) tiene AIRE LIBRE
-      // arriba. La puerta 'up-stairs' está sobre el último escalón (x21,y6 → puerta x21,y4). NO toca muebles ni ascensores.
+      // arriba = el apex del salto → te choca la cabeza). El 1er escalón arranca en y9 (3 filas sobre el piso): si
+      // estuviera en y10 (2 filas) haría de PARED — el Carpo mide ~1.25 tiles y al caminar por el piso la cabeza
+      // chocaría el bloque, tapando el paso al ascensor. En y9 el piso queda TRANSITABLE por debajo y saltable desde
+      // el piso. Puerta 'up-stairs' sobre el último escalón (x21,y5 → puerta x21,y3). NO toca muebles ni ascensores.
       if (n < 20) {
-        const steps = [[17, 10, 2], [19, 8, 2], [21, 6, 2]];
+        const steps = [[17, 9, 2], [19, 7, 2], [21, 5, 2]];
         spec.platforms = (spec.platforms || []).concat(steps);
         spec.pickups = spec.pickups || [];
         const loot = ['coins', 'ammo', 'health'];
