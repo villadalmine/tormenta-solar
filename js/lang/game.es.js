@@ -235,6 +235,7 @@
     'g.nivelai.back': 'El portal te escupe de vuelta en lo del chino, medio mareado. 🌀',
     'g.nivelai.enter': '🌀 Caés en un nivel generado: «{name}». Llegá a la SALIDA morada (→ derecha). [ESC] para volver.',
     'g.nivelai.fail': 'El portal chisporrotea y se cierra solo. Quedás en lo del chino. 🌀',
+    'g.nivelai.room': '🌀 {name}',
     'g.vinilos.leave': 'Salís de la disquería. 🎵',
 
     // --- música ---

@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v167] — 2026-06-26 — 🏙️ Edificio: escalera de incendios VERTICAL (no diagonal) + nivel-AI multi-sala/enemigos/decor
+
+DOS cosas. (1) **Fix edificio borrachines:** la escalera del costado dejaba de cruzar el interior en diagonal —
+ahora es una **salida de emergencia VERTICAL en zigzag** (x16↔x18, sube recto), confinada al hueco libre entre el
+departamento y el ascensor, con el loot arriba y propaganda flanqueando. La RED (Playable) confirma 0 problemas y
+el ascensor libre. (2) **Nivel-AI de más calidad:** `generateLevel` ahora arma **2-3 salas conectadas por puertas
+recíprocas** (spawn 1ª, meta última, wiring por Mundo), **enemigos despiertos** (peaton/dron) y **decor temático
+con art válido** por tema. e2e verifica multi-sala + puertas cableadas + jugabilidad. parity + playable + web-smoke OK.
+
+---
+
 ## [v166] — 2026-06-26 — 🎮 C ladrillo 3: el nivel-AI generado CORRE EN TU MOTOR REAL (rooms-swap) — ¡jugable!
 
 El nivel generado deja de ser un sub-modo top-down: ahora **se juega en EL motor principal** (vista lateral,

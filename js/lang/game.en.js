@@ -216,6 +216,7 @@
     'g.nivelai.back': 'The portal spits you back into the chino\'s place, a bit dizzy. 🌀',
     'g.nivelai.enter': '🌀 You drop into a generated level: "{name}". Reach the purple EXIT (→ right). [ESC] to return.',
     'g.nivelai.fail': 'The portal sparks and closes on its own. You stay at the chino\'s. 🌀',
+    'g.nivelai.room': '🌀 {name}',
     'g.vinilos.leave': 'You leave the record shop. 🎵',
 
     'g.music.on': '♪ Music ON',

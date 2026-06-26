@@ -167,8 +167,12 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   se dibuja a mano (portal morado, porque el motor solo dibuja el portal del cambio). Cero efecto sobre el run real.
 - **Probado (e2e):** lanzar → entra al nivel generado (con goal+spawn) → ganar → **restaura la sala principal** +
   souvenir → y morir en el bonus **no rompe el run**. + schema + paridad + **playable** + web-smoke.
-- **Lo que queda para pulir:** más variedad de layout (varias salas, puertas, enemigos activos), que la meta use el
-  art de portal real, y subir `generateLevel` a la calidad visual del Nivel 1 (decor temático con art válido).
+- **Calidad subida (v167):** `generateLevel` ahora arma **2-3 salas conectadas por puertas recíprocas** (spawn en
+  la 1ª, meta en la última; el wiring lo resuelve `Mundo.wireRooms`), con **enemigos despiertos** (peaton/dron) y
+  **decor temático con art válido** por tema (e2e verifica multi-sala + puertas cableadas + jugabilidad). Cruzar
+  puertas dentro del nivel-AI muestra un mensaje neutro (gateado por `spinoffLevel`).
+- **Lo que queda para pulir:** que la meta use el art de portal real, más tipos de obstáculo/enemigo, y autoría de
+  layout por IA (hoy el layout es procedural acotado; la IA autora el TEXTO del tema).
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como

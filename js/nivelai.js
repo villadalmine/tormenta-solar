@@ -20,7 +20,7 @@ const NivelAI = (() => {
       props: ['🥫', '🧴', '🐀', '🪣', '🥢', '🧧', '🀄', '🥟', '🍜'],
       npc: { emoji: '🧑‍🍳', lines: { es: ['todo vencido, amigo', 'dos por uno casi', 'rata gratis adentro', 'no milar fecha', 'pagá pagá'],
                                       en: ['all expired, amigo', 'almost two for one', 'free rat inside', 'no look date', 'pay pay'] } },
-      goal: { es: 'PASILLO TRUCHO', en: 'DODGY AISLE' }, reward: { caramelos: 3 },
+      goal: { es: 'PASILLO TRUCHO', en: 'DODGY AISLE' }, reward: { caramelos: 3 }, decor: ['super_chino', 'kiosko', 'caja', 'barril', 'tacho', 'dispenser'],
     },
     {
       id: 'taller-esclavo', motif: '🧵',
@@ -31,7 +31,7 @@ const NivelAI = (() => {
       props: ['🧵', '🪡', '👕', '👖', '🧶', '⚙️', '🧥', '🧦'],
       npc: { emoji: '🪢', lines: { es: ['ayudame a salir', 'cosé cosé cosé', 'no hay descanso', 'doce holas seguidas', 'shh, viene el capataz'],
                                     en: ['help me get out', 'sew sew sew', 'no rest here', 'twelve hours straight', 'shh, boss coming'] } },
-      goal: { es: 'PUERTA TRASERA', en: 'BACK DOOR' }, reward: { caramelos: 4 },
+      goal: { es: 'PUERTA TRASERA', en: 'BACK DOOR' }, reward: { caramelos: 4 }, decor: ['escritorio', 'maniqui', 'mueble_roto', 'sillon_roto', 'caja', 'laptop'],
     },
     {
       id: 'comida-podrida', motif: '🤢',
@@ -42,7 +42,7 @@ const NivelAI = (() => {
       props: ['🤢', '🥬', '🍖', '🐛', '🦠', '🪰', '🧅', '🐟'],
       npc: { emoji: '🧟', lines: { es: ['está fresco, ¿no?', 'el moho da sabor', 'no huele tan mal', 'comé igual', 'la fecha es sugerencia'],
                                     en: ['it\'s fresh, right?', 'mold adds flavor', 'doesn\'t smell that bad', 'eat it anyway', 'the date is a suggestion'] } },
-      goal: { es: 'CÁMARA FRÍA', en: 'COLD ROOM' }, reward: { caramelos: 3 },
+      goal: { es: 'CÁMARA FRÍA', en: 'COLD ROOM' }, reward: { caramelos: 3 }, decor: ['parrilla', 'cocina', 'bano_roto', 'tacho', 'barril', 'escombros'],
     },
     {
       id: 'muralla-skate', motif: '🛹',
@@ -53,7 +53,7 @@ const NivelAI = (() => {
       props: ['🛹', '🏮', '🐉', '🏯', '🧨', '🪁', '⛩️', '🗿'],
       npc: { emoji: '🧎', lines: { es: ['¡cuidado el escalón!', '¡aiyaa, rápido!', 'no caigas, eh', 'mil años de muro', 'dale gas'],
                                     en: ['watch the step!', 'aiyaa, fast!', 'don\'t fall, eh', 'thousand-year wall', 'gas it'] } },
-      goal: { es: 'FIN DE LA MURALLA', en: 'END OF THE WALL' }, reward: { caramelos: 5 },
+      goal: { es: 'FIN DE LA MURALLA', en: 'END OF THE WALL' }, reward: { caramelos: 5 }, decor: ['farol', 'banco', 'planta', 'tacho', 'barricada', 'escombros'],
     },
   ];
 
@@ -104,29 +104,36 @@ const NivelAI = (() => {
     const t = forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(Math.random() * THEMES.length) | 0];
     const GTOP = 12;
     const rnd = (a, b) => a + ((Math.random() * (b - a + 1)) | 0);
-    function candidate() {
-      const w = rnd(26, 34);
-      // ESCALERA de plataformas saltables (salto ≈ 2-3 tiles): del piso hacia arriba, evitando las columnas del
-      // spawn (x=2) y la meta (x=w-3). Nunca en la fila GTOP-1 (ahí van spawn/meta) → R2/R3 siempre OK.
+    const pick = a => a[(Math.random() * a.length) | 0];
+    const decorKeys = t.decor || ['caja', 'barril', 'tacho'];
+    // UNA sala del nivel: i=índice, n=total. Spawn en la 1ª (izq), META en la última (der); las del medio se enlazan
+    // con puertas recíprocas (izq→sala anterior, der→sala siguiente). Plataformas saltables sin tapar puerta/spawn/meta.
+    function room(i, n) {
+      const w = rnd(24, 32), id = 'sala-ai-' + i;
+      const ents = [];
+      // plataformas escalonadas en el hueco central [5 .. w-6] (lejos de las columnas x=2 y x=w-3 de puertas/marcadores)
       const plats = [];
-      let px = rnd(4, 6), py = GTOP - 2;
-      for (let i = 0, n = rnd(3, 6); i < n && px < w - 6; i++) {
-        const pw = rnd(2, 3);
-        plats.push([px, py, pw]);
-        px += pw + rnd(2, 3);
+      let px = rnd(5, 7), py = GTOP - 2;
+      for (let k = 0, m = rnd(3, 6); k < m && px < w - 6; k++) {
+        plats.push([px, py, rnd(2, 3)]);
+        px += plats[plats.length - 1][2] + rnd(2, 3);
         py = Math.max(4, py - (Math.random() < 0.6 ? rnd(1, 2) : 0));
       }
-      const ents = [
-        { id: 'gen/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } },
-        { id: 'gen/goal', tipo: 'marker', x: w - 3, render: { type: 'goal' } },
-      ];
-      // pickups arriba de las plataformas (premio por trepar) + enemigos temáticos DORMIDOS (decorativos por ahora)
-      for (const p of plats) if (Math.random() < 0.5) ents.push({ id: 'gen/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: p[1] - 1, give: { item: ['ammo', 'coins', 'health'][rnd(0, 2)], amount: rnd(3, 6) } });
-      for (let i = 0, n = rnd(1, 3); i < n; i++) ents.push({ id: 'gen/en' + i, tipo: 'enemy', x: rnd(6, w - 4) + 0.5, combat: { type: Math.random() < 0.5 ? 'peaton' : 'dron', dormant: true } });
-      return {
-        schemaVersion: 1, id: 'nivel-ai-' + t.id, nombre: L(t.name), seed: 'ai',
-        rooms: [{ id: 'sala-ai', nombre: L(t.name), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents }],
-      };
+      // marcadores / puertas
+      if (i === 0) ents.push({ id: id + '/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } });
+      else ents.push({ id: id + '/door-l', tipo: 'door', x: 2, inward: 1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i - 1) } });
+      if (i === n - 1) ents.push({ id: id + '/goal', tipo: 'marker', x: w - 3, render: { type: 'goal' } });
+      else ents.push({ id: id + '/door-r', tipo: 'door', x: w - 3, inward: -1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i + 1) } });
+      // pickups arriba de plataformas (premio por trepar) + enemigos DESPIERTOS temáticos + decor del tema en el piso
+      for (const p of plats) if (Math.random() < 0.5) ents.push({ id: id + '/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: p[1] - 1, give: { item: pick(['ammo', 'coins', 'health']), amount: rnd(3, 6) } });
+      for (let k = 0, e = rnd(1, 3); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: Math.random() < 0.5 ? 'peaton' : 'dron' } });
+      for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
+      return { id, nombre: L(t.name) + (n > 1 ? ' · ' + (i + 1) + '/' + n : ''), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };
+    }
+    function candidate() {
+      const n = rnd(2, 3);                                    // 2-3 salas conectadas por puertas
+      const rooms = []; for (let i = 0; i < n; i++) rooms.push(room(i, n));
+      return { schemaVersion: 1, id: 'nivel-ai-' + t.id, nombre: L(t.name), seed: 'ai', rooms };
     }
     // BUCLE de validación/reparación: probamos hasta 8 candidatos, devolvemos el 1º que pasa la RED.
     let last = null;

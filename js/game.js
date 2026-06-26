@@ -845,7 +845,8 @@
     const gen = NivelAI.generateLevel();
     let genRooms = null; try { genRooms = Mundo.fromModel(gen.model); } catch (e) {}
     const playable = (typeof Playable === 'undefined') || Playable.checkLevel(gen.model).ok;   // LA RED
-    if (!genRooms || !genRooms.length || !genRooms[0].playerStart || !genRooms[0].goal || !playable) {
+    const hasGoal = genRooms && genRooms.some(r => r.goal);   // la meta vive en la última sala (multi-sala)
+    if (!genRooms || !genRooms.length || !genRooms[0].playerStart || !hasGoal || !playable) {
       back(); setMsg(T('g.nivelai.fail'), '#ff5252', 4000); return;
     }
     // SNAPSHOT del juego principal (para restaurar al salir) + SWAP al nivel generado
@@ -965,7 +966,8 @@
     if (isCine(r)) cineNoticias = pickNoticias(r);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (hasTag(r,'truco') ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
-    if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
+    if (spinoffLevel) setMsg(T('g.nivelai.room', { name: TX(r.name) }), '#e0b0ff', 2500);   // cruzando salas del nivel generado
+    else if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
     else if (isCine(r)) setMsg(T('g.trans.cine'), '#9fd3ff', 5000);   // CINE de noticias (antes que arcade)
     else if (current === 0) setMsg(T('g.trans.street'), '#4FC3F7', 2500);
     else if (r.theme === 'cambio') { flash(); setMsg(stormed ? T('g.trans.cambioStorm') : T('g.trans.cambioFull'), stormed ? '#ff5252' : '#ffd54f', 6000); }

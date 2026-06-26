@@ -152,7 +152,7 @@ if (require.main === module) {
     Game.__nivelai.launch();
     if (!Game.__nivelai.active()) return JSON.stringify(['FAIL no entró al nivel-AI (¿generación/validación falló?)']);
     const rm = Game.__nivelai.room();
-    if (!rm || !rm.goal || !rm.playerStart) out.push('FAIL nivel generado sin goal/spawn');
+    if (!rm || !rm.playerStart) out.push('FAIL sala de entrada del nivel generado sin spawn');
     const p = Game.__nivelai.player(); const c0 = (p.caramelos || 0);
     Game.__nivelai.end('win');                                   // simular llegar a la meta
     if (Game.__nivelai.active()) out.push('FAIL no salió del nivel-AI');
@@ -208,12 +208,16 @@ if (require.main === module) {
       if (!sp.done || sp.exitTo !== 'back') throw new Error('spinoff no termina: ' + th.id);
       if ((pr.caramelos | 0) <= 0) throw new Error('spinoff no da souvenir: ' + th.id);
       ok.push('nivelai:' + th.id);
-      // LADRILLO 2 (C): el nivel-PLATAFORMA generado pasa la RED (Playable) y se CONSTRUYE con Mundo.fromModel
+      // LADRILLO 2-3 (C): el nivel-PLATAFORMA generado (multi-sala) pasa la RED + se CONSTRUYE con Mundo.fromModel
       const gl = NivelAI.generateLevel(th.id);
       const v = Playable.checkLevel(gl.model);
       if (!v.ok) throw new Error('nivel-ai ' + th.id + ' NO jugable: ' + v.problems.join(' | '));
       const built = Mundo.fromModel(gl.model);
-      if (!built.length || !built[0].playerStart || !built[0].goal) throw new Error('nivel-ai ' + th.id + ' no construye (spawn/goal)');
+      if (built.length < 2) throw new Error('nivel-ai ' + th.id + ' no es multi-sala (' + built.length + ')');
+      if (!built[0].playerStart) throw new Error('nivel-ai ' + th.id + ' sin spawn en sala 0');
+      if (!built[built.length - 1].goal) throw new Error('nivel-ai ' + th.id + ' sin meta en la última sala');
+      // las puertas deben estar CABLEADAS (to=índice válido) → se puede recorrer de sala a sala
+      for (const rm of built) for (const d of rm.doors || []) if (typeof d.to !== 'number' || d.to < 0 || d.to >= built.length) throw new Error('nivel-ai ' + th.id + ' puerta sin wiring');
       ok.push('nivelai-level:' + th.id);
     }
     return ok.join(',');

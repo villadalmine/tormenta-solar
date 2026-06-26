@@ -471,12 +471,13 @@ const Level = (() => {
         }
         spec.pickups = [{t:'health',x:8}];
       }
-      // COSTADO DERECHO (zona de subida): ESCALERA de plataformas que sube de derecha a izquierda (saltás de una a
-      // otra) + un premio arriba (loot) + CARTELES de propaganda en el hueco. OJO: el ascensor "subir" vive en
-      // x = w-3 (21) → la escalera NO debe tocar esa columna ni tapar la puerta. Va en el hueco x13..18.
-      spec.platforms = (spec.platforms || []).concat([[17, 10, 2], [15, 8, 2], [13, 6, 2]]);   // 3 escalones ascendentes ← (lejos del ascensor)
-      spec.decor = (spec.decor || []).concat([{ t:'cartel', x:16, ad:true }, { t:'cartel', x:19, ad:true }]);    // propaganda (componente `ad`); x19 = hueco entre escalera y ascensor
-      spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x:13.5, y:5, amount: lux ? 5 : 0 }]);  // recompensa arriba de la escalera
+      // SALIDA DE EMERGENCIA (escalera de incendios) sobre el COSTADO DERECHO: plataformas en ZIGZAG que suben
+      // RECTO (no en diagonal, no cruza el interior), confinadas al hueco libre x16..19 — entre el departamento
+      // (termina ~x14) y el ascensor (x = w-3 = 21). Saltás x18→x16→x18→x16 trepando hasta el loot. La RED
+      // (Playable) verifica que NO tape el ascensor.
+      spec.platforms = (spec.platforms || []).concat([[18, 10, 2], [16, 8, 2], [18, 6, 2], [16, 4, 2]]);   // zigzag VERTICAL ↑
+      spec.decor = (spec.decor || []).concat([{ t:'cartel', x:15, ad:true }, { t:'cartel', x:20, ad:true }]);    // propaganda flanqueando la escalera (x20 = entre escalera y ascensor)
+      spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x:16.5, y:3, amount: lux ? 5 : 0 }]);  // recompensa ARRIBA de la escalera de incendios
       rooms.push(makeRoom(spec));
     }
 
