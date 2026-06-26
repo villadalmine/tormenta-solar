@@ -307,32 +307,25 @@
     if (!it) return;
     if (it.kind === 'door') {
       if (stormed && it.d.collapsesOnStorm) { setMsg(TL('g.ruina'), '#b0a0a0', 4500); return; }
-      if (it.d.id === 'super') {
-        if (!stormed) enterSuper();                              // pre-tormenta: changuito normal
-        else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(true); }  // Iorio corrió a los ninjas → RAID (chino en pánico, robás gratis)
-        else setMsg(T('g.super.barricada'), '#ff5252', 6500);
-      }
-      else if (it.d.id === 'chinoback') enterSuper();           // entrada de servicio desde el refugio
-      else if (it.d.id === 'chinotruco') {
-        if (trucoWon) { trucoWon = false; enterSuper(); }              // ganaste → cruzás (se consume; la puerta queda cerrada)
-        else setMsg(T('g.truco.doorLocked'), '#ffd54f', 5200);        // cerrada: hay que ganarle al tahúr al truco
-      }
-      else if (it.d.id === 'vinilos') enterVinilos();
-      else if (it.d.id === 'cambio' && !stormed) {
-        // la casa de cambio oficial está HASTA LAS PELOTAS: la cola no te deja entrar
-        setMsg(TL('g.cambio.cola'), '#ffd54f', 4500);
-      }
-      else if (it.d.id === 'abandonado' && !borrachosHappy) {
-        // los tres borrachines te tapan la entrada hasta que les des LO QUE QUIEREN
-        setMsg(TL('g.abandonado'), '#ffd54f', 4800);
-      }
-      else transition(it.d);
+      const h = DOOR_HANDLERS[it.d.id];   // puerta con handler propio (lanza sub-modo / bloquea); si no, transición normal
+      if (h && h(it.d)) return;           // handled (lanzó o bloqueó); si devolvió false → cae a transition
+      transition(it.d);
     }
     else if (it.kind === 'npc') handleNpc(it.n);
     else if (it.kind === 'machine') handleMachine(it.m);
     else if (it.kind === 'cuevero') handleCuevero(it.c);
   }
   function launchArcade(game, opts) { arcadeGame = Arcade.create(game, opts); state = 'arcade'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); }
+  // REGISTRO de puertas con HANDLER propio (lanzan sub-modo o bloquean con condición). El handler devuelve true si
+  // manejó la puerta (lanzó/bloqueó) o false para caer a la transición normal. La puerta DECLARA su id (data).
+  const DOOR_HANDLERS = {
+    super: () => { if (!stormed) enterSuper(); else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(true); } else setMsg(T('g.super.barricada'), '#ff5252', 6500); return true; },
+    chinoback: () => { enterSuper(); return true; },   // entrada de servicio desde el refugio
+    chinotruco: () => { if (trucoWon) { trucoWon = false; enterSuper(); } else setMsg(T('g.truco.doorLocked'), '#ffd54f', 5200); return true; },
+    vinilos: () => { enterVinilos(); return true; },
+    cambio: () => { if (!stormed) { setMsg(TL('g.cambio.cola'), '#ffd54f', 4500); return true; } return false; },          // pre-tormenta la cola no te deja; post → transición
+    abandonado: () => { if (!borrachosHappy) { setMsg(TL('g.abandonado'), '#ffd54f', 4800); return true; } return false; },  // borrachines bloquean hasta el regalo
+  };
   // REGISTRO de acciones de NPC (verbo declarativo `action` → handler). El entity DECLARA su action (data); el motor
   // la despacha por el registro (§6.97 primitiva=código, componer=dato). Agregar una mecánica = sumar acá un verbo.
   // Las que lanzan SUB-MODOS (truco/frogger) son lanzadores: arman el módulo y cambian de estado.

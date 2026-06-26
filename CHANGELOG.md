@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v157] — 2026-06-26 — 🧱 v2: door-launchers como registro (puertas que lanzan sub-modo / bloquean = data)
+
+El dispatch de puertas pasó del **if-else por id** (super/chinoback/chinotruco/vinilos/cambio/abandonado) a un
+**registro `DOOR_HANDLERS`**: la puerta DECLARA su id (data) y el motor busca su handler (lanza sub-modo o bloquea con
+su condición); si no tiene, **transición normal**. El handler devuelve `true` (manejó) o `false` (cae a transición, ej.
+cambio/abandonado post-condición). Mismo patrón que `NPC_ACTIONS`. e2e×3 (arcade/super) + web-smoke OK.
+
+---
+
 ## [v156] — 2026-06-26 — 🧱 v2: sub-modos como LANZADORES declarativos (registro de acciones)
 
 El `handleNpc` pasó de un **if-else por `action`** (15 ramas) a un **registro `NPC_ACTIONS`** (verbo→handler): el
