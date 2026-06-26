@@ -6,10 +6,13 @@
 > declarativo puro + estado runtime aparte (el que ya guarda `save.js`).
 
 - **Estado:** **F1+F2+F3+F4 IMPLEMENTADOS (v2 data-driven DEFAULT, 2026-06-25).** Hardcodes migrados a data
-  (`COLLAPSED`→`collapsesOnStorm`, `DOOR_ART`→`art`, gating→`gate`) + save anclado por posición (RF-4). Queda
-  opcional `ambient` + **F5** (extraer el motor `engine/`+`game/`, rewrite mayor). Ver §10.
+  (`COLLAPSED`→`collapsesOnStorm`, `DOOR_ART`→`art`, gating→`gate`) + save anclado por posición (RF-4).
+  **DESPACHO POR REGISTRY (§6.97) ya implementado (2026-06-26):** `NPC_ACTIONS` (verbos, incl. lanzadores de
+  sub-modo) + `DOOR_HANDLERS` (puertas que lanzan/bloquean por id) + `QUEST_DEFS`/`QUEST_PRIMS` — los `if/else`
+  por tipo/id ya son tablas data→handler. Queda opcional `ambient` + **F5** (extraer `engine/`+`game/`, rewrite
+  mayor) + el **generador `POST /nivel-ai`** (la "máquina de hacer chorizos", último paso). Ver §10.
 - **Nivel:** transversal (es la base para Nivel 1 **y** Nivel 2+)
-- **Última actualización:** 2026-06-24
+- **Última actualización:** 2026-06-26
 
 ## 1. Contexto y objetivo
 
@@ -583,14 +586,22 @@ Las "acciones" (verbos de interacción) y los "effects" de las abilities son **l
 > ellas (params + entidades + condiciones). Una primitiva nueva = código del motor (raro). Todo lo demás
 > (qué entidad la usa, con qué params, bajo qué condición) = data.**
 
-### Registry de acciones (verbos de interacción)
-Hoy `interact()` es un `if/else` gigante por `n.action`. En v2 es un **registry**:
+### Registry de acciones (verbos de interacción) — ✅ IMPLEMENTADO
+`interact()` ya **no** es un `if/else` gigante: es un **registry** (v2 real, 2026-06-26):
 ```js
 // motor: tabla verbo → handler(entity, ctx). El handler es código; la entidad trae los params.
-Actions = { chat, shop, borracho, lujo, totem, tesoro, loop, limosna, iorio, armas, fifa, truco, frogger, chori, quest }
+NPC_ACTIONS  = { chat, shop, borracho, lujo, totem, tesoro, loop, limosna, iorio, armas, fifa, truco, frogger, chori, quest, … }
+DOOR_HANDLERS = { super, chinoback, chinotruco, vinilos, cambio, abandonado }   // puertas que lanzan sub-modo / bloquean
+QUEST_PRIMS   = { newsGive, newsReport, newsHint, mundialGreet, mundialReport }   // primitivas de quest
 ```
-- La entidad declara `interact: { action: "quest", quest: "quest_mundial" }`; el motor busca `Actions.quest`
-  y lo llama. **Sin `if/else`.** Auditoría (como la de assets): toda `action` del modelo tiene handler.
+- **NPCs:** la entidad declara `interact: { action: "quest", quest: "quest_mundial" }`; `handleNpc` busca
+  `NPC_ACTIONS[action]` y lo llama (incluye los lanzadores de sub-modo: truco/frogger/fifa). **Sin `if/else`.**
+- **Puertas:** la puerta declara su `id` (data); `interact()` busca `DOOR_HANDLERS[id]` → lanza sub-modo
+  (super/vinilos/chino) o bloquea con su condición; el handler devuelve `true` (manejó) o `false` (cae a
+  `transition` normal — ej. cambio/abandonado ya cumplida su condición). **Sin `if/else` por-id.**
+- **Quests:** `QUEST_DEFS` (data del nivel, `LEVEL1.quests`) + `QUEST_PRIMS` (primitivas código) por hook
+  (`onGive`/`onReport`/`onGreet`/`onHint`), despachadas por `giver`.
+- Auditoría (como la de assets): toda `action`/`id`/hook del modelo tiene su primitiva registrada.
 - **¿Un pack puede sumar un verbo?** Un pack es **data**, así que **reusa verbos existentes con params
   nuevos** y agrega entidades/quests. Un **verbo nuevo de verdad** (mecánica nueva) = código del motor. (El
   90% del contenido nuevo no necesita verbos nuevos: usa `quest`/`chat`/`shop`/… con otra data.)
