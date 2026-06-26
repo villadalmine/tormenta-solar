@@ -472,10 +472,11 @@ const Level = (() => {
         spec.pickups = [{t:'health',x:8}];
       }
       // COSTADO DERECHO (zona de subida): ESCALERA de plataformas que sube de derecha a izquierda (saltás de una a
-      // otra) + un premio arriba (loot) + CARTELES de propaganda abajo (rotan; incluye el link del otro juego).
-      spec.platforms = (spec.platforms || []).concat([[20, 10, 3], [17, 8, 2], [14, 6, 2]]);   // 3 escalones ascendentes ←
-      spec.decor = (spec.decor || []).concat([{ t:'cartel', x:16, ad:true }, { t:'cartel', x:19, ad:true }]);    // propaganda (componente `ad`) en el hueco
-      spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x:14.5, y:5, amount: lux ? 5 : 0 }]);  // recompensa por trepar
+      // otra) + un premio arriba (loot) + CARTELES de propaganda en el hueco. OJO: el ascensor "subir" vive en
+      // x = w-3 (21) → la escalera NO debe tocar esa columna ni tapar la puerta. Va en el hueco x13..18.
+      spec.platforms = (spec.platforms || []).concat([[17, 10, 2], [15, 8, 2], [13, 6, 2]]);   // 3 escalones ascendentes ← (lejos del ascensor)
+      spec.decor = (spec.decor || []).concat([{ t:'cartel', x:16, ad:true }, { t:'cartel', x:19, ad:true }]);    // propaganda (componente `ad`); x19 = hueco entre escalera y ascensor
+      spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x:13.5, y:5, amount: lux ? 5 : 0 }]);  // recompensa arriba de la escalera
       rooms.push(makeRoom(spec));
     }
 

@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v163] — 2026-06-26 — 🔧 Fix: la escalera del edificio de los borrachines tapaba el ascensor
+
+La escalera de plataformas del costado derecho arrancaba en `[20,10,3]` (x=20,21,22) y **el ascensor "subir"
+vive en x=21** (`w-3`) → la plataforma cubría/tapaba el ascensor. Reubicada al hueco `x13..18`
+(`[[17,10,2],[15,8,2],[13,6,2]]`), lejos de la columna del ascensor; loot arriba (x13.5) y propaganda en el
+hueco (x19). parity v1≡v2 + e2e×3 + web-smoke OK.
+
+---
+
 ## [v162] — 2026-06-26 — 🌀✨ NIVEL-AI: la trastienda del chino GENERA un nivel surreal (¡la máquina de hacer chorizos, disparada!)
 
 Primer corte jugable del **generador de niveles**. Cuando entrás al chino por el RAID (Iorio abrió el frente), el
