@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v158] — 2026-06-26 — 🧱 v2: el loop de supervivencia como REGLAS de DATA (no magic-numbers)
+
+Los números del **loop post-tormenta** dejaron de estar hardcodeados en `game.js`: ahora son **`rules.survival`
+del nivel** (`window.LEVEL1.rules.survival`), declarados en el modelo (gen-level→nivel-1.json→schema) y leídos
+por el motor con **fallback inline = los valores de v1**. Migrados: drenaje de vida (`decayHp` cada
+`decayEverySec` s), vida al dormir/revivir (`fullHp`), y la fracción de monedas que conservás al dormir
+(`sleepCoinKeepMin`..`sleepCoinKeepMax`). La **máquina de niveles** podrá ajustar dificultad por nivel sin
+tocar el motor. Schema + parity v1≡v2 + e2e×3 + web-smoke OK.
+
+---
+
 ## [v157] — 2026-06-26 — 🧱 v2: door-launchers como registro (puertas que lanzan sub-modo / bloquean = data)
 
 El dispatch de puertas pasó del **if-else por id** (super/chinoback/chinotruco/vinilos/cambio/abandonado) a un

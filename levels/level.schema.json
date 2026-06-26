@@ -47,6 +47,22 @@
     "$ref": "#/$defs/room"
    }
   },
+  "rules": {
+   "type": "object",
+   "description": "reglas del nivel como data (§6.97): loop de supervivencia, etc. El motor las compone con fallback inline.",
+   "properties": {
+    "survival": {
+     "type": "object",
+     "properties": {
+      "decayEverySec": { "type": "number" },
+      "decayHp": { "type": "number" },
+      "fullHp": { "type": "number" },
+      "sleepCoinKeepMin": { "type": "number" },
+      "sleepCoinKeepMax": { "type": "number" }
+     }
+    }
+   }
+  },
   "quests": {
    "type": "array",
    "items": {

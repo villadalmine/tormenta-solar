@@ -118,6 +118,11 @@
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
+  // REGLAS del loop de supervivencia como DATA (§6.97): el motor las compone, el nivel las declara
+  // (window.LEVEL1.rules.survival). La máquina de niveles podrá ajustar dificultad sin tocar código.
+  // Fallback inline = los números de v1 (drena -3 hp/30s; al dormir/revivir hp full; conserva 30-70% monedas).
+  const SURV = Object.assign({ decayEverySec: 30, decayHp: 3, fullHp: 100, sleepCoinKeepMin: 0.3, sleepCoinKeepMax: 0.7 },
+    (typeof window !== 'undefined' && window.LEVEL1 && window.LEVEL1.rules && window.LEVEL1.rules.survival) || {});
   let trucoWon = false;                             // ganar el truco abre una puerta al chino (se consume al cruzar)
   let trucoEverWon = false;                          // ¿alguna vez le ganaste al tahúr? (para el HITO; NO se consume)
   let armado = false;                               // espejo de n.armado: compraste fierro criollo (lo lee el grafo de historia)
@@ -429,7 +434,7 @@
   }
   function reviveToPreviousLoop() {
     loopCount = Math.max(0, loopCount - 1);
-    player.alive = true; player.hp = 100; decayAcc = 0; player.falopa = 0;
+    player.alive = true; player.hp = SURV.fullHp; decayAcc = 0; player.falopa = 0;
     resetLoopResources(); chinoFrontOpen = false;
     const idx = bunkerUnlocked ? rooms.findIndex(r => /[Bb][úu]nker/.test(r.name)) : rooms.findIndex(r => r.cueveros && r.cueveros.length);
     spawnIn(idx >= 0 ? idx : 0, 4); flash();
@@ -764,8 +769,8 @@
     loopCount++;
     resetLoopResources();
     player.falopa = 0;                                                      // la falopa se resetea por loop
-    player.coins = Math.floor(player.coins * (0.3 + Math.random() * 0.4));  // monedas: te queda algo (parcial, aleatorio)
-    player.hp = 100; player.alive = true; decayAcc = 0;                     // descansás: arrancás el día lleno
+    player.coins = Math.floor(player.coins * (SURV.sleepCoinKeepMin + Math.random() * (SURV.sleepCoinKeepMax - SURV.sleepCoinKeepMin)));  // monedas: te queda algo (parcial, aleatorio)
+    player.hp = SURV.fullHp; player.alive = true; decayAcc = 0;             // descansás: arrancás el día lleno
     chinoFrontOpen = false; flash();
     setMsg(T('g.loop.sleep', { n: loopCount }), '#7CFC00', 8000);
   }
@@ -1112,10 +1117,10 @@
     player.stunned = performance.now() < stunUntil;
     player.update(dt, r, cam);
 
-    // LOOP de supervivencia: tras la tormenta la vida se gasta (-3 cada 30 s). Comé o te morís.
+    // LOOP de supervivencia: tras la tormenta la vida se gasta (SURV.decayHp cada SURV.decayEverySec s). Comé o te morís.
     if (stormed) {
       decayAcc += dt;
-      while (decayAcc >= 30) { decayAcc -= 30; player.hp -= 3; if (player.hp <= 0) { player.hp = 0; player.alive = false; } }
+      while (decayAcc >= SURV.decayEverySec) { decayAcc -= SURV.decayEverySec; player.hp -= SURV.decayHp; if (player.hp <= 0) { player.hp = 0; player.alive = false; } }
     }
     if (!player.alive || player.hp <= 0) {
       if (stormed && loopCount > 0) { reviveToPreviousLoop(); return; }   // morís → volvés al loop anterior

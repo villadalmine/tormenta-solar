@@ -3,6 +3,15 @@
   "id": "nivel-1",
   "nombre": "Florida y Lavalle",
   "seed": "nivel-1",
+  "rules": {
+    "survival": {
+      "decayEverySec": 30,
+      "decayHp": 3,
+      "fullHp": 100,
+      "sleepCoinKeepMin": 0.3,
+      "sleepCoinKeepMax": 0.7
+    }
+  },
   "quests": [
     {
       "id": "news",

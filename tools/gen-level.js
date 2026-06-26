@@ -96,11 +96,18 @@ const QUESTS = {
   mundial: { id: 'mundial', scope: 'run', giver: 'hincha',  reward: { caramelos: 5 }, ask: 'g.mundial.pregunta', back: 'g.mundial.gracias', remind: 'g.mundial.recorda', onGreet: 'mundialGreet', onReport: 'mundialReport' },
 };
 
+// REGLAS del nivel como DATA (§6.97): el loop de supervivencia (post-tormenta) deja de ser magic-numbers en
+// game.js. La máquina de niveles podrá ajustar dificultad por nivel sin tocar el motor. Fallback inline = v1.
+const RULES = {
+  survival: { decayEverySec: 30, decayHp: 3, fullHp: 100, sleepCoinKeepMin: 0.3, sleepCoinKeepMax: 0.7 },
+};
+
 const model = {
   schemaVersion: 1,
   id: 'nivel-1',
   nombre: 'Florida y Lavalle',
   seed: 'nivel-1',
+  rules: RULES,                    // reglas del nivel (supervivencia); game.js las lee con fallback inline
   quests: Object.values(QUESTS),   // array (lo que pide el schema); game.js lo mapea por id
   rooms: rooms.map((r, ri) => {
     const room = { id: roomId[ri], nombre: r.name, theme: r.theme, w: r.w };
