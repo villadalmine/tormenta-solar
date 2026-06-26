@@ -742,6 +742,8 @@ http.createServer((req, res) => {
         'feria-trucha': en ? 'a mega knockoff/counterfeit fair (fake brands, bags, sneakers)' : 'una mega-feria de marcas truchas (carteras, championes, copias)',
         'fabrica-petardos': en ? 'a clandestine fireworks/gunpowder warehouse' : 'una fábrica clandestina de petardos y pólvora',
         'karaoke-mafia': en ? 'an underground mafia KTV karaoke with private rooms' : 'un karaoke KTV clandestino de la mafia con reservados',
+        'lavadero-billetes': en ? 'a laundromat that launders actual money: drums spinning full of dollar bills' : 'un lavadero que lava plata de verdad: tambores girando llenos de billetes',
+        'farmacia-vencida': en ? 'a dodgy pharmacy full of expired meds and weird homemade syrups' : 'una farmacia trucha con remedios vencidos y jarabes caseros raros',
       };
       const brief = BRIEF[theme] || BRIEF['super-rasca'];
       const sys = en

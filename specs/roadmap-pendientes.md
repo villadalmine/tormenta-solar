@@ -20,8 +20,9 @@ niveles por IA + la RED de jugabilidad, el tema oráculo personalizado y la resi
   `Playable.reachableTops`. Test en `tests/geometria.js`.
 - ✅ **Obstáculos autorados por IA** (v184): el proxy pide `hazards`, el cliente los sanea y los usa si pasan la RED
   (si no, auto-repara). La IA ya autora geometría COMPLETA (plataformas+enemigos+pinchos+pozos).
-- **Pendiente (fino):** enemigos que respeten los pozos (un peatón puede caerse caminando).
-- **Más temas** (el dueño quiere ir sumando) — sumar a `THEMES` (data) + `BRIEF` en `server.js`.
+- ✅ **Enemigos que respetan los pozos** (v185): caminantes/turret frenan en el borde (`edgeAhead`).
+- **Más temas** (el dueño quiere ir sumando) — sumar a `THEMES` (data) + `BRIEF` en `server.js`. Ya van **9**
+  (sumados lavadero-billetes y farmacia-vencida en v185).
 
 ## 3. Cámaras / dólares (pulido)
 - Cámaras como **entidad con lógica propia** (hoy son decor + reacción al disparo). Opcional: que “vean” en un cono.

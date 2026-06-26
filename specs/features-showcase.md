@@ -18,7 +18,7 @@
 
 ## 2. La MÁQUINA DE NIVELES por IA + la RED de jugabilidad (lo más novedoso)
 - **Qué:** te colás a la trastienda del chino (en el raid) → **se GENERA un nivel** (`js/nivelai.js`) y lo corre **EL
-  motor real** (rooms-swap). 7 temas surreales + uno **inventado por IA**.
+  motor real** (rooms-swap). 9 temas surreales + uno **inventado por IA**.
 - **La RED (`js/playable.js`):** un **validador de jugabilidad** valida que el nivel sea **transitable** ANTES de
   cargarlo. Reglas: **R1** puerta no tapada · **R2** spawn no enterrado · **R3** meta no enterrada · **R4
   reachability** (BFS de superficies parables con **física de salto real** — se trepa ≤3 tiles, apex ~3.9: ¿se LLEGA

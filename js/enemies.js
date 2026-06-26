@@ -31,6 +31,15 @@ const Enemies = (() => {
 
   function overlap(a, b) { return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
 
+  // ¿hay un BORDE/POZO justo adelante (en dir)? Para que los caminantes NO se tiren al vacío de los niveles generados.
+  function edgeAhead(e, room, dir) {
+    if (!room._hasPit) return false;                 // aditivo: solo importa donde hay pozos
+    const T = Level.TILE;
+    const col = Math.floor((dir > 0 ? e.x + e.w + 2 : e.x - 2) / T);
+    const supportRow = Math.floor((e.y + e.h) / T);  // la fila donde se apoya el pie
+    return !Level.solid(room, col, supportRow);       // sin piso adelante → es un borde
+  }
+
   function fireAt(e, player, dmg, spd) {
     const sx = e.x+e.w/2, sy = e.y+e.h/2;
     let dx = (player.x+player.w/2)-sx, dy = (player.y+12)-sy;
@@ -53,7 +62,9 @@ const Enemies = (() => {
       e.facing = pcx < ecx ? -1 : 1;
 
       if (e.beh === 'walker') {
-        e.vx = (pcx > ecx ? 1 : -1) * e.speed;
+        const dir = pcx > ecx ? 1 : -1;
+        e.vx = dir * e.speed;
+        if (e.grounded && edgeAhead(e, room, dir)) e.vx = 0;   // no se tira al pozo: frena en el borde
         Level.moveBody(e, room, dt);
         e.atkCd -= dt;
         if (overlap(e, player) && e.atkCd <= 0) { player.hurt(e.dmg); e.atkCd = 0.7; }
@@ -66,6 +77,7 @@ const Enemies = (() => {
         if (e.shootCd <= 0 && Math.hypot(tx, ty) < 480) { fireAt(e, player, e.dmg, 320); e.shootCd = 1.4; }
       } else { // turret (cuevero)
         if (Math.random() < 0.012) e.vx = (pcx > ecx ? 1 : -1) * e.speed; else e.vx *= 0.8;
+        if (e.grounded && e.vx !== 0 && edgeAhead(e, room, e.vx > 0 ? 1 : -1)) e.vx = 0;   // tampoco se tira al pozo
         Level.moveBody(e, room, dt);
         e.shootCd -= dt;
         if (e.shootCd <= 0) { fireAt(e, player, e.dmg, 370); e.shootCd = 0.8; }

@@ -96,6 +96,28 @@ const NivelAI = (() => {
                                      en: ['you saw nothing', 'sing and shush', 'private room taken', 'on the house', 'shh, boss sings'] } },
       goal: { es: 'SALIDA VIP', en: 'VIP EXIT' }, reward: { caramelos: 4 }, style: 'aisles', decor: ['parlante', 'ampli', 'sofa', 'tv', 'bailarinaParlante', 'mesaRedonda'],
     },
+    {
+      id: 'lavadero-billetes', motif: '🧺',
+      name: { es: 'Lavadero «Blanco Como Nieve»', en: 'Laundromat "White as Snow"' },
+      intro: { es: 'Un lavadero donde NO lavan ropa: lavan BILLETES. Tambores girando llenos de verdes.',
+               en: 'A laundromat that washes no clothes: it washes BILLS. Drums spinning full of greenbacks.' },
+      palette: { floor: '#1c2630', floor2: '#22303c', wall: '#33485a', accent: '#4dd0e1' },
+      props: ['💵', '🧺', '🫧', '🧼', '💸', '🪙', '🧽', '🌀'],
+      npc: { emoji: '🧺', lines: { es: ['queda limpito', 'no preguntá origen', 'centrifugá la guita', 'seca y blanca', 'segundo tambor libre'],
+                                    en: ['comes out clean', 'no ask origin', 'spin the cash', 'dry and white', 'second drum free'] } },
+      goal: { es: 'SALIDA EN SECO', en: 'DRY EXIT' }, reward: { caramelos: 5 }, style: 'aisles', decor: ['caja', 'barril', 'tacho', 'dispenser', 'maletin', 'parlante'],
+    },
+    {
+      id: 'farmacia-vencida', motif: '💊',
+      name: { es: 'Farmacia «Casi Vence»', en: 'Pharmacy "Almost Expired"' },
+      intro: { es: 'Una farmacia trucha: remedios vencidos, jarabes raros y un cartel de "oferta o muerte".',
+               en: 'A dodgy pharmacy: expired meds, weird syrups and a sign reading "deal or die".' },
+      palette: { floor: '#20281f', floor2: '#283322', wall: '#3a4a34', accent: '#aed581' },
+      props: ['💊', '🧪', '🩹', '💉', '🧫', '🦠', '🧴', '⚗️'],
+      npc: { emoji: '🧑‍⚕️', lines: { es: ['vence mañana, comprá', 'cura casi todo', 'sin receta, dale', 'efecto secundario gratis', 'jarabe de la casa'],
+                                       en: ['expires tomorrow, buy', 'cures almost all', 'no script, go', 'free side effect', 'house syrup'] } },
+      goal: { es: 'TRASTIENDA', en: 'BACK ROOM' }, reward: { caramelos: 4 }, style: 'climb', decor: ['kiosko', 'caja', 'escritorio', 'dispenser', 'tacho', 'mueble_roto'],
+    },
   ];
 
   // ----- EL GENERADOR: compone una escena (data) desde un tema (forceId opcional, para tests) -----

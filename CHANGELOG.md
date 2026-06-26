@@ -39,6 +39,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v185] — 2026-06-26 — 🚶 Enemigos que respetan los pozos + 2 temas nuevos (lavadero de billetes, farmacia vencida)
+
+Pulido y contenido nuevo de la máquina de niveles:
+- **Enemigos que NO se tiran al vacío:** los caminantes (peatón/pacman) y el cuevero (turret) ahora **frenan en el
+  borde** de un pozo en vez de caer (`edgeAhead`: mira si hay piso adelante). **Aditivo**: solo en salas con pozos
+  (`room._hasPit`); las 38 a mano no cambian en nada.
+- **2 temas nuevos** (ya son 9): **«Lavadero Blanco Como Nieve»** (lavan billetes en vez de ropa) y **«Farmacia
+  Casi Vence»** (remedios vencidos, jarabes caseros). Como siempre: data (`THEMES`) + `BRIEF` en el proxy, con texto
+  bilingüe estático y la IA autorando arriba.
+- e2e (corre los 9 temas) + playable + geometria + web-smoke OK. *(Redeploy del proxy — infra-23 — para el texto IA
+  de los temas nuevos; el cliente ya los juega con su texto estático.)*
+
+---
+
 ## [v184] — 2026-06-26 — 🎨 La IA autora la geometría COMPLETA: ahora también los OBSTÁCULOS (pinchos + pozos)
 
 Cierra el círculo "todo lo dibuja la IA". Antes los pinchos/pozos eran procedurales; ahora la IA también los
@@ -587,6 +601,13 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-23] — 2026-06-26 — 🧺 Proxy 0.1.43: BRIEF de 2 temas nuevos (lavadero de billetes, farmacia vencida)
+
+Redeploy del proxy (`tormenta-ai` 0.1.42 → **0.1.43**) para que `/nivel-ai` autore el texto IA de los 2 temas
+nuevos (`lavadero-billetes`, `farmacia-vencida`) — sus `BRIEF` ES/EN. Deploy con `deploy/deploy.sh proxy 0.1.43`.
 
 ---
 

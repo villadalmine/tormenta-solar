@@ -216,7 +216,8 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   (`sanitizeHazards`: ancho ≤2, lejos de columnas sagradas) y `generateLevel` los usa **si pasan la RED**; si no
   (ej. dos pozos pegados, o un pincho sobre la meta), **auto-repara** a obstáculos procedurales. Así la IA autora la
   geometría COMPLETA (plataformas + enemigos + pinchos + pozos), toda tamizada por la red. Test en `tests/geometria.js`.
-- **Lo que queda:** enemigos que respeten los pozos (un peatón caminando puede caerse); más temas.
+- **Pulido (v185):** los **enemigos respetan los pozos** (caminantes/turret frenan en el borde, `edgeAhead`,
+  aditivo por `room._hasPit`). **9 temas** (sumados «lavadero de billetes» y «farmacia vencida»).
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como
