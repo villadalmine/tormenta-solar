@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-20] — 2026-06-26 — ⏱️ Refresh EN VIVO del Mundial (cron horario + merge por topic)
+
+El Mundial/fútbol/crypto ahora se refrescan **cada hora** sin re-traer Google News:
+- **Modo `NEWS_LIVE_ONLY`** en `gen-noticias.mjs`: salta Google News + resumen IA + openrouter; solo trae lo que
+  cambia rápido (mundial, mundial-tabla, mundial-goleadores, primera-b/Villa Dálmine, crypto + los 48 equipos para
+  los hinchas) y POSTea con **`merge:true`**.
+- **`POST /noticias` con merge**: actualiza SOLO esos topics del día, **conserva** las noticias de Google News del
+  run diario (antes el POST reemplazaba todo → no se podía hacer parcial).
+- **2º CronWorkflow** `tormenta-ai-proxy-noticias-live` (`0 * * * *`, live-only). El run diario (5/9/23h) sigue
+  trayendo todo. Proxy `0.1.34`.
+
+---
+
 ## [v135 / infra-19] — 2026-06-26 — 🌡️ Cartel de CLIMA (open-meteo) + carteles también en la calle
 
 - **Cartel `clima`**: temperaturas reales de varias ciudades (BsAs/Madrid/Tokio/NY/Doha) vía **open-meteo** (sin

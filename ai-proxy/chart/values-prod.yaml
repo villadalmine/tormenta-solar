@@ -89,6 +89,9 @@ noticias:
   sports: "mundial:4429,primera-b:team:137785"
   # Mundial: tabla del grupo de Argentina + goleadores, vía ESPN (sin key). Topics: mundial-tabla, mundial-goleadores.
   worldcup: "fifa.world"
+  # refresh EN VIVO (cron horario, modo live-only: Mundial/fútbol/crypto con MERGE, sin Google News ni IA).
+  live: true
+  liveSchedule: "0 * * * *"
 
 # CINE: carteles de propaganda FALSOS estilo BsAs por rubro (comida/ropa/electronica/bizarro), generados por IA.
 # El modelo SÍ inventa (es el punto). 1×/día. El juego los rota en los carteles del cine (GET /propaganda).

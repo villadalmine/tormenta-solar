@@ -41,6 +41,8 @@ noticias:
   summarizeModel: ""        # "captura IA" del titular (fiel). Validado: gemma4-paid (GPU inventa, NPU caída). "" = titular crudo
   sports: ""                # opt-in fútbol/ligas: "mundial:4406,primera-b:4391" (TheSportsDB)
   worldcup: ""              # opt-in Mundial: "fifa.world" → tabla del grupo de Argentina + goleadores (ESPN)
+  live: false               # cron horario live-only (Mundial/fútbol/crypto con merge)
+  liveSchedule: "0 * * * *"
 
 propaganda:                 # carteles FALSOS del cine generados por IA (comida/ropa/electronica/bizarro)
   enabled: false

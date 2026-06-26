@@ -40,8 +40,11 @@ async function gnewsTop(q) {
   } catch (e) { return null; }
 }
 
+// NEWS_LIVE_ONLY=1 → modo "en vivo" (cron horario): SOLO lo que cambia rápido (Mundial/fútbol/crypto), SIN Google
+// News ni resumen IA, y POSTea con MERGE por topic (no pisa las noticias del run diario). Ver cine-noticias.md §7.1.
+const LIVE = process.env.NEWS_LIVE_ONLY === '1';
 const noticias = [];
-for (const [topic, q] of Object.entries(TOPICS)) {
+if (!LIVE) for (const [topic, q] of Object.entries(TOPICS)) {
   const n = await gnewsTop(q);
   if (n) noticias.push({ topic, ...n, ts: Date.now() });
 }
@@ -63,7 +66,7 @@ async function capturar(headline) {
     return t ? t.trim().replace(/^["']+|["']+$/g, '').slice(0, 140) : null;
   } catch (e) { return null; }
 }
-if (SUM_MODEL && AI_KEY) for (const n of noticias) { const c = await capturar(n.headline); if (c) n.headline = c; }   // answer queda crudo (fiel)
+if (!LIVE && SUM_MODEL && AI_KEY) for (const n of noticias) { const c = await capturar(n.headline); if (c) n.headline = c; }   // answer queda crudo (fiel)
 
 // CRYPTO (CoinGecko, sin key) — DESPUÉS del resumen para que los NÚMEROS no se toquen. Precio real BTC/ETH.
 try {
@@ -72,8 +75,8 @@ try {
     if (d.bitcoin && d.ethereum) noticias.push({ topic: 'crypto', headline: `Bitcoin ${fmt(d.bitcoin)} · Ethereum ${fmt(d.ethereum)}`, answer: `BTC ${Math.round(d.bitcoin.usd)} / ETH ${Math.round(d.ethereum.usd)}`, ts: Date.now() }); }
 } catch (e) {}
 
-// OPENROUTER — modelos + precios (API pública sin key). Unos populares con su US$/1M (NO se resume: son datos).
-try {
+// OPENROUTER — modelos + precios (API pública sin key). Cambia lento → SOLO en el run diario (no en el live).
+if (!LIVE) try {
   const r = await fetch('https://openrouter.ai/api/v1/models', { headers: { Accept: 'application/json' } });
   if (r.ok) { const ms = (await r.json()).data || [], pop = ['openai/gpt-4o-mini', 'google/gemini-2.5-flash-lite', 'anthropic/claude-sonnet-4.5', 'deepseek/deepseek-v4-flash', 'google/gemma-4-31b-it'];
     const parts = pop.map(id => { const m = ms.find(x => x.id === id); if (!m) return null; const p = (+m.pricing?.prompt + +m.pricing?.completion) * 1e6; return `${id.split('/').pop()} $${p.toFixed(2)}`; }).filter(Boolean);
@@ -162,8 +165,9 @@ if (MUNDIAL_POST_URL && TOKEN && WC_NEQ) {
 }
 
 if (POST_URL && TOKEN) {
-  const res = await fetch(POST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-gen-token': TOKEN }, body: JSON.stringify({ noticias }) });
-  console.error('POST', POST_URL, '->', res.status);
+  // en modo LIVE va con merge:true → actualiza SOLO los topics que trae (Mundial/fútbol/crypto), no pisa el resto.
+  const res = await fetch(POST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-gen-token': TOKEN }, body: JSON.stringify({ noticias, merge: LIVE }) });
+  console.error('POST', POST_URL, '-> ', res.status, LIVE ? '(merge)' : '');
   process.exit(res.ok ? 0 : 1);
 } else {
   console.log(JSON.stringify({ noticias }, null, 1));   // modo prueba (sin POST)

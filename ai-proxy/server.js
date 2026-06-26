@@ -576,7 +576,16 @@ http.createServer((req, res) => {
       // ARCHIVO por día (ring de 7): el cron escribe el día de HOY (pisa si ya corrió hoy) y poda los > 7 días.
       // Un POST vacío NO toca nada (corrida fallida no debe dejar el cine "sin señal").
       try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) {
-        if (d.noticias.length) { const day = (/^\d{4}-\d{2}-\d{2}$/.test(d.day || '') ? d.day : new Date().toISOString().slice(0, 10)); NOTI_DAYS[day] = { noticias: d.noticias.slice(0, 100), ts: Date.now() }; notiPrune(); notiSyncLatest(); saveNoticias(); }
+        if (d.noticias.length) {
+          const day = (/^\d{4}-\d{2}-\d{2}$/.test(d.day || '') ? d.day : new Date().toISOString().slice(0, 10));
+          const incoming = d.noticias.slice(0, 100);
+          if (d.merge) {                          // LIVE: actualiza SOLO esos topics, conserva el resto del día
+            const by = new Map((NOTI_DAYS[day]?.noticias || []).map(n => [n.topic, n]));
+            for (const n of incoming) by.set(n.topic, n);
+            NOTI_DAYS[day] = { noticias: [...by.values()].slice(0, 100), ts: Date.now() };
+          } else { NOTI_DAYS[day] = { noticias: incoming, ts: Date.now() }; }   // run diario: reemplaza el día
+          notiPrune(); notiSyncLatest(); saveNoticias();
+        }
         res.writeHead(200); return res.end(d.noticias.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
