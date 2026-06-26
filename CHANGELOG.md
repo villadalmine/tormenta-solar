@@ -52,6 +52,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v192] — 2026-06-26 — 🛍️ Tiendas generadas — Parte 2: la IA autora el SURTIDO (cache-first + fallback)
+
+Completa `tiendas-generadas.md`: el surtido de los 4 locales ya no es solo el molde estático. `POST /nivel-ai
+{theme:'shop', tipo}` hace que la IA **autore el surtido** del rubro — **nombre + intro + clientela + nombres de los
+productos** (con sabor: "afrodisíaco casero", etc.). La **economía** (precios/efectos) queda **anclada al molde**
+(precios sanos; la IA solo re-bautiza). **Cache-first**: la tienda abre **AL TOQUE** con lo que haya (estático o
+cacheado) y la IA enriquece **en background** → la próxima visita ya entra autorada. Circuit breaker: IA caída →
+estático instantáneo. `NivelAI.requestShop`/`shopCache` + `generateShop(tipo,base,ai)`. Test `tests/tienda.js`
+ampliado (IA autora + caché + fallback). *(Requiere redeploy del proxy — infra-24.)*
+
+---
+
 ## [v191] — 2026-06-26 — 🛍️ Tiendas generadas (galería de la cueva): le hablás al local y ENTRÁS a su interior
 
 Primera parte del SDD `tiendas-generadas.md`: los 4 locales raros de la galería de la cueva (**Sex-shop "El Subte"**,
@@ -685,6 +697,14 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-24] — 2026-06-26 — 🛍️ Proxy 0.1.44: `/nivel-ai theme:'shop'` autora el surtido de las tiendas
+
+Redeploy del proxy (`tormenta-ai` 0.1.43 → **0.1.44**) para la rama `theme:'shop'` de `/nivel-ai`: dado un `tipo`
+(rubro), la IA devuelve `{name, intro, lines, products}` (nombre/intro/clientela + nombres de productos del rubro).
+El cliente lo cachea por rubro y lo usa cache-first; la economía la ancla el cliente. `deploy/deploy.sh proxy 0.1.44`.
 
 ---
 

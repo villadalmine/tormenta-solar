@@ -157,20 +157,48 @@ const NivelAI = (() => {
   ];
 
   // genera la ESCENA de tienda (top-down) desde el RUBRO (tipo) + ítems ancla del NPC (base). Sin meta, sin enemigos.
-  function generateShop(tipo, base) {
+  // `ai` (opcional) = contenido autorado por la IA {name,intro,lines,products}: enriquece nombre/intro/clientela y
+  // los NOMBRES de los productos; la ECONOMÍA (give/cost/pay) queda anclada al molde estático (precios sanos).
+  function generateShop(tipo, base, ai) {
     const t = SHOP_RUBROS.find(x => x.id === tipo) || SHOP_RUBROS[0];
     const W = 16, H = 11, used = {}, key = (x, y) => x + ',' + y;
     const rnd = (a, b) => a + ((Math.random() * (b - a + 1)) | 0);
     function freeTile() { for (let i = 0; i < 60; i++) { const x = rnd(2, W - 3), y = rnd(2, H - 4); if (!used[key(x, y)]) { used[key(x, y)] = 1; return { x, y }; } } return { x: 2, y: 2 }; }
     const props = [];
     for (let i = 0, n = rnd(7, 11); i < n; i++) { const p = freeTile(); props.push({ x: p.x, y: p.y, emoji: t.props[(Math.random() * t.props.length) | 0] }); }
+    const lines = (ai && Array.isArray(ai.lines) && ai.lines.length) ? ai.lines : L(t.npc.lines);
     const npcs = [];
-    for (let i = 0, n = rnd(2, 3); i < n; i++) { const p = freeTile(); npcs.push({ x: p.x, y: p.y, emoji: t.npc.emoji, lines: L(t.npc.lines).slice(), say: '', sayT: 0 }); }
+    for (let i = 0, n = rnd(2, 3); i < n; i++) { const p = freeTile(); npcs.push({ x: p.x, y: p.y, emoji: t.npc.emoji, lines: lines.slice(), say: '', sayT: 0 }); }
     // wares = mercadería del rubro + los ítems ancla (base) del NPC, garantizados
     const baseWares = (Array.isArray(base) ? base : []).map(b => ({ emoji: b.emoji || '🛍️', label: L(b.label) || (b.give && b.give.item) || 'ítem', give: b.give || { item: 'health', amount: 10 }, cost: b.cost || 5, pay: b.pay || 'coins' }));
-    const wares = baseWares.concat(t.wares.map(w => ({ emoji: w.emoji, label: L(w.label), give: { ...w.give }, cost: w.cost, pay: w.pay || 'coins' })))
-      .map((w, i) => { const p = freeTile(); return { ...w, x: p.x, y: p.y, taken: false }; });
-    return { id: t.id, motif: t.motif, name: L(t.name), intro: L(t.intro), palette: t.palette, W, H, props, npcs, wares, exit: { x: 2, y: H - 2 } };
+    let wares = baseWares.concat(t.wares.map(w => ({ emoji: w.emoji, label: L(w.label), give: { ...w.give }, cost: w.cost, pay: w.pay || 'coins' })));
+    // la IA re-bautiza los productos (label/emoji), manteniendo give/cost/pay del molde (economía sana)
+    const prods = ai && Array.isArray(ai.products) ? ai.products : null;
+    if (prods && prods.length) wares = wares.map((w, i) => { const p = prods[i % prods.length]; return { ...w, label: (p && p.label) || w.label, emoji: (p && p.emoji) || w.emoji }; });
+    wares = wares.map(w => { const p = freeTile(); return { ...w, x: p.x, y: p.y, taken: false }; });
+    return { id: t.id, motif: t.motif, name: (ai && ai.name) || L(t.name), intro: (ai && ai.intro) || L(t.intro), palette: t.palette, W, H, props, npcs, wares, exit: { x: 2, y: H - 2 } };
+  }
+  // ----- la IA autora el surtido del local (best-effort + caché por rubro). Fallback = molde estático. Ver tiendas-generadas.md
+  const shopCacheBox = {};
+  const shopCache = tipo => shopCacheBox[tipo] || null;
+  function requestShop(tipo, cb) {
+    if (shopCacheBox[tipo]) { cb && cb(shopCacheBox[tipo]); return; }              // ya cacheado → instantáneo
+    if (typeof fetch !== 'function' || aiDown()) { cb && cb(null); return; }       // IA caída → estático (circuit breaker)
+    const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), AI_TIMEOUT);
+    fetch(PROXY + '/nivel-ai', { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme: 'shop', tipo, lang: short() }) })
+      .then(r => { clearTimeout(to); if (!r.ok) { markAi(false); return null; } return r.json(); })
+      .then(j => {
+        if (!j || !(j.name || j.products || j.lines)) { if (j) markAi(true); cb && cb(null); return; }
+        markAi(true);
+        const ai = {
+          name: j.name ? String(j.name).slice(0, 60) : null,
+          intro: j.intro ? String(j.intro).slice(0, 160) : null,
+          lines: Array.isArray(j.lines) ? j.lines.slice(0, 6).map(s => String(s).slice(0, 40)) : null,
+          products: Array.isArray(j.products) ? j.products.slice(0, 8).map(p => ({ label: String((p && p.label) || p || '').slice(0, 28), emoji: String((p && p.emoji) || '🛍️').slice(0, 4) })).filter(p => p.label) : null,
+        };
+        shopCacheBox[tipo] = ai; cb && cb(ai);
+      }).catch(() => { clearTimeout(to); markAi(false); cb && cb(null); });
   }
 
   // ----- EL GENERADOR: compone una escena (data) desde un tema (forceId opcional, para tests) -----
@@ -422,7 +450,7 @@ const NivelAI = (() => {
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático)
   }
 
-  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, generateShop, SHOP_RUBROS, THEMES };
+  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, generateShop, requestShop, shopCache, SHOP_RUBROS, THEMES };
 })();
 if (typeof window !== 'undefined') window.NivelAI = NivelAI;
 if (typeof module !== 'undefined') module.exports = NivelAI;

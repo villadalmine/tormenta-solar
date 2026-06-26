@@ -919,11 +919,15 @@
   function enterTienda(n) {
     if (typeof NivelAI === 'undefined' || !NivelAI.generateShop || typeof Tienda === 'undefined') { buyFromShop(n); return; }
     const tdef = n.tienda || {};
-    const scene = NivelAI.generateShop(tdef.tipo, tdef.base);
+    // CACHE-FIRST: abre AL TOQUE con lo que haya (surtido autorado por IA si está cacheado, si no el molde estático).
+    const ai = NivelAI.shopCache ? NivelAI.shopCache(tdef.tipo) : null;
+    const scene = NivelAI.generateShop(tdef.tipo, tdef.base, ai);
     if (!scene || !scene.wares || !scene.wares.length) { buyFromShop(n); return; }
     tiendaGame = Tienda.create(scene, { player, maxHp: MAXHP });
     state = 'tienda'; flash(); elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
-    tel('tienda', { tipo: scene.id });
+    tel('tienda', { tipo: scene.id, ai: !!ai });
+    // si no estaba cacheado, la IA autora el surtido en background → la PRÓXIMA visita ya entra enriquecida
+    if (!ai && NivelAI.requestShop) NivelAI.requestShop(tdef.tipo, () => {});
   }
   function enterCuevaFromSecret() {
     const idx = rooms.findIndex(r => r.cueveros && r.cueveros.length);   // la CUEVA real (no cualquier sala con cueveros:[] vacío)

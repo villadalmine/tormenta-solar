@@ -39,5 +39,31 @@ ok(player.coins === c0 - ware.cost, 'no se vuelve a cobrar un ware agotado');
 const caro = sc.wares.find((w, k) => k !== i && w.pay === 'coins');
 if (caro) { player.coins = 0; const before = player.hp; t.__buy(sc.wares.indexOf(caro)); ok(player.coins === 0 && player.hp === before, 'sin monedas no compra'); }
 
-if (out.length) { console.error('❌ tienda:\n' + out.join('\n')); process.exit(1); }
-console.log('✅ tienda: generateShop por rubro + clientela + mercadería + compra (cobra/da/agota) · OK');
+// 4) la IA autora el surtido: generateShop(tipo, base, ai) usa name/intro/products/lines de la IA, manteniendo
+// la economía (give/cost/pay) del molde estático.
+const aiContent = { name: 'Sex-shop Inventado', intro: 'olor a IA', lines: ['frase ia 1', 'frase ia 2'],
+  products: [{ label: 'producto IA', emoji: '✨' }] };
+const enr = NivelAI.generateShop('sexshop', null, aiContent);
+ok(enr.name === 'Sex-shop Inventado' && enr.intro === 'olor a IA', 'generateShop usa name/intro de la IA');
+ok(enr.wares.some(w => w.label === 'producto IA'), 'generateShop re-bautiza productos con los de la IA');
+ok(enr.wares.every(w => typeof w.cost === 'number' && w.give), 'la economía (give/cost) queda anclada al molde');
+ok(enr.npcs[0].lines.includes('frase ia 1'), 'la clientela usa las frases de la IA');
+
+(async () => {
+  // 5) requestShop: trae el surtido del proxy (fetch mockeado) y lo cachea; 2da vez es instantánea
+  global.fetch = () => Promise.resolve({ ok: true, json: async () => ({ name: 'Tienda Proxy', intro: 'i', lines: ['a'], products: [{ label: 'cosa', emoji: '🧪' }] }) });
+  await new Promise(res => NivelAI.requestShop('masajes', ai => {
+    ok(ai && ai.name === 'Tienda Proxy' && ai.products && ai.products.length === 1, 'requestShop trae el surtido del proxy');
+    ok(NivelAI.shopCache('masajes') === ai, 'requestShop cachea el surtido por rubro');
+    res();
+  }));
+  let calls = 0; global.fetch = () => { calls++; return Promise.reject(new Error('should not fetch')); };
+  await new Promise(res => NivelAI.requestShop('masajes', ai => { ok(ai && calls === 0, 'segunda vez: usa la caché, no pega al proxy'); res(); }));
+
+  // 6) requestShop con el proxy CAÍDO (fetch rechaza) → cb(null) → el caller usa el molde estático
+  global.fetch = () => Promise.reject(new Error('down'));
+  await new Promise(res => NivelAI.requestShop('tenebroso', ai => { ok(ai === null, 'proxy caído → requestShop cb(null) (estático)'); res(); }));
+
+  if (out.length) { console.error('❌ tienda:\n' + out.join('\n')); process.exit(1); }
+  console.log('✅ tienda: generateShop + compra + IA autora surtido (cache-first, fallback) · OK');
+})();

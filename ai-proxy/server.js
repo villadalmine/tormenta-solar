@@ -734,6 +734,35 @@ http.createServer((req, res) => {
         } catch (e) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); }
         return;
       }
+      // TIENDA generada (galería de la cueva): la IA autora el SURTIDO del rubro (nombre/intro/clientela + productos).
+      // La economía (precios/efectos) la ancla el cliente; acá sólo nombres+sabor. Ver specs/tiendas-generadas.md.
+      if (theme === 'shop') {
+        const tipo = String((() => { try { return JSON.parse(nb || '{}').tipo; } catch (e) { return ''; } })() || '').replace(/[^a-z0-9-]/g, '').slice(0, 24);
+        const SHOP_BRIEF = {
+          'sexshop': en ? 'a seedy underground sex-shop in a Buenos Aires gallery' : 'un sex-shop under-de una galería porteña, medio cabaretero',
+          'comida-rara': en ? 'a sketchy street-food stall selling food of dubious origin, cheap and filling' : 'un puesto de comida rara de dudoso origen, barato y que llena',
+          'masajes': en ? 'a "happy massage" parlor, oil and pan-flute, no questions asked' : 'un local de masajes felices, aceitito y pan flauta, sin preguntas',
+          'tenebroso': en ? 'a creepy occult stall: black candles, amulets, a hooded seller' : 'un puesto tenebroso ocultista: velas negras, amuletos, un encapuchado',
+        };
+        const sb = SHOP_BRIEF[tipo] || SHOP_BRIEF['comida-rara'];
+        const ssys = en ? 'You stock tiny absurd shops. Reply ONLY with compact JSON, no prose.' : 'Surtís tienditas absurdas. Respondé SOLO con JSON compacto, sin prosa.';
+        const suser = en
+          ? 'Shop: ' + sb + '. Return JSON {"name": short funny shop name (max 4 words), "intro": one short sentence (the vibe walking in), "lines": array of 4 VERY short customer/clerk phrases, "products": array of 5 items {"label": product name (max 4 words), "emoji": one emoji} — funny and on-theme}.'
+          : 'Tienda: ' + sb + '. Devolvé JSON {"name": nombre corto y gracioso (máx 4 palabras), "intro": una frase corta (la onda al entrar), "lines": array de 4 frases MUY cortas de cliente/vendedor, "products": array de 5 ítems {"label": nombre del producto (máx 4 palabras), "emoji": un emoji} — graciosos y del rubro}.';
+        try {
+          const { reply } = await ask([{ role: 'system', content: ssys }, { role: 'user', content: suser }], { maxTokens: 320 });
+          const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
+          const j = m ? JSON.parse(m[0]) : {};
+          const out = {};
+          if (j.name) out.name = String(j.name).slice(0, 60);
+          if (j.intro) out.intro = String(j.intro).slice(0, 160);
+          if (Array.isArray(j.lines) && j.lines.length) out.lines = j.lines.slice(0, 6).map(s => String(s).slice(0, 40));
+          if (Array.isArray(j.products) && j.products.length) out.products = j.products.slice(0, 8)
+            .map(p => ({ label: String((p && p.label) || p || '').slice(0, 28), emoji: String((p && p.emoji) || '🛍️').slice(0, 4) })).filter(p => p.label);
+          res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
+        } catch (e) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); }
+        return;
+      }
       const BRIEF = {
         'super-rasca': en ? 'a filthy run-down dive Chinese mini-market, sticky and dim' : 'un súper chino RASCA, mugriento, pegoteado y a media luz',
         'taller-esclavo': en ? 'a clandestine sweatshop where people weave clothes in slave mode' : 'un taller clandestino donde se teje ropa en modo esclavo',
