@@ -883,7 +883,7 @@
       if (mundialApproach) mundialApproach.npc.x = mundialApproach.homeX;   // el hincha vuelve a su lugar
       cineArchive = null; guardaAsk = {}; mundialQuest = null; mundialApproach = null;
     }
-    if (isCine(r)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
+    if (isCine(r)) cineNoticias = pickNoticias(r);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
@@ -903,21 +903,24 @@
   }
   // zona → cama de ambiente (calle/viento/cueva/recital); null = sin ambiente
   // CINE multi-piso: cada piso muestra noticias de SU categoría (topics). El linyera te manda al piso del topic.
-  function cineTopicsFor(name) {
-    if (/Deportes/.test(name)) return ['mundial', 'mundial-tabla', 'mundial-goleadores', 'primera-b', 'bochas'];
-    if (/Mundo/.test(name)) return ['mundo', 'guerra', 'argentina', 'paises-bajos', 'arabe'];
-    if (/Tecno/.test(name)) return ['videojuegos', 'ia'];
-    if (/Finanzas/.test(name)) return ['finanzas', 'crypto'];
-    if (/Colombofilia/.test(name)) return ['colombofila'];
-    if (/Consolas/.test(name)) return ['consolas-retro'];
-    if (/OpenRouter/.test(name)) return ['openrouter'];
+  // topics por PISO del cine, keyeado por TAG de sala (data). El piso declara su tag (cine,deportes…); esto mapea.
+  const CINE_FLOOR_TOPICS = {
+    deportes: ['mundial', 'mundial-tabla', 'mundial-goleadores', 'primera-b', 'bochas'],
+    mundo: ['mundo', 'guerra', 'argentina', 'paises-bajos', 'arabe'],
+    tecno: ['videojuegos', 'ia'], finanzas: ['finanzas', 'crypto'], colombofilia: ['colombofila'],
+    consolas: ['consolas-retro'], openrouter: ['openrouter'],
+  };
+  function cineTopicsFor(r) {
+    for (const t of (r && r.tags) || []) if (CINE_FLOOR_TOPICS[t]) return CINE_FLOOR_TOPICS[t];   // por TAG (data)
+    const name = (r && r.name) || (typeof r === 'string' ? r : '');   // fallback al nombre (back-compat)
+    for (const k in CINE_FLOOR_TOPICS) if (new RegExp(k, 'i').test(name)) return CINE_FLOOR_TOPICS[k];
     return null;   // sin filtro
   }
-  // todas las noticias del piso, deduplicadas por topic, máx 4. Si el guarda te vendió una función vieja
+  // todas las noticias del piso, deduplicadas por topic, máx 6. Si el guarda te vendió una función vieja
   // (cineArchive), salen de ese día; si no, del día de hoy (window.NOTICIAS).
-  function pickNoticias(name) {
+  function pickNoticias(r) {
     const ns = (cineArchive && cineArchive.noticias) || (typeof window !== 'undefined' && window.NOTICIAS) || [];
-    const t = cineTopicsFor(name || ''), pool = t ? ns.filter(n => t.includes(n.topic)) : ns, use = pool.length ? pool : ns;
+    const t = cineTopicsFor(r), pool = t ? ns.filter(n => t.includes(n.topic)) : ns, use = pool.length ? pool : ns;
     const seen = new Set(), out = [];
     for (const n of use) { if (seen.has(n.topic)) continue; seen.add(n.topic); out.push(n); if (out.length >= 6) break; }
     return out;
@@ -1072,7 +1075,7 @@
     setMsg(T('g.cine.guardaWait'), '#9fd3ff', 1500);
     (window.fetchNoticiasDay ? window.fetchNoticiasDay(day) : Promise.resolve([])).then(ns => {
       cineArchive = { day, noticias: ns || [] };
-      cineNoticias = pickNoticias(room().name);
+      cineNoticias = pickNoticias(room());
       setMsg(T('g.cine.guardaOk', { day: humanDay(day) }), '#ffd54f', 5000); Sfx.pickup();
     });
   }

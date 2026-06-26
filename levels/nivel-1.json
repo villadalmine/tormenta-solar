@@ -7069,7 +7069,8 @@
       "theme": "arcade",
       "w": 22,
       "tags": [
-        "cine"
+        "cine",
+        "deportes"
       ],
       "light": 0.5,
       "entities": [
@@ -7246,7 +7247,8 @@
       "theme": "arcade",
       "w": 22,
       "tags": [
-        "cine"
+        "cine",
+        "mundo"
       ],
       "light": 0.5,
       "entities": [
@@ -7378,7 +7380,8 @@
       "theme": "arcade",
       "w": 22,
       "tags": [
-        "cine"
+        "cine",
+        "tecno"
       ],
       "light": 0.5,
       "entities": [
@@ -7510,7 +7513,8 @@
       "theme": "arcade",
       "w": 22,
       "tags": [
-        "cine"
+        "cine",
+        "finanzas"
       ],
       "light": 0.5,
       "entities": [
@@ -7642,7 +7646,8 @@
       "theme": "arcade",
       "w": 22,
       "tags": [
-        "cine"
+        "cine",
+        "colombofilia"
       ],
       "light": 0.5,
       "entities": [
@@ -7774,7 +7779,8 @@
       "theme": "arcade",
       "w": 22,
       "tags": [
-        "cine"
+        "cine",
+        "consolas"
       ],
       "light": 0.5,
       "entities": [
@@ -7906,7 +7912,8 @@
       "theme": "arcade",
       "w": 22,
       "tags": [
-        "cine"
+        "cine",
+        "openrouter"
       ],
       "light": 0.5,
       "entities": [

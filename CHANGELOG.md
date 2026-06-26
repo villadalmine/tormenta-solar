@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v153] — 2026-06-26 — 🧱 v2: pisos del cine por TAG (los 7 regex de piso → data)
+
+Seguimos migrando regex de sala a tags: cada piso del cine declara su categoría (`tags:['cine','deportes']`,
+`['cine','mundo']`…) y `cineTopicsFor(r)` lee el **tag** (mapa `CINE_FLOOR_TOPICS` keyeado por tag) en vez de los 7
+`/Deportes/`-`/OpenRouter/` por nombre (con fallback al nombre). `pickNoticias(r)` recibe la sala. Un piso del cine
+muestra sus topics porque lo DECLARA → la máquina puede autorar pisos. Paridad 45 salas + schema OK + e2e×3 + web-smoke.
+
+---
+
 ## [v152] — 2026-06-26 — 🧱 v2: salas con TAGS semánticos (el engine reacciona a `tags`, no al nombre)
 
 Migrado el regex de sala más usado: `/Cine/.test(r.name)` (5 lugares) → un componente **`tags`** de la sala (data) +
