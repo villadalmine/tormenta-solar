@@ -56,6 +56,13 @@ const MUNDIAL_STORE = process.env.MUNDIAL_STORE || '/data/mundial.json';
 function loadMundial() { try { const d = JSON.parse(fs.readFileSync(MUNDIAL_STORE, 'utf8')); if (d && d.equipos && typeof d.equipos === 'object') MUNDIAL = d.equipos; } catch (e) {} }
 function saveMundial() { try { fs.mkdirSync(MUNDIAL_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(MUNDIAL_STORE, JSON.stringify({ equipos: MUNDIAL })); } catch (e) { console.error('mundial store save:', e.message); } }
 loadMundial();
+// CHUSMERÍO del barrio (npcs-vivos.md): banco de frases ambiente que los NPC se dicen entre ellos. Lo genera un
+// cron con IA (gen-chusmerio.mjs) y el juego las rota en globitos. Persiste en PVC (reproducible).
+let CHUSMERIO = [], CHUSMERIO_TS = 0;
+const CHUSMERIO_STORE = process.env.CHUSMERIO_STORE || '/data/chusmerio.json';
+function loadChusmerio() { try { const d = JSON.parse(fs.readFileSync(CHUSMERIO_STORE, 'utf8')); if (d && Array.isArray(d.lineas)) { CHUSMERIO = d.lineas; CHUSMERIO_TS = d.ts || 0; } } catch (e) {} }
+function saveChusmerio() { try { fs.mkdirSync(CHUSMERIO_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(CHUSMERIO_STORE, JSON.stringify({ lineas: CHUSMERIO, ts: CHUSMERIO_TS })); } catch (e) { console.error('chusmerio store save:', e.message); } }
+loadChusmerio();
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -392,6 +399,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ equipos: MUNDIAL }));
   }
+  if (req.method === 'GET' && req.url === '/chusmerio') {                           // banco de frases ambiente (NPCs vivos)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
+    return res.end(JSON.stringify({ lineas: CHUSMERIO, updated: CHUSMERIO_TS }));
+  }
   if (req.method === 'GET' && req.url === '/propaganda') {                          // banco de carteles del CINE
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ carteles: PROPAGANDA, updated: PROPAGANDA.length ? Date.now() : 0 }));
@@ -518,6 +529,18 @@ http.createServer((req, res) => {
       `# HELP tormenta_ai_unique_sessions_today Session-ids distintos vistos hoy (usuarios aprox)\n# TYPE tormenta_ai_unique_sessions_today gauge\ntormenta_ai_unique_sessions_today ${UNIQ.sids.size}\n` +
       `# HELP tormenta_ai_unique_ips_today IPs remotas distintas vistas hoy (real con PROXY protocol)\n# TYPE tormenta_ai_unique_ips_today gauge\ntormenta_ai_unique_ips_today ${UNIQ.ips.size}\n` +
       `# HELP tormenta_ai_sub_codes Códigos de suscripción válidos (pagos)\n# TYPE tormenta_ai_sub_codes gauge\ntormenta_ai_sub_codes ${SUB_CODES.size}\n`;
+    // BANCOS DEL ECOSISTEMA (observabilidad: ¿están poblados y frescos? → Grafana/alertas). age_seconds = frescura.
+    const ageS = ts => ts ? Math.round((Date.now() - ts) / 1000) : -1;
+    out +=
+      `# HELP tormenta_eco_bank_items Items en cada banco de contenido del ecosistema\n# TYPE tormenta_eco_bank_items gauge\n` +
+      `tormenta_eco_bank_items{bank="noticias"} ${NOTICIAS.length}\n` +
+      `tormenta_eco_bank_items{bank="noticias_dias"} ${Object.keys(NOTI_DAYS).length}\n` +
+      `tormenta_eco_bank_items{bank="propaganda"} ${PROPAGANDA.length}\n` +
+      `tormenta_eco_bank_items{bank="chusmerio"} ${CHUSMERIO.length}\n` +
+      `tormenta_eco_bank_items{bank="mundial_equipos"} ${Object.keys(MUNDIAL).length}\n` +
+      `# HELP tormenta_eco_bank_age_seconds Antigüedad de la última actualización del banco (-1 = nunca)\n# TYPE tormenta_eco_bank_age_seconds gauge\n` +
+      `tormenta_eco_bank_age_seconds{bank="noticias"} ${ageS(NOTICIAS_TS)}\n` +
+      `tormenta_eco_bank_age_seconds{bank="chusmerio"} ${ageS(CHUSMERIO_TS)}\n`;
     // volumen de chats por CÓDIGO de suscripción (suscripcion.md §9.3: quién consume más; cardinalidad = #códigos)
     out += `# HELP tormenta_ai_sub_usage_total Chats servidos por código de suscripción\n# TYPE tormenta_ai_sub_usage_total counter\n`;
     const subKeys = Object.keys(SUB_USAGE);
@@ -600,6 +623,19 @@ http.createServer((req, res) => {
       try { const d = JSON.parse(pb || '{}'); if (d.equipos && typeof d.equipos === 'object') {
         const n = Object.keys(d.equipos).length; if (n) { MUNDIAL = d.equipos; saveMundial(); }
         res.writeHead(200); return res.end(n ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
+      catch (e) { res.writeHead(400); res.end('bad json'); }
+    });
+    return;
+  }
+  // el cron de chusmerío (gen-chusmerio.mjs) postea acá (GEN_TOKEN): {lineas:["..."]}. Sobrescribe; vacío no pisa.
+  if (req.method === 'POST' && req.url === '/chusmerio') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 100000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.lineas)) {
+        if (d.lineas.length) { CHUSMERIO = d.lineas.filter(x => typeof x === 'string').slice(0, 200); CHUSMERIO_TS = Date.now(); saveChusmerio(); }
+        res.writeHead(200); return res.end(d.lineas.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;

@@ -39,6 +39,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v144 / infra-23] — 2026-06-26 — 🔌 Chusmerío por API + métricas Prometheus del ecosistema
+
+- **Chusmerío full API:** las frases ambiente de los NPCs vivos ya NO son un array en game.js → banco
+  **`/chusmerio`** generado por IA (`gen-chusmerio.mjs`, cron 4:30am, gemma4-paid), persistido en PVC (reproducible) +
+  fallback estático en `js/chusmerio.js`. `ambientPool` usa el banco vivo; las líneas de ESTADO se derivan del
+  `worldSnapshot` (ecosistema, no contenido fijo).
+- **Métricas Prometheus de los bancos:** `tormenta_eco_bank_items{bank=...}` (noticias/noticias_dias/propaganda/
+  chusmerio/mundial_equipos) + `tormenta_eco_bank_age_seconds{bank=...}` → Grafana ve si el ecosistema está poblado
+  y FRESCO (alertas si un banco queda vacío/viejo). Proxy `0.1.37`.
+
+---
+
 ## [v143] — 2026-06-26 — 🧩 v2 #1 (F1): QUESTS como DATO (registro declarativo, nada de números sueltos)
 
 Primer paso de la migración v2 de las quests (la deuda más visible). Las quests del cine (oráculo) y del Mundial

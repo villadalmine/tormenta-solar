@@ -541,7 +541,9 @@
   // ---- NPCs VIVOS: chusmerío ambiente (globitos) — los NPC se hablan entre ellos / te tiran data de lo que hiciste.
   // Las líneas se TEMPLAN con el estado vivo (worldSnapshot) → "saben" lo que pasó. (Ver specs/npcs-vivos.md)
   function ambientPool(s) {
-    const L = [];
+    // BASE = banco vivo del proxy (gen-chusmerio.mjs, IA → API, no hardcode). Fallback estático en js/chusmerio.js.
+    const L = ((typeof window !== 'undefined' && window.CHUSMERIO) || []).slice();
+    // + líneas DERIVADAS del estado vivo (computadas del ecosistema/worldSnapshot, no contenido fijo):
     if (!s.borrachosHappy) L.push('che, ¿el pibe le dio lo que pide al borrachín o no?');
     if (s.trucoEverWon) L.push('dicen que le ganó al tahúr al truco, mirá vos');
     if (s.chinoEntered) L.push('me contaron que entró al chino y afanó todo gratis 😱');
@@ -551,8 +553,7 @@
     if (s.carteles && s.carteles.length) L.push('probate el ' + s.carteles[0].brand + ', dicen que está bárbaro');
     if (s.cine && s.cine.mundialTabla) L.push('andá al cine que pasan el Mundial');
     if (s.quests.mundial && !s.quests.mundial.shown) L.push('hay un hincha que se muere por saber cómo salió ' + s.quests.mundial.equipo);
-    L.push('¿no tenés un puchito, maestro?'); L.push('tomá sol que es gratis, pibe');
-    return L;
+    return L.length ? L : ['¿no tenés un puchito, maestro?'];   // el flavor sale del banco/estático; esto es red de seguridad
   }
   function eligibleNpcs(r) {
     return (r.npcs || []).filter(n => { if (n.invisible || !n.name) return false; const sx = n.x - cam.x; return sx > 30 && sx < 770; });

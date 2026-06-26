@@ -100,6 +100,12 @@ propaganda:
   schedule: "0 4 * * *"
   model: gemma4-paid
 
+# CINE/NPCs vivos: frases de chusmerío ambiente generadas por IA (gen-chusmerio.mjs). El modelo SÍ inventa.
+chusmerio:
+  enabled: true
+  schedule: "30 4 * * *"
+  model: gemma4-paid
+
 linyeraPool:
   cronjob:
     enabled: true
