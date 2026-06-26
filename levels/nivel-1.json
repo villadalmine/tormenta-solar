@@ -6132,29 +6132,41 @@
           "id": "cine-lavalle-deportes/npc1",
           "tipo": "npc",
           "render": {
+            "sprite": "civil1"
+          },
+          "x": 11,
+          "name": "El Hincha",
+          "interact": {
+            "action": "chat",
+            "persona": "hincha"
+          },
+          "fiche": "hincha"
+        },
+        {
+          "id": "cine-lavalle-deportes/npc2",
+          "tipo": "npc",
+          "render": {
+            "sprite": "civil4"
+          },
+          "x": 14,
+          "name": "El Fanático",
+          "interact": {
+            "action": "chat",
+            "persona": "hincha"
+          },
+          "fiche": "hincha"
+        },
+        {
+          "id": "cine-lavalle-deportes/npc3",
+          "tipo": "npc",
+          "render": {
             "sprite": "civil2"
           },
-          "x": 17,
+          "x": 18,
           "name": "Espectador",
           "dialogue": {
             "text": "“Shhh, callate que estoy mirando el fútbol, pibe.” 🍿"
           }
-        },
-        {
-          "id": "cine-lavalle-deportes/decor2",
-          "tipo": "decor",
-          "render": {
-            "type": "sofa"
-          },
-          "x": 6
-        },
-        {
-          "id": "cine-lavalle-deportes/decor3",
-          "tipo": "decor",
-          "render": {
-            "type": "sofa"
-          },
-          "x": 9
         },
         {
           "id": "cine-lavalle-deportes/decor4",
@@ -6162,7 +6174,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 12
+          "x": 6
         },
         {
           "id": "cine-lavalle-deportes/decor5",
@@ -6170,7 +6182,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 15
+          "x": 9
         },
         {
           "id": "cine-lavalle-deportes/decor6",
@@ -6178,7 +6190,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 7.5
+          "x": 12
         },
         {
           "id": "cine-lavalle-deportes/decor7",
@@ -6186,7 +6198,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 10.5
+          "x": 15
         },
         {
           "id": "cine-lavalle-deportes/decor8",
@@ -6194,10 +6206,26 @@
           "render": {
             "type": "sofa"
           },
-          "x": 13.5
+          "x": 7.5
         },
         {
           "id": "cine-lavalle-deportes/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-deportes/decor10",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-deportes/decor11",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -6205,7 +6233,7 @@
           "x": 3
         },
         {
-          "id": "cine-lavalle-deportes/decor10",
+          "id": "cine-lavalle-deportes/decor12",
           "tipo": "decor",
           "render": {
             "type": "cartel"

@@ -16,4 +16,10 @@
   // trae las noticias de un día puntual del archivo (YYYY-MM-DD) → promesa de array (vacío si falla)
   window.fetchNoticiasDay = (day) => fetch(PROXY + '/noticias?day=' + encodeURIComponent(day))
     .then(r => (r.ok ? r.json() : null)).then(d => (d && Array.isArray(d.noticias)) ? d.noticias : []).catch(() => []);
+  // MUNDIAL: equipo→último resultado (quest de los hinchas del cine, §9). window.MUNDIAL = {equipos:{...}}.
+  window.MUNDIAL = window.MUNDIAL || { equipos: {} };
+  fetch(PROXY + '/mundial')
+    .then(r => (r.ok ? r.json() : null))
+    .then(d => { if (d && d.equipos) window.MUNDIAL = { equipos: d.equipos }; })
+    .catch(() => {});
 })();

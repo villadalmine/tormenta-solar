@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v133 / infra-18] — 2026-06-26 — ⚽ Quest del Mundial: los 2 hinchas + el guarda (IMPLEMENTADA)
+
+Implementa `cine-noticias.md §9`. En el piso **Deportes** hay **dos hinchas** (NPCs con IA, persona `hincha`): al
+hablarles te preguntan **cómo salió un equipo random** del Mundial (vos no sabés). Vas al **guarda** → en su menú
+aparece **"📣 Resultado de {equipo}" (gratis)** → te **cambia la pantalla** con ese partido. Volvés al hincha → te
+**agradece + 5 caramelos**. Al salir del cine, **todo vuelve como estaba** (efímero).
+- **Data:** `gen-noticias.mjs` recorre el **scoreboard de ESPN día por día** (sin key) → **48 equipos** con su último
+  resultado → `POST /mundial` (persistido en PVC). Cliente: `window.MUNDIAL.equipos` (`js/noticias.js`).
+- Reusa el patrón de `newsQuest`: el quest es **scripteado** (fiable), el chat libre con el hincha es flavor groundeado.
+  Persona `hincha` en `ai.js` + `ai-proxy/personas.js` (+ canned es/en). Paridad 45 salas / 576 entidades.
+
+---
+
 ## [v132 / infra-17] — 2026-06-26 — 📣 Carteles del cine DINÁMICOS por rubro (propaganda IA) + SDDs nuevas
 
 - **Carteles de propaganda que CAMBIAN**: los carteles del cine ahora rotan **marcas FALSAS estilo Buenos Aires**

@@ -534,7 +534,10 @@ const Level = (() => {
       decor: [..._seats, ..._ads],
       npcs: [
         { name:'El Guarda', sprite:'civil3', x:5, action:'guarda' },   // en la entrada: vende FUNCIONES VIEJAS por caramelos (archivo de 7 días)
-        { name:'Espectador', sprite:'civil2', x:17, dialog:'“Shhh, callate que estoy mirando el fútbol, pibe.” 🍿' },
+        // los dos hinchas (quest del Mundial §9): te preguntan cómo salió un equipo random → guarda → te agradecen
+        { name:'El Hincha', sprite:'civil1', x:11, action:'chat', persona:'hincha' },
+        { name:'El Fanático', sprite:'civil4', x:14, action:'chat', persona:'hincha' },
+        { name:'Espectador', sprite:'civil2', x:18, dialog:'“Shhh, callate que estoy mirando el fútbol, pibe.” 🍿' },
       ],
     })) - 1;
     const cine2 = rooms.push(makeRoom({

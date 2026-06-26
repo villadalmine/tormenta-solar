@@ -106,6 +106,7 @@ for (const pair of SPORTS) {
 // MUNDIAL: tabla del GRUPO DE ARGENTINA + GOLEADORES (ESPN, sin key — TheSportsDB gratis no los da). Opt-in
 // NEWS_WORLDCUP=fifa.world. Topics nuevos: mundial-tabla, mundial-goleadores (texto compacto que entra en la pantalla).
 const WC = (process.env.NEWS_WORLDCUP || '').trim();
+const WC_EQUIPOS = {};   // equipo → "Local X-Y Visitante" (su último partido) — para la quest de los hinchas (§9)
 if (WC) {
   const YEAR = new Date().getFullYear();
   // tabla del grupo donde está Argentina
@@ -132,9 +133,33 @@ if (WC) {
     }
     if (names.length) noticias.push({ topic: 'mundial-goleadores', headline: 'Goleadores: ' + names.join(' · '), answer: names[0], ts: Date.now() });
   } catch (e) {}
+  // TODOS los equipos con su ÚLTIMO resultado (para la quest de los hinchas, cine-noticias.md §9). Recorre el
+  // scoreboard día por día (ESPN solo da el día con ?dates=YYYYMMDD) hacia atrás → mapa equipo→último partido.
+  try {
+    const t0 = new Date();
+    for (let back = 0; back <= 22; back++) {
+      const day = new Date(t0.getTime() - back * 86400000), ymd = day.toISOString().slice(0, 10).replace(/-/g, '');
+      let dd; try { dd = await (await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/' + WC + '/scoreboard?dates=' + ymd)).json(); } catch (e) { continue; }
+      for (const e of (dd.events || [])) {
+        const cs = (e.competitions?.[0]?.competitors) || []; if (cs.length !== 2) continue;
+        const h = cs[0], a = cs[1]; if (h.score == null || a.score == null) continue;
+        const hn = h.team?.displayName, an = a.team?.displayName; if (!hn || !an) continue;
+        const res = `${hn} ${h.score}-${a.score} ${an}`;
+        if (!(hn in WC_EQUIPOS)) WC_EQUIPOS[hn] = res;   // de hoy hacia atrás → el primero es el más reciente
+        if (!(an in WC_EQUIPOS)) WC_EQUIPOS[an] = res;
+      }
+    }
+  } catch (e) {}
 }
+const WC_NEQ = Object.keys(WC_EQUIPOS).length;
 
-console.error('noticias=' + noticias.length + ' topics=' + noticias.map(n => n.topic).join(','));
+console.error('noticias=' + noticias.length + ' topics=' + noticias.map(n => n.topic).join(',') + ' wc_equipos=' + WC_NEQ);
+
+// POST de los equipos del Mundial a /mundial (quest de los hinchas). Best-effort, aparte del banco de noticias.
+const MUNDIAL_POST_URL = process.env.MUNDIAL_POST_URL || (POST_URL ? POST_URL.replace(/\/noticias$/, '/mundial') : '');
+if (MUNDIAL_POST_URL && TOKEN && WC_NEQ) {
+  try { const r = await fetch(MUNDIAL_POST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-gen-token': TOKEN }, body: JSON.stringify({ equipos: WC_EQUIPOS }) }); console.error('POST', MUNDIAL_POST_URL, '->', r.status); } catch (e) {}
+}
 
 if (POST_URL && TOKEN) {
   const res = await fetch(POST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-gen-token': TOKEN }, body: JSON.stringify({ noticias }) });

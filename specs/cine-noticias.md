@@ -241,7 +241,7 @@ grupo de Argentina** del Mundial. **NO se puede con fuente gratis/sin key** (ver
 - **Pendientes** (no bloquean): precios exactos de consolas (eBay/Marktplaats con key), `NEWS_SPORTS` activado para
   resultados de fútbol, y eventualmente más pisos/topics como content-pack de "temporada".
 
-## 9. Quest del MUNDIAL — los dos hinchas + el guarda (idea del dueño 2026-06-26, NO implementado)
+## 9. Quest del MUNDIAL — los dos hinchas + el guarda ✅ IMPLEMENTADO (v133, 2026-06-26)
 
 En el **piso Deportes/Mundial** hay **dos hinchas** parados (NPCs **con IA**, chateables). El loop:
 1. Les hablás → te preguntan **"¿sabés cómo salió [equipo random que jugó el Mundial]?"** (un equipo al azar de los

@@ -49,6 +49,13 @@ const PROPAGANDA_STORE = process.env.PROPAGANDA_STORE || '/data/propaganda.json'
 function loadPropaganda() { try { const d = JSON.parse(fs.readFileSync(PROPAGANDA_STORE, 'utf8')); if (d && Array.isArray(d.carteles)) PROPAGANDA = d.carteles; } catch (e) {} }
 function savePropaganda() { try { fs.mkdirSync(PROPAGANDA_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(PROPAGANDA_STORE, JSON.stringify({ carteles: PROPAGANDA })); } catch (e) { console.error('propaganda store save:', e.message); } }
 loadPropaganda();
+// MUNDIAL (cine-noticias.md §9): mapa equipo→último resultado de TODOS los que jugaron, para la quest de los hinchas.
+// Lo llena el cron (gen-noticias.mjs, ESPN scoreboard día por día). GET /mundial. Persiste en PVC.
+let MUNDIAL = {};
+const MUNDIAL_STORE = process.env.MUNDIAL_STORE || '/data/mundial.json';
+function loadMundial() { try { const d = JSON.parse(fs.readFileSync(MUNDIAL_STORE, 'utf8')); if (d && d.equipos && typeof d.equipos === 'object') MUNDIAL = d.equipos; } catch (e) {} }
+function saveMundial() { try { fs.mkdirSync(MUNDIAL_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(MUNDIAL_STORE, JSON.stringify({ equipos: MUNDIAL })); } catch (e) { console.error('mundial store save:', e.message); } }
+loadMundial();
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -381,6 +388,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' });
     return res.end(JSON.stringify({ models: OR_NEWS, updated: OR_TS }));
   }
+  if (req.method === 'GET' && req.url === '/mundial') {                             // equipos del Mundial → quest de los hinchas
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
+    return res.end(JSON.stringify({ equipos: MUNDIAL }));
+  }
   if (req.method === 'GET' && req.url === '/propaganda') {                          // banco de carteles del CINE
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ carteles: PROPAGANDA, updated: PROPAGANDA.length ? Date.now() : 0 }));
@@ -567,6 +578,19 @@ http.createServer((req, res) => {
       try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.noticias)) {
         if (d.noticias.length) { const day = (/^\d{4}-\d{2}-\d{2}$/.test(d.day || '') ? d.day : new Date().toISOString().slice(0, 10)); NOTI_DAYS[day] = { noticias: d.noticias.slice(0, 100), ts: Date.now() }; notiPrune(); notiSyncLatest(); saveNoticias(); }
         res.writeHead(200); return res.end(d.noticias.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
+      catch (e) { res.writeHead(400); res.end('bad json'); }
+    });
+    return;
+  }
+  // el cron de noticias postea los equipos del Mundial acá (GEN_TOKEN): {equipos:{Equipo:"X-Y vs Z"}}. Vacío no pisa.
+  if (req.method === 'POST' && req.url === '/mundial') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 100000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(pb || '{}'); if (d.equipos && typeof d.equipos === 'object') {
+        const n = Object.keys(d.equipos).length; if (n) { MUNDIAL = d.equipos; saveMundial(); }
+        res.writeHead(200); return res.end(n ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;

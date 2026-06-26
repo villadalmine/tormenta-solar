@@ -44,6 +44,7 @@
   const elChatInput = document.getElementById('chat-input');
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
   let newsQuest = null;   // F2 cine: {topic, answer} cuando el linyera te mandó a buscar noticias (efímero, no se guarda)
+  let mundialQuest = null;   // §9 quest de los hinchas: {equipo, resultado, shown} — efímero, se resetea al salir del cine
   let sessStart = 0, sessChats = 0, sessTrucoW = 0, sessTrucoL = 0;   // métricas de "Tu partida" (in-game, client-side)
   // memoria por IDENTIDAD (clave = persona): cada linyera/NPC RECUERDA lo charlado entre aperturas y entre
   // sesiones (persiste en el guardado). Es el `agent.memory` del modelo v2 (ver modelo-de-entidades §6½).
@@ -132,7 +133,7 @@
     player = Player.create(s.x, s.y);
     cam = { x: 0, y: 0 };
     stormed = false; bought = false; hasVale = false; challengeForVale = false; time = 0;
-    cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null;   // cine: función vieja, freebie y regateo se resetean por run
+    cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null; mundialQuest = null;   // cine: función vieja, freebie, regateo y quest del Mundial se resetean por run
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
@@ -482,6 +483,17 @@
   }
   // ¿es el linyera filósofo (el guía/oráculo)?
   const isOraculo = n => !!(n && (n.oracle || n.persona === 'filosofo'));   // los linyeras ilustres son oráculos (dan pistas)
+  const isHincha = n => !!(n && n.persona === 'hincha');   // §9: los dos hinchas del piso Deportes (quest del Mundial)
+  // el hincha te pregunta por un equipo random del Mundial; si ya conseguiste el dato (guarda) te agradece + premio.
+  function hinchaGreeting() {
+    if (mundialQuest && mundialQuest.shown) { player.caramelos = (player.caramelos || 0) + 5; chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return; }
+    if (mundialQuest) { chatLine('npc', T('g.mundial.recorda', { eq: mundialQuest.equipo })); return; }
+    const eqs = Object.keys(((typeof window !== 'undefined' && window.MUNDIAL && window.MUNDIAL.equipos) || {}));
+    if (!eqs.length) { chatLine('npc', T('g.mundial.nodata')); return; }
+    const eq = eqs[(Math.random() * eqs.length) | 0];
+    mundialQuest = { equipo: eq, resultado: window.MUNDIAL.equipos[eq], shown: false };
+    chatLine('npc', T('g.mundial.pregunta', { eq }));
+  }
   // F2 cine: verificá lo que el jugador reporta vs la noticia real (palabras significativas compartidas).
   const _nw = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 3);
   function newsMatch(report, answer) { const a = new Set(_nw(answer)); const r = _nw(report); return { shared: r.filter(w => a.has(w)).length, words: r.length }; }
@@ -502,6 +514,7 @@
     if (n.dialog) chatLine('npc', TX(n.dialog));
     if (chatHistory.length) chatLine('sys', T('g.chat.remembers'));   // se acuerda de vos (tiene memoria previa)
     if (isOraculo(n)) showHint(0);   // el linyera arranca con una pista críptica (nivel 0)
+    if (isHincha(n)) hinchaGreeting();   // §9: te pregunta por un equipo / te recuerda / te agradece
     state = 'chat';
     elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
     setTimeout(() => elChatInput && elChatInput.focus(), 30);
@@ -524,14 +537,19 @@
       if (m.words >= 2) { const lost = Math.min(player.coins, 10); player.coins -= lost; chatLine('npc', T('g.cine.questLie', { n: lost })); newsQuest = null; return; }
       // muy vago → no penaliza, sigue esperando el reporte (cae al chat normal abajo)
     }
+    // §9: al hincha, si ya conseguiste el resultado en el guarda, te agradece + premio (sin importar qué escribiste)
+    if (isHincha(chatNpc) && mundialQuest && mundialQuest.shown) {
+      player.caramelos = (player.caramelos || 0) + 5; chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return;
+    }
     chatHistory.push({ role: 'user', content: msg });
     chatBusy = true;
     const thinking = chatLine('sys', '...');
     // linyera oráculo: cada repregunta sube el spoiler (0→3); la pista se le pasa como GROUNDING a la IA
     // (la dice con su voz, no inventa ruta). Si la respuesta sale LOCAL, la mostramos explícita (garantía).
     const ground = isOraculo(chatNpc) ? getHint(Math.min(++hintAsks, 3)) : null;
+    const groundTxt = (ground && ground.text) || (isHincha(chatNpc) && mundialQuest ? T('g.mundial.ground', { eq: mundialQuest.equipo }) : null);
     let reply;
-    try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory, ground && ground.text); }
+    try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory, groundTxt); }
     catch (e) { reply = T('g.chat.error'); }
     thinking.remove();
     chatLine('npc', reply);
@@ -708,7 +726,7 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
-    if (!/Cine/.test(r.name)) { cineArchive = null; guardaAsk = {}; }   // saliste del cine → función vieja y regateo se descartan (volvés a hoy)
+    if (!/Cine/.test(r.name)) { cineArchive = null; guardaAsk = {}; mundialQuest = null; }   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
     if (/Cine/.test(r.name)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
@@ -831,6 +849,10 @@
     const free = !guardaFreeUsed;
     let html = '<div class="end-stats-title">' + T('g.cine.guardaTitle') + '</div>';
     html += '<div style="text-align:center;margin:.3em 0 .7em;opacity:.85">' + T('g.cine.guardaSub', { c: (player.caramelos || 0) }) + '</div>';
+    // §9: si un hincha te pidió un resultado, el guarda te lo pone en la pantalla (gratis, es parte de la quest)
+    if (mundialQuest && !mundialQuest.shown) {
+      html += '<button class="guarda-mundial" style="display:block;width:100%;margin-bottom:.5em;padding:.6em .9em;font:inherit;cursor:pointer;border:1.5px solid #4FC3F7;background:#10202e;color:#cde8ff">📣 ' + T('g.mundial.guardaBtn', { eq: mundialQuest.equipo }) + '</button>';
+    }
     if (!old.length) html += '<div style="text-align:center;opacity:.7;margin:1em 0">' + T('g.cine.guardaNone') + '</div>';
     else {
       html += '<div style="display:flex;flex-direction:column;gap:.4em">';
@@ -848,7 +870,16 @@
     body.innerHTML = html;
     body.querySelectorAll('.guarda-day').forEach(b => b.addEventListener('click', () => pickGuardaDay(b.getAttribute('data-day'))));
     body.querySelectorAll('.guarda-hag').forEach(b => b.addEventListener('click', () => guardaRegatear(b.getAttribute('data-day'))));
+    const mb = body.querySelector('.guarda-mundial'); if (mb) mb.addEventListener('click', guardaMundial);
     ov.classList.remove('hidden');
+  }
+  // §9: el guarda te CAMBIA LA PANTALLA con el resultado que te pidió el hincha → volvé y te agradece.
+  function guardaMundial() {
+    if (!mundialQuest) { closeGuarda(); return; }
+    mundialQuest.shown = true;
+    cineNoticias = [{ topic: '⚽ ' + String(mundialQuest.equipo).toUpperCase(), headline: mundialQuest.resultado }];   // pantalla = el partido
+    closeGuarda();
+    setMsg(T('g.mundial.guardaOk', { eq: mundialQuest.equipo }), '#ffd54f', 5500); Sfx.pickup();
   }
   function guardaRegatear(day) {
     const dias = ((typeof window !== 'undefined' && window.NOTI_DIAS) || []).slice().sort(), today = dias[dias.length - 1];
