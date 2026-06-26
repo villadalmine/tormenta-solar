@@ -866,6 +866,7 @@
     current = 0; const s = rooms[0].playerStart; player.x = s.x; player.y = s.y; player.vx = player.vy = 0;
     spinoffLevel = true; state = 'playing'; transCd = 0.4; roamingNpc = null; updateCam();
     elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); elFloor.textContent = TX(rooms[0].name);
+    flash();   // beat visual al CAER en el nivel generado (que no aparezca de golpe)
     setMsg(T('g.nivelai.enter', { name: spinoffName }), '#e0b0ff', 5500);
     tel('nivelai', { theme: gen.theme, mode: 'level' });
     return true;
@@ -873,6 +874,7 @@
   function launchNivelAI() {
     const back = () => { state = 'playing'; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); };
     if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined') { back(); return; }
+    flash();   // beat visual: salís del súper (vista de arriba) y te colás al fondo → no es un corte seco al nivel
     // ~40% de las veces, si charlaste con los linyeras, el ORÁCULO te INVENTA un nivel a tu medida (async, lo arma la IA)
     const chats = playerChatTopics();
     if (chats.length >= 2 && NivelAI.requestOraculo && Math.random() < 0.4) {

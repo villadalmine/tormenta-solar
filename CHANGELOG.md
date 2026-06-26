@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v190] — 2026-06-26 — 🌀 Transición súper → nivel generado menos abrupta (beat narrativo + flash)
+
+La entrada al nivel que crea la IA "saltaba" de golpe del súper (vista de arriba) al nivel (vista lateral), sin
+puente. Ahora hay un **beat**: al colarte a la trastienda → `flash()` + mensaje narrativo ("te colás detrás de la
+cortina, al fondo donde vive la familia del chino... la realidad se retuerce y la IA dibuja el nivel"), y al CAER en
+el nivel generado otro `flash()` (no aparece de golpe). Mensajes `g.nivelai.oraculo`/`shaping` reescritos (es/en).
+
+---
+
 ## [v189] — 2026-06-26 — 🕴️ El vendedor de armas se REVELA post-tormenta (de tipo común a un trajeado siniestro)
 
 El misterioso (`???`) de la cueva, pre-tormenta es un tipo común. **Post-tormenta se transforma**: sprite nuevo

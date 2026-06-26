@@ -217,8 +217,8 @@
     'g.nivelai.back': 'The portal spits you back into the chino\'s place, a bit dizzy. 🌀',
     'g.nivelai.enter': '🌀 You drop into a generated level: "{name}". Reach the purple EXIT (→ right). [ESC] to return.',
     'g.nivelai.fail': 'The portal sparks and closes on its own. You stay at the chino\'s. 🌀',
-    'g.nivelai.oraculo': '🔮 The oracle reads your mind... building a level tailored to what you told it. Hang on a sec.',
-    'g.nivelai.shaping': '🌀 The back room reshapes itself... the AI is drawing the level. Hang on a sec.',
+    'g.nivelai.oraculo': '🔮 You slip into the back of the chino\'s shop, where his family lives... and the oracle reads your mind: it builds a level tailored to YOU from what you talked about. Hang on a sec.',
+    'g.nivelai.shaping': '🌀 You slip behind the curtain, into the back where the chino\'s family lives... reality warps and the AI draws the level. Hang on a sec.',
     'g.nivelai.room': '🌀 {name}',
     // --- DOLLARS: cameras read the SERIAL (always good or fake + number) + sometimes the ORIGIN ---
     'g.dollar.real': '📹 good serial {s}',
