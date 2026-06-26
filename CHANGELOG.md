@@ -22,6 +22,11 @@ El juego es 100% estático; se publica en
   **galería de la cueva** (sex-shop, comida rara, masajes, tenebroso) y **entrás a su local**; el NPC declara el
   **rubro** (`tienda.tipo`) y la IA genera el interior con clientela + mercadería del rubro para **browsear/comprar**
   (reusa la máquina de niveles, sin meta ni combate, fallback estático). Diseño temprano, NO implementado.
+- **El vecino de los edificios clausurados** (`specs/edificios-clausurados-historias.md`, idea 2026-06-26):
+  post-tormenta cada edificio clausurado tiene un **vecino** al que le hablás; te **chusmea historias de terror** del
+  edificio (fantasmas, filicidios, juguetes diabólicos, la llorona, fiestas) que la IA flashea; iterás y siempre
+  tiene "algo más", hasta que te ofrece **"¿querés pasar y ver qué pasó con XXX?"** → entrás a un **nivel generado
+  desde la última historia** y al ganarlo quedás en el interior real del edificio. NO implementado.
 - **Gate del cuevero por el truco** (`specs/cuevero-gate-truco.md`, idea 2026-06-26): el cuevero (misión principal →
   tormenta) no vende hasta **desbaratar al tahúr** ganándole al truco (vos, o pidiendo ayuda → cadena linyera→Guido
   que juega y gana por vos); recién con el "te perdono" del tahúr el cuevero vende y estalla la tormenta. Para que
