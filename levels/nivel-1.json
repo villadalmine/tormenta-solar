@@ -6230,7 +6230,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 3
+          "x": 2
         },
         {
           "id": "cine-lavalle-deportes/decor12",
@@ -6238,7 +6238,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 20
         }
       ]
     },
@@ -6357,7 +6357,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 3
+          "x": 2
         },
         {
           "id": "cine-lavalle-mundo/decor9",
@@ -6365,7 +6365,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 20
         }
       ]
     },
@@ -6484,7 +6484,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 3
+          "x": 2
         },
         {
           "id": "cine-lavalle-tecno/decor9",
@@ -6492,7 +6492,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 20
         }
       ]
     },
@@ -6611,7 +6611,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 3
+          "x": 2
         },
         {
           "id": "cine-lavalle-finanzas/decor9",
@@ -6619,7 +6619,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 20
         }
       ]
     },
@@ -6738,7 +6738,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 3
+          "x": 2
         },
         {
           "id": "cine-lavalle-colombofilia/decor9",
@@ -6746,7 +6746,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 20
         }
       ]
     },
@@ -6865,7 +6865,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 3
+          "x": 2
         },
         {
           "id": "cine-lavalle-consolas/decor9",
@@ -6873,7 +6873,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 20
         }
       ]
     },
@@ -6984,7 +6984,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 3
+          "x": 2
         },
         {
           "id": "cine-lavalle-openrouter/decor9",
@@ -6992,7 +6992,7 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 20
         }
       ]
     }

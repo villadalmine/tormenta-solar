@@ -773,27 +773,35 @@
   }
   // CARTELES de propaganda del cine: un panel arriba del cartel con marca+slogan FALSO estilo BsAs, ROTANDO por rubro
   // (window.PROPAGANDA lo trae js/propaganda.js: banco vivo del proxy o estático). Cambia cada ~7s, distinto por cartel.
-  const _catCol = { comida: '#e8743b', ropa: '#d65ad6', electronica: '#3bb0e8', bizarro: '#7CFC00' };
-  function truncFit(s, maxW) { s = String(s); while (s.length > 2 && ctx.measureText(s).width > maxW) s = s.slice(0, -2) + '…'; return s; }
+  const _catCol = { comida: '#e8743b', ropa: '#d65ad6', electronica: '#3bb0e8', bizarro: '#7CFC00', tip: '#ffd54f', clima: '#7fd0ff', juego: '#ff5da2' };
   function drawCartelProp(d, img) {
     const list = (typeof window !== 'undefined' && window.PROPAGANDA) || [];
     if (!list.length) return;
     const cx = d.x - cam.x, topY = d.feetY - cam.y - img.height;
     const i = (Math.floor(time / 7) + (d.x | 0)) % list.length, p = list[(i % list.length + list.length) % list.length];
     if (!p) return;
-    const W = 132, H = 40, x = cx - W / 2, y = topY - H - 6, col = _catCol[p.cat] || '#ffd54f';
+    const W = 96, col = _catCol[p.cat] || '#ffd54f';   // angosto y ALTO (no pisa la pantalla central) → ocupa para arriba
     ctx.save();
+    ctx.font = 'bold 10px monospace';
+    const brand = wrapLines(ctx, p.brand, W - 10, 2);
+    ctx.font = '9px monospace';
+    const slog = wrapLines(ctx, '“' + p.slogan + '”', W - 10, 4);
+    const H = 8 + brand.length * 12 + 3 + slog.length * 11 + 6;
+    const x = cx - W / 2, y = topY - H - 8;
     ctx.fillStyle = '#0c0f16'; ctx.fillRect(x - 2, y - 2, W + 4, H + 4);
     ctx.fillStyle = '#161c28'; ctx.fillRect(x, y, W, H);
     ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, W, H);
-    ctx.fillStyle = col; ctx.fillRect(cx - 1.5, topY - 6, 3, 6);   // patita que baja al cartel
+    ctx.fillStyle = col; ctx.fillRect(cx - 1.5, y + H, 3, topY - (y + H));   // poste que baja al cartel
     ctx.textAlign = 'center';
-    ctx.font = 'bold 10px monospace'; ctx.fillStyle = col; ctx.fillText(truncFit(p.brand, W - 10), cx, y + 15);
-    ctx.font = '9px monospace'; ctx.fillStyle = '#cdd6e4'; ctx.fillText(truncFit('“' + p.slogan + '”', W - 10), cx, y + 30);
+    let yy = y + 13;
+    ctx.font = 'bold 10px monospace'; ctx.fillStyle = col;
+    for (const ln of brand) { ctx.fillText(ln, cx, yy); yy += 12; }
+    yy += 2; ctx.font = '9px monospace'; ctx.fillStyle = '#cdd6e4';
+    for (const ln of slog) { ctx.fillText(ln, cx, yy); yy += 11; }
     ctx.restore();
   }
   function drawCineScreen(r) {
-    const ns = cineNoticias, pad = 16, W = 410;
+    const ns = cineNoticias, pad = 16, W = 360;
     const cx = (r.w * Level.TILE) / 2 - cam.x, colW = W - pad * 2;
     ctx.save();
     // pre-medir: cuántas líneas ocupa cada noticia → alto DINÁMICO (que "entre todo")

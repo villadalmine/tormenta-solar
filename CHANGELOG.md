@@ -39,6 +39,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v134] — 2026-06-26 — 📣 Carteles: fix overlap con la pantalla + cartel de Cruz del Sur + tips del juego
+
+- **Fix overlap:** los carteles-ai se pisaban con el panel de noticias. Movidos a las **esquinas** (x:2/x:20), la
+  pantalla se achicó (410→360) y el panel del cartel ahora es **angosto y alto** (ocupa para arriba, slogan en
+  varias líneas) → no chocan.
+- **Cartel del otro juego del Ciruja**: entrada FIJA `CRUZ DEL SUR → cruzdelsur.cybercirujas.club/game` (siempre
+  presente, no la pisa el banco IA).
+- **Tips del juego** como carteles (`cat:tip`): "pedile noticias al linyera 7º", "regateá al guarda 🤝", "[R] te lee
+  las noticias", etc. — entradas fijas en `js/propaganda.js` (se mergean con el banco IA).
+
+---
+
 ## [v133 / infra-18] — 2026-06-26 — ⚽ Quest del Mundial: los 2 hinchas + el guarda (IMPLEMENTADA)
 
 Implementa `cine-noticias.md §9`. En el piso **Deportes** hay **dos hinchas** (NPCs con IA, persona `hincha`): al

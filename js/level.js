@@ -527,7 +527,7 @@ const Level = (() => {
     // con su pantalla (la dibuja game.js filtrando /noticias por el topic del piso) + butacas + propaganda.
     // theme 'arcade' = bg/tiles oscuros; se detecta como cine por el nombre ("Cine ...").
     const _seats = [{t:'sofa',x:6},{t:'sofa',x:9},{t:'sofa',x:12},{t:'sofa',x:15},{t:'sofa',x:7.5},{t:'sofa',x:10.5},{t:'sofa',x:13.5}];
-    const _ads = [{t:'cartel',x:3},{t:'cartel',x:19}];   // carteles de propaganda a los costados
+    const _ads = [{t:'cartel',x:2},{t:'cartel',x:20}];   // carteles de propaganda en las esquinas (no pisan la pantalla central)
     const cine1 = rooms.push(makeRoom({
       name: 'Cine Lavalle — Deportes', theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Mundo', x:20, inward:-1 }],
