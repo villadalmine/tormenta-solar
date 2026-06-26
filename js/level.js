@@ -194,7 +194,7 @@ const Level = (() => {
       }),
       // 4 — sala de arcade (Lavalle): más máquinas + gente jugando + el del chori
       makeRoom({
-        name: 'Arcade de Lavalle', theme: 'arcade', light: 1.0, stormable: true, w: 26,
+        name: 'Arcade de Lavalle', theme: 'arcade', tags:['arcade'], light: 1.0, stormable: true, w: 26,
         platforms: [[18,9,3]],
         doors: [
           { id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 },
@@ -230,7 +230,7 @@ const Level = (() => {
       }),
       // 6 — galería subsuelo 1 (con tiendas raras)
       makeRoom({
-        name: 'Galería — Subsuelo 1', theme: 'concrete', light: 0.6, w: 42,
+        name: 'Galería — Subsuelo 1', theme: 'concrete', tags:['galeria'], light: 0.6, w: 42,
         platforms: [[10,9,3],[20,9,4],[30,9,3]],
         doors: [
           { id:'up', art:'doorUp', label:'subir', x:3, inward:1 },
@@ -272,7 +272,7 @@ const Level = (() => {
       }),
       // 8 — la cueva del dólar: TRES cueveros
       makeRoom({
-        name: 'LAS CUEVAS del dólar — Subsuelo 3', theme: 'rock', light: 0.4, w: 48,
+        name: 'LAS CUEVAS del dólar — Subsuelo 3', theme: 'rock', tags:['cueva'], light: 0.4, w: 48,
         platforms: [[16,9,4],[26,9,3],[36,9,4]],
         doors: [
           { id:'up', art:'doorUp', label:'subir', x:3, inward:1 },
@@ -318,7 +318,7 @@ const Level = (() => {
       }),
       // 10 — trastienda: truco con el tahúr
       makeRoom({
-        name: 'Trastienda — Truco', theme: 'secret', light: 0.78, w: 22,
+        name: 'Trastienda — Truco', theme: 'secret', tags:['arcade'], light: 0.78, w: 22,
         doors: [
           { id:'back', art:'exit', label:'volver a la sala', x:2, inward:1 },
           { id:'chinotruco', art:'superchino', label:'cruzar al chino (la puerta del tahúr)', x:18, inward:-1 },
@@ -352,7 +352,7 @@ const Level = (() => {
       }),
       // 12 — CEMENTO (recital under): Almafuerte en prueba de sonido + Iorio
       makeRoom({
-        name: 'CEMENTO — recital under', theme: 'cemento', light: 0.55, w: 26,
+        name: 'CEMENTO — recital under', theme: 'cemento', tags:['cemento'], light: 0.55, w: 26,
         doors: [{ id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 }],
         npcs: [
           { name:'Iorio (Almafuerte)', sprite:'iorio', x:14, action:'iorio', dialog: _Dp('iorio', '“¿Qué hacés, tragaleche? Rajá... traeme falopa y te toco Pibe Tigre.” 🤘') },
@@ -367,7 +367,7 @@ const Level = (() => {
       }),
       // 13 — CASA DE CAMBIO OFICIAL: repleta de gente; acá se abre el PORTAL tras la tormenta
       makeRoom({
-        name: 'Casa de Cambio Oficial', theme: 'cambio', light: 1.0, stormable: true, w: 24,
+        name: 'Casa de Cambio Oficial', theme: 'cambio', tags:['cambio'], light: 1.0, stormable: true, w: 24,
         playerStart: 3, goal: 21,
         doors: [{ id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 }],
         npcs: [
@@ -424,7 +424,7 @@ const Level = (() => {
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
       if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1, gate:{ flag:'bunkerUnlocked' } });
       const spec = { name:'Edificio Abandonado — Piso ' + n + (lux ? ' · LUJO' : ' · ruina'),
-        theme: lux ? 'lujo' : 'ruina', light: lux ? 1.0 : 0.42, w, doors };
+        theme: lux ? 'lujo' : 'ruina', tags:['edificio'], light: lux ? 1.0 : 0.42, w, doors };
       if (lux) {
         // depto de lujo: moda, cocina, baño, living con tele, joyas y un maletín con dólares
         spec.decor = [
@@ -473,7 +473,7 @@ const Level = (() => {
 
     // 34 — EL BÚNKER de los linyeras (refugio más seguro; acá vive el LOOP del nivel)
     rooms.push(makeRoom({
-      name: 'El Búnker de los Linyeras', theme: 'secret', light: 0.8, w: 20,
+      name: 'El Búnker de los Linyeras', theme: 'secret', tags:['bunker'], light: 0.8, w: 20,
       doors: [{ id:'back', art:'exit', label:'volver al piso 20', x:2, inward:1 }],
       npcs: [
         { name:'', sprite:'linyera', invisible:true, x:10, action:'loop' },   // el CATRE (decor) es el punto de dormir
@@ -489,7 +489,7 @@ const Level = (() => {
 
     // 35,36,37 — las TRES cuevas del dólar (cada cuevero te invita a la suya): gente esperando + el deal
     rooms.push(makeRoom({
-      name: 'Cueva del dólar — la del fondo', theme: 'rock', light: 0.36, w: 18,
+      name: 'Cueva del dólar — la del fondo', theme: 'rock', tags:['cueva'], light: 0.36, w: 18,
       doors: [{ id:'back', art:'doorUp', label:'salir de la cueva', x:2, inward:1 }],
       cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'coins',
         dialog:'“Uh, venís cargado de monedas... eso te marca, pibe. Acá no te cambio. Andá.”' }],
@@ -502,7 +502,7 @@ const Level = (() => {
       pickups: [{t:'coins',x:7,amount:4}],
     }));
     rooms.push(makeRoom({
-      name: 'Cueva del dólar — la de al lado', theme: 'rock', light: 0.36, w: 18,
+      name: 'Cueva del dólar — la de al lado', theme: 'rock', tags:['cueva'], light: 0.36, w: 18,
       doors: [{ id:'back', art:'doorUp', label:'salir de la cueva', x:2, inward:1 }],
       cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'garca',
         dialog:'“Mmm... tenés cara de garca. Nah, andá a otro lado, no te cambio nada.”' }],
@@ -515,7 +515,7 @@ const Level = (() => {
       pickups: [{t:'ammo',x:7}],
     }));
     rooms.push(makeRoom({
-      name: 'Cueva del dólar — la que te cambia', theme: 'rock', light: 0.36, w: 18,
+      name: 'Cueva del dólar — la que te cambia', theme: 'rock', tags:['cueva'], light: 0.36, w: 18,
       doors: [{ id:'back', art:'doorUp', label:'salir de la cueva', x:2, inward:1 }],
       cueveros: [{ name:'El cuevero', sprite:'cuevero', x:14, outcome:'real',
         dialog:'“Dale, vení que te los cambio, tranqui...”' }],

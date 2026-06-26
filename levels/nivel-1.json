@@ -1341,6 +1341,9 @@
       "nombre": "Arcade de Lavalle",
       "theme": "arcade",
       "w": 26,
+      "tags": [
+        "arcade"
+      ],
       "light": 1,
       "stormable": true,
       "platforms": [
@@ -1642,6 +1645,9 @@
       "nombre": "Galería — Subsuelo 1",
       "theme": "concrete",
       "w": 42,
+      "tags": [
+        "galeria"
+      ],
       "light": 0.6,
       "platforms": [
         [
@@ -2028,6 +2034,9 @@
       "nombre": "LAS CUEVAS del dólar — Subsuelo 3",
       "theme": "rock",
       "w": 48,
+      "tags": [
+        "cueva"
+      ],
       "light": 0.4,
       "platforms": [
         [
@@ -2477,6 +2486,9 @@
       "nombre": "Trastienda — Truco",
       "theme": "secret",
       "w": 22,
+      "tags": [
+        "arcade"
+      ],
       "light": 0.78,
       "entities": [
         {
@@ -2732,6 +2744,9 @@
       "nombre": "CEMENTO — recital under",
       "theme": "cemento",
       "w": 26,
+      "tags": [
+        "cemento"
+      ],
       "light": 0.55,
       "entities": [
         {
@@ -2896,6 +2911,9 @@
       "nombre": "Casa de Cambio Oficial",
       "theme": "cambio",
       "w": 24,
+      "tags": [
+        "cambio"
+      ],
       "light": 1,
       "stormable": true,
       "entities": [
@@ -3116,6 +3134,9 @@
       "nombre": "Edificio Abandonado — Piso 1 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -3289,6 +3310,9 @@
       "nombre": "Edificio Abandonado — Piso 2 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -3477,6 +3501,9 @@
       "nombre": "Edificio Abandonado — Piso 3 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -3650,6 +3677,9 @@
       "nombre": "Edificio Abandonado — Piso 4 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -3823,6 +3853,9 @@
       "nombre": "Edificio Abandonado — Piso 5 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -3996,6 +4029,9 @@
       "nombre": "Edificio Abandonado — Piso 6 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -4154,6 +4190,9 @@
       "nombre": "Edificio Abandonado — Piso 7 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -4327,6 +4366,9 @@
       "nombre": "Edificio Abandonado — Piso 8 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -4515,6 +4557,9 @@
       "nombre": "Edificio Abandonado — Piso 9 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -4688,6 +4733,9 @@
       "nombre": "Edificio Abandonado — Piso 10 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -4861,6 +4909,9 @@
       "nombre": "Edificio Abandonado — Piso 11 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -5034,6 +5085,9 @@
       "nombre": "Edificio Abandonado — Piso 12 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -5192,6 +5246,9 @@
       "nombre": "Edificio Abandonado — Piso 13 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -5365,6 +5422,9 @@
       "nombre": "Edificio Abandonado — Piso 14 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -5553,6 +5613,9 @@
       "nombre": "Edificio Abandonado — Piso 15 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -5726,6 +5789,9 @@
       "nombre": "Edificio Abandonado — Piso 16 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -5899,6 +5965,9 @@
       "nombre": "Edificio Abandonado — Piso 17 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -6072,6 +6141,9 @@
       "nombre": "Edificio Abandonado — Piso 18 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -6230,6 +6302,9 @@
       "nombre": "Edificio Abandonado — Piso 19 · LUJO",
       "theme": "lujo",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 1,
       "platforms": [
         [
@@ -6423,6 +6498,9 @@
       "nombre": "Edificio Abandonado — Piso 20 · ruina",
       "theme": "ruina",
       "w": 24,
+      "tags": [
+        "edificio"
+      ],
       "light": 0.42,
       "platforms": [
         [
@@ -6614,6 +6692,9 @@
       "nombre": "El Búnker de los Linyeras",
       "theme": "secret",
       "w": 20,
+      "tags": [
+        "bunker"
+      ],
       "light": 0.8,
       "entities": [
         {
@@ -6742,6 +6823,9 @@
       "nombre": "Cueva del dólar — la del fondo",
       "theme": "rock",
       "w": 18,
+      "tags": [
+        "cueva"
+      ],
       "light": 0.36,
       "entities": [
         {
@@ -6851,6 +6935,9 @@
       "nombre": "Cueva del dólar — la de al lado",
       "theme": "rock",
       "w": 18,
+      "tags": [
+        "cueva"
+      ],
       "light": 0.36,
       "entities": [
         {
@@ -6959,6 +7046,9 @@
       "nombre": "Cueva del dólar — la que te cambia",
       "theme": "rock",
       "w": 18,
+      "tags": [
+        "cueva"
+      ],
       "light": 0.36,
       "entities": [
         {

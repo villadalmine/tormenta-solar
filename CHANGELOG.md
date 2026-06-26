@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v154] — 2026-06-26 — 🧱 v2: `currentAt()` por TAG (el lugar del grafo de pistas = data)
+
+El "dónde estoy" del grafo de historia/pistas (`currentAt`) ahora se ubica por **tag de sala** (`bunker/cueva/cemento/
+cambio/arcade/galeria/edificio`) en vez de regex del nombre (con fallback al nombre). **30 salas tagueadas** (20 del
+edificio vía el loop + cuevas/cemento/cambio/bunker/galería/arcade). Así el grafo de pistas y los tags de sala quedan
+**unificados** (el HintEngine ubica la frontera por data). Paridad 45 salas + schema OK + e2e×3 + web-smoke.
+
+---
+
 ## [v153] — 2026-06-26 — 🧱 v2: pisos del cine por TAG (los 7 regex de piso → data)
 
 Seguimos migrando regex de sala a tags: cada piso del cine declara su categoría (`tags:['cine','deportes']`,

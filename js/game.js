@@ -516,8 +516,11 @@
     };
   }
   // lugar actual → tag del grafo (para la cercanía del oráculo)
+  const AT_TAGS = ['bunker', 'cueva', 'cemento', 'cambio', 'arcade', 'super', 'galeria', 'edificio'];   // lugares del grafo
   function currentAt() {
-    const n = (room() && room().name) || '';
+    const r = room();
+    for (const t of (r && r.tags) || []) if (AT_TAGS.includes(t)) return t;   // por TAG de sala (data)
+    const n = (r && r.name) || '';   // fallback al nombre (back-compat para salas sin tag)
     if (/[Bb][úu]nker/.test(n)) return 'bunker';
     if (/[Cc]ueva|[Dd]isquer/.test(n)) return 'cueva';
     if (/Cemento/.test(n)) return 'cemento';
