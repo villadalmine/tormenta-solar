@@ -219,7 +219,7 @@ const NivelAI = (() => {
     // pool de enemigos VARIADO (antes solo peaton/dron): pacman es rápido, galaga vuela rápido, cuevero dispara.
     // Pesado hacia peaton/dron para que no sea injusto. La IA autora la POSICIÓN; el tipo lo elige el pool.
     const ENEMY_POOL = ['peaton', 'peaton', 'dron', 'dron', 'pacman', 'galaga', 'cuevero'];
-    function assemble(i, n, w, plats) {
+    function assemble(i, n, w, plats, noHaz) {
       const id = 'sala-ai-' + i, ents = [];
       if (i === 0) ents.push({ id: id + '/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } });
       else ents.push({ id: id + '/door-l', tipo: 'door', x: 2, inward: 1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i - 1) } });
@@ -232,8 +232,9 @@ const NivelAI = (() => {
       const aiEn = t.aiEnemies ? sanitizeEnemies(t.aiEnemies, w) : null;   // enemigos autorados por IA (posición) o aleatorios
       if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || pick(ENEMY_POOL) } }));
       else for (let k = 0, e = rnd(1, 3); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: pick(ENEMY_POOL) } });
-      // PINCHOS (obstáculo nuevo) en el piso, lejos de columnas sagradas (spawn x2 / meta·puerta x=w-3) → saltables
-      for (let k = 0, hz = rnd(0, 2); k < hz; k++) ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: 2, render: { type: 'spikes' }, combat: { dmg: 12 } });
+      // OBSTÁCULOS (pinchos / pozos) en el piso, lejos de columnas sagradas (spawn x2 / meta·puerta w-3) → saltables.
+      // El POZO cala el piso (te caés y reaparecés); el PINCHO daña al contacto. Ancho ≤2 → la RED (R4) garantiza salto.
+      if (!noHaz) for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
       for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
       return { id, nombre: L(t.name) + (n > 1 ? ' · ' + (i + 1) + '/' + n : ''), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };
     }
@@ -241,11 +242,16 @@ const NivelAI = (() => {
     // AUTO-REPARA cayendo al layout procedural (garantizado jugable). Así la geometría de la IA llega sólo si sirve.
     function room(i, n) {
       const w = style === 'wall' ? rnd(34, 42) : rnd(24, 32);   // la muralla es ANCHA (se recorre a lo largo)
+      // 1) PLATAFORMAS: la geometría IA si pasa la RED (sin obstáculos); si no, procedural (auto-repair de geometría).
+      let plats = layoutPlatforms(w, false);
       if (t.aiPlatforms) {
-        const r = assemble(i, n, w, layoutPlatforms(w, true));
-        if (typeof Playable === 'undefined' || Playable.checkRoom(r).length === 0) return r;
+        const cand = layoutPlatforms(w, true);
+        if (typeof Playable === 'undefined' || Playable.checkRoom(assemble(i, n, w, cand, true)).length === 0) plats = cand;
       }
-      return assemble(i, n, w, layoutPlatforms(w, false));
+      // 2) OBSTÁCULOS (pinchos/pozos): si rompen la RED (ej. dos pozos juntos), se re-rollean — las plataformas quedan fijas.
+      let r = assemble(i, n, w, plats);
+      for (let k = 0; k < 6 && typeof Playable !== 'undefined' && Playable.checkRoom(r).length; k++) r = assemble(i, n, w, plats);
+      return r;
     }
     function candidate() {
       const n = rnd(2, 3);                                    // 2-3 salas conectadas por puertas

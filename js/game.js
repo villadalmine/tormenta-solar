@@ -1309,6 +1309,11 @@
         }
       }
     }
+    // POZO: te caés por un hueco del piso → daño + reaparecés en lugar seguro (solo salas generadas con pozos, aditivo)
+    if (r._hasPit && player.y > r.pixH + 6) {
+      player.hurt(16);
+      player.x = 2 * Level.TILE; player.y = r.gTop * Level.TILE - player.h; player.vx = player.vy = 0;
+    }
     // cumbia del músico: suena cuando pasás cerca (y antes de la tormenta)
     let nearMusico = false;
     for (const n of r.npcs || []) {
@@ -1453,6 +1458,14 @@
     }
     if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
 
+    // pozos (hazard kind 'pit') — el piso ya está calado (se ve el fondo); oscurecemos el hueco + postes rojos al borde
+    for (const pit of r.pits || []) {
+      const fy = r.gTop * TILE - cam.y, x0 = pit.x0 - cam.x;
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x0, fy, pit.x1 - pit.x0, (r.h - r.gTop) * TILE);
+      ctx.fillStyle = '#ff5252'; ctx.fillRect(x0 - 2, fy, 3, 7); ctx.fillRect(pit.x1 - cam.x - 1, fy, 3, 7);
+      ctx.restore();
+    }
     // pinchos (hazard) de los niveles generados — triángulos metálicos en el piso (no colisionan como sólido)
     for (const hz of r.hazards || []) {
       const x0 = hz.x - hz.w/2 - cam.x, fy = hz.y - cam.y, n = Math.max(2, Math.round(hz.w / 12)), sw = hz.w / n;

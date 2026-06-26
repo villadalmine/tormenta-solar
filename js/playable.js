@@ -15,12 +15,17 @@ const Playable = (() => {
   const JUMP_UP = 3;                                // tiles que se trepan de UN salto (apex real ~3.9; conservador). R4.
   const ti = v => Math.round(Number(v) || 0);
 
-  // grilla de SÓLIDOS de una sala (piso + bordes + plataformas) — calca Mundo.buildRoom, en tiles
+  // grilla de SÓLIDOS de una sala (piso + bordes + plataformas, menos los POZOS) — calca Mundo.buildRoom, en tiles
   function roomGrid(rm) {
     const w = rm.w, map = Array.from({ length: H }, () => new Array(w).fill(0));
     for (let y = GTOP; y < H; y++) for (let x = 0; x < w; x++) map[y][x] = 1;     // piso
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][w - 1] = 1; }             // bordes
     for (const p of rm.platforms || []) for (let x = p[0]; x < p[0] + p[2]; x++) if (x > 0 && x < w - 1) map[p[1]][x] = 1;
+    // POZOS (hazard kind 'pit'): CALAN el piso → hueco por el que se cae (hay que SALTARLO). Idéntico a Mundo.
+    for (const e of rm.entities || []) if (e.tipo === 'hazard' && e.render && e.render.type === 'pit') {
+      const hx = ti(e.x), hw = Math.max(1, ti(e.w) || 2), x0 = hx - ((hw - 1) >> 1);
+      for (let x = x0; x < x0 + hw; x++) if (x > 0 && x < w - 1) for (let y = GTOP; y < H; y++) map[y][x] = 0;
+    }
     return map;
   }
 
@@ -40,21 +45,28 @@ const Playable = (() => {
     for (let y = Math.max(0, y0); y < H - 1; y++) if (map[y][x] === 0 && map[y + 1][x] === 1) return y;
     return null;
   }
+  const JUMP_ACROSS = 3;                              // ancho de hueco que se cruza de un salto (pozo ≤2 tiles)
   function reachSet(map, w, entryX) {
-    const st = standables(map, w);
+    const st = standables(map, w), byCol = {};
+    for (const k in st) { const [x, y] = st[k]; (byCol[x] = byCol[x] || []).push(y); }   // índice por columna (perf)
     const sy = standAt(map, w, entryX, GTOP - 1) ?? standAt(map, w, entryX, 0);
     if (sy == null) return {};                       // sin piso en la entrada → no marcamos (evita falso positivo)
-    const seen = {}; const start = entryX + ',' + sy; seen[start] = 1; const q = [[entryX, sy]];
-    const nodes = Object.values(st);
+    // ¿están ABIERTAS las columnas intermedias al nivel del salto? (un pozo sí; un muro que sobresale, no)
+    const open = (lo, hi, lvl) => { for (let c = lo + 1; c < hi; c++) for (let yy = 0; yy <= lvl; yy++) if (map[yy][c]) return false; return true; };
+    const seen = {}; seen[entryX + ',' + sy] = 1; const q = [[entryX, sy]];
     while (q.length) {
       const [x, y] = q.pop();
-      for (const [nx, ny] of nodes) {
-        const k = nx + ',' + ny; if (seen[k]) continue;
-        const dx = Math.abs(nx - x), up = y - ny;    // up>0 = sube
-        if (dx === 0 && ny === y) continue;
-        if (dx > 2 || up > JUMP_UP) continue;        // demasiado lejos o demasiado alto para un salto
-        if (dx >= 2 && up > 0) continue;             // saltos de hueco (x±2) sólo a nivel o hacia abajo
-        seen[k] = 1; q.push([nx, ny]);
+      for (let nx = x - JUMP_ACROSS; nx <= x + JUMP_ACROSS; nx++) {
+        const ys = byCol[nx]; if (!ys) continue;
+        for (const ny of ys) {
+          const k = nx + ',' + ny; if (seen[k]) continue;
+          const dx = Math.abs(nx - x), up = y - ny;  // up>0 = sube
+          if (dx === 0 && ny === y) continue;
+          if (dx > JUMP_ACROSS || up > JUMP_UP) continue;
+          if (dx >= 2 && up > 0) continue;           // saltos de hueco (dx≥2) sólo a nivel o hacia abajo
+          if (dx >= 2 && !open(Math.min(x, nx), Math.max(x, nx), Math.min(y, ny))) continue;   // un muro intermedio bloquea
+          seen[k] = 1; q.push([nx, ny]);
+        }
       }
     }
     return seen;

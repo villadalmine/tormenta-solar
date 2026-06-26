@@ -39,6 +39,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v183] — 2026-06-26 — 🕳️ POZOS (huecos en el piso): te caés y reaparecés — con la RED validando que sean saltables
+
+Segundo obstáculo nuevo: **pozos** (`hazard` kind `pit`). A diferencia de los pinchos, el pozo **CALA el piso**
+(`Mundo` borra los tiles del piso en ese tramo → hueco real por el que el jugador **cae**). Si te caés: daño +
+**reaparecés** en lugar seguro (solo en salas generadas con pozos; **aditivo**, las 38 a mano no se tocan). La RED
+se hizo más lista: **R4 ahora cruza huecos** (BFS con saltos de hueco hasta `JUMP_ACROSS`=3, chequeando que las
+columnas intermedias estén ABIERTAS — un pozo se cruza, un muro que sobresale **no**). Así un pozo de **ancho 1-2 se
+salta** (pasa) pero uno de **ancho 3 es RECHAZADO** (auto-repara). El generador siembra pinchos **o** pozos (≤2 de
+ancho, lejos de spawn/meta/puerta) y **re-rollea los obstáculos** si rompen la RED, dejando las plataformas fijas
+(no descarta la geometría IA por un obstáculo). Render: el hueco se oscurece + postes rojos al borde. Tests
+`tests/geometria.js` (+pozos aparecen, calan el piso, ancho 3 rechazado). e2e + playable + web-smoke OK.
+
+---
+
 ## [v182] — 2026-06-26 — 🪤 Niveles generados con más riesgo: PINCHOS (obstáculo nuevo) + enemigos variados + pickups siempre alcanzables
 
 Los niveles que arma la máquina ahora tienen **más variedad y peligro**, todo como DATA validada por la RED:

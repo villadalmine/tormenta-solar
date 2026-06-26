@@ -18,7 +18,7 @@ const Mundo = (() => {
       _id: rm.id, name: rm.nombre, theme: rm.theme, tags: rm.tags, w, h, gTop, map,
       pixW: w * T, pixH: h * T, light: rm.light, stormable: !!rm.stormable,
       goal: null, buy: null, playerStart: null,
-      enemies: [], pickups: [], npcs: [], machines: [], cueveros: [], decor: [], doors: [], doorById: {}, hazards: [],
+      enemies: [], pickups: [], npcs: [], machines: [], cueveros: [], decor: [], doors: [], doorById: {}, hazards: [], pits: [],
     };
     for (const e of rm.entities || []) {
       const f = feet(e.x, e.y);
@@ -50,8 +50,15 @@ const Mundo = (() => {
         case 'pickup': room.pickups.push({ type: e.give && e.give.item, amount: e.give && e.give.amount, x: f.x, y: f.y }); break;
         case 'enemy': room.enemies.push({ type: e.combat && e.combat.type, look: e.combat && e.combat.look,
           dormant: e.combat && e.combat.dormant, x: f.x, y: f.y }); break;
-        case 'hazard': room.hazards.push({ kind: (e.render && e.render.type) || 'spikes', x: f.x, y: f.y,
-          w: ((e.w || 2) * T), dmg: (e.combat && e.combat.dmg) || 12 }); break;
+        case 'hazard': {
+          const kind = (e.render && e.render.type) || 'spikes';
+          if (kind === 'pit') {                          // POZO: cala el piso (hueco por el que se cae) — hay que saltarlo
+            const hx = Math.round(e.x), hw = Math.max(1, (e.w || 2)), x0 = hx - ((hw - 1) >> 1);
+            for (let x = x0; x < x0 + hw; x++) if (x > 0 && x < w - 1) for (let y = gTop; y < h; y++) map[y][x] = 0;
+            room.pits.push({ x0: x0 * T, x1: (x0 + hw) * T }); room._hasPit = true;
+          } else room.hazards.push({ kind, x: f.x, y: f.y, w: ((e.w || 2) * T), dmg: (e.combat && e.combat.dmg) || 12 });
+          break;
+        }
       }
     }
     return room;

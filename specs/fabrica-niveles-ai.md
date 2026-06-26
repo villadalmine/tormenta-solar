@@ -207,9 +207,12 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   `hazard`, daño al contacto, render de triángulos; **aditivo** — las salas a mano no se tocan) con la regla nueva
   **R5** (un pincho sobre spawn/meta/puerta se rechaza); **enemigos variados** (pool peaton/dron/pacman/galaga/
   cuevero); y los **pickups se ponen solo en plataformas alcanzables** (`Playable.reachableTops` → R4 para pickups).
-- **Lo que queda:** **pozos/caídas** (huecos en el piso) — requieren **mecánica de muerte/daño por caída** en el
-  motor (no las metimos para no romper el loop principal). Geometría de **pinchos autorada por IA** (hoy procedural;
-  el plumbing `hazard` ya es data). Más temas.
+- **POZOS (v183):** segundo obstáculo: `hazard` kind `pit` que **CALA el piso** (`Mundo`/`Playable.roomGrid` borran
+  los tiles del piso → hueco real). Te caés → daño + reaparecés (aditivo). **R4 ahora cruza huecos** (saltos de hueco
+  hasta `JUMP_ACROSS`=3 si las columnas intermedias están ABIERTAS — pozo sí, muro no): pozo ancho ≤2 pasa, ancho 3
+  se rechaza. El generador re-rollea SOLO los obstáculos si rompen la RED (las plataformas/geometría IA quedan fijas).
+- **Lo que queda:** **pinchos/pozos autorados por IA** (hoy procedural; el plumbing `hazard` ya es data); enemigos
+  que respeten los pozos (un peatón caminando puede caerse); más temas.
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como

@@ -73,6 +73,17 @@ for (let k = 0; k < 20; k++) {
 }
 ok(pkTotal > 0 && pkBad === 0, 'todos los pickups (' + pkTotal + ') están en plataformas alcanzables');
 
+// 7b) POZOS (pit): calan el piso, aparecen en los generados, y uno demasiado ANCHO (no saltable) es rechazado
+let withPit = 0;
+for (let k = 0; k < 60; k++) { const g = NivelAI.generateLevel(); for (const rm of g.model.rooms) for (const e of rm.entities) if (e.tipo === 'hazard' && e.render.type === 'pit') withPit++; }
+ok(withPit > 0, 'los niveles generados incluyen POZOS (pit) que calan el piso');
+const widePit = { id: 'wp', w: 24, platforms: [], entities: [
+  { tipo: 'marker', x: 2, render: { type: 'spawn' } }, { tipo: 'marker', x: 21, render: { type: 'goal' } },
+  { tipo: 'hazard', x: 11, w: 3, render: { type: 'pit' } },
+] };
+ok(Playable.checkRoom(widePit).some(p => /INALCANZ/.test(p)), 'R4: pozo de ancho 3 (no saltable) → RECHAZADO');
+ok(Playable.roomGrid(widePit)[12][11] === 0, 'el pozo CALA el piso en la grilla (map[12][11]=0)');
+
 (async () => {
   // 8) requestGeometry (geometría IA para TEMAS FIJOS): trae del proxy y la pega como aiPlatforms (fetch mockeado)
   global.fetch = () => Promise.resolve({ ok: true, json: async () => ({ platforms: [[6, 10, 3], [10, 8, 3]], enemies: [7, 12] }) });
@@ -92,5 +103,5 @@ ok(pkTotal > 0 && pkBad === 0, 'todos los pickups (' + pkTotal + ') están en pl
   }));
 
   if (out.length) { console.error('❌ geometria:\n' + out.join('\n')); process.exit(1); }
-  console.log('✅ geometria: IA autora geometría + pinchos/enemigos variados + pickups alcanzables → RED (R4/R5) + auto-repara · OK');
+  console.log('✅ geometria: IA autora geometría + pinchos/pozos/enemigos variados + pickups alcanzables → RED (R4/R5) + auto-repara · OK');
 })();
