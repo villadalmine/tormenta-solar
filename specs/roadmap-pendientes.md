@@ -15,8 +15,10 @@ niveles por IA + la RED de jugabilidad, el tema oráculo personalizado y la resi
   no pasa). Test `tests/geometria.js`. Ver `specs/fabrica-niveles-ai.md §4.7-4.8`.
 - ✅ **Geometría IA también para los temas fijos** (v181): `requestGeometry` + `launchNivelAI` async, con circuit
   breaker. Falta el **redeploy del proxy** para que mande geometría en vivo (el cliente ya la consume si llega).
-- **Más tipos de obstáculo/enemigo** en los generados (pozos/pinches, enemigos variados) — necesita tipos de
-  entidad nuevos. R4 que premie/garantice los **pickups** (hoy sólo exige meta/puertas).
+- ✅ **Pinchos (obstáculo nuevo) + enemigos variados + pickups alcanzables** (v182): entidad `hazard` + R5 + pool
+  peaton/dron/pacman/galaga/cuevero + `Playable.reachableTops`. Test en `tests/geometria.js`.
+- **Pendiente:** **pozos/caídas** (huecos en el piso) — necesitan **muerte/daño por caída** en el motor. Pinchos
+  autorados por IA (hoy procedural; el plumbing `hazard` ya es data).
 - **Más temas** (el dueño quiere ir sumando) — sumar a `THEMES` (data) + `BRIEF` en `server.js`.
 
 ## 3. Cámaras / dólares (pulido)

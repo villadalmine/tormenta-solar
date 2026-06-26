@@ -216,16 +216,24 @@ const NivelAI = (() => {
     }
     // Arma UNA sala dada su geometría (plats): spawn/meta + puertas recíprocas + pickups sobre plataformas +
     // enemigos (posiciones autoradas por IA si las hay, si no aleatorias) + decor temático en el piso.
+    // pool de enemigos VARIADO (antes solo peaton/dron): pacman es rápido, galaga vuela rápido, cuevero dispara.
+    // Pesado hacia peaton/dron para que no sea injusto. La IA autora la POSICIÓN; el tipo lo elige el pool.
+    const ENEMY_POOL = ['peaton', 'peaton', 'dron', 'dron', 'pacman', 'galaga', 'cuevero'];
     function assemble(i, n, w, plats) {
       const id = 'sala-ai-' + i, ents = [];
       if (i === 0) ents.push({ id: id + '/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } });
       else ents.push({ id: id + '/door-l', tipo: 'door', x: 2, inward: 1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i - 1) } });
       if (i === n - 1) ents.push({ id: id + '/goal', tipo: 'marker', x: w - 3, render: { type: 'goal' } });
       else ents.push({ id: id + '/door-r', tipo: 'door', x: w - 3, inward: -1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i + 1) } });
-      for (const p of plats) if (Math.random() < 0.5) ents.push({ id: id + '/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: p[1] - 1, give: { item: pick(['ammo', 'coins', 'health']), amount: rnd(3, 6) } });
-      const aiEn = t.aiEnemies ? sanitizeEnemies(t.aiEnemies, w) : null;   // enemigos autorados por IA (posición/tipo) o aleatorios
-      if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || (Math.random() < 0.5 ? 'peaton' : 'dron') } }));
-      else for (let k = 0, e = rnd(1, 3); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: Math.random() < 0.5 ? 'peaton' : 'dron' } });
+      // pickups SOLO en plataformas ALCANZABLES (R4 para pickups): la red nos dice qué techos se pisan saltando.
+      const reach = (typeof Playable !== 'undefined' && Playable.reachableTops)
+        ? Playable.reachableTops({ w, platforms: plats, entities: [{ tipo: 'marker', x: 2, render: { type: 'spawn' } }] }) : null;
+      for (const p of plats) { const ty = p[1] - 1; if (reach && !reach[p[0] + ',' + ty]) continue; if (Math.random() < 0.5) ents.push({ id: id + '/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: ty, give: { item: pick(['ammo', 'coins', 'health']), amount: rnd(3, 6) } }); }
+      const aiEn = t.aiEnemies ? sanitizeEnemies(t.aiEnemies, w) : null;   // enemigos autorados por IA (posición) o aleatorios
+      if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || pick(ENEMY_POOL) } }));
+      else for (let k = 0, e = rnd(1, 3); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: pick(ENEMY_POOL) } });
+      // PINCHOS (obstáculo nuevo) en el piso, lejos de columnas sagradas (spawn x2 / meta·puerta x=w-3) → saltables
+      for (let k = 0, hz = rnd(0, 2); k < hz; k++) ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: 2, render: { type: 'spikes' }, combat: { dmg: 12 } });
       for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
       return { id, nombre: L(t.name) + (n > 1 ? ' · ' + (i + 1) + '/' + n : ''), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };
     }

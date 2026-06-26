@@ -1298,6 +1298,17 @@
         else { player.hp = Math.min(MAXHP, player.hp + p.amount); setMsg(T('g.shop.health', { n: p.amount }), '#7CFC00', 1100); }
       }
     }
+    // pinchos (hazard): obstáculo de los niveles generados. Daño al contacto (player.hurt ya tiene su cooldown).
+    // ADITIVO: si la sala no tiene hazards (todas las hechas a mano), este loop no corre.
+    if (r.hazards && r.hazards.length) {
+      const px = player.x + player.w/2, py = player.y + player.h;
+      for (const hz of r.hazards) {
+        if (px > hz.x - hz.w/2 && px < hz.x + hz.w/2 && py > hz.y - 14 && py <= hz.y + 8) {
+          player.hurt(hz.dmg); if (player.vy >= 0) player.vy = -360;   // te pincha y te rebota un poco
+          break;
+        }
+      }
+    }
     // cumbia del músico: suena cuando pasás cerca (y antes de la tormenta)
     let nearMusico = false;
     for (const n of r.npcs || []) {
@@ -1441,6 +1452,14 @@
       }
     }
     if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
+
+    // pinchos (hazard) de los niveles generados — triángulos metálicos en el piso (no colisionan como sólido)
+    for (const hz of r.hazards || []) {
+      const x0 = hz.x - hz.w/2 - cam.x, fy = hz.y - cam.y, n = Math.max(2, Math.round(hz.w / 12)), sw = hz.w / n;
+      ctx.save(); ctx.fillStyle = '#b0bec5'; ctx.strokeStyle = '#37474f'; ctx.lineWidth = 1;
+      for (let i = 0; i < n; i++) { const sx = x0 + i*sw; ctx.beginPath(); ctx.moveTo(sx, fy); ctx.lineTo(sx + sw/2, fy - 17); ctx.lineTo(sx + sw, fy); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      ctx.restore();
+    }
 
     // puertas
     for (const d of r.doors) {

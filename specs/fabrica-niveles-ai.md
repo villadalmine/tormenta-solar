@@ -203,8 +203,13 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   (game.js) las usa en el path de tema fijo (el texto sigue siendo el bilingüe estático del tema). El **circuit
   breaker** lo cubre: GPU caída → `cb(null)` al toque → geometría procedural sin colgar. Así los **8 caminos** de
   generación pueden tener geometría autorada por IA, siempre tamizada por la RED.
-- **Lo que queda:** más **tipos de obstáculo/enemigo** (pozos/pinches) en los generados; reachability que
-  premie/garantice los **pickups** (hoy R4 sólo exige meta/puertas).
+- **Más obstáculos/enemigos + pickups alcanzables (v182):** los niveles generados ya tienen **pinchos** (entidad
+  `hazard`, daño al contacto, render de triángulos; **aditivo** — las salas a mano no se tocan) con la regla nueva
+  **R5** (un pincho sobre spawn/meta/puerta se rechaza); **enemigos variados** (pool peaton/dron/pacman/galaga/
+  cuevero); y los **pickups se ponen solo en plataformas alcanzables** (`Playable.reachableTops` → R4 para pickups).
+- **Lo que queda:** **pozos/caídas** (huecos en el piso) — requieren **mecánica de muerte/daño por caída** en el
+  motor (no las metimos para no romper el loop principal). Geometría de **pinchos autorada por IA** (hoy procedural;
+  el plumbing `hazard` ya es data). Más temas.
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como

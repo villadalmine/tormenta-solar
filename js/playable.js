@@ -60,14 +60,24 @@ const Playable = (() => {
     return seen;
   }
 
-  function checkRoom(rm) {
-    const probs = [], w = rm.w, map = roomGrid(rm);
-    const solid = (x, y) => (y >= 0 && y < H && x >= 0 && x < w) ? map[y][x] === 1 : true;
-    // entrada de la sala: el spawn (sala 0) o la puerta de entrada (≤ x2, las del medio/derecha)
+  // entrada de la sala: el spawn (sala 0) o la puerta de entrada (≤ x2, las del medio/derecha)
+  function entryOf(rm) {
     let entryX = 1;
     for (const e of rm.entities || []) if (e.tipo === 'marker' && e.render && e.render.type === 'spawn') entryX = ti(e.x);
     if (entryX === 1) for (const e of rm.entities || []) if (e.tipo === 'door' && ti(e.x) <= 2) { entryX = ti(e.x); break; }
+    return entryX;
+  }
+  // superficies ALCANZABLES desde la entrada (set "x,y"). Lo usa el generador para poner pickups sólo donde se llega.
+  function reachableTops(rm) { return reachSet(roomGrid(rm), rm.w, entryOf(rm)); }
+
+  function checkRoom(rm) {
+    const probs = [], w = rm.w, map = roomGrid(rm);
+    const solid = (x, y) => (y >= 0 && y < H && x >= 0 && x < w) ? map[y][x] === 1 : true;
+    const entryX = entryOf(rm);
     const seen = reachSet(map, w, entryX);
+    // columnas "sagradas" (spawn/meta/puertas): un pincho acá te haría daño al aparecer/llegar → R5 lo prohíbe
+    const sacred = {};
+    for (const e of rm.entities || []) if (e.tipo === 'door' || (e.tipo === 'marker' && e.render && (e.render.type === 'spawn' || e.render.type === 'goal'))) sacred[ti(e.x)] = 1;
     for (const e of rm.entities || []) {
       if (e.tipo === 'door') {
         // R1: una plataforma a la ALTURA DE LA CABEZA, en la MISMA columna de la puerta (GTOP-2), la TAPA — exactamente
@@ -83,6 +93,10 @@ const Playable = (() => {
         if (e.render.type === 'spawn' && solid(mx, GTOP - 1)) probs.push('SPAWN dentro de sólido en x=' + mx);   // R2
         if (e.render.type === 'goal' && solid(mx, GTOP - 1)) probs.push('META enterrada en sólido en x=' + mx);  // R3
         if (e.render.type === 'goal') { const ys = standAt(map, w, mx, GTOP - 1); if (ys != null && !seen[mx + ',' + ys]) probs.push('META INALCANZABLE (no se llega saltando) en x=' + mx); }  // R4
+      } else if (e.tipo === 'hazard') {
+        // R5: un pincho/obstáculo de daño no puede estar en la columna del spawn/meta/puerta (te dañaría sin escape)
+        const hx = ti(e.x), hw = Math.max(1, ti(e.w) || 2);
+        for (let x = hx - ((hw / 2) | 0); x <= hx + ((hw / 2) | 0); x++) if (sacred[x]) { probs.push('PINCHO sobre columna sagrada (spawn/meta/puerta) en x=' + hx); break; }
       }
     }
     return probs;
@@ -94,7 +108,7 @@ const Playable = (() => {
     return { ok: problems.length === 0, problems };
   }
 
-  return { checkLevel, checkRoom, roomGrid, H, GTOP };
+  return { checkLevel, checkRoom, reachableTops, roomGrid, H, GTOP };
 })();
 if (typeof module !== 'undefined') module.exports = Playable;
 if (typeof window !== 'undefined') window.Playable = Playable;

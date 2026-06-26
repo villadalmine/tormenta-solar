@@ -39,6 +39,22 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v182] — 2026-06-26 — 🪤 Niveles generados con más riesgo: PINCHOS (obstáculo nuevo) + enemigos variados + pickups siempre alcanzables
+
+Los niveles que arma la máquina ahora tienen **más variedad y peligro**, todo como DATA validada por la RED:
+- **PINCHOS (`hazard`) — obstáculo nuevo:** entidad `hazard` en el modelo (`Mundo` → `room.hazards`), daño al
+  contacto en el loop principal (con el cooldown de `player.hurt` + rebote). **Aditivo**: las 38 salas hechas a mano
+  no tienen hazards → cero efecto. La RED gana **R5**: un pincho sobre la columna del spawn/meta/puerta se rechaza
+  (te dañaría sin escape). El generador los siembra en el piso, lejos de las columnas sagradas → saltables.
+- **Enemigos variados:** antes solo peaton/dron; ahora el pool suma **pacman** (rápido), **galaga** (vuela rápido) y
+  **cuevero** (dispara), pesado hacia peaton/dron para que sea justo.
+- **Pickups siempre alcanzables (R4 para pickups):** `Playable.reachableTops` le dice al generador qué plataformas
+  se pisan saltando → los premios se ponen **solo donde se llega** (antes podían quedar flotando inalcanzables).
+- Tests `tests/geometria.js` ampliado (R5 pincho, 40 niveles con pinchos+variedad jugables, pickups alcanzables) +
+  `hazard` en el schema. e2e + playable + web-smoke OK. *Pendiente: pozos/caídas (necesitan muerte por caída).*
+
+---
+
 ## [v181] — 2026-06-26 — 🏗️ Geometría IA también para los TEMAS FIJOS (no solo el oráculo)
 
 Antes la geometría autorada por IA solo fluía por el tema **oráculo**; los 7 temas fijos seguían procedurales.

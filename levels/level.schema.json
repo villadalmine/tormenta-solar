@@ -316,6 +316,7 @@
       "machine",
       "cuevero",
       "enemy",
+      "hazard",
       "pickup",
       "sign",
       "marker",

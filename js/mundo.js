@@ -18,7 +18,7 @@ const Mundo = (() => {
       _id: rm.id, name: rm.nombre, theme: rm.theme, tags: rm.tags, w, h, gTop, map,
       pixW: w * T, pixH: h * T, light: rm.light, stormable: !!rm.stormable,
       goal: null, buy: null, playerStart: null,
-      enemies: [], pickups: [], npcs: [], machines: [], cueveros: [], decor: [], doors: [], doorById: {},
+      enemies: [], pickups: [], npcs: [], machines: [], cueveros: [], decor: [], doors: [], doorById: {}, hazards: [],
     };
     for (const e of rm.entities || []) {
       const f = feet(e.x, e.y);
@@ -50,6 +50,8 @@ const Mundo = (() => {
         case 'pickup': room.pickups.push({ type: e.give && e.give.item, amount: e.give && e.give.amount, x: f.x, y: f.y }); break;
         case 'enemy': room.enemies.push({ type: e.combat && e.combat.type, look: e.combat && e.combat.look,
           dormant: e.combat && e.combat.dormant, x: f.x, y: f.y }); break;
+        case 'hazard': room.hazards.push({ kind: (e.render && e.render.type) || 'spikes', x: f.x, y: f.y,
+          w: ((e.w || 2) * T), dmg: (e.combat && e.combat.dmg) || 12 }); break;
       }
     }
     return room;
