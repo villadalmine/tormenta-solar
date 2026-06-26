@@ -12,6 +12,19 @@ description: >-
 Shooter 2D estilo Doom/plataforma en **JS vanilla + HTML5 Canvas, sin build**. Se sirve estático (GitHub Pages
 **y** self-host nginx en el cluster). Lo único que sale a la red es el **chat con los linyeras**.
 
+## ⛔ REGLA #0 (la más importante — dueño, 2026-06-26): TODO en el MODELO v2 REAL, NADA hardcodeado
+
+La premisa del juego: **todo es DATO / API / OBJETO (entidad+componentes) / MEMORIA / GRAFO**, así el **ecosistema
+alimenta a la IA y la hace inteligente**. Antes de escribir CUALQUIER feature, preguntate: *¿esto es dato/entidad/
+API/memoria/grafo, o lo estoy hardcodeando en game.js v1?* → **hacelo en v2.** Concretamente:
+- Contenido (salas/edificios/NPC/carteles/quests) = **DATOS** (`levels/*.json` + schema, `Mundo.fromModel`), NO código.
+- Comportamiento dinámico = **componentes + grafo** (quest = bundle de aristas §6.95; `cond` unificado §6.96).
+- Texto/líneas = **i18n + pools/APIs** (linyera-pool, `/noticias`, `/propaganda`), NO arrays sueltos en game.js.
+- Cada NPC con IA = **memoria** (`oracleMem`) + **grounding del ecosistema** (`worldSnapshot`/`worldBrief`): SABEN
+  todo de todo (cine, Mundial, quests, progreso, carteles) — "oráculos de la Matrix". Sumá TODO lo nuevo al snapshot.
+- Si por velocidad cableás algo en v1, **anotá la deuda** y plan de migrarlo a v2. Ver `specs/modelo-de-entidades.md`
+  (F1-F4 hechos, falta F5) y la memoria `v2-engine-principios`.
+
 ## Reglas de oro del repo
 
 - **Capa ADITIVA con `typeof` guard:** cada módulo nuevo se engancha como `if (typeof X !== 'undefined') X.algo()`.

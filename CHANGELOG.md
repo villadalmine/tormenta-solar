@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v142] — 2026-06-26 — 💬 NPCs VIVOS: chusmerío ambiente (globitos que saben lo que hiciste)
+
+Primer paso de "NPCs vivos" (`specs/npcs-vivos.md`): cada tanto un NPC tira un **globito** arriba de la cabeza
+chusmeando el **estado vivo** del juego (lo que hiciste: le ganaste al tahúr, entraste al chino, los carteles, el
+Mundial…) y, si hay otro cerca, **le contesta** (mini-diálogo en vivo). Líneas templadas con `worldSnapshot` (data).
+Taxonomía de 3 tipos de NPC anotada (oráculo / quest / decorativo). **Deuda v2 anotada:** las líneas deben venir de
+una API/pool por IA + diálogo real vía Mensajero (no del pool en game.js).
+
+---
+
 ## [v141 / infra-22] — 2026-06-26 — 🧠 Los oráculos saben de los CARTELES (te recomiendan marcas)
 
 Siguiendo la premisa ("todo conectado, los oráculos saben todo de todo"): el `worldBrief` que groundea a los NPC IA

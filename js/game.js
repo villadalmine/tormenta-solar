@@ -66,6 +66,7 @@
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
   let arcadeGame = null, superGame = null, vinilosGame = null;
+  let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
   let guardaFreeUsed = false;  // la 1ª función vieja del run es gratis; después se cobra (más viejo más caro)
@@ -135,7 +136,7 @@
     player = Player.create(s.x, s.y);
     cam = { x: 0, y: 0 };
     stormed = false; bought = false; hasVale = false; challengeForVale = false; time = 0;
-    cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null; mundialQuest = null; mundialApproach = null;   // cine: función vieja, freebie, regateo y quest del Mundial se resetean por run
+    cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null; mundialQuest = null; mundialApproach = null; ambientBubbles = []; ambientCd = 5;   // cine/quests/chusmerío se resetean por run
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
@@ -526,6 +527,43 @@
     if (s.bunkerUnlocked) b.push('ya es gurú (búnker abierto)');
     if (s.loopCount > 0) b.push('lleva ' + s.loopCount + ' día(s) en el loop de supervivencia');
     return 'ESTADO DEL JUEGO (datos reales del ecosistema, todo está conectado; usalo con tu voz si viene al caso, NO inventes rutas ni datos): ' + b.join('; ') + '.';
+  }
+  // ---- NPCs VIVOS: chusmerío ambiente (globitos) — los NPC se hablan entre ellos / te tiran data de lo que hiciste.
+  // Las líneas se TEMPLAN con el estado vivo (worldSnapshot) → "saben" lo que pasó. (Ver specs/npcs-vivos.md)
+  function ambientPool(s) {
+    const L = [];
+    if (!s.borrachosHappy) L.push('che, ¿el pibe le dio lo que pide al borrachín o no?');
+    if (s.trucoEverWon) L.push('dicen que le ganó al tahúr al truco, mirá vos');
+    if (s.chinoEntered) L.push('me contaron que entró al chino y afanó todo gratis 😱');
+    if (s.bunkerUnlocked) L.push('el pibe se hizo gurú, tiene el búnker');
+    if (s.diosa) L.push('¿viste que anda con una Diosa Tropical?');
+    L.push(s.stormed ? 'desde la tormenta esto es un quilombo, loco' : 'algo raro tiene el sol hoy, ¿no sentís?');
+    if (s.carteles && s.carteles.length) L.push('probate el ' + s.carteles[0].brand + ', dicen que está bárbaro');
+    if (s.cine && s.cine.mundialTabla) L.push('andá al cine que pasan el Mundial');
+    if (s.quests.mundial && !s.quests.mundial.shown) L.push('hay un hincha que se muere por saber cómo salió ' + s.quests.mundial.equipo);
+    L.push('¿no tenés un puchito, maestro?'); L.push('tomá sol que es gratis, pibe');
+    return L;
+  }
+  function eligibleNpcs(r) {
+    return (r.npcs || []).filter(n => { if (n.invisible || !n.name) return false; const sx = n.x - cam.x; return sx > 30 && sx < 770; });
+  }
+  function spawnAmbient() {
+    const ns = eligibleNpcs(room()); if (!ns.length) return;
+    const pool = ambientPool(worldSnapshot()), a = ns[(Math.random() * ns.length) | 0];
+    ambientBubbles.push({ npc: a, text: pool[(Math.random() * pool.length) | 0], from: time, until: time + 4.5 });
+    const others = ns.filter(n => n !== a && Math.abs(n.x - a.x) < 240);   // si hay otro cerca → le contesta (mini-diálogo)
+    if (others.length && Math.random() < 0.6) { const c = others[(Math.random() * others.length) | 0]; ambientBubbles.push({ npc: c, text: pool[(Math.random() * pool.length) | 0], from: time + 1.6, until: time + 6.2 }); }
+  }
+  function drawBubble(cx, topY, text) {
+    ctx.save(); ctx.font = '10px monospace';
+    const lines = wrapLines(ctx, text, 150, 3), w = Math.min(160, Math.max(...lines.map(l => ctx.measureText(l).width)) + 14), h = 8 + lines.length * 12;
+    const x = cx - w / 2, y = topY - h;
+    ctx.fillStyle = 'rgba(12,15,22,0.92)'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#9fd3ff'; ctx.lineWidth = 1; ctx.strokeRect(x, y, w, h);
+    ctx.fillStyle = '#9fd3ff'; ctx.beginPath(); ctx.moveTo(cx - 4, y + h); ctx.lineTo(cx + 4, y + h); ctx.lineTo(cx, y + h + 5); ctx.fill();   // colita
+    ctx.fillStyle = '#dfe8f4'; ctx.textAlign = 'center';
+    lines.forEach((ln, i) => ctx.fillText(ln, cx, y + 11 + i * 12));
+    ctx.restore();
   }
   const isHincha = n => !!(n && n.persona === 'hincha');   // §9: los dos hinchas del piso Deportes (quest del Mundial)
   // el hincha pregunta con onda: sesga a Argentina (60%) o a equipos JUGOSOS si están; si no, random.
@@ -1046,6 +1084,10 @@
       n.upCd = (n.upCd || 0) - dt;
       if (n.upCd <= 0 && n.lines) { setMsg(TX(n.lines[(Math.random()*n.lines.length)|0]), '#80cbc4', 2800); n.upCd = 3.5 + Math.random()*2.5; }
     }
+    // NPCs VIVOS: cada tanto un NPC tira un globito (chusmea lo que hiciste / le contesta a otro). Templado con estado.
+    ambientCd -= dt;
+    if (ambientCd <= 0) { ambientCd = 7 + Math.random() * 8; spawnAmbient(); }
+    if (ambientBubbles.length) ambientBubbles = ambientBubbles.filter(b => b.until > time && (r.npcs || []).includes(b.npc));
     // §9: el hincha SE ACERCA a agradecerte tras el dato del guarda; al llegar, premio + se vuelve a su lugar.
     if (mundialApproach && (r.npcs || []).includes(mundialApproach.npc)) {
       const h = mundialApproach.npc, target = player.x + player.w/2 - 22;
@@ -1207,6 +1249,9 @@
         const wantHincha = mundialQuest.shown && !mundialApproach && isHincha(n);
         if (wantGuarda || wantHincha) questMarker(n.x - cam.x, n.y - cam.y - img.height - 18);
       }
+      // NPCs VIVOS: globito de chusmerío sobre la cabeza (si este NPC tiene uno activo)
+      const bub = ambientBubbles.find(b => b.npc === n && b.from <= time);
+      if (bub) drawBubble(n.x - cam.x, n.y - cam.y - img.height - 8, bub.text);
     }
     // portal (calle, tras la tormenta)
     if (r.theme === 'cambio' && stormed && r.goal) {
