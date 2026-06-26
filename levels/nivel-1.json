@@ -283,7 +283,7 @@
           "link": {
             "to": "edificio-abandonado-piso-1-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -742,7 +742,23 @@
           "x": 94
         },
         {
-          "id": "florida-y-lavalle/pickup34",
+          "id": "florida-y-lavalle/decor34",
+          "tipo": "decor",
+          "render": {
+            "type": "camara"
+          },
+          "x": 33
+        },
+        {
+          "id": "florida-y-lavalle/decor35",
+          "tipo": "decor",
+          "render": {
+            "type": "camara"
+          },
+          "x": 72
+        },
+        {
+          "id": "florida-y-lavalle/pickup36",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -752,7 +768,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup35",
+          "id": "florida-y-lavalle/pickup37",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -761,7 +777,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup36",
+          "id": "florida-y-lavalle/pickup38",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -770,7 +786,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup37",
+          "id": "florida-y-lavalle/pickup39",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -780,7 +796,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup38",
+          "id": "florida-y-lavalle/pickup40",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -788,7 +804,7 @@
           "x": 24
         },
         {
-          "id": "florida-y-lavalle/pickup39",
+          "id": "florida-y-lavalle/pickup41",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -796,7 +812,7 @@
           "x": 60
         },
         {
-          "id": "florida-y-lavalle/pickup40",
+          "id": "florida-y-lavalle/pickup42",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -805,7 +821,7 @@
           "x": 84
         },
         {
-          "id": "florida-y-lavalle/enemy41",
+          "id": "florida-y-lavalle/enemy43",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -814,7 +830,7 @@
           "x": 14
         },
         {
-          "id": "florida-y-lavalle/enemy42",
+          "id": "florida-y-lavalle/enemy44",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -823,7 +839,7 @@
           "x": 20
         },
         {
-          "id": "florida-y-lavalle/enemy43",
+          "id": "florida-y-lavalle/enemy45",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -832,7 +848,7 @@
           "x": 32
         },
         {
-          "id": "florida-y-lavalle/enemy44",
+          "id": "florida-y-lavalle/enemy46",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -841,7 +857,7 @@
           "x": 42
         },
         {
-          "id": "florida-y-lavalle/enemy45",
+          "id": "florida-y-lavalle/enemy47",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -850,7 +866,7 @@
           "x": 56
         },
         {
-          "id": "florida-y-lavalle/enemy46",
+          "id": "florida-y-lavalle/enemy48",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -859,7 +875,7 @@
           "x": 70
         },
         {
-          "id": "florida-y-lavalle/enemy47",
+          "id": "florida-y-lavalle/enemy49",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -868,7 +884,7 @@
           "x": 95
         },
         {
-          "id": "florida-y-lavalle/enemy48",
+          "id": "florida-y-lavalle/enemy50",
           "tipo": "enemy",
           "combat": {
             "type": "dron"
@@ -877,7 +893,7 @@
           "y": 6
         },
         {
-          "id": "florida-y-lavalle/enemy49",
+          "id": "florida-y-lavalle/enemy51",
           "tipo": "enemy",
           "combat": {
             "type": "dron"
@@ -3191,36 +3207,36 @@
       "id": "edificio-abandonado-piso-1-lujo",
       "nombre": "Edificio Abandonado — Piso 1 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -3230,7 +3246,7 @@
           "render": {
             "type": "exit"
           },
-          "x": 2,
+          "x": 14,
           "label": "salir a la calle",
           "inward": 1,
           "link": {
@@ -3247,13 +3263,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-2-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -3264,14 +3280,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-2-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -3366,9 +3382,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-1-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-1-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-1-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-1-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -3377,36 +3433,36 @@
       "id": "edificio-abandonado-piso-2-ruina",
       "nombre": "Edificio Abandonado — Piso 2 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -3416,13 +3472,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-1-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -3433,13 +3489,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-3-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -3450,14 +3506,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-3-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -3566,10 +3622,50 @@
           "id": "edificio-abandonado-piso-2-ruina/pickup9",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-2-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-2-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-2-ruina/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-2-ruina/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -3578,36 +3674,36 @@
       "id": "edificio-abandonado-piso-3-lujo",
       "nombre": "Edificio Abandonado — Piso 3 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -3617,13 +3713,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-2-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -3634,13 +3730,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-4-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -3651,14 +3747,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-4-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -3753,9 +3849,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-3-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-3-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-3-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-3-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -3764,36 +3900,36 @@
       "id": "edificio-abandonado-piso-4-ruina",
       "nombre": "Edificio Abandonado — Piso 4 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -3803,13 +3939,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-3-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -3820,13 +3956,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-5-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -3837,14 +3973,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-5-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -3938,10 +4074,50 @@
           "id": "edificio-abandonado-piso-4-ruina/pickup8",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-4-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-4-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-4-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-4-ruina/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -3950,36 +4126,36 @@
       "id": "edificio-abandonado-piso-5-lujo",
       "nombre": "Edificio Abandonado — Piso 5 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -3989,13 +4165,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-4-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -4006,13 +4182,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-6-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -4023,14 +4199,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-6-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -4125,9 +4301,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-5-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-5-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-5-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-5-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -4136,36 +4352,36 @@
       "id": "edificio-abandonado-piso-6-ruina",
       "nombre": "Edificio Abandonado — Piso 6 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -4175,13 +4391,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-5-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -4192,13 +4408,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-7-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -4209,14 +4425,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-7-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -4295,10 +4511,50 @@
           "id": "edificio-abandonado-piso-6-ruina/pickup7",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-6-ruina/pickup8",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-6-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-6-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-6-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -4307,36 +4563,36 @@
       "id": "edificio-abandonado-piso-7-lujo",
       "nombre": "Edificio Abandonado — Piso 7 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -4346,13 +4602,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-6-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -4363,13 +4619,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-8-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -4380,14 +4636,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-8-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -4482,9 +4738,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-7-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-7-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-7-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-7-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -4493,36 +4789,36 @@
       "id": "edificio-abandonado-piso-8-ruina",
       "nombre": "Edificio Abandonado — Piso 8 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -4532,13 +4828,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-7-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -4549,13 +4845,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-9-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -4566,14 +4862,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-9-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -4682,10 +4978,50 @@
           "id": "edificio-abandonado-piso-8-ruina/pickup9",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-8-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-8-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-8-ruina/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-8-ruina/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -4694,36 +5030,36 @@
       "id": "edificio-abandonado-piso-9-lujo",
       "nombre": "Edificio Abandonado — Piso 9 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -4733,13 +5069,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-8-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -4750,13 +5086,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-10-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -4767,14 +5103,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-10-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -4869,9 +5205,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-9-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-9-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-9-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-9-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -4880,36 +5256,36 @@
       "id": "edificio-abandonado-piso-10-ruina",
       "nombre": "Edificio Abandonado — Piso 10 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -4919,13 +5295,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-9-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -4936,13 +5312,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-11-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -4953,14 +5329,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-11-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -5054,10 +5430,50 @@
           "id": "edificio-abandonado-piso-10-ruina/pickup8",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-10-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-10-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-10-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-10-ruina/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -5066,36 +5482,36 @@
       "id": "edificio-abandonado-piso-11-lujo",
       "nombre": "Edificio Abandonado — Piso 11 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -5105,13 +5521,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-10-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -5122,13 +5538,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-12-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -5139,14 +5555,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-12-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -5241,9 +5657,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-11-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-11-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-11-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-11-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -5252,36 +5708,36 @@
       "id": "edificio-abandonado-piso-12-ruina",
       "nombre": "Edificio Abandonado — Piso 12 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -5291,13 +5747,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-11-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -5308,13 +5764,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-13-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -5325,14 +5781,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-13-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -5411,10 +5867,50 @@
           "id": "edificio-abandonado-piso-12-ruina/pickup7",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-12-ruina/pickup8",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-12-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-12-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-12-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -5423,36 +5919,36 @@
       "id": "edificio-abandonado-piso-13-lujo",
       "nombre": "Edificio Abandonado — Piso 13 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -5462,13 +5958,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-12-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -5479,13 +5975,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-14-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -5496,14 +5992,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-14-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -5598,9 +6094,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-13-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-13-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-13-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-13-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -5609,36 +6145,36 @@
       "id": "edificio-abandonado-piso-14-ruina",
       "nombre": "Edificio Abandonado — Piso 14 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -5648,13 +6184,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-13-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -5665,13 +6201,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-15-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -5682,14 +6218,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-15-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -5798,10 +6334,50 @@
           "id": "edificio-abandonado-piso-14-ruina/pickup9",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-14-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-14-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-14-ruina/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-14-ruina/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -5810,36 +6386,36 @@
       "id": "edificio-abandonado-piso-15-lujo",
       "nombre": "Edificio Abandonado — Piso 15 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -5849,13 +6425,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-14-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -5866,13 +6442,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-16-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -5883,14 +6459,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-16-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -5985,9 +6561,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-15-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-15-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-15-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-15-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -5996,36 +6612,36 @@
       "id": "edificio-abandonado-piso-16-ruina",
       "nombre": "Edificio Abandonado — Piso 16 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -6035,13 +6651,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-15-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -6052,13 +6668,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-17-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -6069,14 +6685,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-17-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -6170,10 +6786,50 @@
           "id": "edificio-abandonado-piso-16-ruina/pickup8",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-16-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-16-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-16-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-16-ruina/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -6182,36 +6838,36 @@
       "id": "edificio-abandonado-piso-17-lujo",
       "nombre": "Edificio Abandonado — Piso 17 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -6221,13 +6877,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-16-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -6238,13 +6894,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-18-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -6255,14 +6911,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-18-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -6357,9 +7013,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-17-lujo/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-17-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-17-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-17-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -6368,36 +7064,36 @@
       "id": "edificio-abandonado-piso-18-ruina",
       "nombre": "Edificio Abandonado — Piso 18 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -6407,13 +7103,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-17-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -6424,13 +7120,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-19-lujo",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -6441,14 +7137,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-19-lujo",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -6527,10 +7223,50 @@
           "id": "edificio-abandonado-piso-18-ruina/pickup7",
           "tipo": "pickup",
           "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-18-ruina/pickup8",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-18-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
             "item": "health",
             "amount": 0
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-18-ruina/pickup10",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-18-ruina/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -6539,36 +7275,36 @@
       "id": "edificio-abandonado-piso-19-lujo",
       "nombre": "Edificio Abandonado — Piso 19 · LUJO",
       "theme": "lujo",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
       "light": 1,
       "platforms": [
         [
-          13,
+          19,
           2,
-          4
+          3
         ],
         [
-          15,
+          18,
           4,
-          2
+          3
         ],
         [
-          13,
+          20,
           6,
-          2
+          3
         ],
         [
-          15,
+          18,
           8,
-          2
+          3
         ],
         [
-          13,
+          20,
           10,
-          2
+          3
         ]
       ],
       "entities": [
@@ -6578,13 +7314,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-18-ruina",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -6595,13 +7331,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 19,
+          "x": 16,
           "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-20-ruina",
             "at": {
-              "x": 3.5,
+              "x": 15.5,
               "y": 12
             }
           }
@@ -6612,14 +7348,14 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 20,
           "y": 2,
           "label": "subir por la ESCALERA (saltando)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-20-ruina",
             "at": {
-              "x": 13,
+              "x": 18.5,
               "y": 12
             }
           }
@@ -6734,9 +7470,49 @@
           "tipo": "pickup",
           "give": {
             "item": "coins",
-            "amount": 4
+            "amount": 3
           },
-          "x": 14.5,
+          "x": 21.5,
+          "y": 9
+        },
+        {
+          "id": "edificio-abandonado-piso-19-lujo/pickup12",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 19.5,
+          "y": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-19-lujo/pickup13",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 21.5,
+          "y": 5
+        },
+        {
+          "id": "edificio-abandonado-piso-19-lujo/pickup14",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 3
+          },
+          "x": 19.5,
+          "y": 3
+        },
+        {
+          "id": "edificio-abandonado-piso-19-lujo/pickup15",
+          "tipo": "pickup",
+          "give": {
+            "item": "ammo",
+            "amount": 5
+          },
+          "x": 20.5,
           "y": 1
         }
       ]
@@ -6745,7 +7521,7 @@
       "id": "edificio-abandonado-piso-20-ruina",
       "nombre": "Edificio Abandonado — Piso 20 · ruina",
       "theme": "ruina",
-      "w": 22,
+      "w": 24,
       "tags": [
         "edificio"
       ],
@@ -6757,13 +7533,13 @@
           "render": {
             "type": "elevator"
           },
-          "x": 2,
+          "x": 14,
           "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-19-lujo",
             "at": {
-              "x": 17.5,
+              "x": 14.5,
               "y": 12
             }
           }
@@ -6774,7 +7550,7 @@
           "render": {
             "type": "exit"
           },
-          "x": 19,
+          "x": 21,
           "gate": {
             "flag": "bunkerUnlocked"
           },
@@ -6912,7 +7688,7 @@
           "link": {
             "to": "edificio-abandonado-piso-20-ruina",
             "at": {
-              "x": 17.5,
+              "x": 19.5,
               "y": 12
             }
           }
@@ -7109,7 +7885,15 @@
           "x": 12
         },
         {
-          "id": "cueva-del-dolar-la-del-fondo/cuevero6",
+          "id": "cueva-del-dolar-la-del-fondo/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "camara"
+          },
+          "x": 15
+        },
+        {
+          "id": "cueva-del-dolar-la-del-fondo/cuevero7",
           "tipo": "cuevero",
           "render": {},
           "interact": {
@@ -7123,7 +7907,7 @@
           }
         },
         {
-          "id": "cueva-del-dolar-la-del-fondo/pickup7",
+          "id": "cueva-del-dolar-la-del-fondo/pickup8",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -7221,7 +8005,15 @@
           "x": 12
         },
         {
-          "id": "cueva-del-dolar-la-de-al-lado/cuevero6",
+          "id": "cueva-del-dolar-la-de-al-lado/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "camara"
+          },
+          "x": 15
+        },
+        {
+          "id": "cueva-del-dolar-la-de-al-lado/cuevero7",
           "tipo": "cuevero",
           "render": {},
           "interact": {
@@ -7235,7 +8027,7 @@
           }
         },
         {
-          "id": "cueva-del-dolar-la-de-al-lado/pickup7",
+          "id": "cueva-del-dolar-la-de-al-lado/pickup8",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -7332,7 +8124,15 @@
           "x": 12
         },
         {
-          "id": "cueva-del-dolar-la-que-te-cambia/cuevero6",
+          "id": "cueva-del-dolar-la-que-te-cambia/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "camara"
+          },
+          "x": 15
+        },
+        {
+          "id": "cueva-del-dolar-la-que-te-cambia/cuevero7",
           "tipo": "cuevero",
           "render": {},
           "interact": {
@@ -7346,7 +8146,7 @@
           }
         },
         {
-          "id": "cueva-del-dolar-la-que-te-cambia/pickup7",
+          "id": "cueva-del-dolar-la-que-te-cambia/pickup8",
           "tipo": "pickup",
           "give": {
             "item": "coins",

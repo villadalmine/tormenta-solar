@@ -1194,11 +1194,22 @@
       lines.push(trucha && Math.random() < 0.5 ? T('g.dollar.afip')
         : T(O[(Math.random() * O.length) | 0] || 'g.dollar.o.ilegal', { n: 100 + ((Math.random() * 900) | 0) }));
     }
-    dollarBubbles.push({ x, y: y - 14, life: 2.8, trucha, lines });
+    // ¿hay una CÁMARA en la sala que lo vea? → la burbuja sale EN la cámara y le prende el LED (verde=legal, rojo=trucha)
+    let bx = x, by = y - 14;
+    const cams = (room().decor || []).filter(d => d.type === 'camara');
+    if (cams.length) {
+      let cm = cams[0]; for (const c of cams) if (Math.abs(c.x - x) < Math.abs(cm.x - x)) cm = c;
+      cm._flash = 1.0; cm._flashCol = trucha ? '#ff5252' : '#7CFC00';
+      bx = cm.x; by = cm.feetY - 66;
+    }
+    dollarBubbles.push({ x: bx, y: by, life: 2.8, trucha, lines });
     if (dollarBubbles.length > 6) dollarBubbles.shift();
     if (!trucha) legalBlindUntil = (typeof performance !== 'undefined' ? performance.now() : Date.now()) + DOLLARS.blindMs;   // serie buena = legal → drones ciegos
   }
-  function updateDollarBubbles(dt) { for (let i = dollarBubbles.length - 1; i >= 0; i--) { const b = dollarBubbles[i]; b.life -= dt; b.y -= 12 * dt; if (b.life <= 0) dollarBubbles.splice(i, 1); } }
+  function updateDollarBubbles(dt) {
+    for (let i = dollarBubbles.length - 1; i >= 0; i--) { const b = dollarBubbles[i]; b.life -= dt; b.y -= 12 * dt; if (b.life <= 0) dollarBubbles.splice(i, 1); }
+    for (const d of (room().decor || [])) if (d._flash > 0) d._flash -= dt;   // LED de las cámaras
+  }
   function drawDollarBubbles() {
     ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
     for (const b of dollarBubbles) {
@@ -1248,11 +1259,12 @@
     Bullets.update(dt, r, s.enemies, player, dmg => player.hurt(dmg));
     Particles.update(dt);
 
-    // pickups
+    // pickups (en el EDIFICIO se REGENERAN: la escalera siempre tiene loot que vuelve a aparecer ~12 s después)
+    const regenRoom = hasTag(r, 'edificio');
     for (const p of s.pickups) {
-      if (p.taken) continue;
+      if (p.taken) { if (regenRoom) { p.respawn = (p.respawn || 0) - dt; if (p.respawn <= 0) p.taken = false; } continue; }
       if (Math.abs(player.x+player.w/2 - p.x) < 22 && Math.abs(player.y+player.h - p.y) < 40) {
-        p.taken = true; Sfx.pickup();
+        p.taken = true; if (regenRoom) p.respawn = 12; Sfx.pickup();
         if (p.type === 'ammo') { player.ammo += p.amount; setMsg(T('g.shop.ammo', { n: p.amount }), '#FFD54F', 1100); }
         else if (p.type === 'coins') { player.coins += p.amount; setMsg(T('g.shop.coins', { n: p.amount }), '#FFC107', 1100); }
         else { player.hp = Math.min(MAXHP, player.hp + p.amount); setMsg(T('g.shop.health', { n: p.amount }), '#7CFC00', 1100); }
@@ -1392,6 +1404,13 @@
       const img = Art.decor[d.type];
       if (img) ctx.drawImage(img, d.x - cam.x - img.width/2, d.feetY - cam.y - img.height);
       if (img && d.type === 'cartel' && d.ad) drawCartelProp(d, img);   // propaganda rotativa: el cartel DECLARA que es superficie publicitaria (componente `ad`), no por regex de sala
+      if (d.type === 'camara' && d._flash > 0) {   // LED de la cámara cuando "ve" un dólar (verde=legal, rojo=trucha)
+        const lx = d.x - cam.x - 2, ly = d.feetY - cam.y - 63, a = Math.min(1, d._flash);
+        ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = d._flashCol || '#7CFC00';
+        ctx.beginPath(); ctx.arc(lx, ly, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = a * 0.5; ctx.beginPath(); ctx.arc(lx, ly, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
     }
     if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
 

@@ -91,6 +91,7 @@ const Level = (() => {
         decor: [
           {t:'arbol',x:7},{t:'farol',x:16},{t:'parlante',x:21},{t:'instrumentos',x:27},
           {t:'kiosko',x:38},{t:'cartel',x:46,ad:true},{t:'arbol',x:54},{t:'mesa_ajedrez',x:64},{t:'cartel',x:82,ad:true},{t:'tacho',x:94},
+          {t:'camara',x:33},{t:'camara',x:72},   // cámaras de seguridad: "ven" los dólares que disparás (serie buena/trucha)
         ],
         npcs: [
           { name:'Vecina', sprite:'civil1', x:8,  dialog:'“Ay, nene... ¿viste cómo está el dólar? Un espanto.” 🙄' },
@@ -426,11 +427,13 @@ const Level = (() => {
       '“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼',
     ];
     for (let n = 1; n <= 20; n++) {
-      const lux = (n % 2 === 1), w = 22;   // DOS FORMAS de subir: el ASCENSOR (costado derecho) O la ESCALERA de incendios (saltando)
-      const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar (ascensor)', x:2, inward:1 }];
+      // LAYOUT: depto (muebles) a la IZQUIERDA (x3..12) · los DOS ASCENSORES juntos al medio (bajar x14, subir x16) ·
+      // la ESCALERA de incendios bien al COSTADO derecho (x18..22, saltable). Así nada tapa nada.
+      const lux = (n % 2 === 1), w = 24;
+      const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar (ascensor)', x:14, inward:1 }];
       if (n < 20) {
-        doors.push({ id:'up', art:'elevator', label:'subir (ascensor)', x:w-3, inward:-1 });                              // ASCENSOR (a nivel de piso)
-        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:14, y:2, inward:-1 });        // ESCALERA: puerta ARRIBA, sobre el zigzag
+        doors.push({ id:'up', art:'elevator', label:'subir (ascensor)', x:16, inward:-1 });                               // ASCENSORES JUNTOS (x14 bajar · x16 subir)
+        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:20, y:2, inward:-1 });        // ESCALERA: puerta ARRIBA del zigzag (sobre el escalón [19,2,3]), al costado
       }
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
       if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1, gate:{ flag:'bunkerUnlocked' } });
@@ -474,11 +477,16 @@ const Level = (() => {
         }
         spec.pickups = [{t:'health',x:8}];
       }
-      // ESCALERA DE INCENDIOS (costado derecho, x13..16): zigzag de plataformas que SUBÍS SALTANDO hasta la puerta
-      // 'up' de arriba (x14,y2). Pasos cada 2 tiles → saltable. Solo en pisos con 'up' (1..19; el 20 ya es la cima).
+      // ESCALERA DE INCENDIOS bien al COSTADO derecho (x18..22): zigzag x18↔x21 (saltás 3 de ancho / 2 de alto; el
+      // Carpo salta ~3.9) hasta la puerta 'up-stairs' (x21,y2). NO toca los muebles (x3..12) ni los ascensores (x14/16).
+      // Las plataformas vienen LLENAS de items que se REGENERAN (los pisos del edificio respawnean, ver game.js).
       if (n < 20) {
-        spec.platforms = (spec.platforms || []).concat([[13, 10, 2], [15, 8, 2], [13, 6, 2], [15, 4, 2], [13, 2, 4]]);
-        spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x: 14.5, y: 1, amount: lux ? 4 : 0 }]);   // premio arriba de la escalera
+        // pasos ANCHOS (3) con SOLAPE en x20, 2 de alto → saltás casi derecho, muy perdonador. Confinado x18..22.
+        const steps = [[20, 10, 3], [18, 8, 3], [20, 6, 3], [18, 4, 3], [19, 2, 3]];
+        spec.platforms = (spec.platforms || []).concat(steps);
+        spec.pickups = spec.pickups || [];
+        const loot = ['coins', 'ammo', 'health', 'coins', 'ammo'];
+        steps.forEach((s, k) => spec.pickups.push({ t: loot[k], x: s[0] + s[2] / 2, y: s[1] - 1, amount: loot[k] === 'health' ? 0 : (loot[k] === 'coins' ? 3 : 5) }));
       }
       rooms.push(makeRoom(spec));
     }
@@ -510,7 +518,7 @@ const Level = (() => {
         { name:'En la cola', sprite:'civil3', x:9,    dialog:'“Si no ahorro en dólares, este país se va a la mierda, pibe.” 🇦🇷' },
         { name:'En la cola', sprite:'mujer',  x:11.5, dialog:'“Yo en el peso no confío ni loca. Verde o nada.” 💵' },
       ],
-      decor: [{t:'barril',x:4},{t:'caja',x:8},{t:'cartel',x:12}],
+      decor: [{t:'barril',x:4},{t:'caja',x:8},{t:'cartel',x:12},{t:'camara',x:15}],
       pickups: [{t:'coins',x:7,amount:4}],
     }));
     rooms.push(makeRoom({
@@ -523,7 +531,7 @@ const Level = (() => {
         { name:'En la cola', sprite:'civil4',  x:9,    dialog:'“Shhh, acá no se habla de cuánto traés, pibe.” 🤫' },
         { name:'En la cola', sprite:'conNino', x:11.5, dialog:'“Es para el futuro del nene. Dólar, siempre dólar.” 👨‍👦' },
       ],
-      decor: [{t:'caja',x:4},{t:'barril',x:8},{t:'cartel',x:12}],
+      decor: [{t:'caja',x:4},{t:'barril',x:8},{t:'cartel',x:12},{t:'camara',x:15}],
       pickups: [{t:'ammo',x:7}],
     }));
     rooms.push(makeRoom({
@@ -536,7 +544,7 @@ const Level = (() => {
         { name:'En la cola', sprite:'mujer',  x:9,    dialog:'“Es para mi hijo, todo legal. Bueno, legal-legal no, pero me entendés.” 👶' },
         { name:'En la cola', sprite:'gordo',  x:11.5, dialog:'“Apurate que se hace cola. Si no ahorro verde, ¿qué le dejo a los pibes?” 🇦🇷' },
       ],
-      decor: [{t:'barril',x:4},{t:'cartel',x:8},{t:'caja',x:12}],
+      decor: [{t:'barril',x:4},{t:'cartel',x:8},{t:'caja',x:12},{t:'camara',x:15}],
       pickups: [{t:'coins',x:7,amount:5}],
     }));
 
@@ -625,7 +633,7 @@ const Level = (() => {
     // ESCALERA: la puerta alta 'up-stairs' también va al piso de arriba, pero caés al PIE de la escalera (para volver a trepar o tomar el ascensor)
     for (let n = 1; n < 20; n++) {
       const us = rooms[13 + n].doorById['up-stairs'];
-      if (us) { us.to = 14 + n; us.at = { x: 13 * TILE + TILE / 2, y: rooms[14 + n].gTop * TILE }; }
+      if (us) { us.to = 14 + n; us.at = { x: 19 * TILE, y: rooms[14 + n].gTop * TILE }; }   // caés a nivel de piso, cerca de la base de la escalera de arriba
     }
     // piso 20 (sala 33) -> búnker (sala 34), por la puerta secreta
     wire(33, 'bunker', 34, 'back');

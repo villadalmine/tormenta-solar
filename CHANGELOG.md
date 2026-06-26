@@ -39,6 +39,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v173] — 2026-06-26 — 🏢 Edificio rediseñado (ascensores juntos + escalera al costado saltable + items que regeneran) + cámaras visibles
+
+Según el feedback: el piso ahora tiene **los muebles a la izquierda (x3-12) intactos**, los **DOS ASCENSORES juntos**
+al medio (bajar x14 · subir x16) y la **ESCALERA de incendios bien al costado** (x18-22, escalones anchos de 3 con
+solape, 2 de alto → saltables y perdonadores; el run es 210, salto 3.9). La escalera **no tapa ni los muebles ni
+los ascensores**. Las plataformas vienen **LLENAS de items que se REGENERAN** (~12s; los pisos del edificio
+respawnean el loot). Además: **cámaras de seguridad visibles** (calle + cuevas) que **reaccionan al dólar** — LED
+verde (serie buena/legal) o rojo (trucha), y la burbuja de serie/AFIP sale EN la cámara. Playable + parity + e2e +
+web-smoke OK, nada fuera de límites.
+
+---
+
 ## [v172] — 2026-06-26 — 🪜 Edificio borrachines: DOS formas de subir — ascensor O escalera de incendios (saltando)
 
 Ahora el concepto bien: cada piso (1..19) tiene **las DOS opciones**. **Ascensor** (puerta a nivel de piso, x=w-3)
