@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v146] — 2026-06-26 — 🧩 v2 #1 (F3): quests UNIFICADAS con la pista (grafo + quests en un solo getHint)
+
+`getHint` ahora consulta primero `Quests.hintFor('oraculo')` → una quest activa es **pista de máxima prioridad**
+(recordatorio: "¿conseguiste lo del cine de X?"), y si no, cae a la frontera del grafo de historia. Así el oráculo
+unifica **grafo + quests** en una sola pista (data-driven, vía `onHint` del registro). Primer puente real entre los
+dos sistemas que estaban separados.
+
+---
+
 ## [v145] — 2026-06-26 — 🧩 v2 #1 (F2): runtime GENÉRICO de quests (dispatch por data, primitivas nombradas)
 
 Segundo paso de la migración v2 de quests. Ahora hay un **runtime `Quests`** cuyo FLUJO lo decide el **registro

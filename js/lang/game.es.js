@@ -162,6 +162,7 @@
     'g.mundial.guardaBtn': 'Resultado de {eq} (gratis, para el hincha)',
     'g.mundial.guardaOk': '📣 El guarda puso el partido de {eq} en la pantalla. Volvé al hincha que te espera. 🙌',
     'g.cine.questAsk': '🗞️ Che, mi IA vio el cartel del CINE pero no me tiró la data... andá y averiguá qué decían de “{topic}”. Volvé y contame (pero no me mientas, eh).',
+    'g.cine.questRemind': '🗞️ ¿Y? ¿Conseguiste lo que decían en el cine de “{topic}”? Contame, dale.',
     'g.cine.questOk': '🍬 Ahí está, no me mentís... la IA me lo confirmó. Tomá unos caramelos por la data. (+3)',
     'g.cine.questLie': '😠 ¿Me querés cagar? Hackié el cartel y NO es eso, chanta. Te cobro la mentira. (−{n} monedas)',
     'g.trans.shop': 'Chorería — canjeá tu vale con el parrillero (E).',

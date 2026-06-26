@@ -145,6 +145,7 @@
     'g.mundial.guardaBtn': '{eq} result (free, for the fan)',
     'g.mundial.guardaOk': '📣 The usher put {eq}\'s match on the screen. Head back to the fan who\'s waiting. 🙌',
     'g.cine.questAsk': '🗞️ Hey, my AI saw the CINEMA screen but wouldn\'t hand over the data... go find out what they said about “{topic}”. Come back and tell me (no lying, eh).',
+    'g.cine.questRemind': '🗞️ So? Did you get what they said at the cinema about “{topic}”? Come on, tell me.',
     'g.cine.questOk': '🍬 There it is, you\'re not lying... the AI confirmed it. Here, some candy for the data. (+3)',
     'g.cine.questLie': '😠 You trying to scam me? I hacked the screen and that\'s NOT it, chump. Lying costs you. (−{n} coins)',
     'g.trans.shop': 'Choripán stand — redeem your voucher with the grill guy (E).',

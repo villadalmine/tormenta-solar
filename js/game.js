@@ -49,7 +49,7 @@
   // números sueltos. El runtime y la IA leen de acá; expuesto en window.Game.quests + worldSnapshot. La verificación
   // sigue siendo función (primitiva=código, componer=dato, modelo-de-entidades §6.97). Migrar a entidades+grafo = F2.
   const QUEST_DEFS = {
-    news:    { id:'news',    scope:'run', giver:'oraculo', chance:0.35, reward:{ caramelos:3 }, penalty:{ coins:10 }, ask:'g.cine.questAsk', ok:'g.cine.questOk', lie:'g.cine.questLie', onGive:'newsGive', onReport:'newsReport' },
+    news:    { id:'news',    scope:'run', giver:'oraculo', chance:0.35, reward:{ caramelos:3 }, penalty:{ coins:10 }, ask:'g.cine.questAsk', ok:'g.cine.questOk', lie:'g.cine.questLie', remind:'g.cine.questRemind', onGive:'newsGive', onReport:'newsReport', onHint:'newsHint' },
     mundial: { id:'mundial', scope:'run', giver:'hincha',  reward:{ caramelos:5 }, ask:'g.mundial.pregunta', back:'g.mundial.gracias', remind:'g.mundial.recorda', onGreet:'mundialGreet', onReport:'mundialReport' },
   };
   // aplica una recompensa/penalidad DECLARADA (data → efecto). 'coins' resta (tope al saldo); el resto suma. Devuelve lo aplicado.
@@ -61,6 +61,7 @@
       if (m.shared >= 1) { applyReward(QUEST_DEFS.news.reward); newsQuest = null; return { line: T(QUEST_DEFS.news.ok) }; }
       if (m.words >= 2) { const out = applyReward(QUEST_DEFS.news.penalty); newsQuest = null; return { line: T(QUEST_DEFS.news.lie, { n: out.coins }) }; }
       return null; },   // muy vago → sigue esperando
+    newsHint() { return newsQuest ? T(QUEST_DEFS.news.remind, { topic: newsQuest.topic }) : null; },   // recordatorio (pista)
     // §9 mundial: el hincha te SALUDA (al abrir chat) → pregunta / recuerda / agradece según el estado.
     mundialGreet() {
       if (mundialQuest && mundialQuest.shown) { applyReward(QUEST_DEFS.mundial.reward); Sfx.pickup(); const line = T(QUEST_DEFS.mundial.back, { res: mundialQuest.resultado }); mundialQuest = null; return { line }; }
@@ -82,6 +83,8 @@
     report(giverKind, msg) { for (const id in QUEST_DEFS) { const q = QUEST_DEFS[id]; if (q.giver !== giverKind || !this.activeId(id) || !q.onReport) continue; const r = QUEST_PRIMS[q.onReport] && QUEST_PRIMS[q.onReport](msg); if (r) return { id, ...r }; } return null; },
     // SALUDO del giver al abrir el chat (pregunta/recuerda/agradece). Devuelve {id,line} o null.
     greet(giverKind) { for (const id in QUEST_DEFS) { const q = QUEST_DEFS[id]; if (q.giver !== giverKind || !q.onGreet) continue; const r = QUEST_PRIMS[q.onGreet] && QUEST_PRIMS[q.onGreet](); if (r) return { id, ...r }; } return null; },
+    // PISTA derivada de una quest activa de ese giver (unifica quests + grafo en getHint). Devuelve {id,title,text} o null.
+    hintFor(giverKind) { for (const id in QUEST_DEFS) { const q = QUEST_DEFS[id]; if (q.giver !== giverKind || !this.activeId(id) || !q.onHint) continue; const t = QUEST_PRIMS[q.onHint] && QUEST_PRIMS[q.onHint](); if (t) return { id, title: id, text: t }; } return null; },
   };
   let mundialApproach = null;   // §9: {npc, homeX} cuando un hincha se ACERCA a agradecerte tras el dato del guarda
   let sessStart = 0, sessChats = 0, sessTrucoW = 0, sessTrucoL = 0;   // métricas de "Tu partida" (in-game, client-side)
@@ -620,6 +623,8 @@
   const _nw = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 3);
   function newsMatch(report, answer) { const a = new Set(_nw(answer)); const r = _nw(report); return { shared: r.filter(w => a.has(w)).length, words: r.length }; }
   function getHint(level) {
+    // UNIFICACIÓN grafo+quests: una quest activa del oráculo es pista de MÁXIMA prioridad (recordatorio).
+    const q = Quests.hintFor('oraculo'); if (q) return { ...q, level: level | 0 };
     if (typeof HintEngine === 'undefined') return null;
     return HintEngine.next(historiaState(), { at: currentAt(), insistencia: level });
   }
