@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v172] — 2026-06-26 — 🪜 Edificio borrachines: DOS formas de subir — ascensor O escalera de incendios (saltando)
+
+Ahora el concepto bien: cada piso (1..19) tiene **las DOS opciones**. **Ascensor** (puerta a nivel de piso, x=w-3)
+como siempre, **y** una **ESCALERA DE INCENDIOS** nueva: zigzag de plataformas en el costado derecho que **subís
+SALTANDO** (pasos de 2 tiles; el Carpo salta ~3.9) hasta una **puerta en ALTURA** (x14,y2) que te lleva al piso de
+arriba (caés al pie de la escalera para volver a trepar o tomar el ascensor). Soporte nuevo de **puertas con altura**
+(makeRoom `feet(x,y)`) + la RED (Playable) saltea R1 para puertas altas (se apoyan en plataforma). Ancho 22 (entra
+depto + escalera + ascensor). parity v1≡v2 + Playable + e2e + web-smoke OK, nada fuera de límites.
+
+---
+
 ## [v171] — 2026-06-26 — 🏙️ Edificio borrachines: SACO la escalera y restauro el piso angosto original (w=17)
 
 El concepto de la escalera era una vía ALTERNATIVA para subir al piso de arriba sin el ascensor — no un adorno —

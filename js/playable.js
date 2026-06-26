@@ -29,8 +29,9 @@ const Playable = (() => {
         // R1: una plataforma a la ALTURA DE LA CABEZA, en la MISMA columna de la puerta (GTOP-2), la TAPA — exactamente
         // lo que pasó con el ascensor. (No miramos +3 arriba: esas son fachadas de edificios, no tapan la puerta de
         // PB; ni GTOP-1: ahí una puerta puede APOYARSE sobre una plataforma —piso alto— y es legítimo.)
-        const dx = ti(e.x);
-        if (solid(dx, GTOP - 2)) probs.push('puerta "' + (e.id || dx) + '" TAPADA por sólido a la altura de la cabeza en (' + dx + ',' + (GTOP - 2) + ')');
+        // Las puertas EN ALTURA (e.y declarado, ej. escalera de incendios) se apoyan sobre una plataforma → no aplica R1.
+        const dx = ti(e.x), highDoor = (e.y != null && ti(e.y) < GTOP - 1);
+        if (!highDoor && solid(dx, GTOP - 2)) probs.push('puerta "' + (e.id || dx) + '" TAPADA por sólido a la altura de la cabeza en (' + dx + ',' + (GTOP - 2) + ')');
       } else if (e.tipo === 'marker' && e.render) {
         const mx = ti(e.x);
         if (e.render.type === 'spawn' && solid(mx, GTOP - 1)) probs.push('SPAWN dentro de sólido en x=' + mx);   // R2

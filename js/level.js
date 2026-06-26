@@ -50,7 +50,7 @@ const Level = (() => {
       doors: [], doorById: {},
     };
     for (const d of spec.doors || []) {
-      const f = feet(d.x);
+      const f = feet(d.x, d.y);   // d.y opcional (en tiles): puertas en ALTURA (ej. escalera de incendios que sube saltando)
       const door = { id: d.id, art: d.art, label: d.label, facade: d.facade, x: f.x, y: f.y, inward: d.inward, to: null, at: null, collapsesOnStorm: !!d.collapsesOnStorm, gate: d.gate || null };
       room.doors.push(door); room.doorById[d.id] = door;
     }
@@ -426,9 +426,12 @@ const Level = (() => {
       '“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼',
     ];
     for (let n = 1; n <= 20; n++) {
-      const lux = (n % 2 === 1), w = 17;   // piso angosto (como el original): subís/bajás por el ASCENSOR
-      const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar un piso', x:2, inward:1 }];
-      if (n < 20) doors.push({ id:'up', art:'elevator', label:'subir un piso', x:w-3, inward:-1 });
+      const lux = (n % 2 === 1), w = 22;   // DOS FORMAS de subir: el ASCENSOR (costado derecho) O la ESCALERA de incendios (saltando)
+      const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar (ascensor)', x:2, inward:1 }];
+      if (n < 20) {
+        doors.push({ id:'up', art:'elevator', label:'subir (ascensor)', x:w-3, inward:-1 });                              // ASCENSOR (a nivel de piso)
+        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:14, y:2, inward:-1 });        // ESCALERA: puerta ARRIBA, sobre el zigzag
+      }
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
       if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1, gate:{ flag:'bunkerUnlocked' } });
       const spec = { name:'Edificio Abandonado — Piso ' + n + (lux ? ' · LUJO' : ' · ruina'),
@@ -470,6 +473,12 @@ const Level = (() => {
           });
         }
         spec.pickups = [{t:'health',x:8}];
+      }
+      // ESCALERA DE INCENDIOS (costado derecho, x13..16): zigzag de plataformas que SUBÍS SALTANDO hasta la puerta
+      // 'up' de arriba (x14,y2). Pasos cada 2 tiles → saltable. Solo en pisos con 'up' (1..19; el 20 ya es la cima).
+      if (n < 20) {
+        spec.platforms = (spec.platforms || []).concat([[13, 10, 2], [15, 8, 2], [13, 6, 2], [15, 4, 2], [13, 2, 4]]);
+        spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x: 14.5, y: 1, amount: lux ? 4 : 0 }]);   // premio arriba de la escalera
       }
       rooms.push(makeRoom(spec));
     }
@@ -610,9 +619,14 @@ const Level = (() => {
     wire(0, 'garbarino', 11, 'out');
     wire(0, 'cemento', 12, 'out');
     wire(0, 'cambio', 13, 'out');
-    // edificio abandonado: calle -> piso 1, y ascensor entre pisos
+    // edificio abandonado: calle -> piso 1. DOS formas de subir: ASCENSOR (puerta 'up' a nivel de piso) o ESCALERA (puerta 'up-stairs' arriba).
     wire(0, 'abandonado', 14, 'down');
-    for (let n = 1; n < 20; n++) wire(13 + n, 'up', 14 + n, 'down');
+    for (let n = 1; n < 20; n++) wire(13 + n, 'up', 14 + n, 'down');   // ASCENSOR (recíproco up↔down, como siempre)
+    // ESCALERA: la puerta alta 'up-stairs' también va al piso de arriba, pero caés al PIE de la escalera (para volver a trepar o tomar el ascensor)
+    for (let n = 1; n < 20; n++) {
+      const us = rooms[13 + n].doorById['up-stairs'];
+      if (us) { us.to = 14 + n; us.at = { x: 13 * TILE + TILE / 2, y: rooms[14 + n].gTop * TILE }; }
+    }
     // piso 20 (sala 33) -> búnker (sala 34), por la puerta secreta
     wire(33, 'bunker', 34, 'back');
     // las 3 cuevas (35,36,37): se entra por la invitación del cuevero (handleCuevero), se sale por 'back' al hall (8)

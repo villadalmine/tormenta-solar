@@ -3191,11 +3191,38 @@
       "id": "edificio-abandonado-piso-1-lujo",
       "nombre": "Edificio Abandonado — Piso 1 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-1-lujo/door-down",
@@ -3220,13 +3247,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-2-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-1-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-2-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -3315,6 +3360,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-1-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -3322,11 +3377,38 @@
       "id": "edificio-abandonado-piso-2-ruina",
       "nombre": "Edificio Abandonado — Piso 2 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-2-ruina/door-down",
@@ -3335,12 +3417,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-1-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -3351,13 +3433,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-3-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-2-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-3-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -3461,6 +3561,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-2-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -3468,11 +3578,38 @@
       "id": "edificio-abandonado-piso-3-lujo",
       "nombre": "Edificio Abandonado — Piso 3 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-3-lujo/door-down",
@@ -3481,12 +3618,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-2-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -3497,13 +3634,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-4-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-3-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-4-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -3592,6 +3747,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-3-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -3599,11 +3764,38 @@
       "id": "edificio-abandonado-piso-4-ruina",
       "nombre": "Edificio Abandonado — Piso 4 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-4-ruina/door-down",
@@ -3612,12 +3804,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-3-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -3628,13 +3820,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-5-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-4-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-5-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -3723,6 +3933,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-4-ruina/pickup8",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -3730,11 +3950,38 @@
       "id": "edificio-abandonado-piso-5-lujo",
       "nombre": "Edificio Abandonado — Piso 5 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-5-lujo/door-down",
@@ -3743,12 +3990,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-4-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -3759,13 +4006,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-6-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-5-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-6-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -3854,6 +4119,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-5-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -3861,11 +4136,38 @@
       "id": "edificio-abandonado-piso-6-ruina",
       "nombre": "Edificio Abandonado — Piso 6 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-6-ruina/door-down",
@@ -3874,12 +4176,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-5-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -3890,13 +4192,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-7-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-6-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-7-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -3970,6 +4290,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-6-ruina/pickup7",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -3977,11 +4307,38 @@
       "id": "edificio-abandonado-piso-7-lujo",
       "nombre": "Edificio Abandonado — Piso 7 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-7-lujo/door-down",
@@ -3990,12 +4347,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-6-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -4006,13 +4363,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-8-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-7-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-8-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -4101,6 +4476,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-7-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -4108,11 +4493,38 @@
       "id": "edificio-abandonado-piso-8-ruina",
       "nombre": "Edificio Abandonado — Piso 8 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-8-ruina/door-down",
@@ -4121,12 +4533,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-7-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -4137,13 +4549,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-9-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-8-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-9-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -4247,6 +4677,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-8-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -4254,11 +4694,38 @@
       "id": "edificio-abandonado-piso-9-lujo",
       "nombre": "Edificio Abandonado — Piso 9 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-9-lujo/door-down",
@@ -4267,12 +4734,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-8-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -4283,13 +4750,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-10-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-9-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-10-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -4378,6 +4863,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-9-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -4385,11 +4880,38 @@
       "id": "edificio-abandonado-piso-10-ruina",
       "nombre": "Edificio Abandonado — Piso 10 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-10-ruina/door-down",
@@ -4398,12 +4920,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-9-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -4414,13 +4936,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-11-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-10-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-11-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -4509,6 +5049,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-10-ruina/pickup8",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -4516,11 +5066,38 @@
       "id": "edificio-abandonado-piso-11-lujo",
       "nombre": "Edificio Abandonado — Piso 11 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-11-lujo/door-down",
@@ -4529,12 +5106,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-10-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -4545,13 +5122,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-12-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-11-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-12-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -4640,6 +5235,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-11-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -4647,11 +5252,38 @@
       "id": "edificio-abandonado-piso-12-ruina",
       "nombre": "Edificio Abandonado — Piso 12 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-12-ruina/door-down",
@@ -4660,12 +5292,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-11-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -4676,13 +5308,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-13-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-12-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-13-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -4756,6 +5406,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-12-ruina/pickup7",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -4763,11 +5423,38 @@
       "id": "edificio-abandonado-piso-13-lujo",
       "nombre": "Edificio Abandonado — Piso 13 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-13-lujo/door-down",
@@ -4776,12 +5463,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-12-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -4792,13 +5479,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-14-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-13-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-14-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -4887,6 +5592,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-13-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -4894,11 +5609,38 @@
       "id": "edificio-abandonado-piso-14-ruina",
       "nombre": "Edificio Abandonado — Piso 14 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-14-ruina/door-down",
@@ -4907,12 +5649,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-13-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -4923,13 +5665,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-15-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-14-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-15-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -5033,6 +5793,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-14-ruina/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -5040,11 +5810,38 @@
       "id": "edificio-abandonado-piso-15-lujo",
       "nombre": "Edificio Abandonado — Piso 15 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-15-lujo/door-down",
@@ -5053,12 +5850,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-14-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -5069,13 +5866,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-16-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-15-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-16-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -5164,6 +5979,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-15-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -5171,11 +5996,38 @@
       "id": "edificio-abandonado-piso-16-ruina",
       "nombre": "Edificio Abandonado — Piso 16 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-16-ruina/door-down",
@@ -5184,12 +6036,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-15-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -5200,13 +6052,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-17-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-16-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-17-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -5295,6 +6165,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-16-ruina/pickup8",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -5302,11 +6182,38 @@
       "id": "edificio-abandonado-piso-17-lujo",
       "nombre": "Edificio Abandonado — Piso 17 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-17-lujo/door-down",
@@ -5315,12 +6222,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-16-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -5331,13 +6238,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-18-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-17-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-18-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -5426,6 +6351,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-17-lujo/pickup9",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -5433,11 +6368,38 @@
       "id": "edificio-abandonado-piso-18-ruina",
       "nombre": "Edificio Abandonado — Piso 18 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 0.42,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-18-ruina/door-down",
@@ -5446,12 +6408,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-17-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -5462,13 +6424,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-19-lujo",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-18-ruina/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-19-lujo",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -5542,6 +6522,16 @@
             "item": "health"
           },
           "x": 8
+        },
+        {
+          "id": "edificio-abandonado-piso-18-ruina/pickup7",
+          "tipo": "pickup",
+          "give": {
+            "item": "health",
+            "amount": 0
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -5549,11 +6539,38 @@
       "id": "edificio-abandonado-piso-19-lujo",
       "nombre": "Edificio Abandonado — Piso 19 · LUJO",
       "theme": "lujo",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
       "light": 1,
+      "platforms": [
+        [
+          13,
+          2,
+          4
+        ],
+        [
+          15,
+          4,
+          2
+        ],
+        [
+          13,
+          6,
+          2
+        ],
+        [
+          15,
+          8,
+          2
+        ],
+        [
+          13,
+          10,
+          2
+        ]
+      ],
       "entities": [
         {
           "id": "edificio-abandonado-piso-19-lujo/door-down",
@@ -5562,12 +6579,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-18-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -5578,13 +6595,31 @@
           "render": {
             "type": "elevator"
           },
-          "x": 14,
-          "label": "subir un piso",
+          "x": 19,
+          "label": "subir (ascensor)",
           "inward": -1,
           "link": {
             "to": "edificio-abandonado-piso-20-ruina",
             "at": {
               "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "edificio-abandonado-piso-19-lujo/door-up-stairs",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 14,
+          "y": 2,
+          "label": "subir por la ESCALERA (saltando)",
+          "inward": -1,
+          "link": {
+            "to": "edificio-abandonado-piso-20-ruina",
+            "at": {
+              "x": 13,
               "y": 12
             }
           }
@@ -5693,6 +6728,16 @@
             "amount": 6
           },
           "x": 7
+        },
+        {
+          "id": "edificio-abandonado-piso-19-lujo/pickup11",
+          "tipo": "pickup",
+          "give": {
+            "item": "coins",
+            "amount": 4
+          },
+          "x": 14.5,
+          "y": 1
         }
       ]
     },
@@ -5700,7 +6745,7 @@
       "id": "edificio-abandonado-piso-20-ruina",
       "nombre": "Edificio Abandonado — Piso 20 · ruina",
       "theme": "ruina",
-      "w": 17,
+      "w": 22,
       "tags": [
         "edificio"
       ],
@@ -5713,12 +6758,12 @@
             "type": "elevator"
           },
           "x": 2,
-          "label": "bajar un piso",
+          "label": "bajar (ascensor)",
           "inward": 1,
           "link": {
             "to": "edificio-abandonado-piso-19-lujo",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
@@ -5729,7 +6774,7 @@
           "render": {
             "type": "exit"
           },
-          "x": 14,
+          "x": 19,
           "gate": {
             "flag": "bunkerUnlocked"
           },
@@ -5867,7 +6912,7 @@
           "link": {
             "to": "edificio-abandonado-piso-20-ruina",
             "at": {
-              "x": 12.5,
+              "x": 17.5,
               "y": 12
             }
           }
