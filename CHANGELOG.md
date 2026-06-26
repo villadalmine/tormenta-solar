@@ -39,6 +39,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v162] — 2026-06-26 — 🌀✨ NIVEL-AI: la trastienda del chino GENERA un nivel surreal (¡la máquina de hacer chorizos, disparada!)
+
+Primer corte jugable del **generador de niveles**. Cuando entrás al chino por el RAID (Iorio abrió el frente), el
+chino **corre en pánico hablando por GLOBITO** con frases cortas en su tonada (*"¿¡cómo entlas!?", "tolmenta
+falta", "sol loco", "luz no andal"*). Aprovechás la locura y te **colás a la trastienda** (la puerta privada quedó
+sin guardia) → se **GENERA un nivel surreal temático** y lo corre el sub-modo `Spinoff` (vista de arriba
+explorable, NPCs con globitos, llegás a la META = portal → souvenir en caramelos).
+
+- **Generador `js/nivelai.js`:** el molde son los `THEMES` (DATA). Temas: **super-rasca** (antro mugriento),
+  **taller-esclavo** (sweatshop tejiendo ropa), **comida-podrida** (cadena de frío rota), **muralla-skate** (la
+  Muralla China en skate). Compone props/NPCs/meta en una grilla.
+- **IA real (opcional):** `POST /nivel-ai` en el proxy → la IA autora nombre/intro/frases en tonada chino-porteña,
+  con **fallback estático** (si el modelo falla, queda el contenido del molde). Mismo patrón que los bancos.
+- **Aislado** del motor principal (no toca quests/tormenta/save), como arcade/super/vinilos.
+- e2e (los 4 temas generan escena válida + el spinoff termina y da souvenir) ×3 + web-smoke OK.
+
+---
+
 ## [v161] — 2026-06-26 — 🧧 La CAJA del chino: mini-juego de pago (carrito + vuelto en caramelos + inflación + ninjas)
 
 La caja del súper deja de ser un botón: ahora abre un **checkout** (panel en `super.js`). Ves el **changuito con

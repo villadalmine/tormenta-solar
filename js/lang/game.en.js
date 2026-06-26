@@ -208,6 +208,12 @@
     'g.galaga.win': '🕹️ You won Galaga! +10 coins, +20 life.',
     'g.arcade.gameover': 'Game over. Try again, there\'s coins on the line.',
     'g.super.leave': 'You leave the Chinese supermarket with your pockets full of candy. 🍬',
+    // --- NIVEL-AI (the chino's back room generates a surreal level) ---
+    'g.nivelai.tag': 'GENERATED LEVEL ✨',
+    'g.nivelai.goalPrompt': '✨ {label} — walk here to return',
+    'g.nivelai.win': '🌀 "{name}" — you reached the exit. Souvenir: +{reward}.',
+    'g.nivelai.flee': 'You head back through the portal before getting into more trouble. 🌀',
+    'g.nivelai.back': 'The portal spits you back into the chino\'s place, a bit dizzy. 🌀',
     'g.vinilos.leave': 'You leave the record shop. 🎵',
 
     'g.music.on': '♪ Music ON',
@@ -274,6 +280,7 @@
     'sup.leave.ninjas': 'You try to bolt with {n} product{s} UNPAID... Out of the DARK DOOR (where the Chino\'s family lives) come TWO SAMURAI NINJAS 🥷🗡️ and toss you out WITHOUT the stuff you “forgot” to pay for.',
     'sup.leave.front': 'You try to leave through the front door... “Hey, hey, buddy! Can\'t you see it\'s ALL HELL out there? Stay, kid, spend easy... the Chino\'s got candy.” 🧧 → Bolt through the SECRET DOOR in the back (to the cueva).',
     'sup.family': 'Chino (blocking the dark door): “Not here, amigo. The family lives here. Buy and pay easy, eh?” 🥷',
+    'sup.family.raid': 'The chino runs around in panic and the dark door is UNGUARDED. You slip into the chino\'s back room... 🚪🌀',
     'sup.hint': 'Get close to a shelf (grab) or to the TILL (pay) and press E.',
     'sup.candyAngry': 'Chino, ANGRY: “Chino NO eat and pay with candy! Candy NO! Pay with coins, amigo.” 🤬',
     // --- Chino's TILL (payment mini-game) ---
@@ -299,6 +306,7 @@
     'sup.prompt.gondola': '🛒 {cat} shelf — [E] into the cart',
     'sup.prompt.caja': '🧧 Corner-shop TILL — [E] PAY ({total} coins, change in candy)',
     'sup.prompt.family': '🚪 Dark door — the Chino\'s family (no entry)',
+    'sup.prompt.family.raid': '🚪🌀 UNGUARDED door — [E] slip into the chino\'s back room',
     'sup.prompt.secret': '🚪 SECRET DOOR — leave (pay first!)',
     'sup.prompt.exit': '↓ Exit to the street (pay first!)',
 

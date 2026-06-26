@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','nivelai.js','spinoff.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -176,6 +176,17 @@ if (require.main === module) {
     for (const gm of ['pacman','galaga','frogger','truco','fighter']) { run(Arcade.create(gm), 60); ok.push('arcade:' + gm); }
     run(Super.create({ player: fp, gaveBeers: false }), 60); ok.push('super');
     run(Vinilos.create({ player: fp }), 60); ok.push('vinilos');
+    // NIVEL-AI: cada tema genera una escena válida y el spinoff la corre + da el souvenir al llegar a la meta
+    for (const th of NivelAI.THEMES) {
+      const sc = NivelAI.generate(th.id);
+      if (sc.id !== th.id || !sc.name || !sc.props.length || !sc.npcs.length || !sc.goal) throw new Error('nivelai gen inválido: ' + th.id);
+      const pr = { caramelos: 0, coins: 0 };
+      Spinoff._reward = rw => { for (const k in (rw || {})) pr[k] = (pr[k] || 0) + (rw[k] || 0); };
+      const sp = Spinoff.create(sc); run(sp, 30); sp.__reach();
+      if (!sp.done || sp.exitTo !== 'back') throw new Error('spinoff no termina: ' + th.id);
+      if ((pr.caramelos | 0) <= 0) throw new Error('spinoff no da souvenir: ' + th.id);
+      ok.push('nivelai:' + th.id);
+    }
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

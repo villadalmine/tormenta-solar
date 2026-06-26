@@ -1,7 +1,11 @@
 # SDD — La "máquina de hacer chorizos": contás una historia → la IA arma el juego (NORTE)
 
-- **Estado:** **Visión / norte** (dueño 2026-06-26). Las piezas se vienen construyendo; falta el **pipeline de
-  autoría**. NO es una feature suelta: es el GOAL al que apunta todo el modelo v2.
+- **Estado:** **PRIMER CORTE JUGABLE (v162):** el generador se DISPARA in-game. Te colás a la **trastienda del
+  chino durante el RAID** (mientras el chino corre en pánico hablando por globito) → se **genera un nivel surreal
+  temático** y lo corre el sub-modo `Spinoff`. Generador `js/nivelai.js` (molde = `THEMES` data) + escena
+  `js/spinoff.js` + endpoint proxy `POST /nivel-ai` (la IA autora nombre/intro/frases, con **fallback estático**).
+  Temas v1: `super-rasca`, `taller-esclavo`, `comida-podrida`, `muralla-skate`. Falta el pipeline de autoría
+  COMPLETO (historia→nivel jugable de N salas con el motor real + auditoría). Es el GOAL al que apunta todo v2.
 - **Relacionado:** [`modelo-de-entidades.md`](modelo-de-entidades.md) (motor data-driven + AI-authorable, §6¾/RF-22),
   [`quest-mundo-ai.md`](quest-mundo-ai.md) (mundo on-the-fly por IA), [[v2-engine-principios]], `levels/level.schema.json`.
 

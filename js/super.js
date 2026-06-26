@@ -34,6 +34,12 @@ const Super = (() => {
     relentChance: 0.5,     // si discutís, prob. de que ceda ("perdón, me confundí")
     confusedChance: 0.35,  // pago limpio: prob. del "sorry me confundí" (cosmético, te acepta igual)
   };
+  // el chino en PÁNICO (raid) habla por GLOBITO con frases cortas en su tonada (acento chino-porteño)
+  const PANIC = {
+    es: ['¿¡CÓMO entlas!?', '¡tolmenta falta!', '¡sol loco loco!', '¡luz NO andal!', '¡aiyaaa!', '¡todo loca!', '¡chino pánico!', '¡ladlón, ladlón!', '¡fuela fuela!', '¡no toca nada!'],
+    en: ['HOW you get in!?', 'stolm coming!', 'clazy clazy sun!', 'light NO wolk!', 'aiyaaa!', 'all clazy!', 'chino panic!', 'thief, thief!', 'out out!', 'no touch nothing!'],
+  };
+  function panicLine() { const L = (typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en') ? PANIC.en : PANIC.es; return L[(Math.random() * L.length) | 0]; }
   function shuffle(a) { a = a.slice(); for (let i = a.length-1; i > 0; i--) { const j = (Math.random()*(i+1))|0; [a[i],a[j]] = [a[j],a[i]]; } return a; }
   function wrap(ctx, text, maxW) {
     const words = text.split(' '), lines = []; let cur = '';
@@ -67,7 +73,7 @@ const Super = (() => {
     let checkout = null;
     const held = {};
     function pressed(k) { const d = !!Input.keys[k], was = held[k]; held[k] = d; return d && !was; }   // flanco de tecla
-    const chino = { x: (caja.x + 0.5) * CS, y: (caja.y + 0.5) * CS, vx: 95, vy: 70, t: 0 };   // el chino corriendo en pánico (raid)
+    const chino = { x: (caja.x + 0.5) * CS, y: (caja.y + 0.5) * CS, vx: 95, vy: 70, t: 0, say: panicLine(), sayT: 1.6 };   // el chino corriendo en pánico (raid), con globito
     let done = false, exitTo = null, msg = '', msgT = 0, prompt = '', eHeld = false, cHeld = false, escHeld = false;
     setMsg(T(raid ? 'sup.raid' : 'sup.intro'), 9);
 
@@ -223,7 +229,8 @@ const Super = (() => {
       const g = adjGondolaObj();
       if (g) { grab(g.cat); return; }
       if (near(caja)) { openCheckout(); return; }
-      if (near(family)) { setMsg(T('sup.family')); return; }
+      // PUERTA PRIVADA del chino: normalmente no entrás; pero en el RAID (pánico) te colás → dispara el NIVEL-AI
+      if (near(family)) { if (raid) { setMsg(T('sup.family.raid'), 4); finish('nivelai'); } else setMsg(T('sup.family')); return; }
       if (secret.open && near(secret)) { tryLeave('cueva'); return; }
       setMsg(T('sup.hint'));
     }
@@ -250,6 +257,7 @@ const Super = (() => {
           if (chino.y < CS*1.2 || chino.y > (H-1.2)*CS) chino.vy *= -1;
           chino.x = Math.max(CS, Math.min((W-1)*CS, chino.x)); chino.y = Math.max(CS, Math.min((H-1)*CS, chino.y));
           if (chino.t <= 0) { chino.t = 0.5 + Math.random()*0.5; chino.vx = (Math.random()<.5?-1:1)*(80+Math.random()*80); chino.vy = (Math.random()<.5?-1:1)*(60+Math.random()*70); }
+          chino.sayT -= dt; if (chino.sayT <= 0) { chino.say = panicLine(); chino.sayT = 1.4 + Math.random()*1.2; }   // globito de pánico rotando
         }
         const sp = 170*dt;
         if (Input.keys['arrowleft'] || Input.keys['a']) { if (freeAt(player.x-sp, player.y)) player.x -= sp; }
@@ -259,12 +267,14 @@ const Super = (() => {
         if (Input.keys['escape']) { if (!escHeld) { escHeld = true; tryLeave('street'); return; } } else escHeld = false;
         if (Input.keys['c']) { if (!cHeld) { cHeld = true; setMsg(T('sup.candyAngry')); } } else cHeld = false;
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
+        // en RAID la puerta privada tiene prioridad (está pegada a la cueva): te colás → NIVEL-AI
+        if (raid && near(family)) { setMsg(T('sup.family.raid'), 4); finish('nivelai'); return; }
         if (near(exitC)) tryLeave('street');
-        if (secret.open && near(secret)) tryLeave('cueva');
+        if (!raid && secret.open && near(secret)) tryLeave('cueva');
         const g = adjGondolaObj();
         if (g) prompt = (g.cat === 'CARNES' || g.cat === 'FIAMBRES' ? T('sup.prompt.garca', { cat: catName(g.cat) }) : T('sup.prompt.gondola', { cat: catName(g.cat) }));
         else if (near(caja)) prompt = T('sup.prompt.caja', { total: cart.length * PRICE });
-        else if (near(family)) prompt = T('sup.prompt.family');
+        else if (near(family)) prompt = raid ? T('sup.prompt.family.raid') : T('sup.prompt.family');
         else if (secret.open && near(secret)) prompt = T('sup.prompt.secret');
         else if (near(exitC)) prompt = T('sup.prompt.exit');
         else prompt = '';
@@ -313,6 +323,14 @@ const Super = (() => {
           ctx.fillStyle = '#c62828'; ctx.beginPath(); ctx.arc(cxp, cyp+wob, 10, 0, Math.PI*2); ctx.fill();           // cuerpo
           ctx.fillStyle = '#e8c9a0'; ctx.beginPath(); ctx.arc(cxp, cyp-7+wob, 5, 0, Math.PI*2); ctx.fill();          // cabeza
           ctx.fillStyle = '#fff'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.fillText('!', cxp, cyp-16+Math.sin(Date.now()/110)*2);
+          // GLOBITO de pánico del chino (frase corta en su tonada)
+          if (chino.say) {
+            ctx.font = 'bold 10px monospace';
+            const tw = Math.min((ctx.measureText(chino.say).width || 0) + 12, 180), bx = Math.max(4, Math.min(VW - tw - 4, cxp - tw/2)), by = cyp - 40;
+            ctx.fillStyle = 'rgba(255,255,255,0.94)'; ctx.fillRect(bx, by, tw, 16);
+            ctx.beginPath(); ctx.moveTo(cxp-4, by+16); ctx.lineTo(cxp+4, by+16); ctx.lineTo(cxp, by+22); ctx.fill();
+            ctx.fillStyle = '#b71c1c'; ctx.textAlign = 'center'; ctx.fillText(chino.say, bx + tw/2, by + 11);
+          }
         }
         // NINJAS SAMURÁI echándote (mientras dura la paliza)
         if (eject > 0) {

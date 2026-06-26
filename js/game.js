@@ -109,7 +109,7 @@
   let lastT = 0, running = false, msgUntil = 0, shakeUntil = 0, time = 0, transCd = 0;
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
-  let arcadeGame = null, superGame = null, vinilosGame = null;
+  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null;
   let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
@@ -192,7 +192,7 @@
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
@@ -832,6 +832,16 @@
     else setMsg(n.lines ? pick(n.lines) : T('g.borracho.askDefault'), '#ffd54f', 4200);
   }
   function enterSuper(raid) { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed, raid: !!raid }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
+  // NIVEL-AI: te colaste a la trastienda del chino en el raid → se GENERA un nivel surreal y lo corre el spinoff
+  function launchNivelAI() {
+    if (typeof NivelAI === 'undefined' || typeof Spinoff === 'undefined') { state = 'playing'; return; }
+    const scene = NivelAI.generate();
+    Spinoff._reward = rw => { for (const k in (rw || {})) player[k] = (player[k] || 0) + (rw[k] || 0); };   // souvenir = ganancia al inventario real
+    spinoffGame = Spinoff.create(scene); state = 'spinoff';
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
+    NivelAI.enrich(scene);   // best-effort: la IA del proxy autora el texto; si no, queda lo estático
+    tel('nivelai', { theme: scene.id });
+  }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   function enterCuevaFromSecret() {
     const idx = rooms.findIndex(r => r.cueveros && r.cueveros.length);   // la CUEVA real (no cualquier sala con cueveros:[] vacío)
@@ -1596,10 +1606,21 @@
     } else if (state === 'super' && superGame) {
       superGame.update(dt); superGame.draw(ctx, W, H);
       if (superGame.done) {
-        const to = superGame.exitTo; superGame = null; state = 'playing'; transCd = 0.35;
+        const to = superGame.exitTo; superGame = null;
+        if (to === 'nivelai') { launchNivelAI(); }   // te colaste a la trastienda → NIVEL-AI generado
+        else {
+          state = 'playing'; transCd = 0.35;
+          elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+          if (to === 'cueva') enterCuevaFromSecret();
+          else setMsg(T('g.super.leave'), '#FFC107', 3000);
+        }
+      }
+    } else if (state === 'spinoff' && spinoffGame) {
+      spinoffGame.update(dt); spinoffGame.draw(ctx, W, H);
+      if (spinoffGame.done) {
+        spinoffGame = null; state = 'playing'; transCd = 0.35;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
-        if (to === 'cueva') enterCuevaFromSecret();
-        else setMsg(T('g.super.leave'), '#FFC107', 3000);
+        setMsg(T('g.nivelai.back'), '#e0b0ff', 4000);
       }
     } else if (state === 'vinilos' && vinilosGame) {
       vinilosGame.update(dt); vinilosGame.draw(ctx, W, H);

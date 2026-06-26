@@ -331,7 +331,7 @@ async function ask(messages, opts = {}) {
       const r = await fetch(base + '/chat/completions', {
         method: 'POST', signal: ctrl.signal,
         headers: { 'Authorization': 'Bearer ' + authKey, 'Content-Type': 'application/json', ...(direct ? { 'X-Title': 'Tormenta Solar' } : {}) },
-        body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: 120, ...(opts.user ? { user: opts.user } : {}) }),
+        body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: opts.maxTokens || 120, ...(opts.user ? { user: opts.user } : {}) }),
       });
       clearTimeout(to);
       if (r.status === 429) {
@@ -674,6 +674,45 @@ http.createServer((req, res) => {
     req.on('end', () => {
       try { const d = JSON.parse(gb || '{}'); if (Array.isArray(d.events)) for (const ev of d.events.slice(0, 50)) incGame(ev); } catch (e) {}
       res.writeHead(204); res.end();
+    });
+    return;
+  }
+  // NIVEL-AI: la "máquina de hacer chorizos". El cliente manda {theme,lang} cuando te colás a la trastienda
+  // del chino; la IA AUTORA el texto del nivel surreal (nombre + intro + frases de NPC en tonada chino-porteña).
+  // Si el modelo falla, devolvemos {} y el cliente usa SU contenido estático (mismo patrón que los bancos).
+  if (req.method === 'POST' && req.url === '/nivel-ai') {
+    let nb = '';
+    req.on('data', c => { nb += c; if (nb.length > 2000) req.destroy(); });
+    req.on('end', async () => {
+      let theme = '', lang = 'es';
+      try { ({ theme, lang } = JSON.parse(nb || '{}')); } catch (e) {}
+      theme = String(theme || '').replace(/[^a-z0-9-]/g, '').slice(0, 32);
+      const en = lang === 'en';
+      const BRIEF = {
+        'super-rasca': en ? 'a filthy run-down dive Chinese mini-market, sticky and dim' : 'un súper chino RASCA, mugriento, pegoteado y a media luz',
+        'taller-esclavo': en ? 'a clandestine sweatshop where people weave clothes in slave mode' : 'un taller clandestino donde se teje ropa en modo esclavo',
+        'comida-podrida': en ? 'a market with the cold chain broken: rotten, moldy, stinky food' : 'un mercado con la cadena de frío rota: comida podrida, con moho y olor',
+        'muralla-skate': en ? 'skateboarding down the Great Wall of China dodging stuff' : 'andar en skate por la Muralla China esquivando cosas',
+      };
+      const brief = BRIEF[theme] || BRIEF['super-rasca'];
+      const sys = en
+        ? 'You design tiny surreal comedy levels. Reply ONLY with compact JSON, no prose.'
+        : 'Diseñás mini-niveles surrealistas de comedia. Respondé SOLO con JSON compacto, sin prosa.';
+      const user = (en
+        ? 'Theme: ' + brief + '. Return JSON {"name": short funny level name (max 5 words), "intro": one short sentence, "lines": array of 6 VERY short NPC phrases (max 5 words each) in a broken Chinese-Argentine accent}.'
+        : 'Tema: ' + brief + '. Devolvé JSON {"name": nombre de nivel corto y gracioso (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC MUY cortas (máx 5 palabras c/u) en tonada chino-porteña rota}.');
+      try {
+        const { reply } = await ask([{ role: 'system', content: sys }, { role: 'user', content: user }], { maxTokens: 260 });
+        const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
+        const j = m ? JSON.parse(m[0]) : {};
+        const out = {};
+        if (j.name) out.name = String(j.name).slice(0, 60);
+        if (j.intro) out.intro = String(j.intro).slice(0, 160);
+        if (Array.isArray(j.lines) && j.lines.length) out.lines = j.lines.slice(0, 8).map(s => String(s).slice(0, 40));
+        res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
+      } catch (e) {
+        res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');   // cliente usa su fallback estático
+      }
     });
     return;
   }

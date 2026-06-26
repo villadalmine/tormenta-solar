@@ -227,6 +227,12 @@
     'g.galaga.win': '🕹️ ¡Ganaste el Galaga! +10 monedas, +20 vida.',
     'g.arcade.gameover': 'Game over. Probá de nuevo, hay monedas en juego.',
     'g.super.leave': 'Salís del super chino con los bolsillos llenos de caramelos. 🍬',
+    // --- NIVEL-AI (la trastienda del chino genera un nivel surreal) ---
+    'g.nivelai.tag': 'NIVEL GENERADO ✨',
+    'g.nivelai.goalPrompt': '✨ {label} — caminá hasta acá para volver',
+    'g.nivelai.win': '🌀 «{name}» — llegaste a la salida. Souvenir: +{reward}.',
+    'g.nivelai.flee': 'Te volvés por el portal antes de meterte en más quilombo. 🌀',
+    'g.nivelai.back': 'El portal te escupe de vuelta en lo del chino, medio mareado. 🌀',
     'g.vinilos.leave': 'Salís de la disquería. 🎵',
 
     // --- música ---
@@ -297,6 +303,7 @@
     'sup.leave.ninjas': 'Intentás rajar con {n} producto{s} SIN pagar... De la PUERTA OSCURA (donde vive la familia del chino) salen DOS NINJAS SAMURÁI 🥷🗡️ y te echan del local SIN lo que “te olvidaste” de pagar.',
     'sup.leave.front': 'Querés salir por la puerta principal... “¡Eh, solo, loco! ¿No ves que afuera está todo HASTA LA TETA? Quedate, pibe, gastá tranquilo... el chino tiene caramelos.” 🧧 → Rajá por la PUERTA SECRETA del fondo (a la cueva).',
     'sup.family': 'Chino (tapando la puerta oscura): “Acá NO, amigo. Acá vive la familia. Comprá y pagá tranquilo, ¿eh?” 🥷',
+    'sup.family.raid': 'El chino corre en pánico y la puerta oscura quedó SIN GUARDIA. Te colás a la trastienda del chino... 🚪🌀',
     'sup.hint': 'Acercate a una góndola (agarrar) o a la CAJA (pagar) y apretá E.',
     'sup.candyAngry': 'Chino, ENOJADO: “¡Chino NO comer y pagar con caramelos! ¡Caramelos NO! Pagá con monedas, amigo.” 🤬',
     // --- CAJA del chino (mini-juego de pago) ---
@@ -322,6 +329,7 @@
     'sup.prompt.gondola': '🛒 Góndola de {cat} — [E] al changuito',
     'sup.prompt.caja': '🧧 CAJA del chino — [E] PAGAR ({total} monedas, vuelto en caramelos)',
     'sup.prompt.family': '🚪 Puerta oscura — la familia del chino (no se entra)',
+    'sup.prompt.family.raid': '🚪🌀 Puerta SIN GUARDIA — [E] colarte a la trastienda del chino',
     'sup.prompt.secret': '🚪 PUERTA SECRETA — salir (¡pagá antes!)',
     'sup.prompt.exit': '↓ Salida a la calle (¡pagá antes!)',
 
