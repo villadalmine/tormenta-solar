@@ -81,7 +81,7 @@ function entities(r, ri) {
     if (m.invisible) e.lifecycle = { invisible: true };
     E.push(e);
   }
-  for (const d of r.decor || []) E.push(pos({ id: id('decor'), tipo: 'decor', render: { type: d.type } }, d.x, d.feetY));
+  for (const d of r.decor || []) { const e = pos({ id: id('decor'), tipo: 'decor', render: { type: d.type } }, d.x, d.feetY); if (d.ad) e.ad = (d.ad === true ? {} : d.ad); E.push(e); }   // cartel publicitario = componente `ad`
   for (const mc of r.machines || []) { const e = pos({ id: id('machine'), tipo: 'machine', render: { game: mc.game }, interact: { action: 'machine' } }, mc.x, mc.y); if (mc.name) e.name = mc.name; E.push(e); }
   for (const c of r.cueveros || []) { const e = pos({ id: id('cuevero'), tipo: 'cuevero', render: { sprite: c.sprite }, interact: { action: 'cuevero' } }, c.x, c.y); if (c.name) e.name = c.name; if (c.outcome) e.interact.outcome = c.outcome; if (c.to != null) e.interact.to = roomId[c.to]; if (c.dialog) e.dialogue = { text: c.dialog }; E.push(e); }
   for (const p of r.pickups || []) { const give = { item: p.type }; if (p.amount != null) give.amount = p.amount; E.push(pos({ id: id('pickup'), tipo: 'pickup', give }, p.x, p.y)); }

@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v151] — 2026-06-26 — 🧱 v2: los carteles de propaganda son un COMPONENTE (`ad`), no un regex de sala
+
+Antes la propaganda rotativa se gatillaba por **regex del nombre de la sala** (`/Cine/|/Abandonado/|calle`) =
+hardcode. Ahora cada cartel **DECLARA** que es superficie publicitaria con el componente **`ad`** (del schema),
+threadeado en el decor (level.js→gen-level→nivel-1.json→mundo→engine). El engine dibuja propaganda en `decor.ad`
+(no por nombre de sala) → la "máquina de niveles" puede poner un cartel-ad en cualquier lado. 56 carteles tagueados.
+Paridad 45 salas + schema OK + e2e×3 + web-smoke.
+
+---
+
 ## [v150] — 2026-06-26 — 🕸️ Grafo social de NPCs como DATA (conoce/rival → el chusme fluye por aristas)
 
 Las relaciones NPC↔NPC son un **componente declarativo del schema** (`entity.social`: `knows`/`rival`), threadeado de

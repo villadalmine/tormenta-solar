@@ -43,7 +43,7 @@ const Mundo = (() => {
             sells: it.sells && { ...it.sells }, x: f.x, y: f.y });
           break;
         }
-        case 'decor': room.decor.push({ type: e.render && e.render.type, x: f.x, feetY: f.y }); break;
+        case 'decor': room.decor.push({ type: e.render && e.render.type, x: f.x, feetY: f.y, ad: e.ad ? true : undefined }); break;
         case 'machine': room.machines.push({ name: e.name, game: e.render && e.render.game, x: f.x, y: f.y }); break;
         case 'cuevero': room.cueveros.push({ name: e.name, sprite: e.render && e.render.sprite, outcome: e.interact && e.interact.outcome,
           to: e.interact && e.interact.to, dialog: e.dialogue && e.dialogue.text, x: f.x, y: f.y }); break;

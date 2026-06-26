@@ -1258,7 +1258,7 @@
     for (const d of r.decor || []) {
       const img = Art.decor[d.type];
       if (img) ctx.drawImage(img, d.x - cam.x - img.width/2, d.feetY - cam.y - img.height);
-      if (img && d.type === 'cartel' && (/Cine/.test(r.name) || /Abandonado/.test(r.name) || current === 0)) drawCartelProp(d, img);   // propaganda rotativa (cine + calle + edificio abandonado)
+      if (img && d.type === 'cartel' && d.ad) drawCartelProp(d, img);   // propaganda rotativa: el cartel DECLARA que es superficie publicitaria (componente `ad`), no por regex de sala
     }
     if (/Cine/.test(r.name)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
 

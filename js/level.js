@@ -46,7 +46,7 @@ const Level = (() => {
       npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
-      decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE })),
+      decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE, ad: d.ad })),
       doors: [], doorById: {},
     };
     for (const d of spec.doors || []) {
@@ -90,7 +90,7 @@ const Level = (() => {
         ],
         decor: [
           {t:'arbol',x:7},{t:'farol',x:16},{t:'parlante',x:21},{t:'instrumentos',x:27},
-          {t:'kiosko',x:38},{t:'cartel',x:46},{t:'arbol',x:54},{t:'mesa_ajedrez',x:64},{t:'cartel',x:82},{t:'tacho',x:94},
+          {t:'kiosko',x:38},{t:'cartel',x:46,ad:true},{t:'arbol',x:54},{t:'mesa_ajedrez',x:64},{t:'cartel',x:82,ad:true},{t:'tacho',x:94},
         ],
         npcs: [
           { name:'Vecina', sprite:'civil1', x:8,  dialog:'“Ay, nene... ¿viste cómo está el dólar? Un espanto.” 🙄' },
@@ -466,7 +466,7 @@ const Level = (() => {
       // COSTADO DERECHO (zona de subida): ESCALERA de plataformas que sube de derecha a izquierda (saltás de una a
       // otra) + un premio arriba (loot) + CARTELES de propaganda abajo (rotan; incluye el link del otro juego).
       spec.platforms = (spec.platforms || []).concat([[20, 10, 3], [17, 8, 2], [14, 6, 2]]);   // 3 escalones ascendentes ←
-      spec.decor = (spec.decor || []).concat([{ t:'cartel', x:16 }, { t:'cartel', x:19 }]);    // propaganda en el hueco
+      spec.decor = (spec.decor || []).concat([{ t:'cartel', x:16, ad:true }, { t:'cartel', x:19, ad:true }]);    // propaganda (componente `ad`) en el hueco
       spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x:14.5, y:5, amount: lux ? 5 : 0 }]);  // recompensa por trepar
       rooms.push(makeRoom(spec));
     }
@@ -532,7 +532,7 @@ const Level = (() => {
     // con su pantalla (la dibuja game.js filtrando /noticias por el topic del piso) + butacas + propaganda.
     // theme 'arcade' = bg/tiles oscuros; se detecta como cine por el nombre ("Cine ...").
     const _seats = [{t:'sofa',x:6},{t:'sofa',x:9},{t:'sofa',x:12},{t:'sofa',x:15},{t:'sofa',x:7.5},{t:'sofa',x:10.5},{t:'sofa',x:13.5}];
-    const _ads = [{t:'cartel',x:2},{t:'cartel',x:20}];   // carteles de propaganda en las esquinas (no pisan la pantalla central)
+    const _ads = [{t:'cartel',x:2,ad:true},{t:'cartel',x:20,ad:true}];   // carteles de propaganda (componente `ad`) en las esquinas
     const cine1 = rooms.push(makeRoom({
       name: 'Cine Lavalle — Deportes', theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Mundo', x:20, inward:-1 }],

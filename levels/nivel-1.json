@@ -677,7 +677,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 46
+          "x": 46,
+          "ad": {}
         },
         {
           "id": "florida-y-lavalle/decor30",
@@ -701,7 +702,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 82
+          "x": 82,
+          "ad": {}
         },
         {
           "id": "florida-y-lavalle/decor33",
@@ -3249,7 +3251,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/decor9",
@@ -3257,7 +3260,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-1-lujo/pickup10",
@@ -3436,7 +3440,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-2-ruina/decor9",
@@ -3444,7 +3449,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-2-ruina/pickup10",
@@ -3606,7 +3612,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/decor9",
@@ -3614,7 +3621,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-3-lujo/pickup10",
@@ -3778,7 +3786,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-4-ruina/decor8",
@@ -3786,7 +3795,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-4-ruina/pickup9",
@@ -3948,7 +3958,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/decor9",
@@ -3956,7 +3967,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-5-lujo/pickup10",
@@ -4105,7 +4117,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-6-ruina/decor7",
@@ -4113,7 +4126,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-6-ruina/pickup8",
@@ -4275,7 +4289,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/decor9",
@@ -4283,7 +4298,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-7-lujo/pickup10",
@@ -4462,7 +4478,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-8-ruina/decor9",
@@ -4470,7 +4487,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-8-ruina/pickup10",
@@ -4632,7 +4650,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/decor9",
@@ -4640,7 +4659,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-9-lujo/pickup10",
@@ -4804,7 +4824,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-10-ruina/decor8",
@@ -4812,7 +4833,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-10-ruina/pickup9",
@@ -4974,7 +4996,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/decor9",
@@ -4982,7 +5005,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-11-lujo/pickup10",
@@ -5131,7 +5155,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-12-ruina/decor7",
@@ -5139,7 +5164,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-12-ruina/pickup8",
@@ -5301,7 +5327,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/decor9",
@@ -5309,7 +5336,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-13-lujo/pickup10",
@@ -5488,7 +5516,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-14-ruina/decor9",
@@ -5496,7 +5525,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-14-ruina/pickup10",
@@ -5658,7 +5688,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/decor9",
@@ -5666,7 +5697,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-15-lujo/pickup10",
@@ -5830,7 +5862,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-16-ruina/decor8",
@@ -5838,7 +5871,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-16-ruina/pickup9",
@@ -6000,7 +6034,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/decor9",
@@ -6008,7 +6043,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-17-lujo/pickup10",
@@ -6157,7 +6193,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-18-ruina/decor7",
@@ -6165,7 +6202,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-18-ruina/pickup8",
@@ -6347,7 +6385,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/decor11",
@@ -6355,7 +6394,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-19-lujo/pickup12",
@@ -6537,7 +6577,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 16
+          "x": 16,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-20-ruina/decor9",
@@ -6545,7 +6586,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 19
+          "x": 19,
+          "ad": {}
         },
         {
           "id": "edificio-abandonado-piso-20-ruina/pickup10",
@@ -7181,7 +7223,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 2
+          "x": 2,
+          "ad": {}
         },
         {
           "id": "cine-lavalle-deportes/decor12",
@@ -7189,7 +7232,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 20
+          "x": 20,
+          "ad": {}
         }
       ]
     },
@@ -7308,7 +7352,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 2
+          "x": 2,
+          "ad": {}
         },
         {
           "id": "cine-lavalle-mundo/decor9",
@@ -7316,7 +7361,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 20
+          "x": 20,
+          "ad": {}
         }
       ]
     },
@@ -7435,7 +7481,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 2
+          "x": 2,
+          "ad": {}
         },
         {
           "id": "cine-lavalle-tecno/decor9",
@@ -7443,7 +7490,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 20
+          "x": 20,
+          "ad": {}
         }
       ]
     },
@@ -7562,7 +7610,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 2
+          "x": 2,
+          "ad": {}
         },
         {
           "id": "cine-lavalle-finanzas/decor9",
@@ -7570,7 +7619,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 20
+          "x": 20,
+          "ad": {}
         }
       ]
     },
@@ -7689,7 +7739,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 2
+          "x": 2,
+          "ad": {}
         },
         {
           "id": "cine-lavalle-colombofilia/decor9",
@@ -7697,7 +7748,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 20
+          "x": 20,
+          "ad": {}
         }
       ]
     },
@@ -7816,7 +7868,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 2
+          "x": 2,
+          "ad": {}
         },
         {
           "id": "cine-lavalle-consolas/decor9",
@@ -7824,7 +7877,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 20
+          "x": 20,
+          "ad": {}
         }
       ]
     },
@@ -7946,7 +8000,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 2
+          "x": 2,
+          "ad": {}
         },
         {
           "id": "cine-lavalle-openrouter/decor9",
@@ -7954,7 +8009,8 @@
           "render": {
             "type": "cartel"
           },
-          "x": 20
+          "x": 20,
+          "ad": {}
         }
       ]
     }
