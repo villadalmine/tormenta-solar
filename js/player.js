@@ -36,7 +36,10 @@ const Player = (() => {
         if (this.ammo <= 0) { Sfx.empty(); this.shootCd = 0.25; return; }
         this.ammo--; this.shootCd = 0.16; this.muzzle = 0.08;
         const sx = this.x + this.w/2 + this.aim.x*18, sy = this.y + 12 + this.aim.y*18;
-        Bullets.spawn(sx, sy, this.aim.x*720, this.aim.y*720, 'player', this.spitDmg || 14);
+        // POST-TORMENTA el Carpo escupe DÓLARES (con la furia temporal): apaciguan a la gente (no matan). dollarMode lo setea game.js.
+        const kind = this.dollarMode ? 'dollar' : 'spit';
+        Bullets.spawn(sx, sy, this.aim.x*720, this.aim.y*720, 'player', this.spitDmg || 14, kind);
+        this.shots = (this.shots || 0) + 1; this.lastShot = { kind, x: sx, y: sy };   // para que las cámaras "vean" el dólar (game.js)
         Particles.spit(sx, sy, this.aim.x, this.aim.y);
         Sfx.spit();
       },

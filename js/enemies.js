@@ -42,6 +42,8 @@ const Enemies = (() => {
   function update(list, dt, room, player) {
     for (const e of list) {
       if (!e.alive) continue;
+      // APACIGUADO con dólares: se tira al piso a juntar guita, no ataca ni te jode más.
+      if (e.pacified) { e.vx = 0; if (!e.fly) Level.moveBody(e, room, dt); e.flash -= dt; e.bob += dt * 6; continue; }
       if (e.dormant && !e.hostile) continue;
       e.flash -= dt; e.bob += dt*6;
       if (!e.hostile) continue;
@@ -96,10 +98,18 @@ const Enemies = (() => {
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     }
     ctx.restore();
-    if (stormed && Math.random() < 0.5) {
+    if (stormed && !e.pacified && Math.random() < 0.5) {
       ctx.globalAlpha = 0.22;
       ctx.drawImage(frame, drawX + (Math.random()<.5?2:-2), drawY);
       ctx.globalAlpha = 1;
+    }
+    // APACIGUADO: tirado juntando billetes (💰 + signos $ flotando)
+    if (e.pacified) {
+      const hx = cx, hy = e.y - cam.y - 4;
+      ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.fillText('💰', hx, hy + Math.sin(e.bob) * 2);
+      ctx.fillStyle = '#7ee07e'; ctx.font = 'bold 9px monospace';
+      ctx.fillText('$', hx - 9 + (Math.sin(e.bob * 1.3) * 3), e.y - cam.y + e.h - 6);
+      ctx.fillText('$', hx + 9 + (Math.cos(e.bob) * 3), e.y - cam.y + e.h - 10);
     }
   }
 

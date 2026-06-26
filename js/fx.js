@@ -49,8 +49,8 @@ const Particles = (() => {
 const Bullets = (() => {
   let list = [];
   function clear() { list = []; }
-  function spawn(x, y, vx, vy, from, dmg) {
-    list.push({ x, y, vx, vy, from, dmg, life: 1.6,
+  function spawn(x, y, vx, vy, from, dmg, kind) {
+    list.push({ x, y, vx, vy, from, dmg, kind: kind || 'spit', life: 1.6, spin: Math.random() * 6.28,
       col: from === 'player' ? '#ffe14d' : '#ff5a5a' });
   }
   function hitRect(b, e) { return b.x > e.x && b.x < e.x + e.w && b.y > e.y && b.y < e.y + e.h; }
@@ -67,12 +67,17 @@ const Bullets = (() => {
       }
       if (!dead && b.from === 'player') {
         for (const e of enemies) {
-          if (!e.alive) continue;
+          if (!e.alive || e.pacified) continue;
           if (hitRect(b, e)) {
-            e.hp -= b.dmg; e.hostile = true; e.flash = 0.08;
-            Particles.burst(b.x, b.y, 6, '#a9e08a', 170, 600);
-            if (e.hp <= 0) e.die();
-            else Sfx.hit();
+            // DÓLAR contra GENTE (no voladores): la apacigua → se tira al piso a juntar y no jode más (no la mata).
+            if (b.kind === 'dollar' && !e.fly) {
+              e.pacified = true; e.hostile = false; e.vx = 0; e.flash = 0.08;
+              Particles.burst(b.x, b.y, 12, '#7ee07e', 200, 700); Sfx.pickup();
+            } else {
+              e.hp -= b.dmg; e.hostile = true; e.flash = 0.08;
+              Particles.burst(b.x, b.y, 6, b.kind === 'dollar' ? '#7ee07e' : '#a9e08a', 170, 600);
+              if (e.hp <= 0) e.die(); else Sfx.hit();
+            }
             dead = true; break;
           }
         }
@@ -86,7 +91,17 @@ const Bullets = (() => {
   function draw(ctx, cam) {
     for (const b of list) {
       const a = Math.atan2(b.vy, b.vx);
-      ctx.save(); ctx.translate(b.x - cam.x, b.y - cam.y); ctx.rotate(a);
+      ctx.save(); ctx.translate(b.x - cam.x, b.y - cam.y);
+      if (b.from === 'player' && b.kind === 'dollar') {
+        // BILLETE DE DÓLAR girando (proyectil post-tormenta)
+        ctx.rotate((b.spin || 0) + (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 90);
+        ctx.fillStyle = '#2e7d32'; ctx.fillRect(-7, -4, 14, 8);
+        ctx.fillStyle = '#1b5e20'; ctx.fillRect(-7, -4, 14, 8); ctx.fillStyle = '#3a9d3a'; ctx.fillRect(-6, -3, 12, 6);
+        ctx.fillStyle = '#dff5df'; ctx.beginPath(); ctx.arc(0, 0, 2.4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#1b5e20'; ctx.font = 'bold 4px monospace'; ctx.textAlign = 'center'; ctx.fillText('$', 0, 1.5);
+        ctx.restore(); continue;
+      }
+      ctx.rotate(a);
       if (b.from === 'player') {
         // escupitajo (gargajo)
         ctx.fillStyle = 'rgba(150,205,120,0.55)'; ctx.fillRect(-8, -1, 6, 2); // hilo de baba

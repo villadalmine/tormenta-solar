@@ -236,6 +236,9 @@
     'g.nivelai.enter': '🌀 Caés en un nivel generado: «{name}». Llegá a la SALIDA morada (→ derecha). [ESC] para volver.',
     'g.nivelai.fail': 'El portal chisporrotea y se cierra solo. Quedás en lo del chino. 🌀',
     'g.nivelai.room': '🌀 {name}',
+    // --- DÓLARES: cámaras leen la serie (real / trucha → AFIP) ---
+    'g.dollar.real': '📹 serie {s}',
+    'g.dollar.fake': '📹 {s} · TRUCHA 🚨 AFIP',
     'g.vinilos.leave': 'Salís de la disquería. 🎵',
 
     // --- música ---

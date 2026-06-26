@@ -113,6 +113,8 @@
   // NIVEL-AI en EL MOTOR REAL (rooms-swap): se guarda el juego principal, se cargan las salas generadas, y al
   // llegar a la meta (o morir/escapar) se RESTAURA todo. spinoffLevel gatea tormenta/quests/save/muerte.
   let spinoffLevel = false, spinoffSave = null, spinoffReward = null, spinoffName = '';
+  // CÁMARAS que "ven" los dólares cuando disparás (post-tormenta): burbuja con la SERIE (real o TRUCHA → AFIP).
+  let dollarBubbles = [], shotsSeen = 0;
   let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
@@ -197,6 +199,7 @@
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
+    dollarBubbles = []; shotsSeen = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
@@ -1174,6 +1177,24 @@
     for (const s of states) for (const e of s.enemies) e.hostile = true;
     setMsg(T('g.storm'), '#ff5252', 7000);
   }
+  // CÁMARAS + AFIP: cada dólar disparado genera una burbuja con su SERIE. ~35% sale TRUCHA (copia) → "llamando a AFIP".
+  function dollarSerie() { const L = 'ABCDEFGHKL'[(Math.random() * 10) | 0]; let n = ''; for (let i = 0; i < 8; i++) n += (Math.random() * 10) | 0; return L + ' ' + n; }
+  function spawnDollarBubble(x, y) {
+    const trucha = Math.random() < 0.35, serie = dollarSerie();
+    dollarBubbles.push({ x, y: y - 14, life: 2.4, trucha, text: T(trucha ? 'g.dollar.fake' : 'g.dollar.real', { s: serie }) });
+    if (dollarBubbles.length > 6) dollarBubbles.shift();
+  }
+  function updateDollarBubbles(dt) { for (let i = dollarBubbles.length - 1; i >= 0; i--) { const b = dollarBubbles[i]; b.life -= dt; b.y -= 14 * dt; if (b.life <= 0) dollarBubbles.splice(i, 1); } }
+  function drawDollarBubbles() {
+    for (const b of dollarBubbles) {
+      const a = Math.min(1, b.life / 0.6), x = b.x - cam.x, y = b.y - cam.y;
+      ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+      const w = (ctx.measureText(b.text).width || 0) + 12;
+      ctx.globalAlpha = a * 0.85; ctx.fillStyle = b.trucha ? '#3a0d0d' : '#0d2a12'; ctx.fillRect(x - w / 2, y - 11, w, 14);
+      ctx.globalAlpha = a; ctx.fillStyle = b.trucha ? '#ff7a7a' : '#9fe89f'; ctx.fillText(b.text, x, y);
+      ctx.globalAlpha = 1;
+    }
+  }
   function flash() {
     elFlash.style.background = '#fff'; elFlash.style.transition = 'none'; elFlash.style.opacity = '1';
     requestAnimationFrame(() => { elFlash.style.transition = 'opacity 1s ease-out'; elFlash.style.opacity = '0'; });
@@ -1187,7 +1208,11 @@
     const r = room(), s = st();
 
     player.stunned = performance.now() < stunUntil;
+    player.dollarMode = stormed;   // post-tormenta el Carpo escupe DÓLARES (apaciguan a la gente)
     player.update(dt, r, cam);
+    // las CÁMARAS ven cada dólar disparado → burbuja con la serie (real/trucha)
+    if ((player.shots || 0) > shotsSeen) { shotsSeen = player.shots; if (player.lastShot && player.lastShot.kind === 'dollar') spawnDollarBubble(player.lastShot.x, player.lastShot.y); }
+    updateDollarBubbles(dt);
 
     // LOOP de supervivencia: tras la tormenta la vida se gasta (SURV.decayHp cada SURV.decayEverySec s). Comé o te morís.
     // En el NIVEL-AI generado NO drena (es un nivel bonus aparte del loop de supervivencia).
@@ -1434,6 +1459,7 @@
     player.draw(ctx, cam);
     Bullets.draw(ctx, cam);
     Particles.draw(ctx, cam);
+    drawDollarBubbles();   // cámaras: serie del dólar (real/trucha → AFIP)
     // ninjas yéndose al pogo cuando Iorio toca (solo en Cemento, ~4s tras dar la falopa)
     if (current === ninjaRunRoom && time - ninjaRunT < 4.2) drawNinjaRunners(time - ninjaRunT);
     if (typeof Ads !== 'undefined') Ads.draw(ctx, current, cam, W, H);   // publicidad (capa aditiva, ver specs/publicidad.md)

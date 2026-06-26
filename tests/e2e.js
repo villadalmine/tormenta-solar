@@ -165,6 +165,34 @@ if (require.main === module) {
     return JSON.stringify(out);
   })()`, sandbox);
   JSON.parse(nivelai).forEach(f => sb.push(f));
+
+  // ---- DÓLARES: apaciguan a la GENTE (no la matan) y dañan a las MÁQUINAS (drones) ----
+  const dollar = vm.runInContext(`(() => {
+    const out = [];
+    const room = { w: 20, h: 14, map: Array.from({ length: 14 }, () => new Array(20).fill(0)) };   // sala abierta (sin sólidos)
+    const farPlayer = { alive: true, x: -9999, y: 0, w: 10, h: 10 };
+    // peatón (gente): el dólar lo APACIGUA → no muere, deja de ser hostil
+    const e = Enemies.create({ type: 'peaton', x: 5 * 32, y: 8 * 32 }); e.hostile = true;
+    Bullets.clear(); Bullets.spawn(e.x + e.w / 2, e.y + e.h / 2, 0, 0, 'player', 14, 'dollar');
+    Bullets.update(0.016, room, [e], farPlayer, () => {});
+    if (!e.pacified) out.push('FAIL dólar no apacigua a la gente');
+    if (!e.alive) out.push('FAIL dólar mató a la gente (debe apaciguar)');
+    if (e.hostile) out.push('FAIL apaciguado sigue hostil');
+    // dron (máquina): el dólar le hace DAÑO (no se apacigua)
+    const d = Enemies.create({ type: 'dron', x: 5 * 32, y: 6 * 32 }); d.hostile = true; const hp0 = d.hp;
+    Bullets.clear(); Bullets.spawn(d.x + d.w / 2, d.y + d.h / 2, 0, 0, 'player', 14, 'dollar');
+    Bullets.update(0.016, room, [d], farPlayer, () => {});
+    if (d.pacified) out.push('FAIL dólar apaciguó un dron (debe dañar)');
+    if (d.hp >= hp0) out.push('FAIL dólar no dañó al dron');
+    // el escupitajo (pre-tormenta) SÍ daña a la gente (no apacigua)
+    const e2 = Enemies.create({ type: 'peaton', x: 5 * 32, y: 8 * 32 }); e2.hostile = true; const ehp = e2.hp;
+    Bullets.clear(); Bullets.spawn(e2.x + e2.w / 2, e2.y + e2.h / 2, 0, 0, 'player', 14, 'spit');
+    Bullets.update(0.016, room, [e2], farPlayer, () => {});
+    if (e2.pacified) out.push('FAIL escupitajo apaciguó (solo el dólar apacigua)');
+    if (e2.hp >= ehp) out.push('FAIL escupitajo no dañó');
+    return JSON.stringify(out);
+  })()`, sandbox);
+  JSON.parse(dollar).forEach(f => sb.push(f));
   if (sb.length) { console.error('❌ GUARDADO:\n' + sb.join('\n')); process.exit(1); }
   console.log('✓ guardado: serialize/restore round-trip OK');
   // moverse a la derecha un toque y simular interacción

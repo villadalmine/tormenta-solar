@@ -456,10 +456,10 @@ const Art = (() => {
 
   // ---------------- PERSONAJE ----------------
   function drawHero(g, p) {
-    // 32x44, frente a la derecha. "EL CARPO": rockero linyera — pelado, barba gris, lentes oscuros,
-    // viola (guitarra) a la espalda. (Homenaje de tono a Pappo, nombre alterado.) p:{phase, air}
+    // 32x44, frente a la derecha. "EL CARPO": rockero linyera — PELO LARGO (melena), barba candado,
+    // lentes oscuros, una BIRRA en la mano y la viola a la espalda. (Homenaje de tono a Pappo, nombre alterado.) p:{phase, air}
     const cx = 16;
-    const jacket = '#3b4250', jdark = '#2a3038', pants = '#262a32', skin = '#caa078', hair = '#9a9a9a', shoe = '#15171c';
+    const jacket = '#3b4250', jdark = '#2a3038', pants = '#262a32', skin = '#caa078', hair = '#3a2c1e', shoe = '#15171c';
     let l1, l2; // pies
     if (p.air) { l1 = cx - 4; l2 = cx + 6; }
     else { const s = Math.cos(p.phase * Math.PI * 2) * 6; l1 = cx - s; l2 = cx + s; }
@@ -476,12 +476,22 @@ const Art = (() => {
     // brazo trasero (balanceo opuesto)
     const sw = p.air ? -3 : -Math.cos(p.phase * Math.PI * 2) * 4;
     line(g, 12, 17, 12 + sw, 27, 5, jdark);
-    // cabeza PELADA: pelo gris solo a los costados/atrás + barba candado
-    g.fillStyle = hair; g.beginPath(); g.arc(cx+1, 9, 6.6, Math.PI*0.35, Math.PI*1.65); g.fill();   // melena lados/atrás
-    g.fillStyle = skin; g.beginPath(); g.arc(cx+1, 8, 6, 0, Math.PI*2); g.fill();                   // cabeza (calva arriba)
-    g.fillStyle = hair; g.beginPath(); g.arc(cx+1, 11.5, 4.6, 0, Math.PI); g.fill();                // barba
-    g.fillStyle = skin; g.fillRect(cx-4, 5, 10, 4);                                                 // frente despejada
-    g.fillStyle = '#0e0e0e'; g.fillRect(cx-2, 7, 8, 2.4);                                           // lentes oscuros
+    // cabeza con MELENA (pelo largo que cae hasta los hombros) — Pappo joven
+    g.fillStyle = hair;
+    g.beginPath(); g.arc(cx+1, 7, 7.4, Math.PI*0.95, Math.PI*2.05); g.fill();   // pelo arriba (cubre toda la cabeza)
+    g.fillRect(cx-7, 6, 3.4, 13);                                               // mechón izquierdo cae
+    g.fillRect(cx+5, 6, 3.4, 13);                                              // mechón derecho cae
+    g.fillStyle = skin; g.beginPath(); g.arc(cx+1, 8, 6, 0, Math.PI*2); g.fill();   // cara
+    g.fillStyle = hair; g.beginPath(); g.arc(cx+1, 4.5, 6.4, Math.PI, 0); g.fill();  // flequillo
+    g.fillStyle = hair; g.beginPath(); g.arc(cx+1, 11.5, 4.4, 0, Math.PI); g.fill(); // barba candado
+    g.fillStyle = '#0e0e0e'; g.fillRect(cx-2, 7, 8, 2.4);                            // lentes oscuros
+    // brazo DELANTERO con una BIRRA en la mano (siempre — el Carpo no la suelta)
+    const fw = p.air ? 3 : Math.cos(p.phase * Math.PI * 2) * 2.5;
+    line(g, 20, 18, 24 + fw, 25, 5, skin);                                           // antebrazo
+    g.fillStyle = '#d4a017'; g.fillRect(23 + fw, 22, 4.5, 8);                        // lata de birra
+    g.fillStyle = '#fafafa'; g.fillRect(23 + fw, 25, 4.5, 2.4);                      // etiqueta
+    g.fillStyle = '#b71c1c'; g.fillRect(25 + fw, 22, 1.6, 8);                        // detalle rojo
+    g.fillStyle = '#e8e8e8'; g.fillRect(23.5 + fw, 21.4, 3.5, 1);                    // tapa
   }
   function heroFrames() {
     const idle = [mk(32, 44, (g) => drawHero(g, { phase: 0, air: false }))];

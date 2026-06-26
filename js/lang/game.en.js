@@ -217,6 +217,9 @@
     'g.nivelai.enter': '🌀 You drop into a generated level: "{name}". Reach the purple EXIT (→ right). [ESC] to return.',
     'g.nivelai.fail': 'The portal sparks and closes on its own. You stay at the chino\'s. 🌀',
     'g.nivelai.room': '🌀 {name}',
+    // --- DOLLARS: cameras read the serial (real / fake → AFIP) ---
+    'g.dollar.real': '📹 serial {s}',
+    'g.dollar.fake': '📹 {s} · FAKE 🚨 AFIP',
     'g.vinilos.leave': 'You leave the record shop. 🎵',
 
     'g.music.on': '♪ Music ON',

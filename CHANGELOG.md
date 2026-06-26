@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v168] — 2026-06-26 — 💵 El Carpo dispara DÓLARES (apaciguan a la gente) + Pappo melena larga + birra · cámaras/AFIP
+
+El protagonista ahora es **Pappo de verdad**: melena larga (no pelado), **birra en la mano** y viola al hombro
+(sprite `drawHero` reescrito). **Post-tormenta escupe DÓLARES** (`player.dollarMode = stormed`): contra la GENTE
+(no voladores) los **APACIGUA** — se tiran al piso a juntar billetes (`e.pacified`, 💰+$) y no te joden más (no
+mueren); contra MÁQUINAS (drones) hace daño normal. El escupitajo pre-tormenta sigue dañando. Las **cámaras** ven
+cada dólar → burbuja con la **SERIE**: ~65% real, ~35% **TRUCHA → AFIP** (es una copia). e2e cubre las 3 reglas
+del dólar + parity/playable/web-smoke OK. SDD specs/nivel-1/personajes/protagonista.md.
+
+---
+
 ## [v167] — 2026-06-26 — 🏙️ Edificio: escalera de incendios VERTICAL (no diagonal) + nivel-AI multi-sala/enemigos/decor
 
 DOS cosas. (1) **Fix edificio borrachines:** la escalera del costado dejaba de cruzar el interior en diagonal —
