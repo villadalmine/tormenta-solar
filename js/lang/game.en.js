@@ -51,6 +51,7 @@
     'g.limosna.empty': '"I already gave you what I had, kid. Come back tomorrow." 🪙',
 
     'g.armas.preStorm': '"Keep your cash, kid. With the lights still on, the electric ones do the job. Come back when it all goes to hell." 🗡️',
+    'g.armas.sellerStorm': 'The Suit 🕴️',
     'g.armas.done': '"I already armed you, criollo. Go make history." ⚔️',
     'g.armas.noCoins': '"Criollo steel ain\'t free, kid. That\'ll be {cost} coins." 🗡️',
     'g.armas.buy': 'The guy unrolls a cloth on the floor: a WHIP, BOLAS, a FACÓN knife and a Malvinas FAL rifle. "The electric ones don\'t work with the solar storm, kid. Take some real criollo steel." ⚔️🇦🇷  +40 ammo, +20 life.',

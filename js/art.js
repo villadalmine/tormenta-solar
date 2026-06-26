@@ -635,6 +635,16 @@ const Art = (() => {
       drawPerson(g, 32, 44, { skin:'#bda078', hair:'#0a0a0a', shirt:'#20242c', pants:'#14161c', eyes:'#111' });
       g.fillStyle = '#0c0c0c'; g.fillRect(7, 3, 18, 3); g.fillRect(10, 0, 12, 5); // galera
     }),
+    // post-tormenta: el vendedor se revela como un TIPO TRAJEADO siniestro (traje negro, camisa blanca, corbata
+    // roja, lentes negros, piel pálida). Da miedo. Lo swapea game.js cuando stormed (sprite 'misterioso').
+    misterioso_storm: mk(32, 44, (g) => {
+      drawPerson(g, 32, 44, { skin:'#c9c4bd', hair:'#080808', shirt:'#0b0b0e', pants:'#070709' });   // piel pálida, traje NEGRO
+      g.fillStyle = '#f4f4f4'; g.fillRect(14, 16, 4, 12);                 // camisa blanca (solapa)
+      g.fillStyle = '#b00020'; g.beginPath(); g.moveTo(16, 16); g.lineTo(14.5, 27); g.lineTo(17.5, 27); g.closePath(); g.fill();   // corbata roja
+      g.fillStyle = '#0a0a0a'; g.fillRect(9, 14, 14, 6);                  // hombreras del saco
+      g.fillStyle = '#000'; g.fillRect(11, 9, 10, 2.5);                   // lentes negros (barra)
+      g.fillStyle = 'rgba(180,0,32,0.55)'; g.fillRect(12, 9.4, 2, 1.4); g.fillRect(18, 9.4, 2, 1.4);   // brillo rojo en los lentes (siniestro)
+    }),
     tahur: mk(32, 44, (g) => {
       drawPerson(g, 32, 44, { skin:'#caa070', hair:'#1a1a1a', shirt:'#3a1d1d', pants:'#14161c', eyes:'#111' });
       g.fillStyle = '#0a0a0a'; g.fillRect(13, 9, 9, 3); // lentes

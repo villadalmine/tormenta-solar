@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v189] — 2026-06-26 — 🕴️ El vendedor de armas se REVELA post-tormenta (de tipo común a un trajeado siniestro)
+
+El misterioso (`???`) de la cueva, pre-tormenta es un tipo común. **Post-tormenta se transforma**: sprite nuevo
+`misterioso_storm` — un **trajeado siniestro** (traje negro, camisa blanca, corbata roja, lentes negros con brillo
+rojo, piel pálida) y el nombre pasa a **«El Trajeado» / "The Suit"** (en rojo). `game.js` hace el swap cuando
+`stormed` (solo el sprite `misterioso`, aditivo). e2e + web-smoke OK.
+
+---
+
 ## [v188] — 2026-06-26 — 🪜 Fix escalera edificio (parte 2): el 1er escalón hacía de PARED y te encerraba
 
 El rightward-staircase de v187 dejó el 1er escalón en y10 (2 filas sobre el piso). Como el Carpo mide ~1.25 tiles,

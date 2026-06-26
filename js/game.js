@@ -1521,9 +1521,11 @@
     // NPCs amistosos (EducaciónIT)
     for (const n of r.npcs || []) {
       if (n.invisible) continue;   // ej. el "linyera de las joyas": aparece recién al tocarlas
-      const img = Art.npc[n.sprite] || Art.npc.civil1;
+      // el vendedor de armas se REVELA post-tormenta: de tipo común (???) a un trajeado siniestro que da miedo
+      const stormSeller = stormed && n.sprite === 'misterioso';
+      const img = (stormSeller && Art.npc.misterioso_storm) || Art.npc[n.sprite] || Art.npc.civil1;
       ctx.drawImage(img, n.x - cam.x - img.width/2, n.y - cam.y - img.height);
-      label(TX(n.name), n.x - cam.x, n.y - cam.y - img.height - 4, '#aef0c0');
+      label(stormSeller ? T('g.armas.sellerStorm') : TX(n.name), n.x - cam.x, n.y - cam.y - img.height - 4, stormSeller ? '#ff5252' : '#aef0c0');
       // §9 marcador de quest: ❗ sobre el GUARDA (andá por el dato) o el HINCHA (andá a contarle)
       if (mundialQuest) {
         const wantGuarda = !mundialQuest.shown && n.action === 'guarda';

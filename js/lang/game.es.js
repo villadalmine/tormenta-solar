@@ -57,6 +57,7 @@
 
     // --- armas ---
     'g.armas.preStorm': '“Guardá la guita, pibe. Con la luz andando todavía, las eléctricas te alcanzan. Volvé cuando se pudra todo.” 🗡️',
+    'g.armas.sellerStorm': 'El Trajeado 🕴️',
     'g.armas.done': '“Ya te armé, criollo. Andá a hacer historia.” ⚔️',
     'g.armas.noCoins': '“Fierro criollo no es gratis, pibe. Son {cost} monedas.” 🗡️',
     'g.armas.buy': 'El tipo abre un trapo en el piso: REBENQUE, BOLEADORAS, FACÓN y un FAL de Malvinas. “Las eléctricas no andan con la tormenta solar, pibe. Llevate fierro criollo de verdad.” ⚔️🇦🇷  +40 munición, +20 vida.',
