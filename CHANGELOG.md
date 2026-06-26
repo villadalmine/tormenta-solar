@@ -18,10 +18,14 @@ El juego es 100% estático; se publica en
 - **Pago de la suscripción** (research hecho en `specs/pasarela-pago.md`): falta enganchar una pasarela
   (**Mollie** NL/EU · Mercado Pago/dLocal AR) → webhook → `/provision`. El entitlement por código YA está (ver
   infra-2..6). *(Métricas reales y suscripción por código: HECHO, ver entradas de abajo.)*
-- **Tiendas generadas por IA** (`specs/tiendas-generadas.md`, idea 2026-06-26): le hablás a un NPC-tienda (no
-  cuevero) y **entrás a su local**; el NPC declara el **rubro** (`tienda.tipo`) y la IA genera el interior con
-  clientela + mercadería del rubro para **browsear/comprar** (reusa la máquina de niveles, sin meta ni combate,
-  fallback estático). Diseño temprano, NO implementado.
+- **Tiendas generadas por IA** (`specs/tiendas-generadas.md`, idea 2026-06-26): le hablás a un NPC-tienda de la
+  **galería de la cueva** (sex-shop, comida rara, masajes, tenebroso) y **entrás a su local**; el NPC declara el
+  **rubro** (`tienda.tipo`) y la IA genera el interior con clientela + mercadería del rubro para **browsear/comprar**
+  (reusa la máquina de niveles, sin meta ni combate, fallback estático). Diseño temprano, NO implementado.
+- **Gate del cuevero por el truco** (`specs/cuevero-gate-truco.md`, idea 2026-06-26): el cuevero (misión principal →
+  tormenta) no vende hasta **desbaratar al tahúr** ganándole al truco (vos, o pidiendo ayuda → cadena linyera→Guido
+  que juega y gana por vos); recién con el "te perdono" del tahúr el cuevero vende y estalla la tormenta. Para que
+  no ganes de una y te pierdas todo. NO implementado.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
   interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.

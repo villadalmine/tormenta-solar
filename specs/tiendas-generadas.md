@@ -23,6 +23,11 @@ a ser un **interior generado** (data-driven, autorado por IA, validado), poblado
 con el rubro**. Reusa la maquinaria de la máquina de niveles, pero el "molde" es el **rubro de la tienda**, no un
 tema de plataformas, y el objetivo es **browsear/comprar**, no llegar a una meta.
 
+> **ALCANCE (dueño, 2026-06-26):** el target son los **locales de la GALERÍA de la cueva** — **sex-shop "El Subte"**,
+> **comida rara**, **masajes felices**, **el tenebroso** (salas 6 y 7). NO entran acá: el **chino/súper** (lógica
+> propia), **Garbarino** y **el guarda** (menús propios), ni **EducaciónIT** (marca real / chat IA). Los **cueveros**
+> tampoco (es otra cosa). O sea: las "tiendas raras" del subsuelo son las que pasan a ser **interiores generados**.
+
 ## 2. Modelo del mundo (lo que ya existe)
 
 - **NPCs-tienda actuales** (`js/level.js`, todos NO-cueveros):
@@ -108,9 +113,9 @@ tema de plataformas, y el objetivo es **browsear/comprar**, no llegar a una meta
 
 ## 7. Preguntas abiertas
 
-- **EducaciónIT (`secretaria`):** hoy es `action:'chat'` (persona IA conversacional) y ADEMÁS un local real (marca).
-  ¿Se convierte en tienda generada (cursos como "wares") o queda como chat? Propuesta: **queda como chat** (es una
-  marca real con comportamiento propio) y este sistema aplica a los **rubros ficticios**. A decidir.
+- **EducaciónIT (`secretaria`):** ✅ **RESUELTO (dueño):** queda como **chat** (marca real). NO es tienda generada.
+  Igual **Garbarino**, **el guarda** y el **chino/súper** quedan con su comportamiento propio. El sistema aplica
+  **solo a los locales raros de la galería** (sex-shop, comida rara, masajes, tenebroso). Ver ALCANCE en §1.
 - **¿Vista top-down (como Spinoff/súper) o lateral (como el nivel-AI)?** Propuesta: **top-down** (es browsear, no
   plataformear; menos riesgo de jugabilidad, no necesita `Playable`).
 - **¿El chino/súper se migra a este sistema?** Es el precedente; podría volverse `tienda:{tipo:'super-chino'}` y unificar.
