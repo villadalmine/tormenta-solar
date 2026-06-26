@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v177] — 2026-06-26 — 🛡️ Resiliencia GPU: circuit breaker (si se cae la IA, modo estático al toque, NO se cuelga) + docs
+
+Premisa del dueño: *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático"*. Agregado
+un **circuit breaker** en `js/nivelai.js`: si una llamada a `/nivel-ai` falla o tarda (timeout bajado a **6s**), se
+**abre el circuito 90s** → `requestOraculo`/`enrich` caen a **estático AL TOQUE** (sin esperar timeouts). Así un pod
+de GPU *pending* (lo que pasó) ya no "tilda" la generación. Se cierra solo cuando la GPU vuelve. (El `{}` de antes
+era justamente la GPU pending, no el código.) Docs: `specs/features-showcase.md` (§4.b resiliencia) +
+`specs/roadmap-pendientes.md` (tareas que quedan, incl. la página /info-/tech). e2e + playable + web-smoke OK.
+
+---
+
 ## [v176] — 2026-06-26 — 🪜 Fix escalera del edificio: zigzag SIN solape (el 2º bloque ya no tapa al 1º)
 
 La escalera estaba "muy junta": los escalones se solapaban en x, así que el 2º quedaba casi ENCIMA del 1º y te

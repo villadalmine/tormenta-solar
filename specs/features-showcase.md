@@ -49,6 +49,16 @@
 - **El edificio:** subís **saltando** una escalera de incendios **o** por ascensor (dos caminos); items que
   **regeneran**. **Truco** criollo real (motor puro testeado, cantos + voces). Arcade (Pac-Man/Galaga/Frogger).
 
+## 4.b RESILIENCIA: si la GPU se cae, NO se para nada → modo estático
+- **Premisa (dueño):** *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático de
+  datos"*. Toda feature de IA **degrada a estático** cuando el upstream (litellm → gemma4 en GPU/Ollama) no está.
+- **Circuit breaker (`js/nivelai.js`):** si una llamada a `/nivel-ai` falla o tarda (timeout **6s**), se **abre el
+  circuito 90s** (`aiDownUntil`) → `requestOraculo`/`enrich` caen a **estático AL TOQUE** (sin esperar timeouts).
+  Cuando la GPU vuelve, se cierra solo. Por eso un pod *pending* por GPU no "tilda" la generación de niveles.
+- **Niveles normales = síncronos** (estático + procedural); la IA solo **enriquece** el texto (fire-and-forget).
+  Solo el tema **oráculo** espera la IA — y con el breaker + fallback a tema normal, nunca cuelga.
+- **Banks + fallback** (noticias/propaganda/chusmerío) y **pool local del chat** siguen el mismo principio.
+
 ## 5. INFRA reproducible: proxy IA propio, métricas y deploy
 - **Proxy de IA propio (`ai-proxy/`, Node puro, sin deps):** cadena de modelos con **tope de latencia**, tier free
   vs **suscripción paga** (BYOK / código), ruteo por hardware (cloud/GPU/NPU). Helm + Argo CronWorkflows + kaniko.

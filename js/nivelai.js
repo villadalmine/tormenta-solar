@@ -6,6 +6,12 @@
 // specs/fabrica-niveles-ai.md.
 const NivelAI = (() => {
   const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';   // mismo proxy que ai.js/propaganda.js
+  // CIRCUIT BREAKER: si la IA (GPU/upstream) falla o tarda, ABRIMOS el circuito 90s → todas las generaciones caen
+  // a MODO ESTÁTICO al toque, sin esperar timeouts. Si la GPU se va al tacho, NO se cuelga nada. (premisa del dueño)
+  const AI_TIMEOUT = 6000, AI_COOLDOWN = 90000;
+  let aiDownUntil = 0;
+  const aiDown = () => Date.now() < aiDownUntil;
+  const markAi = ok => { aiDownUntil = ok ? 0 : Date.now() + AI_COOLDOWN; };
   const short = () => (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es';
   const L = o => (o && typeof o === 'object' && ('es' in o || 'en' in o)) ? (o[short()] || o.es) : o;
 
@@ -112,19 +118,19 @@ const NivelAI = (() => {
 
   // ----- enriquecer con IA (opcional, best-effort): el proxy /nivel-ai autora name + líneas. Fallback = estático -----
   function enrich(scene, cb) {
-    if (typeof fetch !== 'function') return;
+    if (typeof fetch !== 'function' || aiDown()) return;   // GPU caída → quedate con el texto estático del molde
     try {
-      const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 9000);
+      const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), AI_TIMEOUT);
       fetch(PROXY + '/nivel-ai', { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ theme: scene.id, lang: short() }) })
-        .then(r => { clearTimeout(to); return r.ok ? r.json() : null; })
+        .then(r => { clearTimeout(to); if (!r.ok) { markAi(false); return null; } return r.json(); })
         .then(j => {
-          if (!j) return;
+          if (!j) return; markAi(true);
           if (j.name) scene.name = j.name;
           if (j.intro) scene.intro = j.intro;
           if (Array.isArray(j.lines) && j.lines.length) for (const n of scene.npcs) n.lines = j.lines.slice();
           if (cb) cb(scene);
-        }).catch(() => {});
+        }).catch(() => { clearTimeout(to); markAi(false); });   // timeout/red → abre el circuito (modo estático 90s)
     } catch (e) {}
   }
 
@@ -197,13 +203,14 @@ const NivelAI = (() => {
   // (chats = mensajes del jugador, de oracleMem). El proxy arma el tema (name/intro/lines + ELIGE el style = layout)
   // y acá lo envolvemos en un tema ad-hoc para generateLevel. Best-effort: si falla, cb(null) → el caller usa otro.
   function requestOraculo(chats, cb) {
-    if (typeof fetch !== 'function') { cb(null); return; }
-    const ctrl = new AbortController(); const to = setTimeout(() => { ctrl.abort(); }, 11000);
+    if (typeof fetch !== 'function' || aiDown()) { cb(null); return; }   // GPU caída → fallback INSTANTÁNEO a tema normal
+    const ctrl = new AbortController(); const to = setTimeout(() => { ctrl.abort(); }, AI_TIMEOUT);
     fetch(PROXY + '/nivel-ai', { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ theme: 'oraculo', lang: short(), chats: (chats || []).slice(0, 8) }) })
-      .then(r => { clearTimeout(to); return r.ok ? r.json() : null; })
+      .then(r => { clearTimeout(to); if (!r.ok) { markAi(false); return null; } return r.json(); })
       .then(j => {
-        if (!j || !j.name) { cb(null); return; }
+        if (!j || !j.name) { if (j) markAi(true); cb(null); return; }   // {} = proxy vivo pero sin texto → no abre circuito
+        markAi(true);
         const styles = ['wall', 'aisles', 'climb'];
         const props = (typeof j.props === 'string' ? j.props.trim().split(/\s+/) : Array.isArray(j.props) ? j.props : ['🔮', '✨', '👁️', '🌀']).slice(0, 8);
         const lines = (Array.isArray(j.lines) && j.lines.length ? j.lines : ['te conozco, pibe', 'esto es por vos', 'lo pediste vos']).map(s => String(s).slice(0, 40));
@@ -215,7 +222,7 @@ const NivelAI = (() => {
           goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 },
           style: styles.indexOf(j.style) >= 0 ? j.style : 'climb', decor: ['cartel', 'caja', 'barril', 'tacho'],
         });
-      }).catch(() => { clearTimeout(to); cb(null); });
+      }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático 90s)
   }
 
   return { generate, generateLevel, enrich, requestOraculo, THEMES };
