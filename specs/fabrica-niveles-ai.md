@@ -57,11 +57,71 @@ El mismo generador sirve para **dos cosas**, y por eso vale doble:
 4. **F4 — biblioteca de tipos reusables:** "type objects" (sushiman, jefe-robot, kiosco, portal) que se instancian con
    distinto nombre/skin → "cambiar los nombres y reutilizo todo". Cada nivel = nuevo elenco, misma maquinaria.
 
+## 4.5 PRIMER CORTE JUGABLE (v162, 2026-06-26) — el generador YA se dispara in-game
+
+> **TL;DR:** te colás a la **trastienda del chino durante el RAID** → se **genera un nivel surreal temático** y lo
+> jugás. La IA del proxy autora el texto; si falla, hay **fallback estático**. Es un **sub-modo contenido** (como
+> arcade/super/vinilos): todavía NO usa el motor platformer real (eso es la F2 completa), pero cierra el lazo
+> **trigger → generar (data) → jugar → recompensa**.
+
+### A) El disparador (la experiencia)
+1. **Contexto:** Iorio toca y **abre el frente del súper** (raid). Entrás al chino → `Super.create({raid:true})`.
+2. **El chino entra en PÁNICO** y corre por todo el súper **hablando por GLOBITO** con frases cortas en su tonada
+   chino-porteña (rotan c/~1.5s): *"¿¡cómo entlas!?", "tolmenta falta", "sol loco loco", "luz no andal", "aiyaaa",
+   "ladlón ladlón"*… (`PANIC` en `super.js`, ES/EN por `I18n.short()`).
+3. **La puerta privada (`family`) queda sin guardia.** En raid, al acercarte/`[E]` te **colás a la trastienda**
+   (`sup.family.raid`) → `super.js` hace `finish('nivelai')` (su `exitTo`).
+4. `game.js` ve `superGame.exitTo === 'nivelai'` → llama **`launchNivelAI()`**.
+
+### B) El generador — `js/nivelai.js` (`window.NivelAI`)
+- **El MOLDE = `THEMES` (DATA).** Cada tema describe un nivel surreal:
+  `{ id, motif, name{es,en}, intro{es,en}, palette{floor,floor2,wall,accent}, props[emoji…], npc{emoji,lines{es,en}}, goal{es,en}, reward }`.
+  Temas v1: **`super-rasca`** (antro mugriento), **`taller-esclavo`** (sweatshop tejiendo ropa), **`comida-podrida`**
+  (cadena de frío rota), **`muralla-skate`** (la Muralla China en skate).
+- **`generate(forceId?)`** elige un tema (o el forzado, para tests) y **compone una ESCENA** (data): grilla `W×H`,
+  N props y 2-3 NPCs en tiles libres al azar, una `goal` (portal de salida), y el `reward`. Devuelve:
+  `{ id, motif, name, intro, palette, W, H, props[{x,y,emoji}], npcs[{x,y,emoji,lines[],say,sayT}], goal{x,y,label}, reward }`.
+- **`enrich(scene, cb?)`** — best-effort: `POST {PROXY}/nivel-ai {theme,lang}` → si responde, **pisa** `name/intro/lines`
+  con lo que **autora la IA**; si falla/timeout (9s), queda lo estático. (Mismo patrón "banco + fallback" que
+  propaganda/chusmerío.)
+
+### C) La escena — `js/spinoff.js` (`window.Spinoff`)
+- `Spinoff.create(scene)` = **sub-modo top-down explorable** (estilo `super.js`): `update(dt)` + `draw(ctx,VW,VH)` +
+  `done`/`exitTo`. Caminás (WASD/flechas), los NPCs tiran **globitos** temáticos, llegás a la **META (portal)** →
+  `done`, `exitTo:'back'`, y se aplica el **souvenir** (`Spinoff._reward(scene.reward)`). `ESC` = volver antes.
+- **Aislado del motor principal** (no toca quests/tormenta/save), igual que arcade/super/vinilos.
+
+### D) El cableado — `js/game.js`
+- `spinoffGame` (var, reseteada en `reset()`).
+- `launchNivelAI()`: `NivelAI.generate()` → setea `Spinoff._reward = rw => sumar al player` → `Spinoff.create(scene)`
+  → `state='spinoff'` → `NivelAI.enrich(scene)` (async) → `tel('nivelai',{theme})`.
+- En el loop: rama `state==='spinoff'` (update+draw); al `done` → `state='playing'` + `g.nivelai.back`.
+- La rama de `super` ahora bifurca: `exitTo==='nivelai'` → `launchNivelAI()`, si no, salida normal.
+
+### E) El endpoint IA — `ai-proxy/server.js` `POST /nivel-ai`
+- Body `{theme, lang}` → arma un **prompt con el brief del tema** (mapa `BRIEF` server-side) pidiendo **JSON**
+  `{name, intro, lines[6]}` (frases MUY cortas, tonada chino-porteña) → llama `ask(msgs, {maxTokens:260})` (se
+  agregó override de `max_tokens` a `ask`) → extrae el primer `{…}`, sanea longitudes → responde el JSON.
+- Si el modelo falla o no parsea → responde **`{}`** (el cliente usa su estático). CORS global ya cubre el POST.
+- Verificado en vivo: devolvió *"El Bazar del Moho"* + frases tipo *"¿Qué quere, pibe?", "Sali ya, cerrá puerta"*.
+
+### F) Cómo EXTENDER (sumar un tema nuevo)
+Editar `THEMES` en `js/nivelai.js` (un objeto más) **y** el `BRIEF` en `server.js` (una línea con la descripción para
+la IA). Nada más: el generador, la escena, el trigger y los tests ya lo toman. (Los 4 temas se testean en `tests/e2e.js`.)
+
+### G) Límite honesto de este corte
+La escena es **top-down contenida**, NO el motor **platformer** real ni `Mundo.fromModel` ni el **schema** de niveles.
+Es un **lazo end-to-end de demostración**. La **F2 completa** (historia→nivel de N salas con el motor real + validación
+contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
+
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como
   data+runtime, memoria incipiente, deploy reproducible, métricas.
+- **Demostrado (v162):** el lazo **trigger → generar (data) → jugar → recompensa** anda in-game (§4.5), con la IA del
+  proxy autorando el texto + fallback. Es un sub-modo contenido, no el motor real todavía.
 - **Falta para la "máquina":** terminar de migrar lo hardcodeado a componentes (ambient/NPCs/relaciones), el
-  **generador** (F2) y el **editor conversacional** (F3). Cada paso v2 que damos hoy **es un ladrillo de esta máquina**.
+  **generador F2 completo** (nivel de N salas con `Mundo.fromModel` + validación de schema + auditoría) y el
+  **editor conversacional** (F3). Cada paso v2 que damos hoy **es un ladrillo de esta máquina**.
 
 > Regla operativa: cada feature nueva se piensa como **"un type object / componente / dato"** para que la máquina lo
 > pueda generar mañana. (Ver SKILL regla #0.)
