@@ -320,8 +320,9 @@ async function ask(messages, opts = {}) {
     const left = deadline - Date.now();
     if (left <= 500) break;                              // sin tiempo → cortar y caer a la línea temática
     const isPaid = PAID_MODELS.has(model);
-    // modelo PAGO sin presupuesto del día → saltarlo (sub no se capa; direct va con la key del usuario)
-    if (!direct && !opts.sub && isPaid && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
+    // modelo PAGO sin presupuesto del día → saltarlo (sub no se capa; direct va con la key del usuario; gen = generación
+    // de contenido del DUEÑO —niveles/tiendas— que SIEMPRE debe caer al pago si el free falla, sin cap)
+    if (!direct && !opts.sub && !opts.gen && isPaid && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
     // free con la cuota de CUENTA agotada → no lo probamos (direct no aplica: key propia)
     if (!direct && !isPaid && Date.now() < FREE_BLOCKED_UNTIL) { incAttempt(model, 'free_blocked'); continue; }
     const slice = Math.min(left, PER_MODEL_TIMEOUT);     // tope POR modelo (deja tiempo para el siguiente)
@@ -719,7 +720,7 @@ http.createServer((req, res) => {
           ? 'A player has been chatting with hobo street-oracles. Things they said/asked: "' + ctx + '". INVENT a surreal level theme tailored to what this player seems into (wink at it). You also DESIGN THE LEVEL GEOMETRY. Return JSON {"name": short title (max 5 words), "intro": one short sentence, "lines": array of 6 very short NPC phrases, "style": one of "wall"|"aisles"|"climb", "motif": one emoji, "props": 5 emojis space-separated, "platforms": array of 3-6 [x,y,width] forming a CLIMBABLE staircase (x from 5 to 16 left-to-right, y from 10 going UP to 5, width 2-4, each step within 3 tiles of height of the previous so it is jumpable), "enemies": array of 2-4 x positions (6 to 18), "hazards": array of 0-2 [x, width, kind] where kind is "pit" (a gap to JUMP over) or "spikes" (hurts on touch), x 7 to 16, width 1-2}.'
           : 'Un jugador viene charlando con oráculos linyera. Cosas que dijo/preguntó: "' + ctx + '". INVENTÁ un tema de nivel surreal a la MEDIDA de lo que parece interesarle (guiñá a eso). También DISEÑÁS LA GEOMETRÍA del nivel. Devolvé JSON {"name": título corto (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC muy cortas, "style": uno de "wall"|"aisles"|"climb", "motif": un emoji, "props": 5 emojis separados por espacio, "platforms": array de 3-6 [x,y,ancho] que forman una ESCALERA TREPABLE (x de 5 a 16 de izquierda a derecha, y de 10 SUBIENDO hasta 5, ancho 2-4, cada escalón a no más de 3 tiles de altura del anterior para que se pueda saltar), "enemies": array de 2-4 posiciones x (6 a 18), "hazards": array de 0-2 [x, ancho, tipo] donde tipo es "pit" (hueco para SALTAR) o "spikes" (pincho que daña al tocar), x 7 a 16, ancho 1-2}.';
         try {
-          const { reply } = await ask([{ role: 'system', content: osys }, { role: 'user', content: ouser }], { maxTokens: 420 });
+          const { reply } = await ask([{ role: 'system', content: osys }, { role: 'user', content: ouser }], { maxTokens: 420, gen: true });
           const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
           const j = m ? JSON.parse(m[0]) : {};
           const out = {};
@@ -750,7 +751,7 @@ http.createServer((req, res) => {
           ? 'Shop: ' + sb + '. Return JSON {"name": short funny shop name (max 4 words), "intro": one short sentence (the vibe walking in), "lines": array of 4 VERY short customer/clerk phrases, "products": array of 5 items {"label": product name (max 4 words), "emoji": one emoji} — funny and on-theme}.'
           : 'Tienda: ' + sb + '. Devolvé JSON {"name": nombre corto y gracioso (máx 4 palabras), "intro": una frase corta (la onda al entrar), "lines": array de 4 frases MUY cortas de cliente/vendedor, "products": array de 5 ítems {"label": nombre del producto (máx 4 palabras), "emoji": un emoji} — graciosos y del rubro}.';
         try {
-          const { reply } = await ask([{ role: 'system', content: ssys }, { role: 'user', content: suser }], { maxTokens: 320 });
+          const { reply } = await ask([{ role: 'system', content: ssys }, { role: 'user', content: suser }], { maxTokens: 320, gen: true });
           const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
           const j = m ? JSON.parse(m[0]) : {};
           const out = {};
@@ -783,7 +784,7 @@ http.createServer((req, res) => {
         : 'Tema: ' + brief + '. Devolvé JSON {"name": nombre de nivel corto y gracioso (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC MUY cortas (máx 5 palabras c/u) en tonada chino-porteña rota}.')
         + (wantGeom ? GEOM_ASK : '');
       try {
-        const { reply } = await ask([{ role: 'system', content: sys }, { role: 'user', content: user }], { maxTokens: wantGeom ? 420 : 260 });
+        const { reply } = await ask([{ role: 'system', content: sys }, { role: 'user', content: user }], { maxTokens: wantGeom ? 420 : 260, gen: true });
         const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
         const j = m ? JSON.parse(m[0]) : {};
         const out = {};

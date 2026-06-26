@@ -700,6 +700,16 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 
 ---
 
+## [infra-25] — 2026-06-26 — 💸 Proxy 0.1.45: la GENERACIÓN (niveles/tiendas) cae al PAGO siempre (no se queda vacía)
+
+Bug: cuando el modelo **free** se agotaba (cupo del día), `/nivel-ai` devolvía `{}` porque el guard `paidLeft()<=0`
+**salteaba el modelo pago** → la geometría/tiendas/oráculo quedaban en estático aunque hubiera pago disponible.
+Fix: flag **`gen:true`** en las llamadas de generación (oráculo + shop + tema fijo) → la cadena prueba el free
+primero y **cae al pago de respaldo SIN cap** (es contenido del dueño, no del cupo de chat de los jugadores). El
+gasto se sigue contabilizando (`paidHit`), sólo que ya no **bloquea**. `deploy/deploy.sh proxy 0.1.45`.
+
+---
+
 ## [infra-24] — 2026-06-26 — 🛍️ Proxy 0.1.44: `/nivel-ai theme:'shop'` autora el surtido de las tiendas
 
 Redeploy del proxy (`tormenta-ai` 0.1.43 → **0.1.44**) para la rama `theme:'shop'` de `/nivel-ai`: dado un `tipo`
