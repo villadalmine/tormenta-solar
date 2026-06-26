@@ -87,11 +87,19 @@ function entities(r, ri) {
   return E;
 }
 
+// QUESTS como DATA del nivel (v2: la mecánica se compone con primitivas nombradas; la IA podrá autorar quests acá).
+// Config + nombres de hooks (onGive/onReport/onGreet/onHint); las primitivas (código) viven en game.js QUEST_PRIMS.
+const QUESTS = {
+  news:    { id: 'news',    scope: 'run', giver: 'oraculo', chance: 0.35, reward: { caramelos: 3 }, penalty: { coins: 10 }, ask: 'g.cine.questAsk', ok: 'g.cine.questOk', lie: 'g.cine.questLie', remind: 'g.cine.questRemind', onGive: 'newsGive', onReport: 'newsReport', onHint: 'newsHint' },
+  mundial: { id: 'mundial', scope: 'run', giver: 'hincha',  reward: { caramelos: 5 }, ask: 'g.mundial.pregunta', back: 'g.mundial.gracias', remind: 'g.mundial.recorda', onGreet: 'mundialGreet', onReport: 'mundialReport' },
+};
+
 const model = {
   schemaVersion: 1,
   id: 'nivel-1',
   nombre: 'Florida y Lavalle',
   seed: 'nivel-1',
+  quests: Object.values(QUESTS),   // array (lo que pide el schema); game.js lo mapea por id
   rooms: rooms.map((r, ri) => {
     const room = { id: roomId[ri], nombre: r.name, theme: r.theme, w: r.w };
     if (r.light != null) room.light = r.light;

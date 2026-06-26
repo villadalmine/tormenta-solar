@@ -48,10 +48,13 @@
   // QUESTS como DATO (migración v2, F1): registro DECLARATIVO — premios/penalidades/chance/mensajes son data, no
   // números sueltos. El runtime y la IA leen de acá; expuesto en window.Game.quests + worldSnapshot. La verificación
   // sigue siendo función (primitiva=código, componer=dato, modelo-de-entidades §6.97). Migrar a entidades+grafo = F2.
-  const QUEST_DEFS = {
+  // QUESTS = DATA DEL NIVEL (window.LEVEL1.quests, generado por gen-level → level-data.js). Fallback inline si no está.
+  // Así la "máquina de niveles" (fabrica-niveles-ai.md) puede AUTORAR quests por nivel; las primitivas (QUEST_PRIMS) son código.
+  const _qlvl = (typeof window !== 'undefined' && window.LEVEL1 && window.LEVEL1.quests) || null;
+  const QUEST_DEFS = Array.isArray(_qlvl) ? Object.fromEntries(_qlvl.map(q => [q.id, q])) : (_qlvl || {
     news:    { id:'news',    scope:'run', giver:'oraculo', chance:0.35, reward:{ caramelos:3 }, penalty:{ coins:10 }, ask:'g.cine.questAsk', ok:'g.cine.questOk', lie:'g.cine.questLie', remind:'g.cine.questRemind', onGive:'newsGive', onReport:'newsReport', onHint:'newsHint' },
     mundial: { id:'mundial', scope:'run', giver:'hincha',  reward:{ caramelos:5 }, ask:'g.mundial.pregunta', back:'g.mundial.gracias', remind:'g.mundial.recorda', onGreet:'mundialGreet', onReport:'mundialReport' },
-  };
+  });
   // aplica una recompensa/penalidad DECLARADA (data → efecto). 'coins' resta (tope al saldo); el resto suma. Devuelve lo aplicado.
   function applyReward(rw) { const out = {}; for (const k in (rw || {})) { if (k === 'coins') { const lost = Math.min(player.coins, rw.coins); player.coins -= lost; out.coins = lost; } else { player[k] = (player[k] || 0) + rw[k]; out[k] = rw[k]; } } return out; }
   // PRIMITIVAS de quest (código; el FLUJO lo decide el registro = data, §6.97). Devuelven {line} o null.

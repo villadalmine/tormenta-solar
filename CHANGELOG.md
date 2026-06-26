@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v147] — 2026-06-26 — 🧱 v2: las QUESTS son DATA DEL NIVEL (engordando el molde para la "máquina")
+
+Las quests pasaron de vivir en `game.js` a ser **data del nivel**: `gen-level.js` las emite en `levels/nivel-1.json`
+(+ `window.LEVEL1.quests`), **validadas contra el schema** (`level.schema.json`, `$defs/quest` alineado a la forma
+hook-based real). `game.js` las **lee del nivel** (array→map; fallback inline). Las primitivas (`QUEST_PRIMS`) siguen
+en código (§6.97). → un nivel puede traer SUS quests; la **máquina de niveles** (`fabrica-niveles-ai.md`) podrá
+autorarlas. Paridad 45 salas + schema OK + e2e×3 + web-smoke.
+
+---
+
 ## [v146] — 2026-06-26 — 🧩 v2 #1 (F3): quests UNIFICADAS con la pista (grafo + quests en un solo getHint)
 
 `getHint` ahora consulta primero `Quests.hintFor('oraculo')` → una quest activa es **pista de máxima prioridad**
