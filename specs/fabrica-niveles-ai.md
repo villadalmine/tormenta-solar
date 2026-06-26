@@ -127,7 +127,12 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
     puerta la tapa = **exactamente el bug del ascensor**. (No mira +3 arriba: esas son fachadas de edificios que NO
     tapan la puerta de PB; ni `GTOP-1`: ahí una puerta puede **apoyarse** sobre una plataforma —piso alto— y es OK.)
   - **R2 — spawn dentro de sólido** · **R3 — meta enterrada.**
-  - **R4 — reachability con física de salto:** futuro (¿llego a todas las puertas/objetivo saltando?).
+  - **R4 — reachability con física de salto (v180):** ✅ desde la entrada (spawn o puerta de entrada) ¿se LLEGA
+    saltando a la meta y a cada puerta? BFS de superficies "parables" (tile libre con sólido abajo): se trepa
+    ≤`JUMP_UP`=3 tiles por salto (apex real ~3.9, conservador), se cae/baja cualquier altura, saltos de hueco a
+    x±2 sólo a nivel/abajo. Calibrado para NO marcar pisos despejados (los niveles actuales tienen el piso libre →
+    meta/puertas siempre alcanzables). Es la red CLAVE para la **geometría autorada por IA**: una IA puede poner una
+    plataforma válida por R1-R3 pero IMPOSIBLE de alcanzar (un muro más alto que el salto) — R4 la caza.
 - **Prueba de regresión (`tests/playable.mjs`):** (1) el Nivel 1 real **pasa**; (2) el **viejo layout** que tapaba
   el ascensor (`[20,10,3]` + puerta en x=21) es **RECHAZADO**; (3) el layout arreglado **pasa**. Corre en CI
   (`.github/workflows/web-smoke.yml`) junto a schema + paridad.
@@ -183,8 +188,20 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   (`generateLevel` acepta objeto) → pasa la RED → rooms-swap. Carga **async** (mensaje "el oráculo te lee la
   mente…") con **fallback** a tema normal si la IA falla. Memoria del jugador → mundo generado. e2e: tema-objeto
   jugable + construible.
-- **Lo que queda (el salto grande):** que la IA autore la **GEOMETRÍA exacta** (no solo el `style`) — posiciones de
-  plataformas/enemigos/obstáculos como data validada por la RED + auto-reparación. Más tipos de obstáculo/enemigo.
+- **GEOMETRÍA AUTORADA POR LA IA (v180) — el salto grande, hecho:** la IA ya no elige solo el `style`: **autora la
+  GEOMETRÍA exacta** como DATA. En el tema **oráculo**, el proxy `/nivel-ai` pide además `"platforms"` (array de
+  `[x,y,ancho]` formando una escalera trepable) y `"enemies"` (posiciones x). El cliente las recibe como
+  `aiPlatforms`/`aiEnemies`, las **sanea liviano** (`sanitizePlatforms`/`sanitizeEnemies`: coerción a la grilla,
+  sin pisar bordes — pero **sin** garantizar jugabilidad a propósito, para que la RED trabaje de verdad) y
+  `generateLevel` las usa **por sala**: si una sala con geometría IA **no pasa la RED** (incl. **R4 reachability**),
+  se **AUTO-REPARA** cayendo al layout procedural (garantizado jugable). Así la "imaginación" de la IA llega al
+  jugador SOLO si es transitable, y si propone un muro infranqueable la red lo caza y repara — **sin colgarse ni
+  publicar un nivel roto**. Test `tests/geometria.js` (geometría buena se usa · muro infranqueable se auto-repara ·
+  basura se ignora · enemigos IA presentes). *Nota: hoy la geometría IA fluye por el path **oráculo**; los temas
+  fijos siguen procedurales (el plumbing `aiPlatforms` ya está listo para sumarlos).*
+- **Lo que queda:** más **tipos de obstáculo/enemigo** (pozos/pinches) en los generados; geometría IA también para
+  los temas fijos (hoy solo oráculo); reachability que premie/garantice los **pickups** (hoy R4 sólo exige
+  meta/puertas).
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como

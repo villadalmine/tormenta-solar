@@ -7,9 +7,12 @@
 //   R1 — puerta TAPADA: ninguna plataforma/sólido en la columna de una puerta, a la altura del cuerpo (acceso).
 //   R2 — spawn DENTRO de sólido: el jugador no aparece pisando una pared/plataforma.
 //   R3 — meta/goal ENTERRADA: el objetivo no queda dentro de un sólido.
-// (Reachability con física de salto = R4, futuro. Estas tres ya bloquean lo intransitable más común.)
+//   R4 — REACHABILITY con física de salto: desde la entrada (spawn o puerta de entrada) ¿se LLEGA saltando a la
+//        meta y a cada puerta? Esto es la red CLAVE para la geometría autorada por IA: una IA puede poner una
+//        plataforma jugable según R1-R3 pero IMPOSIBLE de alcanzar (muro más alto que el salto). (specs §4.7)
 const Playable = (() => {
   const H = 14, GTOP = H - 2;                       // mismas constantes que el motor/Mundo (alto fijo, piso en H-2)
+  const JUMP_UP = 3;                                // tiles que se trepan de UN salto (apex real ~3.9; conservador). R4.
   const ti = v => Math.round(Number(v) || 0);
 
   // grilla de SÓLIDOS de una sala (piso + bordes + plataformas) — calca Mundo.buildRoom, en tiles
@@ -21,9 +24,50 @@ const Playable = (() => {
     return map;
   }
 
+  // ----- R4: reachability con física de salto -----
+  // "Standable" = tile libre con sólido abajo (donde el jugador puede pararse). BFS de superficies alcanzables
+  // desde la entrada: se sube ≤JUMP_UP tiles de un salto; se baja/cae cualquier altura; saltos de hueco a x±2 sólo
+  // a nivel o hacia abajo (no se trepa lejos Y alto a la vez). Calibrado para NO marcar pisos despejados (los
+  // niveles actuales tienen el piso GTOP-1 libre → meta/puertas siempre alcanzables).
+  function standables(map, w) {
+    const st = {};
+    for (let x = 1; x < w - 1; x++) for (let y = 0; y < H - 1; y++)
+      if (map[y][x] === 0 && map[y + 1][x] === 1) st[x + ',' + y] = [x, y];
+    return st;
+  }
+  // primer tile donde pararse en una columna, bajando desde y0 (la meta/puerta cae hasta el piso)
+  function standAt(map, w, x, y0) {
+    for (let y = Math.max(0, y0); y < H - 1; y++) if (map[y][x] === 0 && map[y + 1][x] === 1) return y;
+    return null;
+  }
+  function reachSet(map, w, entryX) {
+    const st = standables(map, w);
+    const sy = standAt(map, w, entryX, GTOP - 1) ?? standAt(map, w, entryX, 0);
+    if (sy == null) return {};                       // sin piso en la entrada → no marcamos (evita falso positivo)
+    const seen = {}; const start = entryX + ',' + sy; seen[start] = 1; const q = [[entryX, sy]];
+    const nodes = Object.values(st);
+    while (q.length) {
+      const [x, y] = q.pop();
+      for (const [nx, ny] of nodes) {
+        const k = nx + ',' + ny; if (seen[k]) continue;
+        const dx = Math.abs(nx - x), up = y - ny;    // up>0 = sube
+        if (dx === 0 && ny === y) continue;
+        if (dx > 2 || up > JUMP_UP) continue;        // demasiado lejos o demasiado alto para un salto
+        if (dx >= 2 && up > 0) continue;             // saltos de hueco (x±2) sólo a nivel o hacia abajo
+        seen[k] = 1; q.push([nx, ny]);
+      }
+    }
+    return seen;
+  }
+
   function checkRoom(rm) {
     const probs = [], w = rm.w, map = roomGrid(rm);
     const solid = (x, y) => (y >= 0 && y < H && x >= 0 && x < w) ? map[y][x] === 1 : true;
+    // entrada de la sala: el spawn (sala 0) o la puerta de entrada (≤ x2, las del medio/derecha)
+    let entryX = 1;
+    for (const e of rm.entities || []) if (e.tipo === 'marker' && e.render && e.render.type === 'spawn') entryX = ti(e.x);
+    if (entryX === 1) for (const e of rm.entities || []) if (e.tipo === 'door' && ti(e.x) <= 2) { entryX = ti(e.x); break; }
+    const seen = reachSet(map, w, entryX);
     for (const e of rm.entities || []) {
       if (e.tipo === 'door') {
         // R1: una plataforma a la ALTURA DE LA CABEZA, en la MISMA columna de la puerta (GTOP-2), la TAPA — exactamente
@@ -32,10 +76,13 @@ const Playable = (() => {
         // Las puertas EN ALTURA (e.y declarado, ej. escalera de incendios) se apoyan sobre una plataforma → no aplica R1.
         const dx = ti(e.x), highDoor = (e.y != null && ti(e.y) < GTOP - 1);
         if (!highDoor && solid(dx, GTOP - 2)) probs.push('puerta "' + (e.id || dx) + '" TAPADA por sólido a la altura de la cabeza en (' + dx + ',' + (GTOP - 2) + ')');
+        // R4: la puerta de SALIDA (no la de entrada) debe ser alcanzable saltando desde la entrada
+        if (dx !== entryX) { const ys = standAt(map, w, dx, e.y != null ? ti(e.y) : GTOP - 1); if (ys != null && !seen[dx + ',' + ys]) probs.push('puerta "' + (e.id || dx) + '" INALCANZABLE (no se llega saltando) en x=' + dx); }
       } else if (e.tipo === 'marker' && e.render) {
         const mx = ti(e.x);
         if (e.render.type === 'spawn' && solid(mx, GTOP - 1)) probs.push('SPAWN dentro de sólido en x=' + mx);   // R2
         if (e.render.type === 'goal' && solid(mx, GTOP - 1)) probs.push('META enterrada en sólido en x=' + mx);  // R3
+        if (e.render.type === 'goal') { const ys = standAt(map, w, mx, GTOP - 1); if (ys != null && !seen[mx + ',' + ys]) probs.push('META INALCANZABLE (no se llega saltando) en x=' + mx); }  // R4
       }
     }
     return probs;

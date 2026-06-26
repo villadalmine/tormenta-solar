@@ -136,6 +136,50 @@ const NivelAI = (() => {
     } catch (e) {}
   }
 
+  // ----- GEOMETRÍA AUTORADA POR IA (la C, salto grande): sanitizar lo que propone la IA antes de construir -----
+  // La IA puede mandar plataformas/enemigos como DATA cruda (poco confiable con modelos chicos). Acá la
+  // SANEAMOS dura (clamp a límites, sin tapar puertas), y la RED (Playable, incl. R4 reachability) la valida
+  // por sala; si una sala con geometría IA no pasa, se AUTO-REPARA cayendo al layout procedural (garantizado
+  // jugable). Así la "imaginación" de la IA llega al jugador SOLO si es transitable. Ver specs/fabrica-niveles-ai.md.
+  const GTOP_C = 12;
+  // Saneo LIVIANO: coerciona a números y mete dentro de la grilla (sin pisar bordes), pero NO garantiza
+  // jugabilidad — eso lo hace la RED (Playable, incl. R4). A propósito: si clampeáramos todo a "siempre jugable",
+  // la red nunca trabajaría y la auto-reparación sería decorativa. Acá la IA SÍ puede proponer algo roto (un
+  // muro infranqueable, una plataforma que tapa la puerta) y la red lo caza → fallback procedural.
+  function sanitizePlatforms(raw, w) {
+    if (!Array.isArray(raw)) return null;
+    const out = [], seen = {};
+    for (const p of raw) {
+      let x, y, pw;
+      if (Array.isArray(p)) { x = p[0]; y = p[1]; pw = p[2]; }
+      else if (p && typeof p === 'object') { x = p.x; y = p.y; pw = p.w != null ? p.w : p.width; }
+      else continue;
+      x = Math.round(+x); y = Math.round(+y); pw = Math.round(+pw);
+      if (!isFinite(x) || !isFinite(y) || !isFinite(pw)) continue;
+      pw = Math.max(2, Math.min(6, pw || 2));
+      x = Math.max(1, Math.min(w - 3, x));                    // dentro de las paredes
+      if (x + pw > w - 1) pw = (w - 1) - x; if (pw < 2) continue;
+      y = Math.max(2, Math.min(GTOP_C - 1, y));               // de la grilla; puede llegar al piso (la RED lo juzga)
+      const k = x + ',' + y; if (seen[k]) continue; seen[k] = 1;
+      out.push([x, y, pw]);
+      if (out.length >= 10) break;
+    }
+    return out.length ? out : null;
+  }
+  function sanitizeEnemies(raw, w) {
+    if (!Array.isArray(raw)) return null;
+    const out = [];
+    for (const e of raw) {
+      let x = Array.isArray(e) ? e[0] : (e && typeof e === 'object' ? e.x : e);
+      x = Math.round(+x); if (!isFinite(x)) continue;
+      x = Math.max(6, Math.min(w - 5, x));
+      const type = (e && e.type) === 'dron' ? 'dron' : (e && e.type) === 'peaton' ? 'peaton' : null;
+      out.push({ x, type });
+      if (out.length >= 5) break;
+    }
+    return out.length ? out : null;
+  }
+
   // ----- LADRILLO 2 DE LA C: generar un NIVEL-PLATAFORMA REAL (modelo v2 que consume Mundo.fromModel) -----
   // A diferencia de `generate()` (escena top-down del Spinoff), esto produce un MODELO DE NIVEL del MOTOR REAL:
   // sala con plataformas saltables + spawn + meta + enemigos/pickups temáticos. Pasa por la RED (Playable):
@@ -152,7 +196,9 @@ const NivelAI = (() => {
     const style = t.style || 'climb';
     // PLATAFORMAS según el STYLE del tema (data) — así cada nivel se SIENTE distinto (la muralla parece muralla, etc.).
     // Siempre confinadas a x∈[5..w-6] (lejos de las columnas x=2 y x=w-3 de puertas/spawn/meta) y nunca en GTOP-1.
-    function layoutPlatforms(w) {
+    // geometría IA opcional (de requestOraculo/enrich): si el tema la trae, la usa layoutPlatforms(w, true).
+    function layoutPlatforms(w, useAi) {
+      if (useAi && t.aiPlatforms) { const s = sanitizePlatforms(t.aiPlatforms, w); if (s) return s; }   // GEOMETRÍA AUTORADA POR IA
       const P = [];
       if (style === 'wall') {
         // MURALLA: caminás por la parte de ARRIBA del muro, con almenas (sube/baja 1) y huecos cortos para saltar
@@ -168,22 +214,30 @@ const NivelAI = (() => {
       }
       return P;
     }
-    // UNA sala del nivel: i=índice, n=total. Spawn en la 1ª (izq), META en la última (der); las del medio se enlazan
-    // con puertas recíprocas (izq→sala anterior, der→sala siguiente). Plataformas saltables sin tapar puerta/spawn/meta.
-    function room(i, n) {
-      const w = style === 'wall' ? rnd(34, 42) : rnd(24, 32), id = 'sala-ai-' + i;   // la muralla es ANCHA (se recorre a lo largo)
-      const ents = [];
-      const plats = layoutPlatforms(w);
-      // marcadores / puertas
+    // Arma UNA sala dada su geometría (plats): spawn/meta + puertas recíprocas + pickups sobre plataformas +
+    // enemigos (posiciones autoradas por IA si las hay, si no aleatorias) + decor temático en el piso.
+    function assemble(i, n, w, plats) {
+      const id = 'sala-ai-' + i, ents = [];
       if (i === 0) ents.push({ id: id + '/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } });
       else ents.push({ id: id + '/door-l', tipo: 'door', x: 2, inward: 1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i - 1) } });
       if (i === n - 1) ents.push({ id: id + '/goal', tipo: 'marker', x: w - 3, render: { type: 'goal' } });
       else ents.push({ id: id + '/door-r', tipo: 'door', x: w - 3, inward: -1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i + 1) } });
-      // pickups arriba de plataformas (premio por trepar) + enemigos DESPIERTOS temáticos + decor del tema en el piso
       for (const p of plats) if (Math.random() < 0.5) ents.push({ id: id + '/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: p[1] - 1, give: { item: pick(['ammo', 'coins', 'health']), amount: rnd(3, 6) } });
-      for (let k = 0, e = rnd(1, 3); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: Math.random() < 0.5 ? 'peaton' : 'dron' } });
+      const aiEn = t.aiEnemies ? sanitizeEnemies(t.aiEnemies, w) : null;   // enemigos autorados por IA (posición/tipo) o aleatorios
+      if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || (Math.random() < 0.5 ? 'peaton' : 'dron') } }));
+      else for (let k = 0, e = rnd(1, 3); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: Math.random() < 0.5 ? 'peaton' : 'dron' } });
       for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
       return { id, nombre: L(t.name) + (n > 1 ? ' · ' + (i + 1) + '/' + n : ''), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };
+    }
+    // UNA sala: si el tema trae geometría IA, se INTENTA; si esa sala no pasa la RED (incl. R4 reachability) se
+    // AUTO-REPARA cayendo al layout procedural (garantizado jugable). Así la geometría de la IA llega sólo si sirve.
+    function room(i, n) {
+      const w = style === 'wall' ? rnd(34, 42) : rnd(24, 32);   // la muralla es ANCHA (se recorre a lo largo)
+      if (t.aiPlatforms) {
+        const r = assemble(i, n, w, layoutPlatforms(w, true));
+        if (typeof Playable === 'undefined' || Playable.checkRoom(r).length === 0) return r;
+      }
+      return assemble(i, n, w, layoutPlatforms(w, false));
     }
     function candidate() {
       const n = rnd(2, 3);                                    // 2-3 salas conectadas por puertas
@@ -216,6 +270,10 @@ const NivelAI = (() => {
         const styles = ['wall', 'aisles', 'climb'];
         const props = (typeof j.props === 'string' ? j.props.trim().split(/\s+/) : Array.isArray(j.props) ? j.props : ['🔮', '✨', '👁️', '🌀']).slice(0, 8);
         const lines = (Array.isArray(j.lines) && j.lines.length ? j.lines : ['te conozco, pibe', 'esto es por vos', 'lo pediste vos']).map(s => String(s).slice(0, 40));
+        // GEOMETRÍA autorada por la IA (opcional): si manda plataformas/enemigos, los pasamos como aiPlatforms/
+        // aiEnemies → generateLevel los sanea + valida por la RED (R4) y auto-repara si no sirven.
+        const aiPlatforms = sanitizePlatforms(j.platforms, 30);   // pre-saneo grueso; generateLevel re-sanea por ancho de sala
+        const aiEnemies = sanitizeEnemies(j.enemies, 30);
         cb({
           id: 'oraculo', motif: String(j.motif || '🔮').slice(0, 4),
           name: { es: j.name, en: j.name }, intro: { es: j.intro || '', en: j.intro || '' },
@@ -223,6 +281,7 @@ const NivelAI = (() => {
           props, npc: { emoji: '🔮', lines: { es: lines, en: lines } },
           goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 },
           style: styles.indexOf(j.style) >= 0 ? j.style : 'climb', decor: ['cartel', 'caja', 'barril', 'tacho'],
+          aiPlatforms, aiEnemies,
         });
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático 90s)
   }

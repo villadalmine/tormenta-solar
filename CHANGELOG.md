@@ -39,6 +39,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v180] — 2026-06-26 — 🏗️ La IA autora la GEOMETRÍA del nivel (no solo el tema) — validada por la RED (R4 reachability) + auto-reparación
+
+El salto grande de la "máquina de niveles": la IA ya no elige solo el `style`, **diseña la geometría** como DATA.
+En el tema **oráculo**, el proxy `/nivel-ai` ahora también devuelve `platforms` (array de `[x,y,ancho]`, una
+escalera trepable) y `enemies` (posiciones). El cliente las toma como `aiPlatforms`/`aiEnemies`, las **sanea
+liviano** (a la grilla, sin garantizar jugabilidad —a propósito— para que la red trabaje) y `generateLevel` las
+usa **por sala**. La pieza clave: **`Playable` ahora tiene R4 — reachability con física de salto** (BFS de
+superficies parables; se trepa ≤3 tiles por salto, apex real ~3.9): si una sala con geometría IA no se puede
+**recorrer hasta la meta/puertas**, se **AUTO-REPARA** cayendo al layout procedural (garantizado jugable). Así la
+imaginación de la IA llega al jugador **sólo si es transitable**; si propone un muro infranqueable, la red lo caza
+y repara — sin colgar ni publicar un nivel roto. Tests nuevos: `tests/geometria.js` (geometría buena se usa · muro
+infranqueable se auto-repara · basura se ignora · enemigos IA presentes) — en CI + `npm test`. La señal de salud
+del breaker (v179) sigue cuidando que si la GPU se cae, el oráculo cae a tema estático al toque. Docs:
+`specs/fabrica-niveles-ai.md §4.7 (R4) / §4.8 (geometría)`. *(Requiere redeploy del proxy para que el oráculo
+mande geometría; el cliente funciona igual sin él — geometría opcional con fallback.)*
+
+---
+
 ## [v179] — 2026-06-26 — 🛡️ Circuit breaker en el CHAT + señal de salud COMPARTIDA con la máquina de niveles
 
 Extendimos la resiliencia al **chat con los linyeras**. Antes, con la GPU caída, cada mensaje esperaba el

@@ -4,7 +4,7 @@
   "private": true,
   "description": "El JUEGO es 100% estático y sin dependencias; esto es solo el tooling de tests.",
   "scripts": {
-    "test": "node tests/e2e.js && node tests/breaker.js",
+    "test": "node tests/e2e.js && node tests/breaker.js && node tests/playable.mjs && node tests/geometria.js",
     "test:web": "node tests/web-smoke.mjs",
     "gen:dialogos": "node tools/gen-dialogos.mjs"
   },

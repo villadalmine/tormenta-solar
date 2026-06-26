@@ -19,12 +19,17 @@
 ## 2. La MÁQUINA DE NIVELES por IA + la RED de jugabilidad (lo más novedoso)
 - **Qué:** te colás a la trastienda del chino (en el raid) → **se GENERA un nivel** (`js/nivelai.js`) y lo corre **EL
   motor real** (rooms-swap). 7 temas surreales + uno **inventado por IA**.
-- **La RED (`js/playable.js`):** un **validador de jugabilidad** valida que el nivel sea **transitable** (puertas no
-  tapadas, spawn/meta alcanzables) ANTES de cargarlo. La IA puede proponer 100 layouts; **solo los válidos llegan**.
-  Bucle: IA propone DATOS → schema + Playable → si falla, re-pide/auto-repara → `Mundo.fromModel`.
+- **La RED (`js/playable.js`):** un **validador de jugabilidad** valida que el nivel sea **transitable** ANTES de
+  cargarlo. Reglas: **R1** puerta no tapada · **R2** spawn no enterrado · **R3** meta no enterrada · **R4
+  reachability** (BFS de superficies parables con **física de salto real** — se trepa ≤3 tiles, apex ~3.9: ¿se LLEGA
+  a la meta/puertas saltando?). La IA puede proponer 100 layouts; **solo los válidos llegan**. Bucle: IA propone
+  DATOS → schema + Playable → si falla, **auto-repara** (fallback procedural) → `Mundo.fromModel`.
   - *Anécdota mostrable:* la red **caza un bug que metió un humano** (el del ascensor) — regresión en `tests/playable.mjs`.
+- **La IA autora la GEOMETRÍA, no solo el tema:** en el oráculo, la IA diseña las **posiciones de plataformas y
+  enemigos** como DATA (`platforms`/`enemies`); la red las valida con R4 y **auto-repara** si propone un muro
+  infranqueable. Creatividad geométrica de la IA **sin niveles rotos**. Test `tests/geometria.js`.
 - **Tema "ORÁCULO" (personalizado):** la IA **inventa un nivel a tu medida** según **lo que charlaste con los
-  linyeras** (`oracleMem` → `/nivel-ai` con tus mensajes). La IA elige hasta el **`style`/layout**. Memoria → mundo.
+  linyeras** (`oracleMem` → `/nivel-ai` con tus mensajes) — name/intro/frases + **style + geometría**. Memoria → mundo.
 - **Por qué interesante:** generación procedural + IA + **validación formal** = creatividad sin niveles rotos.
   Ver `specs/fabrica-niveles-ai.md`.
 

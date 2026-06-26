@@ -693,8 +693,8 @@ http.createServer((req, res) => {
         const ctx = chats.slice(0, 8).map(s => String(s).slice(0, 120)).join(' | ') || (en ? 'we know nothing about them' : 'no sabemos nada de él');
         const osys = en ? 'You invent surreal personalized comedy levels. Reply ONLY with compact JSON.' : 'Inventás mini-niveles surrealistas y personalizados. Respondé SOLO con JSON compacto.';
         const ouser = en
-          ? 'A player has been chatting with hobo street-oracles. Things they said/asked: "' + ctx + '". INVENT a surreal level theme tailored to what this player seems into (wink at it). Return JSON {"name": short title (max 5 words), "intro": one short sentence, "lines": array of 6 very short NPC phrases, "style": one of "wall"|"aisles"|"climb", "motif": one emoji, "props": 5 emojis space-separated}.'
-          : 'Un jugador viene charlando con oráculos linyera. Cosas que dijo/preguntó: "' + ctx + '". INVENTÁ un tema de nivel surreal a la MEDIDA de lo que parece interesarle (guiñá a eso). Devolvé JSON {"name": título corto (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC muy cortas, "style": uno de "wall"|"aisles"|"climb", "motif": un emoji, "props": 5 emojis separados por espacio}.';
+          ? 'A player has been chatting with hobo street-oracles. Things they said/asked: "' + ctx + '". INVENT a surreal level theme tailored to what this player seems into (wink at it). You also DESIGN THE LEVEL GEOMETRY. Return JSON {"name": short title (max 5 words), "intro": one short sentence, "lines": array of 6 very short NPC phrases, "style": one of "wall"|"aisles"|"climb", "motif": one emoji, "props": 5 emojis space-separated, "platforms": array of 3-6 [x,y,width] forming a CLIMBABLE staircase (x from 5 to 16 left-to-right, y from 10 going UP to 5, width 2-4, each step within 3 tiles of height of the previous so it is jumpable), "enemies": array of 2-4 x positions (6 to 18)}.'
+          : 'Un jugador viene charlando con oráculos linyera. Cosas que dijo/preguntó: "' + ctx + '". INVENTÁ un tema de nivel surreal a la MEDIDA de lo que parece interesarle (guiñá a eso). También DISEÑÁS LA GEOMETRÍA del nivel. Devolvé JSON {"name": título corto (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC muy cortas, "style": uno de "wall"|"aisles"|"climb", "motif": un emoji, "props": 5 emojis separados por espacio, "platforms": array de 3-6 [x,y,ancho] que forman una ESCALERA TREPABLE (x de 5 a 16 de izquierda a derecha, y de 10 SUBIENDO hasta 5, ancho 2-4, cada escalón a no más de 3 tiles de altura del anterior para que se pueda saltar), "enemies": array de 2-4 posiciones x (6 a 18)}.';
         try {
           const { reply } = await ask([{ role: 'system', content: osys }, { role: 'user', content: ouser }], { maxTokens: 340 });
           const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
@@ -706,6 +706,17 @@ http.createServer((req, res) => {
           if (j.style) out.style = String(j.style).slice(0, 12);
           if (j.motif) out.motif = String(j.motif).slice(0, 4);
           if (j.props) out.props = String(j.props).slice(0, 60);
+          // GEOMETRÍA autorada por la IA (saneo grueso server-side; el cliente la re-valida con la RED + auto-repara)
+          if (Array.isArray(j.platforms)) {
+            const ps = j.platforms.map(p => Array.isArray(p) ? p.slice(0, 3).map(Number) : null)
+              .filter(p => p && p.every(n => isFinite(n))).slice(0, 8);
+            if (ps.length) out.platforms = ps;
+          }
+          if (Array.isArray(j.enemies)) {
+            const es = j.enemies.map(e => Array.isArray(e) ? Number(e[0]) : Number(e && e.x != null ? e.x : e))
+              .filter(n => isFinite(n)).slice(0, 5);
+            if (es.length) out.enemies = es;
+          }
           res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
         } catch (e) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); }
         return;
