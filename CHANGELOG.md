@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v148] — 2026-06-26 — 🧱 v2: `ambient` (chusmerío) como COMPONENTE declarativo del NPC
+
+Segundo ladrillo del molde de NPCs: el participar del **chusmerío** ya no es global, es un **componente del schema**
+(`entity.ambient`). Cada NPC lo declara (ej. las recepcionistas de EducaciónIT van con `ambient:false` para no
+chusmear callejero). Threadeado de punta a punta: `level.js` → `gen-level.js` → `nivel-1.json` (validado) → `mundo.js`
+→ engine (`eligibleNpcs` lee `n.ambient !== false`). La "máquina de niveles" podrá autorar el ambient por NPC.
+Paridad 45 salas + schema OK + e2e×3 + web-smoke.
+
+---
+
 ## [v147] — 2026-06-26 — 🧱 v2: las QUESTS son DATA DEL NIVEL (engordando el molde para la "máquina")
 
 Las quests pasaron de vivir en `game.js` a ser **data del nivel**: `gen-level.js` las emite en `levels/nivel-1.json`

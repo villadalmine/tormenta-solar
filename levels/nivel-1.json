@@ -885,6 +885,7 @@
             "action": "chat",
             "persona": "secretaria"
           },
+          "ambient": false,
           "fiche": "secretaria",
           "comportamiento": {
             "tormenta": "post-tormenta igual te quiere vender un curso (\"¿programación sin electricidad? eh... igual anotate\")."
@@ -1035,6 +1036,7 @@
             "action": "chat",
             "persona": "secretaria"
           },
+          "ambient": false,
           "fiche": "secretaria",
           "comportamiento": {
             "tormenta": "post-tormenta igual te quiere vender un curso (\"¿programación sin electricidad? eh... igual anotate\")."
@@ -1209,6 +1211,7 @@
             "action": "chat",
             "persona": "secretaria"
           },
+          "ambient": false,
           "fiche": "secretaria",
           "comportamiento": {
             "tormenta": "post-tormenta igual te quiere vender un curso (\"¿programación sin electricidad? eh... igual anotate\")."

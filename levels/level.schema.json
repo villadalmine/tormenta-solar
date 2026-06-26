@@ -524,6 +524,18 @@
      "type": "object",
      "additionalProperties": true,
      "description": "si es sign publicitario (§6.9 / publicidad.md)"
+    },
+    "ambient": {
+     "description": "NPCs vivos: este NPC participa del chusmerío ambiente (globitos). true/false o {voz:categoría}.",
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "object",
+       "additionalProperties": true
+      }
+     ]
     }
    }
   },

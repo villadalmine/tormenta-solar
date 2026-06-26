@@ -28,8 +28,10 @@ hablan de cosas del juego y de tu progreso ("che, me dijo el borrachín que no l
 - Render: globito sobre la cabeza del NPC (`drawBubble`, wrap a 3 líneas).
 
 ## 4. Pendiente (hacia v2 REAL — la deuda de F1)
-- **Las líneas deben salir de DATOS/API, no del pool hardcodeado en game.js:** mover `ambientPool` a un **banco
-  generado por IA** (como `linyera-pool` / un `/chusmerio`), templado con el estado. Así es contenido, no código.
+- ✅ **Las líneas salen de DATOS/API** (`/chusmerio`, banco IA en PVC) + estado derivado del `worldSnapshot`. Hecho.
+- ✅ **`ambient` es un COMPONENTE declarativo del schema** (entity.ambient): cada NPC declara si participa del
+  chusmerío (`ambient:false` para opt-out, ej. las recepcionistas). Threadeado level.js→gen-level→nivel-1.json→mundo→
+  engine (`eligibleNpcs` lee `n.ambient !== false`). La máquina de niveles podrá autorarlo por NPC.
 - **Diálogo real entre NPCs vía `Mensajero`** (agente↔agente): un oráculo le "pregunta" a otro y la respuesta sale
   del modelo (cacheada, barata), no de un pool fijo. Dos oráculos = conversación emergente.
 - **El relay (tipo 3 recibe de 1 y 2):** un grafo social de quién le contó qué a quién → el decorativo repite el

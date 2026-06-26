@@ -73,6 +73,7 @@ function entities(r, ri) {
     const it = {};
     for (const k of ['action', 'want', 'persona', 'sells', 'lines', 'hint', 'follow', 'oracle']) if (m[k] != null) it[k] = m[k];
     if (Object.keys(it).length) e.interact = it;
+    if (m.ambient != null) e.ambient = m.ambient;   // NPCs vivos: componente declarativo (chusmerío)
     if (m.persona && !m.action) e.chat = { persona: m.persona };
     if (m.persona) { e.fiche = m.persona; if (ficheTormenta[m.persona]) e.comportamiento = { tormenta: ficheTormenta[m.persona] }; }   // §6.3-3: entidad → ficha (alma/comportamiento)
     if (m.dialog) e.dialogue = { text: m.dialog };

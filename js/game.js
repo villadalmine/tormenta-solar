@@ -590,8 +590,8 @@
     if (s.quests.mundial && !s.quests.mundial.shown) L.push('hay un hincha que se muere por saber cómo salió ' + s.quests.mundial.equipo);
     return L.length ? L : ['¿no tenés un puchito, maestro?'];   // el flavor sale del banco/estático; esto es red de seguridad
   }
-  function eligibleNpcs(r) {
-    return (r.npcs || []).filter(n => { if (n.invisible || !n.name) return false; const sx = n.x - cam.x; return sx > 30 && sx < 770; });
+  function eligibleNpcs(r) {   // NPCs vivos: participa del chusmerío si el componente `ambient` no es false (declarativo)
+    return (r.npcs || []).filter(n => { if (n.invisible || !n.name || n.ambient === false) return false; const sx = n.x - cam.x; return sx > 30 && sx < 770; });
   }
   function spawnAmbient() {
     const ns = eligibleNpcs(room()); if (!ns.length) return;
