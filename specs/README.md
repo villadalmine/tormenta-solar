@@ -80,6 +80,7 @@ hace que las fichas sean componibles (y que un grafo/RAG se pueda generar autom�
 - [publicidad.md](publicidad.md) — monetización por product placement (afiches/pantallas/fachadas/góndola), capa aditiva tipo `presence` (Draft).
 - [landing-info.md](landing-info.md) — landing `/info` en GitHub Pages (presentación + redes/OG + "siempre actualizado" del CHANGELOG); protagonista = linyera excéntrico real de BA (Pechito/Dante A. Linyera) (Draft).
 - [modelo-de-entidades.md](modelo-de-entidades.md) — **modelo de objetos único + motor data-driven** ("todo es un objeto": edificio/maceta/personaje/cartel). Component + Type Object + data-driven (NO ECS), idempotencia, IA acotada + asistente GraphRAG, meta-progresión, quests (DAG), abilities, freemium, coexistencia v1/v2 por fases. **Diseño ACORDADO, listo para F1** (Draft). Schema concreto en [`levels/level.schema.json`](../levels/level.schema.json) (+ `levels/example.json`).
+- [tiendas-generadas.md](tiendas-generadas.md) — **tiendas generadas por IA**: le hablás a un NPC-tienda (NO cuevero) y **entrás a su local**; el NPC declara el **rubro** (`tienda.tipo`) y la IA genera un interior con clientela + mercadería coherentes para **browsear/comprar** (reusa la máquina de niveles, sin meta ni combate; fallback estático) (Draft, idea del dueño 2026-06-26).
 
 **Nivel 1 — sistemas**
 | Spec | Estado |
