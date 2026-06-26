@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v174] — 2026-06-26 — ✨ Generador: 3 temas nuevos (feria trucha, fábrica de petardos, karaoke mafia) + escalera del edificio más saltable
+
+Generador: **3 temas nuevos** (DATA) → `feria-trucha` (marcas truchas, aisles), `fabrica-petardos` (pólvora, climb),
+`karaoke-mafia` (KTV clandestino, aisles). Ya son **7 temas**; stress-test 350 niveles → 0 fallos de jugabilidad.
+La IA del proxy autora su texto (BRIEF en server.js). **Edificio:** la escalera de incendios se corrió pegada al
+ascensor (x17-20, casi vertical, offsets de 1 tile con solape) → ahora se salta casi derecho, como pidió el dueño.
+Playable + parity + e2e + web-smoke OK.
+
+---
+
 ## [v173] — 2026-06-26 — 🏢 Edificio rediseñado (ascensores juntos + escalera al costado saltable + items que regeneran) + cámaras visibles
 
 Según el feedback: el piso ahora tiene **los muebles a la izquierda (x3-12) intactos**, los **DOS ASCENSORES juntos**

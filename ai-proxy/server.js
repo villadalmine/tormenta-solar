@@ -693,6 +693,9 @@ http.createServer((req, res) => {
         'taller-esclavo': en ? 'a clandestine sweatshop where people weave clothes in slave mode' : 'un taller clandestino donde se teje ropa en modo esclavo',
         'comida-podrida': en ? 'a market with the cold chain broken: rotten, moldy, stinky food' : 'un mercado con la cadena de frío rota: comida podrida, con moho y olor',
         'muralla-skate': en ? 'skateboarding down the Great Wall of China dodging stuff' : 'andar en skate por la Muralla China esquivando cosas',
+        'feria-trucha': en ? 'a mega knockoff/counterfeit fair (fake brands, bags, sneakers)' : 'una mega-feria de marcas truchas (carteras, championes, copias)',
+        'fabrica-petardos': en ? 'a clandestine fireworks/gunpowder warehouse' : 'una fábrica clandestina de petardos y pólvora',
+        'karaoke-mafia': en ? 'an underground mafia KTV karaoke with private rooms' : 'un karaoke KTV clandestino de la mafia con reservados',
       };
       const brief = BRIEF[theme] || BRIEF['super-rasca'];
       const sys = en

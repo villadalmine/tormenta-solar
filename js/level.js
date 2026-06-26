@@ -433,7 +433,7 @@ const Level = (() => {
       const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar (ascensor)', x:14, inward:1 }];
       if (n < 20) {
         doors.push({ id:'up', art:'elevator', label:'subir (ascensor)', x:16, inward:-1 });                               // ASCENSORES JUNTOS (x14 bajar · x16 subir)
-        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:20, y:2, inward:-1 });        // ESCALERA: puerta ARRIBA del zigzag (sobre el escalón [19,2,3]), al costado
+        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:19, y:2, inward:-1 });        // ESCALERA: puerta ARRIBA del zigzag (sobre el escalón [18,2,3])
       }
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
       if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1, gate:{ flag:'bunkerUnlocked' } });
@@ -481,8 +481,9 @@ const Level = (() => {
       // Carpo salta ~3.9) hasta la puerta 'up-stairs' (x21,y2). NO toca los muebles (x3..12) ni los ascensores (x14/16).
       // Las plataformas vienen LLENAS de items que se REGENERAN (los pisos del edificio respawnean, ver game.js).
       if (n < 20) {
-        // pasos ANCHOS (3) con SOLAPE en x20, 2 de alto → saltás casi derecho, muy perdonador. Confinado x18..22.
-        const steps = [[20, 10, 3], [18, 8, 3], [20, 6, 3], [18, 4, 3], [19, 2, 3]];
+        // ESCALERA compacta pegada al ascensor (arranca en x17, JUSTO al lado del ascensor x16 sin pisarlo) y sube
+        // casi VERTICAL: offsets de 1 tile, pasos anchos (3) con mucho solape, 2 de alto → se salta casi derecho.
+        const steps = [[17, 10, 3], [18, 8, 3], [17, 6, 3], [18, 4, 3], [18, 2, 3]];
         spec.platforms = (spec.platforms || []).concat(steps);
         spec.pickups = spec.pickups || [];
         const loot = ['coins', 'ammo', 'health', 'coins', 'ammo'];
