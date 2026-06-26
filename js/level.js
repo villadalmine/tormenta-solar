@@ -433,7 +433,7 @@ const Level = (() => {
       const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar (ascensor)', x:14, inward:1 }];
       if (n < 20) {
         doors.push({ id:'up', art:'elevator', label:'subir (ascensor)', x:16, inward:-1 });                               // ASCENSORES JUNTOS (x14 bajar · x16 subir)
-        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:19, y:2, inward:-1 });        // ESCALERA: puerta ARRIBA del zigzag (sobre el escalón [18,2,3])
+        doors.push({ id:'up-stairs', art:'exit', label:'subir por la ESCALERA (saltando)', x:21, y:4, inward:-1 });        // ESCALERA: puerta ARRIBA-DERECHA, sobre el último escalón (x21,y6)
       }
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
       if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1, gate:{ flag:'bunkerUnlocked' } });
@@ -441,14 +441,16 @@ const Level = (() => {
         theme: lux ? 'lujo' : 'ruina', tags:['edificio'], light: lux ? 1.0 : 0.42, w, doors };
       if (lux) {
         // depto de lujo: moda, cocina, baño, living con tele, joyas y un maletín con dólares
+        // joyas/maletín CORRIDOS a la izquierda (≤x11.4): lejos del ascensor de BAJAR (x14) para que su trigger
+        // tenga zona de interacción PROPIA (si no, parado en el maletín el ascensor te gana y bajás en vez de agarrar).
         spec.decor = [
           {t:'maniqui',x:3.4}, {t:'cocina',x:4.8}, {t:'bano',x:6.6},
-          {t:'sofa',x:8.6}, {t:'tvplasma',x:10.1}, {t:'joyas',x:11.4}, {t:'maletin',x:12.4},
+          {t:'sofa',x:8.4}, {t:'tvplasma',x:9.7}, {t:'joyas',x:10.6}, {t:'maletin',x:11.4},
         ];
         // UN solo punto interactivo sobre las joyas/maletín (trigger invisible sobre el decor):
         // pre-tormenta toca las joyas → el linyera te raja; post-tormenta abrís el cajón → falopa.
         spec.npcs = [
-          { name:'', sprite:'linyera', invisible:true, x:11.9, action:'lujo', lines: LINYERA_LINES },
+          { name:'', sprite:'linyera', invisible:true, x:11.0, action:'lujo', lines: LINYERA_LINES },
         ];
         spec.pickups = [{t:'coins',x:7,amount:6}];
         // PISO 19: además, el TÓTEM sagrado de 3 monos (abre el búnker del piso 20)
@@ -477,16 +479,15 @@ const Level = (() => {
         }
         spec.pickups = [{t:'health',x:8}];
       }
-      // ESCALERA DE INCENDIOS bien al COSTADO derecho (x18..22): zigzag x18↔x21 (saltás 3 de ancho / 2 de alto; el
-      // Carpo salta ~3.9) hasta la puerta 'up-stairs' (x21,y2). NO toca los muebles (x3..12) ni los ascensores (x14/16).
-      // Las plataformas vienen LLENAS de items que se REGENERAN (los pisos del edificio respawnean, ver game.js).
+      // ESCALERA DE INCENDIOS al COSTADO derecho (x17..22). Sube SIEMPRE A LA DERECHA (17→19→21), NO zigzag: así
+      // ningún escalón queda ENCIMA de otro (en un zigzag de 2 columnas el 3er bloque cae sobre el 1ero, 4 filas
+      // arriba = el apex del salto → te choca la cabeza). Cada salto (2 de alto, 2 al costado) tiene AIRE LIBRE
+      // arriba. La puerta 'up-stairs' está sobre el último escalón (x21,y6 → puerta x21,y4). NO toca muebles ni ascensores.
       if (n < 20) {
-        // ESCALERA (5 bloques) en ZIGZAG SIN SOLAPE: cada escalón va al COSTADO del anterior (no ENCIMA), así no te
-        // tapa la cabeza y saltás libre (2 de alto, al lado). Alterna x17↔x19, al costado del ascensor (x16) sin pisarlo.
-        const steps = [[17, 10, 2], [19, 8, 2], [17, 6, 2], [19, 4, 2], [18, 2, 3]];
+        const steps = [[17, 10, 2], [19, 8, 2], [21, 6, 2]];
         spec.platforms = (spec.platforms || []).concat(steps);
         spec.pickups = spec.pickups || [];
-        const loot = ['coins', 'ammo', 'health', 'coins', 'ammo'];
+        const loot = ['coins', 'ammo', 'health'];
         steps.forEach((s, k) => spec.pickups.push({ t: loot[k], x: s[0] + s[2] / 2, y: s[1] - 1, amount: loot[k] === 'health' ? 0 : (loot[k] === 'coins' ? 3 : 5) }));
       }
       rooms.push(makeRoom(spec));

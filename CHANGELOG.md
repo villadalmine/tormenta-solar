@@ -39,6 +39,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v187] — 2026-06-26 — 🏚️ Fix edificio borrachines: el cajón de la falopa + la escalera de incendios (2 bugs del rework de ascensores)
+
+Dos regresiones que dejó el rework de los ascensores del edificio (cuando pasó de ancho 17 a 24):
+- **Cajón de la falopa "perdido":** el trigger del cajón (joyas/maletín, post-tormenta da falopa para Iorio) había
+  quedado en x11.9, **pegado al ascensor de BAJAR (x14)**. Como en `nearestInteract` las **puertas se evalúan antes
+  que los NPC**, al pararte en el maletín ganaba el ascensor → apretabas **E y bajabas** en vez de agarrar la falopa.
+  Corrido el cajón (joyas/maletín + trigger) **a la izquierda** (≤x11.4) → tiene zona de interacción propia.
+- **Escalera intransitable:** era un **zigzag de 2 columnas** (x17↔x19), así que el **3er escalón caía justo encima
+  del 1ero** (misma columna, 4 filas arriba = el apex del salto) → al saltar del 1ero **la cabeza chocaba el 3ero**.
+  Rehecha como **escalera en una sola dirección** (17→19→21, 3 escalones) con la puerta arriba a la derecha: ningún
+  escalón queda sobre otro, todos los saltos tienen aire libre. (R4 no modela el techo/cabeza — por eso no lo cazó.)
+- Regenerado `js/level-data.js` (v2) → **paridad v1≡v2 OK**. e2e + playable + web-smoke verdes.
+
+---
+
 ## [v186] — 2026-06-26 — 📣 Primera marca REAL en la publicidad (EducaciónIT) + intro: tecla P y el súper chino
 
 - **Publicidad — 1ª marca real:** `ads/manifest.json` deja de ser 100% ficticio. **EducaciónIT** (instituto de
