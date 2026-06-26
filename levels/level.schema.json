@@ -60,6 +60,14 @@
       "sleepCoinKeepMin": { "type": "number" },
       "sleepCoinKeepMax": { "type": "number" }
      }
+    },
+    "player": {
+     "type": "object",
+     "properties": { "maxHp": { "type": "number" } }
+    },
+    "combat": {
+     "type": "object",
+     "properties": { "trucoLosePenalty": { "type": "number" } }
     }
    }
   },

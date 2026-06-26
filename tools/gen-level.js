@@ -100,6 +100,8 @@ const QUESTS = {
 // game.js. La máquina de niveles podrá ajustar dificultad por nivel sin tocar el motor. Fallback inline = v1.
 const RULES = {
   survival: { decayEverySec: 30, decayHp: 3, fullHp: 100, sleepCoinKeepMin: 0.3, sleepCoinKeepMax: 0.7 },
+  player: { maxHp: 100 },                  // tope de vida (las curaciones nunca lo pasan)
+  combat: { trucoLosePenalty: 25 },        // lo que te saca perder el truco
 };
 
 const model = {

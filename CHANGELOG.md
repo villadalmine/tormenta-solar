@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v159] — 2026-06-26 — 🧱 v2: tope de vida y castigo de truco como rules (sigue el barrido de balance)
+
+Más números de balance salen de `game.js` hacia `rules`: el **tope de vida** (`rules.player.maxHp`, hardcodeado
+en 7 sitios como `Math.min(100, …)`) y el **castigo de perder el truco** (`rules.combat.trucoLosePenalty`, ex
+`-25`). Leídos por el motor con fallback inline = v1. Misma tubería que `rules.survival`
+(gen-level→nivel-1.json→schema). La máquina de niveles ajusta dureza por nivel sin tocar el motor.
+Schema + parity v1≡v2 + e2e×3 + web-smoke OK.
+
+---
+
 ## [v158] — 2026-06-26 — 🧱 v2: el loop de supervivencia como REGLAS de DATA (no magic-numbers)
 
 Los números del **loop post-tormenta** dejaron de estar hardcodeados en `game.js`: ahora son **`rules.survival`

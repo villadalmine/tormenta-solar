@@ -10,6 +10,12 @@
       "fullHp": 100,
       "sleepCoinKeepMin": 0.3,
       "sleepCoinKeepMax": 0.7
+    },
+    "player": {
+      "maxHp": 100
+    },
+    "combat": {
+      "trucoLosePenalty": 25
     }
   },
   "quests": [

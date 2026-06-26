@@ -118,11 +118,13 @@
   let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
-  // REGLAS del loop de supervivencia como DATA (§6.97): el motor las compone, el nivel las declara
-  // (window.LEVEL1.rules.survival). La máquina de niveles podrá ajustar dificultad sin tocar código.
-  // Fallback inline = los números de v1 (drena -3 hp/30s; al dormir/revivir hp full; conserva 30-70% monedas).
-  const SURV = Object.assign({ decayEverySec: 30, decayHp: 3, fullHp: 100, sleepCoinKeepMin: 0.3, sleepCoinKeepMax: 0.7 },
-    (typeof window !== 'undefined' && window.LEVEL1 && window.LEVEL1.rules && window.LEVEL1.rules.survival) || {});
+  // REGLAS del nivel como DATA (§6.97): el motor las compone, el nivel las declara (window.LEVEL1.rules).
+  // La máquina de niveles podrá ajustar dificultad sin tocar código. Fallback inline = los números de v1.
+  const RULES = (typeof window !== 'undefined' && window.LEVEL1 && window.LEVEL1.rules) || {};
+  // supervivencia: drena -3 hp/30s; al dormir/revivir hp full; conserva 30-70% monedas.
+  const SURV = Object.assign({ decayEverySec: 30, decayHp: 3, fullHp: 100, sleepCoinKeepMin: 0.3, sleepCoinKeepMax: 0.7 }, RULES.survival || {});
+  const MAXHP = (RULES.player && RULES.player.maxHp) || 100;                 // tope de vida (curaciones nunca pasan de acá)
+  const TRUCO_LOSE = (RULES.combat && RULES.combat.trucoLosePenalty) || 25;   // lo que te saca perder el truco
   let trucoWon = false;                             // ganar el truco abre una puerta al chino (se consume al cruzar)
   let trucoEverWon = false;                          // ¿alguna vez le ganaste al tahúr? (para el HITO; NO se consume)
   let armado = false;                               // espejo de n.armado: compraste fierro criollo (lo lee el grafo de historia)
@@ -751,7 +753,7 @@
     const cost = 15;
     if (player.coins < cost) { setMsg(T('g.armas.noCoins', { cost }), '#ff5252', 4000); Sfx.empty(); return; }
     player.coins -= cost; n.armado = true; applyEdge('armas', 'armado');
-    player.ammo += 40; player.hp = Math.min(100, player.hp + 20);
+    player.ammo += 40; player.hp = Math.min(MAXHP, player.hp + 20);
     setMsg(T('g.armas.buy'), '#7CFC00', 7500);
   }
   function handleLujo(n) {
@@ -825,8 +827,8 @@
     sh.stock--;
     let txt;
     if (sh.kind === 'ammo') { player.ammo += sh.amount; txt = T('g.shop.ammo', { n: sh.amount }); }
-    else if (sh.kind === 'health') { player.hp = Math.min(100, player.hp + sh.amount); txt = T('g.shop.health', { n: sh.amount }); }
-    else { player.ammo += 30; player.hp = Math.min(100, player.hp + 25); txt = T('g.shop.amuleto'); }
+    else if (sh.kind === 'health') { player.hp = Math.min(MAXHP, player.hp + sh.amount); txt = T('g.shop.health', { n: sh.amount }); }
+    else { player.ammo += 30; player.hp = Math.min(MAXHP, player.hp + 25); txt = T('g.shop.amuleto'); }
     setMsg(T('g.shop.bought', { txt, cost: sh.cost, cur }), '#7CFC00', 3500); Sfx.pickup();
   }
   function machinePrice(m) { return 3 + (m.plays || 0) * 3; }
@@ -866,7 +868,7 @@
   }
   function redeemChori() {
     if (hasVale) {
-      hasVale = false; player.hp = Math.min(100, player.hp + 40);
+      hasVale = false; player.hp = Math.min(MAXHP, player.hp + 40);
       setMsg(T('g.chori.eat'), '#7CFC00', 3500); Sfx.pickup();
     } else {
       setMsg(T('g.chori.noVale'), '#FFD54F', 4500);
@@ -1139,7 +1141,7 @@
         p.taken = true; Sfx.pickup();
         if (p.type === 'ammo') { player.ammo += p.amount; setMsg(T('g.shop.ammo', { n: p.amount }), '#FFD54F', 1100); }
         else if (p.type === 'coins') { player.coins += p.amount; setMsg(T('g.shop.coins', { n: p.amount }), '#FFC107', 1100); }
-        else { player.hp = Math.min(100, player.hp + p.amount); setMsg(T('g.shop.health', { n: p.amount }), '#7CFC00', 1100); }
+        else { player.hp = Math.min(MAXHP, player.hp + p.amount); setMsg(T('g.shop.health', { n: p.amount }), '#7CFC00', 1100); }
       }
     }
     // cumbia del músico: suena cuando pasás cerca (y antes de la tormenta)
@@ -1550,7 +1552,7 @@
             applyEdge('truco', 'trucoWon'); trucoEverWon = true;   // abre la puerta (se consume) + marca el hito (permanente)
             setMsg(T('g.truco.win', { n: robbed }), '#ff5252', 7000);
           }
-          else { player.hp = Math.max(1, player.hp - 25); setMsg(T('g.truco.lose'), '#ff5252', 6800); }
+          else { player.hp = Math.max(1, player.hp - TRUCO_LOSE); setMsg(T('g.truco.lose'), '#ff5252', 6800); }
         } else if (kind === 'frogger' && challengeForVale) {
           if (res === 'win') { hasVale = true; setMsg(T('g.frogger.valeWin'), '#7CFC00', 6000); }
           else setMsg(T('g.frogger.valeLose'), '#ff5252', 4000);
@@ -1561,7 +1563,7 @@
         } else if (res === 'win') { // pac-man / galaga
           player.coins += 10;
           if (kind === 'pacman') { player.ammo += 6; setMsg(T('g.pacman.win'), '#7CFC00', 4000); }
-          else { player.hp = Math.min(100, player.hp + 20); setMsg(T('g.galaga.win'), '#7CFC00', 4000); }
+          else { player.hp = Math.min(MAXHP, player.hp + 20); setMsg(T('g.galaga.win'), '#7CFC00', 4000); }
         } else setMsg(T('g.arcade.gameover'), '#9fd3ff', 2800);
         checkSecret();
       }
