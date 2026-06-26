@@ -39,6 +39,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v169] — 2026-06-26 — 🤖 Robots leen la serie del dólar (buena=legal, no te ven / trucha=te disparan) + orígenes + DÓLARES como DATA
+
+Iteración sobre el dólar. Las **personas no detectan nada** (solo se apaciguan); los **ROBOTS/cámaras** sí: leen
+la SERIE de cada dólar. **Serie BUENA = legal** → los drones NO te ven unos segundos (derivan sin disparar);
+**serie TRUCHA = ilegal** → te siguen disparando. La burbuja **siempre** dice "serie buena/trucha {número}" + a
+veces 2ª línea: 🚨 AFIP u **origen detectado** (cueva Florida/Lavalle, valija de Kristina, venta de armas, estafa
+de la AFA, drogas del cartel, venta ilegal, Monopoly). **v2:** el mecanismo es código (primitiva), pero el
+CONTENIDO (truchaChance, blindMs, lista de orígenes) pasó a **`rules.dollars` (DATA)** — autorable por la máquina
+de niveles (gen-level→schema). e2e: dron ciego no dispara / no-ciego sí + parity/playable/web-smoke OK.
+
+---
+
 ## [v168] — 2026-06-26 — 💵 El Carpo dispara DÓLARES (apaciguan a la gente) + Pappo melena larga + birra · cámaras/AFIP
 
 El protagonista ahora es **Pappo de verdad**: melena larga (no pelado), **birra en la mano** y viola al hombro

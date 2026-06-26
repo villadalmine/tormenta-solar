@@ -236,9 +236,17 @@
     'g.nivelai.enter': '🌀 Caés en un nivel generado: «{name}». Llegá a la SALIDA morada (→ derecha). [ESC] para volver.',
     'g.nivelai.fail': 'El portal chisporrotea y se cierra solo. Quedás en lo del chino. 🌀',
     'g.nivelai.room': '🌀 {name}',
-    // --- DÓLARES: cámaras leen la serie (real / trucha → AFIP) ---
-    'g.dollar.real': '📹 serie {s}',
-    'g.dollar.fake': '📹 {s} · TRUCHA 🚨 AFIP',
+    // --- DÓLARES: las cámaras leen la SERIE (siempre buena o trucha + número) + a veces el ORIGEN ---
+    'g.dollar.real': '📹 serie buena {s}',
+    'g.dollar.fake': '📹 serie trucha {s}',
+    'g.dollar.afip': '🚨 llamando a la AFIP',
+    'g.dollar.o.cueva': '📍 origen: cueva {n} Florida/Lavalle',
+    'g.dollar.o.valija': '📍 origen: valija de Kristina',
+    'g.dollar.o.armas': '📍 origen: venta de armas',
+    'g.dollar.o.afa': '📍 origen: estafa de la AFA',
+    'g.dollar.o.cartel': '📍 origen: drogas del cartel',
+    'g.dollar.o.ilegal': '📍 origen: venta ilegal',
+    'g.dollar.o.monopoly': '📍 origen: Monopoly',
     'g.vinilos.leave': 'Salís de la disquería. 🎵',
 
     // --- música ---

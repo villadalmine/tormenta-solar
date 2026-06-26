@@ -102,6 +102,9 @@ const RULES = {
   survival: { decayEverySec: 30, decayHp: 3, fullHp: 100, sleepCoinKeepMin: 0.3, sleepCoinKeepMax: 0.7 },
   player: { maxHp: 100 },                  // tope de vida (las curaciones nunca lo pasan)
   combat: { trucoLosePenalty: 25 },        // lo que te saca perder el truco
+  // dólares (post-tormenta): el MECANISMO es código, el CONTENIDO es DATA (orígenes detectados, % trucha, ceguera)
+  dollars: { truchaChance: 0.4, blindMs: 4000,
+    origins: ['g.dollar.o.cueva', 'g.dollar.o.valija', 'g.dollar.o.armas', 'g.dollar.o.afa', 'g.dollar.o.cartel', 'g.dollar.o.ilegal', 'g.dollar.o.monopoly'] },
 };
 
 const model = {

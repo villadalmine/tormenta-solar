@@ -217,9 +217,17 @@
     'g.nivelai.enter': '🌀 You drop into a generated level: "{name}". Reach the purple EXIT (→ right). [ESC] to return.',
     'g.nivelai.fail': 'The portal sparks and closes on its own. You stay at the chino\'s. 🌀',
     'g.nivelai.room': '🌀 {name}',
-    // --- DOLLARS: cameras read the serial (real / fake → AFIP) ---
-    'g.dollar.real': '📹 serial {s}',
-    'g.dollar.fake': '📹 {s} · FAKE 🚨 AFIP',
+    // --- DOLLARS: cameras read the SERIAL (always good or fake + number) + sometimes the ORIGIN ---
+    'g.dollar.real': '📹 good serial {s}',
+    'g.dollar.fake': '📹 fake serial {s}',
+    'g.dollar.afip': '🚨 calling the AFIP (tax office)',
+    'g.dollar.o.cueva': '📍 origin: cave {n} Florida/Lavalle',
+    'g.dollar.o.valija': '📍 origin: Kristina\'s suitcase',
+    'g.dollar.o.armas': '📍 origin: arms dealing',
+    'g.dollar.o.afa': '📍 origin: AFA scam',
+    'g.dollar.o.cartel': '📍 origin: cartel drugs',
+    'g.dollar.o.ilegal': '📍 origin: illegal sale',
+    'g.dollar.o.monopoly': '📍 origin: Monopoly',
     'g.vinilos.leave': 'You leave the record shop. 🎵',
 
     'g.music.on': '♪ Music ON',

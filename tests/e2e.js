@@ -184,6 +184,16 @@ if (require.main === module) {
     Bullets.update(0.016, room, [d], farPlayer, () => {});
     if (d.pacified) out.push('FAIL dólar apaciguó un dron (debe dañar)');
     if (d.hp >= hp0) out.push('FAIL dólar no dañó al dron');
+    // ROBOT CIEGO (serie buena = legal): el dron NO dispara cuando dronesBlind=true; SÍ cuando es trucha (false)
+    const near = { alive: true, x: 5 * 32, y: 5 * 32, w: 16, h: 16 };   // jugador a tiro
+    const dr = Enemies.create({ type: 'dron', x: 5 * 32, y: 6 * 32 }); dr.hostile = true; dr.shootCd = -1;
+    Bullets.clear(); Enemies.update([dr], 0.016, room, near, true);     // ciego → no debe disparar
+    const blindShots = Bullets.list.length;
+    const dr2 = Enemies.create({ type: 'dron', x: 5 * 32, y: 6 * 32 }); dr2.hostile = true; dr2.shootCd = -1;
+    Bullets.clear(); Enemies.update([dr2], 0.016, room, near, false);   // trucha/normal → te sigue disparando
+    const seeShots = Bullets.list.length;
+    if (blindShots !== 0) out.push('FAIL dron ciego (serie buena) igual disparó');
+    if (seeShots === 0) out.push('FAIL dron NO ciego no disparó (debería seguir)');
     // el escupitajo (pre-tormenta) SÍ daña a la gente (no apacigua)
     const e2 = Enemies.create({ type: 'peaton', x: 5 * 32, y: 8 * 32 }); e2.hostile = true; const ehp = e2.hp;
     Bullets.clear(); Bullets.spawn(e2.x + e2.w / 2, e2.y + e2.h / 2, 0, 0, 'player', 14, 'spit');

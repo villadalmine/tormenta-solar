@@ -18,10 +18,20 @@ Homenaje de tono a Pappo (nombre alterado, sin afiliación). Pelado NO — pelo 
   - Contra **MÁQUINAS** (voladores: dron) → **daño normal** (no son codiciosas).
 - El **escupitajo** (pre-tormenta) NO apacigua: siempre hace daño. (e2e cubre las 3 reglas.)
 
-## Las cámaras + AFIP (chiste)
-Cada dólar disparado lo "ven las cámaras" → sale una **burbuja con la SERIE** del billete (game.js
-`spawnDollarBubble`): ~65% **real** (`📹 serie {s}`) y ~35% **TRUCHA** (`📹 {s} · TRUCHA 🚨 AFIP`) = es una copia,
-llamando a la AFIP. Flota y se desvanece. i18n `g.dollar.real` / `g.dollar.fake`.
+## Las cámaras + AFIP + los ROBOTS (v169)
+Las **PERSONAS no detectan nada** (solo se apaciguan). Las **CÁMARAS/ROBOTS** sí leen cada dólar disparado:
+- **Burbuja con la SERIE** (siempre): `📹 serie buena {s}` o `📹 serie trucha {s}`. A veces una **2ª línea**:
+  `🚨 llamando a la AFIP` u **origen detectado**: cueva N Florida/Lavalle · valija de Kristina · venta de armas ·
+  estafa de la AFA · drogas del cartel · venta ilegal · Monopoly.
+- **Efecto en los ROBOTS (drones):** serie **BUENA = legal** → los drones **NO te ven** unos segundos
+  (`legalBlindUntil`): derivan sin dispararte. Serie **TRUCHA = ilegal** → **te siguen disparando** (sin alivio).
+  (e2e cubre: dron ciego no dispara / dron no-ciego sí.)
+
+### Data-driven (§6.97 — el mecanismo es código, el CONTENIDO es dato)
+El **mecanismo** (apaciguar/cegar) es **código del motor** (primitiva nueva = correcto). El **contenido** vive en
+**`rules.dollars`** (DATA): `truchaChance`, `blindMs` (segundos de ceguera) y la lista de **`origins`** (claves
+i18n). La **máquina de niveles** puede autorar un nivel con otros orígenes/probabilidades sin tocar el motor.
+Leído en game.js (`DOLLARS`) con fallback inline; emitido por gen-level → nivel-1.json → schema.
 
 ## Pendiente / ideas
 - Munición de dólares como recurso aparte (hoy reusa `ammo`); juntarlos en las cuevas.

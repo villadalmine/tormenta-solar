@@ -68,6 +68,15 @@
     "combat": {
      "type": "object",
      "properties": { "trucoLosePenalty": { "type": "number" } }
+    },
+    "dollars": {
+     "type": "object",
+     "description": "dólares post-tormenta: contenido data-driven (mecanismo = código, §6.97)",
+     "properties": {
+      "truchaChance": { "type": "number" },
+      "blindMs": { "type": "number" },
+      "origins": { "type": "array", "items": { "type": "string" } }
+     }
     }
    }
   },

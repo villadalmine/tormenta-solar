@@ -114,7 +114,8 @@
   // llegar a la meta (o morir/escapar) se RESTAURA todo. spinoffLevel gatea tormenta/quests/save/muerte.
   let spinoffLevel = false, spinoffSave = null, spinoffReward = null, spinoffName = '';
   // CÁMARAS que "ven" los dólares cuando disparás (post-tormenta): burbuja con la SERIE (real o TRUCHA → AFIP).
-  let dollarBubbles = [], shotsSeen = 0;
+  // legalBlindUntil: si tiráste un dólar de serie BUENA, los ROBOTS (drones) no te ven hasta este momento (legal).
+  let dollarBubbles = [], shotsSeen = 0, legalBlindUntil = 0;
   let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
@@ -130,6 +131,9 @@
   const SURV = Object.assign({ decayEverySec: 30, decayHp: 3, fullHp: 100, sleepCoinKeepMin: 0.3, sleepCoinKeepMax: 0.7 }, RULES.survival || {});
   const MAXHP = (RULES.player && RULES.player.maxHp) || 100;                 // tope de vida (curaciones nunca pasan de acá)
   const TRUCO_LOSE = (RULES.combat && RULES.combat.trucoLosePenalty) || 25;   // lo que te saca perder el truco
+  // DÓLARES como DATA (§6.97: el mecanismo es código, el CONTENIDO es dato → autorable por la máquina de niveles).
+  const DOLLARS = Object.assign({ truchaChance: 0.4, blindMs: 4000,
+    origins: ['g.dollar.o.cueva', 'g.dollar.o.valija', 'g.dollar.o.armas', 'g.dollar.o.afa', 'g.dollar.o.cartel', 'g.dollar.o.ilegal', 'g.dollar.o.monopoly'] }, RULES.dollars || {});
   let trucoWon = false;                             // ganar el truco abre una puerta al chino (se consume al cruzar)
   let trucoEverWon = false;                          // ¿alguna vez le ganaste al tahúr? (para el HITO; NO se consume)
   let armado = false;                               // espejo de n.armado: compraste fierro criollo (lo lee el grafo de historia)
@@ -199,7 +203,7 @@
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
-    dollarBubbles = []; shotsSeen = 0;
+    dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
@@ -1177,21 +1181,33 @@
     for (const s of states) for (const e of s.enemies) e.hostile = true;
     setMsg(T('g.storm'), '#ff5252', 7000);
   }
-  // CÁMARAS + AFIP: cada dólar disparado genera una burbuja con su SERIE. ~35% sale TRUCHA (copia) → "llamando a AFIP".
+  // CÁMARAS + AFIP: cada dólar disparado genera una burbuja con su SERIE (siempre "buena" o "trucha" + número) y a
+  // veces una 2ª línea de "origen detectado". EFECTO en los ROBOTS: serie BUENA = legal → los drones NO te ven unos
+  // segundos (legalBlindUntil). Serie TRUCHA = ilegal → te siguen disparando (sin alivio).
   function dollarSerie() { const L = 'ABCDEFGHKL'[(Math.random() * 10) | 0]; let n = ''; for (let i = 0; i < 8; i++) n += (Math.random() * 10) | 0; return L + ' ' + n; }
   function spawnDollarBubble(x, y) {
-    const trucha = Math.random() < 0.35, serie = dollarSerie();
-    dollarBubbles.push({ x, y: y - 14, life: 2.4, trucha, text: T(trucha ? 'g.dollar.fake' : 'g.dollar.real', { s: serie }) });
+    const trucha = Math.random() < DOLLARS.truchaChance, serie = dollarSerie();
+    const lines = [T(trucha ? 'g.dollar.fake' : 'g.dollar.real', { s: serie })];
+    // 2ª línea (siempre si trucha; a veces si buena): AFIP / origen detectado (lista = DATA del nivel)
+    if (trucha || Math.random() < 0.6) {
+      const O = DOLLARS.origins || [];
+      lines.push(trucha && Math.random() < 0.5 ? T('g.dollar.afip')
+        : T(O[(Math.random() * O.length) | 0] || 'g.dollar.o.ilegal', { n: 100 + ((Math.random() * 900) | 0) }));
+    }
+    dollarBubbles.push({ x, y: y - 14, life: 2.8, trucha, lines });
     if (dollarBubbles.length > 6) dollarBubbles.shift();
+    if (!trucha) legalBlindUntil = (typeof performance !== 'undefined' ? performance.now() : Date.now()) + DOLLARS.blindMs;   // serie buena = legal → drones ciegos
   }
-  function updateDollarBubbles(dt) { for (let i = dollarBubbles.length - 1; i >= 0; i--) { const b = dollarBubbles[i]; b.life -= dt; b.y -= 14 * dt; if (b.life <= 0) dollarBubbles.splice(i, 1); } }
+  function updateDollarBubbles(dt) { for (let i = dollarBubbles.length - 1; i >= 0; i--) { const b = dollarBubbles[i]; b.life -= dt; b.y -= 12 * dt; if (b.life <= 0) dollarBubbles.splice(i, 1); } }
   function drawDollarBubbles() {
+    ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
     for (const b of dollarBubbles) {
-      const a = Math.min(1, b.life / 0.6), x = b.x - cam.x, y = b.y - cam.y;
-      ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
-      const w = (ctx.measureText(b.text).width || 0) + 12;
-      ctx.globalAlpha = a * 0.85; ctx.fillStyle = b.trucha ? '#3a0d0d' : '#0d2a12'; ctx.fillRect(x - w / 2, y - 11, w, 14);
-      ctx.globalAlpha = a; ctx.fillStyle = b.trucha ? '#ff7a7a' : '#9fe89f'; ctx.fillText(b.text, x, y);
+      const a = Math.min(1, b.life / 0.6), x = b.x - cam.x, y0 = b.y - cam.y;
+      let w = 0; for (const ln of b.lines) w = Math.max(w, (ctx.measureText(ln).width || 0));
+      w += 12; const boxH = b.lines.length * 12 + 4;
+      ctx.globalAlpha = a * 0.85; ctx.fillStyle = b.trucha ? '#3a0d0d' : '#0d2a12'; ctx.fillRect(x - w / 2, y0 - 11, w, boxH);
+      ctx.globalAlpha = a; ctx.fillStyle = b.trucha ? '#ff7a7a' : '#9fe89f';
+      b.lines.forEach((ln, i) => ctx.fillText(ln, x, y0 - 1 + i * 12));
       ctx.globalAlpha = 1;
     }
   }
@@ -1227,7 +1243,8 @@
     }
     updateCam();
 
-    Enemies.update(s.enemies, dt, r, player);
+    const dronesBlind = (typeof performance !== 'undefined' ? performance.now() : Date.now()) < legalBlindUntil;   // serie buena = legal → drones ciegos
+    Enemies.update(s.enemies, dt, r, player, dronesBlind);
     Bullets.update(dt, r, s.enemies, player, dmg => player.hurt(dmg));
     Particles.update(dt);
 

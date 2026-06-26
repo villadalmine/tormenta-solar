@@ -39,7 +39,7 @@ const Enemies = (() => {
     Sfx.eShoot();
   }
 
-  function update(list, dt, room, player) {
+  function update(list, dt, room, player, dronesBlind) {
     for (const e of list) {
       if (!e.alive) continue;
       // APACIGUADO con dólares: se tira al piso a juntar guita, no ataca ni te jode más.
@@ -47,6 +47,8 @@ const Enemies = (() => {
       if (e.dormant && !e.hostile) continue;
       e.flash -= dt; e.bob += dt*6;
       if (!e.hostile) continue;
+      // ROBOTS CIEGOS (le tiraste un dólar de serie BUENA = legal): el dron NO te ve unos segundos → deriva, no dispara.
+      if (dronesBlind && e.fly) { e.vx *= 0.92; e.vy = Math.sin(e.bob) * 22; Level.moveBody(e, room, dt, 0); e.shootCd = Math.max(e.shootCd, 0.6); continue; }
       const pcx = player.x+player.w/2, ecx = e.x+e.w/2;
       e.facing = pcx < ecx ? -1 : 1;
 

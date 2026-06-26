@@ -16,6 +16,19 @@
     },
     "combat": {
       "trucoLosePenalty": 25
+    },
+    "dollars": {
+      "truchaChance": 0.4,
+      "blindMs": 4000,
+      "origins": [
+        "g.dollar.o.cueva",
+        "g.dollar.o.valija",
+        "g.dollar.o.armas",
+        "g.dollar.o.afa",
+        "g.dollar.o.cartel",
+        "g.dollar.o.ilegal",
+        "g.dollar.o.monopoly"
+      ]
     }
   },
   "quests": [
