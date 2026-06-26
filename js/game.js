@@ -501,12 +501,23 @@
       cine: { topics: ns.map(n => n.topic), mundialTabla: (topic('mundial-tabla') || {}).headline || null, mundial: (topic('mundial') || {}).headline || null },
       mundialEquipos: Object.keys((W.MUNDIAL && W.MUNDIAL.equipos) || {}).length,
       propaganda: [...new Set((W.PROPAGANDA || []).map(c => c.cat))],
+      carteles: propagandaSample(),   // muestra de marcas que el oráculo puede recomendar
     };
+  }
+  // 2-3 carteles de propaganda al azar (marcas FALSAS del banco) → el oráculo los puede RECOMENDAR ("probate el
+  // choripán de X"). Todo conectado: el linyera "sabe" de los carteles-ai (son los oráculos de la Matrix).
+  function propagandaSample() {
+    const list = ((typeof window !== 'undefined' && window.PROPAGANDA) || []).filter(c => c.cat !== 'tip' && c.cat !== 'clima');
+    const out = [], seen = new Set();
+    for (let i = 0; i < 30 && out.length < 3 && out.length < list.length; i++) { const p = list[(Math.random() * list.length) | 0]; if (p && !seen.has(p.brand)) { seen.add(p.brand); out.push(p); } }
+    return out;
   }
   // versión TEXTO compacta para el grounding del LLM (en es; el modelo responde en el idioma del juego).
   function worldBrief() {
     const s = worldSnapshot(), b = [];
     b.push(s.stormed ? 'ya pasó la TORMENTA SOLAR (apagón, todo glitcheado y hostil)' : 'todavía no pasó la tormenta solar');
+    const props = propagandaSample();
+    if (props.length) b.push('en los carteles del barrio se promociona (PODÉS recomendárselos al jugador con humor, ej. "probate el…"): ' + props.map(p => p.brand + ' (' + p.slogan + ')').join(', '));
     if (s.cine.mundialTabla) b.push('en el CINE pasan el Mundial — ' + s.cine.mundialTabla);
     if (s.quests.news) b.push('mandaste al jugador a traer noticia de "' + s.quests.news.topic + '"');
     if (s.quests.mundial && !s.quests.mundial.shown) b.push('un hincha del cine espera saber cómo salió ' + s.quests.mundial.equipo);
@@ -514,7 +525,7 @@
     if (s.chinoEntered) b.push('ya entró al super chino tras la tormenta');
     if (s.bunkerUnlocked) b.push('ya es gurú (búnker abierto)');
     if (s.loopCount > 0) b.push('lleva ' + s.loopCount + ' día(s) en el loop de supervivencia');
-    return 'ESTADO DEL JUEGO (datos reales del ecosistema, usalos si viene al caso, NO inventes): ' + b.join('; ') + '.';
+    return 'ESTADO DEL JUEGO (datos reales del ecosistema, todo está conectado; usalo con tu voz si viene al caso, NO inventes rutas ni datos): ' + b.join('; ') + '.';
   }
   const isHincha = n => !!(n && n.persona === 'hincha');   // §9: los dos hinchas del piso Deportes (quest del Mundial)
   // el hincha pregunta con onda: sesga a Argentina (60%) o a equipos JUGOSOS si están; si no, random.

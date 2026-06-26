@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v141 / infra-22] — 2026-06-26 — 🧠 Los oráculos saben de los CARTELES (te recomiendan marcas)
+
+Siguiendo la premisa ("todo conectado, los oráculos saben todo de todo"): el `worldBrief` que groundea a los NPC IA
+ahora incluye una **muestra de los carteles de propaganda** (marcas falsas del banco) → el linyera puede
+**recomendártelas** con humor ("probate el choripán de Don Ramón"). `worldSnapshot.carteles` expuesto. Límite del
+grounding en el proxy 700→1000. Proxy `0.1.36`.
+
+---
+
 ## [v140 / infra-21] — 2026-06-26 — 🧠 Primer paso v2: la IA usa el ESTADO VIVO del ecosistema (nada hardcodeado)
 
 Premisa del dueño: *todo es dato/API/objeto/memoria/grafo → el ecosistema alimenta a la IA para que sea inteligente*.
