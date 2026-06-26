@@ -698,20 +698,28 @@ http.createServer((req, res) => {
           const es = j.enemies.map(e => Array.isArray(e) ? Number(e[0]) : Number(e && e.x != null ? e.x : e)).filter(n => isFinite(n)).slice(0, 5);
           if (es.length) out.enemies = es;
         }
+        if (Array.isArray(j.hazards)) {   // pinchos/pozos: [x, ancho, "pit"|"spikes"]
+          const hs = j.hazards.map(h => {
+            if (Array.isArray(h)) return [Number(h[0]), Number(h[1]), /pit|pozo/i.test(String(h[2])) ? 'pit' : 'spikes'];
+            if (h && typeof h === 'object') return [Number(h.x), Number(h.w != null ? h.w : h.width), /pit|pozo/i.test(String(h.kind || h.type)) ? 'pit' : 'spikes'];
+            return null;
+          }).filter(h => h && isFinite(h[0]) && isFinite(h[1])).slice(0, 4);
+          if (hs.length) out.hazards = hs;
+        }
       };
-      // pedido de geometría (escalera trepable) que se le AGREGA al prompt cuando el cliente la pide
+      // pedido de geometría (escalera trepable + obstáculos) que se le AGREGA al prompt cuando el cliente la pide
       const GEOM_ASK = en
-        ? ' Also design the level GEOMETRY: add "platforms": array of 3-6 [x,y,width] forming a CLIMBABLE staircase (x from 5 to 16 left-to-right, y from 10 going UP to 5, width 2-4, each step within 3 tiles of the previous so it is jumpable) and "enemies": array of 2-4 x positions (6 to 18).'
-        : ' Diseñá también la GEOMETRÍA: agregá "platforms": array de 3-6 [x,y,ancho] que forman una ESCALERA TREPABLE (x de 5 a 16 de izq a der, y de 10 SUBIENDO a 5, ancho 2-4, cada escalón a no más de 3 tiles del anterior para que se pueda saltar) y "enemies": array de 2-4 posiciones x (6 a 18).';
+        ? ' Also design the level GEOMETRY: add "platforms": array of 3-6 [x,y,width] forming a CLIMBABLE staircase (x from 5 to 16 left-to-right, y from 10 going UP to 5, width 2-4, each step within 3 tiles of the previous so it is jumpable), "enemies": array of 2-4 x positions (6 to 18), and "hazards": array of 0-2 [x, width, kind] where kind is "pit" (a gap in the floor you must JUMP over) or "spikes" (hurts on touch), x from 7 to 16, width 1-2.'
+        : ' Diseñá también la GEOMETRÍA: agregá "platforms": array de 3-6 [x,y,ancho] que forman una ESCALERA TREPABLE (x de 5 a 16 de izq a der, y de 10 SUBIENDO a 5, ancho 2-4, cada escalón a no más de 3 tiles del anterior para que se pueda saltar), "enemies": array de 2-4 posiciones x (6 a 18), y "hazards": array de 0-2 [x, ancho, tipo] donde tipo es "pit" (un hueco en el piso que hay que SALTAR) o "spikes" (pincho que daña al tocar), x de 7 a 16, ancho 1-2.';
       // TEMA "ORÁCULO": la IA INVENTA un nivel a la medida del jugador según lo que habló con los linyeras/bots
       if (theme === 'oraculo') {
         const ctx = chats.slice(0, 8).map(s => String(s).slice(0, 120)).join(' | ') || (en ? 'we know nothing about them' : 'no sabemos nada de él');
         const osys = en ? 'You invent surreal personalized comedy levels. Reply ONLY with compact JSON.' : 'Inventás mini-niveles surrealistas y personalizados. Respondé SOLO con JSON compacto.';
         const ouser = en
-          ? 'A player has been chatting with hobo street-oracles. Things they said/asked: "' + ctx + '". INVENT a surreal level theme tailored to what this player seems into (wink at it). You also DESIGN THE LEVEL GEOMETRY. Return JSON {"name": short title (max 5 words), "intro": one short sentence, "lines": array of 6 very short NPC phrases, "style": one of "wall"|"aisles"|"climb", "motif": one emoji, "props": 5 emojis space-separated, "platforms": array of 3-6 [x,y,width] forming a CLIMBABLE staircase (x from 5 to 16 left-to-right, y from 10 going UP to 5, width 2-4, each step within 3 tiles of height of the previous so it is jumpable), "enemies": array of 2-4 x positions (6 to 18)}.'
-          : 'Un jugador viene charlando con oráculos linyera. Cosas que dijo/preguntó: "' + ctx + '". INVENTÁ un tema de nivel surreal a la MEDIDA de lo que parece interesarle (guiñá a eso). También DISEÑÁS LA GEOMETRÍA del nivel. Devolvé JSON {"name": título corto (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC muy cortas, "style": uno de "wall"|"aisles"|"climb", "motif": un emoji, "props": 5 emojis separados por espacio, "platforms": array de 3-6 [x,y,ancho] que forman una ESCALERA TREPABLE (x de 5 a 16 de izquierda a derecha, y de 10 SUBIENDO hasta 5, ancho 2-4, cada escalón a no más de 3 tiles de altura del anterior para que se pueda saltar), "enemies": array de 2-4 posiciones x (6 a 18)}.';
+          ? 'A player has been chatting with hobo street-oracles. Things they said/asked: "' + ctx + '". INVENT a surreal level theme tailored to what this player seems into (wink at it). You also DESIGN THE LEVEL GEOMETRY. Return JSON {"name": short title (max 5 words), "intro": one short sentence, "lines": array of 6 very short NPC phrases, "style": one of "wall"|"aisles"|"climb", "motif": one emoji, "props": 5 emojis space-separated, "platforms": array of 3-6 [x,y,width] forming a CLIMBABLE staircase (x from 5 to 16 left-to-right, y from 10 going UP to 5, width 2-4, each step within 3 tiles of height of the previous so it is jumpable), "enemies": array of 2-4 x positions (6 to 18), "hazards": array of 0-2 [x, width, kind] where kind is "pit" (a gap to JUMP over) or "spikes" (hurts on touch), x 7 to 16, width 1-2}.'
+          : 'Un jugador viene charlando con oráculos linyera. Cosas que dijo/preguntó: "' + ctx + '". INVENTÁ un tema de nivel surreal a la MEDIDA de lo que parece interesarle (guiñá a eso). También DISEÑÁS LA GEOMETRÍA del nivel. Devolvé JSON {"name": título corto (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC muy cortas, "style": uno de "wall"|"aisles"|"climb", "motif": un emoji, "props": 5 emojis separados por espacio, "platforms": array de 3-6 [x,y,ancho] que forman una ESCALERA TREPABLE (x de 5 a 16 de izquierda a derecha, y de 10 SUBIENDO hasta 5, ancho 2-4, cada escalón a no más de 3 tiles de altura del anterior para que se pueda saltar), "enemies": array de 2-4 posiciones x (6 a 18), "hazards": array de 0-2 [x, ancho, tipo] donde tipo es "pit" (hueco para SALTAR) o "spikes" (pincho que daña al tocar), x 7 a 16, ancho 1-2}.';
         try {
-          const { reply } = await ask([{ role: 'system', content: osys }, { role: 'user', content: ouser }], { maxTokens: 340 });
+          const { reply } = await ask([{ role: 'system', content: osys }, { role: 'user', content: ouser }], { maxTokens: 420 });
           const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
           const j = m ? JSON.parse(m[0]) : {};
           const out = {};
@@ -744,7 +752,7 @@ http.createServer((req, res) => {
         : 'Tema: ' + brief + '. Devolvé JSON {"name": nombre de nivel corto y gracioso (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC MUY cortas (máx 5 palabras c/u) en tonada chino-porteña rota}.')
         + (wantGeom ? GEOM_ASK : '');
       try {
-        const { reply } = await ask([{ role: 'system', content: sys }, { role: 'user', content: user }], { maxTokens: wantGeom ? 360 : 260 });
+        const { reply } = await ask([{ role: 'system', content: sys }, { role: 'user', content: user }], { maxTokens: wantGeom ? 420 : 260 });
         const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
         const j = m ? JSON.parse(m[0]) : {};
         const out = {};

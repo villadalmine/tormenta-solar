@@ -39,6 +39,17 @@ res = NivelAI.generateLevel(base({ aiPlatforms: good, aiEnemies: [7, 12, 9] }));
 const enemiesR0 = res.model.rooms[0].entities.filter(e => e.tipo === 'enemy');
 ok(enemiesR0.length >= 1, 'enemigos autorados por la IA → presentes en la sala');
 
+// 4b) OBSTÁCULOS autorados por la IA (pinchos/pozos como data) → se usan tal cual y el nivel es jugable.
+// Plataforma baja a la izquierda (sin solapar) + pit y spikes en el piso despejado del medio.
+const flat = [[5, 9, 2]];
+res = NivelAI.generateLevel(base({ aiPlatforms: flat, aiHazards: [{ x: 10, w: 2, kind: 'pit' }, { x: 13, w: 1, kind: 'spikes' }] }));
+ok(Playable.checkLevel(res.model).ok, 'obstáculos IA (pit+spikes) → nivel jugable');
+const hzR0 = res.model.rooms[0].entities.filter(e => e.tipo === 'hazard');
+ok(hzR0.some(h => h.render.type === 'pit') && hzR0.some(h => h.render.type === 'spikes'), 'los obstáculos IA (pit y spikes) están en la sala');
+// obstáculos IA rotos (dos pozos pegados → hueco infranqueable) → la RED los caza → auto-repara a procedurales
+res = NivelAI.generateLevel(base({ aiPlatforms: flat, aiHazards: [{ x: 10, w: 2, kind: 'pit' }, { x: 12, w: 2, kind: 'pit' }] }));
+ok(Playable.checkLevel(res.model).ok, 'obstáculos IA rotos (pozos pegados) → igual jugable (auto-reparado)');
+
 // 5) PINCHOS (obstáculo nuevo): R5 rechaza un pincho sobre la columna del spawn (te dañaría al aparecer)
 const badHz = { id: 'hz', w: 24, platforms: [], entities: [
   { tipo: 'marker', x: 2, render: { type: 'spawn' } },

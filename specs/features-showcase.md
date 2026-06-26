@@ -25,9 +25,12 @@
   a la meta/puertas saltando?). La IA puede proponer 100 layouts; **solo los válidos llegan**. Bucle: IA propone
   DATOS → schema + Playable → si falla, **auto-repara** (fallback procedural) → `Mundo.fromModel`.
   - *Anécdota mostrable:* la red **caza un bug que metió un humano** (el del ascensor) — regresión en `tests/playable.mjs`.
-- **La IA autora la GEOMETRÍA, no solo el tema:** en el oráculo, la IA diseña las **posiciones de plataformas y
-  enemigos** como DATA (`platforms`/`enemies`); la red las valida con R4 y **auto-repara** si propone un muro
-  infranqueable. Creatividad geométrica de la IA **sin niveles rotos**. Test `tests/geometria.js`.
+- **La IA autora la GEOMETRÍA COMPLETA, no solo el tema:** la IA diseña como DATA las **plataformas** (escalera
+  trepable), los **enemigos** (posición + tipo: peatón/dron/pacman/galaga/cuevero) y los **obstáculos** —
+  **pinchos** (dañan al tocar) y **pozos** (huecos en el piso que hay que saltar). Todo pasa por la red: **R4**
+  reachability (incl. cruzar huecos saltando, ≤2 tiles), **R5** (ningún obstáculo sobre spawn/meta/puerta). Si la
+  IA propone algo imposible (un muro infranqueable, dos pozos pegados), la red lo caza y **auto-repara**.
+  Creatividad geométrica de la IA **sin niveles rotos**. Test `tests/geometria.js`.
 - **Tema "ORÁCULO" (personalizado):** la IA **inventa un nivel a tu medida** según **lo que charlaste con los
   linyeras** (`oracleMem` → `/nivel-ai` con tus mensajes) — name/intro/frases + **style + geometría**. Memoria → mundo.
 - **Por qué interesante:** generación procedural + IA + **validación formal** = creatividad sin niveles rotos.

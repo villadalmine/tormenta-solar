@@ -211,8 +211,12 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   los tiles del piso → hueco real). Te caés → daño + reaparecés (aditivo). **R4 ahora cruza huecos** (saltos de hueco
   hasta `JUMP_ACROSS`=3 si las columnas intermedias están ABIERTAS — pozo sí, muro no): pozo ancho ≤2 pasa, ancho 3
   se rechaza. El generador re-rollea SOLO los obstáculos si rompen la RED (las plataformas/geometría IA quedan fijas).
-- **Lo que queda:** **pinchos/pozos autorados por IA** (hoy procedural; el plumbing `hazard` ya es data); enemigos
-  que respeten los pozos (un peatón caminando puede caerse); más temas.
+- **OBSTÁCULOS autorados por IA (v184) — cierra el círculo "todo lo dibuja la IA":** el proxy `/nivel-ai` ahora
+  también pide `"hazards": [[x, ancho, "pit"|"spikes"]]`; el cliente los toma como `aiHazards`, los **sanea**
+  (`sanitizeHazards`: ancho ≤2, lejos de columnas sagradas) y `generateLevel` los usa **si pasan la RED**; si no
+  (ej. dos pozos pegados, o un pincho sobre la meta), **auto-repara** a obstáculos procedurales. Así la IA autora la
+  geometría COMPLETA (plataformas + enemigos + pinchos + pozos), toda tamizada por la red. Test en `tests/geometria.js`.
+- **Lo que queda:** enemigos que respeten los pozos (un peatón caminando puede caerse); más temas.
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como

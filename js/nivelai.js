@@ -179,6 +179,24 @@ const NivelAI = (() => {
     }
     return out.length ? out : null;
   }
+  // OBSTÁCULOS autorados por IA: pinchos/pozos como {x, w, kind}. Saneo a anchos saltables (la RED igual los re-valida).
+  function sanitizeHazards(raw, w) {
+    if (!Array.isArray(raw)) return null;
+    const out = [];
+    for (const h of raw) {
+      let x, hw, kind;
+      if (Array.isArray(h)) { x = h[0]; hw = h[1]; kind = h[2]; }
+      else if (h && typeof h === 'object') { x = h.x; hw = h.w != null ? h.w : h.width; kind = h.kind || h.type; }
+      else continue;
+      x = Math.round(+x); hw = Math.round(+hw); if (!isFinite(x)) continue;
+      kind = /pit|pozo|hueco/i.test(String(kind)) ? 'pit' : 'spikes';
+      hw = Math.max(1, Math.min(2, hw || 2));                  // ≤2 = siempre saltable (la RED rechaza lo demás igual)
+      x = Math.max(6, Math.min(w - 7, x));                     // lejos de columnas sagradas (spawn x2 / meta·puerta w-3)
+      out.push({ x, w: hw, kind });
+      if (out.length >= 4) break;
+    }
+    return out.length ? out : null;
+  }
 
   // ----- LADRILLO 2 DE LA C: generar un NIVEL-PLATAFORMA REAL (modelo v2 que consume Mundo.fromModel) -----
   // A diferencia de `generate()` (escena top-down del Spinoff), esto produce un MODELO DE NIVEL del MOTOR REAL:
@@ -219,7 +237,7 @@ const NivelAI = (() => {
     // pool de enemigos VARIADO (antes solo peaton/dron): pacman es rápido, galaga vuela rápido, cuevero dispara.
     // Pesado hacia peaton/dron para que no sea injusto. La IA autora la POSICIÓN; el tipo lo elige el pool.
     const ENEMY_POOL = ['peaton', 'peaton', 'dron', 'dron', 'pacman', 'galaga', 'cuevero'];
-    function assemble(i, n, w, plats, noHaz) {
+    function assemble(i, n, w, plats, noHaz, hazards) {
       const id = 'sala-ai-' + i, ents = [];
       if (i === 0) ents.push({ id: id + '/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } });
       else ents.push({ id: id + '/door-l', tipo: 'door', x: 2, inward: 1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i - 1) } });
@@ -234,7 +252,11 @@ const NivelAI = (() => {
       else for (let k = 0, e = rnd(1, 3); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: pick(ENEMY_POOL) } });
       // OBSTÁCULOS (pinchos / pozos) en el piso, lejos de columnas sagradas (spawn x2 / meta·puerta w-3) → saltables.
       // El POZO cala el piso (te caés y reaparecés); el PINCHO daña al contacto. Ancho ≤2 → la RED (R4) garantiza salto.
-      if (!noHaz) for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
+      // `hazards` = lista explícita autorada por IA; si no, se siembran 0-2 procedurales al azar.
+      if (!noHaz) {
+        if (hazards) hazards.forEach((h, k) => ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: h.x + 0.5, w: h.w, render: { type: h.kind }, combat: { dmg: 12 } }));
+        else for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
+      }
       for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
       return { id, nombre: L(t.name) + (n > 1 ? ' · ' + (i + 1) + '/' + n : ''), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };
     }
@@ -248,9 +270,11 @@ const NivelAI = (() => {
         const cand = layoutPlatforms(w, true);
         if (typeof Playable === 'undefined' || Playable.checkRoom(assemble(i, n, w, cand, true)).length === 0) plats = cand;
       }
-      // 2) OBSTÁCULOS (pinchos/pozos): si rompen la RED (ej. dos pozos juntos), se re-rollean — las plataformas quedan fijas.
+      // 2) OBSTÁCULOS: los AUTORADOS POR IA si pasan la RED; si no (o no hay), procedurales re-rolleados — plataformas fijas.
+      const okRoom = rr => typeof Playable === 'undefined' || Playable.checkRoom(rr).length === 0;
+      if (t.aiHazards) { const hz = sanitizeHazards(t.aiHazards, w); if (hz) { const r = assemble(i, n, w, plats, false, hz); if (okRoom(r)) return r; } }
       let r = assemble(i, n, w, plats);
-      for (let k = 0; k < 6 && typeof Playable !== 'undefined' && Playable.checkRoom(r).length; k++) r = assemble(i, n, w, plats);
+      for (let k = 0; k < 6 && !okRoom(r); k++) r = assemble(i, n, w, plats);
       return r;
     }
     function candidate() {
@@ -288,6 +312,7 @@ const NivelAI = (() => {
         // aiEnemies → generateLevel los sanea + valida por la RED (R4) y auto-repara si no sirven.
         const aiPlatforms = sanitizePlatforms(j.platforms, 30);   // pre-saneo grueso; generateLevel re-sanea por ancho de sala
         const aiEnemies = sanitizeEnemies(j.enemies, 30);
+        const aiHazards = sanitizeHazards(j.hazards, 30);
         cb({
           id: 'oraculo', motif: String(j.motif || '🔮').slice(0, 4),
           name: { es: j.name, en: j.name }, intro: { es: j.intro || '', en: j.intro || '' },
@@ -295,7 +320,7 @@ const NivelAI = (() => {
           props, npc: { emoji: '🔮', lines: { es: lines, en: lines } },
           goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 },
           style: styles.indexOf(j.style) >= 0 ? j.style : 'climb', decor: ['cartel', 'caja', 'barril', 'tacho'],
-          aiPlatforms, aiEnemies,
+          aiPlatforms, aiEnemies, aiHazards,
         });
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático 90s)
   }
@@ -316,8 +341,9 @@ const NivelAI = (() => {
         markAi(true);
         const aiPlatforms = sanitizePlatforms(j.platforms, 30);
         const aiEnemies = sanitizeEnemies(j.enemies, 30);
+        const aiHazards = sanitizeHazards(j.hazards, 30);
         if (!aiPlatforms) { cb(null); return; }                         // sin geometría usable → sync procedural
-        cb(Object.assign({}, t, { aiPlatforms, aiEnemies }));
+        cb(Object.assign({}, t, { aiPlatforms, aiEnemies, aiHazards }));
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático)
   }
 

@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v184] — 2026-06-26 — 🎨 La IA autora la geometría COMPLETA: ahora también los OBSTÁCULOS (pinchos + pozos)
+
+Cierra el círculo "todo lo dibuja la IA". Antes los pinchos/pozos eran procedurales; ahora la IA también los
+**autora como DATA**: el proxy `/nivel-ai` pide `"hazards": [[x, ancho, "pit"|"spikes"]]` (oráculo + temas fijos),
+el cliente los toma como `aiHazards`, los **sanea** (`sanitizeHazards`: ancho ≤2, lejos de columnas sagradas) y
+`generateLevel` los usa **si pasan la RED**; si no (dos pozos pegados, pincho sobre la meta…), **auto-repara** a
+obstáculos procedurales. Resultado: la IA diseña la geometría COMPLETA (plataformas + enemigos + pinchos + pozos),
+toda tamizada por R4/R5. `assemble` acepta una lista explícita de obstáculos (re-rolleable). Tests `tests/geometria.js`
+(+obstáculos IA presentes, +auto-repair de obstáculos rotos). e2e + playable + web-smoke OK. *(Requiere redeploy del
+proxy — infra-22 — para que mande `hazards`; el cliente funciona sin él.)*
+
+---
+
 ## [v183] — 2026-06-26 — 🕳️ POZOS (huecos en el piso): te caés y reaparecés — con la RED validando que sean saltables
 
 Segundo obstáculo nuevo: **pozos** (`hazard` kind `pit`). A diferencia de los pinchos, el pozo **CALA el piso**
@@ -574,6 +587,15 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-22] — 2026-06-26 — 🎨 Proxy 0.1.42: `/nivel-ai` también autora los OBSTÁCULOS (pinchos/pozos)
+
+Redeploy del proxy (`tormenta-ai` 0.1.41 → **0.1.42**) para que el endpoint `/nivel-ai` pida y devuelva `hazards`
+(`[[x, ancho, "pit"|"spikes"]]`) además de plataformas/enemigos — tanto en el oráculo como en los temas fijos
+(`geometry:true`). `parseGeom` los sanea server-side; el cliente los re-valida con la RED + auto-repara. `maxTokens`
+subido (340→420 oráculo, 360→420 geometría) por el JSON más grande. Deploy con `deploy/deploy.sh proxy 0.1.42`.
 
 ---
 
