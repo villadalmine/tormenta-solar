@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v149] — 2026-06-26 — 🗣️ NPCs vivos: RELAY social (el chusme se propaga con atribución)
+
+Los NPC ahora **repiten chusme de otros NPC** sobre lo que hiciste: "che, me dijo el borrachín que no le diste lo que
+te pidió", "me dijo el tahúr que le ganaste al truco"… `rumorPool(worldSnapshot)` arma rumores con **FUENTE** (el NPC
+que sabe) + claim derivado del estado vivo; `spawnAmbient` 50% relayea (sin que la fuente se cite a sí misma) y el NPC
+cercano **reacciona**. El chusme FLUYE fuente→relayer→vos (primer grafo social, npcs-vivos §4). e2e×3 + web-smoke OK.
+
+---
+
 ## [v148] — 2026-06-26 — 🧱 v2: `ambient` (chusmerío) como COMPONENTE declarativo del NPC
 
 Segundo ladrillo del molde de NPCs: el participar del **chusmerío** ya no es global, es un **componente del schema**

@@ -34,7 +34,10 @@ hablan de cosas del juego y de tu progreso ("che, me dijo el borrachín que no l
   engine (`eligibleNpcs` lee `n.ambient !== false`). La máquina de niveles podrá autorarlo por NPC.
 - **Diálogo real entre NPCs vía `Mensajero`** (agente↔agente): un oráculo le "pregunta" a otro y la respuesta sale
   del modelo (cacheada, barata), no de un pool fijo. Dos oráculos = conversación emergente.
-- **El relay (tipo 3 recibe de 1 y 2):** un grafo social de quién le contó qué a quién → el decorativo repite el
-  chusme ("me dijo el borrachín que…"). Modelar como **aristas** entre NPCs (entidades), no ifs.
+- ✅ **El RELAY (chusme atribuido) — F2 (v149):** `rumorPool(worldSnapshot)` arma rumores con **FUENTE** (el NPC que
+  "sabe") + claim sobre lo que hiciste; `spawnAmbient` 50% relayea ("che, me dijo {fuente} {claim}", `g.relay`), sin
+  que la fuente se cite a sí misma, y el NPC cercano **reacciona** (`g.relayReply`). El chusme **fluye** fuente→
+  relayer→vos. **Refinamiento pendiente:** modelar las **relaciones como aristas explícitas** entre entidades (hoy la
+  fuente es un rol canónico, no una arista en el data) + **transcreación EN** de los rumores (hoy es-flavor).
 - **Memoria por NPC:** lo que chusmean persiste/evoluciona (agent.memory). 
 - Todo esto encaja con el modelo v2 (entidades+componentes+grafo+memoria); F1 es el placeholder v1 a migrar.

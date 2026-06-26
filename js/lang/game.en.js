@@ -141,6 +141,8 @@
     'g.mundial.recorda': '🙋 “So? Did you find out how {eq} did? Go to the usher, he\'s got the data.”',
     'g.mundial.gracias': '🙌 “Thanks, champ! {res}... I knew it. Here, some candy for the tip.” (+5 🍬)',
     'g.mundial.nodata': '🙋 “No World Cup data came in today, kid. Come back later.”',
+    'g.relay': 'hey, {src} told me {txt}',
+    'g.relayReply': 'for real? lol, no way',
     'g.mundial.ground': 'You are an Argentine football fan at the cinema, waiting for the player to find out how {eq} did at the World Cup. Talk with football passion, short.',
     'g.mundial.guardaBtn': '{eq} result (free, for the fan)',
     'g.mundial.guardaOk': '📣 The usher put {eq}\'s match on the screen. Head back to the fan who\'s waiting. 🙌',
