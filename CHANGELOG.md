@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v135 / infra-19] — 2026-06-26 — 🌡️ Cartel de CLIMA (open-meteo) + carteles también en la calle
+
+- **Cartel `clima`**: temperaturas reales de varias ciudades (BsAs/Madrid/Tokio/NY/Doha) vía **open-meteo** (sin
+  key, server-side en el cron de propaganda — no usa GPU, es un fetch). Refresca con el cron (1×/día); para 30 min
+  queda anotado un 2º cron o fetch client-side (`carteles-ia.md §9`).
+- **Carteles en la CALLE**: se sumaron 2 carteles `cartel` a Florida y Lavalle → la propaganda rotativa ahora
+  aparece también en la peatonal, no solo en el cine.
+- Anotado: **propaganda PAGA** (cartel con link clickeable que pague al dueño) como idea/roadmap (`carteles-ia.md §9`).
+
+---
+
 ## [v134] — 2026-06-26 — 📣 Carteles: fix overlap con la pantalla + cartel de Cruz del Sur + tips del juego
 
 - **Fix overlap:** los carteles-ai se pisaban con el panel de noticias. Movidos a las **esquinas** (x:2/x:20), la

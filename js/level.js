@@ -90,7 +90,7 @@ const Level = (() => {
         ],
         decor: [
           {t:'arbol',x:7},{t:'farol',x:16},{t:'parlante',x:21},{t:'instrumentos',x:27},
-          {t:'kiosko',x:38},{t:'arbol',x:54},{t:'mesa_ajedrez',x:64},{t:'tacho',x:94},
+          {t:'kiosko',x:38},{t:'cartel',x:46},{t:'arbol',x:54},{t:'mesa_ajedrez',x:64},{t:'cartel',x:82},{t:'tacho',x:94},
         ],
         npcs: [
           { name:'Vecina', sprite:'civil1', x:8,  dialog:'“Ay, nene... ¿viste cómo está el dólar? Un espanto.” 🙄' },

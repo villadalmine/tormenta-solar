@@ -19,6 +19,19 @@ muestra uno distinto (seed por `x`). Color del panel según rubro.
 - Ejemplos generados: "La Muchacha del Carbón — si no sale humo no es parrilla", "TrucoPhone — casi un iPhone pero
   más barato", "UFO-Taxis — te llevamos a Marte pero no te quejes del tráfico".
 
+**Rubros extra (v134-135):** además de comida/ropa/electronica/bizarro, hay carteles **fijos** (no los pisa el banco
+IA, viven en `js/propaganda.js`): `juego` (**propaganda del otro juego del dueño**, Cruz del Sur →
+`cruzdelsur.cybercirujas.club/game`), `tip` (consejos del juego). Y un cartel **`clima`** con temperaturas reales de
+varias ciudades (open-meteo, sin key, lo trae el cron de propaganda — no usa GPU, es un fetch). Los carteles aparecen
+en el **cine Y en la calle** (decor `cartel` en ambos). El panel es angosto+alto para no pisar la pantalla central.
+
+### Pendiente / ideas (del dueño)
+- **Temperatura cada 30 min:** hoy el `clima` refresca con el cron de propaganda (1×/día). Para 30 min = un 2º cron
+  frecuente (o fetch client-side de open-meteo, que tiene CORS — se evitó para no ensuciar la consola/web-smoke).
+- **Propaganda PAGA de verdad:** un cartel con **link clickeable** a un post/sitio externo que le **pague** al dueño
+  (afiliados/sponsor). Falta: hit-testing del cartel en canvas → abrir URL; y un manifiesto de campañas pagas (ya
+  existe el patrón en `js/ads.js` + `publicidad.md` §5). Combinar el banco IA (relleno) con slots pagos (prioridad).
+
 > Lo de abajo (§0-§8) es el diseño original (pistas NPU + propaganda); el banco del cine es la primera parte llevada
 > a producción.
 - **Relacionado:** `publicidad.md` (los carteles/banners de `js/ads.js`), `llm-metrics.md` (ruteo/medición de

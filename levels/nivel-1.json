@@ -608,12 +608,20 @@
           "id": "florida-y-lavalle/decor29",
           "tipo": "decor",
           "render": {
+            "type": "cartel"
+          },
+          "x": 46
+        },
+        {
+          "id": "florida-y-lavalle/decor30",
+          "tipo": "decor",
+          "render": {
             "type": "arbol"
           },
           "x": 54
         },
         {
-          "id": "florida-y-lavalle/decor30",
+          "id": "florida-y-lavalle/decor31",
           "tipo": "decor",
           "render": {
             "type": "mesa_ajedrez"
@@ -621,7 +629,15 @@
           "x": 64
         },
         {
-          "id": "florida-y-lavalle/decor31",
+          "id": "florida-y-lavalle/decor32",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 82
+        },
+        {
+          "id": "florida-y-lavalle/decor33",
           "tipo": "decor",
           "render": {
             "type": "tacho"
@@ -629,7 +645,7 @@
           "x": 94
         },
         {
-          "id": "florida-y-lavalle/pickup32",
+          "id": "florida-y-lavalle/pickup34",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -639,7 +655,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup33",
+          "id": "florida-y-lavalle/pickup35",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -648,7 +664,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup34",
+          "id": "florida-y-lavalle/pickup36",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -657,7 +673,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup35",
+          "id": "florida-y-lavalle/pickup37",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -667,7 +683,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup36",
+          "id": "florida-y-lavalle/pickup38",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -675,7 +691,7 @@
           "x": 24
         },
         {
-          "id": "florida-y-lavalle/pickup37",
+          "id": "florida-y-lavalle/pickup39",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -683,7 +699,7 @@
           "x": 60
         },
         {
-          "id": "florida-y-lavalle/pickup38",
+          "id": "florida-y-lavalle/pickup40",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -692,7 +708,7 @@
           "x": 84
         },
         {
-          "id": "florida-y-lavalle/enemy39",
+          "id": "florida-y-lavalle/enemy41",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -701,7 +717,7 @@
           "x": 14
         },
         {
-          "id": "florida-y-lavalle/enemy40",
+          "id": "florida-y-lavalle/enemy42",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -710,7 +726,7 @@
           "x": 20
         },
         {
-          "id": "florida-y-lavalle/enemy41",
+          "id": "florida-y-lavalle/enemy43",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -719,7 +735,7 @@
           "x": 32
         },
         {
-          "id": "florida-y-lavalle/enemy42",
+          "id": "florida-y-lavalle/enemy44",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -728,7 +744,7 @@
           "x": 42
         },
         {
-          "id": "florida-y-lavalle/enemy43",
+          "id": "florida-y-lavalle/enemy45",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -737,7 +753,7 @@
           "x": 56
         },
         {
-          "id": "florida-y-lavalle/enemy44",
+          "id": "florida-y-lavalle/enemy46",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -746,7 +762,7 @@
           "x": 70
         },
         {
-          "id": "florida-y-lavalle/enemy45",
+          "id": "florida-y-lavalle/enemy47",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -755,7 +771,7 @@
           "x": 95
         },
         {
-          "id": "florida-y-lavalle/enemy46",
+          "id": "florida-y-lavalle/enemy48",
           "tipo": "enemy",
           "combat": {
             "type": "dron"
@@ -764,7 +780,7 @@
           "y": 6
         },
         {
-          "id": "florida-y-lavalle/enemy47",
+          "id": "florida-y-lavalle/enemy49",
           "tipo": "enemy",
           "combat": {
             "type": "dron"

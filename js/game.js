@@ -1080,7 +1080,7 @@
     for (const d of r.decor || []) {
       const img = Art.decor[d.type];
       if (img) ctx.drawImage(img, d.x - cam.x - img.width/2, d.feetY - cam.y - img.height);
-      if (img && d.type === 'cartel' && /Cine/.test(r.name)) drawCartelProp(d, img);   // propaganda rotativa por rubro
+      if (img && d.type === 'cartel' && (/Cine/.test(r.name) || current === 0)) drawCartelProp(d, img);   // propaganda rotativa por rubro (cine + calle)
     }
     if (/Cine/.test(r.name)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
 

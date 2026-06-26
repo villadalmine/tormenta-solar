@@ -35,6 +35,15 @@ async function pedir(cat, desc) {
 const carteles = [];
 if (AI_KEY) for (const [cat, desc] of Object.entries(RUBROS)) { const c = await pedir(cat, desc); carteles.push(...c); }
 
+// CLIMA en varias ciudades (open-meteo, sin key, NO usa modelo) → cartel 'clima' con datos reales. (cartel-ai del dueño)
+try {
+  const cities = [['BsAs', -34.6, -58.4], ['Madrid', 40.4, -3.7], ['Tokio', 35.7, 139.7], ['NY', 40.7, -74.0], ['Doha', 25.3, 51.5]];
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + cities.map(c => c[1]).join(',') + '&longitude=' + cities.map(c => c[2]).join(',') + '&current=temperature_2m';
+  const arr = await (await fetch(url)).json();
+  const parts = (Array.isArray(arr) ? arr : [arr]).map((x, i) => { const t = x?.current?.temperature_2m; return t == null ? null : `${cities[i][0]} ${Math.round(t)}°`; }).filter(Boolean);
+  if (parts.length) carteles.push({ cat: 'clima', brand: '🌡️ CLIMA', slogan: parts.join(' · ') });
+} catch (e) { console.error('clima falló:', e.message); }
+
 console.error('carteles=' + carteles.length + ' por rubro=' + JSON.stringify(Object.fromEntries(Object.keys(RUBROS).map(c => [c, carteles.filter(x => x.cat === c).length]))));
 
 if (POST_URL && TOKEN) {
