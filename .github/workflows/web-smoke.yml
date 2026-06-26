@@ -31,6 +31,7 @@ jobs:
           node tests/parity.mjs
           node tests/playable.mjs
           node tests/geometria.js
+          node tests/tienda.js
 
       # 2) smoke de navegador real (Playwright + Chromium)
       - name: instalar tooling

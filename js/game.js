@@ -109,7 +109,7 @@
   let lastT = 0, running = false, msgUntil = 0, shakeUntil = 0, time = 0, transCd = 0;
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
-  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null;
+  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null;
   // NIVEL-AI en EL MOTOR REAL (rooms-swap): se guarda el juego principal, se cargan las salas generadas, y al
   // llegar a la meta (o morir/escapar) se RESTAURA todo. spinoffLevel gatea tormenta/quests/save/muerte.
   let spinoffLevel = false, spinoffSave = null, spinoffReward = null, spinoffName = '';
@@ -201,7 +201,7 @@
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
@@ -352,6 +352,7 @@
     truco:   () => { setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' }); },
     chori:   () => redeemChori(),
     shop:    n => buyFromShop(n),
+    tienda:  n => enterTienda(n),
     borracho: n => giveBorracho(n),
     lujo:    n => handleLujo(n),
     totem:   n => grabTotem(n),
@@ -913,6 +914,17 @@
     } else setMsg(T(outcome === 'dead' ? 'g.nivelai.back' : 'g.nivelai.flee'), '#e0b0ff', 4500);
   }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
+  // TIENDA GENERADA (galería de la cueva): le hablás al local → entrás a su interior generado por IA (rubro = dato del
+  // NPC). Aditivo: si falta NivelAI/Tienda, cae al menú plano de siempre (buyFromShop). Ver specs/tiendas-generadas.md.
+  function enterTienda(n) {
+    if (typeof NivelAI === 'undefined' || !NivelAI.generateShop || typeof Tienda === 'undefined') { buyFromShop(n); return; }
+    const tdef = n.tienda || {};
+    const scene = NivelAI.generateShop(tdef.tipo, tdef.base);
+    if (!scene || !scene.wares || !scene.wares.length) { buyFromShop(n); return; }
+    tiendaGame = Tienda.create(scene, { player, maxHp: MAXHP });
+    state = 'tienda'; flash(); elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
+    tel('tienda', { tipo: scene.id });
+  }
   function enterCuevaFromSecret() {
     const idx = rooms.findIndex(r => r.cueveros && r.cueveros.length);   // la CUEVA real (no cualquier sala con cueveros:[] vacío)
     if (idx < 0) return;
@@ -1803,6 +1815,13 @@
         vinilosGame = null; state = 'playing'; transCd = 0.35;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); Sfx.stopEighties();
         setMsg(T('g.vinilos.leave'), '#e0b0ff', 2500);
+      }
+    } else if (state === 'tienda' && tiendaGame) {
+      tiendaGame.update(dt); tiendaGame.draw(ctx, W, H);
+      if (tiendaGame.done) {
+        tiendaGame = null; state = 'playing'; transCd = 0.35; flash();
+        elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+        setMsg(T('g.tienda.leave'), '#ff9ec7', 2500);
       }
     } else {
       update(dt); render();

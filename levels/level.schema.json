@@ -373,6 +373,11 @@
       "sells": {
        "type": "object"
       },
+      "tienda": {
+       "type": "object",
+       "description": "tienda generada (action:tienda, galería de la cueva): {tipo} = rubro que la IA usa para generar el interior; base? = ítems ancla.",
+       "properties": { "tipo": { "type": "string" }, "pay": { "type": "string" }, "base": { "type": "array" } }
+      },
       "arsenal": {
        "type": "array",
        "description": "fierros que vende el misterioso (action:armas): cada uno {key,cost,ammo,hp}. El motor abre un menú.",

@@ -120,6 +120,59 @@ const NivelAI = (() => {
     },
   ];
 
+  // ----- TIENDAS GENERADAS (galería de la cueva): el "molde" es el RUBRO. Le hablás al local → entrás a un interior
+  // generado (top-down, sub-modo Tienda) con clientela + mercadería COHERENTE para browsear/comprar. DATA = rubro;
+  // la IA podrá enriquecer (name/intro/wares); fallback estático = esto. Ver specs/tiendas-generadas.md. -----
+  const SHOP_RUBROS = [
+    { id: 'sexshop', motif: '🔞', name: { es: 'Sex-shop «El Subte»', en: 'Sex-shop "The Tube"' },
+      intro: { es: 'Luz roja, cortina de tiras y olor a látex. Pasá, pasá, no mires con culpa.', en: 'Red light, strip curtain and a latex smell. Come in, no shame.' },
+      palette: { floor: '#2a1620', floor2: '#331a28', wall: '#5a2440', accent: '#ff4d8d' },
+      props: ['🔞', '💋', '🩲', '🪅', '🧴', '💄', '🕯️', '🎀'],
+      npc: { emoji: '🧍', lines: { es: ['no le digas a mi señora', 'envuelto para regalo', '¿talle único?', 'discreto, eh'], en: ['don\'t tell my wife', 'gift-wrapped', 'one size?', 'discreet, eh'] } },
+      wares: [{ emoji: '🧴', label: { es: 'pócima energizante', en: 'energizing potion' }, give: { item: 'health', amount: 20 }, cost: 14, pay: 'caramelos' },
+              { emoji: '🩲', label: { es: 'tanga de la suerte', en: 'lucky thong' }, give: { item: 'coins', amount: 8 }, cost: 6, pay: 'coins' },
+              { emoji: '💋', label: { es: 'beso embotellado', en: 'bottled kiss' }, give: { item: 'health', amount: 30 }, cost: 22, pay: 'caramelos' }] },
+    { id: 'comida-rara', motif: '🤢', name: { es: 'Comida Rara', en: 'Weird Eats' },
+      intro: { es: 'Un mostrador con cosas de dudoso origen. "Barato y te llena", dice el cartel.', en: 'A counter with stuff of dubious origin. "Cheap and filling", says the sign.' },
+      palette: { floor: '#23271a', floor2: '#2b3020', wall: '#46512f', accent: '#c5d86d' },
+      props: ['🌭', '🍢', '🦴', '🪰', '🥘', '🧅', '🫕', '🐀'],
+      npc: { emoji: '🧑‍🍳', lines: { es: ['de tres días, igual rico', 'no preguntés qué es', 'lleve dos', 'recién... ponele'], en: ['three days old, still good', 'don\'t ask what it is', 'take two', 'fresh... sure'] } },
+      wares: [{ emoji: '🌭', label: { es: 'pancho de tres días', en: 'three-day hot dog' }, give: { item: 'health', amount: 25 }, cost: 4, pay: 'coins' },
+              { emoji: '🍢', label: { es: 'brocheta misteriosa', en: 'mystery skewer' }, give: { item: 'health', amount: 15 }, cost: 3, pay: 'coins' },
+              { emoji: '🥘', label: { es: 'guiso del día', en: 'stew of the day' }, give: { item: 'health', amount: 40 }, cost: 9, pay: 'coins' }] },
+    { id: 'masajes', motif: '💆', name: { es: 'Masajes Felices', en: 'Happy Massage' },
+      intro: { es: 'Camillas, aceitito y música de pan flauta. Relajate, jefe.', en: 'Tables, oil and pan-flute music. Relax, boss.' },
+      palette: { floor: '#1c2630', floor2: '#22303c', wall: '#34506a', accent: '#7fd1ff' },
+      props: ['💆', '🕯️', '🧖', '🪷', '🧴', '🎐', '🛁', '☯️'],
+      npc: { emoji: '🧖', lines: { es: ['un gustito nomás', 'descontracturante', 'sin final feliz, eh', 'la hora completa'], en: ['just a treat', 'knot remover', 'no happy ending, eh', 'the full hour'] } },
+      wares: [{ emoji: '💆', label: { es: 'masaje descontracturante', en: 'deep-tissue massage' }, give: { item: 'health', amount: 45 }, cost: 8, pay: 'coins' },
+              { emoji: '🕯️', label: { es: 'aromaterapia', en: 'aromatherapy' }, give: { item: 'health', amount: 25 }, cost: 5, pay: 'coins' }] },
+    { id: 'tenebroso', motif: '🕯️', name: { es: 'El Tenebroso', en: 'The Creepy One' },
+      intro: { es: 'Penumbra, velas negras y un tipo encapuchado que no parpadea. "Tengo lo que NADIE tiene."', en: 'Gloom, black candles and a hooded guy who doesn\'t blink. "I have what NO ONE has."' },
+      palette: { floor: '#16131d', floor2: '#1c1826', wall: '#34284a', accent: '#b388ff' },
+      props: ['🕯️', '💀', '🔮', '🃏', '🧿', '🕸️', '⚰️', '🗝️'],
+      npc: { emoji: '🧙', lines: { es: ['no tiene devolución', 'el precio es tu suerte', 'sin garantía', 'shhh'], en: ['no refunds', 'the price is your luck', 'no warranty', 'shhh'] } },
+      wares: [{ emoji: '🔮', label: { es: 'objeto misterioso', en: 'mystery object' }, give: { item: 'mystery' }, cost: 10, pay: 'coins' },
+              { emoji: '🧿', label: { es: 'amuleto truchísimo', en: 'super-fake amulet' }, give: { item: 'coins', amount: 20 }, cost: 12, pay: 'coins' }] },
+  ];
+
+  // genera la ESCENA de tienda (top-down) desde el RUBRO (tipo) + ítems ancla del NPC (base). Sin meta, sin enemigos.
+  function generateShop(tipo, base) {
+    const t = SHOP_RUBROS.find(x => x.id === tipo) || SHOP_RUBROS[0];
+    const W = 16, H = 11, used = {}, key = (x, y) => x + ',' + y;
+    const rnd = (a, b) => a + ((Math.random() * (b - a + 1)) | 0);
+    function freeTile() { for (let i = 0; i < 60; i++) { const x = rnd(2, W - 3), y = rnd(2, H - 4); if (!used[key(x, y)]) { used[key(x, y)] = 1; return { x, y }; } } return { x: 2, y: 2 }; }
+    const props = [];
+    for (let i = 0, n = rnd(7, 11); i < n; i++) { const p = freeTile(); props.push({ x: p.x, y: p.y, emoji: t.props[(Math.random() * t.props.length) | 0] }); }
+    const npcs = [];
+    for (let i = 0, n = rnd(2, 3); i < n; i++) { const p = freeTile(); npcs.push({ x: p.x, y: p.y, emoji: t.npc.emoji, lines: L(t.npc.lines).slice(), say: '', sayT: 0 }); }
+    // wares = mercadería del rubro + los ítems ancla (base) del NPC, garantizados
+    const baseWares = (Array.isArray(base) ? base : []).map(b => ({ emoji: b.emoji || '🛍️', label: L(b.label) || (b.give && b.give.item) || 'ítem', give: b.give || { item: 'health', amount: 10 }, cost: b.cost || 5, pay: b.pay || 'coins' }));
+    const wares = baseWares.concat(t.wares.map(w => ({ emoji: w.emoji, label: L(w.label), give: { ...w.give }, cost: w.cost, pay: w.pay || 'coins' })))
+      .map((w, i) => { const p = freeTile(); return { ...w, x: p.x, y: p.y, taken: false }; });
+    return { id: t.id, motif: t.motif, name: L(t.name), intro: L(t.intro), palette: t.palette, W, H, props, npcs, wares, exit: { x: 2, y: H - 2 } };
+  }
+
   // ----- EL GENERADOR: compone una escena (data) desde un tema (forceId opcional, para tests) -----
   function generate(forceId) {
     const t = forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(Math.random() * THEMES.length) | 0];
@@ -369,7 +422,7 @@ const NivelAI = (() => {
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático)
   }
 
-  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, THEMES };
+  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, generateShop, SHOP_RUBROS, THEMES };
 })();
 if (typeof window !== 'undefined') window.NivelAI = NivelAI;
 if (typeof module !== 'undefined') module.exports = NivelAI;

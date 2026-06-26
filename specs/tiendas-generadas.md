@@ -1,6 +1,8 @@
 # SPEC: Tiendas generadas por IA (entrás a la tienda del NPC según su TIPO)
 
-- **Estado:** Draft (idea del dueño, 2026-06-26) — **no implementado**
+- **Estado:** **Parte 1 IMPLEMENTADA (v191)** — entrás al interior generado + compra + surtido estático por rubro
+  (`SHOP_RUBROS`, `js/tienda.js`, `NivelAI.generateShop`). **Falta Parte 2:** que la IA autore name/intro/wares
+  (`/nivel-ai theme:'shop'`) + caché. Aplica a los 4 locales de la galería (sex-shop, comida rara, masajes, tenebroso).
 - **Nivel:** transversal (Nivel 1 primero; cualquier NPC-tienda)
 - **Última actualización:** 2026-06-26
 - **Relacionado:** `fabrica-niveles-ai.md` (la máquina de niveles — se REUSA el generador), `modelo-de-entidades.md`

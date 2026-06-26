@@ -1754,13 +1754,16 @@
           "x": 14,
           "name": "Sex-shop “El Subte”",
           "interact": {
-            "action": "shop",
+            "action": "tienda",
             "sells": {
               "kind": "health",
               "amount": 35,
               "cost": 25,
               "pay": "caramelos",
               "stock": 3
+            },
+            "tienda": {
+              "tipo": "sexshop"
             }
           },
           "dialogue": {
@@ -1776,12 +1779,15 @@
           "x": 28,
           "name": "Comida rara",
           "interact": {
-            "action": "shop",
+            "action": "tienda",
             "sells": {
               "kind": "health",
               "amount": 25,
               "cost": 4,
               "stock": 3
+            },
+            "tienda": {
+              "tipo": "comida-rara"
             }
           },
           "dialogue": {
@@ -1982,12 +1988,15 @@
           "x": 14,
           "name": "Masajes Felices",
           "interact": {
-            "action": "shop",
+            "action": "tienda",
             "sells": {
               "kind": "health",
               "amount": 45,
               "cost": 8,
               "stock": 1
+            },
+            "tienda": {
+              "tipo": "masajes"
             }
           },
           "dialogue": {
@@ -2003,11 +2012,14 @@
           "x": 30,
           "name": "???",
           "interact": {
-            "action": "shop",
+            "action": "tienda",
             "sells": {
               "kind": "mystery",
               "cost": 10,
               "stock": 1
+            },
+            "tienda": {
+              "tipo": "tenebroso"
             }
           },
           "dialogue": {

@@ -251,6 +251,15 @@
     'g.dollar.o.ilegal': '📍 origen: venta ilegal',
     'g.dollar.o.monopoly': '📍 origen: Monopoly',
     'g.vinilos.leave': 'Salís de la disquería. 🎵',
+    'g.tienda.leave': 'Salís del local. 🛍️',
+    'g.tienda.buyPrompt': 'comprar {label} ({cost} {pay}) — [E]',
+    'g.tienda.exitPrompt': 'salir del local — [E]',
+    'g.tienda.bought': '🛍️ Compraste: {label}.',
+    'g.tienda.sold': '(agotado)',
+    'g.tienda.noCoins': 'No te alcanzan las monedas, pibe. 🪙',
+    'g.tienda.noCandy': 'Necesitás más caramelos para eso. 🍬',
+    'g.tienda.pay.coins': 'monedas',
+    'g.tienda.pay.caramelos': 'caramelos',
 
     // --- música ---
     'g.music.on': '♪ Música ON',

@@ -47,6 +47,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v191] — 2026-06-26 — 🛍️ Tiendas generadas (galería de la cueva): le hablás al local y ENTRÁS a su interior
+
+Primera parte del SDD `tiendas-generadas.md`: los 4 locales raros de la galería de la cueva (**Sex-shop "El Subte"**,
+**Comida rara**, **Masajes Felices**, **El Tenebroso**) dejan de ser un menú plano — ahora **entrás a la tienda**.
+Cada NPC declara su **rubro** (`tienda.tipo`, DATA) y `NivelAI.generateShop(rubro)` arma un **interior top-down**
+(`js/tienda.js`, hermano de Spinoff): clientela que chusmea + **mercadería** coherente con el rubro que te acercás y
+**comprás** (monedas/caramelos según el ítem), con tu vieja venta como **ítem ancla**. Sin meta, sin combate, sin
+tormenta; salís por la cortina y volvés EXACTO a donde estabas. **Aditivo**: sin `NivelAI`/`Tienda` cae al menú viejo
+(`buyFromShop`). El cuevero y el vendedor de armas **no** se tocan. Plumbing v1+v2 (`tienda` fluye por level.js/
+mundo.js/gen-level + schema), paridad v1≡v2 OK. Test `tests/tienda.js` (rubros + clientela + compra) en CI + `npm test`.
+**Falta (siguiente parte):** que la **IA autore** name/intro/wares por rubro (`POST /nivel-ai theme:'shop'`) + caché;
+hoy el surtido es el molde estático `SHOP_RUBROS`.
+
+---
+
 ## [v190] — 2026-06-26 — 🌀 Transición súper → nivel generado menos abrupta (beat narrativo + flash)
 
 La entrada al nivel que crea la IA "saltaba" de golpe del súper (vista de arriba) al nivel (vista lateral), sin
