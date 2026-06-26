@@ -71,7 +71,7 @@ function entities(r, ri) {
     const e = pos({ id: id('npc'), tipo: 'npc', render: { sprite: m.sprite } }, m.x, m.y);
     if (m.name) e.name = m.name;
     const it = {};
-    for (const k of ['action', 'want', 'persona', 'sells', 'lines', 'hint', 'follow', 'oracle']) if (m[k] != null) it[k] = m[k];
+    for (const k of ['action', 'want', 'persona', 'sells', 'arsenal', 'lines', 'hint', 'follow', 'oracle']) if (m[k] != null) it[k] = m[k];
     if (Object.keys(it).length) e.interact = it;
     if (m.ambient != null) e.ambient = m.ambient;   // NPCs vivos: componente declarativo (chusmerío)
     if (m.social != null) e.social = m.social;       // grafo social (conoce/rival) — aristas autorables

@@ -54,6 +54,13 @@
     'g.armas.done': '"I already armed you, criollo. Go make history." ⚔️',
     'g.armas.noCoins': '"Criollo steel ain\'t free, kid. That\'ll be {cost} coins." 🗡️',
     'g.armas.buy': 'The guy unrolls a cloth on the floor: a WHIP, BOLAS, a FACÓN knife and a Malvinas FAL rifle. "The electric ones don\'t work with the solar storm, kid. Take some real criollo steel." ⚔️🇦🇷  +40 ammo, +20 life.',
+    'g.armas.menuTitle': '⚔️ Criollo steel — pick your blade',
+    'g.armas.menuSub': '"The electric ones don\'t work with the storm, kid. Look what I\'ve got." · You have {c} 🪙',
+    'g.armas.bought': '"Good pick, criollo: {fierro}." You tuck it into your belt. ⚔️🇦🇷  +{ammo} ammo, +{hp} life.',
+    'g.armas.fierro.rebenque': 'Whip',
+    'g.armas.fierro.boleadoras': 'Bolas',
+    'g.armas.fierro.facon': 'Facón knife',
+    'g.armas.fierro.fal': 'Malvinas FAL',
 
     'g.iorio.preStorm': '"Bring me some gear and I\'ll play you Pibe Tigre." 🤘',
     'g.iorio.noFalopa': 'Iorio: "And the gear, dummy? No dope, no Pibe Tigre. Look in the DRAWERS of the building\'s fancy flats." 🤘',

@@ -746,15 +746,41 @@
     chatBusy = false;
     if (elChatInput) elChatInput.focus();
   }
+  // ARSENAL por defecto si el nivel no trae data (paridad con v1: un solo fierro, +40 munición/+20 vida por 15).
+  const ARSENAL_FALLBACK = [{ key: 'facon', cost: 15, ammo: 40, hp: 20 }];
+  let armasNpc = null;   // el misterioso con el que estás negociando (para el menú)
   function buyArmas(n) {
-    // el misterioso de la galería: con la tormenta, las armas eléctricas no sirven → fierro criollo
+    // el misterioso de la galería: con la tormenta, las armas eléctricas no sirven → fierro criollo.
+    // Ahora abre un MENÚ (como el guarda): elegís UN fierro del arsenal (data del nivel) y te armás.
     if (!stormed) { setMsg(T('g.armas.preStorm'), '#9fd3ff', 5000); return; }
     if (n.armado) { setMsg(T('g.armas.done'), '#aef0c0', 3000); return; }
-    const cost = 15;
-    if (player.coins < cost) { setMsg(T('g.armas.noCoins', { cost }), '#ff5252', 4000); Sfx.empty(); return; }
-    player.coins -= cost; n.armado = true; applyEdge('armas', 'armado');
-    player.ammo += 40; player.hp = Math.min(MAXHP, player.hp + 20);
-    setMsg(T('g.armas.buy'), '#7CFC00', 7500);
+    armasNpc = n; openArmas();
+  }
+  function openArmas() {
+    const ov = document.getElementById('armasmenu'), body = document.getElementById('armasBody');
+    if (!ov || !body || !armasNpc) return;
+    const arsenal = (armasNpc.arsenal && armasNpc.arsenal.length) ? armasNpc.arsenal : ARSENAL_FALLBACK;
+    let html = '<div class="end-stats-title">' + T('g.armas.menuTitle') + '</div>';
+    html += '<div style="text-align:center;margin:.3em 0 .7em;opacity:.85">' + T('g.armas.menuSub', { c: (player.coins || 0) }) + '</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:.4em">';
+    for (let i = 0; i < arsenal.length; i++) {
+      const a = arsenal[i], can = (player.coins || 0) >= a.cost;
+      const nm = T('g.armas.fierro.' + a.key), bonus = '+' + a.ammo + ' 🔫 +' + a.hp + ' ❤️';
+      html += '<button class="armas-buy" data-i="' + i + '"' + (can ? '' : ' disabled') + ' style="display:flex;justify-content:space-between;align-items:center;gap:.6em;padding:.6em .9em;font:inherit;cursor:' + (can ? 'pointer' : 'not-allowed') + ';opacity:' + (can ? '1' : '.45') + '"><span>⚔️ ' + nm + ' <small style="opacity:.7">' + bonus + '</small></span> <b>' + a.cost + ' 🪙</b></button>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    body.querySelectorAll('.armas-buy').forEach(b => b.addEventListener('click', () => pickArma(arsenal[+b.getAttribute('data-i')])));
+    ov.classList.remove('hidden');
+  }
+  function closeArmas() { const ov = document.getElementById('armasmenu'); if (ov) ov.classList.add('hidden'); }
+  function pickArma(a) {
+    if (!a || !armasNpc) return;
+    if ((player.coins || 0) < a.cost) { setMsg(T('g.armas.noCoins', { cost: a.cost }), '#ff5252', 4000); Sfx.empty(); return; }
+    player.coins -= a.cost; armasNpc.armado = true; applyEdge('armas', 'armado');
+    player.ammo += a.ammo; player.hp = Math.min(MAXHP, player.hp + a.hp);
+    closeArmas();
+    setMsg(T('g.armas.bought', { fierro: T('g.armas.fierro.' + a.key), ammo: a.ammo, hp: a.hp }), '#7CFC00', 7500); Sfx.pickup();
   }
   function handleLujo(n) {
     // mismo punto en los pisos de lujo: pre-tormenta son las JOYAS (te raja el linyera),
@@ -1622,6 +1648,8 @@
     if (e.key === 'Escape' && myst && !myst.classList.contains('hidden')) { e.preventDefault(); closeMyStats(); return; }
     const gm = document.getElementById('guardamenu');
     if (e.key === 'Escape' && gm && !gm.classList.contains('hidden')) { e.preventDefault(); closeGuarda(); return; }
+    const am = document.getElementById('armasmenu');
+    if (e.key === 'Escape' && am && !am.classList.contains('hidden')) { e.preventDefault(); closeArmas(); return; }
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
@@ -1633,6 +1661,7 @@
   document.getElementById('restartBtn').addEventListener('click', start);
   { const b = document.getElementById('myStatsClose'); if (b) b.addEventListener('click', closeMyStats); }
   { const b = document.getElementById('guardaClose'); if (b) b.addEventListener('click', closeGuarda); }
+  { const b = document.getElementById('armasClose'); if (b) b.addEventListener('click', closeArmas); }
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {

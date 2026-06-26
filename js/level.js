@@ -43,7 +43,7 @@ const Level = (() => {
       playerStart: spec.playerStart != null ? feet(spec.playerStart) : null,
       enemies: (spec.enemies || []).map(e => ({ type: e.t, dormant: e.dormant, look: e.look, ...feet(e.x, e.y) })),
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
-      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
+      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE, ad: d.ad })),
@@ -244,6 +244,14 @@ const Level = (() => {
             sells:{ kind:'health', amount:25, cost:4, stock:3 },
             dialog:'“¿Pancho de tres días? Igual te hace bien, barato.” 🤢' },
           { name:'???', sprite:'misterioso', x:36, action:'armas',
+            // arsenal = DATA del nivel (cada fierro: costo + bonus). El motor abre un menú (como el guarda) y lo lee.
+            // Elegís UNO (te "armás", abre la arista de historia). De rebenque barato al FAL caro.
+            arsenal:[
+              { key:'rebenque',   cost:8,  ammo:15, hp:5 },
+              { key:'boleadoras', cost:12, ammo:25, hp:10 },
+              { key:'facon',      cost:15, ammo:30, hp:15 },
+              { key:'fal',        cost:22, ammo:50, hp:25 },
+            ],
             dialog:'“Pssst... cuando se pudra todo y las eléctricas no anden, vení que tengo FIERRO criollo.” 🗡️' },
         ],
         enemies: [{t:'peaton',x:18},{t:'dron',x:24,y:6}],

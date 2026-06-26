@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v160] — 2026-06-26 — ⚔️ El misterioso de las armas: MENÚ de compra + arsenal como DATA (sigue el barrido)
+
+El vendedor de fierro criollo deja de ser un botón único: ahora **abre un menú** (como el guarda) para **elegir
+UN fierro** (rebenque / boleadoras / facón / FAL de Malvinas), cada uno con su **costo + bonus**. El **arsenal es
+DATA del nivel** (`entity.interact.arsenal` = `[{key,cost,ammo,hp}]`), no números sueltos en `game.js`:
+threadeado level.js→gen-level→nivel-1.json→schema→mundo→engine, con **fallback inline = v1** (un fierro, 15🪙,
++40/+20). Elegir uno te "arma" (abre la arista de historia `armado`, igual que antes). i18n ES/EN (nombres de los
+fierros + chamuyo). Overlay `armasmenu` + ESC/cerrar. Schema + parity v1≡v2 + e2e×3 + web-smoke OK.
+
+---
+
 ## [v159] — 2026-06-26 — 🧱 v2: tope de vida y castigo de truco como rules (sigue el barrido de balance)
 
 Más números de balance salen de `game.js` hacia `rules`: el **tope de vida** (`rules.player.maxHp`, hardcodeado

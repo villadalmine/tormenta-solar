@@ -1768,7 +1768,33 @@
           "x": 36,
           "name": "???",
           "interact": {
-            "action": "armas"
+            "action": "armas",
+            "arsenal": [
+              {
+                "key": "rebenque",
+                "cost": 8,
+                "ammo": 15,
+                "hp": 5
+              },
+              {
+                "key": "boleadoras",
+                "cost": 12,
+                "ammo": 25,
+                "hp": 10
+              },
+              {
+                "key": "facon",
+                "cost": 15,
+                "ammo": 30,
+                "hp": 15
+              },
+              {
+                "key": "fal",
+                "cost": 22,
+                "ammo": 50,
+                "hp": 25
+              }
+            ]
           },
           "dialogue": {
             "text": "“Pssst... cuando se pudra todo y las eléctricas no anden, vení que tengo FIERRO criollo.” 🗡️"

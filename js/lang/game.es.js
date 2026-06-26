@@ -60,6 +60,13 @@
     'g.armas.done': '“Ya te armé, criollo. Andá a hacer historia.” ⚔️',
     'g.armas.noCoins': '“Fierro criollo no es gratis, pibe. Son {cost} monedas.” 🗡️',
     'g.armas.buy': 'El tipo abre un trapo en el piso: REBENQUE, BOLEADORAS, FACÓN y un FAL de Malvinas. “Las eléctricas no andan con la tormenta solar, pibe. Llevate fierro criollo de verdad.” ⚔️🇦🇷  +40 munición, +20 vida.',
+    'g.armas.menuTitle': '⚔️ Fierro criollo — elegí tu chuza',
+    'g.armas.menuSub': '“Las eléctricas no andan con la tormenta, pibe. Mirá lo que tengo.” · Tenés {c} 🪙',
+    'g.armas.bought': '“Buena elección, criollo: {fierro}.” Te lo guardás en la cintura. ⚔️🇦🇷  +{ammo} munición, +{hp} vida.',
+    'g.armas.fierro.rebenque': 'Rebenque',
+    'g.armas.fierro.boleadoras': 'Boleadoras',
+    'g.armas.fierro.facon': 'Facón',
+    'g.armas.fierro.fal': 'FAL de Malvinas',
 
     // --- Iorio ---
     'g.iorio.preStorm': '“Traeme falopa y te toco Pibe Tigre.” 🤘',

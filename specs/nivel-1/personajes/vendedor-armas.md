@@ -12,12 +12,19 @@ Malvinas**.
 ## Detalle
 - `action:'armas'`. Pre-tormenta: *"guardá la guita, con la luz todavía andando las eléctricas te
   alcanzan; volvé cuando se pudra todo"*.
-- Post-tormenta (`stormed`): por **15 monedas** te arma → **+40 munición, +20 vida** (representa el
-  arsenal). *"Las eléctricas no andan con la tormenta, pibe. Llevate fierro criollo de verdad."* ⚔️🇦🇷
-- Compra **única** (flag `n.armado`).
-- **Simplificación (MVP):** los 4 fierros son **flavor + un bonus de munición/vida**; no cambian el
-  sistema de combate (sigue el escupitajo). Un sistema de armas real (melee/cuerpo a cuerpo, daño por
-  arma) queda como futuro.
+- Post-tormenta (`stormed`): **abre un MENÚ de compra** (mismo patrón que el guarda del cine, overlay
+  `armasmenu`) para **elegir UN fierro** del arsenal. *"Las eléctricas no andan con la tormenta, pibe.
+  Llevate fierro criollo de verdad."* ⚔️🇦🇷
+- **Arsenal como DATA del nivel (v2, §6.97):** `entity.interact.arsenal = [{key,cost,ammo,hp}]`, NO números
+  sueltos en `game.js`. Threadeado level.js→gen-level→nivel-1.json→schema→mundo→engine; el motor abre el menú
+  y lo lee, con **fallback inline = v1** (un fierro, 15🪙, +40/+20). La máquina de niveles podrá autorar el
+  arsenal (otros fierros/precios/bonus) sin tocar el motor.
+- Arsenal del Nivel 1: `rebenque` (8🪙 +15/+5) · `boleadoras` (12🪙 +25/+10) · `facon` (15🪙 +30/+15) ·
+  `fal` de Malvinas (22🪙 +50/+25). Del barato-flojo al caro-fuerte.
+- Compra **única**: elegir cualquiera te "arma" (flag `n.armado` + abre la arista de historia `armado`).
+- **Simplificación (MVP):** los fierros son **flavor + un bonus de munición/vida**; no cambian el sistema de
+  combate (sigue el escupitajo). Un sistema de armas real (melee/cuerpo a cuerpo, daño por arma) queda como
+  futuro.
 
 ## Personalidad (fuente para el generador de diálogos y el chat IA)
 - **Voz / tono:** misterioso, susurrante, vendedor de la galería; tono de "vení que tengo algo".
