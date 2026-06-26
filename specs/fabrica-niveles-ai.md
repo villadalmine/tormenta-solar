@@ -28,6 +28,19 @@ y declarativo**, porque:
 - **La máquina:** el **motor data-driven** que ya corre cualquier nivel-dato (`Mundo.fromModel`) + el **runtime de
   quests** (registro+primitivas) + el **grounding del ecosistema** (los NPC saben todo).
 
+## 3.1 DOS usos del pipeline de autoría (dueño, 2026-06-26)
+El mismo generador sirve para **dos cosas**, y por eso vale doble:
+- **(a) Herramienta de DESARROLLO (para el dueño):** le sirve para **codear/crear niveles** más rápido — contás la
+  historia y te scaffoldea el JSON del nivel (que después editás a mano o con la IA). Es un editor de niveles asistido.
+- **(b) EN VIVO dentro del juego (FEATURE PAGO ⭐):** le **hablás a un ORÁCULO** (linyera) y te **crea un nivel en
+  tiempo real** — el oráculo (que ya sabe todo del ecosistema, grounding) toma tu pedido, genera el JSON validado y te
+  mete en ese mundo. Es la versión jugable de la "máquina": el NPC IA como **autor de mundos on-the-fly**.
+  **Monetización (dueño 2026-06-26):** es un **lindo feature PAGO** — *"si pagás, tenés un oráculo que te crea más
+  juegos"*. Engancha con la **suscripción** ya implementada (`suscripcion.md`, X-Sub-Code): el free juega los niveles
+  base; el **premium** desbloquea el oráculo-creador (genera mundos ilimitados con tu historia). Costo real = tokens
+  del generador → cubierto por la sub (key propia por código, budget). Ver `quest-mundo-ai.md` (gating premium) +
+  `pasarela-pago.md` (cobro).
+
 ## 4. El PIPELINE que falta (autoría) — fases
 1. **F1 — molde sólido:** el schema cubre todo lo que hoy hay hardcodeado (seguir migrando: NPCs/quests/ambient a
    componentes de datos). Cuanto más data-driven, más puede autorar la IA. *(En progreso: quests F1-F3 hechas.)*
