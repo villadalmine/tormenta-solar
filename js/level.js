@@ -418,7 +418,7 @@ const Level = (() => {
       '“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼',
     ];
     for (let n = 1; n <= 20; n++) {
-      const lux = (n % 2 === 1), w = 17;
+      const lux = (n % 2 === 1), w = 24;   // más ancho: el costado derecho es zona de SUBIDA (escalera/plataformas) + propaganda
       const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar un piso', x:2, inward:1 }];
       if (n < 20) doors.push({ id:'up', art:'elevator', label:'subir un piso', x:w-3, inward:-1 });
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
@@ -463,6 +463,11 @@ const Level = (() => {
         }
         spec.pickups = [{t:'health',x:8}];
       }
+      // COSTADO DERECHO (zona de subida): ESCALERA de plataformas que sube de derecha a izquierda (saltás de una a
+      // otra) + un premio arriba (loot) + CARTELES de propaganda abajo (rotan; incluye el link del otro juego).
+      spec.platforms = (spec.platforms || []).concat([[20, 10, 3], [17, 8, 2], [14, 6, 2]]);   // 3 escalones ascendentes ←
+      spec.decor = (spec.decor || []).concat([{ t:'cartel', x:16 }, { t:'cartel', x:19 }]);    // propaganda en el hueco
+      spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x:14.5, y:5, amount: lux ? 5 : 0 }]);  // recompensa por trepar
       rooms.push(makeRoom(spec));
     }
 

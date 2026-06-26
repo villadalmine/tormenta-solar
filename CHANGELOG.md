@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v139] — 2026-06-26 — 🏚️ Edificio abandonado: escalera/plataformas + propaganda en el costado derecho
+
+Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
+- una **escalera de plataformas** que sube de **derecha a izquierda** (saltás de una a otra) con un **premio arriba**
+  (monedas en lujo / vida en ruina) como recompensa por trepar;
+- **carteles de propaganda** rotativos (incluido el link del **otro juego del Ciruja**, Cruz del Sur);
+- el **ascensor** sigue a ras para subir de piso. Paridad 45 salas (638 entidades), e2e + web-smoke OK.
+
+---
+
 ## [v138] — 2026-06-26 — 🃏 Truco: orden de tiro REAL (la mano) + el tahúr grita los cantos
 
 - **Didáctica/reglas arregladas:** antes el jugador **tiraba siempre primero**. Ahora se respeta la **MANO**: la mano

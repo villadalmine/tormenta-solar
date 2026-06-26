@@ -35,6 +35,16 @@ que abre el **búnker** del piso 20 (refugio / loop).
     **parcial y aleatoria** (ver `personajes/linyeras.md`).
 - **Post-tormenta:** **sobrevive** (nadie lo quiere) → refugio.
 
+## Costado derecho — zona de SUBIDA + propaganda (v139)
+Los pisos se ensancharon (`w` 17→24): el **costado derecho** es una zona vertical de traslado/decoración:
+- **Escalera de plataformas** que sube **de derecha a izquierda** (3 escalones ascendentes `[20,10],[17,8],[14,6]`):
+  se sube **saltando** de una a otra. Arriba, un **premio** (loot: monedas en lujo / vida en ruina) como recompensa.
+- **Carteles de propaganda** (`decor:'cartel'`, x:16 y x:19) que **rotan** marcas falsas BsAs por rubro e incluyen
+  el **link del otro juego del dueño** (Cruz del Sur, entrada fija del banco; ver [`../../carteles-ia.md §9`](../../carteles-ia.md)).
+  `drawCartelProp` ahora dispara también acá (`/Abandonado/`).
+- El **ascensor** (`up`, x:21, a ras del piso) sigue siendo la vía al piso siguiente; la escalera/plataformas son
+  para trepar al loot/propaganda dentro del piso. (Las puertas van siempre a nivel de piso por diseño de `makeRoom`.)
+
 ## Aristas
 ```
 calle --conecta_con--> edificio_abandonado [bloqueado por borrachines]
