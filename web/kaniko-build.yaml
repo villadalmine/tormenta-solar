@@ -5,7 +5,7 @@
 # Aplicar:  kubectl create -f web/kaniko-build.yaml
 # Esperar:  kubectl wait workflow -l app=tormenta-web-build -n kaniko \
 #             --for=jsonpath='{.status.phase}'=Succeeded --timeout=900s
-# Imagen:   registry.registry:5000/ai/tormenta-solar-web:0.1.34
+# Imagen:   registry.registry:5000/ai/tormenta-solar-web:0.1.35
 # NOTA: el sitio local es un snapshot horneado en la imagen → en cada cambio de páginas hay que
 #       RE-buildear (subir el tag) y `helm upgrade --set image.tag=...`. GitHub Pages se actualiza solo.
 apiVersion: argoproj.io/v1alpha1
@@ -53,7 +53,7 @@ spec:
         args:
           - "--dockerfile=/workspace/source/web/Dockerfile"
           - "--context=dir:///workspace/source"
-          - "--destination=registry.registry:5000/ai/tormenta-solar-web:0.1.34"
+          - "--destination=registry.registry:5000/ai/tormenta-solar-web:0.1.35"
           - "--insecure"
           - "--skip-tls-verify"
           - "--snapshot-mode=redo"
