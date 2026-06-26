@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v152] — 2026-06-26 — 🧱 v2: salas con TAGS semánticos (el engine reacciona a `tags`, no al nombre)
+
+Migrado el regex de sala más usado: `/Cine/.test(r.name)` (5 lugares) → un componente **`tags`** de la sala (data) +
+un helper `isCine(r)` que lee `r.tags.includes('cine')` (con fallback al regex por las dudas). Threadeado
+level.js→gen-level→nivel-1.json→mundo→engine; las 7 salas del cine van con `tags:['cine']`. Así una sala es "cine"
+porque lo DECLARA, no por su nombre → la máquina puede taguear salas. Patrón listo para migrar el resto
+(Abandonado/Búnker/Truco). Paridad 45 salas + schema OK + e2e×3 + web-smoke.
+
+---
+
 ## [v151] — 2026-06-26 — 🧱 v2: los carteles de propaganda son un COMPONENTE (`ad`), no un regex de sala
 
 Antes la propaganda rotativa se gatillaba por **regex del nombre de la sala** (`/Cine/|/Abandonado/|calle`) =

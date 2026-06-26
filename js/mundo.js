@@ -15,7 +15,7 @@ const Mundo = (() => {
 
     const feet = (tx, ty) => ({ x: tx * T + T / 2, y: (ty == null ? gTop : ty) * T });
     const room = {
-      _id: rm.id, name: rm.nombre, theme: rm.theme, w, h, gTop, map,
+      _id: rm.id, name: rm.nombre, theme: rm.theme, tags: rm.tags, w, h, gTop, map,
       pixW: w * T, pixH: h * T, light: rm.light, stormable: !!rm.stormable,
       goal: null, buy: null, playerStart: null,
       enemies: [], pickups: [], npcs: [], machines: [], cueveros: [], decor: [], doors: [], doorById: {},

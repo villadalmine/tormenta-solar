@@ -252,6 +252,13 @@
      "items": {
       "$ref": "#/$defs/entity"
      }
+    },
+    "tags": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "tags semánticos de la sala (ej. cine) — el engine reacciona a tags, no al nombre"
     }
    }
   },

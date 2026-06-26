@@ -104,6 +104,7 @@ const model = {
   quests: Object.values(QUESTS),   // array (lo que pide el schema); game.js lo mapea por id
   rooms: rooms.map((r, ri) => {
     const room = { id: roomId[ri], nombre: r.name, theme: r.theme, w: r.w };
+    if (r.tags && r.tags.length) room.tags = r.tags;
     if (r.light != null) room.light = r.light;
     if (r.stormable) room.stormable = true;
     const pl = platforms(r); if (pl.length) room.platforms = pl;

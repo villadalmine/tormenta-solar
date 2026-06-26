@@ -36,7 +36,7 @@ const Level = (() => {
 
     const feet = (tx, ty = gTop) => ({ x: tx*TILE + TILE/2, y: ty*TILE });
     const room = {
-      name: spec.name, theme: spec.theme, w, h, gTop, map,
+      name: spec.name, theme: spec.theme, tags: spec.tags, w, h, gTop, map,
       pixW: w*TILE, pixH: h*TILE, light: spec.light, stormable: !!spec.stormable,
       goal: spec.goal != null ? feet(spec.goal) : null,
       buy: spec.buy != null ? feet(spec.buy) : null,
@@ -534,7 +534,7 @@ const Level = (() => {
     const _seats = [{t:'sofa',x:6},{t:'sofa',x:9},{t:'sofa',x:12},{t:'sofa',x:15},{t:'sofa',x:7.5},{t:'sofa',x:10.5},{t:'sofa',x:13.5}];
     const _ads = [{t:'cartel',x:2,ad:true},{t:'cartel',x:20,ad:true}];   // carteles de propaganda (componente `ad`) en las esquinas
     const cine1 = rooms.push(makeRoom({
-      name: 'Cine Lavalle — Deportes', theme: 'arcade', light: 0.5, w: 22,
+      name: 'Cine Lavalle — Deportes', tags:['cine'], theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Mundo', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [
@@ -546,37 +546,37 @@ const Level = (() => {
       ],
     })) - 1;
     const cine2 = rooms.push(makeRoom({
-      name: 'Cine Lavalle — Mundo', theme: 'arcade', light: 0.5, w: 22,
+      name: 'Cine Lavalle — Mundo', tags:['cine'], theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'down', art:'doorUp', label:'bajar: Deportes', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Tecno', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [{ name:'Espectadora', sprite:'mujer', x:17, dialog:'“Qué barbaridad cómo está el mundo, nene.” 📰' }],
     })) - 1;
     const cine3 = rooms.push(makeRoom({
-      name: 'Cine Lavalle — Tecno', theme: 'arcade', light: 0.5, w: 22,
+      name: 'Cine Lavalle — Tecno', tags:['cine'], theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'down', art:'doorUp', label:'bajar: Mundo', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Finanzas', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [{ name:'Gamer', sprite:'civil4', x:17, dialog:'“¿Viste lo del GTA? Una locura, maestro.” 🎮' }],
     })) - 1;
     const cine4 = rooms.push(makeRoom({
-      name: 'Cine Lavalle — Finanzas', theme: 'arcade', light: 0.5, w: 22,
+      name: 'Cine Lavalle — Finanzas', tags:['cine'], theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'down', art:'doorUp', label:'bajar: Tecno', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Colombofilia', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [{ name:'Broker', sprite:'civil1', x:17, dialog:'“El dólar, el bitcoin, el Merval... todo para arriba o todo para abajo, nene.” 📉' }],
     })) - 1;
     const cine5 = rooms.push(makeRoom({
-      name: 'Cine Lavalle — Colombofilia', theme: 'arcade', light: 0.5, w: 22,
+      name: 'Cine Lavalle — Colombofilia', tags:['cine'], theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'down', art:'doorUp', label:'bajar: Finanzas', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Consolas', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [{ name:'Colombófilo', sprite:'viejo', x:17, dialog:'“Mis palomas vuelan 700 km y vuelven solas. ¿Vos podés decir lo mismo, pibe?” 🕊️' }],
     })) - 1;
     const cine6 = rooms.push(makeRoom({
-      name: 'Cine Lavalle — Consolas', theme: 'arcade', light: 0.5, w: 22,
+      name: 'Cine Lavalle — Consolas', tags:['cine'], theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'down', art:'doorUp', label:'bajar: Colombofilia', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: OpenRouter', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [{ name:'Coleccionista', sprite:'gordo', x:17, dialog:'“8, 16, 32 bits... la Family, la Mega, la Super Nintendo. Las busco en MercadoLibre.” 🕹️' }],
     })) - 1;
     const cine7 = rooms.push(makeRoom({
-      name: 'Cine Lavalle — OpenRouter', theme: 'arcade', light: 0.5, w: 22,
+      name: 'Cine Lavalle — OpenRouter', tags:['cine'], theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'down', art:'doorUp', label:'bajar: Consolas', x:2, inward:1 }],
       decor: [..._seats, ..._ads],
       npcs: [{ name:'El Linyera IA', sprite:'linyera', x:17, oracle:true, social:{knows:['borracho','tahur','chino','linyeras','vendedor','vecina','guarda']}, action:'chat', persona:'filosofo', dialog:'“Acá ves qué modelo de IA conviene y cuánto sale. Yo sé de eso, pibe.” 🤖' }],

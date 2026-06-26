@@ -7068,6 +7068,9 @@
       "nombre": "Cine Lavalle — Deportes",
       "theme": "arcade",
       "w": 22,
+      "tags": [
+        "cine"
+      ],
       "light": 0.5,
       "entities": [
         {
@@ -7242,6 +7245,9 @@
       "nombre": "Cine Lavalle — Mundo",
       "theme": "arcade",
       "w": 22,
+      "tags": [
+        "cine"
+      ],
       "light": 0.5,
       "entities": [
         {
@@ -7371,6 +7377,9 @@
       "nombre": "Cine Lavalle — Tecno",
       "theme": "arcade",
       "w": 22,
+      "tags": [
+        "cine"
+      ],
       "light": 0.5,
       "entities": [
         {
@@ -7500,6 +7509,9 @@
       "nombre": "Cine Lavalle — Finanzas",
       "theme": "arcade",
       "w": 22,
+      "tags": [
+        "cine"
+      ],
       "light": 0.5,
       "entities": [
         {
@@ -7629,6 +7641,9 @@
       "nombre": "Cine Lavalle — Colombofilia",
       "theme": "arcade",
       "w": 22,
+      "tags": [
+        "cine"
+      ],
       "light": 0.5,
       "entities": [
         {
@@ -7758,6 +7773,9 @@
       "nombre": "Cine Lavalle — Consolas",
       "theme": "arcade",
       "w": 22,
+      "tags": [
+        "cine"
+      ],
       "light": 0.5,
       "entities": [
         {
@@ -7887,6 +7905,9 @@
       "nombre": "Cine Lavalle — OpenRouter",
       "theme": "arcade",
       "w": 22,
+      "tags": [
+        "cine"
+      ],
       "light": 0.5,
       "entities": [
         {

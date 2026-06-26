@@ -643,6 +643,7 @@
     ctx.restore();
   }
   const isHincha = n => !!(n && n.persona === 'hincha');   // §9: los dos hinchas del piso Deportes (quest del Mundial)
+  const isCine = r => !!(r && ((r.tags && r.tags.includes('cine')) || /Cine/.test(r.name || '')));   // CINE por TAG (data), no por nombre (fallback regex)
   // el hincha pregunta con onda: sesga a Argentina (60%) o a equipos JUGOSOS si están; si no, random.
   function pickEquipoJugoso(eqs) {
     const arg = eqs.find(e => /argentin/i.test(e));
@@ -878,15 +879,15 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
-    if (!/Cine/.test(r.name)) {   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
+    if (!isCine(r)) {   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
       if (mundialApproach) mundialApproach.npc.x = mundialApproach.homeX;   // el hincha vuelve a su lugar
       cineArchive = null; guardaAsk = {}; mundialQuest = null; mundialApproach = null;
     }
-    if (/Cine/.test(r.name)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
+    if (isCine(r)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
-    else if (/Cine/.test(r.name)) setMsg(T('g.trans.cine'), '#9fd3ff', 5000);   // CINE de noticias (antes que arcade)
+    else if (isCine(r)) setMsg(T('g.trans.cine'), '#9fd3ff', 5000);   // CINE de noticias (antes que arcade)
     else if (current === 0) setMsg(T('g.trans.street'), '#4FC3F7', 2500);
     else if (r.theme === 'cambio') { flash(); setMsg(stormed ? T('g.trans.cambioStorm') : T('g.trans.cambioFull'), stormed ? '#ff5252' : '#ffd54f', 6000); }
     else if (r.theme === 'cemento') setMsg(T('g.trans.cemento'), '#ff5252', 5500);
@@ -1260,7 +1261,7 @@
       if (img) ctx.drawImage(img, d.x - cam.x - img.width/2, d.feetY - cam.y - img.height);
       if (img && d.type === 'cartel' && d.ad) drawCartelProp(d, img);   // propaganda rotativa: el cartel DECLARA que es superficie publicitaria (componente `ad`), no por regex de sala
     }
-    if (/Cine/.test(r.name)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
+    if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
 
     // puertas
     for (const d of r.doors) {
@@ -1610,7 +1611,7 @@
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
-    else if (k === 'r' && state === 'playing' && /Cine/.test(room().name) && cineNoticias.length) cineRead();   // CINE: [R] leer todas en voz alta
+    else if (k === 'r' && state === 'playing' && isCine(room()) && cineNoticias.length) cineRead();   // CINE: [R] leer todas en voz alta
     else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? T('g.music.on') : T('g.music.off'), '#9fd3ff', 1200); }
     else if (k === 'p' && (state === 'playing')) { if (myst && myst.classList.contains('hidden')) showMyStats(); else closeMyStats(); }   // "Tu partida"
   });
