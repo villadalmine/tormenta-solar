@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v179] — 2026-06-26 — 🛡️ Circuit breaker en el CHAT + señal de salud COMPARTIDA con la máquina de niveles
+
+Extendimos la resiliencia al **chat con los linyeras**. Antes, con la GPU caída, cada mensaje esperaba el
+`PROXY_TIMEOUT` de **11s** antes de caer al pool local. Ahora `js/ai.js` tiene un **circuit breaker**: un
+timeout o un 5xx del proxy **abre el circuito 60s** → los próximos mensajes **NO esperan**, caen AL TOQUE a la
+línea en personaje (pool `SAT`/`LINYERA_POOL`). Se **cierra solo** cuando el proxy vuelve a responder. La **señal
+de salud se COMPARTE** con el generador de niveles (`js/nivelai.js`) vía `window.__aiHealth`: como pegan al mismo
+backend GPU/proxy, si uno detecta la IA caída el otro también falla rápido (y viceversa). Test nuevo
+`tests/breaker.js` (4 escenarios: abre por timeout, no llama al proxy con el circuito abierto, señal compartida,
+cierra al recuperar) — sumado a CI y a `npm test`. Docs: `specs/resiliencia.md` (tabla L2/L3 + RF-3 ✅).
+
+---
+
 ## [v178] — 2026-06-26 — 📄 Página /info y /tech ACTUALIZADA con todas las mejoras (motor, máquina de niveles, dólares, resiliencia)
 
 La página de presentación ahora SÍ muestra lo que nos hace distintos de un juego normal. **`info/tech.html`**

@@ -20,6 +20,10 @@ jobs:
       - name: e2e headless
         run: node tests/e2e.js
 
+      # 1a) circuit breaker del chat + señal de salud compartida (resiliencia GPU)
+      - name: circuit breaker (resiliencia)
+        run: node tests/breaker.js
+
       # 1b) modelo v2 data-driven: schema válido + paridad v1≡v2 + JUGABILIDAD (la red de la máquina de niveles)
       - name: modelo v2 (schema + paridad + jugabilidad)
         run: |

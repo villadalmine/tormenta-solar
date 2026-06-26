@@ -8,10 +8,12 @@ const NivelAI = (() => {
   const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';   // mismo proxy que ai.js/propaganda.js
   // CIRCUIT BREAKER: si la IA (GPU/upstream) falla o tarda, ABRIMOS el circuito 90s → todas las generaciones caen
   // a MODO ESTÁTICO al toque, sin esperar timeouts. Si la GPU se va al tacho, NO se cuelga nada. (premisa del dueño)
+  // La señal de salud se COMPARTE con el chat (js/ai.js) vía window.__aiHealth: mismo backend GPU/proxy, así si
+  // uno detecta la IA caída el otro también falla rápido al modo estático/local. (specs/resiliencia.md)
   const AI_TIMEOUT = 6000, AI_COOLDOWN = 90000;
-  let aiDownUntil = 0;
-  const aiDown = () => Date.now() < aiDownUntil;
-  const markAi = ok => { aiDownUntil = ok ? 0 : Date.now() + AI_COOLDOWN; };
+  const health = (typeof window !== 'undefined') ? (window.__aiHealth = window.__aiHealth || { downUntil: 0 }) : { downUntil: 0 };
+  const aiDown = () => Date.now() < health.downUntil;
+  const markAi = ok => { health.downUntil = ok ? 0 : Date.now() + AI_COOLDOWN; };
   const short = () => (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es';
   const L = o => (o && typeof o === 'object' && ('es' in o || 'en' in o)) ? (o[short()] || o.es) : o;
 

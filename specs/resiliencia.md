@@ -30,8 +30,8 @@ aguanta la infra antes de degradar.
 |---|---|---|---|
 | **L0** | todo OK | respuesta IA real (cloud) | ✅ hoy |
 | **L1** | timeout puntual (>9s) | **línea temática** genérica | ✅ hoy (`ai.js`) |
-| **L2** | timeouts repetidos / infra lenta | **pool de respuestas precacheadas POR PERSONA** (canned, en personaje, variadas) en vez de la genérica | 🔲 **a hacer** |
-| **L3** | proxy no responde / sin red | solo pool estático + BYOK como escape | ✅ parcial |
+| **L2** | timeouts repetidos / infra lenta | **pool de respuestas precacheadas POR PERSONA** (canned, en personaje, variadas) en vez de la genérica | ✅ hoy (`SAT`/`satLine` + pool `LINYERA_POOL` del cron) |
+| **L3** | proxy no responde / sin red | **circuit breaker**: tras un timeout/5xx ABRE el circuito 60s → los próximos mensajes NO esperan los 11s, caen al toque al pool en personaje. Señal **compartida** con el generador de niveles (`window.__aiHealth`). + BYOK como escape | ✅ hoy (`ai.js` + `nivelai.js`) |
 
 La idea nueva es **L2**: hoy el salto de "IA" a "línea genérica" es brusco. Con un **pool precacheado por persona**
 (filósofo/poeta/pechito/cuevero/tahúr…), cuando la infra está lenta el linyera igual **contesta algo lindo y en
@@ -72,7 +72,10 @@ sube el error rate — **por capa**, para saber qué se rompe primero (¿el G4? 
 
 - **RF-1** Pool de respuestas precacheadas por persona (L2) en `ai.js`, usado ante timeouts repetidos.
 - **RF-2** (opcional) Warm-cache del pool desde el proxy a `localStorage` al cargar, si el proxy está sano.
-- **RF-3** Escalada a "modo Plan B" tras K timeouts/sesión + reintento periódico + upsell/BYOK.
+- **RF-3** ✅ **HECHO** Circuit breaker en `ai.js`: un timeout/5xx abre el circuito 60s → modo local AL TOQUE
+  (sin esperar el `PROXY_TIMEOUT` de 11s), reintenta al expirar el cooldown. Señal de salud **compartida** con
+  `nivelai.js` vía `window.__aiHealth` (mismo backend GPU/proxy). Test: `tests/breaker.js`. (Falta lo opcional:
+  warm-cache del pool a `localStorage` — RF-2 — y calibrar el K con datos del stress test.)
 - **RF-4** Suite de stress testing (script + escenarios por capa) y un reporte con la rodilla por capa.
 - **RF-5** (según resultado) ajustar `maxconn`/timeouts del G4, réplicas/HPA del proxy, o el umbral K.
 

@@ -9,6 +9,14 @@ const AI = (() => {
   const TIMEOUT = 11000;
   const PROXY_TIMEOUT = 11000;   // TOPE DURO. El proxy puede caer al modelo PAGO (5-7s) cuando el free se agota,
                                  // así que esperamos 11s (el proxy corta su upstream a ~9s; dejamos margen).
+  // CIRCUIT BREAKER del chat: si el proxy se cae o tarda (GPU al tacho), abrimos el circuito 60s → los próximos
+  // mensajes NO esperan los 11s: caen al toque al pool local en personaje. La señal de salud se COMPARTE con
+  // el generador de niveles (js/nivelai.js) vía window.__aiHealth (mismo backend GPU/proxy): si uno la detecta
+  // caída, el otro también falla rápido. Se cierra solo cuando el proxy vuelve a responder. (specs/resiliencia.md)
+  const PROXY_COOLDOWN = 60000;
+  const aiHealth = (typeof window !== 'undefined') ? (window.__aiHealth = window.__aiHealth || { downUntil: 0 }) : { downUntil: 0 };
+  const proxyDown = () => Date.now() < aiHealth.downUntil;
+  const markProxy = ok => { aiHealth.downUntil = ok ? 0 : Date.now() + PROXY_COOLDOWN; };
   // session-id estable del jugador (no PII): el proxy lo usa para el cupo/día (la IP colapsa detrás del G4).
   function sessionId() {
     try { let s = localStorage.getItem('ts_sid'); if (!s) { s = (crypto.randomUUID ? crypto.randomUUID() : 's' + Date.now() + Math.random().toString(36).slice(2)); localStorage.setItem('ts_sid', s); } return s; }
@@ -339,6 +347,8 @@ const AI = (() => {
       const r = await fetch(PROXY, { method: 'POST', signal: ctrl.signal, headers,
         body: JSON.stringify({ npc, message, history: (history || []).slice(-8), grounding: grounding || undefined }) });
       clearTimeout(t);
+      // recibimos una respuesta HTTP → el proxy está VIVO (aunque sea 429/cupo o fallback). Solo 5xx = caído.
+      markProxy(r.status < 500);   // cierra el circuito; si estaba abierto por un timeout viejo, lo reabre.
       const d = r.ok || r.status === 429 ? await r.json().catch(() => null) : null;
       // CUPO del día agotado → el proxy manda el mensaje en personaje (esperá/BYOK/suscripción). Lo mostramos
       // tal cual (no caemos al pool genérico) y marcamos lastCapped para que la UI ofrezca key/suscripción.
@@ -346,7 +356,7 @@ const AI = (() => {
       if (!r.ok) return null;
       if (d && d.fallback) { lastTimedOut = true; return null; }   // el proxy saturó (línea genérica) → caemos a NUESTRO pool por persona
       return d && d.reply ? String(d.reply).slice(0, 1200) : null;
-    } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; return null; }
+    } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; markProxy(false); return null; }   // timeout/red → ABRE el circuito 60s (modo local al toque)
   }
 
   // PRIORIDAD: 1) proxy del dev (vos pagás) → 2) key del jugador (BYOK) → 3) líneas LOCALES
@@ -354,7 +364,8 @@ const AI = (() => {
   async function chat(npc, message, history = [], grounding) {
     lastTimedOut = false; lastFallback = false; lastCapped = false; lastByokLimit = null;
     if (typeof fetch === 'function') {
-      if (PROXY) { try { const r = await viaProxy(npc, message, history, grounding); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
+      // si el circuito está ABIERTO (proxy/GPU caído), NO esperamos los 11s: saltamos directo a BYOK/pool local.
+      if (PROXY && !proxyDown()) { try { const r = await viaProxy(npc, message, history, grounding); if (r) { lastSource = 'proxy'; return r; } } catch (e) {} }
       const key = playerKey();
       if (key && !byokDead) {
         try { const r = await viaOpenRouter(key, npc, message, history, grounding); if (r) { byokFails = 0; lastSource = 'byok'; return r; } } catch (e) {}
@@ -414,5 +425,5 @@ const AI = (() => {
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, setSubCode, getSubCode: subCode, checkSub, mySub, setStormed, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, proxyDown, setSubCode, getSubCode: subCode, checkSub, mySub, setStormed, get online() { return mode() !== 'offline'; } };
 })();
