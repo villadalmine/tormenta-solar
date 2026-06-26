@@ -485,6 +485,37 @@
   }
   // ¿es el linyera filósofo (el guía/oráculo)?
   const isOraculo = n => !!(n && (n.oracle || n.persona === 'filosofo'));   // los linyeras ilustres son oráculos (dan pistas)
+  // ECOSISTEMA (premisa v2: nada hardcodeado, todo es DATO que la IA usa para ser inteligente). Snapshot vivo del
+  // mundo a partir del estado + las APIs (noticias/mundial/propaganda). Se expone en window.Game.world y se le pasa
+  // como GROUNDING a los NPC IA para que "sepan" qué pasa (cine, Mundial, quests, tu progreso) sin inventar.
+  function worldSnapshot() {
+    const W = (typeof window !== 'undefined') ? window : {};
+    const ns = W.NOTICIAS || [], topic = t => ns.find(n => n.topic === t);
+    return {
+      stormed, borrachosHappy, bunkerUnlocked, trucoEverWon, chinoEntered, loopCount,
+      diosa: !!(player && player.diosa), armado,
+      quests: {
+        news: newsQuest ? { topic: newsQuest.topic } : null,
+        mundial: mundialQuest ? { equipo: mundialQuest.equipo, shown: mundialQuest.shown } : null,
+      },
+      cine: { topics: ns.map(n => n.topic), mundialTabla: (topic('mundial-tabla') || {}).headline || null, mundial: (topic('mundial') || {}).headline || null },
+      mundialEquipos: Object.keys((W.MUNDIAL && W.MUNDIAL.equipos) || {}).length,
+      propaganda: [...new Set((W.PROPAGANDA || []).map(c => c.cat))],
+    };
+  }
+  // versión TEXTO compacta para el grounding del LLM (en es; el modelo responde en el idioma del juego).
+  function worldBrief() {
+    const s = worldSnapshot(), b = [];
+    b.push(s.stormed ? 'ya pasó la TORMENTA SOLAR (apagón, todo glitcheado y hostil)' : 'todavía no pasó la tormenta solar');
+    if (s.cine.mundialTabla) b.push('en el CINE pasan el Mundial — ' + s.cine.mundialTabla);
+    if (s.quests.news) b.push('mandaste al jugador a traer noticia de "' + s.quests.news.topic + '"');
+    if (s.quests.mundial && !s.quests.mundial.shown) b.push('un hincha del cine espera saber cómo salió ' + s.quests.mundial.equipo);
+    if (s.trucoEverWon) b.push('ya le ganó al tahúr al truco');
+    if (s.chinoEntered) b.push('ya entró al super chino tras la tormenta');
+    if (s.bunkerUnlocked) b.push('ya es gurú (búnker abierto)');
+    if (s.loopCount > 0) b.push('lleva ' + s.loopCount + ' día(s) en el loop de supervivencia');
+    return 'ESTADO DEL JUEGO (datos reales del ecosistema, usalos si viene al caso, NO inventes): ' + b.join('; ') + '.';
+  }
   const isHincha = n => !!(n && n.persona === 'hincha');   // §9: los dos hinchas del piso Deportes (quest del Mundial)
   // el hincha pregunta con onda: sesga a Argentina (60%) o a equipos JUGOSOS si están; si no, random.
   function pickEquipoJugoso(eqs) {
@@ -557,7 +588,9 @@
     // linyera oráculo: cada repregunta sube el spoiler (0→3); la pista se le pasa como GROUNDING a la IA
     // (la dice con su voz, no inventa ruta). Si la respuesta sale LOCAL, la mostramos explícita (garantía).
     const ground = isOraculo(chatNpc) ? getHint(Math.min(++hintAsks, 3)) : null;
-    const groundTxt = (ground && ground.text) || (isHincha(chatNpc) && mundialQuest ? T('g.mundial.ground', { eq: mundialQuest.equipo }) : null);
+    let groundTxt = (ground && ground.text) || (isHincha(chatNpc) && mundialQuest ? T('g.mundial.ground', { eq: mundialQuest.equipo }) : null);
+    // ECOSISTEMA: el oráculo "sabe" el estado vivo del mundo (datos, no hardcode) → grounding extra
+    if (isOraculo(chatNpc)) groundTxt = [groundTxt, worldBrief()].filter(Boolean).join(' · ');
     let reply;
     try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory, groundTxt); }
     catch (e) { reply = T('g.chat.error'); }
@@ -1492,5 +1525,5 @@
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
   // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).
-  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame });
+  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot });
 })();

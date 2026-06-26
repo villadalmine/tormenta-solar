@@ -39,6 +39,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v140 / infra-21] — 2026-06-26 — 🧠 Primer paso v2: la IA usa el ESTADO VIVO del ecosistema (nada hardcodeado)
+
+Premisa del dueño: *todo es dato/API/objeto/memoria/grafo → el ecosistema alimenta a la IA para que sea inteligente*.
+- **`worldSnapshot()`** arma un snapshot vivo del mundo desde el ESTADO + las APIs (noticias/mundial/propaganda):
+  flags, quests activas, qué pasa en el cine/Mundial, progreso. Expuesto en **`window.Game.world`** (para GraphRAG/UI).
+- **`worldBrief()`** lo resume y se le pasa como **grounding** a los NPC oráculo → el linyera ahora "sabe" del cine,
+  del Mundial, de tus quests y tu progreso, **desde datos** (no hardcodeado).
+- **FIX importante:** el proxy **recibía pero ignoraba** el `grounding` → las pistas del grafo (y este contexto) NO
+  llegaban al modelo por el proxy (solo BYOK). Ahora `buildMessages` lo usa (`personas.js`) → grounding real por el
+  proxy. Proxy `0.1.35`.
+- **FIX truco (de v138):** `aiPlay()` podía llamarse con la mano del tahúr vacía → crash intermitente (lo cazó el
+  e2e). Blindado (guard + gate de baza activa).
+
+---
+
 ## [v139] — 2026-06-26 — 🏚️ Edificio abandonado: escalera/plataformas + propaganda en el costado derecho
 
 Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:

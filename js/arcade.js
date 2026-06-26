@@ -357,6 +357,7 @@ const Arcade = (() => {
 
     function aiPlay() {
       const avail = aiHand.filter(h => !h.used);
+      if (!avail.length) return;   // no le quedan cartas (defensivo: no debería llamarse acá)
       const card = E ? E.aiPlayCard(avail.map(h => h.c), tableP, TIER) : avail[0].c;
       const h = avail.find(x => x.c === card) || avail[0];
       h.used = true; tableA = h.c;
@@ -441,8 +442,8 @@ const Arcade = (() => {
         }
         if (Input.keys['v'] && round === 0 && !envidoDone && !tableP && !pending) { Input.keys['v'] = false; pending = { kind:'envido', level:1, by:'p' }; aiRespondEnvido(1); return; }
         if (Input.keys['t'] && trucoLevel < 3 && !pending) { Input.keys['t'] = false; pending = { kind:'truco', level: trucoLevel + 1, by:'p' }; aiRespondTruco(trucoLevel + 1); return; }
-        // si el TAHÚR es mano de esta baza, TIRA PRIMERO (vos respondés)
-        if (lead === -1 && !tableA && !tableP && !pending && aiOpened) { aiPlay(); note = T('arc.truco.aiLed'); }
+        // si el TAHÚR es mano de esta baza, TIRA PRIMERO (vos respondés). Solo en baza activa (le quedan cartas).
+        if (phase === 'play' && lead === -1 && !tableA && !tableP && !pending && aiOpened && aiHand.some(h => !h.used)) { aiPlay(); note = T('arc.truco.aiLed'); }
         if (!pending) for (let i = 0; i < 3; i++) {
           if (Input.keys[String(i + 1)] && !pHand[i].used) {
             pHand[i].used = true; tableP = pHand[i].c;

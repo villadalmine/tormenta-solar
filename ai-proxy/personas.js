@@ -26,8 +26,11 @@ export const ROSTER = {
   hincha: { nombre: "Los Hinchas del Cine", contexto: "hincha de fútbol fanático y supersticioso, pasión por la Selección; slang futbolero porteño, frases cortas, mucha pasión.", tormenta: "post-tormenta sigue pendiente del Mundial como si nada, \"el fútbol no para, che\"." },
 };
 
-export function buildMessages(npc, message, history) {
-  const system = PERSONAS[npc] || DEFAULT_PERSONA;
+export function buildMessages(npc, message, history, grounding) {
+  let system = PERSONAS[npc] || DEFAULT_PERSONA;
+  // GROUNDING (premisa v2: el ecosistema alimenta a la IA): pista del grafo + estado vivo del mundo. El NPC lo
+  // dice con SU voz, NO inventa rutas ni datos. Llega del cliente (ai.js viaProxy → body.grounding).
+  if (grounding && typeof grounding === 'string') system += '\n\nCONTEXTO DEL JUEGO (es real, usalo con TU voz si viene al caso, NO inventes rutas ni datos): ' + grounding.slice(0, 700);
   const hist = (Array.isArray(history) ? history : [])
     .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
     .slice(-8).map(m => ({ role: m.role, content: String(m.content).slice(0, 400) }));

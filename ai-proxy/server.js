@@ -665,15 +665,15 @@ http.createServer((req, res) => {
   let body = '';
   req.on('data', c => { body += c; if (body.length > 8000) req.destroy(); });
   req.on('end', async () => {
-    let npc, message, history;
-    try { ({ npc, message, history } = JSON.parse(body || '{}')); } catch (e) {}
+    let npc, message, history, grounding;
+    try { ({ npc, message, history, grounding } = JSON.parse(body || '{}')); } catch (e) {}
     if (!message) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ reply: '“¿Eh? No te escuché, pibe.”' })); }
     if (sub) subHit(subCode); else dailyHit(key);   // sub → volumen por código; free → cupo del día
     M.requests++; const t0 = Date.now();
     const npcLbl = cleanLbl(npc, 24);
     try {
       const rec = sub ? STORE[subCode] : null;          // si el código tiene key propia → directo a OpenRouter
-      const { reply, model, usage } = await ask(buildMessages(npc, message, history), { sub, user: sub ? subCode : undefined, orKey: rec && rec.orKey });
+      const { reply, model, usage } = await ask(buildMessages(npc, message, history, grounding), { sub, user: sub ? subCode : undefined, orKey: rec && rec.orKey });
       const dt = Date.now() - t0; M.durMsSum += dt; M.durCount++;
       const be = backendOf(model);
       incChat(model, be, sub ? 'ai_sub' : 'ai'); obsLatency(model, be, dt / 1000);   // ← modelo/backend/tier + latencia
