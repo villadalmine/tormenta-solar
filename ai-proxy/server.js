@@ -684,10 +684,25 @@ http.createServer((req, res) => {
     let nb = '';
     req.on('data', c => { nb += c; if (nb.length > 2000) req.destroy(); });
     req.on('end', async () => {
-      let theme = '', lang = 'es', chats = [];
-      try { const b = JSON.parse(nb || '{}'); theme = b.theme; lang = b.lang; chats = Array.isArray(b.chats) ? b.chats : []; } catch (e) {}
+      let theme = '', lang = 'es', chats = [], wantGeom = false;
+      try { const b = JSON.parse(nb || '{}'); theme = b.theme; lang = b.lang; chats = Array.isArray(b.chats) ? b.chats : []; wantGeom = !!b.geometry; } catch (e) {}
       theme = String(theme || '').replace(/[^a-z0-9-]/g, '').slice(0, 32);
       const en = lang === 'en';
+      // saneo grueso server-side de la GEOMETRÍA autorada por la IA (el cliente la re-valida con la RED + auto-repara)
+      const parseGeom = (j, out) => {
+        if (Array.isArray(j.platforms)) {
+          const ps = j.platforms.map(p => Array.isArray(p) ? p.slice(0, 3).map(Number) : null).filter(p => p && p.every(n => isFinite(n))).slice(0, 8);
+          if (ps.length) out.platforms = ps;
+        }
+        if (Array.isArray(j.enemies)) {
+          const es = j.enemies.map(e => Array.isArray(e) ? Number(e[0]) : Number(e && e.x != null ? e.x : e)).filter(n => isFinite(n)).slice(0, 5);
+          if (es.length) out.enemies = es;
+        }
+      };
+      // pedido de geometría (escalera trepable) que se le AGREGA al prompt cuando el cliente la pide
+      const GEOM_ASK = en
+        ? ' Also design the level GEOMETRY: add "platforms": array of 3-6 [x,y,width] forming a CLIMBABLE staircase (x from 5 to 16 left-to-right, y from 10 going UP to 5, width 2-4, each step within 3 tiles of the previous so it is jumpable) and "enemies": array of 2-4 x positions (6 to 18).'
+        : ' Diseñá también la GEOMETRÍA: agregá "platforms": array de 3-6 [x,y,ancho] que forman una ESCALERA TREPABLE (x de 5 a 16 de izq a der, y de 10 SUBIENDO a 5, ancho 2-4, cada escalón a no más de 3 tiles del anterior para que se pueda saltar) y "enemies": array de 2-4 posiciones x (6 a 18).';
       // TEMA "ORÁCULO": la IA INVENTA un nivel a la medida del jugador según lo que habló con los linyeras/bots
       if (theme === 'oraculo') {
         const ctx = chats.slice(0, 8).map(s => String(s).slice(0, 120)).join(' | ') || (en ? 'we know nothing about them' : 'no sabemos nada de él');
@@ -706,17 +721,7 @@ http.createServer((req, res) => {
           if (j.style) out.style = String(j.style).slice(0, 12);
           if (j.motif) out.motif = String(j.motif).slice(0, 4);
           if (j.props) out.props = String(j.props).slice(0, 60);
-          // GEOMETRÍA autorada por la IA (saneo grueso server-side; el cliente la re-valida con la RED + auto-repara)
-          if (Array.isArray(j.platforms)) {
-            const ps = j.platforms.map(p => Array.isArray(p) ? p.slice(0, 3).map(Number) : null)
-              .filter(p => p && p.every(n => isFinite(n))).slice(0, 8);
-            if (ps.length) out.platforms = ps;
-          }
-          if (Array.isArray(j.enemies)) {
-            const es = j.enemies.map(e => Array.isArray(e) ? Number(e[0]) : Number(e && e.x != null ? e.x : e))
-              .filter(n => isFinite(n)).slice(0, 5);
-            if (es.length) out.enemies = es;
-          }
+          parseGeom(j, out);   // GEOMETRÍA autorada por la IA
           res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
         } catch (e) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); }
         return;
@@ -736,15 +741,17 @@ http.createServer((req, res) => {
         : 'Diseñás mini-niveles surrealistas de comedia. Respondé SOLO con JSON compacto, sin prosa.';
       const user = (en
         ? 'Theme: ' + brief + '. Return JSON {"name": short funny level name (max 5 words), "intro": one short sentence, "lines": array of 6 VERY short NPC phrases (max 5 words each) in a broken Chinese-Argentine accent}.'
-        : 'Tema: ' + brief + '. Devolvé JSON {"name": nombre de nivel corto y gracioso (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC MUY cortas (máx 5 palabras c/u) en tonada chino-porteña rota}.');
+        : 'Tema: ' + brief + '. Devolvé JSON {"name": nombre de nivel corto y gracioso (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC MUY cortas (máx 5 palabras c/u) en tonada chino-porteña rota}.')
+        + (wantGeom ? GEOM_ASK : '');
       try {
-        const { reply } = await ask([{ role: 'system', content: sys }, { role: 'user', content: user }], { maxTokens: 260 });
+        const { reply } = await ask([{ role: 'system', content: sys }, { role: 'user', content: user }], { maxTokens: wantGeom ? 360 : 260 });
         const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
         const j = m ? JSON.parse(m[0]) : {};
         const out = {};
         if (j.name) out.name = String(j.name).slice(0, 60);
         if (j.intro) out.intro = String(j.intro).slice(0, 160);
         if (Array.isArray(j.lines) && j.lines.length) out.lines = j.lines.slice(0, 8).map(s => String(s).slice(0, 40));
+        if (wantGeom) parseGeom(j, out);   // GEOMETRÍA autorada por la IA para el tema fijo
         res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
       } catch (e) {
         res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');   // cliente usa su fallback estático

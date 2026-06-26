@@ -1,6 +1,6 @@
 # ROADMAP — tareas pendientes (lo que queda)
 
-> Estado al 2026-06-26 (web 0.1.80 / proxy 0.1.40, cache v180). Lista viva de lo que falta. Lo HECHO está en
+> Estado al 2026-06-26 (web 0.1.80 / proxy 0.1.40, cache v181). Lista viva de lo que falta. Lo HECHO está en
 > CHANGELOG.md y `specs/features-showcase.md` (catálogo de técnicas).
 
 ## 1. Página /info y /tech — ✅ HECHO (v178)
@@ -13,9 +13,8 @@ niveles por IA + la RED de jugabilidad, el tema oráculo personalizado y la resi
 - ✅ **IA autora la GEOMETRÍA exacta** (v180): plataformas `[x,y,ancho]` + enemigos como DATA en el tema **oráculo**,
   validadas por la RED (`Playable`, incl. **R4 reachability**) + **auto-reparación** (fallback procedural por sala si
   no pasa). Test `tests/geometria.js`. Ver `specs/fabrica-niveles-ai.md §4.7-4.8`.
-- **Pendiente:** geometría IA también para los **temas fijos** (hoy solo el oráculo; el plumbing `aiPlatforms` ya
-  está) — requiere un fetch async de geometría en `launchNivelAI` (game.js). **Redeploy del proxy** para que el
-  oráculo mande geometría en vivo (el cliente ya la consume si llega).
+- ✅ **Geometría IA también para los temas fijos** (v181): `requestGeometry` + `launchNivelAI` async, con circuit
+  breaker. Falta el **redeploy del proxy** para que mande geometría en vivo (el cliente ya la consume si llega).
 - **Más tipos de obstáculo/enemigo** en los generados (pozos/pinches, enemigos variados) — necesita tipos de
   entidad nuevos. R4 que premie/garantice los **pickups** (hoy sólo exige meta/puertas).
 - **Más temas** (el dueño quiere ir sumando) — sumar a `THEMES` (data) + `BRIEF` en `server.js`.

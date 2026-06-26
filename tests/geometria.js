@@ -39,5 +39,24 @@ res = NivelAI.generateLevel(base({ aiPlatforms: good, aiEnemies: [7, 12, 9] }));
 const enemiesR0 = res.model.rooms[0].entities.filter(e => e.tipo === 'enemy');
 ok(enemiesR0.length >= 1, 'enemigos autorados por la IA → presentes en la sala');
 
-if (out.length) { console.error('❌ geometria:\n' + out.join('\n')); process.exit(1); }
-console.log('✅ geometria: IA autora geometría → RED valida (R4) → auto-repara · 4 casos OK');
+(async () => {
+  // 5) requestGeometry (geometría IA para TEMAS FIJOS): trae del proxy y la pega como aiPlatforms (fetch mockeado)
+  global.fetch = () => Promise.resolve({ ok: true, json: async () => ({ platforms: [[6, 10, 3], [10, 8, 3]], enemies: [7, 12] }) });
+  await new Promise(resolve => NivelAI.requestGeometry('super-rasca', theme => {
+    ok(theme && Array.isArray(theme.aiPlatforms) && theme.aiPlatforms.length >= 2, 'requestGeometry pega aiPlatforms del proxy');
+    ok(theme && theme.id === 'super-rasca', 'requestGeometry conserva el tema pedido (texto estático)');
+    const r = NivelAI.generateLevel(theme);
+    ok(Playable.checkLevel(r.model).ok && sameAll(r, theme.aiPlatforms), 'el tema fijo usa la geometría traída de la IA');
+    resolve();
+  }));
+
+  // 6) requestGeometry con el proxy CAÍDO (fetch rechaza) → cb(null) → el caller usa generateLevel() procedural
+  global.fetch = () => Promise.reject(new Error('down'));
+  await new Promise(resolve => NivelAI.requestGeometry('super-rasca', theme => {
+    ok(theme === null, 'proxy caído → requestGeometry cb(null) (fallback procedural, no se cuelga)');
+    resolve();
+  }));
+
+  if (out.length) { console.error('❌ geometria:\n' + out.join('\n')); process.exit(1); }
+  console.log('✅ geometria: IA autora geometría (oráculo + temas fijos) → RED valida (R4) → auto-repara · 6 casos OK');
+})();

@@ -197,11 +197,14 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   se **AUTO-REPARA** cayendo al layout procedural (garantizado jugable). Así la "imaginación" de la IA llega al
   jugador SOLO si es transitable, y si propone un muro infranqueable la red lo caza y repara — **sin colgarse ni
   publicar un nivel roto**. Test `tests/geometria.js` (geometría buena se usa · muro infranqueable se auto-repara ·
-  basura se ignora · enemigos IA presentes). *Nota: hoy la geometría IA fluye por el path **oráculo**; los temas
-  fijos siguen procedurales (el plumbing `aiPlatforms` ya está listo para sumarlos).*
-- **Lo que queda:** más **tipos de obstáculo/enemigo** (pozos/pinches) en los generados; geometría IA también para
-  los temas fijos (hoy solo oráculo); reachability que premie/garantice los **pickups** (hoy R4 sólo exige
-  meta/puertas).
+  basura se ignora · enemigos IA presentes).
+- **Geometría IA para los TEMAS FIJOS (v181):** la geometría ya no es exclusiva del oráculo. `requestGeometry(themeId)`
+  le pide al proxy (`/nivel-ai` con `geometry:true`) las plataformas/enemigos del tema concreto; `launchNivelAI`
+  (game.js) las usa en el path de tema fijo (el texto sigue siendo el bilingüe estático del tema). El **circuit
+  breaker** lo cubre: GPU caída → `cb(null)` al toque → geometría procedural sin colgar. Así los **8 caminos** de
+  generación pueden tener geometría autorada por IA, siempre tamizada por la RED.
+- **Lo que queda:** más **tipos de obstáculo/enemigo** (pozos/pinches) en los generados; reachability que
+  premie/garantice los **pickups** (hoy R4 sólo exige meta/puertas).
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como

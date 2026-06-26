@@ -286,7 +286,28 @@ const NivelAI = (() => {
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático 90s)
   }
 
-  return { generate, generateLevel, enrich, requestOraculo, THEMES };
+  // ----- GEOMETRÍA IA para los TEMAS FIJOS (no solo el oráculo): pide al proxy las plataformas/enemigos de un
+  // tema concreto y devuelve el tema (clonado de THEMES) con aiPlatforms/aiEnemies para generateLevel. El texto
+  // (name/intro/frases) sigue siendo el bilingüe estático del tema; acá SOLO traemos geometría. Best-effort: si
+  // la IA está caída/falla → cb(null) y el caller usa generateLevel() sync (geometría procedural). Ver §4.8.
+  function requestGeometry(forceId, cb) {
+    const t = forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(Math.random() * THEMES.length) | 0];
+    if (typeof fetch !== 'function' || aiDown()) { cb(null); return; }   // GPU caída → sync procedural (instantáneo)
+    const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), AI_TIMEOUT);
+    fetch(PROXY + '/nivel-ai', { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme: t.id, lang: short(), geometry: true }) })
+      .then(r => { clearTimeout(to); if (!r.ok) { markAi(false); return null; } return r.json(); })
+      .then(j => {
+        if (!j) { cb(null); return; }
+        markAi(true);
+        const aiPlatforms = sanitizePlatforms(j.platforms, 30);
+        const aiEnemies = sanitizeEnemies(j.enemies, 30);
+        if (!aiPlatforms) { cb(null); return; }                         // sin geometría usable → sync procedural
+        cb(Object.assign({}, t, { aiPlatforms, aiEnemies }));
+      }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático)
+  }
+
+  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, THEMES };
 })();
 if (typeof window !== 'undefined') window.NivelAI = NivelAI;
 if (typeof module !== 'undefined') module.exports = NivelAI;

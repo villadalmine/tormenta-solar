@@ -883,6 +883,16 @@
       });
       return;
     }
+    // TEMA FIJO: si la IA está disponible le pedimos que AUTORE la geometría (async); si está caída, requestGeometry
+    // llama cb(null) al toque (circuit breaker) y caemos a la geometría procedural — instantáneo, nunca se cuelga.
+    if (NivelAI.requestGeometry) {
+      back(); setMsg(T('g.nivelai.shaping'), '#e0b0ff', 8000);
+      NivelAI.requestGeometry(null, theme => {
+        if (spinoffLevel || state !== 'playing') return;     // ya entraste a otro lado / cambió el estado
+        if (!loadGenLevel(NivelAI.generateLevel(theme || undefined))) { back(); setMsg(T('g.nivelai.fail'), '#ff5252', 4000); }
+      });
+      return;
+    }
     if (!loadGenLevel(NivelAI.generateLevel())) { back(); setMsg(T('g.nivelai.fail'), '#ff5252', 4000); }
   }
   // salir del nivel generado: restaura el juego principal exactamente como estaba. outcome: win/dead/flee.

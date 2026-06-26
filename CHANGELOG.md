@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v181] — 2026-06-26 — 🏗️ Geometría IA también para los TEMAS FIJOS (no solo el oráculo)
+
+Antes la geometría autorada por IA solo fluía por el tema **oráculo**; los 7 temas fijos seguían procedurales.
+Ahora también: `NivelAI.requestGeometry(themeId)` le pide al proxy `/nivel-ai` (con `geometry:true`) las
+**plataformas + enemigos** del tema, y `launchNivelAI` (game.js) los usa en el path de tema fijo. El **circuit
+breaker** lo cubre: si la GPU está caída, `requestGeometry` llama `cb(null)` AL TOQUE → cae a la geometría
+procedural sin colgarse. Mensaje "🌀 la trastienda se reordena…" mientras la IA dibuja. El proxy refactorizó el
+saneo de geometría a un helper `parseGeom` (oráculo + tema fijo) y el pedido de geometría se agrega al prompt solo
+cuando el cliente lo pide (`wantGeom`). Tests `tests/geometria.js` +2 casos (requestGeometry pega la geometría /
+proxy caído → fallback). Docs: `fabrica-niveles-ai.md §4.8`. *(Requiere redeploy del proxy para geometría en vivo.)*
+
+---
+
 ## [v180] — 2026-06-26 — 🏗️ La IA autora la GEOMETRÍA del nivel (no solo el tema) — validada por la RED (R4 reachability) + auto-reparación
 
 El salto grande de la "máquina de niveles": la IA ya no elige solo el `style`, **diseña la geometría** como DATA.
