@@ -547,6 +547,17 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 
 ---
 
+## [infra-21] — 2026-06-26 — 🏗️ Proxy 0.1.41: el endpoint `/nivel-ai` ahora autora GEOMETRÍA (plataformas/enemigos)
+
+Redeploy del proxy (`tormenta-ai` 0.1.40 → **0.1.41**) para poner EN VIVO la geometría autorada por IA (v180/v181):
+`POST /nivel-ai` ahora devuelve `platforms`/`enemies` — para el tema **oráculo** siempre, y para los **temas fijos**
+cuando el cliente manda `geometry:true`. Saneo server-side unificado en el helper `parseGeom`; el pedido de geometría
+se agrega al prompt solo bajo demanda (`wantGeom`, `maxTokens` 360 vs 260). El cliente igual la re-valida con la RED
+(`Playable`, R4) + auto-repara, así que un redeploy fallido o un JSON roto del modelo **no rompe nada** (cae a
+procedural). Deploy con `deploy/deploy.sh proxy 0.1.41`. Ver `specs/fabrica-niveles-ai.md §4.8`.
+
+---
+
 ## [infra-20] — 2026-06-26 — ⏱️ Refresh EN VIVO del Mundial (cron horario + merge por topic)
 
 El Mundial/fútbol/crypto ahora se refrescan **cada hora** sin re-traer Google News:
