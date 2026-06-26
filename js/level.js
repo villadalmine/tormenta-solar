@@ -426,7 +426,7 @@ const Level = (() => {
       '“No, no, no. Esa guita está enchastrada con el espacio-tiempo. La agarrás y mañana tengo que ir a laburar. Ni en pedo, pibe.” 💼',
     ];
     for (let n = 1; n <= 20; n++) {
-      const lux = (n % 2 === 1), w = 24;   // más ancho: el costado derecho es zona de SUBIDA (escalera/plataformas) + propaganda
+      const lux = (n % 2 === 1), w = 17;   // piso angosto (como el original): subís/bajás por el ASCENSOR
       const doors = [{ id:'down', art: n === 1 ? 'exit' : 'elevator', label: n === 1 ? 'salir a la calle' : 'bajar un piso', x:2, inward:1 }];
       if (n < 20) doors.push({ id:'up', art:'elevator', label:'subir un piso', x:w-3, inward:-1 });
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
@@ -471,13 +471,6 @@ const Level = (() => {
         }
         spec.pickups = [{t:'health',x:8}];
       }
-      // SALIDA DE EMERGENCIA (escalera de incendios) sobre el COSTADO DERECHO: plataformas en ZIGZAG que suben
-      // RECTO (no en diagonal, no cruza el interior), confinadas al hueco libre x16..19 — entre el departamento
-      // (termina ~x14) y el ascensor (x = w-3 = 21). Saltás x18→x16→x18→x16 trepando hasta el loot. La RED
-      // (Playable) verifica que NO tape el ascensor.
-      spec.platforms = (spec.platforms || []).concat([[18, 10, 2], [16, 8, 2], [18, 6, 2], [16, 4, 2]]);   // zigzag VERTICAL ↑
-      spec.decor = (spec.decor || []).concat([{ t:'cartel', x:15, ad:true }, { t:'cartel', x:20, ad:true }]);    // propaganda flanqueando la escalera (x20 = entre escalera y ascensor)
-      spec.pickups = (spec.pickups || []).concat([{ t: lux ? 'coins' : 'health', x:16.5, y:3, amount: lux ? 5 : 0 }]);  // recompensa ARRIBA de la escalera de incendios
       rooms.push(makeRoom(spec));
     }
 

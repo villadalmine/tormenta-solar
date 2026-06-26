@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v171] — 2026-06-26 — 🏙️ Edificio borrachines: SACO la escalera y restauro el piso angosto original (w=17)
+
+El concepto de la escalera era una vía ALTERNATIVA para subir al piso de arriba sin el ascensor — no un adorno —
+y la implementé mal (dead-end + trababa la salida + ensanché el piso). Como pidió el dueño ("si no podés, sacá la
+escalera y listo"): **revertido a w=17** (original), sin plataformas en los pisos del edificio. Subís/bajás por el
+ascensor, limpio. Nada fuera de límites + Playable OK + parity + e2e + web-smoke.
+
+---
+
 ## [v170] — 2026-06-26 — 🏗️ Generador C: estructura por TEMA (la muralla parece muralla) + meta con portal real
 
 Sigue el generador de niveles. Cada tema declara un **`style`** (DATA) que cambia la forma del nivel generado:
