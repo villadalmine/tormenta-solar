@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v166] — 2026-06-26 — 🎮 C ladrillo 3: el nivel-AI generado CORRE EN TU MOTOR REAL (rooms-swap) — ¡jugable!
+
+El nivel generado deja de ser un sub-modo top-down: ahora **se juega en EL motor principal** (vista lateral,
+saltos, física de Player, enemigos, cámara y art reales). Te colás a la trastienda del chino → la IA genera →
+pasa la RED (Playable) → **swap de salas** en el motor → jugás → llegás a la SALIDA morada → volvés al juego con
+el souvenir. Si no es jugable, ABORTA al juego normal (nunca un nivel roto). Gates por `spinoffLevel`: no drena
+la tormenta, no autosave, morir en el bonus NO mata el run (volvés sano), [ESC] para salir. e2e: lanzar → entra
+→ ganar → restaura la sala principal + souvenir → morir no rompe el run. + schema/paridad/playable/web-smoke.
+
+---
+
 ## [v165] — 2026-06-26 — 🏗️ C ladrillo 2: la IA genera un NIVEL-PLATAFORMA real, validado y construible en tu motor
 
 `NivelAI.generateLevel(theme)` ya NO hace una escena top-down: produce un **MODELO DE NIVEL del motor real**

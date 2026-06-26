@@ -143,6 +143,28 @@ if (require.main === module) {
     return JSON.stringify(out);
   })()`, sandbox);
   const sb = JSON.parse(save);
+
+  // ---- NIVEL-AI en el MOTOR REAL (rooms-swap): lanzar → entra al nivel generado → ganar → restaura el juego ----
+  const nivelai = vm.runInContext(`(() => {
+    const out = [];
+    if (!window.Game || !Game.__nivelai) return JSON.stringify(['FAIL no expone Game.__nivelai']);
+    const before = Game.serialize(); if (!before) return JSON.stringify(['FAIL no hay juego principal']);
+    Game.__nivelai.launch();
+    if (!Game.__nivelai.active()) return JSON.stringify(['FAIL no entró al nivel-AI (¿generación/validación falló?)']);
+    const rm = Game.__nivelai.room();
+    if (!rm || !rm.goal || !rm.playerStart) out.push('FAIL nivel generado sin goal/spawn');
+    const p = Game.__nivelai.player(); const c0 = (p.caramelos || 0);
+    Game.__nivelai.end('win');                                   // simular llegar a la meta
+    if (Game.__nivelai.active()) out.push('FAIL no salió del nivel-AI');
+    if ((p.caramelos || 0) <= c0) out.push('FAIL no dio el souvenir al ganar');
+    const after = Game.serialize();
+    if (!after || after.current !== before.current) out.push('FAIL no restauró la sala del juego principal');
+    // morir en el nivel bonus NO debe matar el run: relanzar y salir por 'dead'
+    Game.__nivelai.launch(); Game.__nivelai.end('dead');
+    if (Game.__nivelai.active() || Game.serialize() == null) out.push('FAIL morir en el nivel-AI rompió el run');
+    return JSON.stringify(out);
+  })()`, sandbox);
+  JSON.parse(nivelai).forEach(f => sb.push(f));
   if (sb.length) { console.error('❌ GUARDADO:\n' + sb.join('\n')); process.exit(1); }
   console.log('✓ guardado: serialize/restore round-trip OK');
   // moverse a la derecha un toque y simular interacción

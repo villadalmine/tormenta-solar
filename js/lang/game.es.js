@@ -233,6 +233,8 @@
     'g.nivelai.win': '🌀 «{name}» — llegaste a la salida. Souvenir: +{reward}.',
     'g.nivelai.flee': 'Te volvés por el portal antes de meterte en más quilombo. 🌀',
     'g.nivelai.back': 'El portal te escupe de vuelta en lo del chino, medio mareado. 🌀',
+    'g.nivelai.enter': '🌀 Caés en un nivel generado: «{name}». Llegá a la SALIDA morada (→ derecha). [ESC] para volver.',
+    'g.nivelai.fail': 'El portal chisporrotea y se cierra solo. Quedás en lo del chino. 🌀',
     'g.vinilos.leave': 'Salís de la disquería. 🎵',
 
     // --- música ---

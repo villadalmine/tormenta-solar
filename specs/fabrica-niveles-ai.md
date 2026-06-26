@@ -151,6 +151,25 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   construye y valida headless; falta correrlo en vivo — vía rooms-swap aislado o runner contenido reusando
   `Player`). Eso es lo que vas a VER jugando. El texto del tema lo sigue autorando la IA (`/nivel-ai`).
 
+## 4.8 LADRILLO 3: el nivel generado CORRE EN EL MOTOR REAL (rooms-swap, v166) — ¡jugable!
+
+> El nivel-AI ya no es un sub-modo aparte: **se juega en EL motor principal** (vista lateral, saltos, física de
+> `Player`, enemigos, cámara y art reales). Te colás a la trastienda del chino → la IA genera → pasa la RED →
+> **swap de salas** → jugás → llegás a la SALIDA morada → volvés al juego con el souvenir.
+
+- **`launchNivelAI()` (game.js):** `NivelAI.generateLevel()` → `Mundo.fromModel` → **`Playable.checkLevel` (la RED)**.
+  Si no es jugable/no construye → **aborta al juego normal** (`g.nivelai.fail`), **nunca** carga un nivel roto.
+  Si pasa: **snapshot** del juego principal (`rooms/states/current/pos/hp`) → **swap** a las salas generadas →
+  `spawnIn(0)` → `spinoffLevel=true`.
+- **`endSpinoffLevel(outcome)`:** restaura el snapshot exacto. `win` = souvenir (caramelos del tema). `dead` =
+  **morir en el nivel bonus NO mata el run** (volvés sano). `flee` = `[ESC]` para volver.
+- **Gates (`spinoffLevel`):** no drena la tormenta, no autosave, la muerte vuelve al juego (no game-over), la meta
+  se dibuja a mano (portal morado, porque el motor solo dibuja el portal del cambio). Cero efecto sobre el run real.
+- **Probado (e2e):** lanzar → entra al nivel generado (con goal+spawn) → ganar → **restaura la sala principal** +
+  souvenir → y morir en el bonus **no rompe el run**. + schema + paridad + **playable** + web-smoke.
+- **Lo que queda para pulir:** más variedad de layout (varias salas, puertas, enemigos activos), que la meta use el
+  art de portal real, y subir `generateLevel` a la calidad visual del Nivel 1 (decor temático con art válido).
+
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como
   data+runtime, memoria incipiente, deploy reproducible, métricas.

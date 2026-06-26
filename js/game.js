@@ -110,6 +110,9 @@
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
   let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null;
+  // NIVEL-AI en EL MOTOR REAL (rooms-swap): se guarda el juego principal, se cargan las salas generadas, y al
+  // llegar a la meta (o morir/escapar) se RESTAURA todo. spinoffLevel gatea tormenta/quests/save/muerte.
+  let spinoffLevel = false, spinoffSave = null, spinoffReward = null, spinoffName = '';
   let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
@@ -264,6 +267,7 @@
   // autosave: cada ~5s mientras jugás, si hay un sink (SaveStore de save.js). Sin sink, no hace nada.
   let lastSave = 0;
   function autosave(t) {
+    if (spinoffLevel) return;   // no guardamos mientras estás en el nivel-AI generado (es efímero)
     if ((state !== 'playing' && state !== 'chat') || typeof SaveStore === 'undefined' || !SaveStore.write) return;
     if (t - lastSave < 5000) return;
     lastSave = t;
@@ -832,15 +836,43 @@
     else setMsg(n.lines ? pick(n.lines) : T('g.borracho.askDefault'), '#ffd54f', 4200);
   }
   function enterSuper(raid) { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed, raid: !!raid }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
-  // NIVEL-AI: te colaste a la trastienda del chino en el raid → se GENERA un nivel surreal y lo corre el spinoff
+  // NIVEL-AI en EL MOTOR REAL: te colaste a la trastienda del chino → la IA GENERA un nivel-plataforma, pasa la
+  // RED (Playable), y lo cargamos en EL motor (rooms-swap). Si por lo que sea no es jugable, abortamos al juego
+  // normal (NUNCA un nivel roto). Al llegar a la meta / morir / escapar → endSpinoffLevel restaura todo.
   function launchNivelAI() {
-    if (typeof NivelAI === 'undefined' || typeof Spinoff === 'undefined') { state = 'playing'; return; }
-    const scene = NivelAI.generate();
-    Spinoff._reward = rw => { for (const k in (rw || {})) player[k] = (player[k] || 0) + (rw[k] || 0); };   // souvenir = ganancia al inventario real
-    spinoffGame = Spinoff.create(scene); state = 'spinoff';
-    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
-    NivelAI.enrich(scene);   // best-effort: la IA del proxy autora el texto; si no, queda lo estático
-    tel('nivelai', { theme: scene.id });
+    const back = () => { state = 'playing'; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); };
+    if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined') { back(); return; }
+    const gen = NivelAI.generateLevel();
+    let genRooms = null; try { genRooms = Mundo.fromModel(gen.model); } catch (e) {}
+    const playable = (typeof Playable === 'undefined') || Playable.checkLevel(gen.model).ok;   // LA RED
+    if (!genRooms || !genRooms.length || !genRooms[0].playerStart || !genRooms[0].goal || !playable) {
+      back(); setMsg(T('g.nivelai.fail'), '#ff5252', 4000); return;
+    }
+    // SNAPSHOT del juego principal (para restaurar al salir) + SWAP al nivel generado
+    spinoffSave = { rooms, states, current, px: player.x, py: player.y, vx: player.vx, vy: player.vy, hp: player.hp };
+    spinoffReward = gen.reward || { caramelos: 4 }; spinoffName = gen.name || gen.model.nombre;
+    rooms = genRooms;
+    states = rooms.map(r => ({ enemies: r.enemies.map(Enemies.create), pickups: r.pickups.map(p => ({ ...p, taken: false })) }));
+    current = 0; const s = rooms[0].playerStart; player.x = s.x; player.y = s.y; player.vx = player.vy = 0;
+    spinoffLevel = true; state = 'playing'; transCd = 0.4; roamingNpc = null; updateCam();
+    elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); elFloor.textContent = TX(rooms[0].name);
+    setMsg(T('g.nivelai.enter', { name: spinoffName }), '#e0b0ff', 5500);
+    tel('nivelai', { theme: gen.theme, mode: 'level' });
+  }
+  // salir del nivel generado: restaura el juego principal exactamente como estaba. outcome: win/dead/flee.
+  function endSpinoffLevel(outcome) {
+    if (!spinoffLevel || !spinoffSave) { spinoffLevel = false; return; }
+    const sv = spinoffSave;
+    rooms = sv.rooms; states = sv.states; current = sv.current;
+    player.x = sv.px; player.y = sv.py; player.vx = sv.vx; player.vy = sv.vy;
+    if (!player.alive || player.hp <= 0) { player.alive = true; player.hp = Math.max(20, Math.min(MAXHP, sv.hp)); }   // morir en el nivel bonus NO te mata el run
+    spinoffLevel = false; spinoffSave = null; state = 'playing'; transCd = 0.4; roamingNpc = null; updateCam();
+    elFloor.textContent = TX(rooms[current].name);
+    if (outcome === 'win') {
+      for (const k in (spinoffReward || {})) player[k] = (player[k] || 0) + (spinoffReward[k] || 0);
+      const rw = spinoffReward || {}; const rwTxt = rw.caramelos ? rw.caramelos + ' 🍬' : (rw.coins || 0) + ' 🪙';
+      setMsg(T('g.nivelai.win', { name: spinoffName, reward: rwTxt }), '#7CFC00', 6000); Sfx.win();
+    } else setMsg(T(outcome === 'dead' ? 'g.nivelai.back' : 'g.nivelai.flee'), '#e0b0ff', 4500);
   }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   function enterCuevaFromSecret() {
@@ -1156,11 +1188,13 @@
     player.update(dt, r, cam);
 
     // LOOP de supervivencia: tras la tormenta la vida se gasta (SURV.decayHp cada SURV.decayEverySec s). Comé o te morís.
-    if (stormed) {
+    // En el NIVEL-AI generado NO drena (es un nivel bonus aparte del loop de supervivencia).
+    if (stormed && !spinoffLevel) {
       decayAcc += dt;
       while (decayAcc >= SURV.decayEverySec) { decayAcc -= SURV.decayEverySec; player.hp -= SURV.decayHp; if (player.hp <= 0) { player.hp = 0; player.alive = false; } }
     }
     if (!player.alive || player.hp <= 0) {
+      if (spinoffLevel) { endSpinoffLevel('dead'); return; }              // morir en el nivel bonus → volvés sano al juego
       if (stormed && loopCount > 0) { reviveToPreviousLoop(); return; }   // morís → volvés al loop anterior
       die(); return;
     }
@@ -1212,6 +1246,10 @@
     // melee de peatones ya aplicado en Enemies.update; salida:
     if (r.theme === 'cambio' && stormed && r.goal) {
       if (Math.hypot(player.x+player.w/2 - r.goal.x, player.y+player.h - r.goal.y) < 40) win();
+    }
+    // META del NIVEL-AI generado → ganás el nivel bonus y volvés al juego con el souvenir
+    if (spinoffLevel && r.goal) {
+      if (Math.hypot(player.x+player.w/2 - r.goal.x, player.y+player.h - r.goal.y) < 44) { endSpinoffLevel('win'); return; }
     }
     syncHud();
   }
@@ -1341,6 +1379,13 @@
         ctx.drawImage(mi, mx, d.y - cam.y - mi.height);
         label(T('g.label.psst'), mx + mi.width/2, d.y - cam.y - mi.height - 4, '#ffd54f');
       }
+    }
+    // META del NIVEL-AI generado (el motor solo dibuja portal en theme 'cambio'; acá lo dibujamos a mano)
+    if (spinoffLevel && r.goal) {
+      const gx = r.goal.x - cam.x, gy = r.goal.y - cam.y, pz = 18 + Math.sin(time * 4) * 5;
+      ctx.fillStyle = '#e0b0ff'; ctx.beginPath(); ctx.arc(gx, gy - 24, 26, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1a0d24'; ctx.beginPath(); ctx.arc(gx, gy - 24, pz, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e0b0ff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.fillText('▶ SALIR', gx, gy - 21);
     }
     // máquinas de arcade
     for (const m of r.machines || []) {
@@ -1671,6 +1716,7 @@
     if (e.key === 'Escape' && gm && !gm.classList.contains('hidden')) { e.preventDefault(); closeGuarda(); return; }
     const am = document.getElementById('armasmenu');
     if (e.key === 'Escape' && am && !am.classList.contains('hidden')) { e.preventDefault(); closeArmas(); return; }
+    if (e.key === 'Escape' && spinoffLevel && state === 'playing') { e.preventDefault(); endSpinoffLevel('flee'); return; }   // salir del nivel-AI
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') interact();
@@ -1706,5 +1752,7 @@
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
   // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).
-  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS, questRuntime: Quests, actions: () => Object.keys(NPC_ACTIONS) });
+  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS, questRuntime: Quests, actions: () => Object.keys(NPC_ACTIONS),
+    // superficie de prueba (e2e) del nivel-AI en el motor real (rooms-swap): lanzar / consultar / salir
+    __nivelai: { launch: launchNivelAI, end: endSpinoffLevel, active: () => spinoffLevel, room: () => rooms[current], player: () => player } });
 })();

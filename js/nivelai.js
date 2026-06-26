@@ -133,7 +133,7 @@ const NivelAI = (() => {
     for (let attempt = 0; attempt < 8; attempt++) {
       const model = candidate();
       const v = (typeof Playable !== 'undefined') ? Playable.checkLevel(model) : { ok: true, problems: [] };
-      last = { model, theme: t.id, attempt, problems: v.problems };
+      last = { model, theme: t.id, name: L(t.name), reward: t.reward || { caramelos: 4 }, attempt, problems: v.problems };
       if (v.ok) return last;
     }
     return last;   // (por construcción no debería fallar; si falla, el caller ve problems[])
