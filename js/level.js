@@ -43,7 +43,7 @@ const Level = (() => {
       playerStart: spec.playerStart != null ? feet(spec.playerStart) : null,
       enemies: (spec.enemies || []).map(e => ({ type: e.t, dormant: e.dormant, look: e.look, ...feet(e.x, e.y) })),
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
-      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
+      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE })),
@@ -96,9 +96,9 @@ const Level = (() => {
           { name:'Vecina', sprite:'civil1', x:8,  dialog:'“Ay, nene... ¿viste cómo está el dólar? Un espanto.” 🙄' },
           // --- los LINYERAS ilustres (homenaje): son LOS ORÁCULOS chateables — dan pistas y saben de
           //     tormentas solares y de cómo la IA nos gobierna. (Reemplazan al "linyera filósofo" genérico.) ---
-          { name:'Diógenes', sprite:'linyera', x:14, action:'chat', persona:'filosofo', oracle:true, dialog:'“Corréte que me tapás el sol, pibe. Lo demás es vento que no te hace falta.” ☀️🛢️' },
-          { name:'Dante el poeta', sprite:'viejo', x:20, action:'chat', persona:'poeta', oracle:true, dialog:'“Te tiro unos versos en lunfardo y vos un puchito. Negocio redondo, maestro.” 📜' },
-          { name:'Pechito', sprite:'linyera', x:30, action:'chat', persona:'pechito', oracle:true, dialog:'“Soy el linyera más querido del barrio. Vení que charlamos, total el tiempo no se cobra.” 🫶' },
+          { name:'Diógenes', sprite:'linyera', x:14, action:'chat', persona:'filosofo', oracle:true, social:{knows:['borracho','tahur','chino','linyeras','vendedor','vecina','guarda']}, dialog:'“Corréte que me tapás el sol, pibe. Lo demás es vento que no te hace falta.” ☀️🛢️' },
+          { name:'Dante el poeta', sprite:'viejo', x:20, action:'chat', persona:'poeta', oracle:true, social:{knows:['borracho','tahur','chino','linyeras','vendedor','vecina','guarda']}, dialog:'“Te tiro unos versos en lunfardo y vos un puchito. Negocio redondo, maestro.” 📜' },
+          { name:'Pechito', sprite:'linyera', x:30, action:'chat', persona:'pechito', oracle:true, social:{knows:['borracho','tahur','chino','linyeras','vendedor','vecina','guarda']}, dialog:'“Soy el linyera más querido del barrio. Vení que charlamos, total el tiempo no se cobra.” 🫶' },
           { name:'Músico', sprite:'musico', x:24, dialog:'“Una moneda y te toco una cumbia, maestro.” 🎶' },
           { name:'Canillita', sprite:'diariero', x:38, dialog:'“¡Diarios, revistas! ¿El de hoy, pibe? Está todo cada vez peor.” 📰' },
           { name:'Oficinista', sprite:'civil4', x:50, dialog:'“Tarde, tarde, ¡llego tarde!” 💼' },
@@ -538,7 +538,7 @@ const Level = (() => {
       doors: [{ id:'back', art:'doorUp', label:'salir del cine', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Mundo', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [
-        { name:'El Guarda', sprite:'civil3', x:5, action:'guarda' },   // en la entrada: vende FUNCIONES VIEJAS por caramelos (archivo de 7 días)
+        { name:'El Guarda', sprite:'civil3', x:5, action:'guarda', social:{rival:['tahur']} },   // en la entrada: vende FUNCIONES VIEJAS por caramelos (archivo de 7 días)
         // los dos hinchas (quest del Mundial §9): te preguntan cómo salió un equipo random → guarda → te agradecen
         { name:'El Hincha', sprite:'civil1', x:11, action:'chat', persona:'hincha' },
         { name:'El Fanático', sprite:'civil4', x:14, action:'chat', persona:'hincha' },
@@ -579,7 +579,7 @@ const Level = (() => {
       name: 'Cine Lavalle — OpenRouter', theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'down', art:'doorUp', label:'bajar: Consolas', x:2, inward:1 }],
       decor: [..._seats, ..._ads],
-      npcs: [{ name:'El Linyera IA', sprite:'linyera', x:17, oracle:true, action:'chat', persona:'filosofo', dialog:'“Acá ves qué modelo de IA conviene y cuánto sale. Yo sé de eso, pibe.” 🤖' }],
+      npcs: [{ name:'El Linyera IA', sprite:'linyera', x:17, oracle:true, social:{knows:['borracho','tahur','chino','linyeras','vendedor','vecina','guarda']}, action:'chat', persona:'filosofo', dialog:'“Acá ves qué modelo de IA conviene y cuánto sale. Yo sé de eso, pibe.” 🤖' }],
     })) - 1;
 
     function wire(ai, ad, bi, bd) {

@@ -536,6 +536,25 @@
        "additionalProperties": true
       }
      ]
+    },
+    "social": {
+     "type": "object",
+     "additionalProperties": false,
+     "description": "grafo social del NPC: a quién CONOCE (relay de chusme) y de quién es RIVAL (gossip). roles/personas.",
+     "properties": {
+      "knows": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "rival": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     }
     }
    }
   },

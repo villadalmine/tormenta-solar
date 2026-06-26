@@ -595,30 +595,39 @@
   }
   // RELAY social: rumores ATRIBUIDOS (el chusme fluye de un NPC fuente → el que lo repite → vos). Derivados del estado
   // vivo (data) — cada uno tiene una FUENTE (el NPC que "sabe") y un claim sobre lo que hiciste. (npcs-vivos §4, grafo social)
+  const ROLE_NAMES = { borracho:'el borrachín', tahur:'el tahúr', chino:'el chino', linyeras:'los linyeras', gondola:'el de la góndola', vendedor:'el vendedor de armas', guarda:'el guarda del cine', vecina:'la vecina' };
   function rumorPool(s) {
-    const R = [];
-    if (!s.borrachosHappy) R.push({ src: 'el borrachín', txt: 'que no le diste lo que te pidió' });
-    if (s.trucoEverWon) R.push({ src: 'el tahúr', txt: 'que le ganaste al truco y quedó caliente' });
-    if (s.chinoEntered) R.push({ src: 'el chino', txt: 'que le entraste al súper y te llevaste todo' });
-    if (s.bunkerUnlocked) R.push({ src: 'los linyeras', txt: 'que te hiciste gurú y tenés el búnker' });
-    if (s.diosa) R.push({ src: 'el de la góndola', txt: 'que andás con una Diosa Tropical' });
-    if (s.armado) R.push({ src: 'el vendedor de armas', txt: 'que te vendió un fierro criollo' });
-    if (s.quests.mundial && s.quests.mundial.shown) R.push({ src: 'el guarda del cine', txt: 'que le sacaste el resultado del Mundial' });
-    if (s.carteles && s.carteles.length) R.push({ src: 'la vecina', txt: 'que pruebes el ' + s.carteles[0].brand });
+    const R = [], add = (key, txt, cond) => { if (cond) R.push({ key, src: ROLE_NAMES[key] || key, txt }); };
+    add('borracho', 'que no le diste lo que te pidió', !s.borrachosHappy);
+    add('tahur', 'que le ganaste al truco y quedó caliente', s.trucoEverWon);
+    add('chino', 'que le entraste al súper y te llevaste todo', s.chinoEntered);
+    add('linyeras', 'que te hiciste gurú y tenés el búnker', s.bunkerUnlocked);
+    add('gondola', 'que andás con una Diosa Tropical', s.diosa);
+    add('vendedor', 'que te vendió un fierro criollo', s.armado);
+    add('guarda', 'que le sacaste el resultado del Mundial', s.quests.mundial && s.quests.mundial.shown);
+    add('vecina', 'que pruebes el ' + (s.carteles && s.carteles[0] && s.carteles[0].brand), s.carteles && s.carteles.length);
     return R;
   }
   function spawnAmbient() {
     const ns = eligibleNpcs(room()); if (!ns.length) return;
     const s = worldSnapshot(), pool = ambientPool(s), rumors = rumorPool(s), a = ns[(Math.random() * ns.length) | 0];
-    // RELAY (50% si hay rumor): el NPC repite chusme atribuido a otro, sin que el NPC fuente se cite a sí mismo.
-    let relayed = null;
-    if (rumors.length && Math.random() < 0.5) { const cand = rumors.filter(r => !String(a.name || '').toLowerCase().includes(r.src.replace('el ', '').replace('la ', '').split(' ')[0])); const r = (cand.length ? cand : rumors)[(Math.random() * (cand.length ? cand.length : rumors.length)) | 0]; relayed = r; }
-    const aText = relayed ? T('g.relay', { src: relayed.src, txt: relayed.txt }) : pool[(Math.random() * pool.length) | 0];
+    const soc = a.social || {};
+    // GOSSIP de RIVAL (grafo social, aristas `rival`): hablás mal del que no bancás.
+    let aText = null;
+    if (soc.rival && soc.rival.length && Math.random() < 0.4) { const rk = soc.rival[(Math.random() * soc.rival.length) | 0]; aText = T('g.rivalGossip', { who: ROLE_NAMES[rk] || rk }); }
+    // RELAY por ARISTAS: el NPC relayea un rumor de alguien que CONOCE (social.knows); si no tiene grafo, cualquiera.
+    if (!aText && rumors.length && Math.random() < 0.5) {
+      let cand = rumors.filter(r => !String(a.name || '').toLowerCase().includes(String(r.src).replace(/^(el|la|los) /, '').split(' ')[0]));   // no se auto-cita
+      if (soc.knows && soc.knows.length) { const known = cand.filter(r => soc.knows.includes(r.key)); if (known.length) cand = known; }   // prioriza lo que conoce (arista)
+      if (cand.length) { const r = cand[(Math.random() * cand.length) | 0]; aText = T('g.relay', { src: r.src, txt: r.txt }); }
+    }
+    if (!aText) aText = pool[(Math.random() * pool.length) | 0];
+    const wasChusme = /me dijo|no le creas|told me/.test(aText);   // ¿fue chusme/gossip? → el otro reacciona
     ambientBubbles.push({ npc: a, text: aText, from: time, until: time + 4.8 });
     const others = ns.filter(n => n !== a && Math.abs(n.x - a.x) < 240);   // si hay otro cerca → le CONTESTA (mini-diálogo)
     if (others.length && Math.random() < 0.65) {
       const c = others[(Math.random() * others.length) | 0];
-      const reply = relayed ? T('g.relayReply') : pool[(Math.random() * pool.length) | 0];   // si fue chusme, el otro reacciona
+      const reply = wasChusme ? T('g.relayReply') : pool[(Math.random() * pool.length) | 0];
       ambientBubbles.push({ npc: c, text: reply, from: time + 1.7, until: time + 6.4 });
     }
   }

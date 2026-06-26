@@ -296,6 +296,17 @@
             "persona": "filosofo",
             "oracle": true
           },
+          "social": {
+            "knows": [
+              "borracho",
+              "tahur",
+              "chino",
+              "linyeras",
+              "vendedor",
+              "vecina",
+              "guarda"
+            ]
+          },
           "fiche": "filosofo",
           "comportamiento": {
             "tormenta": "post-tormenta lo ve como la prueba de que tenía razón: la ciudad por fin se liberó del sistema."
@@ -317,6 +328,17 @@
             "persona": "poeta",
             "oracle": true
           },
+          "social": {
+            "knows": [
+              "borracho",
+              "tahur",
+              "chino",
+              "linyeras",
+              "vendedor",
+              "vecina",
+              "guarda"
+            ]
+          },
           "fiche": "poeta",
           "comportamiento": {
             "tormenta": "post-tormenta le sale **poesía apocalíptica** del caos; el apagón es su mejor musa."
@@ -337,6 +359,17 @@
             "action": "chat",
             "persona": "pechito",
             "oracle": true
+          },
+          "social": {
+            "knows": [
+              "borracho",
+              "tahur",
+              "chino",
+              "linyeras",
+              "vendedor",
+              "vecina",
+              "guarda"
+            ]
           },
           "fiche": "pechito",
           "comportamiento": {
@@ -7039,6 +7072,11 @@
           "name": "El Guarda",
           "interact": {
             "action": "guarda"
+          },
+          "social": {
+            "rival": [
+              "tahur"
+            ]
           }
         },
         {
@@ -7826,6 +7864,17 @@
             "action": "chat",
             "persona": "filosofo",
             "oracle": true
+          },
+          "social": {
+            "knows": [
+              "borracho",
+              "tahur",
+              "chino",
+              "linyeras",
+              "vendedor",
+              "vecina",
+              "guarda"
+            ]
           },
           "fiche": "filosofo",
           "comportamiento": {

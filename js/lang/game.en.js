@@ -143,6 +143,7 @@
     'g.mundial.nodata': '🙋 “No World Cup data came in today, kid. Come back later.”',
     'g.relay': 'hey, {src} told me {txt}',
     'g.relayReply': 'for real? lol, no way',
+    'g.rivalGossip': 'don\'t trust {who}, total scammer',
     'g.mundial.ground': 'You are an Argentine football fan at the cinema, waiting for the player to find out how {eq} did at the World Cup. Talk with football passion, short.',
     'g.mundial.guardaBtn': '{eq} result (free, for the fan)',
     'g.mundial.guardaOk': '📣 The usher put {eq}\'s match on the screen. Head back to the fan who\'s waiting. 🙌',

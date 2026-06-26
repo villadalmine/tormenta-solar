@@ -34,10 +34,13 @@ hablan de cosas del juego y de tu progreso ("che, me dijo el borrachín que no l
   engine (`eligibleNpcs` lee `n.ambient !== false`). La máquina de niveles podrá autorarlo por NPC.
 - **Diálogo real entre NPCs vía `Mensajero`** (agente↔agente): un oráculo le "pregunta" a otro y la respuesta sale
   del modelo (cacheada, barata), no de un pool fijo. Dos oráculos = conversación emergente.
-- ✅ **El RELAY (chusme atribuido) — F2 (v149):** `rumorPool(worldSnapshot)` arma rumores con **FUENTE** (el NPC que
-  "sabe") + claim sobre lo que hiciste; `spawnAmbient` 50% relayea ("che, me dijo {fuente} {claim}", `g.relay`), sin
-  que la fuente se cite a sí misma, y el NPC cercano **reacciona** (`g.relayReply`). El chusme **fluye** fuente→
-  relayer→vos. **Refinamiento pendiente:** modelar las **relaciones como aristas explícitas** entre entidades (hoy la
-  fuente es un rol canónico, no una arista en el data) + **transcreación EN** de los rumores (hoy es-flavor).
+- ✅ **El RELAY (chusme atribuido) — F2 (v149):** `rumorPool(worldSnapshot)` arma rumores con **FUENTE** (clave de rol)
+  + claim sobre lo que hiciste; `spawnAmbient` relayea ("che, me dijo {fuente} {claim}", `g.relay`), sin que la fuente
+  se cite a sí misma, y el NPC cercano **reacciona** (`g.relayReply`).
+- ✅ **GRAFO SOCIAL como DATA — F3 (v150):** componente declarativo **`entity.social`** (`knows`/`rival`), threadeado
+  level.js→gen-level→schema→mundo→engine. El relay **fluye por aristas**: un NPC prioriza relayear rumores de quien
+  **CONOCE** (`social.knows`); y habla mal de su **`rival`** (`g.rivalGossip`). Tagueados: los oráculos conocen todo el
+  chusme del barrio; el guarda es rival del tahúr. La **máquina de niveles** podrá autorar estas relaciones.
+  **Pendiente:** transcreación EN de los rumores (hoy es-flavor) + que la fuente sea una entidad puntual (no solo rol).
 - **Memoria por NPC:** lo que chusmean persiste/evoluciona (agent.memory). 
 - Todo esto encaja con el modelo v2 (entidades+componentes+grafo+memoria); F1 es el placeholder v1 a migrar.

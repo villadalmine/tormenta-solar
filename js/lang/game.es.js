@@ -160,6 +160,7 @@
     'g.mundial.nodata': '🙋 “Hoy no me llegó nada del Mundial, pibe. Volvé más tarde.”',
     'g.relay': 'che, me dijo {src} {txt}',
     'g.relayReply': '¿en serio? jaja, no me digas',
+    'g.rivalGossip': 'no le creas nada a {who}, es un chanta',
     'g.mundial.ground': 'Sos un hincha de fútbol argentino en el cine, esperando que el jugador averigüe cómo salió {eq} en el Mundial. Hablá con pasión futbolera, corto.',
     'g.mundial.guardaBtn': 'Resultado de {eq} (gratis, para el hincha)',
     'g.mundial.guardaOk': '📣 El guarda puso el partido de {eq} en la pantalla. Volvé al hincha que te espera. 🙌',

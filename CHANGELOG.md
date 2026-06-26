@@ -39,6 +39,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v150] — 2026-06-26 — 🕸️ Grafo social de NPCs como DATA (conoce/rival → el chusme fluye por aristas)
+
+Las relaciones NPC↔NPC son un **componente declarativo del schema** (`entity.social`: `knows`/`rival`), threadeado de
+punta a punta. El **relay fluye por aristas**: un NPC prioriza repetir chusme de quien **conoce** (`social.knows`), y
+**habla mal de su rival** ("no le creas nada a {who}, es un chanta"). Tagueado: los oráculos conocen todo el chusme del
+barrio; el guarda del cine es rival del tahúr. La "máquina de niveles" podrá autorar estas relaciones. Paridad 45
+salas + schema OK + e2e×3 + web-smoke.
+
+---
+
 ## [v149] — 2026-06-26 — 🗣️ NPCs vivos: RELAY social (el chusme se propaga con atribución)
 
 Los NPC ahora **repiten chusme de otros NPC** sobre lo que hiciste: "che, me dijo el borrachín que no le diste lo que
