@@ -95,7 +95,51 @@ const NivelAI = (() => {
     } catch (e) {}
   }
 
-  return { generate, enrich, THEMES };
+  // ----- LADRILLO 2 DE LA C: generar un NIVEL-PLATAFORMA REAL (modelo v2 que consume Mundo.fromModel) -----
+  // A diferencia de `generate()` (escena top-down del Spinoff), esto produce un MODELO DE NIVEL del MOTOR REAL:
+  // sala con plataformas saltables + spawn + meta + enemigos/pickups temáticos. Pasa por la RED (Playable):
+  // genera → valida jugabilidad → si falla, RE-INTENTA (bucle de auto-reparación) → recién entonces se devuelve.
+  // Así la "imaginación" de la IA nunca produce un nivel intransitable. Ver specs/fabrica-niveles-ai.md §4.7.
+  function generateLevel(forceId) {
+    const t = forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(Math.random() * THEMES.length) | 0];
+    const GTOP = 12;
+    const rnd = (a, b) => a + ((Math.random() * (b - a + 1)) | 0);
+    function candidate() {
+      const w = rnd(26, 34);
+      // ESCALERA de plataformas saltables (salto ≈ 2-3 tiles): del piso hacia arriba, evitando las columnas del
+      // spawn (x=2) y la meta (x=w-3). Nunca en la fila GTOP-1 (ahí van spawn/meta) → R2/R3 siempre OK.
+      const plats = [];
+      let px = rnd(4, 6), py = GTOP - 2;
+      for (let i = 0, n = rnd(3, 6); i < n && px < w - 6; i++) {
+        const pw = rnd(2, 3);
+        plats.push([px, py, pw]);
+        px += pw + rnd(2, 3);
+        py = Math.max(4, py - (Math.random() < 0.6 ? rnd(1, 2) : 0));
+      }
+      const ents = [
+        { id: 'gen/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } },
+        { id: 'gen/goal', tipo: 'marker', x: w - 3, render: { type: 'goal' } },
+      ];
+      // pickups arriba de las plataformas (premio por trepar) + enemigos temáticos DORMIDOS (decorativos por ahora)
+      for (const p of plats) if (Math.random() < 0.5) ents.push({ id: 'gen/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: p[1] - 1, give: { item: ['ammo', 'coins', 'health'][rnd(0, 2)], amount: rnd(3, 6) } });
+      for (let i = 0, n = rnd(1, 3); i < n; i++) ents.push({ id: 'gen/en' + i, tipo: 'enemy', x: rnd(6, w - 4) + 0.5, combat: { type: Math.random() < 0.5 ? 'peaton' : 'dron', dormant: true } });
+      return {
+        schemaVersion: 1, id: 'nivel-ai-' + t.id, nombre: L(t.name), seed: 'ai',
+        rooms: [{ id: 'sala-ai', nombre: L(t.name), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents }],
+      };
+    }
+    // BUCLE de validación/reparación: probamos hasta 8 candidatos, devolvemos el 1º que pasa la RED.
+    let last = null;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const model = candidate();
+      const v = (typeof Playable !== 'undefined') ? Playable.checkLevel(model) : { ok: true, problems: [] };
+      last = { model, theme: t.id, attempt, problems: v.problems };
+      if (v.ok) return last;
+    }
+    return last;   // (por construcción no debería fallar; si falla, el caller ve problems[])
+  }
+
+  return { generate, generateLevel, enrich, THEMES };
 })();
 if (typeof window !== 'undefined') window.NivelAI = NivelAI;
 if (typeof module !== 'undefined') module.exports = NivelAI;

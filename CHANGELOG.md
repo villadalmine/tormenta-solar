@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v165] — 2026-06-26 — 🏗️ C ladrillo 2: la IA genera un NIVEL-PLATAFORMA real, validado y construible en tu motor
+
+`NivelAI.generateLevel(theme)` ya NO hace una escena top-down: produce un **MODELO DE NIVEL del motor real**
+(sala con plataformas saltables + spawn + meta + enemigos/pickups temáticos), el formato que consume
+`Mundo.fromModel`. El **bucle de la C anda**: genera candidato → pasa la RED `Playable.checkLevel` → si falla
+RE-INTENTA (auto-reparación, hasta 8) → devuelve el primero válido. e2e (los 4 temas): generateLevel → pasa
+Playable → Mundo.fromModel lo CONSTRUYE con playerStart+goal. El nivel generado CARGA en tu motor, validado de
+punta a punta. Falta el render/play interactivo en vivo (próximo ladrillo).
+
+---
+
 ## [v164] — 2026-06-26 — 🥅 LA RED: validador de jugabilidad (primer ladrillo de la C / máquina de niveles)
 
 Respuesta a "¿cómo va a generar bien la IA si vos mismo metiste un bug?": **una red automática que rechaza lo

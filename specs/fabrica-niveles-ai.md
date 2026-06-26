@@ -135,6 +135,22 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   falla, se **re-pide / auto-repara** → recién ahí `Mundo.fromModel`. La calibración de R1 (head-height, no
   fachadas) es justo el tipo de regla que evita falsos positivos sobre niveles legítimos.
 
+## 4.7 LADRILLO 2: la IA genera un NIVEL-PLATAFORMA real, validado y construible (v165)
+
+> **El salto:** `generate()` hacía una escena top-down (Spinoff). **`NivelAI.generateLevel(theme)`** produce un
+> **MODELO DE NIVEL del MOTOR REAL** (sala con plataformas saltables + spawn + meta + enemigos/pickups temáticos),
+> el mismo formato que consume **`Mundo.fromModel`** (el loader del juego de verdad).
+
+- **El bucle de la C, andando:** `generateLevel` arma un candidato → lo pasa por la **RED `Playable.checkLevel`**
+  → si falla, **RE-INTENTA** (hasta 8, auto-reparación) → devuelve el primero que pasa. La imaginación de la IA
+  **nunca** produce un nivel intransitable: la escalera de plataformas es saltable y nunca tapa spawn/meta (fila
+  `GTOP-1` siempre libre → R2/R3 OK; sin puertas → R1 OK).
+- **Probado (e2e, los 4 temas):** `generateLevel(theme)` → **pasa `Playable`** → **`Mundo.fromModel` lo CONSTRUYE**
+  con `playerStart` + `goal`. Es decir: el nivel generado **carga en tu motor**, validado de punta a punta.
+- **Lo que falta (próximo ladrillo):** el **render/play interactivo** del nivel generado en el motor (hoy se
+  construye y valida headless; falta correrlo en vivo — vía rooms-swap aislado o runner contenido reusando
+  `Player`). Eso es lo que vas a VER jugando. El texto del tema lo sigue autorando la IA (`/nivel-ai`).
+
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como
   data+runtime, memoria incipiente, deploy reproducible, métricas.

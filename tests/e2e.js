@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','nivelai.js','spinoff.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -186,6 +186,13 @@ if (require.main === module) {
       if (!sp.done || sp.exitTo !== 'back') throw new Error('spinoff no termina: ' + th.id);
       if ((pr.caramelos | 0) <= 0) throw new Error('spinoff no da souvenir: ' + th.id);
       ok.push('nivelai:' + th.id);
+      // LADRILLO 2 (C): el nivel-PLATAFORMA generado pasa la RED (Playable) y se CONSTRUYE con Mundo.fromModel
+      const gl = NivelAI.generateLevel(th.id);
+      const v = Playable.checkLevel(gl.model);
+      if (!v.ok) throw new Error('nivel-ai ' + th.id + ' NO jugable: ' + v.problems.join(' | '));
+      const built = Mundo.fromModel(gl.model);
+      if (!built.length || !built[0].playerStart || !built[0].goal) throw new Error('nivel-ai ' + th.id + ' no construye (spawn/goal)');
+      ok.push('nivelai-level:' + th.id);
     }
     return ok.join(',');
   })()`, sandbox);
