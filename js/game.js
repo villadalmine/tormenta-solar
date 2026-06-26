@@ -333,22 +333,29 @@
     else if (it.kind === 'cuevero') handleCuevero(it.c);
   }
   function launchArcade(game, opts) { arcadeGame = Arcade.create(game, opts); state = 'arcade'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); }
+  // REGISTRO de acciones de NPC (verbo declarativo `action` → handler). El entity DECLARA su action (data); el motor
+  // la despacha por el registro (§6.97 primitiva=código, componer=dato). Agregar una mecánica = sumar acá un verbo.
+  // Las que lanzan SUB-MODOS (truco/frogger) son lanzadores: arman el módulo y cambian de estado.
+  const NPC_ACTIONS = {
+    frogger: () => { challengeForVale = true; setMsg(T('g.frogger.start'), '#ff2e88', 1000); launchArcade('frogger'); },
+    truco:   () => { setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' }); },
+    chori:   () => redeemChori(),
+    shop:    n => buyFromShop(n),
+    borracho: n => giveBorracho(n),
+    lujo:    n => handleLujo(n),
+    totem:   n => grabTotem(n),
+    tesoro:  n => grabTesoro(n),
+    loop:    n => doLoop(n),
+    limosna: n => giveLimosna(n),
+    iorio:   n => giveIorio(n),
+    armas:   n => buyArmas(n),
+    chat:    n => openChat(n),
+    guarda:  n => guardaCine(n),
+    fifa:    () => playFifa(),
+  };
   function handleNpc(n) {
-    if (n.action === 'frogger') { challengeForVale = true; setMsg(T('g.frogger.start'), '#ff2e88', 1000); launchArcade('frogger'); }
-    else if (n.action === 'chori') redeemChori();
-    else if (n.action === 'truco') { setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' }); }
-    else if (n.action === 'shop') buyFromShop(n);
-    else if (n.action === 'borracho') giveBorracho(n);
-    else if (n.action === 'lujo') handleLujo(n);
-    else if (n.action === 'totem') grabTotem(n);
-    else if (n.action === 'tesoro') grabTesoro(n);
-    else if (n.action === 'loop') doLoop(n);
-    else if (n.action === 'limosna') giveLimosna(n);
-    else if (n.action === 'iorio') giveIorio(n);
-    else if (n.action === 'armas') buyArmas(n);
-    else if (n.action === 'chat') openChat(n);
-    else if (n.action === 'guarda') guardaCine(n);
-    else if (n.action === 'fifa') playFifa();
+    const fn = n && NPC_ACTIONS[n.action];
+    if (fn) fn(n);
     else { setMsg(TX(n.dialog) || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
   }
   function ejectToStreet(msg) {
@@ -1649,5 +1656,5 @@
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
   // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).
-  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS, questRuntime: Quests });
+  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS, questRuntime: Quests, actions: () => Object.keys(NPC_ACTIONS) });
 })();

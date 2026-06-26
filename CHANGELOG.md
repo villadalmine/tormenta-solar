@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v156] — 2026-06-26 — 🧱 v2: sub-modos como LANZADORES declarativos (registro de acciones)
+
+El `handleNpc` pasó de un **if-else por `action`** (15 ramas) a un **registro `NPC_ACTIONS`** (verbo→handler): el
+entity DECLARA su `action` (data) y el motor la despacha por el mapa (§6.97 primitiva=código, componer=dato). Las que
+abren SUB-MODOS (truco/frogger) son **lanzadores** en el registro. Agregar una mecánica = sumar un verbo. Expuesto el
+vocabulario en `window.Game.actions()` (para la máquina de niveles). e2e×3 (arcade/super/truco) + web-smoke OK.
+
+---
+
 ## [v155] — 2026-06-26 — 🧱 v2: CERO regex de nombre de sala en el gameplay (truco/garbarino → tags)
 
 Cerramos la migración de regexes de sala: la trastienda del truco va con `tags:['arcade','truco']` y Garbarino con
