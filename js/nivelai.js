@@ -134,7 +134,9 @@ const NivelAI = (() => {
   // genera → valida jugabilidad → si falla, RE-INTENTA (bucle de auto-reparación) → recién entonces se devuelve.
   // Así la "imaginación" de la IA nunca produce un nivel intransitable. Ver specs/fabrica-niveles-ai.md §4.7.
   function generateLevel(forceId) {
-    const t = forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(Math.random() * THEMES.length) | 0];
+    // forceId puede ser un ID (string) O un TEMA ad-hoc (objeto) — ej. el que INVENTA la IA en el tema 'oraculo'
+    const t = (forceId && typeof forceId === 'object') ? forceId
+      : forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(Math.random() * THEMES.length) | 0];
     const GTOP = 12;
     const rnd = (a, b) => a + ((Math.random() * (b - a + 1)) | 0);
     const pick = a => a[(Math.random() * a.length) | 0];
@@ -191,7 +193,32 @@ const NivelAI = (() => {
     return last;   // (por construcción no debería fallar; si falla, el caller ve problems[])
   }
 
-  return { generate, generateLevel, enrich, THEMES };
+  // ----- TEMA "ORÁCULO": la IA INVENTA un nivel a la medida del jugador, según lo que habló con los linyeras/bots
+  // (chats = mensajes del jugador, de oracleMem). El proxy arma el tema (name/intro/lines + ELIGE el style = layout)
+  // y acá lo envolvemos en un tema ad-hoc para generateLevel. Best-effort: si falla, cb(null) → el caller usa otro.
+  function requestOraculo(chats, cb) {
+    if (typeof fetch !== 'function') { cb(null); return; }
+    const ctrl = new AbortController(); const to = setTimeout(() => { ctrl.abort(); }, 11000);
+    fetch(PROXY + '/nivel-ai', { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme: 'oraculo', lang: short(), chats: (chats || []).slice(0, 8) }) })
+      .then(r => { clearTimeout(to); return r.ok ? r.json() : null; })
+      .then(j => {
+        if (!j || !j.name) { cb(null); return; }
+        const styles = ['wall', 'aisles', 'climb'];
+        const props = (typeof j.props === 'string' ? j.props.trim().split(/\s+/) : Array.isArray(j.props) ? j.props : ['🔮', '✨', '👁️', '🌀']).slice(0, 8);
+        const lines = (Array.isArray(j.lines) && j.lines.length ? j.lines : ['te conozco, pibe', 'esto es por vos', 'lo pediste vos']).map(s => String(s).slice(0, 40));
+        cb({
+          id: 'oraculo', motif: String(j.motif || '🔮').slice(0, 4),
+          name: { es: j.name, en: j.name }, intro: { es: j.intro || '', en: j.intro || '' },
+          palette: { floor: '#241c2e', floor2: '#2b2238', wall: '#4a3a66', accent: '#e0b0ff' },
+          props, npc: { emoji: '🔮', lines: { es: lines, en: lines } },
+          goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 },
+          style: styles.indexOf(j.style) >= 0 ? j.style : 'climb', decor: ['cartel', 'caja', 'barril', 'tacho'],
+        });
+      }).catch(() => { clearTimeout(to); cb(null); });
+  }
+
+  return { generate, generateLevel, enrich, requestOraculo, THEMES };
 })();
 if (typeof window !== 'undefined') window.NivelAI = NivelAI;
 if (typeof module !== 'undefined') module.exports = NivelAI;

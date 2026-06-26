@@ -684,10 +684,32 @@ http.createServer((req, res) => {
     let nb = '';
     req.on('data', c => { nb += c; if (nb.length > 2000) req.destroy(); });
     req.on('end', async () => {
-      let theme = '', lang = 'es';
-      try { ({ theme, lang } = JSON.parse(nb || '{}')); } catch (e) {}
+      let theme = '', lang = 'es', chats = [];
+      try { const b = JSON.parse(nb || '{}'); theme = b.theme; lang = b.lang; chats = Array.isArray(b.chats) ? b.chats : []; } catch (e) {}
       theme = String(theme || '').replace(/[^a-z0-9-]/g, '').slice(0, 32);
       const en = lang === 'en';
+      // TEMA "ORÁCULO": la IA INVENTA un nivel a la medida del jugador según lo que habló con los linyeras/bots
+      if (theme === 'oraculo') {
+        const ctx = chats.slice(0, 8).map(s => String(s).slice(0, 120)).join(' | ') || (en ? 'we know nothing about them' : 'no sabemos nada de él');
+        const osys = en ? 'You invent surreal personalized comedy levels. Reply ONLY with compact JSON.' : 'Inventás mini-niveles surrealistas y personalizados. Respondé SOLO con JSON compacto.';
+        const ouser = en
+          ? 'A player has been chatting with hobo street-oracles. Things they said/asked: "' + ctx + '". INVENT a surreal level theme tailored to what this player seems into (wink at it). Return JSON {"name": short title (max 5 words), "intro": one short sentence, "lines": array of 6 very short NPC phrases, "style": one of "wall"|"aisles"|"climb", "motif": one emoji, "props": 5 emojis space-separated}.'
+          : 'Un jugador viene charlando con oráculos linyera. Cosas que dijo/preguntó: "' + ctx + '". INVENTÁ un tema de nivel surreal a la MEDIDA de lo que parece interesarle (guiñá a eso). Devolvé JSON {"name": título corto (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC muy cortas, "style": uno de "wall"|"aisles"|"climb", "motif": un emoji, "props": 5 emojis separados por espacio}.';
+        try {
+          const { reply } = await ask([{ role: 'system', content: osys }, { role: 'user', content: ouser }], { maxTokens: 340 });
+          const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
+          const j = m ? JSON.parse(m[0]) : {};
+          const out = {};
+          if (j.name) out.name = String(j.name).slice(0, 60);
+          if (j.intro) out.intro = String(j.intro).slice(0, 160);
+          if (Array.isArray(j.lines) && j.lines.length) out.lines = j.lines.slice(0, 8).map(s => String(s).slice(0, 40));
+          if (j.style) out.style = String(j.style).slice(0, 12);
+          if (j.motif) out.motif = String(j.motif).slice(0, 4);
+          if (j.props) out.props = String(j.props).slice(0, 60);
+          res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
+        } catch (e) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); }
+        return;
+      }
       const BRIEF = {
         'super-rasca': en ? 'a filthy run-down dive Chinese mini-market, sticky and dim' : 'un súper chino RASCA, mugriento, pegoteado y a media luz',
         'taller-esclavo': en ? 'a clandestine sweatshop where people weave clothes in slave mode' : 'un taller clandestino donde se teje ropa en modo esclavo',

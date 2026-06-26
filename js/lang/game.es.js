@@ -235,6 +235,7 @@
     'g.nivelai.back': 'El portal te escupe de vuelta en lo del chino, medio mareado. 🌀',
     'g.nivelai.enter': '🌀 Caés en un nivel generado: «{name}». Llegá a la SALIDA morada (→ derecha). [ESC] para volver.',
     'g.nivelai.fail': 'El portal chisporrotea y se cierra solo. Quedás en lo del chino. 🌀',
+    'g.nivelai.oraculo': '🔮 El oráculo te lee la mente... te está armando un nivel a tu medida con lo que le contaste. Esperá un toque.',
     'g.nivelai.room': '🌀 {name}',
     // --- DÓLARES: las cámaras leen la SERIE (siempre buena o trucha + número) + a veces el ORIGEN ---
     'g.dollar.real': '📹 serie buena {s}',

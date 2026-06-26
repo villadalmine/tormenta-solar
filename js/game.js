@@ -846,17 +846,19 @@
   // NIVEL-AI en EL MOTOR REAL: te colaste a la trastienda del chino → la IA GENERA un nivel-plataforma, pasa la
   // RED (Playable), y lo cargamos en EL motor (rooms-swap). Si por lo que sea no es jugable, abortamos al juego
   // normal (NUNCA un nivel roto). Al llegar a la meta / morir / escapar → endSpinoffLevel restaura todo.
-  function launchNivelAI() {
-    const back = () => { state = 'playing'; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); };
-    if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined') { back(); return; }
-    const gen = NivelAI.generateLevel();
+  // lo que el jugador HABLÓ con los linyeras/bots (mensajes suyos de oracleMem) → el oráculo "sabe de él"
+  function playerChatTopics() {
+    const out = [];
+    for (const k in oracleMem) for (const m of (oracleMem[k] || [])) if (m && m.role === 'user' && m.content) out.push(String(m.content).slice(0, 120));
+    return out.slice(-8);
+  }
+  // construye+valida+swapea un nivel generado. Devuelve true si entró; false si no era jugable (la RED).
+  function loadGenLevel(gen) {
+    if (!gen) return false;
     let genRooms = null; try { genRooms = Mundo.fromModel(gen.model); } catch (e) {}
     const playable = (typeof Playable === 'undefined') || Playable.checkLevel(gen.model).ok;   // LA RED
-    const hasGoal = genRooms && genRooms.some(r => r.goal);   // la meta vive en la última sala (multi-sala)
-    if (!genRooms || !genRooms.length || !genRooms[0].playerStart || !hasGoal || !playable) {
-      back(); setMsg(T('g.nivelai.fail'), '#ff5252', 4000); return;
-    }
-    // SNAPSHOT del juego principal (para restaurar al salir) + SWAP al nivel generado
+    const hasGoal = genRooms && genRooms.some(r => r.goal);
+    if (!genRooms || !genRooms.length || !genRooms[0].playerStart || !hasGoal || !playable) return false;
     spinoffSave = { rooms, states, current, px: player.x, py: player.y, vx: player.vx, vy: player.vy, hp: player.hp };
     spinoffReward = gen.reward || { caramelos: 4 }; spinoffName = gen.name || gen.model.nombre;
     rooms = genRooms;
@@ -866,6 +868,22 @@
     elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); elFloor.textContent = TX(rooms[0].name);
     setMsg(T('g.nivelai.enter', { name: spinoffName }), '#e0b0ff', 5500);
     tel('nivelai', { theme: gen.theme, mode: 'level' });
+    return true;
+  }
+  function launchNivelAI() {
+    const back = () => { state = 'playing'; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); };
+    if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined') { back(); return; }
+    // ~40% de las veces, si charlaste con los linyeras, el ORÁCULO te INVENTA un nivel a tu medida (async, lo arma la IA)
+    const chats = playerChatTopics();
+    if (chats.length >= 2 && NivelAI.requestOraculo && Math.random() < 0.4) {
+      back(); setMsg(T('g.nivelai.oraculo'), '#e0b0ff', 8000);   // mientras la IA piensa, esperás en lo del chino
+      NivelAI.requestOraculo(chats, theme => {
+        if (spinoffLevel || state !== 'playing') return;   // ya entraste a otro lado / cambió el estado
+        if (!(theme && loadGenLevel(NivelAI.generateLevel(theme)))) loadGenLevel(NivelAI.generateLevel());   // fallback: tema normal
+      });
+      return;
+    }
+    if (!loadGenLevel(NivelAI.generateLevel())) { back(); setMsg(T('g.nivelai.fail'), '#ff5252', 4000); }
   }
   // salir del nivel generado: restaura el juego principal exactamente como estaba. outcome: win/dead/flee.
   function endSpinoffLevel(outcome) {

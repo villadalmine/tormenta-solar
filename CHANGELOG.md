@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v175] — 2026-06-26 — 🔮 Tema "ORÁCULO": la IA inventa un nivel a tu MEDIDA (según tus charlas) + SDD showcase de features
+
+La IA ya no solo autora el TEXTO: en el tema **oraculo** **INVENTA un nivel a tu medida**. Te colás a la trastienda
+y ~40% (si charlaste con los linyeras) el oráculo te lee la mente: el cliente junta tus mensajes (`oracleMem` →
+`playerChatTopics`) → `POST /nivel-ai {theme:'oraculo', chats}` → la IA inventa name/intro/frases y **ELIGE el
+style/layout** guiñando a lo que hablaste → tema ad-hoc → pasa la RED (Playable) → rooms-swap. Carga async con
+fallback. **Memoria del jugador → mundo generado.** Además: **SDD `specs/features-showcase.md`** que cataloga TODAS
+las técnicas interesantes (fuente para la futura página /info y /tech). e2e (tema-objeto jugable) + web-smoke OK.
+
+---
+
 ## [v174] — 2026-06-26 — ✨ Generador: 3 temas nuevos (feria trucha, fábrica de petardos, karaoke mafia) + escalera del edificio más saltable
 
 Generador: **3 temas nuevos** (DATA) → `feria-trucha` (marcas truchas, aisles), `fabrica-petardos` (pólvora, climb),

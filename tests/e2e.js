@@ -258,6 +258,15 @@ if (require.main === module) {
       for (const rm of built) for (const d of rm.doors || []) if (typeof d.to !== 'number' || d.to < 0 || d.to >= built.length) throw new Error('nivel-ai ' + th.id + ' puerta sin wiring');
       ok.push('nivelai-level:' + th.id);
     }
+    // TEMA "ORÁCULO" (ad-hoc, lo INVENTA la IA): generateLevel debe aceptar un tema-OBJETO y salir jugable
+    const oraculo = { id: 'oraculo', motif: '🔮', name: { es: 'Tu Nivel', en: 'Your Level' }, intro: { es: '...', en: '...' },
+      palette: { floor: '#241c2e', floor2: '#2b2238', wall: '#4a3a66', accent: '#e0b0ff' }, props: ['🔮', '✨'],
+      npc: { emoji: '🔮', lines: { es: ['te conozco'], en: ['i know you'] } }, goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 }, style: 'climb', decor: ['cartel', 'caja'] };
+    const go = NivelAI.generateLevel(oraculo);
+    if (!Playable.checkLevel(go.model).ok) throw new Error('tema oraculo (objeto) NO jugable');
+    const gb = Mundo.fromModel(go.model);
+    if (!gb[0].playerStart || !gb[gb.length - 1].goal) throw new Error('tema oraculo (objeto) no construye');
+    ok.push('nivelai-oraculo');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

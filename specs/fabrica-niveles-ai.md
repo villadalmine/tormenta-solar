@@ -176,9 +176,15 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   (góndolas: 2 filas horizontales) · **`climb`** (zigzag que sube). Así la muralla **parece** una muralla y cada
   tema se siente distinto. La **meta** ahora usa el **art de portal real** (`Art.portal`, el mismo del cambio).
   Verificado: 200 niveles (50×4 temas) → 0 fallos de jugabilidad (la RED valida todo).
-- **Lo que queda (el salto grande):** que la **IA autore el layout** como data (no solo el texto) — hoy el layout
-  es procedural acotado por `style`; el paso es que `/nivel-ai` proponga estructura (salas/plataformas/enemigos)
-  validada por la RED + auto-reparación. Más tipos de obstáculo/enemigo.
+- **TEMA "ORÁCULO" — la IA inventa un nivel a tu MEDIDA (v175):** te colás a la trastienda y ~40% de las veces (si
+  charlaste con los linyeras) el **oráculo te lee la mente**: el cliente junta tus mensajes (`oracleMem` →
+  `playerChatTopics`) y los manda a `POST /nivel-ai {theme:'oraculo', chats}`; la IA **INVENTA** name/intro/frases +
+  **ELIGE el `style`/layout** (wall/aisles/climb) guiñando a lo que hablaste. Se envuelve en un **tema ad-hoc**
+  (`generateLevel` acepta objeto) → pasa la RED → rooms-swap. Carga **async** (mensaje "el oráculo te lee la
+  mente…") con **fallback** a tema normal si la IA falla. Memoria del jugador → mundo generado. e2e: tema-objeto
+  jugable + construible.
+- **Lo que queda (el salto grande):** que la IA autore la **GEOMETRÍA exacta** (no solo el `style`) — posiciones de
+  plataformas/enemigos/obstáculos como data validada por la RED + auto-reparación. Más tipos de obstáculo/enemigo.
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como
