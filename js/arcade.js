@@ -275,11 +275,18 @@ const Arcade = (() => {
     const pw = c => E ? E.power(c) : 0;
     // voz criolla SOLO con el tahúr (es una persona); la máquina no habla con voz (es una máquina)
     const say = f => { if (!isMachine && typeof Mensajero !== 'undefined' && Mensajero.cantar) Mensajero.cantar(f); };
-    const TRUCOW = { 1:'¡Truco!', 2:'¡Quiero retruco!', 3:'¡Quiero vale cuatro!' };
-    const ENVW   = { 1:'¡Envido!', 2:'¡Real envido!', 3:'¡Falta envido!' };
+    const pick = a => a[(Math.random() * a.length) | 0];
+    const sayOne = a => say(pick(a));   // grita una frase al azar (más vivo)
+    // cantos del TAHÚR, bien porteños y a los gritos
+    const TRUCOW = { 1:'¡TRUCO, carajo!', 2:'¡RETRUCO te canto, doblá!', 3:'¡VALE CUATRO, jugátela toda!' };
+    const ENVW   = { 1:'¡ENVIDO, vamo!', 2:'¡REAL ENVIDO, pendejo!', 3:'¡FALTA ENVIDO, todo o nada!' };
+    const FLORW  = ['¡FLOOOR, mirá lo que traigo!', '¡Flor, pibe, andá juntando!'];
+    const QUIEROW = ['¡Quiero, dale!', '¡Quiero, vamo a ver!'];
+    const NOQW   = ['No quiero, guardátela.', 'No me da, paso.'];
+    const WINW   = ['¡TE GANÉEE, gil!', '¡Andá a llorar a la iglesia!', '¡Así cualquiera, maestro!', '¡Tomá pa\' que aprendas, pibe!', '¡La timba es mía, chau!'];
     const trucoQ = { 1:2, 2:3, 3:4 }, trucoN = { 1:1, 2:2, 3:3 };
     const envQ   = { 1:2, 2:3, 3:5 }, envN   = { 1:1, 2:2, 3:3 };
-    const mano = 1;
+    let mano = 1, lead = 1;   // mano = quién reparte/es mano (alterna por deal); lead = quién tira PRIMERO esta baza
 
     // ---- estado de la PARTIDA ----
     let format = null;                       // '3manos' (mejor de 3 rondas) | 'a15' (primero a 15 puntos)
@@ -293,14 +300,16 @@ const Arcade = (() => {
 
     function startDeal() {
       dealNum++;
+      mano = (dealNum % 2 === 1) ? 1 : -1;   // la MANO alterna cada reparto (1=vos, -1=tahúr)
+      lead = mano;                            // la mano tira PRIMERO en la 1ª baza
       const d = E ? E.deal() : { p:[], a:[] };
       pHand = d.p.map(c => ({ c, used:false })); aiHand = d.a.map(c => ({ c, used:false }));
       round = 0; pTr = 0; aiTr = 0; results = []; revealT = 0; tableP = null; tableA = null;
       pPts = 0; aiPts = 0; trucoLevel = 0; trucoStake = 1; envidoDone = false; florDone = false; aiOpened = false; pending = null; heldTruco = null;
-      phase = 'play'; note = T('arc.truco.yourTurn');
+      phase = 'play'; note = T(mano === 1 ? 'arc.truco.youMano' : 'arc.truco.aiMano');
       if (E) {
         const pf = E.flor(pHand.map(h => h.c)), af = E.flor(aiHand.map(h => h.c));
-        if (af != null && (pf == null || af >= pf)) { aiPts += 3; florDone = true; envidoDone = true; note = T('arc.truco.florAi'); say('¡Flor!'); }
+        if (af != null && (pf == null || af >= pf)) { aiPts += 3; florDone = true; envidoDone = true; note = T('arc.truco.florAi'); sayOne(FLORW); }
         else if (pf != null) { pPts += 3; florDone = true; envidoDone = true; note = T('arc.truco.florYou'); }
       }
     }
@@ -325,15 +334,15 @@ const Arcade = (() => {
       const ae = E.envido(aiHand.map(h => h.c));
       if (E.aiAcceptEnvido(ae, TIER)) {
         if (ae >= 30 && level < 3) { pending = { kind:'envido', level: level + 1, by:'a' }; say(ENVW[level + 1]); note = T('arc.truco.aiRaise'); }
-        else { say('¡Quiero!'); resolveEnvido(level); }
-      } else { say('No quiero.'); pPts += envN[level] || 1; envidoDone = true; pending = null; note = T('arc.truco.envNo', { pts: envN[level] || 1 }); afterEnvido(); }
+        else { sayOne(QUIEROW); resolveEnvido(level); }
+      } else { sayOne(NOQW); pPts += envN[level] || 1; envidoDone = true; pending = null; note = T('arc.truco.envNo', { pts: envN[level] || 1 }); afterEnvido(); }
     }
     function aiRespondTruco(level) {
       const strong = aiHand.some(h => !h.used && pw(h.c) >= 10);
       if (strong || Math.random() < 0.55) {
         if (strong && level < 3 && Math.random() < 0.5) { pending = { kind:'truco', level: level + 1, by:'a' }; say(TRUCOW[level + 1]); note = T('arc.truco.aiRaise'); }
-        else { say('¡Quiero!'); trucoLevel = level; trucoStake = trucoQ[level]; pending = null; note = T('arc.truco.quiero', { stake: trucoStake }); }
-      } else { say('No quiero.'); pPts += trucoN[level]; pending = null; concludeDeal(1, false); note = T('arc.truco.noQuiero', { stake: trucoN[level] }); }
+        else { sayOne(QUIEROW); trucoLevel = level; trucoStake = trucoQ[level]; pending = null; note = T('arc.truco.quiero', { stake: trucoStake }); }
+      } else { sayOne(NOQW); pPts += trucoN[level]; pending = null; concludeDeal(1, false); note = T('arc.truco.noQuiero', { stake: trucoN[level] }); }
     }
     function playerQuiero() {
       if (!pending) return;
@@ -355,9 +364,9 @@ const Arcade = (() => {
     function resolveTrick() {
       const r = E ? E.clash(tableP, tableA) : 0;
       results.push(r);
-      if (r === 1) { pTr++; note = T('arc.truco.handWin'); }
-      else if (r === -1) { aiTr++; note = T('arc.truco.handLose'); }
-      else note = T('arc.truco.tie');
+      if (r === 1) { pTr++; note = T('arc.truco.handWin'); lead = 1; }       // ganás → tirás vos la próxima
+      else if (r === -1) { aiTr++; note = T('arc.truco.handLose'); lead = -1; }  // gana el tahúr → tira él
+      else { note = T('arc.truco.tie'); lead = mano; }                       // parda → tira la mano
     }
 
     // cierra el DEAL: dw=1/-1 ganador; addStake = sumar el valor del truco al ganador
@@ -371,6 +380,7 @@ const Arcade = (() => {
         return;
       }
       pFlores += pPts; aiFlores += aiPts;
+      if (dw === -1) sayOne(WINW);   // el tahúr canta victoria, bien porteño ("¡te ganéee, gil!")
       if (format === '3manos') { if (dw === 1) pScore++; else aiScore++; }
       else { pScore += pPts; aiScore += aiPts; }
       const target = format === '3manos' ? 2 : 15;
@@ -431,10 +441,13 @@ const Arcade = (() => {
         }
         if (Input.keys['v'] && round === 0 && !envidoDone && !tableP && !pending) { Input.keys['v'] = false; pending = { kind:'envido', level:1, by:'p' }; aiRespondEnvido(1); return; }
         if (Input.keys['t'] && trucoLevel < 3 && !pending) { Input.keys['t'] = false; pending = { kind:'truco', level: trucoLevel + 1, by:'p' }; aiRespondTruco(trucoLevel + 1); return; }
+        // si el TAHÚR es mano de esta baza, TIRA PRIMERO (vos respondés)
+        if (lead === -1 && !tableA && !tableP && !pending && aiOpened) { aiPlay(); note = T('arc.truco.aiLed'); }
         if (!pending) for (let i = 0; i < 3; i++) {
           if (Input.keys[String(i + 1)] && !pHand[i].used) {
             pHand[i].used = true; tableP = pHand[i].c;
-            aiPlay(); resolveTrick();
+            if (!tableA) aiPlay();   // si el tahúr aún no tiró (vos sos mano de la baza), responde
+            resolveTrick();
             phase = 'reveal'; revealT = 1.3;
             break;
           }
@@ -462,7 +475,7 @@ const Arcade = (() => {
           header(ctx, W, 'TRUCO', T('arc.truco.controls'));
           return;
         }
-        if (tableA) card(W/2, H/2-50, tableA, phase==='reveal'||over>0);
+        if (tableA) card(W/2, H/2-50, tableA, true);   // las cartas del truco van boca arriba (el tahúr tira a la vista)
         if (tableP) card(W/2, H/2+50, tableP, true);
         for (let i = 0; i < 3; i++) {
           const cx = W/2 - 70 + i*70, cy = H - 60;

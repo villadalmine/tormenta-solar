@@ -7,6 +7,11 @@
   reescrito sobre él: cantos reales (envido/real/falta, truco/retruco/vale4, flor) con quiero/no quiero,
   IA por tier, premio en **flores** (`player.flores`). **Voces criollas:** el tahúr canta en voz alta
   (`Mensajero.cantar()`, voz es-AR).
+- **F2.1 fix (v138):** **orden de tiro REAL** — la **mano alterna cada reparto** (`mano = dealNum%2`), la mano
+  **tira primero** en la 1ª baza, después tira **el que ganó** la baza anterior (parda → la mano); si el tahúr es
+  mano, **tira él primero** y vos respondés (`lead`/`aiLed`). Antes el jugador tiraba siempre primero (incorrecto).
+  Cartas **boca arriba** en la mesa. + el tahúr **GRITA** los cantos bien porteños (TRUCO/RETRUCO/ENVIDO/FLOR,
+  quiero/no-quiero) y canta victoria ("¡te ganéee, gil!", `WINW`) vía `Mensajero.cantar` (TTS, con fallback al server).
 - **F2 hecho:** el tahúr **pregunta el formato** (fase 'choose': [3] mejor de 3 manos / [1] a 15 puntos);
   `makeTruco` ahora es una **PARTIDA multi-mano** (startDeal/concludeDeal, marcador de partida, falta envido
   dinámico en a15). e2e juega una partida completa en ambos formatos.

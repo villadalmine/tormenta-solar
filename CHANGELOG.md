@@ -39,6 +39,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v138] — 2026-06-26 — 🃏 Truco: orden de tiro REAL (la mano) + el tahúr grita los cantos
+
+- **Didáctica/reglas arregladas:** antes el jugador **tiraba siempre primero**. Ahora se respeta la **MANO**: la mano
+  **alterna cada reparto**, tira **primero** en la 1ª baza, y después tira **el que ganó** la baza anterior (parda →
+  la mano). Si el tahúr es mano, **tira él primero** y vos respondés (con cartel "el tahúr tiró, respondé"). Cartas
+  **boca arriba** en la mesa.
+- **El tahúr GRITA bien porteño:** TRUCO/RETRUCO/VALE CUATRO, ENVIDO/REAL/FALTA, FLOR, quiero/no-quiero, y canta
+  victoria ("¡TE GANÉEE, gil!", "andá a llorar a la iglesia") — vía `Mensajero.cantar` (TTS, con fallback al server
+  espeak si el navegador no tiene voz).
+
+---
+
 ## [v137] — 2026-06-26 — 🐛 Hito del tahúr + 🥷 RAID al chino (pánico + robo gratis)
 
 - **FIX hito del tahúr:** ganarle al truco no marcaba el hito en [P] porque `trucoWon` se **consume** al cruzar la
