@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v161] — 2026-06-26 — 🧧 La CAJA del chino: mini-juego de pago (carrito + vuelto en caramelos + inflación + ninjas)
+
+La caja del súper deja de ser un botón: ahora abre un **checkout** (panel en `super.js`). Ves el **changuito con
+precios y total en vivo**, sacás lo que no querés (`[X]`), y **vos ponés la plata** (`[←→]`): el **vuelto se
+calcula solo y SIEMPRE es en caramelos** (el peso no vale nada). Los **caramelos NO se aceptan como pago** —
+*"¡chino VEGETARIANO, no comer caramelo, plata plata!"* 🥬. Al confirmar, el chino **a veces te quiere cagar con
+INFLACIÓN** y te pide más plata: podés **aceptar** o **discutir** — a veces cede (*"perdón, me confundí"*), a
+veces salen **2 ninjas con katana** que te **intiman** y aceptás sí o sí. Tunables como DATA (`CHINO`:
+scamChance/inflaRate/relentChance/confusedChance). i18n ES/EN. e2e (checkout determinístico + pago clásico) ×3 +
+web-smoke OK.
+
+---
+
 ## [v160] — 2026-06-26 — ⚔️ El misterioso de las armas: MENÚ de compra + arsenal como DATA (sigue el barrido)
 
 El vendedor de fierro criollo deja de ser un botón único: ahora **abre un menú** (como el guarda) para **elegir

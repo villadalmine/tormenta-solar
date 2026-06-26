@@ -26,6 +26,14 @@ const Super = (() => {
   const RETRO = ['Atari 2600','Family Game (NES trucha)','Master System','Super Nintendo','Game Boy','Neo Geo',
     'Sega Saturn','PlayStation 1','Nintendo 64','Dreamcast','PlayStation 2','GameCube','Xbox','Nintendo Wii','PlayStation 3','Xbox 360'];
   const PRICE = 6, CHANGE = 4;
+  // CHINO — personalidad de la CAJA como DATA (tunables del regateo). La máquina de niveles podrá autorar
+  // un chino más/menos garca por nivel. vuelto SIEMPRE en caramelos (el peso no vale nada, es el chiste).
+  const CHINO = {
+    scamChance: 0.4,       // prob. de que intente cagarte con "inflación" al cobrar
+    inflaRate: 0.5,        // recargo de inflación = ceil(total * inflaRate)
+    relentChance: 0.5,     // si discutís, prob. de que ceda ("perdón, me confundí")
+    confusedChance: 0.35,  // pago limpio: prob. del "sorry me confundí" (cosmético, te acepta igual)
+  };
   function shuffle(a) { a = a.slice(); for (let i = a.length-1; i > 0; i--) { const j = (Math.random()*(i+1))|0; [a[i],a[j]] = [a[j],a[i]]; } return a; }
   function wrap(ctx, text, maxW) {
     const words = text.split(' '), lines = []; let cur = '';
@@ -55,8 +63,12 @@ const Super = (() => {
     const player = { x: 6.5*CS, y: 12.5*CS, r: 11 };
     // changuito (inventario virtual): lo que AGARRÁS queda acá SIN pagar hasta que pasás por la CAJA
     let cart = [], eject = 0, ninjaX = 0;
+    // CHECKOUT (caja): mini-juego de pago. null = comprando; objeto = estás en la caja del chino.
+    let checkout = null;
+    const held = {};
+    function pressed(k) { const d = !!Input.keys[k], was = held[k]; held[k] = d; return d && !was; }   // flanco de tecla
     const chino = { x: (caja.x + 0.5) * CS, y: (caja.y + 0.5) * CS, vx: 95, vy: 70, t: 0 };   // el chino corriendo en pánico (raid)
-    let done = false, exitTo = null, msg = '', msgT = 0, prompt = '', eHeld = false, cHeld = false;
+    let done = false, exitTo = null, msg = '', msgT = 0, prompt = '', eHeld = false, cHeld = false, escHeld = false;
     setMsg(T(raid ? 'sup.raid' : 'sup.intro'), 9);
 
     function setMsg(t, s = 3.5) { msg = t; msgT = s; }
@@ -108,6 +120,83 @@ const Super = (() => {
       if (stormed && healAmt > 0) extra += T('sup.pay.heal', { n: healAmt });
       setMsg(T('sup.pay.ok', { total, n, s: n === 1 ? '' : 's', change }) + extra, mega ? 7 : 5);
     }
+    // ---- CHECKOUT: el mini-juego de la caja del chino ----
+    function cartTotal() { return cart.length * PRICE; }
+    // abrir la caja: revisás el changuito, sacás lo que no querés, ponés la PLATA (tender) y te da VUELTO en caramelos
+    function openCheckout() {
+      if (cart.length === 0) { setMsg(T('sup.pay.nothing')); return; }
+      const total = cartTotal();
+      checkout = { phase: 'cart', sel: 0, tender: Math.min(P.coins, total), infla: 0, note: '', resultT: 0, ninja: 0 };
+      held.e = true; held.enter = true;   // la E con la que abriste sigue apretada: no la cuentes como "pagar"
+    }
+    function closeCheckout() { checkout = null; }
+    // CONFIRMAR el pago → el chino tira la moneda: a veces te quiere cagar con "inflación", a veces cobra limpio
+    function settleCheckout() {
+      const total = cartTotal();
+      if (P.coins < total) { checkout.note = T('sup.caja.poor', { total, coins: P.coins }); return; }
+      if (checkout.tender < total) { checkout.note = T('sup.caja.short', { total }); return; }
+      if (Math.random() < CHINO.scamChance) {          // te quiere cagar: inventa inflación y pide más plata
+        checkout.infla = Math.max(1, Math.ceil(total * CHINO.inflaRate));
+        checkout.phase = 'inflation';
+        checkout.note = T('sup.caja.inflaDemand', { extra: checkout.infla });
+      } else {                                          // cobra limpio (a veces con el "uy me confundí" cosmético)
+        finalizeCheckout(total, Math.random() < CHINO.confusedChance ? T('sup.caja.confused') : T('sup.caja.clean'));
+      }
+    }
+    // pagar de verdad: cobra `charge` de plata (acotado a lo que tenés), el resto del tender vuelve en CARAMELOS
+    function finalizeCheckout(charge, note) {
+      charge = Math.min(charge, P.coins);
+      const tender = Math.min(Math.max(checkout.tender, charge), P.coins);   // al menos cubrís el cobro
+      const change = Math.max(0, tender - charge);                            // vuelto en caramelos
+      const mega = !P.hasMegaDrive && cart.indexOf('CONSOLAS') >= 0;
+      P.coins -= tender; P.caramelos += change;
+      for (const c of cart) deposit(c);
+      const n = cart.length;
+      let healAmt = 0;
+      if (stormed) { healAmt = Math.min(100, P.hp + n * 15) - P.hp; P.hp += healAmt; }
+      Sfx.win();
+      let extra = mega ? T('sup.pay.mega') : '';
+      if (stormed && healAmt > 0) extra += T('sup.pay.heal', { n: healAmt });
+      checkout.phase = 'result'; checkout.resultT = 4.5;
+      checkout.note = note + ' ' + T('sup.caja.receipt', { charge, n, s: n === 1 ? '' : 's', change }) + extra;
+      cart = [];
+    }
+    // discutís la inflación: a veces el chino cede; si no, salen los NINJAS y te fuerzan a aceptar
+    function argueInflation() {
+      const total = cartTotal();
+      if (Math.random() < CHINO.relentChance) { finalizeCheckout(total, T('sup.caja.relent')); }
+      else { checkout.ninja = 2.2; checkout.note = T('sup.caja.ninjaForce'); }   // los ninjas te intiman → aceptás
+    }
+    function checkoutUpdate(dt) {
+      const total = cartTotal();
+      if (checkout.ninja > 0) {   // intimidación ninja en curso → al terminar, pagás la inflación sí o sí
+        checkout.ninja -= dt;
+        if (checkout.ninja <= 0) finalizeCheckout(total + checkout.infla, T('sup.caja.inflaAccept'));
+        return;
+      }
+      if (checkout.phase === 'result') { checkout.resultT -= dt; if (checkout.resultT <= 0) closeCheckout(); return; }
+      if (pressed('escape')) {
+        if (checkout.phase === 'inflation') { argueInflation(); return; }   // ESC en inflación = discutir
+        escHeld = true; closeCheckout(); return;   // bloquea que el ESC normal te eche del súper al cerrar
+      }
+      if (pressed('c')) { checkout.note = T('sup.caja.veggie'); return; }   // plata + caramelos → "chino vegetariano no comer caramelo"
+      if (checkout.phase === 'inflation') {
+        if (pressed('e') || pressed('enter')) finalizeCheckout(total + checkout.infla, T('sup.caja.inflaAccept'));   // aceptás la inflación
+        else if (pressed('n')) argueInflation();                                                                     // discutís
+        return;
+      }
+      // fase 'cart': editás el changuito y el tender
+      if (pressed('arrowup') || pressed('w')) checkout.sel = (checkout.sel - 1 + Math.max(1, cart.length)) % Math.max(1, cart.length);
+      if (pressed('arrowdown') || pressed('s')) checkout.sel = (checkout.sel + 1) % Math.max(1, cart.length);
+      if (pressed('x') || pressed('backspace')) {   // sacar un item del changuito
+        if (cart.length) { cart.splice(checkout.sel, 1); checkout.sel = Math.max(0, Math.min(checkout.sel, cart.length - 1)); checkout.tender = Math.min(checkout.tender, P.coins); Sfx.pickup();
+          if (cart.length === 0) { closeCheckout(); setMsg(T('sup.caja.emptied')); return; } }
+      }
+      if (pressed('arrowleft') || pressed('a') || pressed('-')) checkout.tender = Math.max(total, checkout.tender - 1);
+      if (pressed('arrowright') || pressed('d') || pressed('=') || pressed('+')) checkout.tender = Math.min(P.coins, checkout.tender + 1);
+      if (pressed('e') || pressed('enter')) settleCheckout();
+    }
+
     // intento de IRSE: si llevás cosas sin pagar, salen los NINJAS y te rajan sin la mercadería
     function tryLeave(to) {
       if (raid) {   // RAID: el chino está en pánico, te llevás todo GRATIS y salís por donde quieras
@@ -133,7 +222,7 @@ const Super = (() => {
     function interact() {
       const g = adjGondolaObj();
       if (g) { grab(g.cat); return; }
-      if (near(caja)) { payAtCaja(); return; }
+      if (near(caja)) { openCheckout(); return; }
       if (near(family)) { setMsg(T('sup.family')); return; }
       if (secret.open && near(secret)) { tryLeave('cueva'); return; }
       setMsg(T('sup.hint'));
@@ -143,8 +232,12 @@ const Super = (() => {
       get done() { return done; }, get exitTo() { return exitTo; },
       // ---- superficie de prueba (headless e2e); no afecta el juego ----
       __cart: () => cart.slice(), __grab: (c) => grab(c), __pay: () => payAtCaja(), __leave: (to) => tryLeave(to),
+      __openCaja: () => openCheckout(), __checkout: () => checkout && { phase: checkout.phase, tender: checkout.tender, total: cartTotal(), infla: checkout.infla },
+      __removeSel: () => { if (checkout) { cart.splice(checkout.sel, 1); checkout.sel = Math.max(0, Math.min(checkout.sel, cart.length - 1)); } },
       update(dt) {
         msgT -= dt;
+        // CHECKOUT abierto: estás parado en la caja, el mini-juego de pago se lleva todo el input
+        if (checkout) { checkoutUpdate(dt); return; }
         // paliza de los ninjas: corre la animación y después te escupe a la calle (sin la mercadería)
         if (eject > 0) {
           eject -= dt; ninjaX += 220*dt; prompt = '';
@@ -163,7 +256,7 @@ const Super = (() => {
         if (Input.keys['arrowright'] || Input.keys['d']) { if (freeAt(player.x+sp, player.y)) player.x += sp; }
         if (Input.keys['arrowup'] || Input.keys['w']) { if (freeAt(player.x, player.y-sp)) player.y -= sp; }
         if (Input.keys['arrowdown'] || Input.keys['s']) { if (freeAt(player.x, player.y+sp)) player.y += sp; }
-        if (Input.keys['escape']) { tryLeave('street'); return; }
+        if (Input.keys['escape']) { if (!escHeld) { escHeld = true; tryLeave('street'); return; } } else escHeld = false;
         if (Input.keys['c']) { if (!cHeld) { cHeld = true; setMsg(T('sup.candyAngry')); } } else cHeld = false;
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
         if (near(exitC)) tryLeave('street');
@@ -247,9 +340,65 @@ const Super = (() => {
           ctx.fillStyle = '#dff3d0'; lines.forEach((ln, i) => ctx.fillText(ln, VW/2, VH-boxH+14+i*lh));
           bottom = VH - boxH;
         }
-        if (prompt) { ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(0, bottom-22, VW, 22); ctx.fillStyle = '#ffe14d'; ctx.fillText(prompt, VW/2, bottom-7); }
+        if (prompt && !checkout) { ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(0, bottom-22, VW, 22); ctx.fillStyle = '#ffe14d'; ctx.fillText(prompt, VW/2, bottom-7); }
+        if (checkout) drawCheckout(ctx, VW, VH);
       },
     };
+
+    // PANEL del checkout (caja del chino): changuito editable + plata/tender + vuelto en caramelos + inflación/ninjas
+    function drawCheckout(ctx, VW, VH) {
+      const total = cartTotal();
+      const pw = Math.min(380, VW - 40), ph = Math.min(290, VH - 40), px = (VW - pw) / 2, py = (VH - ph) / 2;
+      ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(0, 0, VW, VH);
+      ctx.fillStyle = '#15171f'; ctx.fillRect(px, py, pw, ph);
+      ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 2; ctx.strokeRect(px + 1, py + 1, pw - 2, ph - 2);
+      ctx.textAlign = 'center'; ctx.font = 'bold 13px monospace'; ctx.fillStyle = '#ffd54f';
+      ctx.fillText(T('sup.caja.title'), VW / 2, py + 18);
+      // lista del changuito (en fase result ya está vacío; mostramos el recibo)
+      ctx.textAlign = 'left'; ctx.font = '12px monospace';
+      let ly = py + 40;
+      if (checkout.phase !== 'result') {
+        for (let i = 0; i < cart.length; i++) {
+          const seld = i === checkout.sel && checkout.phase === 'cart';
+          ctx.fillStyle = seld ? '#ffe14d' : '#cfd4da';
+          ctx.fillText((seld ? '▶ ' : '  ') + lbl(cart[i]), px + 16, ly);
+          ctx.textAlign = 'right'; ctx.fillText(PRICE + ' 🪙', px + pw - 16, ly); ctx.textAlign = 'left';
+          ly += 16;
+          if (ly > py + ph - 96) { ctx.fillStyle = '#9fd3ff'; ctx.fillText('…', px + 16, ly); break; }
+        }
+      }
+      // totales
+      const by = py + ph - 78;
+      ctx.fillStyle = '#5a6470'; ctx.fillRect(px + 12, by - 14, pw - 24, 1);
+      ctx.font = 'bold 12px monospace'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
+      ctx.fillText(T('sup.caja.total', { total }), px + 16, by);
+      if (checkout.phase !== 'result') {
+        ctx.fillStyle = '#aef0c0'; ctx.fillText(T('sup.caja.tender', { tender: checkout.tender }), px + 16, by + 16);
+        const change = Math.max(0, checkout.tender - (checkout.phase === 'inflation' ? total + checkout.infla : total));
+        ctx.fillStyle = '#ffd54f'; ctx.fillText(T('sup.caja.change', { change }), px + 16, by + 32);
+      }
+      // línea del chino (nota)
+      if (checkout.note) {
+        ctx.textAlign = 'center'; ctx.font = '11px monospace'; ctx.fillStyle = '#ff9e80';
+        const lines = wrap(ctx, checkout.note, pw - 24);
+        lines.slice(0, 3).forEach((ln, i) => ctx.fillText(ln, VW / 2, by + 52 + i * 13));
+      }
+      // controles (según fase)
+      ctx.textAlign = 'center'; ctx.font = 'bold 10px monospace'; ctx.fillStyle = '#9fd3ff';
+      const hint = checkout.phase === 'inflation' ? T('sup.caja.hintInfla')
+        : checkout.phase === 'result' ? T('sup.caja.hintResult') : T('sup.caja.hintCart');
+      ctx.fillText(hint, VW / 2, py + ph - 8);
+      // ninjas intimidando (forzando la inflación)
+      if (checkout.ninja > 0) {
+        for (let k = 0; k < 2; k++) {
+          const nx = VW / 2 + (k ? 60 : -60), ny = py + ph / 2;
+          ctx.fillStyle = '#15171d'; ctx.beginPath(); ctx.arc(nx, ny, 13, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#e0b088'; ctx.fillRect(nx - 4, ny - 14, 8, 5);
+          ctx.strokeStyle = '#cfd4da'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(nx + (k ? -14 : 14), ny - 12); ctx.lineTo(nx + (k ? -30 : 30), ny - 26); ctx.stroke();
+        }
+      }
+    }
   }
   return { create };
 })();

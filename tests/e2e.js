@@ -327,6 +327,17 @@ if (require.main === module) {
     if (P1.diosa !== 1 || P1.carne !== 1 || P1.fiambre !== 1) out.push('FAIL pagar no deposita inventario');
     if (P1.coins !== 50 - 3*6) out.push('FAIL no cobra bien (' + P1.coins + ')');
     if (P1.caramelos <= 0) out.push('FAIL no da vuelto en caramelos');
+    // 1b) CAJA (checkout): abrir → tender default = total; sacar un item baja el total
+    const Pc = { coins: 50, caramelos: 0, diosa: 0, carne: 0, fiambre: 0, hasMegaDrive: false };
+    const sc = Super.create({ player: Pc, gaveBeers: false });
+    sc.__grab('DIOSAS'); sc.__grab('CARNES'); sc.__grab('GALLETITAS');
+    sc.__openCaja();
+    let co = sc.__checkout();
+    if (!co || co.phase !== 'cart') out.push('FAIL caja no abre el checkout');
+    if (co && co.total !== 3 * 6) out.push('FAIL caja total mal (' + (co && co.total) + ')');
+    if (co && co.tender !== co.total) out.push('FAIL tender default ≠ total');
+    sc.__removeSel(); co = sc.__checkout();
+    if (co && co.total !== 2 * 6) out.push('FAIL sacar item no baja el total (' + (co && co.total) + ')');
     // 2) sin guita suficiente: NO se paga y NO acepta caramelos (cart intacto)
     const P2 = { coins: 2, caramelos: 999, diosa: 0 };
     const s2 = Super.create({ player: P2, gaveBeers: false });
