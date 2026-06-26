@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v176] — 2026-06-26 — 🪜 Fix escalera del edificio: zigzag SIN solape (el 2º bloque ya no tapa al 1º)
+
+La escalera estaba "muy junta": los escalones se solapaban en x, así que el 2º quedaba casi ENCIMA del 1º y te
+tapaba la cabeza → no podías saltar. Ahora es un **zigzag SIN solape**: cada bloque va al COSTADO del anterior
+(x17↔x19, 2 de alto), nunca encima. El primer escalón queda en **x17, al lado del ascensor (x16) sin taparlo**
+(verificado por la RED). 5 bloques, saltables. (El `{}` de /nivel-ai era el pod de la GPU pending, no el código.)
+
+---
+
 ## [v175] — 2026-06-26 — 🔮 Tema "ORÁCULO": la IA inventa un nivel a tu MEDIDA (según tus charlas) + SDD showcase de features
 
 La IA ya no solo autora el TEXTO: en el tema **oraculo** **INVENTA un nivel a tu medida**. Te colás a la trastienda

@@ -481,9 +481,9 @@ const Level = (() => {
       // Carpo salta ~3.9) hasta la puerta 'up-stairs' (x21,y2). NO toca los muebles (x3..12) ni los ascensores (x14/16).
       // Las plataformas vienen LLENAS de items que se REGENERAN (los pisos del edificio respawnean, ver game.js).
       if (n < 20) {
-        // ESCALERA compacta pegada al ascensor (arranca en x17, JUSTO al lado del ascensor x16 sin pisarlo) y sube
-        // casi VERTICAL: offsets de 1 tile, pasos anchos (3) con mucho solape, 2 de alto → se salta casi derecho.
-        const steps = [[17, 10, 3], [18, 8, 3], [17, 6, 3], [18, 4, 3], [18, 2, 3]];
+        // ESCALERA (5 bloques) en ZIGZAG SIN SOLAPE: cada escalón va al COSTADO del anterior (no ENCIMA), así no te
+        // tapa la cabeza y saltás libre (2 de alto, al lado). Alterna x17↔x19, al costado del ascensor (x16) sin pisarlo.
+        const steps = [[17, 10, 2], [19, 8, 2], [17, 6, 2], [19, 4, 2], [18, 2, 3]];
         spec.platforms = (spec.platforms || []).concat(steps);
         spec.pickups = spec.pickups || [];
         const loot = ['coins', 'ammo', 'health', 'coins', 'ammo'];
