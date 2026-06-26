@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v170] — 2026-06-26 — 🏗️ Generador C: estructura por TEMA (la muralla parece muralla) + meta con portal real
+
+Sigue el generador de niveles. Cada tema declara un **`style`** (DATA) que cambia la forma del nivel generado:
+**`wall`** (muralla: sala ancha, caminás por arriba del muro con almenas y huecos para saltar) · **`aisles`**
+(góndolas: 2 filas horizontales) · **`climb`** (zigzag que sube). Responde el "no parece una muralla": ahora SÍ
+se siente distinto por tema. La **meta** usa el **art de portal real** (`Art.portal`). Stress-test: 200 niveles
+(50×4 temas) → 0 fallos de jugabilidad (la RED valida todo). e2e + playable + web-smoke OK. (Próximo salto: que
+la IA autore el layout como data, no solo el texto.)
+
+---
+
 ## [v169] — 2026-06-26 — 🤖 Robots leen la serie del dólar (buena=legal, no te ven / trucha=te disparan) + orígenes + DÓLARES como DATA
 
 Iteración sobre el dólar. Las **personas no detectan nada** (solo se apaciguan); los **ROBOTS/cámaras** sí: leen

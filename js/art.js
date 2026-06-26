@@ -90,6 +90,15 @@ const Art = (() => {
       g.fillStyle = '#388e3c'; g.beginPath(); g.arc(w/2-13, h-36, 13, 0, Math.PI*2); g.arc(w/2+13, h-36, 13, 0, Math.PI*2); g.fill();
       g.fillStyle = '#43a047'; g.beginPath(); g.arc(w/2, h-54, 15, 0, Math.PI*2); g.fill();
     }),
+    camara: mk(24, 72, (g, w, h) => {
+      // cámara de seguridad montada ALTO (la imagen se ancla al piso, así que la cámara queda arriba en la "pared")
+      g.fillStyle = '#2b2b2b'; g.fillRect(w/2-1.5, 14, 3, h-14);     // bajada/soporte
+      g.fillStyle = '#37474f'; g.fillRect(2, 11, 11, 4);            // brazo
+      g.fillStyle = '#455a64'; g.fillRect(7, 4, 15, 10);           // cuerpo
+      g.fillStyle = '#90a4ae'; g.fillRect(7, 4, 15, 2);            // brillo
+      g.fillStyle = '#1b242a'; g.fillRect(20, 6, 4, 6);            // lente (mira a la derecha)
+      g.fillStyle = '#555'; g.beginPath(); g.arc(10, 9, 1.6, 0, Math.PI*2); g.fill();   // LED (apagado; game.js lo enciende)
+    }),
     farol: mk(18, 84, (g, w, h) => {
       g.fillStyle = '#2b2b2b'; g.fillRect(w/2-2, 10, 4, h-10);
       g.fillStyle = '#1c1c1c'; g.fillRect(w/2-5, h-3, 10, 3);

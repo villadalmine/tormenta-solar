@@ -20,7 +20,7 @@ const NivelAI = (() => {
       props: ['🥫', '🧴', '🐀', '🪣', '🥢', '🧧', '🀄', '🥟', '🍜'],
       npc: { emoji: '🧑‍🍳', lines: { es: ['todo vencido, amigo', 'dos por uno casi', 'rata gratis adentro', 'no milar fecha', 'pagá pagá'],
                                       en: ['all expired, amigo', 'almost two for one', 'free rat inside', 'no look date', 'pay pay'] } },
-      goal: { es: 'PASILLO TRUCHO', en: 'DODGY AISLE' }, reward: { caramelos: 3 }, decor: ['super_chino', 'kiosko', 'caja', 'barril', 'tacho', 'dispenser'],
+      goal: { es: 'PASILLO TRUCHO', en: 'DODGY AISLE' }, reward: { caramelos: 3 }, style: 'aisles', decor: ['super_chino', 'kiosko', 'caja', 'barril', 'tacho', 'dispenser'],
     },
     {
       id: 'taller-esclavo', motif: '🧵',
@@ -31,7 +31,7 @@ const NivelAI = (() => {
       props: ['🧵', '🪡', '👕', '👖', '🧶', '⚙️', '🧥', '🧦'],
       npc: { emoji: '🪢', lines: { es: ['ayudame a salir', 'cosé cosé cosé', 'no hay descanso', 'doce holas seguidas', 'shh, viene el capataz'],
                                     en: ['help me get out', 'sew sew sew', 'no rest here', 'twelve hours straight', 'shh, boss coming'] } },
-      goal: { es: 'PUERTA TRASERA', en: 'BACK DOOR' }, reward: { caramelos: 4 }, decor: ['escritorio', 'maniqui', 'mueble_roto', 'sillon_roto', 'caja', 'laptop'],
+      goal: { es: 'PUERTA TRASERA', en: 'BACK DOOR' }, reward: { caramelos: 4 }, style: 'climb', decor: ['escritorio', 'maniqui', 'mueble_roto', 'sillon_roto', 'caja', 'laptop'],
     },
     {
       id: 'comida-podrida', motif: '🤢',
@@ -42,7 +42,7 @@ const NivelAI = (() => {
       props: ['🤢', '🥬', '🍖', '🐛', '🦠', '🪰', '🧅', '🐟'],
       npc: { emoji: '🧟', lines: { es: ['está fresco, ¿no?', 'el moho da sabor', 'no huele tan mal', 'comé igual', 'la fecha es sugerencia'],
                                     en: ['it\'s fresh, right?', 'mold adds flavor', 'doesn\'t smell that bad', 'eat it anyway', 'the date is a suggestion'] } },
-      goal: { es: 'CÁMARA FRÍA', en: 'COLD ROOM' }, reward: { caramelos: 3 }, decor: ['parrilla', 'cocina', 'bano_roto', 'tacho', 'barril', 'escombros'],
+      goal: { es: 'CÁMARA FRÍA', en: 'COLD ROOM' }, reward: { caramelos: 3 }, style: 'aisles', decor: ['parrilla', 'cocina', 'bano_roto', 'tacho', 'barril', 'escombros'],
     },
     {
       id: 'muralla-skate', motif: '🛹',
@@ -53,7 +53,7 @@ const NivelAI = (() => {
       props: ['🛹', '🏮', '🐉', '🏯', '🧨', '🪁', '⛩️', '🗿'],
       npc: { emoji: '🧎', lines: { es: ['¡cuidado el escalón!', '¡aiyaa, rápido!', 'no caigas, eh', 'mil años de muro', 'dale gas'],
                                     en: ['watch the step!', 'aiyaa, fast!', 'don\'t fall, eh', 'thousand-year wall', 'gas it'] } },
-      goal: { es: 'FIN DE LA MURALLA', en: 'END OF THE WALL' }, reward: { caramelos: 5 }, decor: ['farol', 'banco', 'planta', 'tacho', 'barricada', 'escombros'],
+      goal: { es: 'FIN DE LA MURALLA', en: 'END OF THE WALL' }, reward: { caramelos: 5 }, style: 'wall', decor: ['farol', 'banco', 'planta', 'tacho', 'barricada', 'escombros'],
     },
   ];
 
@@ -106,19 +106,31 @@ const NivelAI = (() => {
     const rnd = (a, b) => a + ((Math.random() * (b - a + 1)) | 0);
     const pick = a => a[(Math.random() * a.length) | 0];
     const decorKeys = t.decor || ['caja', 'barril', 'tacho'];
+    const style = t.style || 'climb';
+    // PLATAFORMAS según el STYLE del tema (data) — así cada nivel se SIENTE distinto (la muralla parece muralla, etc.).
+    // Siempre confinadas a x∈[5..w-6] (lejos de las columnas x=2 y x=w-3 de puertas/spawn/meta) y nunca en GTOP-1.
+    function layoutPlatforms(w) {
+      const P = [];
+      if (style === 'wall') {
+        // MURALLA: caminás por la parte de ARRIBA del muro, con almenas (sube/baja 1) y huecos cortos para saltar
+        let y = GTOP - 3;
+        for (let x = 5; x < w - 6;) { const pw = rnd(3, 5); P.push([x, y, pw]); x += pw + rnd(1, 2); y += (Math.random() < 0.5 ? -1 : 1); y = Math.max(GTOP - 5, Math.min(GTOP - 2, y)); }
+      } else if (style === 'aisles') {
+        // GÓNDOLAS/ESTANTES: 2 filas horizontales (pasillos) que saltás entre medio
+        for (const y of [GTOP - 3, GTOP - 6]) for (let x = 5; x < w - 6; x += rnd(4, 6)) P.push([x, y, rnd(2, 3)]);
+      } else {
+        // CLIMB (default): zigzag que sube
+        let px = rnd(5, 7), py = GTOP - 2;
+        for (let k = 0, m = rnd(3, 6); k < m && px < w - 6; k++) { P.push([px, py, rnd(2, 3)]); px += P[P.length - 1][2] + rnd(2, 3); py = Math.max(4, py - (Math.random() < 0.6 ? rnd(1, 2) : 0)); }
+      }
+      return P;
+    }
     // UNA sala del nivel: i=índice, n=total. Spawn en la 1ª (izq), META en la última (der); las del medio se enlazan
     // con puertas recíprocas (izq→sala anterior, der→sala siguiente). Plataformas saltables sin tapar puerta/spawn/meta.
     function room(i, n) {
-      const w = rnd(24, 32), id = 'sala-ai-' + i;
+      const w = style === 'wall' ? rnd(34, 42) : rnd(24, 32), id = 'sala-ai-' + i;   // la muralla es ANCHA (se recorre a lo largo)
       const ents = [];
-      // plataformas escalonadas en el hueco central [5 .. w-6] (lejos de las columnas x=2 y x=w-3 de puertas/marcadores)
-      const plats = [];
-      let px = rnd(5, 7), py = GTOP - 2;
-      for (let k = 0, m = rnd(3, 6); k < m && px < w - 6; k++) {
-        plats.push([px, py, rnd(2, 3)]);
-        px += plats[plats.length - 1][2] + rnd(2, 3);
-        py = Math.max(4, py - (Math.random() < 0.6 ? rnd(1, 2) : 0));
-      }
+      const plats = layoutPlatforms(w);
       // marcadores / puertas
       if (i === 0) ents.push({ id: id + '/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } });
       else ents.push({ id: id + '/door-l', tipo: 'door', x: 2, inward: 1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i - 1) } });

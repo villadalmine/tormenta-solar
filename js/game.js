@@ -1426,10 +1426,12 @@
     }
     // META del NIVEL-AI generado (el motor solo dibuja portal en theme 'cambio'; acá lo dibujamos a mano)
     if (spinoffLevel && r.goal) {
-      const gx = r.goal.x - cam.x, gy = r.goal.y - cam.y, pz = 18 + Math.sin(time * 4) * 5;
-      ctx.fillStyle = '#e0b0ff'; ctx.beginPath(); ctx.arc(gx, gy - 24, 26, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#1a0d24'; ctx.beginPath(); ctx.arc(gx, gy - 24, pz, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#e0b0ff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.fillText('▶ SALIR', gx, gy - 21);
+      const gx = r.goal.x - cam.x, gy = r.goal.y - cam.y;
+      if (Art.portal && Art.portal.length) {   // PORTAL real (el mismo art que la salida del cambio)
+        const pf = Art.portal[Math.floor(time * 8) % Art.portal.length];
+        ctx.drawImage(pf, gx - pf.width / 2, gy - pf.height);
+      } else { ctx.fillStyle = '#e0b0ff'; ctx.beginPath(); ctx.arc(gx, gy - 24, 22, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = '#e0b0ff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.fillText('▶ ' + (r.goal.label || 'SALIR'), gx, gy - 46);
     }
     // máquinas de arcade
     for (const m of r.machines || []) {

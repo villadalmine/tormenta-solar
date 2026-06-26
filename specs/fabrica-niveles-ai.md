@@ -171,8 +171,14 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
   la 1ª, meta en la última; el wiring lo resuelve `Mundo.wireRooms`), con **enemigos despiertos** (peaton/dron) y
   **decor temático con art válido** por tema (e2e verifica multi-sala + puertas cableadas + jugabilidad). Cruzar
   puertas dentro del nivel-AI muestra un mensaje neutro (gateado por `spinoffLevel`).
-- **Lo que queda para pulir:** que la meta use el art de portal real, más tipos de obstáculo/enemigo, y autoría de
-  layout por IA (hoy el layout es procedural acotado; la IA autora el TEXTO del tema).
+- **Estructura por TEMA + portal real (v170):** cada tema declara un **`style`** (DATA) que cambia la forma del
+  nivel → **`wall`** (muralla: sala ANCHA, caminás por arriba del muro con almenas y huecos) · **`aisles`**
+  (góndolas: 2 filas horizontales) · **`climb`** (zigzag que sube). Así la muralla **parece** una muralla y cada
+  tema se siente distinto. La **meta** ahora usa el **art de portal real** (`Art.portal`, el mismo del cambio).
+  Verificado: 200 niveles (50×4 temas) → 0 fallos de jugabilidad (la RED valida todo).
+- **Lo que queda (el salto grande):** que la **IA autore el layout** como data (no solo el texto) — hoy el layout
+  es procedural acotado por `style`; el paso es que `/nivel-ai` proponga estructura (salas/plataformas/enemigos)
+  validada por la RED + auto-reparación. Más tipos de obstáculo/enemigo.
 
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como
