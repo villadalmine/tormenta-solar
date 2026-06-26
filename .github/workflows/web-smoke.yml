@@ -20,11 +20,12 @@ jobs:
       - name: e2e headless
         run: node tests/e2e.js
 
-      # 1b) modelo v2 data-driven: schema válido + paridad v1≡v2 (sin deps)
-      - name: modelo v2 (schema + paridad)
+      # 1b) modelo v2 data-driven: schema válido + paridad v1≡v2 + JUGABILIDAD (la red de la máquina de niveles)
+      - name: modelo v2 (schema + paridad + jugabilidad)
         run: |
           node tests/levels.mjs
           node tests/parity.mjs
+          node tests/playable.mjs
 
       # 2) smoke de navegador real (Playwright + Chromium)
       - name: instalar tooling

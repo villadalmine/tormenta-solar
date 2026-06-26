@@ -114,6 +114,27 @@ La escena es **top-down contenida**, NO el motor **platformer** real ni `Mundo.f
 Es un **lazo end-to-end de demostración**. La **F2 completa** (historia→nivel de N salas con el motor real + validación
 contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
 
+## 4.6 LA RED: validador de jugabilidad (`js/playable.js`) — primer ladrillo de la C (v164)
+
+> **La pregunta del dueño:** *"¿cómo puede la IA hacer algo bien si vos mismo con el motor hiciste un bug?"*
+> **La respuesta:** la IA NO necesita ser perfecta — su salida pasa por una **RED automática** que rechaza lo
+> roto **antes** de que llegue al jugador. Mi bug del ascensor se publicó **porque NO había red**: fue directo de
+> mi mano al deploy. La C empieza construyendo esa red (y de paso protege el nivel hecho a mano).
+
+- **`Playable.checkLevel(model)`** → `{ ok, problems[] }`. Opera sobre el **modelo v2** (el mismo que consume
+  `Mundo.fromModel`), en tiles, sin pixeles. Reglas v1:
+  - **R1 — puerta TAPADA:** una plataforma a la **altura de la cabeza** (`GTOP-2`) en la **misma columna** de una
+    puerta la tapa = **exactamente el bug del ascensor**. (No mira +3 arriba: esas son fachadas de edificios que NO
+    tapan la puerta de PB; ni `GTOP-1`: ahí una puerta puede **apoyarse** sobre una plataforma —piso alto— y es OK.)
+  - **R2 — spawn dentro de sólido** · **R3 — meta enterrada.**
+  - **R4 — reachability con física de salto:** futuro (¿llego a todas las puertas/objetivo saltando?).
+- **Prueba de regresión (`tests/playable.mjs`):** (1) el Nivel 1 real **pasa**; (2) el **viejo layout** que tapaba
+  el ascensor (`[20,10,3]` + puerta en x=21) es **RECHAZADO**; (3) el layout arreglado **pasa**. Corre en CI
+  (`.github/workflows/web-smoke.yml`) junto a schema + paridad.
+- **El bucle de la C** será: la IA propone datos → `levels.mjs` (schema) **+** `playable.js` (jugabilidad) → si
+  falla, se **re-pide / auto-repara** → recién ahí `Mundo.fromModel`. La calibración de R1 (head-height, no
+  fachadas) es justo el tipo de regla que evita falsos positivos sobre niveles legítimos.
+
 ## 5. Dónde estamos vs el norte (honesto)
 - **Listo:** motor data-driven (paridad v1≡v2), schema, todo-es-API (4 bancos), grounding del ecosistema, quests como
   data+runtime, memoria incipiente, deploy reproducible, métricas.

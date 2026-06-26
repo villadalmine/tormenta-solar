@@ -39,6 +39,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v164] — 2026-06-26 — 🥅 LA RED: validador de jugabilidad (primer ladrillo de la C / máquina de niveles)
+
+Respuesta a "¿cómo va a generar bien la IA si vos mismo metiste un bug?": **una red automática que rechaza lo
+roto antes de que llegue al jugador**. Mi bug del ascensor se publicó porque NO había red. Ahora `js/playable.js`
+(`Playable.checkLevel(model)`) chequea jugabilidad sobre el modelo v2: **R1 puerta tapada** (plataforma a la
+altura de la cabeza en la columna de una puerta = el bug del ascensor), **R2 spawn en sólido**, **R3 meta
+enterrada**. `tests/playable.mjs` = regresión: el Nivel 1 pasa + el viejo layout del ascensor es RECHAZADO + el
+arreglado pasa. Sumado a CI (schema + paridad + jugabilidad). Es el bucle que hará segura la generación por IA
+(C): IA propone datos → validan schema+jugabilidad → si falla se re-pide → recién ahí Mundo.fromModel.
+
+---
+
 ## [v163] — 2026-06-26 — 🔧 Fix: la escalera del edificio de los borrachines tapaba el ascensor
 
 La escalera de plataformas del costado derecho arrancaba en `[20,10,3]` (x=20,21,22) y **el ascensor "subir"
