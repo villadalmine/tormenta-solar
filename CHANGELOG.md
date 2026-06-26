@@ -39,6 +39,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v136] — 2026-06-26 — ⚽ Quest del Mundial: ajuste fino (el hincha se te acerca + marcador + sesgo de equipos)
+
+- **El hincha SE ACERCA:** al sacar el dato en el guarda, un hincha **camina hacia vos** y te agradece **en el
+  momento** (+5 🍬) — tu visión original — y después vuelve a su lugar. (Si no hay hincha en la sala, queda el flujo
+  de hablarle.)
+- **Marcador de quest ❗:** rebota sobre el **guarda** (cuando te falta el dato) o sobre el **hincha** (cuando te
+  falta contarle), para saber a dónde ir.
+- **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
+  grupo…), si no, random.
+- Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
 ## [infra-20] — 2026-06-26 — ⏱️ Refresh EN VIVO del Mundial (cron horario + merge por topic)
 
 El Mundial/fútbol/crypto ahora se refrescan **cada hora** sin re-traer Google News:

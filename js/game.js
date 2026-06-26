@@ -45,6 +45,7 @@
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
   let newsQuest = null;   // F2 cine: {topic, answer} cuando el linyera te mandó a buscar noticias (efímero, no se guarda)
   let mundialQuest = null;   // §9 quest de los hinchas: {equipo, resultado, shown} — efímero, se resetea al salir del cine
+  let mundialApproach = null;   // §9: {npc, homeX} cuando un hincha se ACERCA a agradecerte tras el dato del guarda
   let sessStart = 0, sessChats = 0, sessTrucoW = 0, sessTrucoL = 0;   // métricas de "Tu partida" (in-game, client-side)
   // memoria por IDENTIDAD (clave = persona): cada linyera/NPC RECUERDA lo charlado entre aperturas y entre
   // sesiones (persiste en el guardado). Es el `agent.memory` del modelo v2 (ver modelo-de-entidades §6½).
@@ -133,7 +134,7 @@
     player = Player.create(s.x, s.y);
     cam = { x: 0, y: 0 };
     stormed = false; bought = false; hasVale = false; challengeForVale = false; time = 0;
-    cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null; mundialQuest = null;   // cine: función vieja, freebie, regateo y quest del Mundial se resetean por run
+    cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null; mundialQuest = null; mundialApproach = null;   // cine: función vieja, freebie, regateo y quest del Mundial se resetean por run
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
@@ -484,13 +485,21 @@
   // ¿es el linyera filósofo (el guía/oráculo)?
   const isOraculo = n => !!(n && (n.oracle || n.persona === 'filosofo'));   // los linyeras ilustres son oráculos (dan pistas)
   const isHincha = n => !!(n && n.persona === 'hincha');   // §9: los dos hinchas del piso Deportes (quest del Mundial)
+  // el hincha pregunta con onda: sesga a Argentina (60%) o a equipos JUGOSOS si están; si no, random.
+  function pickEquipoJugoso(eqs) {
+    const arg = eqs.find(e => /argentin/i.test(e));
+    if (arg && Math.random() < 0.6) return arg;
+    const jugosos = eqs.filter(e => /brazil|brasil|france|francia|spain|españa|england|inglaterra|germany|alemania|portugal|netherlands|holanda|uruguay|austria|algeria|jordan/i.test(e));
+    if (jugosos.length && Math.random() < 0.7) return jugosos[(Math.random() * jugosos.length) | 0];
+    return eqs[(Math.random() * eqs.length) | 0];
+  }
   // el hincha te pregunta por un equipo random del Mundial; si ya conseguiste el dato (guarda) te agradece + premio.
   function hinchaGreeting() {
     if (mundialQuest && mundialQuest.shown) { player.caramelos = (player.caramelos || 0) + 5; chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return; }
     if (mundialQuest) { chatLine('npc', T('g.mundial.recorda', { eq: mundialQuest.equipo })); return; }
     const eqs = Object.keys(((typeof window !== 'undefined' && window.MUNDIAL && window.MUNDIAL.equipos) || {}));
     if (!eqs.length) { chatLine('npc', T('g.mundial.nodata')); return; }
-    const eq = eqs[(Math.random() * eqs.length) | 0];
+    const eq = pickEquipoJugoso(eqs);
     mundialQuest = { equipo: eq, resultado: window.MUNDIAL.equipos[eq], shown: false };
     chatLine('npc', T('g.mundial.pregunta', { eq }));
   }
@@ -726,7 +735,10 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
-    if (!/Cine/.test(r.name)) { cineArchive = null; guardaAsk = {}; mundialQuest = null; }   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
+    if (!/Cine/.test(r.name)) {   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
+      if (mundialApproach) mundialApproach.npc.x = mundialApproach.homeX;   // el hincha vuelve a su lugar
+      cineArchive = null; guardaAsk = {}; mundialQuest = null; mundialApproach = null;
+    }
     if (/Cine/.test(r.name)) cineNoticias = pickNoticias(r.name);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
     Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
@@ -773,6 +785,13 @@
   }
   // CARTELES de propaganda del cine: un panel arriba del cartel con marca+slogan FALSO estilo BsAs, ROTANDO por rubro
   // (window.PROPAGANDA lo trae js/propaganda.js: banco vivo del proxy o estático). Cambia cada ~7s, distinto por cartel.
+  function questMarker(x, y) {   // §9: ❗ que rebota sobre el NPC al que tenés que ir
+    const b = Math.sin(time * 6) * 3;
+    ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold 18px monospace';
+    ctx.fillStyle = '#0c0f16'; ctx.fillText('❗', x + 1, y + b + 1);
+    ctx.fillStyle = '#ffd54f'; ctx.fillText('❗', x, y + b);
+    ctx.restore();
+  }
   const _catCol = { comida: '#e8743b', ropa: '#d65ad6', electronica: '#3bb0e8', bizarro: '#7CFC00', tip: '#ffd54f', clima: '#7fd0ff', juego: '#ff5da2' };
   function drawCartelProp(d, img) {
     const list = (typeof window !== 'undefined' && window.PROPAGANDA) || [];
@@ -887,6 +906,9 @@
     mundialQuest.shown = true;
     cineNoticias = [{ topic: '⚽ ' + String(mundialQuest.equipo).toUpperCase(), headline: mundialQuest.resultado }];   // pantalla = el partido
     closeGuarda();
+    // un hincha del piso se te ACERCA a agradecerte (tu visión). Si no hay hincha cerca, queda el flujo de hablarle.
+    const h = (room().npcs || []).find(n => isHincha(n));
+    if (h) mundialApproach = { npc: h, homeX: h.x };
     setMsg(T('g.mundial.guardaOk', { eq: mundialQuest.equipo }), '#ffd54f', 5500); Sfx.pickup();
   }
   function guardaRegatear(day) {
@@ -978,6 +1000,15 @@
       if (Math.abs(target - n.x) > 4) n.x += Math.sign(target - n.x) * Math.min(75*dt, Math.abs(target - n.x));
       n.upCd = (n.upCd || 0) - dt;
       if (n.upCd <= 0 && n.lines) { setMsg(TX(n.lines[(Math.random()*n.lines.length)|0]), '#80cbc4', 2800); n.upCd = 3.5 + Math.random()*2.5; }
+    }
+    // §9: el hincha SE ACERCA a agradecerte tras el dato del guarda; al llegar, premio + se vuelve a su lugar.
+    if (mundialApproach && (r.npcs || []).includes(mundialApproach.npc)) {
+      const h = mundialApproach.npc, target = player.x + player.w/2 - 22;
+      if (Math.abs(target - h.x) > 6) h.x += Math.sign(target - h.x) * Math.min(110 * dt, Math.abs(target - h.x));
+      else {
+        player.caramelos = (player.caramelos || 0) + 5; setMsg(T('g.mundial.gracias', { res: mundialQuest ? mundialQuest.resultado : '' }), '#ffd54f', 5000); Sfx.pickup();
+        h.x = mundialApproach.homeX; mundialQuest = null; mundialApproach = null;   // vuelve a su lugar
+      }
     }
 
     // melee de peatones ya aplicado en Enemies.update; salida:
@@ -1125,6 +1156,12 @@
       const img = Art.npc[n.sprite] || Art.npc.civil1;
       ctx.drawImage(img, n.x - cam.x - img.width/2, n.y - cam.y - img.height);
       label(TX(n.name), n.x - cam.x, n.y - cam.y - img.height - 4, '#aef0c0');
+      // §9 marcador de quest: ❗ sobre el GUARDA (andá por el dato) o el HINCHA (andá a contarle)
+      if (mundialQuest) {
+        const wantGuarda = !mundialQuest.shown && n.action === 'guarda';
+        const wantHincha = mundialQuest.shown && !mundialApproach && isHincha(n);
+        if (wantGuarda || wantHincha) questMarker(n.x - cam.x, n.y - cam.y - img.height - 18);
+      }
     }
     // portal (calle, tras la tormenta)
     if (r.theme === 'cambio' && stormed && r.goal) {
