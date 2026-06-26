@@ -318,7 +318,7 @@ const Level = (() => {
       }),
       // 10 — trastienda: truco con el tahúr
       makeRoom({
-        name: 'Trastienda — Truco', theme: 'secret', tags:['arcade'], light: 0.78, w: 22,
+        name: 'Trastienda — Truco', theme: 'secret', tags:['arcade','truco'], light: 0.78, w: 22,
         doors: [
           { id:'back', art:'exit', label:'volver a la sala', x:2, inward:1 },
           { id:'chinotruco', art:'superchino', label:'cruzar al chino (la puerta del tahúr)', x:18, inward:-1 },
@@ -330,7 +330,7 @@ const Level = (() => {
       }),
       // 11 — Garbarino (electrónica carísima) con vendedor pesado que te sigue
       makeRoom({
-        name: 'Garbarino — Electrónica', theme: 'office', light: 1.0, stormable: true, w: 22,
+        name: 'Garbarino — Electrónica', theme: 'office', tags:['garbarino'], light: 1.0, stormable: true, w: 22,
         platforms: [[8,9,4]],
         doors: [{ id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 }],
         npcs: [

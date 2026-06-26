@@ -39,6 +39,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v155] — 2026-06-26 — 🧱 v2: CERO regex de nombre de sala en el gameplay (truco/garbarino → tags)
+
+Cerramos la migración de regexes de sala: la trastienda del truco va con `tags:['arcade','truco']` y Garbarino con
+`tags:['garbarino']`; los 3 `/Truco/`-`/Garbarino/` restantes → `hasTag(r, t)` (helper genérico). Ahora **todo el
+gameplay decide por TAGS de sala (data), no por nombres** — solo quedan regexes como *fallback* de seguridad dentro de
+`isCine`/`currentAt`. Una sala se comporta como X porque lo DECLARA. Paridad 45 salas + schema OK + e2e×3 + web-smoke.
+
+---
+
 ## [v154] — 2026-06-26 — 🧱 v2: `currentAt()` por TAG (el lugar del grafo de pistas = data)
 
 El "dónde estoy" del grafo de historia/pistas (`currentAt`) ahora se ubica por **tag de sala** (`bunker/cueva/cemento/

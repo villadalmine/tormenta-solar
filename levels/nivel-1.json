@@ -2487,7 +2487,8 @@
       "theme": "secret",
       "w": 22,
       "tags": [
-        "arcade"
+        "arcade",
+        "truco"
       ],
       "light": 0.78,
       "entities": [
@@ -2590,6 +2591,9 @@
       "nombre": "Garbarino — Electrónica",
       "theme": "office",
       "w": 22,
+      "tags": [
+        "garbarino"
+      ],
       "light": 1,
       "stormable": true,
       "platforms": [

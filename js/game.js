@@ -647,6 +647,7 @@
   }
   const isHincha = n => !!(n && n.persona === 'hincha');   // §9: los dos hinchas del piso Deportes (quest del Mundial)
   const isCine = r => !!(r && ((r.tags && r.tags.includes('cine')) || /Cine/.test(r.name || '')));   // CINE por TAG (data), no por nombre (fallback regex)
+  const hasTag = (r, t) => !!(r && r.tags && r.tags.includes(t));   // ¿la sala tiene este tag? (data, no regex de nombre)
   // el hincha pregunta con onda: sesga a Argentina (60%) o a equipos JUGOSOS si están; si no, random.
   function pickEquipoJugoso(eqs) {
     const arg = eqs.find(e => /argentin/i.test(e));
@@ -887,7 +888,7 @@
       cineArchive = null; guardaAsk = {}; mundialQuest = null; mundialApproach = null;
     }
     if (isCine(r)) cineNoticias = pickNoticias(r);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
-    Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (/Truco/.test(r.name) ? 'telo' : 'dance') : null);
+    Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (hasTag(r,'truco') ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }
     else if (isCine(r)) setMsg(T('g.trans.cine'), '#9fd3ff', 5000);   // CINE de noticias (antes que arcade)
@@ -896,11 +897,11 @@
     else if (r.theme === 'cemento') setMsg(T('g.trans.cemento'), '#ff5252', 5500);
     else if (r.theme === 'lujo') setMsg(T('g.trans.lujo'), '#ffd54f', 5000);
     else if (r.theme === 'ruina') setMsg(T('g.trans.ruina'), '#b0a0a0', 5000);
-    else if (r.theme === 'office') setMsg(/Garbarino/.test(r.name) ? T('g.trans.garbarino') : T('g.trans.edu'), '#80cbc4', 4000);
+    else if (r.theme === 'office') setMsg(hasTag(r,'garbarino') ? T('g.trans.garbarino') : T('g.trans.edu'), '#80cbc4', 4000);
     else if (r.theme === 'arcade') setMsg(stormed ? T('g.trans.arcadeStorm') : T('g.trans.arcade'), stormed ? '#ff5252' : '#ff2e88', 4000);
     else if (r.theme === 'shop') setMsg(T('g.trans.shop'), '#ffd54f', 3500);
     else if (/[Bb][úu]nker/.test(r.name)) setMsg(T('g.trans.bunker'), '#7CFC00', 7000);
-    else if (r.theme === 'secret') setMsg(/Truco/.test(r.name) ? T('g.trans.trucoStore') : T('g.trans.secretStore'), '#d8c8b0', 5500);
+    else if (r.theme === 'secret') setMsg(hasTag(r,'truco') ? T('g.trans.trucoStore') : T('g.trans.secretStore'), '#d8c8b0', 5500);
     else if (r.cueveros && r.cueveros.length) setMsg(T('g.trans.cueveros'), '#7CFC00', 5500);
     else setMsg(T('g.trans.deeper'), '#9fb4c4', 3000);
   }
