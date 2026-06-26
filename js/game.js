@@ -45,6 +45,15 @@
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
   let newsQuest = null;   // F2 cine: {topic, answer} cuando el linyera te mandó a buscar noticias (efímero, no se guarda)
   let mundialQuest = null;   // §9 quest de los hinchas: {equipo, resultado, shown} — efímero, se resetea al salir del cine
+  // QUESTS como DATO (migración v2, F1): registro DECLARATIVO — premios/penalidades/chance/mensajes son data, no
+  // números sueltos. El runtime y la IA leen de acá; expuesto en window.Game.quests + worldSnapshot. La verificación
+  // sigue siendo función (primitiva=código, componer=dato, modelo-de-entidades §6.97). Migrar a entidades+grafo = F2.
+  const QUEST_DEFS = {
+    news:    { id:'news',    scope:'run', giver:'oraculo', chance:0.35, reward:{ caramelos:3 }, penalty:{ coins:10 }, ask:'g.cine.questAsk', ok:'g.cine.questOk', lie:'g.cine.questLie' },
+    mundial: { id:'mundial', scope:'run', giver:'hincha',  reward:{ caramelos:5 }, ask:'g.mundial.pregunta', back:'g.mundial.gracias', remind:'g.mundial.recorda' },
+  };
+  // aplica una recompensa/penalidad DECLARADA (data → efecto). 'coins' resta (tope al saldo); el resto suma. Devuelve lo aplicado.
+  function applyReward(rw) { const out = {}; for (const k in (rw || {})) { if (k === 'coins') { const lost = Math.min(player.coins, rw.coins); player.coins -= lost; out.coins = lost; } else { player[k] = (player[k] || 0) + rw[k]; out[k] = rw[k]; } } return out; }
   let mundialApproach = null;   // §9: {npc, homeX} cuando un hincha se ACERCA a agradecerte tras el dato del guarda
   let sessStart = 0, sessChats = 0, sessTrucoW = 0, sessTrucoL = 0;   // métricas de "Tu partida" (in-game, client-side)
   // memoria por IDENTIDAD (clave = persona): cada linyera/NPC RECUERDA lo charlado entre aperturas y entre
@@ -495,6 +504,7 @@
     return {
       stormed, borrachosHappy, bunkerUnlocked, trucoEverWon, chinoEntered, loopCount,
       diosa: !!(player && player.diosa), armado,
+      questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
         mundial: mundialQuest ? { equipo: mundialQuest.equipo, shown: mundialQuest.shown } : null,
@@ -576,7 +586,7 @@
   }
   // el hincha te pregunta por un equipo random del Mundial; si ya conseguiste el dato (guarda) te agradece + premio.
   function hinchaGreeting() {
-    if (mundialQuest && mundialQuest.shown) { player.caramelos = (player.caramelos || 0) + 5; chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return; }
+    if (mundialQuest && mundialQuest.shown) { applyReward(QUEST_DEFS.mundial.reward); chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return; }
     if (mundialQuest) { chatLine('npc', T('g.mundial.recorda', { eq: mundialQuest.equipo })); return; }
     const eqs = Object.keys(((typeof window !== 'undefined' && window.MUNDIAL && window.MUNDIAL.equipos) || {}));
     if (!eqs.length) { chatLine('npc', T('g.mundial.nodata')); return; }
@@ -623,13 +633,13 @@
     // F2 CINE: si el linyera te mandó a buscar una noticia, tu mensaje es el REPORTE → lo corrobora.
     if (newsQuest && isOraculo(chatNpc)) {
       const m = newsMatch(msg, newsQuest.answer);
-      if (m.shared >= 1) { player.caramelos = (player.caramelos || 0) + 3; chatLine('npc', T('g.cine.questOk')); newsQuest = null; return; }
-      if (m.words >= 2) { const lost = Math.min(player.coins, 10); player.coins -= lost; chatLine('npc', T('g.cine.questLie', { n: lost })); newsQuest = null; return; }
+      if (m.shared >= 1) { applyReward(QUEST_DEFS.news.reward); chatLine('npc', T(QUEST_DEFS.news.ok)); newsQuest = null; return; }
+      if (m.words >= 2) { const out = applyReward(QUEST_DEFS.news.penalty); chatLine('npc', T(QUEST_DEFS.news.lie, { n: out.coins })); newsQuest = null; return; }
       // muy vago → no penaliza, sigue esperando el reporte (cae al chat normal abajo)
     }
     // §9: al hincha, si ya conseguiste el resultado en el guarda, te agradece + premio (sin importar qué escribiste)
     if (isHincha(chatNpc) && mundialQuest && mundialQuest.shown) {
-      player.caramelos = (player.caramelos || 0) + 5; chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return;
+      applyReward(QUEST_DEFS.mundial.reward); chatLine('npc', T('g.mundial.gracias', { res: mundialQuest.resultado })); Sfx.pickup(); mundialQuest = null; return;
     }
     chatHistory.push({ role: 'user', content: msg });
     chatBusy = true;
@@ -666,7 +676,7 @@
     // si el jugador tiene SU key y aun así salió local (offline real, no saturación) → avisar
     else if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) chatLine('sys', T('g.chat.localWarn'));
     // F2 CINE: el linyera (su IA rápida ve los carteles NPU) a veces te manda al cine a buscar un topic.
-    if (!newsQuest && isOraculo(chatNpc) && (typeof window !== 'undefined' && (window.NOTICIAS || []).length) && Math.random() < 0.35) {
+    if (!newsQuest && isOraculo(chatNpc) && (typeof window !== 'undefined' && (window.NOTICIAS || []).length) && Math.random() < QUEST_DEFS.news.chance) {
       const ns = window.NOTICIAS, pick = ns[(Math.random() * ns.length) | 0];
       newsQuest = { topic: pick.topic, answer: pick.answer };
       chatLine('npc', T('g.cine.questAsk', { topic: pick.topic }));
@@ -1093,7 +1103,7 @@
       const h = mundialApproach.npc, target = player.x + player.w/2 - 22;
       if (Math.abs(target - h.x) > 6) h.x += Math.sign(target - h.x) * Math.min(110 * dt, Math.abs(target - h.x));
       else {
-        player.caramelos = (player.caramelos || 0) + 5; setMsg(T('g.mundial.gracias', { res: mundialQuest ? mundialQuest.resultado : '' }), '#ffd54f', 5000); Sfx.pickup();
+        applyReward(QUEST_DEFS.mundial.reward); setMsg(T('g.mundial.gracias', { res: mundialQuest ? mundialQuest.resultado : '' }), '#ffd54f', 5000); Sfx.pickup();
         h.x = mundialApproach.homeX; mundialQuest = null; mundialApproach = null;   // vuelve a su lugar
       }
     }
@@ -1581,5 +1591,5 @@
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
   // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).
-  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot });
+  if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS });
 })();

@@ -39,6 +39,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v143] — 2026-06-26 — 🧩 v2 #1 (F1): QUESTS como DATO (registro declarativo, nada de números sueltos)
+
+Primer paso de la migración v2 de las quests (la deuda más visible). Las quests del cine (oráculo) y del Mundial
+(hinchas) ahora leen su config de un **registro DECLARATIVO** `QUEST_DEFS` (premio/penalidad/chance/scope/mensajes =
+DATA, no `+3`/`+5`/`-10` sueltos en el código). `applyReward(rw)` aplica el efecto declarado. Expuesto al ecosistema:
+`worldSnapshot.questRegistry` + `window.Game.quests()` → la IA conoce TODAS las quests genéricamente. La verificación
+sigue siendo función (primitiva=código, componer=dato). **F2 (pendiente):** quests como **entidades+aristas de grafo**
++ interpretador genérico (modelo-de-entidades §6.95).
+
+---
+
 ## [v142] — 2026-06-26 — 💬 NPCs VIVOS: chusmerío ambiente (globitos que saben lo que hiciste)
 
 Primer paso de "NPCs vivos" (`specs/npcs-vivos.md`): cada tanto un NPC tira un **globito** arriba de la cabeza
