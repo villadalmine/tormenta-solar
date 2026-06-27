@@ -52,10 +52,26 @@ html, body {
 .hud-right #coins { color: #FFC107; }
 .hud-right #forros { color: #FF8FC7; }
 .hud-right #caramelos { color: #FF7043; }
+/* el mensaje narrativo va como GLOBITO centrado MÁS ARRIBA (no apretado en la barra del HUD) → los textos largos
+   se leen bien: se despega de la barra inferior, envuelve en varias líneas y tiene fondo propio. */
+.hud-center {
+  position: absolute;
+  left: 50%; bottom: 92px; transform: translateX(-50%);
+  max-width: min(80%, 620px);
+  pointer-events: none; z-index: 6;
+}
 .hud-msg {
-  color: #ff5252; font-size: calc(14px * var(--ui-font-scale, 1)); font-weight: bold; text-align: center;
+  display: inline-block;
+  color: #fff; font-size: calc(14px * var(--ui-font-scale, 1)); font-weight: bold; text-align: center;
+  line-height: 1.4; white-space: normal; word-break: break-word;
+  background: rgba(10,12,20,0.86);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: .55em .9em;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.55);
   transition: opacity var(--ui-msg-fade, 150ms) linear;   /* aparecer/desaparecer suave */
 }
+.hud-msg:empty { display: none; }   /* sin texto → no mostrar la cajita vacía */
 
 #floorName {
   position: absolute;

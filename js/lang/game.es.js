@@ -144,13 +144,13 @@
     'g.cuevero.optC': '“Dejate de joder, mucha mafia. Me voy a otro cuevero más limpio.”',
     'g.cuevero.bGo': 'El cuevero te mira: “Entonces andá vos y ganale al truco al tahúr. Volvé con su palabra y te cambio.” 🃏 (La trastienda del tahúr es la del lugar secreto.)',
     'g.cuevero.cBye': 'El cuevero se encoge de hombros: “Como quieras, pibe. Pero todos los cueveros andan con la misma rosca, eh...” 🤷',
-    'g.cuevero.linyera': 'Aparece un linyera de la nada: “Seguime, pibe, yo te llevo con alguien que sabe.” 🫥 Te manda a EducaciónIT, a buscar a un tal GUIDO.',
+    'g.cuevero.linyera': 'Un linyera te susurra al pasar y se pierde en la oscuridad: “Yo acá abajo no entro, pibe... pero buscá a GUIDO en EducaciónIT, piso 8. Ese sabe de truco. Andá vos.” 🫥 (No te sigue nadie: tenés que ir a buscarlo.)',
     // GUIDO (EducaciónIT): el que sabe jugar al truco (ruta A)
     'g.guido.hi': '“¡Guido, máquina! ¿Andás bien? Cualquier cosa de cursos, preguntá.” 👋',
     'g.guido.recruit': 'Guido: “¿Qué pasa?” — Vos: “No sé, me trajeron hasta acá.” El linyera: “Pero vooo so locooo viteh, van a pasar cosas raras... necesitás alguien que sepa jugar al truco.” Y se esfuma. 🫥 Guido: “¿Truco? Soy el mejor. Si querés jugar, avisá.” 🃏',
     'g.guido.later': 'Guido: “Toy ocupado, pibe. Primero averiguá DÓNDE está ese tahúr y volvé. Recién ahí te acompaño.” 🤔 (La trastienda está pasando el lugar secreto.)',
-    'g.guido.follow': 'Guido se truena los dedos: “Listo, ya sé quién es. Llevame a la trastienda del tahúr que le gano yo.” 🃏 ¡Andá a la mesa del tahúr!',
-    'g.guido.coming': '“Vamos, vamos, llevame con el tahúr.” 🃏',
+    'g.guido.follow': 'Guido se truena los dedos: “Listo, ya sé quién es ese tahúr. Volvé vos a su mesa (en la trastienda, pasando el lugar secreto) y sentate a jugar: cuando te sientes, yo aparezco y le gano por vos.” 🃏 (Guido NO camina con vos: andá a la mesa del tahúr y sentate.)',
+    'g.guido.coming': 'Guido: “Andá vos a la mesa del tahúr y sentate, que cuando te sientes aparezco y te lo gano.” 🃏 (La mesa está en la trastienda, pasando el lugar secreto.)',
     'g.guido.beats': 'Guido se sienta, tira tres manos y le gana al tahúr sin despeinarse. 🃏 “Tomá, esta es su palabra: andá al cuevero y decile que el tahúr lo perdona.” 💬✅',
     'g.guido.done': 'Guido te guiña: “Ya está, máquina. Andá tranqui al cuevero.” 😎',
     // --- EL VECINO de los edificios clausurados (specs/edificios-clausurados-historias.md) ---

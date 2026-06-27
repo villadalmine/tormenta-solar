@@ -50,6 +50,23 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v199] — 2026-06-27 — 🐛 Fix: las tiendas no abrían (rebote en la salida) + globito de texto + textos del cuevero claros
+
+Reportes de playtest del dueño:
+- **BUG (tienda no abría):** entrabas a un local de la galería y te devolvía al toque sin generar nada. Causa: el
+  jugador aparece **sobre la baldosa de salida** y el mismo `E` con el que entrabas (sigue apretado) se leía en el
+  1er frame → `done` inmediato. Fix: `buyHeld` arranca en **true** en `Tienda.create` (hay que soltar `E` y volver
+  a apretarlo). `js/tienda.js`.
+- **UX (texto largo ilegible):** los mensajes narrativos largos iban apretados en la barra inferior. Ahora el `#msg`
+  es un **GLOBITO centrado más arriba** que envuelve en varias líneas, con fondo propio (`css/style.css` `.hud-center`
+  /`.hud-msg`), y se oculta cuando está vacío.
+- **Textos del cuevero/Guido (ruta A) claros:** el "aparece un linyera de la nada" hacía creer que un compañero te
+  seguía físicamente. Reescritos (ES/EN) para dejar claro que **vos** vas a buscar a Guido y que, para el tahúr,
+  **andá a su mesa y sentate** (Guido aparece y gana) — sin prometer un acompañante que camine con vos. *(El follow
+  físico cruza-salas sigue siendo deuda de motor, [[backlog]] #A4.)*
+
+---
+
 ## [v198] — 2026-06-27 — 💾 Se persiste el chusmerío del vecino (la historia activa sobrevive recargar/guardar)
 
 **Qué cambió (jugador):** si charlabas con el vecino de un edificio clausurado y recargabas/volvías a la partida,

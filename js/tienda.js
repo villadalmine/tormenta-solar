@@ -14,7 +14,9 @@ const Tienda = (() => {
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W - 1] = 1; }
     const pal = scene.palette || { floor: '#222', floor2: '#2a2a2a', wall: '#555', accent: '#ffd54f' };
     const player = { x: (scene.exit.x + 0.5) * CS, y: (scene.exit.y + 0.5) * CS, r: 11 };
-    let done = false, exitTo = null, msg = '', msgT = 0, prompt = '', escHeld = false, buyHeld = false, t = 0, leaving = 0;
+    // buyHeld arranca en TRUE: entrás parado SOBRE la baldosa de salida y el E con el que entraste sigue apretado;
+    // sin esto, el 1er frame lo leería y te sacaría al toque (done=true). Hay que SOLTAR E y volver a apretarlo.
+    let done = false, exitTo = null, msg = '', msgT = 0, prompt = '', escHeld = false, buyHeld = true, t = 0, leaving = 0;
     setMsg(scene.intro || '', 6);
 
     function setMsg(s, dur = 3) { msg = s; msgT = dur; }

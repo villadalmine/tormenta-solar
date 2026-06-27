@@ -129,13 +129,13 @@
     'g.cuevero.optC': '“Forget it, too much mob. I\'ll find a cleaner cuevero.”',
     'g.cuevero.bGo': 'The cuevero eyes you: “Then go beat the card sharp at truco yourself. Come back with his word and I\'ll exchange.” 🃏 (The sharp\'s back room is past the secret spot.)',
     'g.cuevero.cBye': 'The cuevero shrugs: “Suit yourself, kid. But every cuevero\'s tangled in the same racket, you know...” 🤷',
-    'g.cuevero.linyera': 'A hobo appears out of nowhere: “Follow me, kid, I\'ll take you to someone who knows.” 🫥 He points you to EducaciónIT, to find a guy named GUIDO.',
+    'g.cuevero.linyera': 'A hobo whispers as you pass and melts into the dark: “I can\'t come down here, kid... but find GUIDO at EducaciónIT, floor 8. He knows truco. Go yourself.” 🫥 (Nobody follows you: you have to go find him.)',
     // GUIDO (EducaciónIT): the one who knows how to play truco (route A)
     'g.guido.hi': '“Guido, the man! All good? Anything about courses, just ask.” 👋',
     'g.guido.recruit': 'Guido: “What\'s up?” — You: “No idea, they brought me here.” The hobo: “But you\'re cluuueless, see — weird stuff\'s coming, you need someone who can play truco.” And he vanishes. 🫥 Guido: “Truco? I\'m the best. Want to play, just say the word.” 🃏',
     'g.guido.later': 'Guido: “I\'m busy, kid. First find out WHERE that sharp is and come back. Then I\'ll come with you.” 🤔 (The back room is past the secret spot.)',
-    'g.guido.follow': 'Guido cracks his knuckles: “Done, I know who he is now. Take me to the sharp\'s back room and I\'ll beat him.” 🃏 Go to the sharp\'s table!',
-    'g.guido.coming': '“Come on, come on, take me to the sharp.” 🃏',
+    'g.guido.follow': 'Guido cracks his knuckles: “Done, I know that sharp now. Go back to his table yourself (in the back room, past the secret spot) and sit down to play: the moment you sit, I show up and beat him for you.” 🃏 (Guido does NOT walk with you: go to the sharp\'s table and sit down.)',
+    'g.guido.coming': 'Guido: “Go to the sharp\'s table and sit down — the moment you sit, I show up and win it for you.” 🃏 (The table is in the back room, past the secret spot.)',
     'g.guido.beats': 'Guido sits down, plays three hands and beats the sharp without breaking a sweat. 🃏 “Here\'s his word: go to the cuevero and tell him the sharp forgives him.” 💬✅',
     'g.guido.done': 'Guido winks: “All set, champ. Head to the cuevero, no worries.” 😎',
     // --- THE NEIGHBOR of the condemned buildings (specs/edificios-clausurados-historias.md) ---
