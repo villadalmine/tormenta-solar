@@ -56,23 +56,52 @@ super_chino --da--> moneyRecovered [le sacás +60 al cuevero 3]
 ```
 
 ## Grafo de historia (lo lee `tools/gen-historia.mjs` → ver [historia-grafo.md](../historia-grafo.md))
+El cuevero del fondo **ya no te vende de una**: está ocupado con el tahúr y no te cambia hasta que lo desbaratés
+(ganándole al truco — vos o pidiendo ayuda → cadena linyera→Guido). Recién con el "te perdono" (`cueveroUnlocked`)
+te vende y **estalla la tormenta**. Por eso la tormenta ahora tiene `pre: { cueveroUnlocked }`. Ver
+`specs/cuevero-gate-truco.md`.
+
+```hist
+{
+  "id": "cuevero_gate",
+  "title": "Destrabar al cuevero (desbaratar al tahúr)",
+  "at": "cueva",
+  "pre": {},
+  "sets": { "cueveroUnlocked": true },
+  "hints": {
+    "es": [
+      "El del fondo anda raro, con dramas... no te va a cambiar así nomás, pibe.",
+      "El cuevero está ocupado con el tahúr: hasta que ese no se calme, no hay deal.",
+      "Ganale al TAHÚR en el truco (vos, o mandá a alguien que sepa) y el cuevero te perdona y te vende.",
+      "¡Andá a la trastienda, DESBARATÁ al tahúr en el truco y recién ahí el cuevero te cambia, dale!"
+    ],
+    "en": [
+      "The back guy's off, got drama... he won't change for you just like that, kid.",
+      "The cuevero's busy with the card sharp: until that calms down, no deal.",
+      "Beat the SHARP at truco (yourself, or send someone who knows) and the cuevero forgives you and sells.",
+      "Go to the back room, TAKE DOWN the sharp at truco and ONLY THEN the cuevero changes your money!"
+    ]
+  }
+}
+```
+
 ```hist
 {
   "id": "tormenta",
   "title": "Disparar la tormenta solar",
   "at": "cueva",
-  "pre": {},
+  "pre": { "cueveroUnlocked": true },
   "sets": { "stormed": true },
   "hints": {
     "es": [
       "El verde se compra abajo, donde no llega el sol... pero el sol igual te encuentra, pibe.",
-      "¿Nunca bajaste del todo a la cueva? El negocio de verdad está en la del fondo.",
+      "Ya destrabaste al cuevero: ahora SÍ te cambia. El negocio de verdad está en la del fondo.",
       "Andá a la cueva del fondo y cambiale los dólares al arbolito: ahí arranca TODO.",
       "¡Que bajes a la CUEVA DEL FONDO y CAMBIES, carajo! ¿Te lo dibujo?"
     ],
     "en": [
       "The green's bought down below, where the sun don't reach... but the sun finds you anyway, kid.",
-      "You never went all the way down to the cueva? The real deal's in the back one.",
+      "You unlocked the cuevero: now he DOES change for you. The real deal's in the back one.",
       "Go to the back cueva and change your dollars with the arbolito: that's where it ALL kicks off.",
       "Go DOWN to the BACK CUEVA and CHANGE already, damn it! Want me to draw you a map?"
     ]

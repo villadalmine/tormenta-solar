@@ -19,9 +19,9 @@ El juego es 100% estático; se publica en
   (**Mollie** NL/EU · Mercado Pago/dLocal AR) → webhook → `/provision`. El entitlement por código YA está (ver
   infra-2..6). *(Métricas reales y suscripción por código: HECHO, ver entradas de abajo.)*
 - **Deuda fina de las features YA implementadas** (pulido, no bloqueante — las features andan):
-  - **Grafo `historia.js`**: el **gate del cuevero** (cuevero/tahúr/guido) y el **vecino**/"pasar" todavía NO son
-    nodos/aristas del grafo (`specs/nivel-1/**` → `tools/gen-historia.mjs`); la discoverabilidad la dan sus menús,
-    pero el HintEngine no los conoce. *(El más on-brand con REGLA #0; bajo riesgo, limpia 2 deudas.)*
+  - ~~**Grafo `historia.js`**~~: ✅ **HECHO (v195)** — aristas `cuevero_gate` (gatea `tormenta` con `cueveroUnlocked`)
+    y `vecino` (post-tormenta, `vecinoSeen`); el HintEngine ya guía ambos flujos. *(La cadena Guido en sí sigue por
+    flags, no es sub-grafo — menor.)*
   - **Banco VIVO de historias del vecino** (`edificios-clausurados-historias.md §8`): hoy la IA autora el NIVEL pero
     el TEXTO de las historias sale de un banco estático (6 relatos). Falta que la IA autore también el texto (patrón
     propaganda/noticias: cron + `GET/POST` en PVC + cache).
@@ -48,6 +48,24 @@ El juego es 100% estático; se publica en
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v195] — 2026-06-27 — 🕸️ El gate del cuevero y el vecino entran al GRAFO de historia (pistas del linyera)
+
+Integra las dos features de hoy al **grafo `historia.js`** (REGLA #0: *todo es grafo*), así el **HintEngine** (las
+pistas escaladas del linyera/Mensajero) las conoce. Dos aristas nuevas en las fichas `specs/nivel-1/**`:
+- **`cuevero_gate`** (sets `cueveroUnlocked`) + **`tormenta`** ahora con `pre: { cueveroUnlocked }`: en la cueva, la
+  1ª pista pasa a ser **"destrabá al cuevero ganándole al tahúr"** y, recién destrabado, **"dispará la tormenta"**.
+  Las dos rutas (vos / Guido) setean el flag vía `applyEdge('cuevero_gate', 'cueveroUnlocked')` → el grafo es **dueño
+  de la transición** (Fase 2).
+- **`vecino`** (post-tormenta, `at:'calle'`, `pre:{stormed}`, `sets:{vecinoSeen}`, terminal): el linyera te sugiere
+  **"hablale al vecino del edificio clausurado y pasá"** hasta que entrás a uno. `vecinoSeen` es derivado de
+  `entradoEdif`; `passToBuilding` dispara `applyEdge('vecino')`.
+
+Grafo: 12 → **14 aristas**. Tests `tests/e2e.js` (HintEngine + Fase 2) actualizados a la nueva realidad (cueva →
+`cuevero_gate` → `tormenta`; estados post-tormenta incluyen `cueveroUnlocked`). Battery + web-smoke + paridad verdes.
+*(Sólo web — no toca el proxy.)*
 
 ---
 

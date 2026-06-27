@@ -163,8 +163,11 @@ Todo en `js/game.js` (capa aditiva, flags privados + `FLAG_SETTERS`/`FLAG_GETTER
   El walking-guide real queda pendiente.
 - **Guido-follow (RF-4):** `guidoFollowing` es **lógico** (no hay un Guido físico acompañándote sala a sala); el
   auto-win se dispara al sentarte con el tahúr teniendo `guidoFollowing`.
-- **Grafo (§5):** los flags nuevos NO entraron todavía a `historia.js` (el grafo generado de `specs/nivel-1/**`);
-  la discoverabilidad la cubre el propio menú de 3 opciones (te dice qué hacer). Integrar al grafo = pendiente.
+- **Grafo (§5): ✅ HECHO (2026-06-27, v195).** Arista `cuevero_gate` (sets `cueveroUnlocked`, en `cueveros.md`) +
+  `tormenta` ahora con `pre: { cueveroUnlocked }`. Ambas rutas setean el flag vía `applyEdge('cuevero_gate',
+  'cueveroUnlocked')` (el grafo es dueño de la transición, Fase 2). El HintEngine ya guía: en la cueva la 1ª pista es
+  "destrabá al cuevero (ganale al tahúr)" y, una vez destrabado, "dispará la tormenta". *(Resta: la cadena Guido en sí
+  — recruit/follow — no es un sub-grafo; sigue resuelta por flags+menú.)*
 
 ## 8. Bocetos (no normativo)
 

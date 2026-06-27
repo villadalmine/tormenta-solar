@@ -557,6 +557,7 @@
       hasMegaDrive: !!(player && player.hasMegaDrive),
       hasCementoTicket: !!(player && player.hasCementoTicket),
       cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing,
+      vecinoSeen: Object.keys(entradoEdif).length > 0,
       sleptOnce: loopCount > 0,
     };
   }
@@ -1079,7 +1080,7 @@
   }
   // Guido le gana al tahúr (auto-win cinemático) y te pasa el "te perdono" para el cuevero.
   function guidoBeatsTahur() {
-    guidoFollowing = false; cueveroUnlocked = true; trucoEverWon = true;
+    guidoFollowing = false; trucoEverWon = true; applyEdge('cuevero_gate', 'cueveroUnlocked');   // destraba al cuevero vía grafo
     flash(); Sfx.win();
     setMsg(T('g.guido.beats'), '#7CFC00', 9000);
     tel('cuevero_gate', { route: 'guido' });
@@ -1159,6 +1160,7 @@
     const s = n.activeStory || pickVecinoStory(n);
     const interior = (n.vecino && n.vecino.interior);
     entradoEdif[edif] = true;
+    applyEdge('vecino');   // grafo/Mensajero: "entraste a un edificio clausurado" (vecinoSeen es derivado de entradoEdif)
     const theme = themeFromStory(s, edif);
     flash(); tel('vecino', { edif, story: s.id });
     if (NivelAI.requestHistoria) {   // IA enriquece (geometría/sabor); circuit breaker → estático al toque si cae
@@ -1961,7 +1963,7 @@
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
             player.coins -= robbed; stunUntil = performance.now() + 2600;
             applyEdge('truco', 'trucoWon'); trucoEverWon = true;   // abre la puerta (se consume) + marca el hito (permanente)
-            const firstWin = !cueveroUnlocked; cueveroUnlocked = true;   // el tahúr "te perdona" → destraba al cuevero (gate)
+            const firstWin = !cueveroUnlocked; applyEdge('cuevero_gate', 'cueveroUnlocked');   // el tahúr "te perdona" → destraba al cuevero (gate, vía grafo)
             setMsg(T(firstWin ? 'g.truco.winGate' : 'g.truco.win', { n: robbed }), '#ff5252', firstWin ? 9000 : 7000);
             if (firstWin) tel('cuevero_gate', { route: 'propia' });
           }

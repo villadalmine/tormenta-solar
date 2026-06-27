@@ -146,7 +146,10 @@ el flujo), `js/lang/game.{es,en}.js` (historias/ganchos/UI), `js/nivelai.js` (`r
 - **Vecino IA vs scriptado:** **historias estáticas (robustas) + oferta como opción fija**; la IA autora el NIVEL
   (no el texto del chat, por ahora). Deuda menor: que la IA autore también el TEXTO de las historias (banco vivo).
 - **Memoria:** se guarda `entrado[edificio]`; las historias se regeneran (no se persiste la activa — deuda menor).
-- **Grafo:** el vecino/"pasar" NO entraron al grafo `historia.js` todavía (deuda, igual que el gate del cuevero).
+- **Grafo: ✅ HECHO (2026-06-27, v195).** Arista `vecino` (`specs/nivel-1/personajes/vecino.md`): `at:'calle'`,
+  `pre:{stormed}`, `sets:{vecinoSeen}`, `terminal` — actividad post-tormenta opcional. `vecinoSeen` es derivado
+  (`Object.keys(entradoEdif).length>0`) en `historiaState`; `passToBuilding` dispara `applyEdge('vecino')` (evento
+  Mensajero + el HintEngine sugiere "hablale al vecino del edificio clausurado y pasá" hasta que entrás a uno).
 
 ## 7. Preguntas abiertas
 

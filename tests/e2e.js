@@ -307,12 +307,15 @@ if (require.main === module) {
   const hint = vm.runInContext(`(() => {
     const out = [];
     if (typeof Historia === 'undefined' || !Historia.edges.length) out.push('FAIL Historia no cargó');
-    // estado inicial: la frontera debe incluir las aristas sin precondición (tormenta/edificio/truco)
+    // estado inicial: la frontera incluye las aristas sin precondición (cuevero_gate/edificio); la TORMENTA ya NO
+    // (ahora está gateada por cueveroUnlocked → primero hay que destrabar al cuevero ganándole al tahúr)
     const f0 = HintEngine.frontier({}).map(e => e.id);
-    if (!f0.includes('tormenta') || !f0.includes('edificio')) out.push('FAIL frontera inicial: ' + f0.join(','));
-    // cercanía: en la cueva, la próxima pista debe ser la tormenta
+    if (!f0.includes('cuevero_gate') || !f0.includes('edificio') || f0.includes('tormenta')) out.push('FAIL frontera inicial: ' + f0.join(','));
+    // cercanía: en la cueva, la 1ª pista es DESTRABAR al cuevero (gate); una vez destrabado, sí es la tormenta
     const inCueva = HintEngine.next({}, { at: 'cueva', insistencia: 0 });
-    if (!inCueva || inCueva.id !== 'tormenta') out.push('FAIL cercanía cueva→tormenta: ' + (inCueva && inCueva.id));
+    if (!inCueva || inCueva.id !== 'cuevero_gate') out.push('FAIL cercanía cueva→cuevero_gate (gate): ' + (inCueva && inCueva.id));
+    const inCuevaUnlocked = HintEngine.next({ cueveroUnlocked: true }, { at: 'cueva' });
+    if (!inCuevaUnlocked || inCuevaUnlocked.id !== 'tormenta') out.push('FAIL cercanía cueva→tormenta (destrabado): ' + (inCuevaUnlocked && inCuevaUnlocked.id));
     // una arista hecha (stormed=true) sale de la frontera
     if (HintEngine.frontier({ stormed: true }).some(e => e.id === 'tormenta')) out.push('FAIL tormenta hecha sigue en frontera');
     // secundarias: cercanía al super sugiere la Mega Drive; el FIFA NO aparece sin Mega Drive (precondición)
@@ -321,17 +324,18 @@ if (require.main === module) {
     if (HintEngine.frontier({}).some(e => e.id === 'fifa')) out.push('FAIL fifa en frontera sin Mega Drive');
     if (!HintEngine.frontier({ hasMegaDrive: true }).some(e => e.id === 'fifa')) out.push('FAIL fifa no aparece con Mega Drive');
     // chino: DOS formas post-tormenta. cerca de la cueva → puerta TRASERA (chino_back); cerca de Cemento → Iorio
-    const backCueva = HintEngine.next({ stormed: true }, { at: 'cueva' });
+    // (post-tormenta cueveroUnlocked es true por construcción: no se storma sin destrabar al cuevero)
+    const backCueva = HintEngine.next({ stormed: true, cueveroUnlocked: true }, { at: 'cueva' });
     if (!backCueva || backCueva.id !== 'chino_back') out.push('FAIL cercanía cueva→chino_back: ' + (backCueva && backCueva.id));
-    const iorioCemento = HintEngine.next({ stormed: true }, { at: 'cemento' });
+    const iorioCemento = HintEngine.next({ stormed: true, cueveroUnlocked: true }, { at: 'cemento' });
     if (!iorioCemento || iorioCemento.id !== 'chino_iorio') out.push('FAIL cercanía cemento→chino_iorio: ' + (iorioCemento && iorioCemento.id));
     // la trasera se resuelve al ENTRAR (chinoEntered) y desaparece si ya abriste el frente (chinoFrontOpen)
-    if (HintEngine.frontier({ stormed: true, chinoEntered: true }).some(e => e.id === 'chino_back')) out.push('FAIL chino_back sigue tras entrar');
-    if (HintEngine.frontier({ stormed: true, chinoFrontOpen: true }).some(e => e.id === 'chino_back')) out.push('FAIL chino_back sigue con frente abierto');
+    if (HintEngine.frontier({ stormed: true, cueveroUnlocked: true, chinoEntered: true }).some(e => e.id === 'chino_back')) out.push('FAIL chino_back sigue tras entrar');
+    if (HintEngine.frontier({ stormed: true, cueveroUnlocked: true, chinoFrontOpen: true }).some(e => e.id === 'chino_back')) out.push('FAIL chino_back sigue con frente abierto');
     // Fase 2 (el grafo MANEJE los flags): cada arista que game.js aplica por id debe existir y setear
     // EXACTAMENTE su flag (si no, applyEdge no haría la transición). Atrapa typos de id / drift del grafo.
     const F2 = { tormenta:'stormed', edificio:'borrachosHappy', bunker:'bunkerUnlocked', chino_iorio:'chinoFrontOpen',
-      truco:'trucoWon', fifa:'fifaWon', armas:'armado', chino_back:'chinoEntered' };
+      truco:'trucoWon', fifa:'fifaWon', armas:'armado', chino_back:'chinoEntered', cuevero_gate:'cueveroUnlocked' };
     for (const id in F2) {
       const e = Historia.edges.find(x => x.id === id);
       if (!e) out.push('FAIL Fase2: falta la arista ' + id);
@@ -339,7 +343,8 @@ if (require.main === module) {
     }
     // todo hecho (crítico + secundario + portal) → no quedan pistas
     const allDone = { stormed:true, borrachosHappy:true, bunkerUnlocked:true, chinoFrontOpen:true, trucoWon:true,
-      won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true };
+      won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true,
+      cueveroUnlocked:true, vecinoSeen:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

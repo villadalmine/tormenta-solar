@@ -28,23 +28,49 @@ const Historia = {
       "from": "specs/nivel-1/personajes/borrachines.md"
     },
     {
+      "id": "cuevero_gate",
+      "title": "Destrabar al cuevero (desbaratar al tahúr)",
+      "at": "cueva",
+      "pre": {},
+      "sets": {
+        "cueveroUnlocked": true
+      },
+      "hints": {
+        "es": [
+          "El del fondo anda raro, con dramas... no te va a cambiar así nomás, pibe.",
+          "El cuevero está ocupado con el tahúr: hasta que ese no se calme, no hay deal.",
+          "Ganale al TAHÚR en el truco (vos, o mandá a alguien que sepa) y el cuevero te perdona y te vende.",
+          "¡Andá a la trastienda, DESBARATÁ al tahúr en el truco y recién ahí el cuevero te cambia, dale!"
+        ],
+        "en": [
+          "The back guy's off, got drama... he won't change for you just like that, kid.",
+          "The cuevero's busy with the card sharp: until that calms down, no deal.",
+          "Beat the SHARP at truco (yourself, or send someone who knows) and the cuevero forgives you and sells.",
+          "Go to the back room, TAKE DOWN the sharp at truco and ONLY THEN the cuevero changes your money!"
+        ]
+      },
+      "from": "specs/nivel-1/personajes/cueveros.md"
+    },
+    {
       "id": "tormenta",
       "title": "Disparar la tormenta solar",
       "at": "cueva",
-      "pre": {},
+      "pre": {
+        "cueveroUnlocked": true
+      },
       "sets": {
         "stormed": true
       },
       "hints": {
         "es": [
           "El verde se compra abajo, donde no llega el sol... pero el sol igual te encuentra, pibe.",
-          "¿Nunca bajaste del todo a la cueva? El negocio de verdad está en la del fondo.",
+          "Ya destrabaste al cuevero: ahora SÍ te cambia. El negocio de verdad está en la del fondo.",
           "Andá a la cueva del fondo y cambiale los dólares al arbolito: ahí arranca TODO.",
           "¡Que bajes a la CUEVA DEL FONDO y CAMBIES, carajo! ¿Te lo dibujo?"
         ],
         "en": [
           "The green's bought down below, where the sun don't reach... but the sun finds you anyway, kid.",
-          "You never went all the way down to the cueva? The real deal's in the back one.",
+          "You unlocked the cuevero: now he DOES change for you. The real deal's in the back one.",
           "Go to the back cueva and change your dollars with the arbolito: that's where it ALL kicks off.",
           "Go DOWN to the BACK CUEVA and CHANGE already, damn it! Want me to draw you a map?"
         ]
@@ -181,6 +207,34 @@ const Historia = {
         ]
       },
       "from": "specs/nivel-1/personajes/tahur.md"
+    },
+    {
+      "id": "vecino",
+      "title": "Pasar a un edificio clausurado (el vecino)",
+      "at": "calle",
+      "pri": 30,
+      "pre": {
+        "stormed": true
+      },
+      "sets": {
+        "vecinoSeen": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Esos tipos parados al lado de los edificios tapiados... algo saben, y se mueren por contarlo.",
+          "Al lado de cada edificio clausurado hay un vecino: te cuenta historias del lugar si le das charla.",
+          "Hablale al VECINO de un edificio clausurado: te flashea historias y te deja PASAR a ver qué pasó.",
+          "¡Andá a un edificio tapiado, hablale al VECINO y PASÁ! Adentro hay un nivel armado con su historia."
+        ],
+        "en": [
+          "Those guys standing by the boarded-up buildings... they know something, and they're dying to tell it.",
+          "By each condemned building there's a neighbor: he tells you stories of the place if you chat him up.",
+          "Talk to the NEIGHBOR of a condemned building: he flashes stories and lets you GO IN to see what happened.",
+          "Go to a boarded-up building, talk to the NEIGHBOR and GO IN! Inside there's a level built from his story."
+        ]
+      },
+      "from": "specs/nivel-1/personajes/vecino.md"
     },
     {
       "id": "armas",
