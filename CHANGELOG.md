@@ -914,6 +914,17 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 
 ---
 
+## [infra-29] — 2026-06-27 — 🚀 Deploy de la web: rebuild del mismo tag ahora propaga seguro (`Always` + `rollout restart`)
+
+La web reusa siempre el tag `0.1.94`. Con `imagePullPolicy: IfNotPresent`, un `helm upgrade` sin cambio de tag no
+dispara rollout y los nodos quedan con la imagen vieja cacheada (por eso v202/v203 no propagaban hasta forzarlo).
+Fix: `pullPolicy: Always` en `web/chart/values-prod.yaml` + `kubectl rollout restart` en `deploy/deploy.sh` tras el
+`helm upgrade` (fuerza un rollout fresco cada deploy; para el proxy, que ya bumpea tag inmutable, es inofensivo).
+*(Detrás de esto hubo una sesión de infra: DiskPressure en `srv-rk1-nvme-01` por la imagen `hermes-agent` 2.38G
+pineada a ese nodo de SD chica → movida a `srv-rk1-nvme-04` en el repo `infra`; ver `infra/diskpressure-rk1-nvme-2026-06-27.md`.)*
+
+---
+
 ## [infra-28] — 2026-06-27 — 🛍️ Proxy 0.1.48→0.1.49: `theme:'shop'` también sugiere la ECONOMÍA (cost/amount)
 
 Sostén del **v197**. El branch `theme:'shop'` de `POST /nivel-ai` ahora pide a la IA, por producto, además de

@@ -6,6 +6,8 @@ fullnameOverride: tormenta-web        # OJO: sin esto el deploy se llama torment
 image:
   repository: registry.registry:5000/ai/tormenta-solar-web
   tag: ""                             # SIEMPRE pasar --set image.tag=<X>
+  pullPolicy: Always                  # el tag de la web se reusa (0.1.94); Always + rollout restart (deploy.sh) garantiza
+                                      # que un rebuild del MISMO tag se propague (si no, IfNotPresent usa la imagen cacheada del nodo)
 
 # expone el juego por el cluster-gateway compartido (SNI passthrough desde el G4) con TLS LE prod
 gateway:

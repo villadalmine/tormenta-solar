@@ -58,6 +58,10 @@ echo "  ✓ build $WF OK"
 # 3) helm upgrade (SIEMPRE -f values-prod, sin --reuse-values)
 echo "  · helm upgrade..."
 helm upgrade "$RELEASE" "$CHART" -n "$NS" -f "$VALUES" "${SETS[@]}" >/dev/null
+# Forzar SIEMPRE un rollout fresco: la web reusa el mismo tag (0.1.94), así que sin esto helm no detecta cambios y
+# los nodos quedan con la imagen cacheada (IfNotPresent). restart + pullPolicy:Always = el rebuild propaga seguro.
+# Para el proxy (tag inmutable que ya cambia) es redundante pero inofensivo.
+kubectl rollout restart "deploy/$DEPLOY" -n "$NS" >/dev/null
 kubectl rollout status "deploy/$DEPLOY" -n "$NS" --timeout=180s
 
 # 4) smoke del proxy (health), best-effort
