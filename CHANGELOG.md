@@ -36,9 +36,6 @@ El juego es 100% estático; se publica en
 - **Spinoff STARGATE** (`specs/spinoff-stargate.md`, idea 2026-06-26): SG-1 + Atlantis, fiel al canon (razas,
   planetas, galaxias, naves, militar Tau'ri, personajes por raza). El stargate = puerta entre niveles/galaxias.
   Diseño temprano, NO implementado.
-- **Quest del Mundial: los dos hinchas + el guarda** (`specs/cine-noticias.md §9`, idea 2026-06-26): dos NPCs IA en
-  el piso Mundial te preguntan por un equipo random; pedís el resultado al guarda (te cambia la pantalla) y volvés a
-  que te agradezcan. Requiere **poblar TODOS los resultados del Mundial 1×/día** (ESPN scoreboard). NO implementado.
 - **Cine: news EN VIVO horario + Villa Dálmine** (`specs/cine-noticias.md §7.1`, idea 2026-06-25): 2º cron `0 * * * *`
   en modo live-only (sports+crypto) + **`POST /noticias` con merge por topic** (hoy reemplaza todo). Y los partidos
   de **Villa Dálmine** (team id `137785`, Primera B **Nacional**; TheSportsDB la etiqueta mal como "Metropolitana"
