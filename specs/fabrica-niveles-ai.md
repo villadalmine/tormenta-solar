@@ -230,3 +230,17 @@ contra `level.schema.json` + auditoría) sigue pendiente — ver §4 y §5.
 
 > Regla operativa: cada feature nueva se piensa como **"un type object / componente / dato"** para que la máquina lo
 > pueda generar mañana. (Ver SKILL regla #0.)
+
+## ⚠️ Deuda PRIORITARIA — los niveles no reflejan el CONTEXTO/historia (reporte dueño 2026-06-27, v206)
+Re-test del dueño tras el fix del modelo pago (v204): los niveles auto-generados (vecino/oráculo/chino-trastienda)
+**siguen sintiéndose iguales y NO reflejan la historia**, mientras que las **tiendas SÍ reflejan su tipo**. Diagnóstico:
+- Las **tiendas** andan porque el molde es **type-specific** (`SHOP_RUBROS` por `tipo`): aun en fallback estático,
+  surtido/paleta son del rubro. Los **niveles NO**: la geometría IA (`aiPlatforms`) **cae a procedural por `style`**
+  (`layoutPlatforms`) y la **paleta/props salen de un molde GENÉRICO** (`visualTemplate`, 6 estáticas), no del relato.
+  La IA autora el TEXTO pero la **estructura/enemigos/look no varían con la historia**.
+- **Latencia:** `passToBuilding`/`launchNivelAI` **esperan** la IA (16s, `AI_TIMEOUT` v204) antes de entrar, en vez de
+  abrir estático AL TOQUE + enriquecer (como las tiendas cache-first).
+**Fix a hacer:** (a) autorar (y APLICAR) geometría+enemigos+props+paleta **ligados al motif/relato**; (b) derivar
+paleta/props del gancho de la historia, no de un molde fijo; (c) **cache-first / abrir estático + enriquecer** (o cron
+pre-generador por edificio, patrón del banco vivo de historias) para matar la espera. Ver `tiendas-generadas.md` (el
+contraste). Anotado también en la memoria `backlog` como **A0 (prioritario)**.
