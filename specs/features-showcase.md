@@ -69,6 +69,11 @@
   `specs/edificios-clausurados-historias.md`.
 - **El edificio:** subís **saltando** una escalera de incendios **o** por ascensor (dos caminos); items que
   **regeneran**. **Truco** criollo real (motor puro testeado, cantos + voces). Arcade (Pac-Man/Galaga/Frogger).
+- **Tiendas generadas (galería de la cueva):** le hablás a un local (sex-shop, comida rara, masajes, tenebroso) y
+  **entrás a su interior generado**; la **IA autora el surtido** — nombre, clientela, productos **y la economía**
+  (precio + potencia, **clampados** a rango sano: la IA *sugiere*, el cliente *clampa*, la moneda queda del molde).
+  El surtido autorado se **cachea por rubro y persiste** (localStorage), con fallback estático. Ver
+  `specs/tiendas-generadas.md`.
 
 ## 4.b RESILIENCIA: si la GPU se cae, NO se para nada → modo estático
 - **Premisa (dueño):** *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático de

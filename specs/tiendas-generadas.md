@@ -3,8 +3,12 @@
 - **Estado:** **IMPLEMENTADA (v191 P1 + v192 P2)** — entrás al interior generado + compra + surtido por rubro, y la
   **IA autora el surtido** (name/intro/clientela/productos) vía `/nivel-ai theme:'shop'` con **caché por rubro** +
   fallback estático (`SHOP_RUBROS`, `js/tienda.js`, `NivelAI.generateShop`/`requestShop`). Aplica a los 4 locales de
-  la galería (sex-shop, comida rara, masajes, tenebroso). Pendiente fino: que la IA autore también la economía (hoy
-  anclada) y persistir la caché en localStorage/banco del proxy.
+  la galería (sex-shop, comida rara, masajes, tenebroso). ~~Pendiente fino: que la IA autore también la economía (hoy
+  anclada) y persistir la caché en localStorage/banco del proxy.~~ **✅ HECHO (2026-06-27, v197 / infra-28):** la IA
+  ahora **SUGIERE** la economía (`cost`/`amount` por producto) y el cliente la **CLAMPA** a rango sano por kind
+  (coins 4-25 / ammo 10-40 / health 5-50; cost 2-25/30; la moneda `pay` y el `give.item` quedan del molde, la IA no
+  cambia balance estructural); y `shopCacheBox` se **persiste en localStorage** (`ts_shopCache_v1`) → el surtido
+  autorado sobrevive recargas. Decisión §Economía ("IA sugiere, cliente clampa") cumplida.
 - **Nivel:** transversal (Nivel 1 primero; cualquier NPC-tienda)
 - **Última actualización:** 2026-06-26
 - **Relacionado:** `fabrica-niveles-ai.md` (la máquina de niveles — se REUSA el generador), `modelo-de-entidades.md`

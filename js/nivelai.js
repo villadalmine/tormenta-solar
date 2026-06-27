@@ -172,14 +172,29 @@ const NivelAI = (() => {
     // wares = mercadería del rubro + los ítems ancla (base) del NPC, garantizados
     const baseWares = (Array.isArray(base) ? base : []).map(b => ({ emoji: b.emoji || '🛍️', label: L(b.label) || (b.give && b.give.item) || 'ítem', give: b.give || { item: 'health', amount: 10 }, cost: b.cost || 5, pay: b.pay || 'coins' }));
     let wares = baseWares.concat(t.wares.map(w => ({ emoji: w.emoji, label: L(w.label), give: { ...w.give }, cost: w.cost, pay: w.pay || 'coins' })));
-    // la IA re-bautiza los productos (label/emoji), manteniendo give/cost/pay del molde (economía sana)
+    // la IA re-bautiza (label/emoji) Y SUGIERE economía (cost/amount); el cliente CLAMPA a rango sano por kind (la
+    // moneda `pay` y el tipo de ítem `give.item` quedan del molde: la IA no cambia balance estructural). Falta dato → molde.
+    const clampCost = (c, pay) => Math.max(2, Math.min(pay === 'caramelos' ? 30 : pay === 'forros' ? 12 : 25, c | 0));
+    const clampAmount = (a, item) => { a = a | 0; return item === 'coins' ? Math.max(4, Math.min(25, a)) : item === 'ammo' ? Math.max(10, Math.min(40, a)) : Math.max(5, Math.min(50, a)); };
     const prods = ai && Array.isArray(ai.products) ? ai.products : null;
-    if (prods && prods.length) wares = wares.map((w, i) => { const p = prods[i % prods.length]; return { ...w, label: (p && p.label) || w.label, emoji: (p && p.emoji) || w.emoji }; });
+    if (prods && prods.length) wares = wares.map((w, i) => {
+      const p = prods[i % prods.length] || {};
+      const give = { ...w.give };
+      if (p.amount != null && give.amount != null) give.amount = clampAmount(p.amount, give.item);   // potencia sugerida, clampada
+      const cost = (p.cost != null) ? clampCost(p.cost, w.pay) : w.cost;                              // precio sugerido, clampado
+      return { ...w, label: p.label || w.label, emoji: p.emoji || w.emoji, give, cost };
+    });
     wares = wares.map(w => { const p = freeTile(); return { ...w, x: p.x, y: p.y, taken: false }; });
     return { id: t.id, motif: t.motif, name: (ai && ai.name) || L(t.name), intro: (ai && ai.intro) || L(t.intro), palette: t.palette, W, H, props, npcs, wares, exit: { x: 2, y: H - 2 } };
   }
-  // ----- la IA autora el surtido del local (best-effort + caché por rubro). Fallback = molde estático. Ver tiendas-generadas.md
-  const shopCacheBox = {};
+  // ----- la IA autora el surtido del local (best-effort + caché por rubro, PERSISTIDA en localStorage). Fallback = molde
+  // estático. La IA SUGIERE precio/potencia (cost/amount); generateShop CLAMPA a rango sano por kind. Ver tiendas-generadas.md
+  const SHOP_CACHE_KEY = 'ts_shopCache_v1';
+  function loadShopCache() {   // memoria del cliente: el surtido autorado sobrevive recargas (REGLA #0: dato/memoria)
+    try { if (typeof localStorage === 'undefined') return {}; const d = JSON.parse(localStorage.getItem(SHOP_CACHE_KEY) || '{}'); return (d && typeof d === 'object') ? d : {}; } catch (e) { return {}; }
+  }
+  const shopCacheBox = loadShopCache();
+  function saveShopCache() { try { if (typeof localStorage !== 'undefined') localStorage.setItem(SHOP_CACHE_KEY, JSON.stringify(shopCacheBox)); } catch (e) {} }
   const shopCache = tipo => shopCacheBox[tipo] || null;
   function requestShop(tipo, cb) {
     if (shopCacheBox[tipo]) { cb && cb(shopCacheBox[tipo]); return; }              // ya cacheado → instantáneo
@@ -191,13 +206,15 @@ const NivelAI = (() => {
       .then(j => {
         if (!j || !(j.name || j.products || j.lines)) { if (j) markAi(true); cb && cb(null); return; }
         markAi(true);
+        const ci = v => { const n = Math.round(Number(v)); return Number.isFinite(n) ? n : null; };   // entero o null (generateShop re-clampa por kind)
         const ai = {
           name: j.name ? String(j.name).slice(0, 60) : null,
           intro: j.intro ? String(j.intro).slice(0, 160) : null,
           lines: Array.isArray(j.lines) ? j.lines.slice(0, 6).map(s => String(s).slice(0, 40)) : null,
-          products: Array.isArray(j.products) ? j.products.slice(0, 8).map(p => ({ label: String((p && p.label) || p || '').slice(0, 28), emoji: String((p && p.emoji) || '🛍️').slice(0, 4) })).filter(p => p.label) : null,
+          products: Array.isArray(j.products) ? j.products.slice(0, 8).map(p => { const o = { label: String((p && p.label) || p || '').slice(0, 28), emoji: String((p && p.emoji) || '🛍️').slice(0, 4) };
+            const c = ci(p && p.cost); if (c != null) o.cost = c; const a = ci(p && p.amount); if (a != null) o.amount = a; return o; }).filter(p => p.label) : null,
         };
-        shopCacheBox[tipo] = ai; cb && cb(ai);
+        shopCacheBox[tipo] = ai; saveShopCache(); cb && cb(ai);
       }).catch(() => { clearTimeout(to); markAi(false); cb && cb(null); });
   }
 

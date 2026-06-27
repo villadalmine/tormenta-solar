@@ -776,18 +776,22 @@ http.createServer((req, res) => {
         const sb = SHOP_BRIEF[tipo] || SHOP_BRIEF['comida-rara'];
         const ssys = en ? 'You stock tiny absurd shops. Reply ONLY with compact JSON, no prose.' : 'Surtís tienditas absurdas. Respondé SOLO con JSON compacto, sin prosa.';
         const suser = en
-          ? 'Shop: ' + sb + '. Return JSON {"name": short funny shop name (max 4 words), "intro": one short sentence (the vibe walking in), "lines": array of 4 VERY short customer/clerk phrases, "products": array of 5 items {"label": product name (max 4 words), "emoji": one emoji} — funny and on-theme}.'
-          : 'Tienda: ' + sb + '. Devolvé JSON {"name": nombre corto y gracioso (máx 4 palabras), "intro": una frase corta (la onda al entrar), "lines": array de 4 frases MUY cortas de cliente/vendedor, "products": array de 5 ítems {"label": nombre del producto (máx 4 palabras), "emoji": un emoji} — graciosos y del rubro}.';
+          ? 'Shop: ' + sb + '. Return JSON {"name": short funny shop name (max 4 words), "intro": one short sentence (the vibe walking in), "lines": array of 4 VERY short customer/clerk phrases, "products": array of 5 items {"label": product name (max 4 words), "emoji": one emoji, "cost": price as a small integer 2-30, "amount": how strong it is, small integer 5-50} — funny and on-theme}.'
+          : 'Tienda: ' + sb + '. Devolvé JSON {"name": nombre corto y gracioso (máx 4 palabras), "intro": una frase corta (la onda al entrar), "lines": array de 4 frases MUY cortas de cliente/vendedor, "products": array de 5 ítems {"label": nombre del producto (máx 4 palabras), "emoji": un emoji, "cost": precio como entero chico 2-30, "amount": qué tan fuerte es, entero chico 5-50} — graciosos y del rubro}.';
+        const pint = (v, lo, hi) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : null; };   // entero saneado o null
         try {
-          const { reply } = await ask([{ role: 'system', content: ssys }, { role: 'user', content: suser }], { maxTokens: 320, gen: true });
+          const { reply } = await ask([{ role: 'system', content: ssys }, { role: 'user', content: suser }], { maxTokens: 360, gen: true });
           const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
           const j = m ? JSON.parse(m[0]) : {};
           const out = {};
           if (j.name) out.name = String(j.name).slice(0, 60);
           if (j.intro) out.intro = String(j.intro).slice(0, 160);
           if (Array.isArray(j.lines) && j.lines.length) out.lines = j.lines.slice(0, 6).map(s => String(s).slice(0, 40));
+          // productos: nombre+emoji + ECONOMÍA SUGERIDA (cost/amount, ya saneada a entero/rango; el cliente re-clampa por kind)
           if (Array.isArray(j.products) && j.products.length) out.products = j.products.slice(0, 8)
-            .map(p => ({ label: String((p && p.label) || p || '').slice(0, 28), emoji: String((p && p.emoji) || '🛍️').slice(0, 4) })).filter(p => p.label);
+            .map(p => { const o = { label: String((p && p.label) || p || '').slice(0, 28), emoji: String((p && p.emoji) || '🛍️').slice(0, 4) };
+              const c = pint(p && p.cost, 2, 30); if (c != null) o.cost = c; const a = pint(p && p.amount, 1, 60); if (a != null) o.amount = a; return o; })
+            .filter(p => p.label);
           res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
         } catch (e) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); }
         return;

@@ -25,8 +25,9 @@ El juego es 100% estático; se publica en
   - ~~**Banco VIVO de historias del vecino**~~: ✅ **HECHO (v196 / infra-27)** — la IA ahora autora también el TEXTO
     (gancho + relato, ES/EN) por edificio (cron `gen-historias.mjs` → `POST /historias` → PVC → `GET /historias` →
     `window.HISTORIAS_VECINO`), con fallback al banco estático. `edificios-clausurados-historias.md §8`.
-  - **IA autora la ECONOMÍA de las tiendas** (`tiendas-generadas.md`): precios/efectos hoy anclados al molde (la IA
-    solo re-bautiza). + persistir `shopCache` en localStorage/banco del proxy (hoy en memoria).
+  - ~~**IA autora la ECONOMÍA de las tiendas**~~: ✅ **HECHO (v197 / infra-28)** — la IA **sugiere** `cost`/`amount`
+    por producto y el cliente **clampa** a rango sano por kind (la moneda y el tipo de ítem quedan del molde); +
+    `shopCache` **persistido en localStorage** (`ts_shopCache_v1`). `tiendas-generadas.md`.
   - **Linyera-guía / Guido "follow" cross-room** (`cuevero-gate-truco.md §9`): hoy scriptado por mensajes (el motor
     mueve NPCs solo dentro de la sala). Un follow que cruza salas = feature de motor nueva (caro, impacto estético).
   - **Persistir la historia activa del vecino** (hoy solo se guarda `entrado[edificio]`; las historias se regeneran).
@@ -45,6 +46,31 @@ El juego es 100% estático; se publica en
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v197] — 2026-06-27 — 🛍️ La IA autora la ECONOMÍA de las tiendas (precio + potencia, clampados) + caché persistida
+
+**Qué cambió (jugador):** el surtido de los locales de la galería ya no solo cambia de **nombre**: la IA ahora
+también propone **el precio y qué tan fuerte es cada producto**, así dos visitas/seeds se sienten distintas en la
+billetera, no solo en la etiqueta. Y lo que la IA te armó **queda guardado**: si recargás, el local sigue con su
+surtido autorado (no se regenera de cero).
+
+**Por qué importa (REGLA #0 — todo DATO/MEMORIA, con red de seguridad):** cierra la deuda fina de las tiendas. La
+economía deja de estar 100% anclada al molde, pero **el balance se protege con clamps duros**: la IA *sugiere*, el
+cliente *clampa* a un rango sano por tipo de ítem, y **la moneda (`pay`) y el tipo de efecto (`give.item`) siguen
+siendo del molde** — la IA no puede romper la economía, solo matizarla. (Decisión ya tomada en el SDD §Economía.)
+
+**Cómo (técnico):**
+- **Proxy** (infra-28): `theme:'shop'` ahora pide por producto `{label, emoji, cost(2-30), amount(5-50)}` y los
+  sanea a entero/rango en el server.
+- **Cliente** (`js/nivelai.js`): `requestShop` captura `cost`/`amount`; `generateShop` los aplica con **clamp por
+  kind** (`clampCost`: coins ≤25 · caramelos ≤30 · forros ≤12, mín 2 · `clampAmount`: coins 4-25 · ammo 10-40 ·
+  health 5-50). Falta dato → valor del molde (backward-compat).
+- **Persistencia:** `shopCacheBox` se **carga/guarda en localStorage** (`ts_shopCache_v1`) → el surtido autorado
+  sobrevive recargas (memoria del cliente, como el autosave). Headless/sin `localStorage` → no-op seguro.
+- **Tests:** `tests/tienda.js` +clamp de economía IA (absurdo→tope, sano→pasa, `pay` intacto) +persistencia en
+  localStorage (mock). `npm test` verde. Cache **v197**.
 
 ---
 
@@ -778,6 +804,15 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-28] — 2026-06-27 — 🛍️ Proxy 0.1.48→0.1.49: `theme:'shop'` también sugiere la ECONOMÍA (cost/amount)
+
+Sostén del **v197**. El branch `theme:'shop'` de `POST /nivel-ai` ahora pide a la IA, por producto, además de
+`label`/`emoji`, un **`cost`** (entero 2-30) y un **`amount`** (entero 5-50) — y los **sanea a entero/rango** en el
+server (`pint`). El cliente los re-clampa por kind. *(Nota: 0.1.48 fue el rebuild que metió `gen-historias.mjs` al
+Dockerfile; 0.1.49 trae este cambio de economía.)*
 
 ---
 
