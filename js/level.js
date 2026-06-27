@@ -450,6 +450,8 @@ const Level = (() => {
       }
       // piso 20: puerta SECRETA al búnker (solo usable con bunkerUnlocked, lo maneja game.js)
       if (n === 20) doors.push({ id:'bunker', art:'exit', label:'entrar al BÚNKER (secreto)', x:w-3, inward:-1, gate:{ flag:'bunkerUnlocked' } });
+      // piso 3: ATAJO secreto al búnker una vez que sos gurú (bunkerUnlocked) — para no subir los 20 pisos cada vez
+      if (n === 3) doors.push({ id:'atajobunker', art:'exit', label:'ATAJO secreto al BÚNKER', x:8, inward:-1, gate:{ flag:'bunkerUnlocked' } });
       const spec = { name:'Edificio Abandonado — Piso ' + n + (lux ? ' · LUJO' : ' · ruina'),
         theme: lux ? 'lujo' : 'ruina', tags:['edificio'], light: lux ? 1.0 : 0.42, w, doors };
       if (lux) {
@@ -511,7 +513,8 @@ const Level = (() => {
     // 34 — EL BÚNKER de los linyeras (refugio más seguro; acá vive el LOOP del nivel)
     rooms.push(makeRoom({
       name: 'El Búnker de los Linyeras', theme: 'secret', tags:['bunker'], light: 0.8, w: 20,
-      doors: [{ id:'back', art:'exit', label:'volver al piso 20', x:2, inward:1 }],
+      doors: [{ id:'back', art:'exit', label:'volver al piso 20', x:2, inward:1 },
+              { id:'atajop3', art:'exit', label:'bajar al piso 3 (atajo)', x:8, inward:1 }],
       npcs: [
         { name:'', sprite:'linyera', invisible:true, x:10, action:'loop' },   // el CATRE (decor) es el punto de dormir
         { name:'Linyera', sprite:'linyera', x:5,  dialog:'“Bienvenido al búnker, gurú. Acá nadie labura. Tirate en el catre cuando quieras pasar el día. 🛖”' },
@@ -654,6 +657,8 @@ const Level = (() => {
     }
     // piso 20 (sala 33) -> búnker (sala 34), por la puerta secreta
     wire(33, 'bunker', 34, 'back');
+    // ATAJO: piso 3 (sala 16) <-> búnker (sala 34), una vez gurú (bunkerUnlocked) — evita subir los 20 pisos
+    wire(16, 'atajobunker', 34, 'atajop3');
     // las 3 cuevas (35,36,37): se entra por la invitación del cuevero (handleCuevero), se sale por 'back' al hall (8)
     [35, 36, 37].forEach((ri, k) => {
       const r = rooms[ri];

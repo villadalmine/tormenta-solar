@@ -50,6 +50,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v202] — 2026-06-27 — 🛖 ATAJO secreto al búnker (piso 3): no subas los 20 pisos cada vez
+
+**Qué cambió (jugador):** una vez que sos **gurú** (abriste el búnker con el tótem), aparece una **puerta-atajo
+secreta al búnker en el piso 3** del edificio abandonado. Así no tenés que volver a subir los 20 pisos cada vez que
+querés ir a dormir/loopear o buscar el tesoro. (Pedido de playtest del dueño.) *(Aclaración: post-tormenta, el lugar
+de las joyas pasa a ser el cajón de la falopa — por eso el "te rajan del edificio" de las joyas ya no está ahí.)*
+
+**Cómo (técnico):** puerta `atajobunker` en el piso 3 (sala 16, gate `bunkerUnlocked`) ↔ `atajop3` en el búnker
+(sala 34), wireada bidireccional. DATA del nivel (`level.js`) → `level-data.js` regenerado, paridad v1≡v2 +
+playable verdes. Cache **v202**. *(Los ids de puerta van en minúscula: `slug()` de gen-level los baja, si no rompe
+paridad.)*
+
+---
+
 ## [v201] — 2026-06-27 — 🃏 Truco "DE A 6" (ruta B): el tahúr te reta 3 vs 3 → reclutás un equipo que te SIGUE — Fase 2
 
 **Qué cambió (jugador):** pediste que la ruta B (ganarle vos al tahúr) tuviera lo del **truco de a 6**. Ahora cuando

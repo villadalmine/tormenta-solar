@@ -3807,6 +3807,26 @@
           }
         },
         {
+          "id": "edificio-abandonado-piso-3-lujo/door-atajobunker",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 8,
+          "gate": {
+            "flag": "bunkerUnlocked"
+          },
+          "label": "ATAJO secreto al BÚNKER",
+          "inward": -1,
+          "link": {
+            "to": "el-bunker-de-los-linyeras",
+            "at": {
+              "x": 9.5,
+              "y": 12
+            }
+          }
+        },
+        {
           "id": "edificio-abandonado-piso-3-lujo/npc0",
           "tipo": "npc",
           "render": {
@@ -7236,6 +7256,23 @@
             "to": "edificio-abandonado-piso-20-ruina",
             "at": {
               "x": 19.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "el-bunker-de-los-linyeras/door-atajop3",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 8,
+          "label": "bajar al piso 3 (atajo)",
+          "inward": 1,
+          "link": {
+            "to": "edificio-abandonado-piso-3-lujo",
+            "at": {
+              "x": 6.5,
               "y": 12
             }
           }
