@@ -67,6 +67,21 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
 - **Degradación:** sin `salon-server` → el bodegón es un bar vacío con mozos canned (NPCs), jugable solo. Nadie nota
   que "faltaba" el online.
 
+#### 3.2.1 Chat del bodegón — PÚBLICO vs PRIVADO (idea dueño 2026-06-27)
+- **Público:** hablás y sale un **globito para TODOS** los de la sala (mensaje sobre tu cabeza, lo ven todos).
+- **Privado 1-a-1:** te **acercás a otro jugador y apretás `E`** → se abre un **chat privado** entre vos y ese (panel
+  de chat, solo lo ven los dos). Reusa el panel de chat de la IA (`#chat`) pero ruteado por el `salon-server` al peer.
+- *(Recordar §6: empezar con **frases preset + emotes** para el público sin moderación; el privado 1-a-1 con texto
+  libre es más acotado y se modera/rate-limita aparte, fase posterior.)*
+
+#### 3.2.2 La RUBIA del bodegón y el ROPERO — gag recurrente (idea dueño 2026-06-27)
+- En el bar atiende una **moza rubia explosiva** (NPC canned, no es un jugador): te sirve y **siempre te quiere llevar
+  a "probar unos tragos" en la puerta de atrás**. Es un **honeypot**.
+- Si le decís **que sí** y entrás al fondo → sale un **ROPERO de dos metros** (patova gigante) y **te RAJA del bar**
+  (te echa a la calle, tipo `ejectToStreet`). Gag que se repite (cada vez que caés). Humor porteño de bodegón.
+- Implementación: NPC `moza` con `action` propia (oferta → confirmás → mini-cinemática del ropero → eject). Canned
+  (no necesita el online); funciona aunque estés solo en el bar. Pensar premio/variante si insistís N veces.
+
 ### 3.3 Qué hacés JUNTOS (el corazón — lo que no podés solo)
 - **TRUCO PvP humano vs humano** ⭐: dos se sientan a una mesa → partida **persona contra persona** (reusa
   `js/truco.js`, motor puro ya testeado; el server relaya cantos/cartas). Es EL gancho social y casi gratis.

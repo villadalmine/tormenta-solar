@@ -56,6 +56,23 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v207] — 2026-06-27 — 🐛 Fixes: saltar carteles AHORA sí anda (umbral) · pre-tormenta NO dispara · nivel del vecino entra AL TOQUE
+
+Más playtest del dueño:
+- **Saltar carteles (v206) no andaba:** el umbral para que un cartel fuera salteable era `ms ≥ 4500`, pero **la
+  mayoría son de 2500-4000ms** → no se saltaban. Bajado a **`ms ≥ 2500`** (solo los toasts fugaces <2.5s no se
+  saltan). Y el click ya **no consume el disparo**: post-tormenta el click salta el cartel **y** dispara; pre-tormenta
+  no dispara igual.
+- **Pre-tormenta el Carpo NO dispara:** `player.shoot()` no estaba gateado → escupía desde el arranque. Ahora
+  `player.canShoot = stormed || spinoffLevel` (`game.js`) → **pre-tormenta no dispara** (no hay combate); en los
+  niveles generados sí.
+- **Nivel del vecino entra AL TOQUE (A0 latencia):** `passToBuilding` ahora es **cache-first** (como las tiendas):
+  abrís con el tema **al instante** (IA-cacheado si ya pasaste por esa historia, si no el estático) y la IA
+  **enriquece en background** para la próxima vez — se van los segundos de espera. (La deuda de que el look refleje
+  más la historia sigue anotada como **A0** en el roadmap/backlog.) Cache **v207**.
+
+---
+
 ## [v206] — 2026-06-27 — ⏭️ Saltar los carteles narrativos (E o click) + el linyera te avisa al llegar a Guido
 
 Playtest del dueño:

@@ -25,7 +25,7 @@ const Player = (() => {
         this.facing = dx < 0 ? -1 : 1;
 
         this.shootCd -= dt; this.muzzle -= dt; this.hurtCd -= dt;
-        if (Input.mouse.down) this.shoot();
+        if (Input.mouse.down && this.canShoot !== false) this.shoot();   // pre-tormenta canShoot=false → no dispara (lo setea game.js)
 
         this.animTime += dt;
         this.anim = !this.grounded ? 'jump' : (this.vx !== 0 ? 'run' : 'idle');

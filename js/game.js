@@ -118,6 +118,9 @@
   const entradoEdif = {};
   // estado del VECINO por edificio (told/storyCount/active) — PERSISTENTE (sobrevive recarga/save) → reabrir es coherente
   const vecinoState = {};
+  // cache de TEMAS de nivel autorados por la IA (clave = edif:storyId): cache-first como las tiendas → entrás AL TOQUE
+  // con el estático y la IA enriquece en background; la PRÓXIMA vez que pasás, el nivel ya entra rico (sin esperar).
+  const histThemeCache = {};
   // CÁMARAS que "ven" los dólares cuando disparás (post-tormenta): burbuja con la SERIE (real o TRUCHA → AFIP).
   // legalBlindUntil: si tiráste un dólar de serie BUENA, los ROBOTS (drones) no te ven hasta este momento (legal).
   let dollarBubbles = [], shotsSeen = 0, legalBlindUntil = 0;
@@ -314,7 +317,7 @@
     elMsg.textContent = t; elMsg.style.color = c || '#ff5252'; elMsg.style.opacity = '1';
     const mul = (typeof Config !== 'undefined' && Config.msgMs) ? Config.msgMs : 1;   // duración configurable
     msgUntil = performance.now() + ms * mul;
-    msgSkippable = ms >= 4500;   // los carteles LARGOS (narrativos) se pueden saltar con E/click; los cortos de combate no
+    msgSkippable = ms >= 2500;   // los carteles (narrativos/transición) se saltan con E/click; solo los toasts fugaces (<2.5s) no
   }
   // saltar el cartel narrativo (E o click izq), además del timeout. true si había uno y lo cerró (consume el input).
   function dismissMsg() {
@@ -1301,15 +1304,15 @@
     const interior = (n.vecino && n.vecino.interior);
     entradoEdif[edif] = true;
     applyEdge('vecino');   // grafo/Mensajero: "entraste a un edificio clausurado" (vecinoSeen es derivado de entradoEdif)
-    const theme = themeFromStory(s, edif);
-    flash(); tel('vecino', { edif, story: s.id });
-    if (NivelAI.requestHistoria) {   // IA enriquece (geometría/sabor); circuit breaker → estático al toque si cae
-      setMsg(T('g.vecino.shaping', { gancho: vecinoGancho(s) }), '#c8b0d8', 8000);
-      NivelAI.requestHistoria(edif, vecinoGancho(s), aiTheme => {
-        if (state !== 'playing' || spinoffLevel) return;   // ya entraste a otro lado / cambió el estado
-        if (!loadGenLevel(NivelAI.generateLevel(aiTheme || theme), interior)) setMsg(T('g.nivelai.fail'), '#ff5252', 4000);
-      });
-    } else if (!loadGenLevel(NivelAI.generateLevel(theme), interior)) setMsg(T('g.nivelai.fail'), '#ff5252', 4000);
+    // CACHE-FIRST (como las tiendas): entrás AL TOQUE con el tema (IA-cacheado si ya pasaste, si no el estático) → sin
+    // los segundos de espera. Si NO había cache, la IA enriquece EN BACKGROUND y la PRÓXIMA vez que pasás entra rico.
+    const ckey = edif + ':' + s.id, cached = histThemeCache[ckey];
+    const theme = cached || themeFromStory(s, edif);
+    flash(); tel('vecino', { edif, story: s.id, ai: !!cached });
+    if (!loadGenLevel(NivelAI.generateLevel(theme), interior)) { setMsg(T('g.nivelai.fail'), '#ff5252', 4000); return; }
+    if (!cached && NivelAI.requestHistoria) {   // enriquecé para la próxima (no bloquea la entrada de ahora)
+      NivelAI.requestHistoria(edif, vecinoGancho(s), aiTheme => { if (aiTheme) histThemeCache[ckey] = aiTheme; });
+    }
   }
   function redeemChori() {
     if (hasVale) {
@@ -1640,6 +1643,7 @@
 
     player.stunned = performance.now() < stunUntil;
     player.dollarMode = stormed;   // post-tormenta el Carpo escupe DÓLARES (apaciguan a la gente)
+    player.canShoot = stormed || spinoffLevel;   // PRE-tormenta el Carpo NO dispara (no hay combate); en niveles generados sí
     player.update(dt, r, cam);
     // las CÁMARAS ven cada dólar disparado → burbuja con la serie (real/trucha)
     if ((player.shots || 0) > shotsSeen) { shotsSeen = player.shots; if (player.lastShot && player.lastShot.kind === 'dollar') spawnDollarBubble(player.lastShot.x, player.lastShot.y); }
@@ -2229,7 +2233,7 @@
   // saltar el cartel narrativo con CLICK IZQ (además de E/timeout). Se agrega DESPUÉS de Input.bind → corre 2º, así
   // si saltó un cartel consume el disparo (Input.mouse.down=false) y ese click no escupe.
   if (canvas && canvas.addEventListener) canvas.addEventListener('mousedown', e => {
-    if (e.button === 0 && state === 'playing' && dismissMsg() && Input.mouse) Input.mouse.down = false;
+    if (e.button === 0 && state === 'playing') dismissMsg();   // click izq también salta el cartel (post-tormenta además dispara; pre-tormenta ya no dispara)
   });
   // red de visibilidad: errores JS de runtime → beacon (con el tag del motor) para verlos en Grafana
   if (typeof window !== 'undefined' && window.addEventListener)
