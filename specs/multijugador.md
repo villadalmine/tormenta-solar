@@ -1,40 +1,123 @@
-# SDD (idea / stub) — Zona MULTIJUGADOR: cruzarte con otros jugadores en tiempo real + co-op/quests
+# SDD — Zona MULTIJUGADOR: el CINE en vivo + el BODEGÓN donde te encontrás con otro
 
-- **Estado:** **Idea capturada (2026-06-25).** Diseño temprano — el dueño lo detalla después ("después veo qué").
-- **Relacionado:** repo **`online-game`** (ya tiene el backend **SSE/tiempo real + presencia** — reusar, no
-  reinventar; ver su `sdd-haproxy-edge-sse.md` y el metering por usuario), [`modelo-de-entidades.md`](modelo-de-entidades.md)
-  (otros jugadores = entidades; quests co-op = quests del grafo), `presence.js`, `suscripcion.md` (identidad/usuarios).
+- **Estado:** **DISEÑO (2026-06-27).** Idea del dueño aterrizada a arquitectura. Sin implementar — listo para prototipar F1.
+- **Nivel:** transversal (2 pisos nuevos del edificio del CINE; capa social online, NO vuelve todo el juego multiplayer).
+- **Relacionado:** `presence.js` (heartbeat "jugando ahora", ya existe), repo **`online-game`** (SSE/tiempo real +
+  presencia en el edge HAProxy/Cilium — REUSAR, no reinventar; ver su `sdd-haproxy-edge-sse.md`),
+  [`modelo-de-entidades.md`](modelo-de-entidades.md) (otros jugadores = entidades efímeras de runtime), `truco.md`
+  (PvP humano reusa el motor), `cine-noticias.md` (el cine ya es multi-piso, mismo patrón de `wire`), `seguridad.md`
+  (chat/anti-abuso), `suscripcion.md` (identidad opcional).
 
-## 1. La idea
-Una **parte del juego** (una zona/sala, o un modo) donde **te cruzás EN TIEMPO REAL con otros jugadores** y podés
-**interactuar** (verlos, hablar, emotes) y **hacer cosas juntos**: **quests co-op**, mandados compartidos, o
-simplemente coexistir en el mundo (la peatonal "viva"). Hoy el juego es single-player; esto suma una capa
-**social/online** acotada a una zona, sin volver todo el juego multiplayer.
+## 1. La idea (del dueño)
+Dos pisos nuevos en el edificio del CINE (que ya es multi-piso):
+1. **CINE EN VIVO** (real-time): un piso-cine donde **la pantalla te muestra el mundo VIVO** — cuántas sesiones hay
+   jugando ahora, dónde están, qué acaban de hacer. "Ver a los otros" sin cruzarte físicamente. *(Barato, alto impacto.)*
+2. **BODEGÓN porteño** (encuentro real): un bodegón con **mesas y comida** donde, si subís, **te cruzás EN TIEMPO
+   REAL con otro jugador** (de a 2+), lo ves moverse, se saludan, se sientan, comparten. *(El multiplayer "de verdad".)*
 
-## 2. Por qué encaja (no se inventa de cero)
-- **`online-game` ya resuelve el tiempo real**: tiene **SSE** (server-sent events) por el edge HAProxy + Cilium,
-  **presencia** y metering por usuario. La zona multi de Tormenta Solar **se conecta a ese backend** (o uno
-  calcado) en vez de armar WebSockets nuevos. El juego sigue siendo estático (GitHub Pages) + un endpoint de
-  estado en vivo.
-- **Otros jugadores = entidades** (modelo §4): un jugador remoto es una `entity` `tipo:"player"` con `pos`/`render`
-  que se **crea/actualiza/borra en runtime** desde el stream (como las efímeras D6 — NO van al modelo ni al save).
-- **Quests co-op = quests del grafo** (§6.95) con condición compartida (ej. "los dos en la sala", "uno hace A y
-  el otro B"). El `HintEngine`/oráculo ya guía; sumar la coordinación entre 2+ es la parte nueva.
+> Regla de oro del repo (se respeta): **capa ADITIVA con degradación**. Sin backend / sin conexión → los pisos
+> quedan como decorado estático ("nadie conectado") y **el resto del juego anda 100% igual**. Nada de WebSockets
+> nuevos: **SSE** (server→cliente) + **POST** (cliente→server), que el edge HAProxy/Cilium ya pasa (lo usa `online-game`).
 
-## 3. Preguntas abiertas (para cuando se detalle)
-- **Alcance:** ¿una sola "plaza"/zona social, o varias? ¿co-op de a 2 o lobby de N? ¿drop-in/drop-out?
-- **Sincronización:** ¿solo posiciones + chat (barato, SSE), o estado de quest compartido (más complejo)?
-  ¿autoridad del servidor vs cliente? ¿qué pasa si se cae la conexión (degradar a single, como todo el repo)?
-- **Identidad:** ¿nick anónimo (session-id, como el cupo del chat) o ligado a la cuenta/suscripción?
-- **Anti-abuso:** chat/acciones entre jugadores = moderación, rate-limit, reportes (cae en `seguridad.md`).
-- **Infra:** ¿el endpoint vive en `online-game` o un servicio propio? ¿cuánto aguanta el edge (maxconn del G4)?
-- **Diseño de juego:** ¿qué hacés JUNTOS que no podés solo? (puertas que requieren 2, un quest que se reparte,
-  un jefe co-op, intercambio de items/caramelos). Eso es lo que le da sentido a la zona.
+## 2. Arquitectura (qué se reusa, qué es nuevo)
+- **El juego sigue estático** (GitHub Pages + nginx self-host). Lo único nuevo es un **servicio de "salón"** chico
+  (Node, SSE) — puede ser el backend de `online-game` o uno calcado (`salon-server/`). NO va en el `ai-proxy` (ese es
+  para IA; mezclarlo con presencia real-time lo ensucia).
+- **Identidad anónima y efímera** (como el cupo del chat / `presence.js`): `pid` en `sessionStorage` (`ts_pid`) + un
+  **nick** y un **avatar** elegidos (variantes del Carpo). **Sin cuenta** (degrade-friendly); ligar a `suscripcion`
+  es opcional a futuro.
+- **Otros jugadores = entidades efímeras de runtime** (modelo §4, como las D6): `tipo:"player"` con `pos`/`render`,
+  **se crean/actualizan/borran desde el stream**, NUNCA van al modelo ni al save. Entran y salen limpio.
+- **El server es un RELAY, no autoridad de juego**: solo reenvía posiciones/chat a los suscriptores de la sala y poda
+  los stale. Estado en memoria (se pierde al reiniciar = no importa, es un espacio social). Sin física server-side
+  (un bodegón social no necesita anti-cheat; confiamos en el cliente).
 
-## 4. Mi lectura
-- **Reutilizar `online-game`** es el camino: ya hay tiempo real + presencia probados en producción; sumamos una
-  zona que habla ese protocolo. El **modelo de entidades** hace que los jugadores remotos entren limpio (entidades
-  efímeras de runtime). Lo que hay que diseñar bien es **qué se hace junto** (el gameplay co-op) y la
-  **degradación** (sin conexión → la zona queda single, el resto del juego intacto).
-- **Cuándo:** después de cerrar lo single-player en curso (cine/noticias, etc.). Es una capa grande; conviene
-  prototipar **una zona con solo posiciones + chat** (lo más barato sobre SSE) antes de quests co-op.
+### Protocolo (concreto, SSE + POST)
+```
+POST /salon/beat   {pid,nick,avatar, at:{sala,x}}   cada ~3s   → presencia global (quién, dónde). Poda >10s.
+GET  /salon/live   (SSE o poll 5s)                              → CINE: {count, byRoom:{cueva:3,…}, ticker:[…]}
+POST /salon/join   {pid,nick,avatar}                            → BODEGÓN: te asigna un roomId (matchmaking, §3.2)
+GET  /salon/stream?room=R   (SSE)                               → eventos: peer-join/leave, peer-pos {pid,x,vx,emote}, say
+POST /salon/pos    {pid,room,x,vx,emote}            throttle ~6/s  (tu posición → fanout a la sala)
+POST /salon/say    {pid,room,phrase}                            (frase PRESET o emote — anti-abuso §6)
+```
+
+## 3. Los dos pisos (diseño de gameplay)
+
+### 3.1 CINE EN VIVO (F1 — barato, alto wow)
+- Sala nueva `cine-live` (theme `cine`, tag `cine-live`), wireada arriba del cine de noticias. La **pantalla** (donde
+  hoy van las noticias) muestra un **dashboard del mundo vivo**, por `GET /salon/live` (SSE o poll 5s):
+  - **"N jugando ahora"** (ya lo calcula `presence.js`; lo enriquecemos).
+  - **Mapa/heatmap por zona:** "3 en la cueva · 1 en el chino · 2 en la calle bajo tormenta".
+  - **Ticker de hitos anónimos** (agregado del `tel(...)`/`applyEdge` que YA emitimos): *"alguien le ganó al tahúr"*,
+    *"alguien escupió dólares en Florida"*, *"entró un linyera al búnker"*. Anonimizado.
+  - **[R]** lo lee en voz alta (reusa el TTS del cine).
+- **Cero posiciones en tiempo real acá** — es un "panel de la Matrix". Reusa `presence.js` (heartbeat) + un endpoint
+  de agregados. **Se prototipa primero**: sensación de mundo vivo con mínima plomería.
+
+### 3.2 BODEGÓN (F2 — encuentro real-time)
+- Sala nueva `bodegon` (theme nuevo: madera, mesas redondas, mantel, parrilla, vino, fernet). Subís por el ascensor
+  del cine. Al entrar → `POST /salon/join` te mete en una **sala-instancia chica (cap ~6)**:
+  - **Matchmaking simple:** el server llena la sala actual hasta `cap`; cuando se llena, abre otra. "De a dos suben y
+    se encuentran" = caés en la sala con gente esperando (o esperás vos, con mozos canned de relleno mientras tanto).
+  - **Co-presencia real:** ves a los otros como **avatares que se mueven** (tu cliente postea `pos` ~6/s, recibe las de
+    los demás por el `stream` SSE, con **interpolación** suave como cualquier .io). Caminás, te sentás a una mesa,
+    tirás **emotes** (🍻🤝💃🎸) y **frases preset** porteñas ("¿todo bien maestro?", "salú", "tomá que van").
+  - **Mesas = puntos de interacción compartida** (§3.3).
+- **Degradación:** sin `salon-server` → el bodegón es un bar vacío con mozos canned (NPCs), jugable solo. Nadie nota
+  que "faltaba" el online.
+
+### 3.3 Qué hacés JUNTOS (el corazón — lo que no podés solo)
+- **TRUCO PvP humano vs humano** ⭐: dos se sientan a una mesa → partida **persona contra persona** (reusa
+  `js/truco.js`, motor puro ya testeado; el server relaya cantos/cartas). Es EL gancho social y casi gratis.
+- **Brindis:** 2+ en una mesa con birra/fernet → animación + **flores a todos** + logro social.
+- **Compartir comida:** pedís un asado/choripán para la mesa → **cura/buff a todos los sentados** (gastás vos, ganan
+  todos = gesto cooperativo).
+- **Trueque:** pasarle **caramelos/dólares/flores** a otro (intercambio explícito, confirmado por ambos).
+- **Puerta co-op:** algo que **solo se abre con 2+** (quest co-op del grafo: "junten 3 flores entre todos", "uno toca
+  A mientras el otro toca B").
+
+## 4. Cliente (capa aditiva, `typeof Salon !== 'undefined'`)
+- Nuevo módulo `js/salon.js` (patrón de `presence.js`/`Ads`): sin `ENDPOINT`/`fetch` → no-op total (e2e/headless ok).
+  - `Salon.beat({sala,x})` desde el game loop (throttled) → presencia global.
+  - En `cine-live`: `Salon.live(cb)` (SSE/poll) → render de la pantalla.
+  - En `bodegon`: `Salon.join()` → `Salon.onPeers(cb)` (stream) + `Salon.pos(x,vx,emote)` + `Salon.say(phrase)`.
+  - **Peers** = NPCs efímeros (reusa el render de NPC; sprite = avatar elegido + nick flotante). Se crean/borran por
+    `peer-join/leave`. Interpolación cliente entre updates.
+- Salas/wire en `level.js` (DATA, REGLA #0): 2 pisos nuevos del cine + `wire`. Probablemente sin campos nuevos en el
+  schema (los peers no son data del nivel; son runtime).
+
+## 5. Fases (de barato a co-op)
+1. **F1 — CINE EN VIVO** (presencia + ticker agregado). Reusa `presence.js` + `/salon/live`. **Cero real-time de
+   posiciones.** Máximo wow / mínimo riesgo. *Empezar acá.*
+2. **F2 — BODEGÓN co-presencia**: salas-instancia + posiciones por SSE + emotes + frases preset. La experiencia
+   "subís y te encontrás con otro". (Sin chat libre → sin moderación, §6.)
+3. **F3 — Co-op real**: **truco PvP** (reusa el motor) + brindis + compartir comida + trueque + 1 quest co-op.
+4. **F4 — Identidad/escala**: nick ligado a `suscripcion` (opcional), más salas, y SI se agrega chat libre →
+   moderación/rate-limit/reportes (`seguridad.md`).
+
+## 6. Anti-abuso (decisión que ahorra MUCHO) → `seguridad.md`
+- **Sin chat de texto libre en F2/F3**: solo **emotes + frases PRESET** (menú de porteñismos). Esto **elimina la
+  moderación** (no hay texto arbitrario que filtrar) y sigue siendo expresivo. El chat libre queda para F4 con
+  filtros/rate-limit/reportes si se decide.
+- **Rate-limit** en `pos`/`say` (server). Identidad efímera por `pid`; `report/block` a futuro.
+- **Denial-of-wallet:** el salón NO usa IA (es relay puro) → no toca el cupo de modelos. Barato.
+
+## 7. Infra / preguntas abiertas
+- **¿Dónde vive el `salon-server`?** ¿Reusar el backend de `online-game` (ya tiene SSE+presencia en prod) o un
+  Deployment Node nuevo `salon`? Propuesta: **servicio propio chico** (SSE), detrás del mismo edge HAProxy/Cilium, PVC
+  solo si quiere persistir el ticker (si no, in-memory). **Pinear a un nodo con headroom (NO `srv-rk1-nvme-01`)** —
+  lección del incidente DiskPressure (ver repo `infra`).
+- **¿Cuánto aguanta el edge?** SSE = una conexión abierta por jugador en bodegón; el `maxconn` del G4/HAProxy es el
+  límite real. F1 (cine) es liviano. F2 escala con salas chicas (cap ~6) → pocas conexiones por sala.
+- **Matchmaking:** ¿global "primera sala con lugar" (simple) o por región/latencia? Propuesta: simple, una cola.
+- **Reconexión:** se cae el SSE → reintento con backoff; mientras, el bodegón queda "solo" (degradación), no rompe.
+
+## 8. Mi lectura
+- **F1 (cine en vivo) es el quick-win brutal:** sensación de "mundo vivo" reusando `presence.js` + el telemetry que YA
+  emitimos, sin real-time de posiciones. Lo haría primero — 70% del "ver a los otros" con 20% del trabajo.
+- **F2 (bodegón) es el corazón** y es factible sobre SSE (relay de posiciones, sin autoridad). La clave de diseño es
+  **qué hacés JUNTOS**: el **truco PvP** (reusa el motor puro) es el gancho que justifica subir, casi gratis.
+- **La decisión que más ahorra:** **emotes + frases preset en vez de chat libre** → mata la moderación de F2/F3.
+- **Degradación**: como todo el repo, sin backend los pisos son decorado y el juego sigue intacto. Cero riesgo de
+  romper lo single-player.

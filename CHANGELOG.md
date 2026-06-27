@@ -35,8 +35,11 @@ El juego es 100% estático; se publica en
   - ~~**Persistir la historia activa del vecino**~~: ✅ **HECHO (v198)** — `vecinoState[edif]` (told/storyCount/activeStory)
     se serializa/restaura; el NPC se hidrata desde el estado guardado → reabrir el chusmerío es coherente tras recargar.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
-- **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
-  interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.
+- **Zona multijugador** (`specs/multijugador.md`): ✏️ **DISEÑO aterrizado (2026-06-27)** — 2 pisos nuevos del CINE:
+  **(1) Cine EN VIVO** (la pantalla muestra el mundo vivo: cuántos juegan, dónde, ticker de hitos del `tel()`; reusa
+  `presence.js`, F1 barato) y **(2) Bodegón porteño** (salas-instancia chicas por SSE: te cruzás en tiempo real con
+  otro, mesas/comida, **truco PvP humano** reusando el motor, emotes+frases preset sin chat libre = sin moderación).
+  Server relay SSE (no autoridad), peers = entidades efímeras, degradación total sin backend. Fases F1→F4. Sin implementar.
 - **Spinoff STARGATE** (`specs/spinoff-stargate.md`, idea 2026-06-26): SG-1 + Atlantis, fiel al canon (razas,
   planetas, galaxias, naves, militar Tau'ri, personajes por raza). El stargate = puerta entre niveles/galaxias.
   Diseño temprano, NO implementado.
