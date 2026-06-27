@@ -56,6 +56,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v206] — 2026-06-27 — ⏭️ Saltar los carteles narrativos (E o click) + el linyera te avisa al llegar a Guido
+
+Playtest del dueño:
+- **Carteles salteables:** los mensajes narrativos LARGOS (cuevero, Guido, vecino, linyera…) ahora se **saltan con
+  `E` o click izquierdo** (además del timeout). Solo los largos (`ms ≥ 4500`) son salteables; los cortos de combate
+  no, para no comerte clicks. El click que saltea **no escupe** (consume el disparo). `dismissMsg()` en `game.js`.
+- **Escolta del cuevero (ruta A) más clara:** cuando el **linyera te está escoltando** y llegás a EducaciónIT P8 (la
+  sala de Guido), te **avisa**: *"ahí lo tenés a Guido, hablale del truco"* y se piro. (`g.guido.escortArrived`,
+  disparado en `transition()` al detectar la sala con el NPC `action:'guido'`.)
+- **Coherencia ruta A vs "de a 6":** si ya elegiste ir con **Guido** (ruta A), los compañeros de truco (Pino/Coya)
+  ahora lo **reconocen** ("ya arreglaste con Guido, no mezcles") en vez de mandarte al tahúr en vano (que con Guido
+  siguiéndote no ofrece el de-a-6) → se va el loop sin salida que reportó el dueño. (`g.truco.mateGuido`.) Cache **v206**.
+
+---
+
 ## [v205] — 2026-06-27 — 📡 MULTIJUGADOR F1: el 8º piso del cine es "EN VIVO" (ves cuántos juegan ahora y qué hicieron)
 
 **Qué cambió (jugador):** el edificio del cine tiene un **piso nuevo arriba de todo, "EN VIVO"** (los 7 pisos de

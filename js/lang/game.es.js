@@ -158,6 +158,7 @@
     'g.guido.escortLinyera': '“Seguime, pibe, vamos a EducaciónIT, piso 8.” 🫥',
     'g.guido.escortGuidoJoin': 'Guido se levanta y se te pega: “Vamos, te acompaño hasta la mesa del tahúr.” 🃏 (Ahora te SIGUE por las salas.)',
     'g.guido.escortGuido': 'Guido, caminando al lado tuyo: “Dale, llevame a la mesa del tahúr que le gano.” 🃏',
+    'g.guido.escortArrived': 'El linyera se para en la puerta y te señala: “Ahí lo tenés a GUIDO, pibe. Hablale del truco. Yo me piro.” 🫥👉',
     // --- EL VECINO de los edificios clausurados (specs/edificios-clausurados-historias.md) ---
     'g.vecino.preStorm': '“Andá tranquilo ahora, pibe. Pero cuando se apague todo... ese edificio se pone feo. Volvé a verme.” 🏢',
     'g.vecino.edif.edu': 'EducaciónIT',
@@ -302,6 +303,7 @@
     'g.truco.seisWin': '¡Tu equipo le gana al tahúr {won} a {lost}! 🃏🎉 El tahúr afloja: “Bien jugado. Andá al cuevero y decile que lo perdono.” 💬✅',
     'g.truco.seisLose': 'Tu equipo cae {won} a {lost}. 🃏 El tahúr se ríe. Juntá mejores compañeros y volvé. (−25 vida)',
     'g.truco.mateEarly': '“Primero andá a ver al tahúr, pibe. Si te reta a jugar de a 6, ahí sí me sumo.” 🃏',
+    'g.truco.mateGuido': '{name} te mira de reojo: “¿Equipo de a 6? Pero si vos ya arreglaste con GUIDO, pibe. Con él al tahúr le alcanza. Dejá, no mezcles.” 🃏',
     'g.truco.mateJoin': '{name} se suma a tu equipo y se te pega: “Vamos a esa mesa que le ganamos al tahúr.” 🃏 (Ahora te SIGUE.)',
     'g.truco.mateFollow': '{name}, caminando con vos: “Dale, llevame a la mesa del tahúr.” 🃏',
     'g.truco.mateAlready': '{name} ya está en tu equipo y te sigue. 🃏',

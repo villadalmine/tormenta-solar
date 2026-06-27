@@ -143,6 +143,7 @@
     'g.guido.escortLinyera': '“Follow me, kid, off to EducaciónIT, floor 8.” 🫥',
     'g.guido.escortGuidoJoin': 'Guido gets up and falls in beside you: “Let\'s go, I\'ll walk you to the sharp\'s table.” 🃏 (He now FOLLOWS you across rooms.)',
     'g.guido.escortGuido': 'Guido, walking beside you: “Come on, take me to the sharp\'s table and I\'ll win it.” 🃏',
+    'g.guido.escortArrived': 'The hobo stops at the door and points: “There\'s GUIDO, kid. Talk to him about truco. I\'m off.” 🫥👉',
     // --- THE NEIGHBOR of the condemned buildings (specs/edificios-clausurados-historias.md) ---
     'g.vecino.preStorm': '“Go on, you\'re fine now, kid. But when everything goes dark... that building turns nasty. Come see me then.” 🏢',
     'g.vecino.edif.edu': 'EducaciónIT',
@@ -280,6 +281,7 @@
     'g.truco.seisWin': 'Your team beats the sharp {won} to {lost}! 🃏🎉 He gives in: “Well played. Go to the cuevero and tell him I forgive him.” 💬✅',
     'g.truco.seisLose': 'Your team falls {won} to {lost}. 🃏 The sharp laughs. Get better teammates and come back. (−25 HP)',
     'g.truco.mateEarly': '“Go see the sharp first, kid. If he challenges you to six-handed, then I\'m in.” 🃏',
+    'g.truco.mateGuido': '{name} eyes you sideways: “A six-handed team? But you already sorted it with GUIDO, kid. He\'s enough against the sharp. Leave it, don\'t mix routes.” 🃏',
     'g.truco.mateJoin': '{name} joins your team and falls in beside you: “Let\'s get to that table and beat the sharp.” 🃏 (Now FOLLOWS you.)',
     'g.truco.mateFollow': '{name}, walking with you: “Come on, take me to the sharp\'s table.” 🃏',
     'g.truco.mateAlready': '{name} is already on your team and following you. 🃏',

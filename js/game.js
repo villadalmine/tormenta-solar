@@ -106,7 +106,7 @@
   let state = 'intro', stormed = false, bought = false, hasVale = false, challengeForVale = false;
   let secretUnlocked = false;
   const arcadeWon = { pacman: false, galaga: false, frogger: false };
-  let lastT = 0, running = false, msgUntil = 0, shakeUntil = 0, time = 0, transCd = 0;
+  let lastT = 0, running = false, msgUntil = 0, msgSkippable = false, shakeUntil = 0, time = 0, transCd = 0;
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
   let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null;
@@ -314,6 +314,13 @@
     elMsg.textContent = t; elMsg.style.color = c || '#ff5252'; elMsg.style.opacity = '1';
     const mul = (typeof Config !== 'undefined' && Config.msgMs) ? Config.msgMs : 1;   // duración configurable
     msgUntil = performance.now() + ms * mul;
+    msgSkippable = ms >= 4500;   // los carteles LARGOS (narrativos) se pueden saltar con E/click; los cortos de combate no
+  }
+  // saltar el cartel narrativo (E o click izq), además del timeout. true si había uno y lo cerró (consume el input).
+  function dismissMsg() {
+    if (!msgSkippable || performance.now() >= msgUntil) return false;
+    msgUntil = 0; msgSkippable = false; elMsg.style.opacity = '0';
+    return true;
   }
 
   // ---- cámara ----
@@ -1157,6 +1164,8 @@
     const id = n.mate && n.mate.id;
     if (!id || !TRUCO_MATES[id]) { setMsg(TX(n.dialog) || '...', '#aef0c0', 3500); return; }
     if (cueveroUnlocked) { setMsg(T('g.truco.mateDone'), '#aef0c0', 4000); return; }
+    // ruta A ya elegida (vas con Guido): el de-a-6 es la OTRA ruta → el compañero lo reconoce (no te manda al tahúr en vano)
+    if (guidoSummoned || guidoFollowing) { setMsg(T('g.truco.mateGuido', { name: TRUCO_MATES[id].name }), '#9fb4c4', 6000); return; }
     if (!trucoSeisOffered) { setMsg(T('g.truco.mateEarly'), '#9fb4c4', 5000); return; }   // todavía no te retaron de a 6
     if (trucoMatesRec[id]) { setMsg(T('g.truco.mateAlready', { name: TRUCO_MATES[id].name }), '#aef0c0', 3500); return; }
     trucoMatesRec[id] = true;
@@ -1327,6 +1336,8 @@
     elFloor.textContent = TX(r.name);
     if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
     companions.forEach(placeCompanionInRoom); syncCompanions();   // los compañeros cruzan la puerta CON vos (follow cross-room)
+    // ruta A: si el LINYERA te está escoltando y llegaste a la sala de Guido → te avisa "ahí está, hablale" y listo
+    if (companions.some(c => c.id === 'linyera') && (r.npcs || []).some(n => n.action === 'guido')) setMsg(T('g.guido.escortArrived'), '#7CFC00', 7000);
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
     if (!isCine(r)) {   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
       if (mundialApproach) mundialApproach.npc.x = mundialApproach.homeX;   // el hincha vuelve a su lugar
@@ -2215,6 +2226,11 @@
   }
 
   Input.bind(canvas);
+  // saltar el cartel narrativo con CLICK IZQ (además de E/timeout). Se agrega DESPUÉS de Input.bind → corre 2º, así
+  // si saltó un cartel consume el disparo (Input.mouse.down=false) y ese click no escupe.
+  if (canvas && canvas.addEventListener) canvas.addEventListener('mousedown', e => {
+    if (e.button === 0 && state === 'playing' && dismissMsg() && Input.mouse) Input.mouse.down = false;
+  });
   // red de visibilidad: errores JS de runtime → beacon (con el tag del motor) para verlos en Grafana
   if (typeof window !== 'undefined' && window.addEventListener)
     window.addEventListener('error', e => { reportClientError('runtime: ' + (e && e.message), e && e.error); });
@@ -2246,7 +2262,7 @@
     if (e.key === 'Escape' && spinoffLevel && state === 'playing') { e.preventDefault(); endSpinoffLevel('flee'); return; }   // salir del nivel-AI
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
-    if (k === 'e') interact();
+    if (k === 'e') { if (dismissMsg()) return; interact(); }   // E salta el cartel narrativo si hay uno; si no, interactúa
     else if (k === 'r' && state === 'playing' && isCine(room()) && cineNoticias.length) cineRead();   // CINE: [R] leer todas en voz alta
     else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? T('g.music.on') : T('g.music.off'), '#9fd3ff', 1200); }
     else if (k === 'p' && (state === 'playing')) { if (myst && myst.classList.contains('hidden')) showMyStats(); else closeMyStats(); }   // "Tu partida"
