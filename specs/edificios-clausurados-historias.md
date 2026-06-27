@@ -1,8 +1,8 @@
 # SPEC: El vecino de los edificios clausurados — historias IA → nivel generado
 
-- **Estado:** Draft (idea del dueño, 2026-06-26) — **no implementado**
+- **Estado:** **Implementado** (2026-06-27) — loop completo: vecino → historias → "¿pasás?" → nivel generado → interior real. Ver §8.
 - **Nivel:** 1 (post-tormenta)
-- **Última actualización:** 2026-06-26
+- **Última actualización:** 2026-06-27
 - **Relacionado:** `fabrica-niveles-ai.md` (la máquina de niveles — genera el nivel desde la historia),
   `tiendas-generadas.md` (mismo patrón "le hablás → entrás a un interior generado"), `ia-openrouter.md` /
   `npcs-vivos.md` (chat IA + personas + Mensajero), `resiliencia.md` (fallback estático si la IA cae),
@@ -111,6 +111,42 @@ edificios muertos.
 - **CA-4:** aceptar genera un nivel jugable (pasa `Playable`) y, al ganarlo, quedás en el interior real del edificio.
 - **CA-5:** segunda visita = una historia + oferta directa. El lazo se repite con un nivel nuevo.
 - **CA-6:** sin `NivelAI`/IA, la calle y el run siguen intactos (aditivo) y el vecino igual chusmea.
+
+## 8. Implementación (2026-06-27)
+
+Capa **aditiva** (cliente + i18n + proxy). Toca: `js/level.js` (4 vecinos DATA en la calle), `js/game.js` (todo
+el flujo), `js/lang/game.{es,en}.js` (historias/ganchos/UI), `js/nivelai.js` (`requestHistoria`), `index.html`
+(overlay `#vecinomenu`), `ai-proxy/server.js` (branch `theme:'historia'`). v2 plumbing: `vecino` en
+`tools/gen-level.js` + `js/mundo.js` + `levels/level.schema.json` (paridad v1≡v2 verde, `level-data.js` regenerado).
+
+- **RF-1 (vecinos DATA):** 4 NPCs en la calle (sala 0), uno por edificio `collapsesOnStorm`: `edu`(→interior sala 1),
+  `arcade`(4), `choris`(5), `garbarino`(11). `action:'vecino'`, `vecino:{edificio, interior}`. Pre-tormenta tiran su
+  `dialog` ambiental; post-tormenta entran al flujo.
+- **RF-2 (historias):** **banco estático COMPARTIDO** de 6 relatos de terror reusables (juguetes diabólicos, la
+  llorona, filicidio, fiesta eterna, fantasmas, el gato del dueño muerto) en `VECINO_STORIES` + i18n
+  `g.vecino.tale.<id>` (interpola `{edif}`). Robusto sin red. 1ª charla = teaser; de la 2ª en más (o si ya entraste)
+  abre la **oferta** (overlay `#vecinomenu`, calco de `cueveromenu`): muestra el relato + 2 botones **"¿querés pasar
+  y ver qué pasó con {gancho}?"** / **"contame otra"** (swap del relato in-place = el chusmerío iterativo).
+- **RF-3/RF-5 (la historia es la semilla):** `themeFromStory` arma un **tema ad-hoc** (paleta/props/style/nombre=gancho)
+  → `NivelAI.generateLevel(tema)` (RED `Playable` + auto-reparación + rooms-swap, reusa toda la máquina). **IA opcional**
+  (`requestHistoria` → proxy `theme:'historia'` con `{edificio, gancho}` → name/intro/props/lines/style + **geometría**
+  autorada): si está, enriquece; si la IA cae (circuit breaker) → tema **estático** al toque. RF-8 cubierto.
+- **RF-6 (interior real al ganar):** `loadGenLevel(gen, returnRoom)` guarda `spinoffReturnRoom`; `endSpinoffLevel('win')`
+  carga el interior REAL del edificio (sus salas, ya en `rooms[]`) en vez de la calle. Salir = la puerta del interior.
+- **RF-7 (2ª visita):** `entradoEdif[edificio]` (persistente, serializado) → ya entrado = la oferta sale directa. El
+  lazo se repite (cada pasada, nivel nuevo desde una historia nueva).
+- **Tests:** `tests/e2e.js` hook `Game.__vecino` (historia → pasar → nivel generado SYNC en headless → interior real
+  al ganar). Battery + web-smoke + paridad verdes.
+
+### Decisiones tomadas sobre §7 (preguntas abiertas)
+- **Edificios:** los 4 `collapsesOnStorm` (el abandonado queda con su sistema propio). ✅ propuesta del SDD.
+- **Gancho→tema:** **híbrido** — el cliente arma el tema estático desde el relato; el proxy (`theme:'historia'`) lo
+  **enriquece** con texto+geometría si está disponible. ✅
+- **Interior tras ganar:** las **salas reales** del edificio (existen para los 4). ✅
+- **Vecino IA vs scriptado:** **historias estáticas (robustas) + oferta como opción fija**; la IA autora el NIVEL
+  (no el texto del chat, por ahora). Deuda menor: que la IA autore también el TEXTO de las historias (banco vivo).
+- **Memoria:** se guarda `entrado[edificio]`; las historias se regeneran (no se persiste la activa — deuda menor).
+- **Grafo:** el vecino/"pasar" NO entraron al grafo `historia.js` todavía (deuda, igual que el gate del cuevero).
 
 ## 7. Preguntas abiertas
 

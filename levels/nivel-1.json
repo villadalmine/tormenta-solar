@@ -315,6 +315,82 @@
           "id": "florida-y-lavalle/npc2",
           "tipo": "npc",
           "render": {
+            "sprite": "civil3"
+          },
+          "x": 12,
+          "name": "El vecino",
+          "interact": {
+            "action": "vecino",
+            "vecino": {
+              "edificio": "edu",
+              "interior": 1
+            }
+          },
+          "dialogue": {
+            "text": "“Ese edificio... yo de noche escucho cosas, pibe. Cuando se corte la luz vas a ver.” 🏢"
+          }
+        },
+        {
+          "id": "florida-y-lavalle/npc3",
+          "tipo": "npc",
+          "render": {
+            "sprite": "mujer"
+          },
+          "x": 33,
+          "name": "La vecina",
+          "interact": {
+            "action": "vecino",
+            "vecino": {
+              "edificio": "arcade",
+              "interior": 4
+            }
+          },
+          "dialogue": {
+            "text": "“El arcade ese tiene historia, eh. Pero callate, que las paredes oyen.” 🕹️"
+          }
+        },
+        {
+          "id": "florida-y-lavalle/npc4",
+          "tipo": "npc",
+          "render": {
+            "sprite": "viejo"
+          },
+          "x": 48,
+          "name": "El sereno",
+          "interact": {
+            "action": "vecino",
+            "vecino": {
+              "edificio": "choris",
+              "interior": 5
+            }
+          },
+          "dialogue": {
+            "text": "“Treinta años cuidando esta cuadra. Lo que vi en ese local no se lo cuento a cualquiera.” 🌭"
+          }
+        },
+        {
+          "id": "florida-y-lavalle/npc5",
+          "tipo": "npc",
+          "render": {
+            "sprite": "civil1"
+          },
+          "x": 60,
+          "name": "La portera",
+          "interact": {
+            "action": "vecino",
+            "vecino": {
+              "edificio": "garbarino",
+              "interior": 11
+            }
+          },
+          "dialogue": {
+            "text": "“Garbarino de día, otra cosa de noche. Si se apaga todo, no entres solo.” 📺"
+          }
+        },
+        {
+          "id": "florida-y-lavalle/npc6",
+          "tipo": "npc",
+          "render": {
             "sprite": "linyera"
           },
           "x": 14,
@@ -344,7 +420,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc3",
+          "id": "florida-y-lavalle/npc7",
           "tipo": "npc",
           "render": {
             "sprite": "viejo"
@@ -376,7 +452,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc4",
+          "id": "florida-y-lavalle/npc8",
           "tipo": "npc",
           "render": {
             "sprite": "linyera"
@@ -408,7 +484,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc5",
+          "id": "florida-y-lavalle/npc9",
           "tipo": "npc",
           "render": {
             "sprite": "musico"
@@ -420,7 +496,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc6",
+          "id": "florida-y-lavalle/npc10",
           "tipo": "npc",
           "render": {
             "sprite": "diariero"
@@ -432,7 +508,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc7",
+          "id": "florida-y-lavalle/npc11",
           "tipo": "npc",
           "render": {
             "sprite": "civil4"
@@ -444,7 +520,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc8",
+          "id": "florida-y-lavalle/npc12",
           "tipo": "npc",
           "render": {
             "sprite": "civil1"
@@ -456,7 +532,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc9",
+          "id": "florida-y-lavalle/npc13",
           "tipo": "npc",
           "render": {
             "sprite": "civil3"
@@ -468,7 +544,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc10",
+          "id": "florida-y-lavalle/npc14",
           "tipo": "npc",
           "render": {
             "sprite": "civil4"
@@ -480,7 +556,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc11",
+          "id": "florida-y-lavalle/npc15",
           "tipo": "npc",
           "render": {
             "sprite": "viejo"
@@ -492,7 +568,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc12",
+          "id": "florida-y-lavalle/npc16",
           "tipo": "npc",
           "render": {
             "sprite": "turista"
@@ -504,7 +580,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc13",
+          "id": "florida-y-lavalle/npc17",
           "tipo": "npc",
           "render": {
             "sprite": "gordo"
@@ -516,7 +592,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc14",
+          "id": "florida-y-lavalle/npc18",
           "tipo": "npc",
           "render": {
             "sprite": "mujer"
@@ -528,7 +604,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc15",
+          "id": "florida-y-lavalle/npc19",
           "tipo": "npc",
           "render": {
             "sprite": "civil2"
@@ -540,7 +616,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc16",
+          "id": "florida-y-lavalle/npc20",
           "tipo": "npc",
           "render": {
             "sprite": "civil4"
@@ -552,7 +628,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc17",
+          "id": "florida-y-lavalle/npc21",
           "tipo": "npc",
           "render": {
             "sprite": "conNino"
@@ -564,7 +640,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc18",
+          "id": "florida-y-lavalle/npc22",
           "tipo": "npc",
           "render": {
             "sprite": "nino"
@@ -576,7 +652,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc19",
+          "id": "florida-y-lavalle/npc23",
           "tipo": "npc",
           "render": {
             "sprite": "civil3"
@@ -588,7 +664,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc20",
+          "id": "florida-y-lavalle/npc24",
           "tipo": "npc",
           "render": {
             "sprite": "mujer"
@@ -600,7 +676,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc21",
+          "id": "florida-y-lavalle/npc25",
           "tipo": "npc",
           "render": {
             "sprite": "borracho_vino"
@@ -620,7 +696,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc22",
+          "id": "florida-y-lavalle/npc26",
           "tipo": "npc",
           "render": {
             "sprite": "borracho_birra"
@@ -640,7 +716,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/npc23",
+          "id": "florida-y-lavalle/npc27",
           "tipo": "npc",
           "render": {
             "sprite": "borracho_porro"
@@ -660,7 +736,7 @@
           }
         },
         {
-          "id": "florida-y-lavalle/decor24",
+          "id": "florida-y-lavalle/decor28",
           "tipo": "decor",
           "render": {
             "type": "arbol"
@@ -668,7 +744,7 @@
           "x": 7
         },
         {
-          "id": "florida-y-lavalle/decor25",
+          "id": "florida-y-lavalle/decor29",
           "tipo": "decor",
           "render": {
             "type": "farol"
@@ -676,7 +752,7 @@
           "x": 16
         },
         {
-          "id": "florida-y-lavalle/decor26",
+          "id": "florida-y-lavalle/decor30",
           "tipo": "decor",
           "render": {
             "type": "parlante"
@@ -684,7 +760,7 @@
           "x": 21
         },
         {
-          "id": "florida-y-lavalle/decor27",
+          "id": "florida-y-lavalle/decor31",
           "tipo": "decor",
           "render": {
             "type": "instrumentos"
@@ -692,7 +768,7 @@
           "x": 27
         },
         {
-          "id": "florida-y-lavalle/decor28",
+          "id": "florida-y-lavalle/decor32",
           "tipo": "decor",
           "render": {
             "type": "kiosko"
@@ -700,7 +776,7 @@
           "x": 38
         },
         {
-          "id": "florida-y-lavalle/decor29",
+          "id": "florida-y-lavalle/decor33",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -709,7 +785,7 @@
           "ad": {}
         },
         {
-          "id": "florida-y-lavalle/decor30",
+          "id": "florida-y-lavalle/decor34",
           "tipo": "decor",
           "render": {
             "type": "arbol"
@@ -717,7 +793,7 @@
           "x": 54
         },
         {
-          "id": "florida-y-lavalle/decor31",
+          "id": "florida-y-lavalle/decor35",
           "tipo": "decor",
           "render": {
             "type": "mesa_ajedrez"
@@ -725,7 +801,7 @@
           "x": 64
         },
         {
-          "id": "florida-y-lavalle/decor32",
+          "id": "florida-y-lavalle/decor36",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -734,7 +810,7 @@
           "ad": {}
         },
         {
-          "id": "florida-y-lavalle/decor33",
+          "id": "florida-y-lavalle/decor37",
           "tipo": "decor",
           "render": {
             "type": "tacho"
@@ -742,7 +818,7 @@
           "x": 94
         },
         {
-          "id": "florida-y-lavalle/decor34",
+          "id": "florida-y-lavalle/decor38",
           "tipo": "decor",
           "render": {
             "type": "camara"
@@ -750,7 +826,7 @@
           "x": 33
         },
         {
-          "id": "florida-y-lavalle/decor35",
+          "id": "florida-y-lavalle/decor39",
           "tipo": "decor",
           "render": {
             "type": "camara"
@@ -758,7 +834,7 @@
           "x": 72
         },
         {
-          "id": "florida-y-lavalle/pickup36",
+          "id": "florida-y-lavalle/pickup40",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -768,7 +844,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup37",
+          "id": "florida-y-lavalle/pickup41",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -777,7 +853,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup38",
+          "id": "florida-y-lavalle/pickup42",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -786,7 +862,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup39",
+          "id": "florida-y-lavalle/pickup43",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -796,7 +872,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup40",
+          "id": "florida-y-lavalle/pickup44",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -804,7 +880,7 @@
           "x": 24
         },
         {
-          "id": "florida-y-lavalle/pickup41",
+          "id": "florida-y-lavalle/pickup45",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -812,7 +888,7 @@
           "x": 60
         },
         {
-          "id": "florida-y-lavalle/pickup42",
+          "id": "florida-y-lavalle/pickup46",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -821,7 +897,7 @@
           "x": 84
         },
         {
-          "id": "florida-y-lavalle/enemy43",
+          "id": "florida-y-lavalle/enemy47",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -830,7 +906,7 @@
           "x": 14
         },
         {
-          "id": "florida-y-lavalle/enemy44",
+          "id": "florida-y-lavalle/enemy48",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -839,7 +915,7 @@
           "x": 20
         },
         {
-          "id": "florida-y-lavalle/enemy45",
+          "id": "florida-y-lavalle/enemy49",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -848,7 +924,7 @@
           "x": 32
         },
         {
-          "id": "florida-y-lavalle/enemy46",
+          "id": "florida-y-lavalle/enemy50",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -857,7 +933,7 @@
           "x": 42
         },
         {
-          "id": "florida-y-lavalle/enemy47",
+          "id": "florida-y-lavalle/enemy51",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -866,7 +942,7 @@
           "x": 56
         },
         {
-          "id": "florida-y-lavalle/enemy48",
+          "id": "florida-y-lavalle/enemy52",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -875,7 +951,7 @@
           "x": 70
         },
         {
-          "id": "florida-y-lavalle/enemy49",
+          "id": "florida-y-lavalle/enemy53",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -884,7 +960,7 @@
           "x": 95
         },
         {
-          "id": "florida-y-lavalle/enemy50",
+          "id": "florida-y-lavalle/enemy54",
           "tipo": "enemy",
           "combat": {
             "type": "dron"
@@ -893,7 +969,7 @@
           "y": 6
         },
         {
-          "id": "florida-y-lavalle/enemy51",
+          "id": "florida-y-lavalle/enemy55",
           "tipo": "enemy",
           "combat": {
             "type": "dron"

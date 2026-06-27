@@ -403,6 +403,37 @@ if (require.main === module) {
   if (gateRes.length) { console.error('❌ GATE CUEVERO:\n' + gateRes.join('\n')); process.exit(1); }
   console.log('✓ gate del cuevero: ruta A (linyera→Guido→truco) + dead-end + venta destrabada OK');
 
+  // ---- EL VECINO de los edificios clausurados (specs/edificios-clausurados-historias.md) ----
+  const vecino = vm.runInContext(`(() => {
+    const out = [];
+    if (!window.Game || !Game.__vecino) return JSON.stringify(['FAIL no expone Game.__vecino']);
+    const snap = Game.serialize();
+    Object.assign(snap.flags, { stormed: true });   // post-tormenta: el vecino es interactuable
+    snap.flags.entrado = {};
+    Game.continueGame(snap);
+    const V = Game.__vecino;
+    const n = V.npc('garbarino', 11);   // vecino del edificio cuyo interior es la sala 11
+    // 1ª charla = teaser, no abre nada ni entra; aún no "entrado"
+    V.tell(n);
+    if (V.state().spinoffLevel) out.push('FAIL la 1ª historia ya metió al nivel');
+    // pasar → genera el nivel desde la historia (en headless sin fetch, requestHistoria cae al tema estático SYNC)
+    V.pass(n);
+    let s = V.state();
+    if (!s.spinoffLevel) out.push('FAIL pasar no generó/entró al nivel del vecino');
+    if (s.spinoffReturnRoom !== 11) out.push('FAIL no quedó marcado el interior de retorno (sala 11): ' + s.spinoffReturnRoom);
+    if (!s.entrado.garbarino) out.push('FAIL no marcó entrado[garbarino]');
+    // GANAR el nivel → quedás en el interior REAL (sala 11), NO en la calle (RF-6)
+    V.end('win');
+    s = V.state();
+    if (s.spinoffLevel) out.push('FAIL no salió del nivel del vecino al ganar');
+    if (s.current !== 11) out.push('FAIL al ganar no quedó en el interior del edificio (sala 11): ' + s.current);
+    if (s.spinoffReturnRoom != null) out.push('FAIL spinoffReturnRoom no se limpió tras ganar');
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const vecRes = JSON.parse(vecino);
+  if (vecRes.length) { console.error('❌ VECINO:\n' + vecRes.join('\n')); process.exit(1); }
+  console.log('✓ vecino edificios clausurados: historia → pasar → nivel generado → interior real al ganar OK');
+
   // ---- motor de TRUCO (reglas puras: jerarquía, envido, flor, parda) ----
   const tru = vm.runInContext(`(() => {
     const out = [];

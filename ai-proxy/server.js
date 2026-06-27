@@ -764,6 +764,32 @@ http.createServer((req, res) => {
         } catch (e) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); }
         return;
       }
+      // HISTORIA del VECINO (edificios clausurados): la IA flashea un mini-nivel de TERROR desde la "última historia"
+      // que el vecino te contó (gancho) anclada al edificio. Mismo formato que el oráculo (texto + geometría).
+      // Ver specs/edificios-clausurados-historias.md.
+      if (theme === 'historia') {
+        let edificio = '', gancho = '';
+        try { const b = JSON.parse(nb || '{}'); edificio = String(b.edificio || '').slice(0, 24); gancho = String(b.gancho || '').slice(0, 80); } catch (e) {}
+        const hsys = en ? 'You design tiny SURREAL HORROR levels from a neighbor\'s ghost story. Reply ONLY with compact JSON.' : 'Diseñás mini-niveles de TERROR surrealista a partir de la historia de fantasmas de un vecino. Respondé SOLO con JSON compacto.';
+        const huser = (en
+          ? 'A neighbor in Buenos Aires tells a horror story about the condemned building "' + (edificio || 'the building') + '". The hook of the story: "' + (gancho || 'something terrible happened') + '". DESIGN a creepy little level INSIDE that building, themed on that story, plus its GEOMETRY. Return JSON {"name": short eerie title (max 5 words, riff on the hook), "intro": one short creepy sentence, "lines": array of 6 VERY short ghost/whisper phrases, "style": one of "wall"|"aisles"|"climb", "motif": one spooky emoji, "props": 5 spooky emojis space-separated, "platforms": array of 3-6 [x,y,width] forming a CLIMBABLE staircase (x 5 to 16 left-to-right, y from 10 going UP to 5, width 2-4, each step within 3 tiles of the previous), "enemies": array of 2-4 x positions (6 to 18), "hazards": array of 0-2 [x, width, kind] where kind is "pit" (a gap to JUMP over) or "spikes" (hurts on touch), x 7 to 16, width 1-2}.'
+          : 'Un vecino de Buenos Aires te cuenta una historia de terror del edificio clausurado "' + (edificio || 'el edificio') + '". El gancho de la historia: "' + (gancho || 'pasó algo terrible') + '". DISEÑÁ un mini-nivel siniestro ADENTRO de ese edificio, tematizado en esa historia, más su GEOMETRÍA. Devolvé JSON {"name": título corto y escalofriante (máx 5 palabras, jugando con el gancho), "intro": una frase corta y tétrica, "lines": array de 6 frases de fantasma/susurro MUY cortas, "style": uno de "wall"|"aisles"|"climb", "motif": un emoji tenebroso, "props": 5 emojis tenebrosos separados por espacio, "platforms": array de 3-6 [x,y,ancho] que forman una ESCALERA TREPABLE (x 5 a 16 de izq a der, y de 10 SUBIENDO hasta 5, ancho 2-4, cada escalón a no más de 3 tiles del anterior), "enemies": array de 2-4 posiciones x (6 a 18), "hazards": array de 0-2 [x, ancho, tipo] donde tipo es "pit" (hueco para SALTAR) o "spikes" (pincho que daña), x 7 a 16, ancho 1-2}.');
+        try {
+          const { reply } = await ask([{ role: 'system', content: hsys }, { role: 'user', content: huser }], { maxTokens: 440, gen: true });
+          const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
+          const j = m ? JSON.parse(m[0]) : {};
+          const out = {};
+          if (j.name) out.name = String(j.name).slice(0, 60);
+          if (j.intro) out.intro = String(j.intro).slice(0, 160);
+          if (Array.isArray(j.lines) && j.lines.length) out.lines = j.lines.slice(0, 8).map(s => String(s).slice(0, 40));
+          if (j.style) out.style = String(j.style).slice(0, 12);
+          if (j.motif) out.motif = String(j.motif).slice(0, 4);
+          if (j.props) out.props = String(j.props).slice(0, 60);
+          parseGeom(j, out);   // GEOMETRÍA autorada por la IA
+          res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
+        } catch (e) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); }
+        return;
+      }
       const BRIEF = {
         'super-rasca': en ? 'a filthy run-down dive Chinese mini-market, sticky and dim' : 'un súper chino RASCA, mugriento, pegoteado y a media luz',
         'taller-esclavo': en ? 'a clandestine sweatshop where people weave clothes in slave mode' : 'un taller clandestino donde se teje ropa en modo esclavo',

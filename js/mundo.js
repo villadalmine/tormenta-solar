@@ -40,7 +40,7 @@ const Mundo = (() => {
           room.npcs.push({ name: e.name, sprite: e.render && e.render.sprite, dialog: e.dialogue && e.dialogue.text,
             action: it.action, follow: it.follow, lines: it.lines, want: it.want, hint: it.hint, oracle: it.oracle, ambient: e.ambient, social: e.social,
             invisible: e.lifecycle && e.lifecycle.invisible, persona: it.persona || (e.chat && e.chat.persona),
-            sells: it.sells && { ...it.sells }, arsenal: it.arsenal && it.arsenal.map(a => ({ ...a })), tienda: it.tienda && { ...it.tienda }, x: f.x, y: f.y });
+            sells: it.sells && { ...it.sells }, arsenal: it.arsenal && it.arsenal.map(a => ({ ...a })), tienda: it.tienda && { ...it.tienda }, vecino: it.vecino && { ...it.vecino }, x: f.x, y: f.y });
           break;
         }
         case 'decor': room.decor.push({ type: e.render && e.render.type, x: f.x, feetY: f.y, ad: e.ad ? true : undefined }); break;

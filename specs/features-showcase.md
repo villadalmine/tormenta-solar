@@ -59,6 +59,12 @@
   gana por vos), arreglártelas vos (le ganás al **truco** real), o irte (dead-end con humor). Recién con el "te
   perdono" del tahúr el cuevero vende y **estalla la tormenta**: el arranque del caos pasa a ser el **final de una
   cadena**, no el atajo del primer minuto. Ver `specs/cuevero-gate-truco.md`.
+- **El vecino de los edificios clausurados (historias → nivel):** post-tormenta, al lado de cada edificio clausurado
+  hay un **vecino** que te **flashea historias de terror** del edificio (juguetes diabólicos, la llorona, filicidios,
+  fiestas eternas, fantasmas). Iterás el chusmerío y te ofrece **"¿querés pasar y ver qué pasó con XXX?"** → la
+  **máquina de niveles genera un nivel** con esa última historia como semilla, y al ganarlo **quedás en el interior
+  real** del edificio. Contenido **vivo e infinito** sobre lugares antes muertos (banco estático robusto + IA que
+  autora el nivel, con fallback). Ver `specs/edificios-clausurados-historias.md`.
 - **El edificio:** subís **saltando** una escalera de incendios **o** por ascensor (dos caminos); items que
   **regeneran**. **Truco** criollo real (motor puro testeado, cantos + voces). Arcade (Pac-Man/Galaga/Frogger).
 

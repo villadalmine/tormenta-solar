@@ -113,6 +113,9 @@
   // NIVEL-AI en EL MOTOR REAL (rooms-swap): se guarda el juego principal, se cargan las salas generadas, y al
   // llegar a la meta (o morir/escapar) se RESTAURA todo. spinoffLevel gatea tormenta/quests/save/muerte.
   let spinoffLevel = false, spinoffSave = null, spinoffReward = null, spinoffName = '';
+  let spinoffReturnRoom = null;   // si el nivel generado vino de un VECINO: al GANAR quedás en el interior real del edificio (no la calle)
+  // EDIFICIOS CLAUSURADOS (specs/edificios-clausurados-historias.md): a qué edificio ya entraste (2ª visita = directo a la oferta)
+  const entradoEdif = {};
   // CÁMARAS que "ven" los dólares cuando disparás (post-tormenta): burbuja con la SERIE (real o TRUCHA → AFIP).
   // legalBlindUntil: si tiráste un dólar de serie BUENA, los ROBOTS (drones) no te ven hasta este momento (legal).
   let dollarBubbles = [], shotsSeen = 0, legalBlindUntil = 0;
@@ -209,6 +212,7 @@
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
+    spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k];   // edificios clausurados, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
@@ -232,7 +236,8 @@
         spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
         borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered,
-        cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing },
+        cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing,
+        entrado: { ...entradoEdif } },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       // RF-4: estado anclado por POSICIÓN (sala, x), no por índice de array → robusto a reordenar entidades.
       // El pickup/npc se identifica por su x en la sala (su "id" natural), no por su lugar en el array.
@@ -255,6 +260,7 @@
     bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
     trucoWon = !!f.trucoWon; trucoEverWon = !!f.trucoEverWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
     cueveroUnlocked = !!f.cueveroUnlocked; tahurDiscovered = !!f.tahurDiscovered; guidoSummoned = !!f.guidoSummoned; guidoRecruited = !!f.guidoRecruited; guidoFollowing = !!f.guidoFollowing;
+    for (const k in entradoEdif) delete entradoEdif[k]; if (f.entrado) Object.assign(entradoEdif, f.entrado);
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
     if (snap.pickups) {
       if (snap.v >= 2) states.forEach((s, i) => { const xs = snap.pickups[i] || []; s.pickups.forEach(pk => { if (xs.includes(Math.round(pk.x))) pk.taken = true; }); });   // por posición (RF-4)
@@ -364,6 +370,7 @@
       setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' });
     },
     guido:   n => handleGuido(n),
+    vecino:  n => handleVecino(n),
     chori:   () => redeemChori(),
     shop:    n => buyFromShop(n),
     tienda:  n => enterTienda(n),
@@ -873,12 +880,13 @@
     return out.slice(-8);
   }
   // construye+valida+swapea un nivel generado. Devuelve true si entró; false si no era jugable (la RED).
-  function loadGenLevel(gen) {
+  function loadGenLevel(gen, returnRoom) {
     if (!gen) return false;
     let genRooms = null; try { genRooms = Mundo.fromModel(gen.model); } catch (e) {}
     const playable = (typeof Playable === 'undefined') || Playable.checkLevel(gen.model).ok;   // LA RED
     const hasGoal = genRooms && genRooms.some(r => r.goal);
     if (!genRooms || !genRooms.length || !genRooms[0].playerStart || !hasGoal || !playable) return false;
+    spinoffReturnRoom = (returnRoom != null) ? returnRoom : null;   // vecino: al GANAR quedás en el interior del edificio
     spinoffSave = { rooms, states, current, px: player.x, py: player.y, vx: player.vx, vy: player.vy, hp: player.hp };
     spinoffReward = gen.reward || { caramelos: 4 }; spinoffName = gen.name || gen.model.nombre;
     rooms = genRooms;
@@ -929,8 +937,16 @@
     if (outcome === 'win') {
       for (const k in (spinoffReward || {})) player[k] = (player[k] || 0) + (spinoffReward[k] || 0);
       const rw = spinoffReward || {}; const rwTxt = rw.caramelos ? rw.caramelos + ' 🍬' : (rw.coins || 0) + ' 🪙';
-      setMsg(T('g.nivelai.win', { name: spinoffName, reward: rwTxt }), '#7CFC00', 6000); Sfx.win();
+      if (spinoffReturnRoom != null && rooms[spinoffReturnRoom]) {   // VECINO: quedás en el interior REAL del edificio (RF-6)
+        current = Math.max(0, Math.min(rooms.length - 1, spinoffReturnRoom));
+        const r = rooms[current]; player.x = 2 * Level.TILE; player.y = r.gTop * Level.TILE - player.h; player.vx = player.vy = 0; player.alive = true;
+        updateCam(); elFloor.textContent = TX(r.name);
+        setMsg(T('g.vecino.inside', { name: TX(r.name), reward: rwTxt }), '#c8b0d8', 8000); Sfx.win();
+      } else {
+        setMsg(T('g.nivelai.win', { name: spinoffName, reward: rwTxt }), '#7CFC00', 6000); Sfx.win();
+      }
     } else setMsg(T(outcome === 'dead' ? 'g.nivelai.back' : 'g.nivelai.flee'), '#e0b0ff', 4500);
+    spinoffReturnRoom = null;
   }
   function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   // TIENDA GENERADA (galería de la cueva): le hablás al local → entrás a su interior generado por IA (rubro = dato del
@@ -1067,6 +1083,91 @@
     flash(); Sfx.win();
     setMsg(T('g.guido.beats'), '#7CFC00', 9000);
     tel('cuevero_gate', { route: 'guido' });
+  }
+  // === EL VECINO de los edificios clausurados (specs/edificios-clausurados-historias.md) ===
+  // Post-tormenta te flashea HISTORIAS de terror del edificio de al lado; tras un par, te ofrece "¿querés pasar?"
+  // → la máquina de niveles GENERA un nivel con la última historia como semilla; al ganarlo quedás en el interior real.
+  // Pool COMPARTIDO de historias (sabor de terror reusable por edificio); el texto va en i18n (g.vecino.tale.<id>).
+  const VECINO_STORIES = [
+    { id: 'juguetes',  motif: '🧸', style: 'climb',  props: ['🧸', '🪆', '🎈', '🚪', '🕯️', '🃏'], palette: { floor: '#1c1622', floor2: '#241c2c', wall: '#3e2e4e', accent: '#c060a0' } },
+    { id: 'llorona',   motif: '👧', style: 'climb',  props: ['👧', '💧', '🚪', '🕯️', '🪞', '🩸'], palette: { floor: '#14181f', floor2: '#1b2029', wall: '#2e3a4a', accent: '#7fd0ff' } },
+    { id: 'filicidio', motif: '🔪', style: 'climb',  props: ['🔪', '🩸', '🚪', '🛏️', '🕯️', '🪓'], palette: { floor: '#1f1414', floor2: '#281a1a', wall: '#4a2e2e', accent: '#ff5252' } },
+    { id: 'fiesta',    motif: '🎉', style: 'aisles', props: ['🎉', '🍷', '🪩', '🔊', '🎈', '💀'], palette: { floor: '#1a1622', floor2: '#221c2c', wall: '#4a2e5a', accent: '#ff5da2' } },
+    { id: 'fantasma',  motif: '👻', style: 'wall',   props: ['👻', '🕯️', '🚪', '🪞', '⛓️', '🕸️'], palette: { floor: '#16181c', floor2: '#1d2026', wall: '#343a44', accent: '#aef0ff' } },
+    { id: 'gato',      motif: '🐈‍⬛', style: 'climb', props: ['🐈‍⬛', '🕯️', '🪦', '🚪', '🕸️', '🌑'], palette: { floor: '#171717', floor2: '#1f1f1f', wall: '#383838', accent: '#9c88c0' } },
+  ];
+  const VECINO_GHOST_LINES = { es: ['no deberías estar acá', 'andate mientras puedas', 'te estábamos esperando', 'shhh', '¿escuchaste eso?', 'quedate un ratito más...'],
+                               en: ['you shouldn\'t be here', 'leave while you can', 'we were waiting for you', 'shhh', 'did you hear that?', 'stay a little longer...'] };
+  function pickVecinoStory(n) {
+    n.told = n.told || [];
+    let pool = VECINO_STORIES.filter(s => !n.told.includes(s.id));
+    if (!pool.length) { n.told = []; pool = VECINO_STORIES.slice(); }
+    const s = pool[(Math.random() * pool.length) | 0];
+    n.told.push(s.id);
+    return s;
+  }
+  function vecinoTale(s, edif) { return T('g.vecino.tale.' + s.id, { edif: T('g.vecino.edif.' + edif) }); }
+  // historia → TEMA ad-hoc para generateLevel (paleta/props/style del relato; nombre = el gancho)
+  function themeFromStory(s, edif) {
+    const gancho = T('g.vecino.gancho.' + s.id), intro = vecinoTale(s, edif);
+    return {
+      id: 'historia-' + s.id, motif: s.motif,
+      name: { es: gancho, en: gancho }, intro: { es: intro, en: intro },
+      palette: s.palette, props: s.props,
+      npc: { emoji: s.motif, lines: VECINO_GHOST_LINES },
+      goal: { es: T('g.vecino.exit'), en: T('g.vecino.exit') }, reward: { caramelos: 5 },
+      style: s.style, decor: ['cartel', 'caja', 'barril', 'tacho', 'escombros', 'mueble_roto'],
+    };
+  }
+  let vecinoNpc = null, vecinoEdif = null;
+  function handleVecino(n) {
+    Sfx.pickup();
+    const edif = (n.vecino && n.vecino.edificio) || 'edu';
+    if (!stormed) { setMsg(TX(n.dialog) || T('g.vecino.preStorm'), '#9fb4c4', 4500); return; }   // pre-tormenta: ambiental
+    n.storyCount = (n.storyCount || 0) + 1;
+    const s = pickVecinoStory(n); n.activeStory = s;
+    // sin la máquina de niveles → igual chusmea (aditivo, nunca rompe la calle)
+    if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined') { setMsg(vecinoTale(s, edif), '#c8b0d8', 8000); return; }
+    // 1ª historia (y nunca entraste): teaser por mensaje; de la 2ª en más (o si ya entraste) → abre la oferta
+    if (n.storyCount < 2 && !entradoEdif[edif]) { setMsg(T('g.vecino.teaser', { tale: vecinoTale(s, edif) }), '#c8b0d8', 8000); return; }
+    openVecino(n, edif);
+  }
+  function openVecino(n, edif) {
+    const ov = document.getElementById('vecinomenu'), body = document.getElementById('vecinoBody');
+    vecinoNpc = n; vecinoEdif = edif;
+    if (!ov || !body) { passToBuilding(n, edif); return; }   // headless / sin overlay → pasás directo (no te traba)
+    const s = n.activeStory;
+    let html = '<div class="end-stats-title">' + T('g.vecino.menuTitle', { edif: T('g.vecino.edif.' + edif) }) + '</div>';
+    html += '<div style="margin:.4em 0 .8em;opacity:.92;line-height:1.45">' + vecinoTale(s, edif) + '</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:.4em">';
+    html += '<button class="vecino-opt" data-k="pasa" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer">' + T('g.vecino.optPass', { gancho: T('g.vecino.gancho.' + s.id) }) + '</button>';
+    html += '<button class="vecino-opt" data-k="otra" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer">' + T('g.vecino.optMore') + '</button>';
+    html += '</div>';
+    body.innerHTML = html;
+    const btns = body.querySelectorAll ? body.querySelectorAll('.vecino-opt') : null;
+    if (btns && btns.forEach) btns.forEach(b => b.addEventListener('click', () => pickVecino(b.getAttribute('data-k'))));
+    ov.classList.remove('hidden');
+  }
+  function closeVecino() { const ov = document.getElementById('vecinomenu'); if (ov) ov.classList.add('hidden'); }
+  function pickVecino(k) {
+    if (k === 'pasa') { closeVecino(); passToBuilding(vecinoNpc, vecinoEdif); return; }
+    const s = pickVecinoStory(vecinoNpc); vecinoNpc.activeStory = s; vecinoNpc.storyCount = (vecinoNpc.storyCount || 0) + 1;   // otra historia → swap y reabrir
+    Sfx.pickup(); openVecino(vecinoNpc, vecinoEdif);
+  }
+  // aceptar pasar → genera el nivel desde la última historia (IA opcional, fallback estático) → al ganar, interior real
+  function passToBuilding(n, edif) {
+    const s = n.activeStory || pickVecinoStory(n);
+    const interior = (n.vecino && n.vecino.interior);
+    entradoEdif[edif] = true;
+    const theme = themeFromStory(s, edif);
+    flash(); tel('vecino', { edif, story: s.id });
+    if (NivelAI.requestHistoria) {   // IA enriquece (geometría/sabor); circuit breaker → estático al toque si cae
+      setMsg(T('g.vecino.shaping', { gancho: T('g.vecino.gancho.' + s.id) }), '#c8b0d8', 8000);
+      NivelAI.requestHistoria(edif, T('g.vecino.gancho.' + s.id), aiTheme => {
+        if (state !== 'playing' || spinoffLevel) return;   // ya entraste a otro lado / cambió el estado
+        if (!loadGenLevel(NivelAI.generateLevel(aiTheme || theme), interior)) setMsg(T('g.nivelai.fail'), '#ff5252', 4000);
+      });
+    } else if (!loadGenLevel(NivelAI.generateLevel(theme), interior)) setMsg(T('g.nivelai.fail'), '#ff5252', 4000);
   }
   function redeemChori() {
     if (hasVale) {
@@ -1740,6 +1841,7 @@
         : a === 'chat' ? T('g.prompt.chat', { name: TX(it.n.name) || TX('el linyera') })
         : a === 'guarda' ? T('g.prompt.guarda')
         : a === 'guido' ? T('g.prompt.talk', { name: TX(it.n.name) })
+        : a === 'vecino' ? (stormed ? T('g.prompt.vecinoStorm') : T('g.prompt.talk', { name: TX(it.n.name) }))
         : a === 'loop' ? T('g.prompt.loop')
         : T('g.prompt.talk', { name: TX(it.n.name) });
     }
@@ -1955,6 +2057,8 @@
     if (e.key === 'Escape' && am && !am.classList.contains('hidden')) { e.preventDefault(); closeArmas(); return; }
     const cm = document.getElementById('cueveromenu');
     if (e.key === 'Escape' && cm && !cm.classList.contains('hidden')) { e.preventDefault(); closeCuevero(); return; }
+    const vm = document.getElementById('vecinomenu');
+    if (e.key === 'Escape' && vm && !vm.classList.contains('hidden')) { e.preventDefault(); closeVecino(); return; }
     if (e.key === 'Escape' && spinoffLevel && state === 'playing') { e.preventDefault(); endSpinoffLevel('flee'); return; }   // salir del nivel-AI
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
@@ -1969,6 +2073,7 @@
   { const b = document.getElementById('guardaClose'); if (b) b.addEventListener('click', closeGuarda); }
   { const b = document.getElementById('armasClose'); if (b) b.addEventListener('click', closeArmas); }
   { const b = document.getElementById('cueveroClose'); if (b) b.addEventListener('click', closeCuevero); }
+  { const b = document.getElementById('vecinoClose'); if (b) b.addEventListener('click', closeVecino); }
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {
@@ -2003,5 +2108,13 @@
       guido: () => handleGuido({ dialog: 'test' }),                        // hablar con Guido
       discoverTahur: () => { tahurDiscovered = true; },                   // entrar a la trastienda
       sitTahur: () => NPC_ACTIONS.truco({}),                              // sentarse a la mesa (Guido juega si te sigue)
+    },
+    // superficie de prueba (e2e) del VECINO de los edificios clausurados: contar historias → pasar → interior
+    __vecino: {
+      npc: (edif, interior) => ({ vecino: { edificio: edif, interior } }),
+      tell: n => handleVecino(n),
+      pass: n => passToBuilding(n, n.vecino && n.vecino.edificio),
+      end: outcome => endSpinoffLevel(outcome),
+      state: () => ({ spinoffLevel, spinoffReturnRoom, current, entrado: { ...entradoEdif }, active: spinoffLevel }),
     } });
 })();

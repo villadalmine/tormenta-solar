@@ -22,11 +22,6 @@ El juego es 100% estático; se publica en
   **galería de la cueva** (sex-shop, comida rara, masajes, tenebroso) y **entrás a su local**; el NPC declara el
   **rubro** (`tienda.tipo`) y la IA genera el interior con clientela + mercadería del rubro para **browsear/comprar**
   (reusa la máquina de niveles, sin meta ni combate, fallback estático). Diseño temprano, NO implementado.
-- **El vecino de los edificios clausurados** (`specs/edificios-clausurados-historias.md`, idea 2026-06-26):
-  post-tormenta cada edificio clausurado tiene un **vecino** al que le hablás; te **chusmea historias de terror** del
-  edificio (fantasmas, filicidios, juguetes diabólicos, la llorona, fiestas) que la IA flashea; iterás y siempre
-  tiene "algo más", hasta que te ofrece **"¿querés pasar y ver qué pasó con XXX?"** → entrás a un **nivel generado
-  desde la última historia** y al ganarlo quedás en el interior real del edificio. NO implementado.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
   interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.
@@ -45,6 +40,27 @@ El juego es 100% estático; se publica en
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v194] — 2026-06-27 — 🕯️ El vecino de los edificios clausurados: historias de terror → nivel generado
+
+Implementa `specs/edificios-clausurados-historias.md`. Post-tormenta, al lado de cada **edificio clausurado**
+(EducaciónIT, arcade, chorería, Garbarino) hay un **vecino** al que le hablás y te **flashea historias de terror**
+del edificio: los juguetes diabólicos del 4°B, la mujer que llora en el pasillo, el pibe del 7° y el hacha, la fiesta
+que no termina, los que golpean las puertas, el gato negro del dueño muerto. **Iterás** ("contame otra") y, tras un
+par, te ofrece **"¿querés pasar y ver qué pasó con {gancho}?"**. Aceptás → **la máquina de niveles GENERA un nivel
+con esa última historia como semilla** (paleta/props/enemigos del relato, validado por la RED + auto-reparación) y, al
+**ganarlo, quedás en el interior REAL del edificio** (sus salas, lo que había antes) por si querés explorar. La 2ª vez
+que entrás, el vecino va directo a la oferta; el lazo se repite (cada pasada, nivel nuevo). Convierte cada edificio
+muerto (antes: solo un mensaje de "ruina") en **contenido vivo e infinito**.
+
+Capa **aditiva + resiliente**: banco de historias **estático** (siempre anda, sin red) + **IA opcional** que autora
+el nivel (`requestHistoria` → proxy `theme:'historia'` con geometría; circuit breaker → estático al toque). Overlay
+`#vecinomenu` (calco de `cueveromenu`), i18n ES/EN completo, flag `entrado[edificio]` serializado. v2: `vecino` en
+gen-level/mundo/schema (paridad v1≡v2 verde). Test `tests/e2e.js` hook `Game.__vecino` (historia → pasar → nivel →
+interior real al ganar). **Deuda anotada**: que la IA autore también el TEXTO de las historias (hoy estático) y meter
+el vecino al grafo `historia.js`. *(Toca web **y** proxy — branch `theme:'historia'`, ver infra-26.)*
 
 ---
 
@@ -713,6 +729,16 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-26] — 2026-06-27 — 🕯️ Proxy 0.1.46: `/nivel-ai theme:'historia'` autora el nivel de terror del vecino
+
+Branch nuevo en `POST /nivel-ai`: dado `{edificio, gancho}` (la "última historia" que el vecino te contó), la IA
+flashea un mini-nivel de **terror** tematizado — `name`/`intro`/`lines` (susurros de fantasma) + `style`/`motif`/
+`props` + **geometría** (plataformas/enemigos/pinchos·pozos, reusa `parseGeom`+`GEOM_ASK`, `gen:true`). El cliente
+(`NivelAI.requestHistoria`) lo envuelve en un tema ad-hoc para `generateLevel`; si la IA cae, usa su tema **estático**
+derivado del relato (circuit breaker). Alimenta v194 (el vecino de los edificios clausurados).
 
 ---
 

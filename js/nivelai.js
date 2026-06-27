@@ -450,7 +450,38 @@ const NivelAI = (() => {
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático)
   }
 
-  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, generateShop, requestShop, shopCache, SHOP_RUBROS, THEMES };
+  // ----- HISTORIA del VECINO: la IA flashea un nivel desde la "última historia" del edificio clausurado
+  // (specs/edificios-clausurados-historias.md). Mismo patrón que el oráculo: el proxy arma name/intro/props/lines +
+  // ELIGE style + (opcional) geometría; acá lo envolvemos en un tema ad-hoc para generateLevel. Best-effort: si la
+  // IA está caída/falla → cb(null) y el caller usa su tema ESTÁTICO derivado de la historia (nunca se cuelga). -----
+  function requestHistoria(edificio, gancho, cb) {
+    if (typeof fetch !== 'function' || aiDown()) { cb(null); return; }   // IA caída → tema estático INSTANTÁNEO
+    const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), AI_TIMEOUT);
+    fetch(PROXY + '/nivel-ai', { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme: 'historia', edificio: String(edificio || '').slice(0, 24), gancho: String(gancho || '').slice(0, 80), lang: short() }) })
+      .then(r => { clearTimeout(to); if (!r.ok) { markAi(false); return null; } return r.json(); })
+      .then(j => {
+        if (!j || !j.name) { if (j) markAi(true); cb(null); return; }   // {} = vivo pero sin texto → no abre circuito
+        markAi(true);
+        const styles = ['wall', 'aisles', 'climb'];
+        const props = (typeof j.props === 'string' ? j.props.trim().split(/\s+/) : Array.isArray(j.props) ? j.props : ['👻', '🕯️', '🚪', '🩸']).slice(0, 8);
+        const lines = (Array.isArray(j.lines) && j.lines.length ? j.lines : ['no deberías estar acá', 'andate', 'te esperábamos']).map(s => String(s).slice(0, 40));
+        const aiPlatforms = sanitizePlatforms(j.platforms, 30);
+        const aiEnemies = sanitizeEnemies(j.enemies, 30);
+        const aiHazards = sanitizeHazards(j.hazards, 30);
+        cb({
+          id: 'historia', motif: String(j.motif || '👻').slice(0, 4),
+          name: { es: j.name, en: j.name }, intro: { es: j.intro || '', en: j.intro || '' },
+          palette: { floor: '#16141c', floor2: '#1d1a26', wall: '#3a2e4a', accent: '#c060a0' },
+          props, npc: { emoji: String(j.motif || '👻').slice(0, 4), lines: { es: lines, en: lines } },
+          goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 },
+          style: styles.indexOf(j.style) >= 0 ? j.style : 'climb', decor: ['cartel', 'caja', 'barril', 'tacho', 'escombros', 'mueble_roto'],
+          aiPlatforms, aiEnemies, aiHazards,
+        });
+      }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático)
+  }
+
+  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, requestHistoria, generateShop, requestShop, shopCache, SHOP_RUBROS, THEMES };
 })();
 if (typeof window !== 'undefined') window.NivelAI = NivelAI;
 if (typeof module !== 'undefined') module.exports = NivelAI;

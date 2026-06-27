@@ -43,7 +43,7 @@ const Level = (() => {
       playerStart: spec.playerStart != null ? feet(spec.playerStart) : null,
       enemies: (spec.enemies || []).map(e => ({ type: e.t, dormant: e.dormant, look: e.look, ...feet(e.x, e.y) })),
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
-      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), tienda: n.tienda && { ...n.tienda }, ...feet(n.x) })),
+      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), tienda: n.tienda && { ...n.tienda }, vecino: n.vecino && { ...n.vecino }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE, ad: d.ad })),
@@ -95,6 +95,16 @@ const Level = (() => {
         ],
         npcs: [
           { name:'Vecina', sprite:'civil1', x:8,  dialog:'“Ay, nene... ¿viste cómo está el dólar? Un espanto.” 🙄' },
+          // LOS VECINOS de los edificios clausurados (specs/edificios-clausurados-historias.md): mudos/ambientales
+          // pre-tormenta; post-tormenta te flashean historias de terror del edificio de al lado → nivel generado.
+          { name:'El vecino', sprite:'civil3', x:12, action:'vecino', vecino:{ edificio:'edu', interior:1 },
+            dialog:'“Ese edificio... yo de noche escucho cosas, pibe. Cuando se corte la luz vas a ver.” 🏢' },
+          { name:'La vecina', sprite:'mujer', x:33, action:'vecino', vecino:{ edificio:'arcade', interior:4 },
+            dialog:'“El arcade ese tiene historia, eh. Pero callate, que las paredes oyen.” 🕹️' },
+          { name:'El sereno', sprite:'viejo', x:48, action:'vecino', vecino:{ edificio:'choris', interior:5 },
+            dialog:'“Treinta años cuidando esta cuadra. Lo que vi en ese local no se lo cuento a cualquiera.” 🌭' },
+          { name:'La portera', sprite:'civil1', x:60, action:'vecino', vecino:{ edificio:'garbarino', interior:11 },
+            dialog:'“Garbarino de día, otra cosa de noche. Si se apaga todo, no entres solo.” 📺' },
           // --- los LINYERAS ilustres (homenaje): son LOS ORÁCULOS chateables — dan pistas y saben de
           //     tormentas solares y de cómo la IA nos gobierna. (Reemplazan al "linyera filósofo" genérico.) ---
           { name:'Diógenes', sprite:'linyera', x:14, action:'chat', persona:'filosofo', oracle:true, social:{knows:['borracho','tahur','chino','linyeras','vendedor','vecina','guarda']}, dialog:'“Corréte que me tapás el sol, pibe. Lo demás es vento que no te hace falta.” ☀️🛢️' },
