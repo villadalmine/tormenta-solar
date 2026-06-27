@@ -50,6 +50,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v203] — 2026-06-27 — 👾 Fix: en los niveles GENERADOS los enemigos estaban CONGELADOS (ahora se mueven y te persiguen)
+
+**Qué cambió (jugador):** reportaste que los niveles generados (el del vecino y el de la trastienda del chino) se
+sentían **muertos**: "los enemigos no se mueven, ni aparecen cosas locas". Era un **bug**: un enemigo sólo actúa si
+está `hostile`, y eso se prendía con la **tormenta** — pero en un nivel generado la tormenta no se dispara, así que
+quedaban **quietos**. Ahora en todo nivel generado los enemigos arrancan **activos**: caminan, vuelan, te persiguen
+(incluidos los pacman/galaga/drones con su movimiento loco). El mundo generado es hostil de entrada.
+
+**Por qué importa:** los niveles del vecino/chino ya tenían 13 paletas y un pool variado de enemigos, pero con todo
+**congelado** se veían todos iguales. Con los bichos en movimiento, cobran vida. *(Nota: la variedad EXTRA que autora
+la IA —geometría/tema a medida— depende del upstream; ahora mismo OpenRouter está con timeouts intermitentes y cae al
+fallback estático, que igual rota temas/paletas.)*
+
+**Cómo (técnico):** en `loadGenLevel`, tras crear los `states`, `for e of enemies → e.hostile = true; e.dormant =
+false`. Cubre el vecino y el spinoff del chino (ambos pasan por `loadGenLevel`). Cache **v203**. `npm test` verde.
+
+---
+
 ## [v202] — 2026-06-27 — 🛖 ATAJO secreto al búnker (piso 3): no subas los 20 pisos cada vez
 
 **Qué cambió (jugador):** una vez que sos **gurú** (abriste el búnker con el tótem), aparece una **puerta-atajo

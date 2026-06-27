@@ -958,6 +958,9 @@
     spinoffReward = gen.reward || { caramelos: 4 }; spinoffName = gen.name || gen.model.nombre;
     rooms = genRooms;
     states = rooms.map(r => ({ enemies: r.enemies.map(Enemies.create), pickups: r.pickups.map(p => ({ ...p, taken: false })) }));
+    // el nivel generado es un mundo HOSTIL en sí (terror del vecino / raid del chino): los enemigos ya están ACTIVOS
+    // y te persiguen (sin esto quedaban hostile=false → quietos, como reportó el dueño). El despertar es la tormenta.
+    for (const st of states) for (const e of st.enemies) { e.hostile = true; e.dormant = false; }
     current = 0; const s = rooms[0].playerStart; player.x = s.x; player.y = s.y; player.vx = player.vy = 0;
     spinoffLevel = true; state = 'playing'; transCd = 0.4; roamingNpc = null; updateCam();
     elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); elFloor.textContent = TX(rooms[0].name);
