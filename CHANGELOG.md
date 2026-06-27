@@ -53,6 +53,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v204] — 2026-06-27 — 🎰 Fix: la generación IA caía a estático AUNQUE hubiera modelo PAGO (timeout del cliente)
+
+**Qué cambió (jugador):** los niveles generados (vecino/chino/oráculo) y el surtido de tiendas volvían a sentirse
+"siempre iguales" porque la **IA no llegaba a autorarlos** y caía al fallback estático — *aunque haya modelo pago*.
+
+**Por qué pasaba (lo que notó el dueño):** la cadena de modelos probaba los **gratis primero** (lentos, timeoutean)
+y el **pago iba al final**; con el presupuesto total de 8s y 4s por modelo, los 2 free se comían el tiempo y **el
+pago nunca se probaba**. Encima el **cliente abortaba a los 6s**. Resultado: estático, con el pago disponible.
+
+**Cómo (técnico):**
+- **Proxy (infra-30):** para `gen` (contenido del dueño: niveles/tiendas/historias) la cadena ahora es **directa al
+  modelo PAGO confiable** (`GEN_MODELS`, default `gemma4-paid`) — sin los free lentos — con presupuesto holgado
+  (`GEN_TIMEOUT` 16s / `GEN_PER_MODEL` 14s; un 31B tarda en escupir el JSON). El chat sigue igual (8s, free-first).
+- **Cliente (`js/nivelai.js`):** `AI_TIMEOUT` de gen 6s → **16s** (la generación no es el chat en tiempo real; el
+  breaker igual corta tras el 1er timeout real). Cache **v204**. `npm test` verde.
+
+---
+
 ## [v203] — 2026-06-27 — 👾 Fix: en los niveles GENERADOS los enemigos estaban CONGELADOS (ahora se mueven y te persiguen)
 
 **Qué cambió (jugador):** reportaste que los niveles generados (el del vecino y el de la trastienda del chino) se
@@ -914,6 +932,16 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-30] — 2026-06-27 — 🎰 Proxy 0.1.49→0.1.50: `gen` va DIRECTO al modelo pago confiable (no a la cola de free lentos)
+
+Sostén del **v204**. El `ask()` con `opts.gen` (generación de contenido del dueño) deja de usar la cadena `free-first`
+(donde el pago, al final, se quedaba sin tiempo) y usa **`GEN_MODELS`** (default `gemma4-paid`) con presupuesto
+propio: `GEN_TIMEOUT_MS=16000`, `GEN_PER_MODEL_MS=14000`. Todo configurable por env. El chat (no-gen) sigue con su
+cadena y timeouts de tiempo real (8s/4s, free-first con pago de respaldo). Sin cambios de costo relevantes (gen es de
+bajo volumen; antes igual *intentaba* el pago, solo que tarde).
 
 ---
 

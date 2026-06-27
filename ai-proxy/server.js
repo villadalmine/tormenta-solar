@@ -73,8 +73,14 @@ function loadHistorias() { try { const d = JSON.parse(fs.readFileSync(HISTORIAS_
 function saveHistorias() { try { fs.mkdirSync(HISTORIAS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(HISTORIAS_STORE, JSON.stringify({ historias: HISTORIAS, ts: HISTORIAS_TS })); } catch (e) { console.error('historias store save:', e.message); } }
 loadHistorias();
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
-const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
+const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL del CHAT (tope duro, tiempo real)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
+// GENERACIÓN del dueño (niveles/tiendas/historias, opts.gen): NO es el chat en tiempo real. Antes usaba la misma
+// cadena free-first → los free lentos se comían el presupuesto y el PAGO (al final) ni se probaba → caía a estático
+// aunque hubiera pago. Fix: gen usa SOLO el/los modelo(s) pago confiables (estadísticamente mejores), con más tiempo.
+const GEN_MODELS = (process.env.GEN_MODELS || 'gemma4-paid').split(',').map(s => s.trim()).filter(Boolean);
+const GEN_TIMEOUT = +process.env.GEN_TIMEOUT_MS || 16000;             // presupuesto TOTAL de gen (más holgado que el chat)
+const GEN_PER_MODEL = +process.env.GEN_PER_MODEL_MS || 14000;         // un modelo de 31B tarda varios seg en escupir el JSON
 // Métricas prometheus (para Grafana): requests, timeouts, errores y suma/cuenta de duración (→ latencia media).
 const M = { requests: 0, timeouts: 0, errors: 0, fallbackLines: 0, durMsSum: 0, durCount: 0 };
 // Métricas ETIQUETADAS por uso (qué modelo/backend/resultado). Labels acotados (sin PII).
@@ -319,12 +325,13 @@ async function read429(r) {
 }
 
 async function ask(messages, opts = {}) {
-  const deadline = Date.now() + UPSTREAM_TIMEOUT;        // presupuesto TOTAL (tope duro)
+  const deadline = Date.now() + (opts.gen ? GEN_TIMEOUT : UPSTREAM_TIMEOUT);   // gen no es tiempo real → más holgado
   let timedOut = false;
   const direct = !!opts.orKey;                           // F3: sub con key propia → DIRECTO a OpenRouter (su gasto/tope)
   const base = direct ? OR_BASE : BASE;
   const authKey = direct ? opts.orKey : KEY;
-  const chain = direct ? SUB_OR_MODELS : (opts.sub ? SUB_MODELS : activeChain());
+  // gen (contenido del dueño): cadena de PAGO confiable directa (sin los free lentos que se comían el tiempo)
+  const chain = direct ? SUB_OR_MODELS : (opts.gen ? GEN_MODELS : (opts.sub ? SUB_MODELS : activeChain()));
   for (const model of chain) {                           // cadena: si el 1º no contesta, prueba el 2º
     const left = deadline - Date.now();
     if (left <= 500) break;                              // sin tiempo → cortar y caer a la línea temática
@@ -334,7 +341,7 @@ async function ask(messages, opts = {}) {
     if (!direct && !opts.sub && !opts.gen && isPaid && paidLeft() <= 0) { incAttempt(model, 'paid_budget'); continue; }
     // free con la cuota de CUENTA agotada → no lo probamos (direct no aplica: key propia)
     if (!direct && !isPaid && Date.now() < FREE_BLOCKED_UNTIL) { incAttempt(model, 'free_blocked'); continue; }
-    const slice = Math.min(left, PER_MODEL_TIMEOUT);     // tope POR modelo (deja tiempo para el siguiente)
+    const slice = Math.min(left, opts.gen ? GEN_PER_MODEL : PER_MODEL_TIMEOUT);   // gen: más tiempo por modelo (JSON largo)
     const ctrl = new AbortController();
     const to = setTimeout(() => ctrl.abort(), slice);
     try {

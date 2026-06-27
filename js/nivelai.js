@@ -10,7 +10,10 @@ const NivelAI = (() => {
   // a MODO ESTÁTICO al toque, sin esperar timeouts. Si la GPU se va al tacho, NO se cuelga nada. (premisa del dueño)
   // La señal de salud se COMPARTE con el chat (js/ai.js) vía window.__aiHealth: mismo backend GPU/proxy, así si
   // uno detecta la IA caída el otro también falla rápido al modo estático/local. (specs/resiliencia.md)
-  const AI_TIMEOUT = 6000, AI_COOLDOWN = 90000;
+  // 16s (no 6s): la GENERACIÓN no es el chat en tiempo real — el proxy ahora va DIRECTO al modelo PAGO confiable
+  // (gen-models), que tarda varios seg en escupir el JSON del nivel. Antes 6s abortaba antes de que el pago contestara
+  // → caía a estático aunque hubiera pago. El circuit breaker (AI_COOLDOWN) igual corta tras el 1er timeout real.
+  const AI_TIMEOUT = 16000, AI_COOLDOWN = 90000;
   const health = (typeof window !== 'undefined') ? (window.__aiHealth = window.__aiHealth || { downUntil: 0 }) : { downUntil: 0 };
   const aiDown = () => Date.now() < health.downUntil;
   const markAi = ok => { health.downUntil = ok ? 0 : Date.now() + AI_COOLDOWN; };
