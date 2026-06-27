@@ -28,8 +28,10 @@ El juego es 100% estático; se publica en
   - ~~**IA autora la ECONOMÍA de las tiendas**~~: ✅ **HECHO (v197 / infra-28)** — la IA **sugiere** `cost`/`amount`
     por producto y el cliente **clampa** a rango sano por kind (la moneda y el tipo de ítem quedan del molde); +
     `shopCache` **persistido en localStorage** (`ts_shopCache_v1`). `tiendas-generadas.md`.
-  - **Linyera-guía / Guido "follow" cross-room** (`cuevero-gate-truco.md §9`): hoy scriptado por mensajes (el motor
-    mueve NPCs solo dentro de la sala). Un follow que cruza salas = feature de motor nueva (caro, impacto estético).
+  - ~~**Linyera-guía / Guido "follow" cross-room**~~: ✅ **HECHO (v200 Fase 1 + v201 Fase 2)** — sistema de
+    *companions* (NPC real que viaja con vos entre salas, derivado de flags). El linyera te escolta hasta Guido y
+    Guido hasta el tahúr; y el **truco "de a 6"** (reclutás 2 que te siguen, 3v3 por skill). **Toda la deuda fina A
+    queda CERRADA.**
   - ~~**Persistir la historia activa del vecino**~~: ✅ **HECHO (v198)** — `vecinoState[edif]` (told/storyCount/activeStory)
     se serializa/restaura; el NPC se hidrata desde el estado guardado → reabrir el chusmerío es coherente tras recargar.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
