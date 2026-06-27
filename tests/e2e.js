@@ -444,6 +444,17 @@ if (require.main === module) {
     window.HISTORIAS_VECINO = [{ id: 'a0', edif: 'arcade', motif: '🕹️', style: 'wall', es: { gancho: 'X', tale: 'Y' }, en: { gancho: 'X', tale: 'Y' } }];
     if (V.pick('garbarino').live) out.push('FAIL banco vivo de otro edificio no debe usarse');
     window.HISTORIAS_VECINO = [];
+    // PERSISTENCIA del chusmerío del vecino (deuda #3): el estado por edificio (told/storyCount/active) sobrevive save→load
+    const before = V.state().vecino;
+    if (!before.garbarino || !(before.garbarino.storyCount > 0)) out.push('FAIL no se registró el estado del vecino (garbarino) tras charlar');
+    else {
+      const snap2 = Game.serialize();
+      if (!snap2 || !snap2.flags || !snap2.flags.vecino || !snap2.flags.vecino.garbarino) out.push('FAIL serialize() no incluyó el estado del vecino');
+      Game.continueGame(snap2);
+      const after = Game.__vecino.state().vecino;
+      if (!after.garbarino || after.garbarino.storyCount !== before.garbarino.storyCount) out.push('FAIL el storyCount del vecino no sobrevivió el round-trip');
+      if (JSON.stringify((after.garbarino || {}).told) !== JSON.stringify(before.garbarino.told)) out.push('FAIL los told del vecino no sobrevivieron el round-trip');
+    }
     return JSON.stringify(out);
   })()`, sandbox);
   const vecRes = JSON.parse(vecino);

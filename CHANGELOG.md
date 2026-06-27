@@ -30,7 +30,8 @@ El juego es 100% estático; se publica en
     `shopCache` **persistido en localStorage** (`ts_shopCache_v1`). `tiendas-generadas.md`.
   - **Linyera-guía / Guido "follow" cross-room** (`cuevero-gate-truco.md §9`): hoy scriptado por mensajes (el motor
     mueve NPCs solo dentro de la sala). Un follow que cruza salas = feature de motor nueva (caro, impacto estético).
-  - **Persistir la historia activa del vecino** (hoy solo se guarda `entrado[edificio]`; las historias se regeneran).
+  - ~~**Persistir la historia activa del vecino**~~: ✅ **HECHO (v198)** — `vecinoState[edif]` (told/storyCount/activeStory)
+    se serializa/restaura; el NPC se hidrata desde el estado guardado → reabrir el chusmerío es coherente tras recargar.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
   interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.
@@ -46,6 +47,24 @@ El juego es 100% estático; se publica en
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v198] — 2026-06-27 — 💾 Se persiste el chusmerío del vecino (la historia activa sobrevive recargar/guardar)
+
+**Qué cambió (jugador):** si charlabas con el vecino de un edificio clausurado y recargabas/volvías a la partida,
+el hilo se reiniciaba (te repetía historias, perdía la oferta abierta). Ahora el **estado por edificio** (qué
+historias ya te contó, en cuál vas, la oferta activa) **se guarda** y al volver el vecino sigue donde estaban.
+
+**Por qué importa (REGLA #0 — MEMORIA):** cierra la última deuda fina del vecino. El chusmerío deja de ser estado
+efímero del NPC (que se reconstruye en cada carga) y pasa a **memoria persistente por edificio**, serializada con
+el resto de la partida.
+
+**Cómo (técnico):** mapa `vecinoState[edif] = {told, storyCount, activeStory}` en `game.js`, incluido en
+`serialize()`/`restore()` (junto a `entrado`). El NPC del vecino se **hidrata** desde `vecinoState` la 1ª vez que le
+hablás en una sesión (`hydrateVecino`) y se **vuelca** tras cada mutación (`persistVecino`). Reseteado en `reset()`.
+Test `tests/e2e.js`: round-trip (charlar → `serialize` → `continueGame` → el `storyCount`/`told` sobreviven). Cache
+**v198** (solo web). `npm test` verde.
 
 ---
 

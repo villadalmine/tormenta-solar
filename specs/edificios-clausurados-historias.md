@@ -149,7 +149,9 @@ el flujo), `js/lang/game.{es,en}.js` (historias/ganchos/UI), `js/nivelai.js` (`r
   (por edificio×idioma, `{gancho,tale,motif,style}`) → `window.HISTORIAS_VECINO` (`js/historias-vecino.js`);
   `pickVecinoStory(n, edif)` lo prefiere con fallback al estático. La IA autora el texto; los visuales (paleta/props)
   los toma de un molde curado. Aristas y nivel siguen igual.
-- **Memoria:** se guarda `entrado[edificio]`; las historias se regeneran (no se persiste la activa — deuda menor).
+- **Memoria:** se guarda `entrado[edificio]`. ~~las historias se regeneran (no se persiste la activa — deuda menor).~~
+  **✅ HECHO (2026-06-27, v198):** `vecinoState[edif]` (`told`/`storyCount`/`activeStory`) se serializa y restaura →
+  reabrir el chusmerío del vecino es coherente tras recargar (el NPC se hidrata desde el estado guardado).
 - **Grafo: ✅ HECHO (2026-06-27, v195).** Arista `vecino` (`specs/nivel-1/personajes/vecino.md`): `at:'calle'`,
   `pre:{stormed}`, `sets:{vecinoSeen}`, `terminal` — actividad post-tormenta opcional. `vecinoSeen` es derivado
   (`Object.keys(entradoEdif).length>0`) en `historiaState`; `passToBuilding` dispara `applyEdge('vecino')` (evento

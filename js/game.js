@@ -116,6 +116,8 @@
   let spinoffReturnRoom = null;   // si el nivel generado vino de un VECINO: al GANAR quedás en el interior real del edificio (no la calle)
   // EDIFICIOS CLAUSURADOS (specs/edificios-clausurados-historias.md): a qué edificio ya entraste (2ª visita = directo a la oferta)
   const entradoEdif = {};
+  // estado del VECINO por edificio (told/storyCount/active) — PERSISTENTE (sobrevive recarga/save) → reabrir es coherente
+  const vecinoState = {};
   // CÁMARAS que "ven" los dólares cuando disparás (post-tormenta): burbuja con la SERIE (real o TRUCHA → AFIP).
   // legalBlindUntil: si tiráste un dólar de serie BUENA, los ROBOTS (drones) no te ven hasta este momento (legal).
   let dollarBubbles = [], shotsSeen = 0, legalBlindUntil = 0;
@@ -212,7 +214,7 @@
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
-    spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k];   // edificios clausurados, de cero
+    spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
@@ -237,7 +239,7 @@
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
         borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered,
         cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing,
-        entrado: { ...entradoEdif } },
+        entrado: { ...entradoEdif }, vecino: JSON.parse(JSON.stringify(vecinoState)) },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       // RF-4: estado anclado por POSICIÓN (sala, x), no por índice de array → robusto a reordenar entidades.
       // El pickup/npc se identifica por su x en la sala (su "id" natural), no por su lugar en el array.
@@ -261,6 +263,7 @@
     trucoWon = !!f.trucoWon; trucoEverWon = !!f.trucoEverWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
     cueveroUnlocked = !!f.cueveroUnlocked; tahurDiscovered = !!f.tahurDiscovered; guidoSummoned = !!f.guidoSummoned; guidoRecruited = !!f.guidoRecruited; guidoFollowing = !!f.guidoFollowing;
     for (const k in entradoEdif) delete entradoEdif[k]; if (f.entrado) Object.assign(entradoEdif, f.entrado);
+    for (const k in vecinoState) delete vecinoState[k]; if (f.vecino && typeof f.vecino === 'object') Object.assign(vecinoState, JSON.parse(JSON.stringify(f.vecino)));
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
     if (snap.pickups) {
       if (snap.v >= 2) states.forEach((s, i) => { const xs = snap.pickups[i] || []; s.pickups.forEach(pk => { if (xs.includes(Math.round(pk.x))) pk.taken = true; }); });   // por posición (RF-4)
@@ -1143,12 +1146,24 @@
     };
   }
   let vecinoNpc = null, vecinoEdif = null;
+  // El NPC del vecino se reconstruye en cada carga de nivel; el chusmerío (told/storyCount/activeStory) vive en
+  // vecinoState[edif] (PERSISTENTE). hydrate = seedear el NPC desde el estado guardado; persist = volcarlo tras mutar.
+  function hydrateVecino(n, edif) {
+    if (n.__vhyd) return; n.__vhyd = true;
+    const st = vecinoState[edif];
+    if (st) { n.told = Array.isArray(st.told) ? st.told.slice() : []; n.storyCount = st.storyCount | 0; n.activeStory = st.active || null; }
+  }
+  function persistVecino(n, edif) {
+    vecinoState[edif] = { told: Array.isArray(n.told) ? n.told.slice() : [], storyCount: n.storyCount | 0, active: n.activeStory || null };
+  }
   function handleVecino(n) {
     Sfx.pickup();
     const edif = (n.vecino && n.vecino.edificio) || 'edu';
     if (!stormed) { setMsg(TX(n.dialog) || T('g.vecino.preStorm'), '#9fb4c4', 4500); return; }   // pre-tormenta: ambiental
+    hydrateVecino(n, edif);
     n.storyCount = (n.storyCount || 0) + 1;
     const s = pickVecinoStory(n, edif); n.activeStory = s;
+    persistVecino(n, edif);
     // sin la máquina de niveles → igual chusmea (aditivo, nunca rompe la calle)
     if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined') { setMsg(vecinoTale(s, edif), '#c8b0d8', 8000); return; }
     // 1ª historia (y nunca entraste): teaser por mensaje; de la 2ª en más (o si ya entraste) → abre la oferta
@@ -1175,11 +1190,14 @@
   function pickVecino(k) {
     if (k === 'pasa') { closeVecino(); passToBuilding(vecinoNpc, vecinoEdif); return; }
     const s = pickVecinoStory(vecinoNpc, vecinoEdif); vecinoNpc.activeStory = s; vecinoNpc.storyCount = (vecinoNpc.storyCount || 0) + 1;   // otra historia → swap y reabrir
+    persistVecino(vecinoNpc, vecinoEdif);
     Sfx.pickup(); openVecino(vecinoNpc, vecinoEdif);
   }
   // aceptar pasar → genera el nivel desde la última historia (IA opcional, fallback estático) → al ganar, interior real
   function passToBuilding(n, edif) {
+    hydrateVecino(n, edif);
     const s = n.activeStory || pickVecinoStory(n, edif);
+    n.activeStory = s; persistVecino(n, edif);
     const interior = (n.vecino && n.vecino.interior);
     entradoEdif[edif] = true;
     applyEdge('vecino');   // grafo/Mensajero: "entraste a un edificio clausurado" (vecinoSeen es derivado de entradoEdif)
@@ -2141,6 +2159,6 @@
       end: outcome => endSpinoffLevel(outcome),
       // banco vivo (IA): elige una historia para el edificio y devuelve si vino del banco vivo + su gancho (para tests)
       pick: edif => { const s = pickVecinoStory({ told: [] }, edif); return { id: s.id, live: !!s.live, gancho: vecinoGancho(s), tale: vecinoTale(s, edif) }; },
-      state: () => ({ spinoffLevel, spinoffReturnRoom, current, entrado: { ...entradoEdif }, active: spinoffLevel }),
+      state: () => ({ spinoffLevel, spinoffReturnRoom, current, entrado: { ...entradoEdif }, active: spinoffLevel, vecino: JSON.parse(JSON.stringify(vecinoState)) }),
     } });
 })();
