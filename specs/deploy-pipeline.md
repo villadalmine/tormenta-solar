@@ -3,9 +3,10 @@
 - **Estado:** **F1 + F2 (script) IMPLEMENTADOS** (`deploy/deploy.sh`, 2026-06-25). Resuelve el dolor real: ~16
   `helm upgrade` a mano esta sesión, con bugs recurrentes (gotcha de `--reuse-values`/genToken vacío → 403, typo de
   `schedules`, olvidar un `--set`, confundir release/ns). **F3 (Argo Events on-push) pendiente.**
-- **Última actualización:** 2026-06-25
+- **Última actualización:** 2026-06-27 (added §5: storage en PVC + auto-borrado, regla del dueño).
 - **Relacionado:** `deploy/deploy.sh` (el script), `ai-proxy/kaniko-build.yaml` (build Argo), `proxy-ia-deploy.md`,
-  `web/kaniko-build.yaml`, [[proxy-helm-gentoken]] (el gotcha que esto mata).
+  `web/kaniko-build.yaml`, [[proxy-helm-gentoken]] (el gotcha que esto mata), repo `infra`
+  (`infra/diskpressure-rk1-nvme-2026-06-27.md`, el incidente de disco que motivó §5).
 
 ## 1. Objetivo
 
@@ -50,6 +51,24 @@ WorkflowTemplate "tormenta-deploy" (params: component=proxy|web, tag)
 3. **F3 (pendiente)** WorkflowTemplate `tormenta-deploy` in-cluster + **Argo Events** (webhook GitHub) → deploy
    **automático on-push** (build solo del componente que cambió). El script (F2) ya da el 80% del valor manual;
    F3 es el CI/CD real para cuando haya ritmo de cambios.
+
+## 5. Storage en PVC + auto-borrado (regla del dueño, 2026-06-27) ✅ HECHO
+
+**Regla:** todo build de Argo debe usar **PVC (`longhorn-nvme`), NADA de disco local del nodo**, y **borrar TODO al
+terminar** (pods, PVC, Workflow). Motivo: el nodo de build `srv-rk1-nvme-01` tiene root en una **SD de 29 GB**; basura
+en disco local lo llena → `DiskPressure` → evictions en cascada (incidente 2026-06-27, ver repo `infra`).
+
+Implementado en `ai-proxy/kaniko-build.yaml` + `web/kaniko-build.yaml`:
+- **Workspace en PVC:** `volumeClaimTemplates[workspace]` con `storageClassName: longhorn-nvme` (3Gi). El contexto
+  del build vive en Longhorn/NVMe, no en el nodo. Sin `emptyDir`/`hostPath`; Kaniko sin `--cache` en disco local.
+- **`podGC.strategy: OnWorkflowCompletion`** → borra los pods del build apenas termina (libera lo efímero del nodo).
+- **`volumeClaimGC.strategy: OnWorkflowCompletion`** → borra el PVC `workspace` apenas termina (éxito **o** fallo).
+- **`ttlStrategy`:** `secondsAfterSuccess: 600` (el objeto Workflow se va a los 10 min) · `secondsAfterFailure: 86400`.
+- El **registry destino** ya está en `longhorn-nvme` (no local-path). El `helm upgrade` no toca disco local.
+
+**Invariantes (checklist al tocar el pipeline):** sin `emptyDir`/`hostPath` para workspace/cache · `podGC` +
+`volumeClaimGC` en `OnWorkflowCompletion` · workspace y registry en `longhorn-nvme` · imágenes de runtime pesadas
+pineadas a un nodo con headroom (no a -01 por inercia; ver `hermes-agent`→`-04` en el repo `infra`).
 
 ## 4. Mi lectura
 

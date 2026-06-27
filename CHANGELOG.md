@@ -935,6 +935,17 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 
 ---
 
+## [infra-31] — 2026-06-27 — 🧹 Builds de Argo: workspace en PVC + auto-borrado total (pods + PVC + Workflow)
+
+Regla del dueño: los pipelines de build deben usar **PVC (`longhorn-nvme`), nada de disco local**, y **borrar todo al
+terminar**. Los `*/kaniko-build.yaml` ya usaban PVC `longhorn-nvme` para el workspace; se agregó el **auto-borrado
+explícito**: `podGC.strategy: OnWorkflowCompletion` (pods) + `volumeClaimGC.strategy: OnWorkflowCompletion` (PVC del
+workspace, éxito o fallo) + `ttlStrategy.secondsAfterSuccess: 600` (el Workflow). Así un build no deja basura ni
+presión de disco en el nodo (motivado por el incidente DiskPressure de `srv-rk1-nvme-01`, repo `infra`). Documentado
+en `specs/deploy-pipeline.md §5` con el checklist de invariantes.
+
+---
+
 ## [infra-30] — 2026-06-27 — 🎰 Proxy 0.1.49→0.1.50: `gen` va DIRECTO al modelo pago confiable (no a la cola de free lentos)
 
 Sostén del **v204**. El `ask()` con `opts.gen` (generación de contenido del dueño) deja de usar la cadena `free-first`

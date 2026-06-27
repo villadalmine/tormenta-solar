@@ -17,8 +17,12 @@ metadata:
 spec:
   entrypoint: build-image
   ttlStrategy:
-    secondsAfterSuccess: 3600
-    secondsAfterFailure: 86400
+    secondsAfterSuccess: 600          # el objeto Workflow se autoborra a los 10 min (es solo metadata en la API)
+    secondsAfterFailure: 86400        # los fallos quedan 1 día para debug
+  podGC:
+    strategy: OnWorkflowCompletion    # BORRA los pods del build apenas termina → libera lo efímero del nodo (no disco local colgado)
+  volumeClaimGC:
+    strategy: OnWorkflowCompletion    # BORRA el PVC `workspace` apenas termina (éxito O fallo) → nada queda en almacenamiento
   nodeSelector:
     kubernetes.io/hostname: srv-rk1-nvme-01     # arm64, igual que el resto del stack AI
   tolerations:
