@@ -40,10 +40,11 @@ El juego es 100% estático; se publica en
 - **Spinoff STARGATE** (`specs/spinoff-stargate.md`, idea 2026-06-26): SG-1 + Atlantis, fiel al canon (razas,
   planetas, galaxias, naves, militar Tau'ri, personajes por raza). El stargate = puerta entre niveles/galaxias.
   Diseño temprano, NO implementado.
-- **Cine: news EN VIVO horario + Villa Dálmine** (`specs/cine-noticias.md §7.1`, idea 2026-06-25): 2º cron `0 * * * *`
-  en modo live-only (sports+crypto) + **`POST /noticias` con merge por topic** (hoy reemplaza todo). Y los partidos
-  de **Villa Dálmine** (team id `137785`, Primera B **Nacional**; TheSportsDB la etiqueta mal como "Metropolitana"
-  → traer POR EQUIPO con `eventslast.php?id=137785`, no por liga). **NO implementado** — retomar.
+- ~~**Cine: news EN VIVO horario + Villa Dálmine**~~ ✅ **HECHO** (`specs/cine-noticias.md §7.1`): 2º cron horario
+  `tormenta-ai-proxy-noticias-live` en modo `NEWS_LIVE_ONLY` (Mundial/fútbol/crypto, sin Google) + `POST /noticias`
+  con **merge por topic** (`if (d.merge)` actualiza solo esos, conserva el resto del día) + **Villa Dálmine por
+  EQUIPO** (`NEWS_SPORTS="...primera-b:team:137785"` en values-prod → `eventslast.php?id=137785`). Verificado en vivo
+  (el banco trae "Villa Dálmine 2-1 Sportivo Italiano").
 - **Seguridad** (`specs/seguridad.md`): fase transversal — sin CVEs (todas las versiones), flujo cifrado,
   anti-DoS web/API/tokens (incl. "denial of wallet"), buenas prácticas de datos, anti-escalada. Con checklist
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
