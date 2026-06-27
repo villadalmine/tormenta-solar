@@ -6,7 +6,7 @@
 # Seguir:   kubectl logs -l app=tormenta-ai-proxy-build -n kaniko -f
 # Esperar:  kubectl wait workflow -l app=tormenta-ai-proxy-build -n kaniko \
 #             --for=jsonpath='{.status.phase}'=Succeeded --timeout=900s
-# Imagen:   registry.registry:5000/ai/tormenta-ai-proxy:0.1.50
+# Imagen:   registry.registry:5000/ai/tormenta-ai-proxy:0.1.51
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
@@ -56,7 +56,7 @@ spec:
         args:
           - "--dockerfile=/workspace/source/ai-proxy/Dockerfile"
           - "--context=dir:///workspace/source/ai-proxy"
-          - "--destination=registry.registry:5000/ai/tormenta-ai-proxy:0.1.50"
+          - "--destination=registry.registry:5000/ai/tormenta-ai-proxy:0.1.51"
           - "--insecure"
           - "--skip-tls-verify"
           - "--snapshot-mode=redo"
