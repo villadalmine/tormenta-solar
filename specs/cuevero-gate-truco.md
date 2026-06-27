@@ -1,8 +1,8 @@
 # SPEC: Gate del cuevero — desbaratar la red del tahúr (truco) antes de la tormenta
 
-- **Estado:** Draft (idea del dueño, 2026-06-26) — **no implementado**
+- **Estado:** **Implementado** (2026-06-27) — core completo + ruta A (Guido) + ruta B (vos) + dead-end. Ver §9.
 - **Nivel:** 1
-- **Última actualización:** 2026-06-26
+- **Última actualización:** 2026-06-27
 - **Relacionado:** `truco.md` (motor de truco real), `nivel-1/historia-grafo.md` + `js/historia.js` (el GRAFO — esto
   agrega nodos/aristas), `npcs-vivos.md` (Mensajero/follow/chusmerío), `modelo-de-entidades.md` (quest = bundle de
   aristas §6.95). Toca el **arranque principal**, así que se diseña en el grafo (las fichas `specs/nivel-1/**`).
@@ -136,6 +136,35 @@ Con el **mensaje del tahúr** ("lo perdono"), volvés al **cuevero** → ahora *
   `HintEngine` que te empuje a encontrar la trastienda? Propuesta: **sí**, sumar la pista al frontier.
 - **Las otras cuevas (3):** ¿las tres comparten el gate, o el chiste de "me voy a otro cuevero más limpio" (opción C)
   insinúa que hay alternativas? Propuesta: **todas gateadas igual** (la opción C es humor, no una ruta real).
+
+## 9. Implementación (2026-06-27)
+
+Todo en `js/game.js` (capa aditiva, flags privados + `FLAG_SETTERS`/`FLAG_GETTERS`/`historiaState`) + i18n ES/EN
+(`g.cuevero.busy|menuTitle|menuSub|optA|optB|optC|bGo|cBye|linyera`, `g.guido.*`, `g.truco.winGate`) + overlay
+`#cueveromenu` en `index.html` (calcado de `armasmenu`). Flags nuevos serializados/restaurados (`save.js`) + en
+`historiaState()` (los oráculos los ven). Guido pasa a `action:'guido'` en `js/level.js` (regenerado `level-data.js`).
+
+- **RF-1/RF-7 (gate):** `handleCuevero` con `c.outcome==='real'` → `if (!cueveroUnlocked) cueveroBusy(c)`. Sólo se
+  gatea el cuevero que SÍ cambia (los otros dos ya te rechazan por otros motivos → encaja con el humor de la opción C).
+- **RF-2 (3 opciones):** `cueveroBusy` tira `TL('g.cuevero.busy')` + `openCuevero` (overlay, 3 botones A/B/C →
+  `pickCuevero`). ESC/Cerrar como los otros menús.
+- **RF-6 (ruta B):** al ganarle al tahúr (`arcade` result `win` vs `tahur`) → `cueveroUnlocked = true` + mensaje
+  `g.truco.winGate` ("el tahúr te perdona"). Sigue abriendo la puerta al chino (`trucoWon`) como antes.
+- **RF-3/RF-4/RF-5 (ruta A):** `pickCuevero('a')` → `startRutaContactos` (`guidoSummoned`). `handleGuido`:
+  1ª vez te presenta (`guidoRecruited`); si `tahurDiscovered` → `guidoFollowing`, si no "volvé más tarde".
+  `tahurDiscovered` se setea al ENTRAR a la trastienda (`hasTag(r,'truco')` en `transition`). Con Guido siguiéndote,
+  `NPC_ACTIONS.truco` detecta `guidoFollowing` y dispara `guidoBeatsTahur` (auto-win) → `cueveroUnlocked`.
+- **Tests:** `tests/e2e.js` (hook `Game.__gate`) cubre CA-1..CA-5 (ruta A end-to-end + dead-end + venta destrabada)
+  + round-trip de los flags nuevos. Corre **después** del test de Mensajero (la venta dispara la tormenta).
+
+### Deuda / simplificaciones respecto al diseño
+- **Linyera-guía (RF-3):** el "seguime, pibe" cross-room **no** es un follow literal (el motor mueve NPCs sólo
+  dentro de la sala). Por ahora es **scriptado por mensajes** + flag `guidoSummoned` que destraba la cadena con Guido.
+  El walking-guide real queda pendiente.
+- **Guido-follow (RF-4):** `guidoFollowing` es **lógico** (no hay un Guido físico acompañándote sala a sala); el
+  auto-win se dispara al sentarte con el tahúr teniendo `guidoFollowing`.
+- **Grafo (§5):** los flags nuevos NO entraron todavía a `historia.js` (el grafo generado de `specs/nivel-1/**`);
+  la discoverabilidad la cubre el propio menú de 3 opciones (te dice qué hacer). Integrar al grafo = pendiente.
 
 ## 8. Bocetos (no normativo)
 

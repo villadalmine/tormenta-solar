@@ -27,10 +27,6 @@ El juego es 100% estático; se publica en
   edificio (fantasmas, filicidios, juguetes diabólicos, la llorona, fiestas) que la IA flashea; iterás y siempre
   tiene "algo más", hasta que te ofrece **"¿querés pasar y ver qué pasó con XXX?"** → entrás a un **nivel generado
   desde la última historia** y al ganarlo quedás en el interior real del edificio. NO implementado.
-- **Gate del cuevero por el truco** (`specs/cuevero-gate-truco.md`, idea 2026-06-26): el cuevero (misión principal →
-  tormenta) no vende hasta **desbaratar al tahúr** ganándole al truco (vos, o pidiendo ayuda → cadena linyera→Guido
-  que juega y gana por vos); recién con el "te perdono" del tahúr el cuevero vende y estalla la tormenta. Para que
-  no ganes de una y te pierdas todo. NO implementado.
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
   interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.
@@ -49,6 +45,26 @@ El juego es 100% estático; se publica en
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v193] — 2026-06-27 — 🃏 Gate del cuevero: desbaratar al tahúr (truco) antes de la tormenta
+
+Implementa `specs/cuevero-gate-truco.md`. El cuevero que cambia (la cueva del fondo) **ya no te vende ni dispara la
+tormenta de una**: está **ocupado con dramas con el tahúr** y se te abre un **menú de 3 opciones**:
+- **A — "tengo contactos"** → aparece un **linyera** que te manda con **GUIDO** (EducaciónIT). Guido se te presenta;
+  si ya **descubriste la trastienda del tahúr** te acompaña; al sentarte a la mesa **Guido juega y le gana** → te
+  pasa el "te perdono" del tahúr.
+- **B — "yo me arreglo"** → vas vos, **le ganás al truco** al tahúr (motor real) y el tahúr te perdona.
+- **C — "me voy a otro cuevero"** → dead-end con humor (todos andan con la misma rosca).
+
+Con el "te perdono" (`cueveroUnlocked`), el cuevero **sí vende** → comprás → **estalla la tormenta**, ahora como
+**final de una cadena** y no como atajo del primer minuto (te empuja a recorrer edificio/EducaciónIT/súper/arcade).
+Flags nuevos (`cueveroUnlocked`/`tahurDiscovered`/`guido*`) serializados + en `historiaState()` (los oráculos los
+ven). Capa **aditiva** (sin los módulos, cae al comportamiento viejo). Overlay `#cueveromenu` (calco de `armasmenu`),
+i18n ES/EN completo. Tests: `tests/e2e.js` (hook `Game.__gate`) cubre ruta A end-to-end + dead-end + venta destrabada
++ round-trip de flags. **Deuda anotada**: el linyera-guía es scriptado por mensajes (no follow cross-room) y los flags
+aún no entraron al grafo `historia.js` (la discoverabilidad la da el propio menú). *(Sólo web — no toca el proxy.)*
 
 ---
 

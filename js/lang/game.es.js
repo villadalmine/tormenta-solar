@@ -130,6 +130,29 @@
     // --- cuevero ---
     'g.cuevero.enter': 'Entrás a la cueva del dólar. 💵 Gente esperando, olor a humedad, todos murmurando. Hablales (E)... y andá al cuevero del fondo a cambiar.',
     'g.cuevero.real': '{dialog} ...y JUSTO explota todo. El tipo se queda con tu plata. Vos: nada. 💸',
+    // GATE del cuevero (specs/cuevero-gate-truco.md): ocupado con el tahúr hasta que lo desbaratés (truco)
+    'g.cuevero.busy': [
+      '“Pará, pibe, estoy ocupado... tengo unos dramas con el tahúr.” 🃏',
+      '“No te puedo vender nada, tengo un pedido grande que cumplirle al tahúr.” 😤',
+      '“Hoy no cambio, flaco. El tahúr me tiene de los pelos, andá a saber.”',
+      '“Estoy en el horno con el naipero ese... no es momento, pibe.”',
+    ],
+    'g.cuevero.menuTitle': '💵 El cuevero está ocupado',
+    'g.cuevero.menuSub': '“Sacame al tahúr de encima y hacemos negocio.” ¿Qué le decís?',
+    'g.cuevero.optA': '“Flaco, te puedo ayudar a sacártelo de encima, tengo contactos.”',
+    'g.cuevero.optB': '“Flaco, ¿vos qué podés hacer? Dejá que me arreglo yo.”',
+    'g.cuevero.optC': '“Dejate de joder, mucha mafia. Me voy a otro cuevero más limpio.”',
+    'g.cuevero.bGo': 'El cuevero te mira: “Entonces andá vos y ganale al truco al tahúr. Volvé con su palabra y te cambio.” 🃏 (La trastienda del tahúr es la del lugar secreto.)',
+    'g.cuevero.cBye': 'El cuevero se encoge de hombros: “Como quieras, pibe. Pero todos los cueveros andan con la misma rosca, eh...” 🤷',
+    'g.cuevero.linyera': 'Aparece un linyera de la nada: “Seguime, pibe, yo te llevo con alguien que sabe.” 🫥 Te manda a EducaciónIT, a buscar a un tal GUIDO.',
+    // GUIDO (EducaciónIT): el que sabe jugar al truco (ruta A)
+    'g.guido.hi': '“¡Guido, máquina! ¿Andás bien? Cualquier cosa de cursos, preguntá.” 👋',
+    'g.guido.recruit': 'Guido: “¿Qué pasa?” — Vos: “No sé, me trajeron hasta acá.” El linyera: “Pero vooo so locooo viteh, van a pasar cosas raras... necesitás alguien que sepa jugar al truco.” Y se esfuma. 🫥 Guido: “¿Truco? Soy el mejor. Si querés jugar, avisá.” 🃏',
+    'g.guido.later': 'Guido: “Toy ocupado, pibe. Primero averiguá DÓNDE está ese tahúr y volvé. Recién ahí te acompaño.” 🤔 (La trastienda está pasando el lugar secreto.)',
+    'g.guido.follow': 'Guido se truena los dedos: “Listo, ya sé quién es. Llevame a la trastienda del tahúr que le gano yo.” 🃏 ¡Andá a la mesa del tahúr!',
+    'g.guido.coming': '“Vamos, vamos, llevame con el tahúr.” 🃏',
+    'g.guido.beats': 'Guido se sienta, tira tres manos y le gana al tahúr sin despeinarse. 🃏 “Tomá, esta es su palabra: andá al cuevero y decile que el tahúr lo perdona.” 💬✅',
+    'g.guido.done': 'Guido te guiña: “Ya está, máquina. Andá tranqui al cuevero.” 😎',
 
     // --- chori / secreto ---
     'g.chori.eat': '🌭 Te comés el choripán gratis. +40 vida. ¡Aguante!',
@@ -216,6 +239,7 @@
 
     // --- arcade resultados ---
     'g.truco.win': 'Le ganás al tahúr... pero las minas se te tiran encima 💃💃, no te dejan ni caminar y te afanan {n} monedas. 😵 (Igual: el tahúr abre una puerta al fondo que cruza derecho al CHINO — usala antes de irte.)',
+    'g.truco.winGate': 'Le ganás al tahúr 🃏 — las minas se te tiran encima 💃💃 y te afanan {n} monedas 😵. Pero el tahúr afloja: “Bien, pibe, me ganaste. Andá al cuevero y decile que lo perdono.” 💬 (Y abre la puerta del fondo que cruza al CHINO — usala antes de irte.)',
     'g.truco.lose': 'Perdés. El tahúr te sonríe de costado... dicen que al tipo le gusta el marrón. Salís medio incómodo, sin saber bien por qué. (−25 vida)',
     'g.truco.mWin': '🃏 Le ganaste al TRUCOTRON: +{n} flores. ¡Otra mano cuando quieras!',
     'g.truco.mLose': 'Te ganó el TRUCOTRON esta mano. Dale de nuevo, máquina.',

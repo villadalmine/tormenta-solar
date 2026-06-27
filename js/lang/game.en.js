@@ -115,6 +115,29 @@
 
     'g.cuevero.enter': 'You step into the dollar cueva. 💵 People waiting, smell of damp, everyone muttering. Talk to them (E)... then go to the cuevero in the back to exchange.',
     'g.cuevero.real': '{dialog} ...and RIGHT THEN everything blows up. The guy keeps your money. You: nothing. 💸',
+    // Cuevero GATE (specs/cuevero-gate-truco.md): busy with the card sharp until you take him down (truco)
+    'g.cuevero.busy': [
+      '“Hold on, kid, I\'m busy... got some drama with the card sharp.” 🃏',
+      '“Can\'t sell you a thing, I owe the sharp a big favor.” 😤',
+      '“No exchange today, pal. The sharp\'s got me by the throat.”',
+      '“I\'m in deep with that card hustler... not a good time, kid.”',
+    ],
+    'g.cuevero.menuTitle': '💵 The cuevero is busy',
+    'g.cuevero.menuSub': '“Get the card sharp off my back and we\'ll do business.” What do you say?',
+    'g.cuevero.optA': '“I can get him off your back, pal — I\'ve got contacts.”',
+    'g.cuevero.optB': '“What can YOU do about it? Leave it, I\'ll handle it myself.”',
+    'g.cuevero.optC': '“Forget it, too much mob. I\'ll find a cleaner cuevero.”',
+    'g.cuevero.bGo': 'The cuevero eyes you: “Then go beat the card sharp at truco yourself. Come back with his word and I\'ll exchange.” 🃏 (The sharp\'s back room is past the secret spot.)',
+    'g.cuevero.cBye': 'The cuevero shrugs: “Suit yourself, kid. But every cuevero\'s tangled in the same racket, you know...” 🤷',
+    'g.cuevero.linyera': 'A hobo appears out of nowhere: “Follow me, kid, I\'ll take you to someone who knows.” 🫥 He points you to EducaciónIT, to find a guy named GUIDO.',
+    // GUIDO (EducaciónIT): the one who knows how to play truco (route A)
+    'g.guido.hi': '“Guido, the man! All good? Anything about courses, just ask.” 👋',
+    'g.guido.recruit': 'Guido: “What\'s up?” — You: “No idea, they brought me here.” The hobo: “But you\'re cluuueless, see — weird stuff\'s coming, you need someone who can play truco.” And he vanishes. 🫥 Guido: “Truco? I\'m the best. Want to play, just say the word.” 🃏',
+    'g.guido.later': 'Guido: “I\'m busy, kid. First find out WHERE that sharp is and come back. Then I\'ll come with you.” 🤔 (The back room is past the secret spot.)',
+    'g.guido.follow': 'Guido cracks his knuckles: “Done, I know who he is now. Take me to the sharp\'s back room and I\'ll beat him.” 🃏 Go to the sharp\'s table!',
+    'g.guido.coming': '“Come on, come on, take me to the sharp.” 🃏',
+    'g.guido.beats': 'Guido sits down, plays three hands and beats the sharp without breaking a sweat. 🃏 “Here\'s his word: go to the cuevero and tell him the sharp forgives him.” 💬✅',
+    'g.guido.done': 'Guido winks: “All set, champ. Head to the cuevero, no worries.” 😎',
 
     'g.chori.eat': '🌭 You eat the free choripán. +40 life. Aguante!',
     'g.chori.noVale': 'You need a voucher. Beat the choripán guy at the arcade (Street Fighter).',
@@ -197,6 +220,7 @@
     'g.label.tahurDoor': '🔒 the sharp\'s door',
 
     'g.truco.win': 'You beat the card sharp... but the dancers throw themselves at you 💃💃, you can\'t even walk and they swipe {n} coins. 😵 (Still: the sharp opens a back door straight to the CORNER SHOP — use it before you leave.)',
+    'g.truco.winGate': 'You beat the card sharp 🃏 — the dancers throw themselves at you 💃💃 and swipe {n} coins 😵. But the sharp gives in: “Alright, kid, you won. Go to the cuevero and tell him I forgive him.” 💬 (And he opens the back door straight to the CORNER SHOP — use it before you leave.)',
     'g.truco.lose': "You lose. The sharp gives you a sideways grin... they say the guy's into brown. You walk out a little uneasy, not quite sure why. (−25 life)",
     'g.truco.mWin': '🃏 You beat the TRUCOTRON: +{n} flowers. Another hand whenever!',
     'g.truco.mLose': 'The TRUCOTRON won this hand. Hit it again.',

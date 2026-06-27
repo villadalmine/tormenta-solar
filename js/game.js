@@ -139,6 +139,13 @@
   let armado = false;                               // espejo de n.armado: compraste fierro criollo (lo lee el grafo de historia)
   let tesoroTaken = false;                           // reclamaste el TESORO de los linyeras en el búnker (premio del edificio, 1×)
   let chinoEntered = false;                           // entraste al chino post-tormenta por CUALQUIER puerta (lo lee el grafo: arista chino_back)
+  // GATE DEL CUEVERO (specs/cuevero-gate-truco.md): el cuevero "real" no te vende ni dispara la tormenta hasta tener
+  // el mensaje del tahúr (cueveroUnlocked). Se gana ganándole al truco vos mismo (ruta B) o mandando a Guido (ruta A).
+  let cueveroUnlocked = false;                        // tenés el "te perdono" del tahúr → el cuevero vende → estalla la tormenta
+  let tahurDiscovered = false;                        // entraste a la trastienda del tahúr (precondición para que Guido te siga)
+  let guidoSummoned = false;                          // elegiste "tengo contactos" → un linyera te manda con Guido
+  let guidoRecruited = false;                         // hiciste la cadena linyera→Guido (te lo presentaron)
+  let guidoFollowing = false;                         // Guido te acompaña a desbaratar al tahúr (auto-win en la trastienda)
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -201,6 +208,7 @@
     gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
+    cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
@@ -223,7 +231,8 @@
         birras: p.birras, carne: p.carne, fiambre: p.fiambre, diosa: p.diosa, falopa: p.falopa,
         spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
-        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered },
+        borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered,
+        cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       // RF-4: estado anclado por POSICIÓN (sala, x), no por índice de array → robusto a reordenar entidades.
       // El pickup/npc se identifica por su x en la sala (su "id" natural), no por su lugar en el array.
@@ -245,6 +254,7 @@
     borrachosHappy = !!f.borrachosHappy; moneyRecovered = !!f.moneyRecovered; fifaWon = !!f.fifaWon;
     bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
     trucoWon = !!f.trucoWon; trucoEverWon = !!f.trucoEverWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
+    cueveroUnlocked = !!f.cueveroUnlocked; tahurDiscovered = !!f.tahurDiscovered; guidoSummoned = !!f.guidoSummoned; guidoRecruited = !!f.guidoRecruited; guidoFollowing = !!f.guidoFollowing;
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
     if (snap.pickups) {
       if (snap.v >= 2) states.forEach((s, i) => { const xs = snap.pickups[i] || []; s.pickups.forEach(pk => { if (xs.includes(Math.round(pk.x))) pk.taken = true; }); });   // por posición (RF-4)
@@ -349,7 +359,11 @@
   // Las que lanzan SUB-MODOS (truco/frogger) son lanzadores: arman el módulo y cambian de estado.
   const NPC_ACTIONS = {
     frogger: () => { challengeForVale = true; setMsg(T('g.frogger.start'), '#ff2e88', 1000); launchArcade('frogger'); },
-    truco:   () => { setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' }); },
+    truco:   () => {
+      if (guidoFollowing && !cueveroUnlocked) { guidoBeatsTahur(); return; }   // ruta A: Guido juega y gana por vos
+      setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' });
+    },
+    guido:   n => handleGuido(n),
     chori:   () => redeemChori(),
     shop:    n => buyFromShop(n),
     tienda:  n => enterTienda(n),
@@ -501,11 +515,15 @@
     chinoEntered:     v => chinoEntered = v,
     hasMegaDrive:     v => { if (player) player.hasMegaDrive = v; },
     hasCementoTicket: v => { if (player) player.hasCementoTicket = v; },
+    cueveroUnlocked:  v => cueveroUnlocked = v,
+    tahurDiscovered:  v => tahurDiscovered = v,
+    guidoFollowing:   v => guidoFollowing = v,
   };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
   const FLAG_GETTERS = {
     stormed: () => stormed, bunkerUnlocked: () => bunkerUnlocked, secretUnlocked: () => secretUnlocked,
     trucoWon: () => trucoWon, borrachosHappy: () => borrachosHappy, chinoFrontOpen: () => chinoFrontOpen,
+    cueveroUnlocked: () => cueveroUnlocked, tahurDiscovered: () => tahurDiscovered,
   };
   // evalúa el componente `gate` de una puerta (cond declarativa: flag/item + all/any/not). Reemplaza los
   // ifs por-id de visibilidad (secret/cemento/bunker/chinoback). Versión acotada del evalCond del SDD §6.96.
@@ -531,6 +549,7 @@
       stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon, fifaWon, armado, chinoEntered,
       hasMegaDrive: !!(player && player.hasMegaDrive),
       hasCementoTicket: !!(player && player.hasCementoTicket),
+      cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing,
       sleptOnce: loopCount > 0,
     };
   }
@@ -981,12 +1000,73 @@
       return;
     }
     if (c.outcome === 'real') {
+      if (!cueveroUnlocked) { cueveroBusy(c); return; }   // GATE: hasta desbaratar al tahúr no te vende
       bought = true;
       setMsg(T('g.cuevero.real', { dialog: TX(c.dialog) }), '#ff5252', 7000);
       triggerStorm();
     } else {
       setMsg(c.dialog, '#ffd54f', 4800);
     }
+  }
+  // --- GATE DEL CUEVERO (specs/cuevero-gate-truco.md) ---
+  // El cuevero está "ocupado, con dramas con el tahúr": tira una línea del pool + abre el menú de 3 opciones.
+  function cueveroBusy(c) {
+    Sfx.pickup();
+    setMsg(TL('g.cuevero.busy'), '#ffd54f', 4600);   // pool i18n "ocupado con el tahúr"
+    openCuevero(c);
+  }
+  function openCuevero(c) {
+    const ov = document.getElementById('cueveromenu'), body = document.getElementById('cueveroBody');
+    if (!ov || !body) return;   // sin overlay (headless): el gate igual bloquea la venta (RF-8)
+    let html = '<div class="end-stats-title">' + T('g.cuevero.menuTitle') + '</div>';
+    html += '<div style="text-align:center;margin:.3em 0 .7em;opacity:.85">' + T('g.cuevero.menuSub') + '</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:.4em">';
+    for (const k of ['a', 'b', 'c']) {
+      html += '<button class="cuevero-opt" data-k="' + k + '" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer">' + T('g.cuevero.opt' + k.toUpperCase()) + '</button>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    const btns = body.querySelectorAll ? body.querySelectorAll('.cuevero-opt') : null;
+    if (btns && btns.forEach) btns.forEach(b => b.addEventListener('click', () => pickCuevero(b.getAttribute('data-k'))));
+    ov.classList.remove('hidden');
+  }
+  function closeCuevero() { const ov = document.getElementById('cueveromenu'); if (ov) ov.classList.add('hidden'); }
+  function pickCuevero(k) {
+    closeCuevero(); Sfx.pickup();
+    if (k === 'a') startRutaContactos();
+    else if (k === 'b') setMsg(T('g.cuevero.bGo'), '#ffd54f', 7000);   // ruta propia: andá vos a ganarle al truco
+    else setMsg(T('g.cuevero.cBye'), '#9fd3ff', 5000);                 // dead-end (humor), no cambia nada
+  }
+  // RUTA A — "tengo contactos": aparece un linyera que te manda con Guido (EducaciónIT). El walking-guide literal
+  // (cross-room) queda como deuda; por ahora es scriptado por mensajes + flag, que destraba la cadena con Guido.
+  function startRutaContactos() {
+    guidoSummoned = true;
+    setMsg(T('g.cuevero.linyera'), '#7CFC00', 9000);
+  }
+  // GUIDO (EducaciónIT): el de los cursos que "sabe jugar al truco". Sólo entra a la cadena si viniste por la ruta A.
+  function handleGuido(n) {
+    Sfx.pickup();
+    if (cueveroUnlocked) { setMsg(T('g.guido.done'), '#aef0c0', 4000); return; }   // ya está resuelto
+    if (!guidoSummoned)  { setMsg(TX(n.dialog) || T('g.guido.hi'), '#aef0c0', 4500); return; }   // no viniste por la cadena → saludo normal
+    if (!guidoRecruited) {            // primera vez tras el linyera: te lo presentan y el linyera se va
+      guidoRecruited = true;
+      setMsg(T('g.guido.recruit'), '#ffd54f', 9000);
+      return;
+    }
+    if (guidoFollowing) { setMsg(T('g.guido.coming'), '#7CFC00', 4000); return; }
+    if (tahurDiscovered) {            // ya sabés dónde está el tahúr → Guido te acompaña
+      guidoFollowing = true;
+      setMsg(T('g.guido.follow'), '#7CFC00', 7000);
+    } else {                         // todavía no descubriste al tahúr → volvé más tarde (+ pista)
+      setMsg(T('g.guido.later'), '#ffd54f', 7000);
+    }
+  }
+  // Guido le gana al tahúr (auto-win cinemático) y te pasa el "te perdono" para el cuevero.
+  function guidoBeatsTahur() {
+    guidoFollowing = false; cueveroUnlocked = true; trucoEverWon = true;
+    flash(); Sfx.win();
+    setMsg(T('g.guido.beats'), '#7CFC00', 9000);
+    tel('cuevero_gate', { route: 'guido' });
   }
   function redeemChori() {
     if (hasVale) {
@@ -1011,6 +1091,7 @@
     updateCam();
     const r = room();
     elFloor.textContent = TX(r.name);
+    if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
     if (!isCine(r)) {   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
       if (mundialApproach) mundialApproach.npc.x = mundialApproach.homeX;   // el hincha vuelve a su lugar
@@ -1658,6 +1739,7 @@
         : a === 'armas' ? (stormed ? T('g.prompt.armasStorm') : T('g.prompt.armas'))
         : a === 'chat' ? T('g.prompt.chat', { name: TX(it.n.name) || TX('el linyera') })
         : a === 'guarda' ? T('g.prompt.guarda')
+        : a === 'guido' ? T('g.prompt.talk', { name: TX(it.n.name) })
         : a === 'loop' ? T('g.prompt.loop')
         : T('g.prompt.talk', { name: TX(it.n.name) });
     }
@@ -1777,7 +1859,9 @@
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
             player.coins -= robbed; stunUntil = performance.now() + 2600;
             applyEdge('truco', 'trucoWon'); trucoEverWon = true;   // abre la puerta (se consume) + marca el hito (permanente)
-            setMsg(T('g.truco.win', { n: robbed }), '#ff5252', 7000);
+            const firstWin = !cueveroUnlocked; cueveroUnlocked = true;   // el tahúr "te perdona" → destraba al cuevero (gate)
+            setMsg(T(firstWin ? 'g.truco.winGate' : 'g.truco.win', { n: robbed }), '#ff5252', firstWin ? 9000 : 7000);
+            if (firstWin) tel('cuevero_gate', { route: 'propia' });
           }
           else { player.hp = Math.max(1, player.hp - TRUCO_LOSE); setMsg(T('g.truco.lose'), '#ff5252', 6800); }
         } else if (kind === 'frogger' && challengeForVale) {
@@ -1869,6 +1953,8 @@
     if (e.key === 'Escape' && gm && !gm.classList.contains('hidden')) { e.preventDefault(); closeGuarda(); return; }
     const am = document.getElementById('armasmenu');
     if (e.key === 'Escape' && am && !am.classList.contains('hidden')) { e.preventDefault(); closeArmas(); return; }
+    const cm = document.getElementById('cueveromenu');
+    if (e.key === 'Escape' && cm && !cm.classList.contains('hidden')) { e.preventDefault(); closeCuevero(); return; }
     if (e.key === 'Escape' && spinoffLevel && state === 'playing') { e.preventDefault(); endSpinoffLevel('flee'); return; }   // salir del nivel-AI
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
@@ -1882,6 +1968,7 @@
   { const b = document.getElementById('myStatsClose'); if (b) b.addEventListener('click', closeMyStats); }
   { const b = document.getElementById('guardaClose'); if (b) b.addEventListener('click', closeGuarda); }
   { const b = document.getElementById('armasClose'); if (b) b.addEventListener('click', closeArmas); }
+  { const b = document.getElementById('cueveroClose'); if (b) b.addEventListener('click', closeCuevero); }
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {
@@ -1907,5 +1994,14 @@
   // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).
   if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS, questRuntime: Quests, actions: () => Object.keys(NPC_ACTIONS),
     // superficie de prueba (e2e) del nivel-AI en el motor real (rooms-swap): lanzar / consultar / salir
-    __nivelai: { launch: launchNivelAI, end: endSpinoffLevel, active: () => spinoffLevel, room: () => rooms[current], player: () => player } });
+    __nivelai: { launch: launchNivelAI, end: endSpinoffLevel, active: () => spinoffLevel, room: () => rooms[current], player: () => player },
+    // superficie de prueba (e2e) del GATE del cuevero (specs/cuevero-gate-truco.md): ruta A (Guido) y ruta B (vos)
+    __gate: {
+      flags: () => ({ cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing, bought, stormed }),
+      cuevero: () => handleCuevero({ outcome: 'real', dialog: 'test' }),   // hablar al cuevero que cambia
+      pick: k => pickCuevero(k),                                           // elegir A/B/C en el menú
+      guido: () => handleGuido({ dialog: 'test' }),                        // hablar con Guido
+      discoverTahur: () => { tahurDiscovered = true; },                   // entrar a la trastienda
+      sitTahur: () => NPC_ACTIONS.truco({}),                              // sentarse a la mesa (Guido juega si te sigue)
+    } });
 })();

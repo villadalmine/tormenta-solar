@@ -54,6 +54,11 @@
   `rules.dollars` (DATA). Ver `specs/nivel-1/personajes/protagonista.md`.
 - **La caja del chino:** mini-juego de **pago con vuelto en caramelos**, el chino **inventa "inflación"** y te
   quiere cagar; discutís o salen **ninjas**. Tunables = DATA (`CHINO`). Ver `specs/nivel-1/personajes/chino.md`.
+- **El gate del cuevero (truco):** el cuevero que dispara la tormenta **no te vende de una** — está ocupado con el
+  tahúr y se abre un **menú de 3 caminos**: pedir ayuda (un linyera te lleva con **Guido**, que juega al truco y le
+  gana por vos), arreglártelas vos (le ganás al **truco** real), o irte (dead-end con humor). Recién con el "te
+  perdono" del tahúr el cuevero vende y **estalla la tormenta**: el arranque del caos pasa a ser el **final de una
+  cadena**, no el atajo del primer minuto. Ver `specs/cuevero-gate-truco.md`.
 - **El edificio:** subís **saltando** una escalera de incendios **o** por ascensor (dos caminos); items que
   **regeneran**. **Truco** criollo real (motor puro testeado, cantos + voces). Arcade (Pac-Man/Galaga/Frogger).
 

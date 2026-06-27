@@ -1132,6 +1132,9 @@
           },
           "x": 8,
           "name": "Guido",
+          "interact": {
+            "action": "guido"
+          },
           "dialogue": {
             "text": "“¡Guido, máquina!” 👋"
           }

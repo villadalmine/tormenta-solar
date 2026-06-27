@@ -134,10 +134,13 @@ if (require.main === module) {
     // modificamos un snapshot y lo restauramos: debe quedar reflejado en el estado real
     const mod = JSON.parse(JSON.stringify(snap));
     mod.player.coins = 777; mod.flags.stormed = true; mod.player.hasMegaDrive = true;
+    mod.flags.cueveroUnlocked = true; mod.flags.tahurDiscovered = true; mod.flags.guidoFollowing = true;   // gate del cuevero
     Game.continueGame(mod);
     const back = Game.serialize();
     if (!back || back.player.coins !== 777 || !back.flags.stormed || !back.player.hasMegaDrive)
       out.push('FAIL restore no aplicó el snapshot: ' + JSON.stringify(back && { c: back.player.coins, s: back.flags.stormed, m: back.player.hasMegaDrive }));
+    if (!back || !back.flags.cueveroUnlocked || !back.flags.tahurDiscovered || !back.flags.guidoFollowing)
+      out.push('FAIL gate del cuevero no round-trippeó: ' + JSON.stringify(back && back.flags));
     // un snapshot inválido NO debe romper (continueGame cae a start())
     if (Game.serialize() == null) out.push('FAIL quedó fuera de juego tras restore');
     return JSON.stringify(out);
@@ -365,6 +368,40 @@ if (require.main === module) {
   const mb = JSON.parse(men);
   if (mb.length) { console.error('❌ MENSAJERO:\n' + mb.join('\n')); process.exit(1); }
   console.log('✓ Mensajero: pista/ambiente/reaccion + short/full OK');
+
+  // ---- GATE DEL CUEVERO (specs/cuevero-gate-truco.md): ruta A (Guido) + dead-end + venta destrabada ----
+  // (corre DESPUÉS de Mensajero: la venta dispara la tormenta y dejaría 'tormenta' como último evento)
+  const gate = vm.runInContext(`(() => {
+    const out = [];
+    if (!window.Game || !Game.__gate) return JSON.stringify(['FAIL no expone Game.__gate']);
+    const snap = Game.serialize();   // slate limpio del gate
+    Object.assign(snap.flags, { cueveroUnlocked:false, tahurDiscovered:false, guidoSummoned:false, guidoRecruited:false, guidoFollowing:false, bought:false, stormed:false });
+    Game.continueGame(snap);
+    const G = Game.__gate;
+    // 1) cuevero gateado: hablarle NO vende ni dispara la tormenta (CA-1)
+    G.cuevero(); let f = G.flags();
+    if (f.bought || f.stormed) out.push('FAIL cuevero gateado vendió/disparó la tormenta');
+    // 2) opción C (dead-end): no cambia flags (CA-4)
+    G.pick('c'); f = G.flags();
+    if (f.guidoSummoned || f.cueveroUnlocked) out.push('FAIL opción C cambió flags (dead-end)');
+    // 3) RUTA A: contactos → linyera → Guido
+    G.pick('a'); if (!G.flags().guidoSummoned) out.push('FAIL opción A no convocó al linyera');
+    G.guido(); if (!G.flags().guidoRecruited) out.push('FAIL Guido no se presentó tras la cadena');
+    G.guido(); if (G.flags().guidoFollowing) out.push('FAIL Guido sigue SIN tahúr descubierto (CA-5)');
+    G.discoverTahur(); G.guido();
+    if (!G.flags().guidoFollowing) out.push('FAIL Guido no sigue tras descubrir al tahúr (CA-5)');
+    // sentarse a la mesa: Guido juega y gana → cueveroUnlocked + deja de seguir (CA-3)
+    G.sitTahur(); f = G.flags();
+    if (!f.cueveroUnlocked) out.push('FAIL Guido no destrabó al cuevero');
+    if (f.guidoFollowing) out.push('FAIL Guido sigue tras ganar');
+    // 4) cuevero DESTRABADO: ahora sí vende y dispara la tormenta (CA-2/RF-7)
+    G.cuevero(); f = G.flags();
+    if (!f.bought || !f.stormed) out.push('FAIL cuevero destrabado no vendió/disparó la tormenta');
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const gateRes = JSON.parse(gate);
+  if (gateRes.length) { console.error('❌ GATE CUEVERO:\n' + gateRes.join('\n')); process.exit(1); }
+  console.log('✓ gate del cuevero: ruta A (linyera→Guido→truco) + dead-end + venta destrabada OK');
 
   // ---- motor de TRUCO (reglas puras: jerarquía, envido, flor, parda) ----
   const tru = vm.runInContext(`(() => {

@@ -172,7 +172,7 @@ const Level = (() => {
         ],
         npcs: [
           { name:'Recepción', sprite:'recepcionista', x:4, action:'chat', persona:'secretaria', ambient:false, dialog:'“Piso 8: acá están los CEOs. ¿Te anoto en un curso o querés ver horarios y descuentos?” ☎️' },
-          { name:'Guido', sprite:'guido', x:8,  dialog:'“¡Guido, máquina!” 👋' },
+          { name:'Guido', sprite:'guido', x:8,  action:'guido', dialog:'“¡Guido, máquina!” 👋' },
           { name:'Sebastián', sprite:'seba1', x:12, dialog:'Sebastián, uno de los CEOs. «Bienvenido a EducaciónIT.» 👔' },
           { name:'Sebastián', sprite:'seba2', x:16, dialog:'El otro Sebastián, también CEO. «Sí, los dos nos llamamos Sebastián.» 😄' },
         ],
