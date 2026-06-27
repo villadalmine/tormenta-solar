@@ -565,7 +565,7 @@ if (require.main === module) {
 
   // ---- motor v2 (data-driven): Mundo.fromModel(LEVEL1) construye el nivel headless sin crash ----
   const v2n = vm.runInContext('(typeof Mundo!=="undefined" && window.LEVEL1) ? Mundo.fromModel(window.LEVEL1).length : -1', sandbox);
-  if (v2n !== 45) { console.error('❌ motor v2: Mundo.fromModel(LEVEL1) construyó ' + v2n + ' salas (esperaba 45)'); process.exit(1); }
+  if (v2n !== 46) { console.error('❌ motor v2: Mundo.fromModel(LEVEL1) construyó ' + v2n + ' salas (esperaba 46)'); process.exit(1); }
   console.log('✓ motor v2: Mundo.fromModel(LEVEL1) construye ' + v2n + ' salas (headless)');
 
   // ---- PARIDAD v1 vs v2: misma estructura de salas (puertas, máquinas, npcs) ----
@@ -587,7 +587,7 @@ if (require.main === module) {
   })()`, sandbox);
   const pa = JSON.parse(parity);
   if (pa.length) { console.error('⚠️  PARIDAD v1↔v2 (diferencias):\\n' + pa.join('\\n')); }
-  else console.log('✓ paridad v1↔v2: misma estructura (puertas/máquinas/npcs/cueveros) en las 45 salas');
+  else console.log('✓ paridad v1↔v2: misma estructura (puertas/máquinas/npcs/cueveros) en las 46 salas');
 
   // ---- v2 JUGABLE headless: forzar el motor v2 y correr el loop sin crash ----
   vm.runInContext('localStorage.setItem("ts_engine","v2")', sandbox);

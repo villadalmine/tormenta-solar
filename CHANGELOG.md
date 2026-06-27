@@ -56,6 +56,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v205] — 2026-06-27 — 📡 MULTIJUGADOR F1: el 8º piso del cine es "EN VIVO" (ves cuántos juegan ahora y qué hicieron)
+
+**Qué cambió (jugador):** el edificio del cine tiene un **piso nuevo arriba de todo, "EN VIVO"** (los 7 pisos de
+noticias quedan intactos). Su pantalla muestra el **mundo vivo**: **cuántas personas están jugando AHORA**, en qué
+zona andan ("3 en la cueva, 1 en el chino…") y un **ticker de hitos anónimos** ("alguien le ganó al tahúr",
+"alguien desató la tormenta", "alguien entró al búnker"). Primera piedra del multijugador (`specs/multijugador.md`).
+
+**Cómo (técnico):** capa **aditiva** (`js/salon.js`, patrón de `presence.js`): sin backend → la pantalla dice "modo
+offline" y el juego anda 100% igual. Cada cliente manda un **latido** (`POST /salon/beat {pid, sala, ev?}`) cada ~5s
+y en cada `applyEdge` (hito anónimo); el piso lee `GET /salon/live` cada ~4s y dibuja el dashboard (`drawSalonScreen`,
+mismo marco que el cine). Sala `cine-live` como DATA (`level.js`, wire cine7→cine8; 45→**46 salas**, paridad v1≡v2
+verde). i18n ES/EN. **NO usa IA ni WebSockets** (relay liviano). El bodegón real-time (F2, SSE) viene después.
+
+---
+
 ## [v204] — 2026-06-27 — 🎰 Fix: la generación IA caía a estático AUNQUE hubiera modelo PAGO (timeout del cliente)
 
 **Qué cambió (jugador):** los niveles generados (vecino/chino/oráculo) y el surtido de tiendas volvían a sentirse
@@ -935,6 +950,15 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-32] — 2026-06-27 — 📡 Proxy 0.1.50→0.1.51: endpoints del SALÓN (multijugador F1) `/salon/beat` + `/salon/live`
+
+Sostén del **v205**. El proxy gana la **presencia en vivo** para el "Cine EN VIVO" (relay liviano in-memory, NO usa
+IA): `POST /salon/beat {pid,sala,ev?}` (latido + hito anónimo al ticker, poda >35s) y `GET /salon/live` →
+`{count, byRoom, ticker}`. Es el **prototipo F1** (presencia/agregados); el bodegón real-time (F2) irá a un
+`salon-server` SSE dedicado (no al proxy de IA). Sin persistencia (se pierde al reiniciar = ok, es social).
 
 ---
 

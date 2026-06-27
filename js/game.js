@@ -123,6 +123,7 @@
   let dollarBubbles = [], shotsSeen = 0, legalBlindUntil = 0;
   let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
+  let salonLive = null, salonPollT = 0, salonBeatT = 0;   // MULTIJUGADOR F1: mundo vivo (count/byRoom/ticker) + cadencia de latido
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
   let guardaFreeUsed = false;  // la 1ª función vieja del run es gratis; después se cobra (más viejo más caro)
   let guardaAsk = {};          // día → precio ya regateado (si no está, vale el base); se resetea al salir del cine
@@ -613,6 +614,7 @@
     const edges = (typeof Historia !== 'undefined' && Historia.edges) ? Historia.edges : [];
     const e = edges.find(x => x.id === id);
     if (typeof Mensajero !== 'undefined') Mensajero.evento(id);   // "qué acaba de pasar" (capa aditiva)
+    if (typeof Salon !== 'undefined' && Salon.enabled) Salon.beat(currentAt(), id);   // MULTIJUGADOR F1: hito anónimo al ticker del "Cine EN VIVO"
     if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); return true; }
     if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) FLAG_SETTERS[fallbackFlag](true);   // grafo ausente → red de seguridad
     return false;
@@ -1447,6 +1449,37 @@
     ctx.fillStyle = '#7fa6cf'; ctx.font = '11px monospace'; ctx.fillText(T('g.cine.read'), cx, sy + H - 6);
     ctx.restore();
   }
+  // MULTIJUGADOR F1: la pantalla del piso "EN VIVO" muestra el MUNDO VIVO (cuántos juegan ahora, en qué zona, ticker
+  // de hitos). Sin salon-server / sin red → "modo offline". Mismo marco que drawCineScreen.
+  function drawSalonScreen(r) {
+    const pad = 16, W = 360, cx = (r.w * Level.TILE) / 2 - cam.x, H = 300;
+    const sy = 1.05 * Level.TILE - cam.y, left = cx - W / 2;
+    ctx.save();
+    ctx.fillStyle = '#06080d'; ctx.fillRect(left - 10, sy - 10, W + 20, H + 20);
+    ctx.fillStyle = '#0d1626'; ctx.fillRect(left, sy, W, H);
+    ctx.strokeStyle = '#7CFC00'; ctx.lineWidth = 2; ctx.strokeRect(left, sy, W, H);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#7CFC00'; ctx.font = 'bold 13px monospace'; ctx.fillText('📡 ' + T('g.salon.title'), cx, sy + 18);
+    const d = salonLive;
+    if (!d) { ctx.fillStyle = '#5a6a7a'; ctx.font = '13px monospace'; ctx.fillText(T('g.salon.offline'), cx, sy + H / 2); ctx.restore(); return; }
+    ctx.fillStyle = '#eef4ff'; ctx.font = 'bold 22px monospace'; ctx.fillText(T('g.salon.count', { n: d.count || 0 }), cx, sy + 50);
+    ctx.textAlign = 'left';
+    let y = sy + 78;
+    const zones = Object.entries(d.byRoom || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    ctx.fillStyle = '#9fd3ff'; ctx.font = 'bold 11px monospace'; ctx.fillText(T('g.salon.where'), left + pad, y); y += 16;
+    ctx.font = '12px monospace'; ctx.fillStyle = '#cfe0f0';
+    const tr = (k, fb) => { const s = T(k); return (s && s !== k) ? s : fb; };   // T() devuelve la clave si falta → fallback
+    for (const [z, n] of zones) { ctx.fillText('· ' + n + '  ' + tr('g.salon.zone.' + z, z), left + pad, y); y += 15; }
+    if (!zones.length) { ctx.fillStyle = '#5a6a7a'; ctx.fillText(T('g.salon.alone'), left + pad, y); y += 15; }
+    y += 8;
+    const tick = (d.ticker || []).slice(-5).reverse();
+    if (tick.length) {
+      ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 11px monospace'; ctx.fillText(T('g.salon.ticker'), left + pad, y); y += 16;
+      ctx.font = '11px monospace'; ctx.fillStyle = '#e0e8f0';
+      for (const t of tick) { if (y > sy + H - 14) break; ctx.fillText('› ' + tr('g.salon.ev.' + t.ev, T('g.salon.ev.x')), left + pad, y); y += 14; }
+    }
+    ctx.restore();
+  }
   // [R] (o botón táctil): leé TODAS las noticias en voz alta. Mensajero.hablar usa la voz del navegador y, si no
   // hay (Chromium/Linux), cae al TTS del servidor (espeak-ng vía WebAudio) — con acento según el idioma del juego.
   function cineRead() {
@@ -1789,7 +1822,10 @@
         ctx.restore();
       }
     }
-    if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
+    if (hasTag(r, 'cine-live')) {       // MULTIJUGADOR F1: pantalla del MUNDO VIVO (refresca cada ~4s)
+      if (typeof Salon !== 'undefined' && Salon.enabled && performance.now() > salonPollT) { salonPollT = performance.now() + 4000; Salon.live(d => { salonLive = d; }); }
+      drawSalonScreen(r);
+    } else if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
 
     // pozos (hazard kind 'pit') — el piso ya está calado (se ve el fondo); oscurecemos el hueco + postes rojos al borde
     for (const pit of r.pits || []) {
@@ -2076,6 +2112,8 @@
     if (freezeReported) freezeReported = false;                                          // se recuperó del freeze
     const dt = Math.min(0.04, (t - lastT)/1000) || 0; lastT = t;
     autosave(t);
+    // MULTIJUGADOR F1: latido de presencia cada ~5s mientras jugás (dónde estás) → alimenta el "Cine EN VIVO".
+    if (state === 'playing' && typeof Salon !== 'undefined' && Salon.enabled && t > salonBeatT) { salonBeatT = t + 5000; Salon.beat(currentAt()); }
     if (state === 'arcade' && arcadeGame) {
       arcadeGame.update(dt); arcadeGame.draw(ctx, W, H);
       if (arcadeGame.done) {

@@ -8612,6 +8612,23 @@
           }
         },
         {
+          "id": "cine-lavalle-openrouter/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: EN VIVO",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-en-vivo",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
           "id": "cine-lavalle-openrouter/npc0",
           "tipo": "npc",
           "render": {
@@ -8710,6 +8727,122 @@
         },
         {
           "id": "cine-lavalle-openrouter/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 20,
+          "ad": {}
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-en-vivo",
+      "nombre": "Cine Lavalle — EN VIVO",
+      "theme": "arcade",
+      "w": 22,
+      "tags": [
+        "cine",
+        "cine-live"
+      ],
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-en-vivo/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: OpenRouter",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-openrouter",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-en-vivo/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "linyera"
+          },
+          "x": 17,
+          "name": "El Proyeccionista",
+          "dialogue": {
+            "text": "“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla.” 📡"
+          }
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 12
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 15
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 7.5
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 2,
+          "ad": {}
+        },
+        {
+          "id": "cine-lavalle-en-vivo/decor9",
           "tipo": "decor",
           "render": {
             "type": "cartel"

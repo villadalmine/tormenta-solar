@@ -617,9 +617,17 @@ const Level = (() => {
     })) - 1;
     const cine7 = rooms.push(makeRoom({
       name: 'Cine Lavalle — OpenRouter', tags:['cine','openrouter'], theme: 'arcade', light: 0.5, w: 22,
-      doors: [{ id:'down', art:'doorUp', label:'bajar: Consolas', x:2, inward:1 }],
+      doors: [{ id:'down', art:'doorUp', label:'bajar: Consolas', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: EN VIVO', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [{ name:'El Linyera IA', sprite:'linyera', x:17, oracle:true, social:{knows:['borracho','tahur','chino','linyeras','vendedor','vecina','guarda']}, action:'chat', persona:'filosofo', dialog:'“Acá ves qué modelo de IA conviene y cuánto sale. Yo sé de eso, pibe.” 🤖' }],
+    })) - 1;
+    // 8º piso del cine — "EN VIVO" (multijugador F1, specs/multijugador.md): la pantalla muestra el MUNDO VIVO
+    // (cuántos juegan ahora, en qué zona, ticker de hitos). Capa aditiva: sin salon-server, dice "modo offline".
+    const cine8 = rooms.push(makeRoom({
+      name: 'Cine Lavalle — EN VIVO', tags:['cine','cine-live'], theme: 'arcade', light: 0.5, w: 22,
+      doors: [{ id:'down', art:'doorUp', label:'bajar: OpenRouter', x:2, inward:1 }],
+      decor: [..._seats, ..._ads],
+      npcs: [{ name:'El Proyeccionista', sprite:'linyera', x:17, dialog:'“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla.” 📡' }],
     })) - 1;
 
     function wire(ai, ad, bi, bd) {
@@ -640,6 +648,7 @@ const Level = (() => {
     wire(cine4, 'up', cine5, 'down');
     wire(cine5, 'up', cine6, 'down');
     wire(cine6, 'up', cine7, 'down');
+    wire(cine7, 'up', cine8, 'down');     // 8º piso: Cine EN VIVO (multijugador F1)
     wire(6, 'down', 7, 'up');
     wire(7, 'down', 8, 'up');
     wire(4, 'secret', 9, 'back');

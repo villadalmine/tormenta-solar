@@ -72,6 +72,14 @@ const HISTORIAS_STORE = process.env.HISTORIAS_STORE || '/data/historias.json';
 function loadHistorias() { try { const d = JSON.parse(fs.readFileSync(HISTORIAS_STORE, 'utf8')); if (d && Array.isArray(d.historias)) { HISTORIAS = d.historias; HISTORIAS_TS = d.ts || 0; } } catch (e) {} }
 function saveHistorias() { try { fs.mkdirSync(HISTORIAS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(HISTORIAS_STORE, JSON.stringify({ historias: HISTORIAS, ts: HISTORIAS_TS })); } catch (e) { console.error('historias store save:', e.message); } }
 loadHistorias();
+
+// SALÓN — multijugador F1 (specs/multijugador.md): presencia EN VIVO para el piso "Cine EN VIVO". Relay liviano,
+// in-memory (se pierde al reiniciar = ok, es social). POST /salon/beat {pid,sala,ev?} · GET /salon/live →
+// {count, byRoom, ticker}. (El bodegón real-time F2 irá a un salon-server SSE dedicado; esto es el prototipo F1.)
+const SALON = new Map();            // pid -> { sala, ts }
+let SALON_TICK = [];                // ring de hitos recientes anónimos: [{ ev, ts }]
+const SALON_TTL = 35000;            // un jugador cuenta "jugando ahora" 35s tras su último beat
+function salonPrune() { const now = Date.now(); for (const [k, v] of SALON) if (now - v.ts > SALON_TTL) SALON.delete(k); }
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL del CHAT (tope duro, tiempo real)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -427,6 +435,25 @@ http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/historias') {                           // banco VIVO de historias del VECINO
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ historias: HISTORIAS, updated: HISTORIAS_TS }));
+  }
+  if (req.method === 'GET' && req.url === '/salon/live') {                          // SALÓN F1: el mundo VIVO para el cine
+    salonPrune();
+    const byRoom = {}; for (const v of SALON.values()) byRoom[v.sala || '?'] = (byRoom[v.sala || '?'] || 0) + 1;
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ count: SALON.size, byRoom, ticker: SALON_TICK.slice(-12) }));
+  }
+  if (req.method === 'POST' && req.url === '/salon/beat') {                         // SALÓN F1: latido de presencia + hito opcional
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 2000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48);
+        if (pid) { SALON.set(pid, { sala: String(d.sala || '?').slice(0, 24), ts: Date.now() });
+          if (d.ev) { SALON_TICK.push({ ev: String(d.ev).slice(0, 40), ts: Date.now() }); if (SALON_TICK.length > 30) SALON_TICK = SALON_TICK.slice(-30); } }
+        salonPrune();
+        res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ count: SALON.size }));
+      } catch (e) { res.writeHead(400); res.end('bad'); }
+    });
+    return;
   }
   if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)
     const u = new URL(req.url, 'http://x'), dias = Object.keys(NOTI_DAYS).sort();
