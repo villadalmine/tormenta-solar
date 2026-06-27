@@ -50,6 +50,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v200] — 2026-06-27 — 🤝 COMPAÑEROS que te SIGUEN cruzando salas (follow cross-room) — Fase 1: la escolta del cuevero
+
+**Qué cambió (jugador):** pediste que los compañeros te **acompañen de verdad**, no solo por texto. Ahora en la
+**ruta A** del cuevero: el **linyera camina con vos** (cruza las puertas) y te lleva hasta Guido; cuando reclutás a
+**Guido**, él **te sigue** hasta la mesa del tahúr y ahí juega. Te siguen sala por sala, caminando a tu lado.
+
+**Por qué importa:** estrena el sistema de **follow cross-room** (era la deuda de motor #A4). Es la **base** para lo
+que viene (el truco "de a 6": reclutar un equipo que te sigue).
+
+**Cómo (técnico):** un *compañero* es un NPC REAL (mismo truco que `roamingNpc`) que **viaja con vos** — en cada
+`transition()` se saca de la sala vieja y se mete en la nueva pegado a vos; el loop de `follow` (ahora con
+`followOff` por compañero, así no se amontonan) lo camina hacia vos. Se **derivan de los flags**
+(`guidoSummoned`/`guidoRecruited`/`guidoFollowing`/`cueveroUnlocked`) vía `syncCompanions()` → **sobreviven
+save/restore** sin serializar nada nuevo (se re-arman al cargar). `clearCompanions()` en `reset()`. Textos de escolta
+ES/EN. Test e2e: ruta A verifica linyera aparece → se esfuma al reclutar → Guido sigue → **cruza la puerta con vos**
+(`G.go`) → se va al destrabar. Cache **v200**. `npm test` verde. *(Sigue la Fase 2: truco "de a 6" con equipo.)*
+
+---
+
 ## [v199] — 2026-06-27 — 🐛 Fix: las tiendas no abrían (rebote en la salida) + globito de texto + textos del cuevero claros
 
 Reportes de playtest del dueño:

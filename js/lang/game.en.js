@@ -138,6 +138,11 @@
     'g.guido.coming': 'Guido: “Go to the sharp\'s table and sit down — the moment you sit, I show up and win it for you.” 🃏 (The table is in the back room, past the secret spot.)',
     'g.guido.beats': 'Guido sits down, plays three hands and beats the sharp without breaking a sweat. 🃏 “Here\'s his word: go to the cuevero and tell him the sharp forgives him.” 💬✅',
     'g.guido.done': 'Guido winks: “All set, champ. Head to the cuevero, no worries.” 😎',
+    // ESCORT (follow cross-room): the companion walks with you across rooms
+    'g.guido.escortJoin': 'A hobo falls in beside you and starts walking along: “Come on, I\'ll take you to Guido, at EducaciónIT.” 🫥 (He now FOLLOWS you across rooms.)',
+    'g.guido.escortLinyera': '“Follow me, kid, off to EducaciónIT, floor 8.” 🫥',
+    'g.guido.escortGuidoJoin': 'Guido gets up and falls in beside you: “Let\'s go, I\'ll walk you to the sharp\'s table.” 🃏 (He now FOLLOWS you across rooms.)',
+    'g.guido.escortGuido': 'Guido, walking beside you: “Come on, take me to the sharp\'s table and I\'ll win it.” 🃏',
     // --- THE NEIGHBOR of the condemned buildings (specs/edificios-clausurados-historias.md) ---
     'g.vecino.preStorm': '“Go on, you\'re fine now, kid. But when everything goes dark... that building turns nasty. Come see me then.” 🏢',
     'g.vecino.edif.edu': 'EducaciónIT',

@@ -215,6 +215,7 @@
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
+    clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
@@ -278,6 +279,7 @@
     if (stormed) Sfx.startHum();
     updateCam(); elFloor.textContent = TX(rooms[current].name);
     placeRoamingOraculo(Math.floor((player.x + player.w / 2) / Level.TILE));
+    syncCompanions();   // re-derivá los compañeros (linyera/Guido) desde los flags restaurados
     setMsg(T('g.loaded'), '#7CFC00', 4000);
     return true;
   }
@@ -373,6 +375,7 @@
       setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' });
     },
     guido:   n => handleGuido(n),
+    companion: n => { setMsg(TX(n.dialog) || '...', '#aef0c0', 3500); Sfx.pickup(); },
     vecino:  n => handleVecino(n),
     chori:   () => redeemChori(),
     shop:    n => buyFromShop(n),
@@ -467,6 +470,43 @@
       x: tx * Level.TILE + Level.TILE/2, y: rm.gTop * Level.TILE };
     (rm.npcs = rm.npcs || []).push(roamingNpc);
   }
+  // === COMPAÑEROS que te SIGUEN cruzando salas (follow cross-room) ===
+  // Un compañero es un NPC REAL (mismo truco que roamingNpc): viaja con vos — se saca de la sala vieja y se mete en
+  // la nueva pegado a vos en cada transición; el loop de `follow` lo camina hacia vos dentro de la sala. Se DERIVAN de
+  // FLAGS (sobreviven save/restore: en restore() y en cada transición llamamos syncCompanions()).
+  const companions = [];   // [{ id, name, sprite, follow, companion, followOff, x, y, dialog }]
+  function removeCompanionNpc(c) { for (const rm of rooms) { const i = (rm.npcs || []).indexOf(c); if (i >= 0) rm.npcs.splice(i, 1); } }
+  function placeCompanionInRoom(c) {   // lo (re)ubica pegado a vos en la sala actual
+    removeCompanionNpc(c);
+    const rm = rooms[current]; if (!rm) return;
+    const w = rm.w || 20, pcTile = Math.round((player.x + player.w / 2) / Level.TILE);
+    const tx = Math.max(1, Math.min(w - 2, pcTile + (c.__side || -2)));
+    c.x = tx * Level.TILE + Level.TILE / 2; c.y = rm.gTop * Level.TILE;
+    (rm.npcs = rm.npcs || []).push(c);
+  }
+  function setCompanion(id, active, spec) {
+    let c = companions.find(x => x.id === id);
+    if (active && !c) {
+      c = { id, companion: true, follow: true, action: 'companion', __side: spec.side || -2, followOff: spec.followOff != null ? spec.followOff : -30,
+            name: spec.name, sprite: spec.sprite, dialog: spec.dialog, x: 0, y: 0 };
+      companions.push(c); placeCompanionInRoom(c);
+      if (spec.join) setMsg(spec.join, '#7CFC00', 5500);
+    } else if (!active && c) {
+      removeCompanionNpc(c); companions.splice(companions.indexOf(c), 1);
+      if (spec && spec.bye) setMsg(spec.bye, '#aef0c0', 4000);
+    }
+  }
+  // ensambla los compañeros que CORRESPONDEN según los flags (idempotente). Llamar tras cambiar flags / transicionar.
+  function syncCompanions() {
+    if (typeof Level === 'undefined') return;
+    // ruta A: el linyera te ESCOLTA hasta Guido (desde "tengo contactos" hasta que lo reclutás)
+    setCompanion('linyera', guidoSummoned && !guidoRecruited && !cueveroUnlocked,
+      { name: 'Linyera', sprite: 'linyera', side: -2, followOff: -34, dialog: T('g.guido.escortLinyera'), join: T('g.guido.escortJoin') });
+    // ruta A: Guido te ESCOLTA hasta la mesa del tahúr (desde que te sigue hasta destrabar al cuevero)
+    setCompanion('guido', guidoFollowing && !cueveroUnlocked,
+      { name: 'Guido', sprite: 'guido', side: 2, followOff: 32, dialog: T('g.guido.escortGuido'), join: T('g.guido.escortGuidoJoin') });
+  }
+  function clearCompanions() { for (const c of companions.slice()) removeCompanionNpc(c); companions.length = 0; }
   function resetLoopResources() {            // cajones de falopa y limosnas se renuevan cada loop
     for (const rm of rooms) for (const n of rm.npcs || []) { n.falopaTaken = false; n.limosnaTaken = false; }
   }
@@ -1057,26 +1097,28 @@
     else if (k === 'b') setMsg(T('g.cuevero.bGo'), '#ffd54f', 7000);   // ruta propia: andá vos a ganarle al truco
     else setMsg(T('g.cuevero.cBye'), '#9fd3ff', 5000);                 // dead-end (humor), no cambia nada
   }
-  // RUTA A — "tengo contactos": aparece un linyera que te manda con Guido (EducaciónIT). El walking-guide literal
-  // (cross-room) queda como deuda; por ahora es scriptado por mensajes + flag, que destraba la cadena con Guido.
+  // RUTA A — "tengo contactos": aparece un linyera que te ESCOLTA (camina con vos cruzando salas) hasta Guido.
   function startRutaContactos() {
     guidoSummoned = true;
     setMsg(T('g.cuevero.linyera'), '#7CFC00', 9000);
+    syncCompanions();   // el linyera se te pega y te lleva hasta EducaciónIT (follow cross-room)
   }
   // GUIDO (EducaciónIT): el de los cursos que "sabe jugar al truco". Sólo entra a la cadena si viniste por la ruta A.
   function handleGuido(n) {
     Sfx.pickup();
     if (cueveroUnlocked) { setMsg(T('g.guido.done'), '#aef0c0', 4000); return; }   // ya está resuelto
     if (!guidoSummoned)  { setMsg(TX(n.dialog) || T('g.guido.hi'), '#aef0c0', 4500); return; }   // no viniste por la cadena → saludo normal
-    if (!guidoRecruited) {            // primera vez tras el linyera: te lo presentan y el linyera se va
+    if (!guidoRecruited) {            // primera vez tras el linyera: te lo presentan y el linyera se esfuma
       guidoRecruited = true;
       setMsg(T('g.guido.recruit'), '#ffd54f', 9000);
+      syncCompanions();              // el linyera ya te trajo → se va
       return;
     }
     if (guidoFollowing) { setMsg(T('g.guido.coming'), '#7CFC00', 4000); return; }
-    if (tahurDiscovered) {            // ya sabés dónde está el tahúr → Guido te acompaña
+    if (tahurDiscovered) {            // ya sabés dónde está el tahúr → Guido te ACOMPAÑA (camina con vos)
       guidoFollowing = true;
       setMsg(T('g.guido.follow'), '#7CFC00', 7000);
+      syncCompanions();              // Guido se levanta y te sigue
     } else {                         // todavía no descubriste al tahúr → volvé más tarde (+ pista)
       setMsg(T('g.guido.later'), '#ffd54f', 7000);
     }
@@ -1084,6 +1126,7 @@
   // Guido le gana al tahúr (auto-win cinemático) y te pasa el "te perdono" para el cuevero.
   function guidoBeatsTahur() {
     guidoFollowing = false; trucoEverWon = true; applyEdge('cuevero_gate', 'cueveroUnlocked');   // destraba al cuevero vía grafo
+    syncCompanions();   // Guido cumplió → se va
     flash(); Sfx.win();
     setMsg(T('g.guido.beats'), '#7CFC00', 9000);
     tel('cuevero_gate', { route: 'guido' });
@@ -1235,6 +1278,7 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
+    companions.forEach(placeCompanionInRoom); syncCompanions();   // los compañeros cruzan la puerta CON vos (follow cross-room)
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
     if (!isCine(r)) {   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
       if (mundialApproach) mundialApproach.npc.x = mundialApproach.homeX;   // el hincha vuelve a su lugar
@@ -1566,8 +1610,9 @@
     // vendedor que te sigue (Garbarino): camina hacia vos y siempre quiere venderte algo
     for (const n of r.npcs || []) {
       if (!n.follow) continue;
-      const target = player.x + player.w/2 - 26;
-      if (Math.abs(target - n.x) > 4) n.x += Math.sign(target - n.x) * Math.min(75*dt, Math.abs(target - n.x));
+      const off = (n.followOff != null) ? n.followOff : -26;   // los compañeros caminan a un costado distinto (no se amontonan)
+      const target = player.x + player.w/2 + off;
+      if (Math.abs(target - n.x) > 4) n.x += Math.sign(target - n.x) * Math.min(95*dt, Math.abs(target - n.x));
       n.upCd = (n.upCd || 0) - dt;
       if (n.upCd <= 0 && n.lines) { setMsg(TX(n.lines[(Math.random()*n.lines.length)|0]), '#80cbc4', 2800); n.upCd = 3.5 + Math.random()*2.5; }
     }
@@ -2150,6 +2195,10 @@
       guido: () => handleGuido({ dialog: 'test' }),                        // hablar con Guido
       discoverTahur: () => { tahurDiscovered = true; },                   // entrar a la trastienda
       sitTahur: () => NPC_ACTIONS.truco({}),                              // sentarse a la mesa (Guido juega si te sigue)
+      // follow cross-room: compañeros activos (ids) + si están en la sala actual (los movemos al transicionar)
+      companions: () => companions.map(c => c.id),
+      compInRoom: () => (rooms[current] && rooms[current].npcs || []).filter(n => n.companion).map(n => n.id),
+      go: to => transition({ to, at: { x: 3 * Level.TILE, y: rooms[to].gTop * Level.TILE } }),   // transicionar a una sala
     },
     // superficie de prueba (e2e) del VECINO de los edificios clausurados: contar historias → pasar → interior
     __vecino: {

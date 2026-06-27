@@ -389,16 +389,22 @@ if (require.main === module) {
     // 2) opción C (dead-end): no cambia flags (CA-4)
     G.pick('c'); f = G.flags();
     if (f.guidoSummoned || f.cueveroUnlocked) out.push('FAIL opción C cambió flags (dead-end)');
-    // 3) RUTA A: contactos → linyera → Guido
+    // 3) RUTA A: contactos → linyera → Guido (+ FOLLOW CROSS-ROOM: el compañero camina con vos cruzando salas)
     G.pick('a'); if (!G.flags().guidoSummoned) out.push('FAIL opción A no convocó al linyera');
+    if (!G.companions().includes('linyera')) out.push('FAIL ruta A no hizo aparecer al linyera-compañero');
     G.guido(); if (!G.flags().guidoRecruited) out.push('FAIL Guido no se presentó tras la cadena');
+    if (G.companions().includes('linyera')) out.push('FAIL el linyera no se esfumó tras reclutar a Guido');
     G.guido(); if (G.flags().guidoFollowing) out.push('FAIL Guido sigue SIN tahúr descubierto (CA-5)');
     G.discoverTahur(); G.guido();
     if (!G.flags().guidoFollowing) out.push('FAIL Guido no sigue tras descubrir al tahúr (CA-5)');
+    if (!G.companions().includes('guido')) out.push('FAIL Guido no se sumó como compañero que te sigue');
+    // CROSS-ROOM: al cambiar de sala, el compañero cruza la puerta CON vos (aparece en la sala nueva)
+    G.go(0); if (!G.compInRoom().includes('guido')) out.push('FAIL Guido no cruzó la puerta con vos (follow cross-room)');
     // sentarse a la mesa: Guido juega y gana → cueveroUnlocked + deja de seguir (CA-3)
     G.sitTahur(); f = G.flags();
     if (!f.cueveroUnlocked) out.push('FAIL Guido no destrabó al cuevero');
     if (f.guidoFollowing) out.push('FAIL Guido sigue tras ganar');
+    if (G.companions().length) out.push('FAIL los compañeros no se fueron tras destrabar al cuevero');
     // 4) cuevero DESTRABADO: ahora sí vende y dispara la tormenta (CA-2/RF-7)
     G.cuevero(); f = G.flags();
     if (!f.bought || !f.stormed) out.push('FAIL cuevero destrabado no vendió/disparó la tormenta');

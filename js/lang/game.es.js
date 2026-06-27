@@ -153,6 +153,11 @@
     'g.guido.coming': 'Guido: “Andá vos a la mesa del tahúr y sentate, que cuando te sientes aparezco y te lo gano.” 🃏 (La mesa está en la trastienda, pasando el lugar secreto.)',
     'g.guido.beats': 'Guido se sienta, tira tres manos y le gana al tahúr sin despeinarse. 🃏 “Tomá, esta es su palabra: andá al cuevero y decile que el tahúr lo perdona.” 💬✅',
     'g.guido.done': 'Guido te guiña: “Ya está, máquina. Andá tranqui al cuevero.” 😎',
+    // ESCOLTA (follow cross-room): el compañero camina con vos cruzando salas
+    'g.guido.escortJoin': 'Un linyera se te pega y arranca a caminar al lado tuyo: “Dale, te llevo hasta Guido, en EducaciónIT.” 🫥 (Ahora te SIGUE por las salas.)',
+    'g.guido.escortLinyera': '“Seguime, pibe, vamos a EducaciónIT, piso 8.” 🫥',
+    'g.guido.escortGuidoJoin': 'Guido se levanta y se te pega: “Vamos, te acompaño hasta la mesa del tahúr.” 🃏 (Ahora te SIGUE por las salas.)',
+    'g.guido.escortGuido': 'Guido, caminando al lado tuyo: “Dale, llevame a la mesa del tahúr que le gano.” 🃏',
     // --- EL VECINO de los edificios clausurados (specs/edificios-clausurados-historias.md) ---
     'g.vecino.preStorm': '“Andá tranquilo ahora, pibe. Pero cuando se apague todo... ese edificio se pone feo. Volvé a verme.” 🏢',
     'g.vecino.edif.edu': 'EducaciónIT',
