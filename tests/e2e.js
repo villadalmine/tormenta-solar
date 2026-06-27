@@ -433,6 +433,17 @@ if (require.main === module) {
     if (s.spinoffLevel) out.push('FAIL no salió del nivel del vecino al ganar');
     if (s.current !== 11) out.push('FAIL al ganar no quedó en el interior del edificio (sala 11): ' + s.current);
     if (s.spinoffReturnRoom != null) out.push('FAIL spinoffReturnRoom no se limpió tras ganar');
+    // BANCO VIVO de la IA (historias-vecino.js): si window.HISTORIAS_VECINO tiene relatos del edificio, se PREFIEREN
+    const noBank = V.pick('garbarino');
+    if (noBank.live) out.push('FAIL sin banco vivo debería usar el estático');
+    window.HISTORIAS_VECINO = [{ id: 'g0', edif: 'garbarino', motif: '📺', style: 'wall', es: { gancho: 'La Tele Encendida', tale: 'Nadie la prendió.' }, en: { gancho: 'The TV Is On', tale: 'Nobody turned it on.' } }];
+    const withBank = V.pick('garbarino');
+    if (!withBank.live) out.push('FAIL con banco vivo no se prefirió la historia de la IA');
+    if (withBank.gancho !== 'La Tele Encendida' && withBank.gancho !== 'The TV Is On') out.push('FAIL el gancho no salió del banco vivo: ' + withBank.gancho);
+    // historia viva de OTRO edificio no debe filtrarse a garbarino → vuelve al estático
+    window.HISTORIAS_VECINO = [{ id: 'a0', edif: 'arcade', motif: '🕹️', style: 'wall', es: { gancho: 'X', tale: 'Y' }, en: { gancho: 'X', tale: 'Y' } }];
+    if (V.pick('garbarino').live) out.push('FAIL banco vivo de otro edificio no debe usarse');
+    window.HISTORIAS_VECINO = [];
     return JSON.stringify(out);
   })()`, sandbox);
   const vecRes = JSON.parse(vecino);

@@ -144,7 +144,11 @@ el flujo), `js/lang/game.{es,en}.js` (historias/ganchos/UI), `js/nivelai.js` (`r
   **enriquece** con texto+geometría si está disponible. ✅
 - **Interior tras ganar:** las **salas reales** del edificio (existen para los 4). ✅
 - **Vecino IA vs scriptado:** **historias estáticas (robustas) + oferta como opción fija**; la IA autora el NIVEL
-  (no el texto del chat, por ahora). Deuda menor: que la IA autore también el TEXTO de las historias (banco vivo).
+  (no el texto del chat, por ahora). ~~Deuda menor: que la IA autore también el TEXTO de las historias (banco vivo).~~
+  **✅ HECHO (2026-06-27, v196 / infra-27).** Banco VIVO `GET/POST /historias` (PVC) + cron `gen-historias.mjs`
+  (por edificio×idioma, `{gancho,tale,motif,style}`) → `window.HISTORIAS_VECINO` (`js/historias-vecino.js`);
+  `pickVecinoStory(n, edif)` lo prefiere con fallback al estático. La IA autora el texto; los visuales (paleta/props)
+  los toma de un molde curado. Aristas y nivel siguen igual.
 - **Memoria:** se guarda `entrado[edificio]`; las historias se regeneran (no se persiste la activa — deuda menor).
 - **Grafo: ✅ HECHO (2026-06-27, v195).** Arista `vecino` (`specs/nivel-1/personajes/vecino.md`): `at:'calle'`,
   `pre:{stormed}`, `sets:{vecinoSeen}`, `terminal` — actividad post-tormenta opcional. `vecinoSeen` es derivado

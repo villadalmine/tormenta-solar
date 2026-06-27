@@ -106,6 +106,14 @@ chusmerio:
   schedule: "30 4 * * *"
   model: gemma4-paid
 
+# VECINO: banco VIVO de historias de terror por edificio clausurado, autoradas por IA (gen-historias.mjs). El modelo
+# SÍ inventa (es el punto). 1×/día. El juego las flashea y usa de semilla del nivel (GET /historias); fallback estático.
+historias:
+  enabled: true
+  schedule: "45 4 * * *"
+  model: gemma4-paid
+  per: 4
+
 linyeraPool:
   cronjob:
     enabled: true

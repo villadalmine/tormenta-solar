@@ -1099,25 +1099,47 @@
   ];
   const VECINO_GHOST_LINES = { es: ['no deberías estar acá', 'andate mientras puedas', 'te estábamos esperando', 'shhh', '¿escuchaste eso?', 'quedate un ratito más...'],
                                en: ['you shouldn\'t be here', 'leave while you can', 'we were waiting for you', 'shhh', 'did you hear that?', 'stay a little longer...'] };
-  function pickVecinoStory(n) {
+  function vecinoLang() { return (typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en') ? 'en' : 'es'; }
+  // banco VIVO de la IA (window.HISTORIAS_VECINO, lo trae js/historias-vecino.js del proxy) para ESTE edificio
+  function liveStoriesFor(edif) {
+    const bank = (typeof window !== 'undefined' && window.HISTORIAS_VECINO) || [];
+    return bank.filter(s => s && s.id && (s.es || s.en) && (s.edif === edif || !s.edif));
+  }
+  // plantilla visual estática (paleta/props) para una historia VIVA — la IA autora el TEXTO, los visuales son curados
+  function visualTemplate(style) {
+    const m = VECINO_STORIES.filter(s => s.style === style), pool = m.length ? m : VECINO_STORIES;
+    return pool[(Math.random() * pool.length) | 0];
+  }
+  function vecinoGancho(s) {
+    if (s.live) { const L = s[vecinoLang()] || s.es || s.en || {}; return L.gancho || s.id; }
+    return T('g.vecino.gancho.' + s.id);
+  }
+  // banco COMPARTIDO: prefiere el vivo de la IA para el edificio; si no hay red, el estático (robusto). Sin repetir.
+  function pickVecinoStory(n, edif) {
     n.told = n.told || [];
-    let pool = VECINO_STORIES.filter(s => !n.told.includes(s.id));
-    if (!pool.length) { n.told = []; pool = VECINO_STORIES.slice(); }
+    const live = liveStoriesFor(edif).map(s => ({ ...s, live: true }));
+    const all = live.length ? live : VECINO_STORIES, key = s => (s.live ? 'live:' : '') + s.id;
+    let pool = all.filter(s => !n.told.includes(key(s)));
+    if (!pool.length) { n.told = []; pool = all.slice(); }
     const s = pool[(Math.random() * pool.length) | 0];
-    n.told.push(s.id);
+    n.told.push(key(s));
     return s;
   }
-  function vecinoTale(s, edif) { return T('g.vecino.tale.' + s.id, { edif: T('g.vecino.edif.' + edif) }); }
+  function vecinoTale(s, edif) {
+    if (s.live) { const L = s[vecinoLang()] || s.es || s.en || {}; return (L.tale || '').replace(/\{edif\}/g, T('g.vecino.edif.' + edif)); }
+    return T('g.vecino.tale.' + s.id, { edif: T('g.vecino.edif.' + edif) });
+  }
   // historia → TEMA ad-hoc para generateLevel (paleta/props/style del relato; nombre = el gancho)
   function themeFromStory(s, edif) {
-    const gancho = T('g.vecino.gancho.' + s.id), intro = vecinoTale(s, edif);
+    const gancho = vecinoGancho(s), intro = vecinoTale(s, edif);
+    const vis = (s.palette && s.props) ? s : visualTemplate(s.style);   // la historia viva toma visuales de un molde curado
     return {
-      id: 'historia-' + s.id, motif: s.motif,
+      id: 'historia-' + s.id, motif: s.motif || vis.motif,
       name: { es: gancho, en: gancho }, intro: { es: intro, en: intro },
-      palette: s.palette, props: s.props,
-      npc: { emoji: s.motif, lines: VECINO_GHOST_LINES },
+      palette: s.palette || vis.palette, props: s.props || vis.props,
+      npc: { emoji: s.motif || vis.motif, lines: VECINO_GHOST_LINES },
       goal: { es: T('g.vecino.exit'), en: T('g.vecino.exit') }, reward: { caramelos: 5 },
-      style: s.style, decor: ['cartel', 'caja', 'barril', 'tacho', 'escombros', 'mueble_roto'],
+      style: s.style || vis.style, decor: ['cartel', 'caja', 'barril', 'tacho', 'escombros', 'mueble_roto'],
     };
   }
   let vecinoNpc = null, vecinoEdif = null;
@@ -1126,7 +1148,7 @@
     const edif = (n.vecino && n.vecino.edificio) || 'edu';
     if (!stormed) { setMsg(TX(n.dialog) || T('g.vecino.preStorm'), '#9fb4c4', 4500); return; }   // pre-tormenta: ambiental
     n.storyCount = (n.storyCount || 0) + 1;
-    const s = pickVecinoStory(n); n.activeStory = s;
+    const s = pickVecinoStory(n, edif); n.activeStory = s;
     // sin la máquina de niveles → igual chusmea (aditivo, nunca rompe la calle)
     if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined') { setMsg(vecinoTale(s, edif), '#c8b0d8', 8000); return; }
     // 1ª historia (y nunca entraste): teaser por mensaje; de la 2ª en más (o si ya entraste) → abre la oferta
@@ -1141,7 +1163,7 @@
     let html = '<div class="end-stats-title">' + T('g.vecino.menuTitle', { edif: T('g.vecino.edif.' + edif) }) + '</div>';
     html += '<div style="margin:.4em 0 .8em;opacity:.92;line-height:1.45">' + vecinoTale(s, edif) + '</div>';
     html += '<div style="display:flex;flex-direction:column;gap:.4em">';
-    html += '<button class="vecino-opt" data-k="pasa" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer">' + T('g.vecino.optPass', { gancho: T('g.vecino.gancho.' + s.id) }) + '</button>';
+    html += '<button class="vecino-opt" data-k="pasa" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer">' + T('g.vecino.optPass', { gancho: vecinoGancho(s) }) + '</button>';
     html += '<button class="vecino-opt" data-k="otra" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer">' + T('g.vecino.optMore') + '</button>';
     html += '</div>';
     body.innerHTML = html;
@@ -1152,20 +1174,20 @@
   function closeVecino() { const ov = document.getElementById('vecinomenu'); if (ov) ov.classList.add('hidden'); }
   function pickVecino(k) {
     if (k === 'pasa') { closeVecino(); passToBuilding(vecinoNpc, vecinoEdif); return; }
-    const s = pickVecinoStory(vecinoNpc); vecinoNpc.activeStory = s; vecinoNpc.storyCount = (vecinoNpc.storyCount || 0) + 1;   // otra historia → swap y reabrir
+    const s = pickVecinoStory(vecinoNpc, vecinoEdif); vecinoNpc.activeStory = s; vecinoNpc.storyCount = (vecinoNpc.storyCount || 0) + 1;   // otra historia → swap y reabrir
     Sfx.pickup(); openVecino(vecinoNpc, vecinoEdif);
   }
   // aceptar pasar → genera el nivel desde la última historia (IA opcional, fallback estático) → al ganar, interior real
   function passToBuilding(n, edif) {
-    const s = n.activeStory || pickVecinoStory(n);
+    const s = n.activeStory || pickVecinoStory(n, edif);
     const interior = (n.vecino && n.vecino.interior);
     entradoEdif[edif] = true;
     applyEdge('vecino');   // grafo/Mensajero: "entraste a un edificio clausurado" (vecinoSeen es derivado de entradoEdif)
     const theme = themeFromStory(s, edif);
     flash(); tel('vecino', { edif, story: s.id });
     if (NivelAI.requestHistoria) {   // IA enriquece (geometría/sabor); circuit breaker → estático al toque si cae
-      setMsg(T('g.vecino.shaping', { gancho: T('g.vecino.gancho.' + s.id) }), '#c8b0d8', 8000);
-      NivelAI.requestHistoria(edif, T('g.vecino.gancho.' + s.id), aiTheme => {
+      setMsg(T('g.vecino.shaping', { gancho: vecinoGancho(s) }), '#c8b0d8', 8000);
+      NivelAI.requestHistoria(edif, vecinoGancho(s), aiTheme => {
         if (state !== 'playing' || spinoffLevel) return;   // ya entraste a otro lado / cambió el estado
         if (!loadGenLevel(NivelAI.generateLevel(aiTheme || theme), interior)) setMsg(T('g.nivelai.fail'), '#ff5252', 4000);
       });
@@ -2117,6 +2139,8 @@
       tell: n => handleVecino(n),
       pass: n => passToBuilding(n, n.vecino && n.vecino.edificio),
       end: outcome => endSpinoffLevel(outcome),
+      // banco vivo (IA): elige una historia para el edificio y devuelve si vino del banco vivo + su gancho (para tests)
+      pick: edif => { const s = pickVecinoStory({ told: [] }, edif); return { id: s.id, live: !!s.live, gancho: vecinoGancho(s), tale: vecinoTale(s, edif) }; },
       state: () => ({ spinoffLevel, spinoffReturnRoom, current, entrado: { ...entradoEdif }, active: spinoffLevel }),
     } });
 })();

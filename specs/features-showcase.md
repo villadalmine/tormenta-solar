@@ -63,8 +63,10 @@
   hay un **vecino** que te **flashea historias de terror** del edificio (juguetes diabólicos, la llorona, filicidios,
   fiestas eternas, fantasmas). Iterás el chusmerío y te ofrece **"¿querés pasar y ver qué pasó con XXX?"** → la
   **máquina de niveles genera un nivel** con esa última historia como semilla, y al ganarlo **quedás en el interior
-  real** del edificio. Contenido **vivo e infinito** sobre lugares antes muertos (banco estático robusto + IA que
-  autora el nivel, con fallback). Ver `specs/edificios-clausurados-historias.md`.
+  real** del edificio. Contenido **vivo e infinito** sobre lugares antes muertos: las **historias mismas las escribe
+  la IA** (un gancho + un relato corto, propios de cada edificio, ES/EN, banco vivo servido por API y refrescado a
+  diario) con banco estático de respaldo; y el **nivel** también lo autora la IA, todo con fallback. Ver
+  `specs/edificios-clausurados-historias.md`.
 - **El edificio:** subís **saltando** una escalera de incendios **o** por ascensor (dos caminos); items que
   **regeneran**. **Truco** criollo real (motor puro testeado, cantos + voces). Arcade (Pac-Man/Galaga/Frogger).
 

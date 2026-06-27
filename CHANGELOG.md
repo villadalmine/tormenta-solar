@@ -22,9 +22,9 @@ El juego es 100% estático; se publica en
   - ~~**Grafo `historia.js`**~~: ✅ **HECHO (v195)** — aristas `cuevero_gate` (gatea `tormenta` con `cueveroUnlocked`)
     y `vecino` (post-tormenta, `vecinoSeen`); el HintEngine ya guía ambos flujos. *(La cadena Guido en sí sigue por
     flags, no es sub-grafo — menor.)*
-  - **Banco VIVO de historias del vecino** (`edificios-clausurados-historias.md §8`): hoy la IA autora el NIVEL pero
-    el TEXTO de las historias sale de un banco estático (6 relatos). Falta que la IA autore también el texto (patrón
-    propaganda/noticias: cron + `GET/POST` en PVC + cache).
+  - ~~**Banco VIVO de historias del vecino**~~: ✅ **HECHO (v196 / infra-27)** — la IA ahora autora también el TEXTO
+    (gancho + relato, ES/EN) por edificio (cron `gen-historias.mjs` → `POST /historias` → PVC → `GET /historias` →
+    `window.HISTORIAS_VECINO`), con fallback al banco estático. `edificios-clausurados-historias.md §8`.
   - **IA autora la ECONOMÍA de las tiendas** (`tiendas-generadas.md`): precios/efectos hoy anclados al molde (la IA
     solo re-bautiza). + persistir `shopCache` en localStorage/banco del proxy (hoy en memoria).
   - **Linyera-guía / Guido "follow" cross-room** (`cuevero-gate-truco.md §9`): hoy scriptado por mensajes (el motor
@@ -45,6 +45,32 @@ El juego es 100% estático; se publica en
   de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
 - *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
   (cadena exacta del código) en LiteLLM.
+
+---
+
+## [v196] — 2026-06-27 — 🕯️ Banco VIVO de historias del vecino: la IA autora también el TEXTO (no solo el nivel)
+
+**Qué cambió (jugador):** el vecino de los edificios clausurados te flashea historias de terror **nuevas y siempre
+distintas** — ya no salen de un banco fijo de 6 relatos, las **escribe la IA** (un gancho + un relato corto y
+siniestro) y son **propias de cada edificio** (el instituto, el arcade, la chorería, Garbarino). El gancho que la
+IA inventa es el que titula el nivel al que entrás. Si la IA no está disponible, el banco estático sigue ahí (nunca
+se rompe). ES/EN.
+
+**Por qué importa (REGLA #0 — todo DATO/API/MEMORIA):** cierra la última deuda fina del vecino. El TEXTO de las
+historias deja de estar hardcodeado en `game.js` y pasa a ser un **banco vivo servido por API**, alimentado por la
+IA, igual que la propaganda / las noticias / el chusmerío.
+
+**Cómo (técnico):**
+- **Cliente:** `js/historias-vecino.js` (capa aditiva, calco de `propaganda.js`) trae `GET /historias` →
+  `window.HISTORIAS_VECINO`. `game.js`: `pickVecinoStory(n, edif)` ahora **prefiere** el banco vivo del edificio
+  (sin repetir), con **fallback** al estático `VECINO_STORIES`; `vecinoTale`/`vecinoGancho`/`themeFromStory` toleran
+  una historia "viva" (texto ES/EN propio) tomando los **visuales** (paleta/props/style) de un molde curado.
+- **Proxy** (infra-27): banco `HISTORIAS` en PVC (`/data/historias.json`) + `GET /historias` + `POST /historias`
+  (GEN_TOKEN) + métrica `tormenta_eco_bank_items{bank="historias"}`/`_age_seconds`.
+- **Cron:** `ai-proxy/gen-historias.mjs` + CronWorkflow `historias` (1×/día, `45 4 * * *`): por edificio×idioma pide
+  `PER` relatos `{gancho, tale, motif, style}` y los postea.
+- **Tests:** `Game.__vecino.pick(edif)` + aserciones en `tests/e2e.js` (sin banco → estático; con banco del edificio
+  → vivo; banco de otro edificio → no se filtra). Cache **v196**. Battery verde.
 
 ---
 
@@ -752,6 +778,19 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-27] — 2026-06-27 — 🕯️ Proxy 0.1.47: banco VIVO de historias del vecino (`/historias`) + cron que las AUTORA
+
+Sostén del **v196**. El proxy gana un banco nuevo, igual que propaganda/noticias/chusmerío:
+- **`GET /historias`** → `{historias, updated}` (cache 10 min) · **`POST /historias`** (GEN_TOKEN, vacío no pisa) →
+  persiste en PVC (`/data/historias.json`, `HISTORIAS_STORE`). Métricas `tormenta_eco_bank_items{bank="historias"}`
+  y `tormenta_eco_bank_age_seconds{bank="historias"}`.
+- **Cron `gen-historias.mjs`** (CronWorkflow `historias`, `45 4 * * *`, model `gemma4-paid`): por **edificio×idioma**
+  pide `HIST_PER` relatos de terror cortos `{gancho, tale, motif, style}` y los postea zipeados ES/EN por edificio
+  (`edu`/`arcade`/`choris`/`garbarino`). Node puro, sin deps. Chart: `values(.prod).yaml historias{enabled,schedule,
+  model,per}` + `templates/cronworkflow-historias.yaml`.
 
 ---
 

@@ -63,6 +63,15 @@ const CHUSMERIO_STORE = process.env.CHUSMERIO_STORE || '/data/chusmerio.json';
 function loadChusmerio() { try { const d = JSON.parse(fs.readFileSync(CHUSMERIO_STORE, 'utf8')); if (d && Array.isArray(d.lineas)) { CHUSMERIO = d.lineas; CHUSMERIO_TS = d.ts || 0; } } catch (e) {} }
 function saveChusmerio() { try { fs.mkdirSync(CHUSMERIO_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(CHUSMERIO_STORE, JSON.stringify({ lineas: CHUSMERIO, ts: CHUSMERIO_TS })); } catch (e) { console.error('chusmerio store save:', e.message); } }
 loadChusmerio();
+
+// HISTORIAS del VECINO (edificios-clausurados-historias.md §8): banco VIVO de relatos de terror por edificio que
+// AUTORA la IA (gen-historias.mjs). El juego los flashea y, si pasás, los usa de semilla del nivel. GET /historias →
+// banco; el cliente cae al banco ESTÁTICO (game.js) si no hay. Cada historia: {id,edif,motif,style,es:{gancho,tale},en:{...}}.
+let HISTORIAS = [], HISTORIAS_TS = 0;
+const HISTORIAS_STORE = process.env.HISTORIAS_STORE || '/data/historias.json';
+function loadHistorias() { try { const d = JSON.parse(fs.readFileSync(HISTORIAS_STORE, 'utf8')); if (d && Array.isArray(d.historias)) { HISTORIAS = d.historias; HISTORIAS_TS = d.ts || 0; } } catch (e) {} }
+function saveHistorias() { try { fs.mkdirSync(HISTORIAS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(HISTORIAS_STORE, JSON.stringify({ historias: HISTORIAS, ts: HISTORIAS_TS })); } catch (e) { console.error('historias store save:', e.message); } }
+loadHistorias();
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL (tope duro)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -408,6 +417,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ carteles: PROPAGANDA, updated: PROPAGANDA.length ? Date.now() : 0 }));
   }
+  if (req.method === 'GET' && req.url === '/historias') {                           // banco VIVO de historias del VECINO
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
+    return res.end(JSON.stringify({ historias: HISTORIAS, updated: HISTORIAS_TS }));
+  }
   if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)
     const u = new URL(req.url, 'http://x'), dias = Object.keys(NOTI_DAYS).sort();
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
@@ -538,10 +551,12 @@ http.createServer((req, res) => {
       `tormenta_eco_bank_items{bank="noticias_dias"} ${Object.keys(NOTI_DAYS).length}\n` +
       `tormenta_eco_bank_items{bank="propaganda"} ${PROPAGANDA.length}\n` +
       `tormenta_eco_bank_items{bank="chusmerio"} ${CHUSMERIO.length}\n` +
+      `tormenta_eco_bank_items{bank="historias"} ${HISTORIAS.length}\n` +
       `tormenta_eco_bank_items{bank="mundial_equipos"} ${Object.keys(MUNDIAL).length}\n` +
       `# HELP tormenta_eco_bank_age_seconds Antigüedad de la última actualización del banco (-1 = nunca)\n# TYPE tormenta_eco_bank_age_seconds gauge\n` +
       `tormenta_eco_bank_age_seconds{bank="noticias"} ${ageS(NOTICIAS_TS)}\n` +
-      `tormenta_eco_bank_age_seconds{bank="chusmerio"} ${ageS(CHUSMERIO_TS)}\n`;
+      `tormenta_eco_bank_age_seconds{bank="chusmerio"} ${ageS(CHUSMERIO_TS)}\n` +
+      `tormenta_eco_bank_age_seconds{bank="historias"} ${ageS(HISTORIAS_TS)}\n`;
     // volumen de chats por CÓDIGO de suscripción (suscripcion.md §9.3: quién consume más; cardinalidad = #códigos)
     out += `# HELP tormenta_ai_sub_usage_total Chats servidos por código de suscripción\n# TYPE tormenta_ai_sub_usage_total counter\n`;
     const subKeys = Object.keys(SUB_USAGE);
@@ -650,6 +665,19 @@ http.createServer((req, res) => {
       try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.carteles)) {
         if (d.carteles.length) { PROPAGANDA = d.carteles.slice(0, 200); savePropaganda(); }
         res.writeHead(200); return res.end(d.carteles.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
+      catch (e) { res.writeHead(400); res.end('bad json'); }
+    });
+    return;
+  }
+  // el cron de historias (gen-historias.mjs, IA) postea acá (GEN_TOKEN): {historias:[{id,edif,motif,style,es,en}]}. Vacío no pisa.
+  if (req.method === 'POST' && req.url === '/historias') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = '';
+    req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
+    req.on('end', () => {
+      try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.historias)) {
+        if (d.historias.length) { HISTORIAS = d.historias.slice(0, 200); HISTORIAS_TS = Date.now(); saveHistorias(); }
+        res.writeHead(200); return res.end(d.historias.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;

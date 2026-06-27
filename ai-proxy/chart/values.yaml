@@ -56,6 +56,13 @@ chusmerio:                  # frases de chusmerío ambiente (NPCs vivos) generad
   timezone: "America/Argentina/Buenos_Aires"
   model: gemma4-paid
 
+historias:                  # banco VIVO de historias de terror del vecino por edificio clausurado (IA)
+  enabled: false
+  schedule: "45 4 * * *"
+  timezone: "America/Argentina/Buenos_Aires"
+  model: gemma4-paid
+  per: 4
+
 # --- API key del upstream (para LiteLLM = su master key, p.ej. sk-hermes-internal) ---
 # Opción A (recomendada): referenciar un Secret YA existente (no commitea la key).
 # Opción B: poner apiKey acá → el chart crea el Secret (NO lo subas a git con la key real; usá --set).
