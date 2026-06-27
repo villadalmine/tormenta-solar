@@ -50,6 +50,26 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v201] — 2026-06-27 — 🃏 Truco "DE A 6" (ruta B): el tahúr te reta 3 vs 3 → reclutás un equipo que te SIGUE — Fase 2
+
+**Qué cambió (jugador):** pediste que la ruta B (ganarle vos al tahúr) tuviera lo del **truco de a 6**. Ahora cuando
+le hablás al tahúr **sin Guido**, te reta: *"acá se juega de a 6, traete dos compañeros"*. Vas a buscar a **2
+truqueros** (uno en la galería, otro en el lugar secreto), los reclutás y **te siguen** hasta la mesa (reusa el
+follow cross-room de la Fase 1). Con el equipo armado se juega **3 vs 3**: jugás **tu duelo de truco real** y los de
+tus 2 compañeros se resuelven por su **pericia (`skill`)** — gana el equipo con **2 de 3**. Si ganan, el tahúr te
+perdona y se destraba el cuevero.
+
+**Cómo (técnico):** NPCs reclutables `action:'mate'` (`mate:{id,skill}`, DATA del nivel; plumbing en `level.js`/
+`mundo.js`/`gen-level.js`/`schema` + `level-data.js` regenerado, paridad v1≡v2 verde). En `game.js`: flags
+`trucoSeisOffered`/`trucoSeisActive` + `trucoMatesRec` (serializados); `NPC_ACTIONS.truco` se ramifica (Guido →
+auto-win; si no, ofrece de-a-6 / pide equipo / juega); `recruitMate` suma compañeros (companions que te siguen,
+mismo sistema que Guido); `resolveTrucoSeis(youWon)` = tu duelo + los de tus mates por skill, 2 de 3. El resultado
+del duelo se intercepta en el handler del arcade-truco. Textos ES/EN. Hooks `__gate.tahur/recruitMate/mates/
+seisOffered/seisResolve` + test e2e (reto → reclutar 2 → te siguen → resolución 3v3 consistente). Cache **v201**.
+`npm test` + paridad + schema verdes.
+
+---
+
 ## [v200] — 2026-06-27 — 🤝 COMPAÑEROS que te SIGUEN cruzando salas (follow cross-room) — Fase 1: la escolta del cuevero
 
 **Qué cambió (jugador):** pediste que los compañeros te **acompañen de verdad**, no solo por texto. Ahora en la

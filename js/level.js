@@ -43,7 +43,7 @@ const Level = (() => {
       playerStart: spec.playerStart != null ? feet(spec.playerStart) : null,
       enemies: (spec.enemies || []).map(e => ({ type: e.t, dormant: e.dormant, look: e.look, ...feet(e.x, e.y) })),
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
-      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), tienda: n.tienda && { ...n.tienda }, vecino: n.vecino && { ...n.vecino }, ...feet(n.x) })),
+      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), tienda: n.tienda && { ...n.tienda }, vecino: n.vecino && { ...n.vecino }, mate: n.mate && { ...n.mate }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE, ad: d.ad })),
@@ -254,6 +254,8 @@ const Level = (() => {
           { name:'Comida rara', sprite:'comida', x:28, action:'tienda', tienda:{ tipo:'comida-rara' },
             sells:{ kind:'health', amount:25, cost:4, stock:3 },
             dialog:'“¿Pancho de tres días? Igual te hace bien, barato.” 🤢' },
+          { name:'Pino el trucero', sprite:'linyera', x:22, action:'mate', mate:{ id:'truco1', skill:0.62 },
+            dialog:'“Yo de truco sé un montón, pibe. Si te armás de a 6 contra alguien, contá conmigo.” 🃏' },
           { name:'???', sprite:'misterioso', x:36, action:'armas',
             // arsenal = DATA del nivel (cada fierro: costo + bonus). El motor abre un menú (como el guarda) y lo lee.
             // Elegís UNO (te "armás", abre la arista de historia). De rebenque barato al FAL caro.
@@ -328,7 +330,8 @@ const Level = (() => {
           { name:'Naipero charlatán', sprite:'naipero', x:15, action:'chat', persona:'tahur', dialog:'“Bueno, vos parecés piola. Sentate que tiramos unas manos de truco y charlamos.” 🃏' },
           { name:'Jugador', sprite:'naipero', x:17, dialog:'“Tranqui, seguí para el fondo.”' },
           { name:'Jugador', sprite:'naipero', x:19, dialog:'“¿Buscás algo? No, no buscás nada.”' },
-          { name:'Jugador', sprite:'naipero', x:21, dialog:'“Callate y seguí.”' },
+          { name:'Coya el naipero', sprite:'naipero', x:21, action:'mate', mate:{ id:'truco2', skill:0.55 },
+            dialog:'“Al tahúr lo conozco. Si lo querés enfrentar de a 6, yo me sumo a tu mesa, pibe.” 🃏' },
           { name:'Naipero veterano', sprite:'naipero', x:16, action:'chat', persona:'tahur', dialog:'“¿Vos jugás al truco o sos de los que cantan envido sin nada? Vení, contame.” 😏' },
           { name:'Jugador', sprite:'naipero', x:20, dialog:'“Al fondo te esperan.”' },
         ],

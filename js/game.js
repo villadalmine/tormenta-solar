@@ -151,6 +151,11 @@
   let guidoSummoned = false;                          // elegiste "tengo contactos" → un linyera te manda con Guido
   let guidoRecruited = false;                         // hiciste la cadena linyera→Guido (te lo presentaron)
   let guidoFollowing = false;                         // Guido te acompaña a desbaratar al tahúr (auto-win en la trastienda)
+  // TRUCO "DE A 6" (ruta B): el tahúr te reta a 3 vs 3 → reclutás 2 compañeros que te SIGUEN y se juega de a 6.
+  let trucoSeisOffered = false;                       // el tahúr ya te propuso jugar de a 6 (andá a buscar equipo)
+  let trucoSeisActive = false;                        // partido de a 6 EN CURSO (el duelo tuyo se resuelve con los de tu equipo)
+  const trucoMatesRec = {};                           // id → true: compañeros de truco ya reclutados (te siguen)
+  const TRUCO_MATES = { truco1: { name: 'Pino', sprite: 'linyera', skill: 0.62 }, truco2: { name: 'Coya', sprite: 'naipero', skill: 0.55 } };
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -214,6 +219,7 @@
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
+    trucoSeisOffered = false; trucoSeisActive = false; for (const k in trucoMatesRec) delete trucoMatesRec[k];   // truco de a 6, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; roamingNpc = null;
@@ -239,8 +245,8 @@
         spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
         borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered,
-        cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing,
-        entrado: { ...entradoEdif }, vecino: JSON.parse(JSON.stringify(vecinoState)) },
+        cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing, trucoSeisOffered,
+        entrado: { ...entradoEdif }, vecino: JSON.parse(JSON.stringify(vecinoState)), trucoMates: { ...trucoMatesRec } },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       // RF-4: estado anclado por POSICIÓN (sala, x), no por índice de array → robusto a reordenar entidades.
       // El pickup/npc se identifica por su x en la sala (su "id" natural), no por su lugar en el array.
@@ -263,6 +269,7 @@
     bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
     trucoWon = !!f.trucoWon; trucoEverWon = !!f.trucoEverWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
     cueveroUnlocked = !!f.cueveroUnlocked; tahurDiscovered = !!f.tahurDiscovered; guidoSummoned = !!f.guidoSummoned; guidoRecruited = !!f.guidoRecruited; guidoFollowing = !!f.guidoFollowing;
+    trucoSeisOffered = !!f.trucoSeisOffered; trucoSeisActive = false; for (const k in trucoMatesRec) delete trucoMatesRec[k]; if (f.trucoMates) Object.assign(trucoMatesRec, f.trucoMates);
     for (const k in entradoEdif) delete entradoEdif[k]; if (f.entrado) Object.assign(entradoEdif, f.entrado);
     for (const k in vecinoState) delete vecinoState[k]; if (f.vecino && typeof f.vecino === 'object') Object.assign(vecinoState, JSON.parse(JSON.stringify(f.vecino)));
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
@@ -372,9 +379,18 @@
     frogger: () => { challengeForVale = true; setMsg(T('g.frogger.start'), '#ff2e88', 1000); launchArcade('frogger'); },
     truco:   () => {
       if (guidoFollowing && !cueveroUnlocked) { guidoBeatsTahur(); return; }   // ruta A: Guido juega y gana por vos
-      setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' });
+      // ruta B "de a 6": el tahúr juega 3 vs 3. Si no se ofreció aún, lo propone; si falta equipo, te manda a buscarlo;
+      // con 2 compañeros reclutados → se juega de a 6 (tu duelo real + los de tus compañeros por skill).
+      if (!cueveroUnlocked) {
+        const team = Object.keys(trucoMatesRec).length;
+        if (!trucoSeisOffered) { trucoSeisOffered = true; setMsg(T('g.truco.seisOffer'), '#ffd54f', 9000); syncCompanions(); return; }
+        if (team < 2) { setMsg(T('g.truco.seisNeed', { n: 2 - team }), '#ffd54f', 8000); return; }
+        trucoSeisActive = true; setMsg(T('g.truco.seisSit'), '#ffd54f', 1200); launchArcade('truco', { opp: 'tahur' }); return;
+      }
+      setMsg(T('g.truco.sit'), '#ffd54f', 1000); launchArcade('truco', { opp: 'tahur' });   // ya destrabado → 1v1 por flores
     },
     guido:   n => handleGuido(n),
+    mate:    n => recruitMate(n),
     companion: n => { setMsg(TX(n.dialog) || '...', '#aef0c0', 3500); Sfx.pickup(); },
     vecino:  n => handleVecino(n),
     chori:   () => redeemChori(),
@@ -505,6 +521,13 @@
     // ruta A: Guido te ESCOLTA hasta la mesa del tahúr (desde que te sigue hasta destrabar al cuevero)
     setCompanion('guido', guidoFollowing && !cueveroUnlocked,
       { name: 'Guido', sprite: 'guido', side: 2, followOff: 32, dialog: T('g.guido.escortGuido'), join: T('g.guido.escortGuidoJoin') });
+    // ruta B "de a 6": cada compañero de truco reclutado te SIGUE hasta la mesa (a un costado distinto, no se amontonan)
+    let i = 0;
+    for (const id of Object.keys(TRUCO_MATES)) {
+      const m = TRUCO_MATES[id], side = i === 0 ? -3 : 3, off = i === 0 ? -44 : 44; i++;
+      setCompanion(id, !!trucoMatesRec[id] && !cueveroUnlocked,
+        { name: m.name, sprite: m.sprite, side, followOff: off, dialog: T('g.truco.mateFollow', { name: m.name }), join: T('g.truco.mateJoin', { name: m.name }) });
+    }
   }
   function clearCompanions() { for (const c of companions.slice()) removeCompanionNpc(c); companions.length = 0; }
   function resetLoopResources() {            // cajones de falopa y limosnas se renuevan cada loop
@@ -1122,6 +1145,26 @@
     } else {                         // todavía no descubriste al tahúr → volvé más tarde (+ pista)
       setMsg(T('g.guido.later'), '#ffd54f', 7000);
     }
+  }
+  // RUTA B "de a 6": reclutás un compañero de truco (te SIGUE cruzando salas, como Guido). Sólo tras el reto del tahúr.
+  function recruitMate(n) {
+    Sfx.pickup();
+    const id = n.mate && n.mate.id;
+    if (!id || !TRUCO_MATES[id]) { setMsg(TX(n.dialog) || '...', '#aef0c0', 3500); return; }
+    if (cueveroUnlocked) { setMsg(T('g.truco.mateDone'), '#aef0c0', 4000); return; }
+    if (!trucoSeisOffered) { setMsg(T('g.truco.mateEarly'), '#9fb4c4', 5000); return; }   // todavía no te retaron de a 6
+    if (trucoMatesRec[id]) { setMsg(T('g.truco.mateAlready', { name: TRUCO_MATES[id].name }), '#aef0c0', 3500); return; }
+    trucoMatesRec[id] = true;
+    setMsg(T('g.truco.mateJoin', { name: TRUCO_MATES[id].name }), '#7CFC00', 6000);
+    syncCompanions();   // el compañero se suma y te sigue hasta la mesa
+  }
+  // resuelve el partido DE A 6 (3 vs 3): tu duelo ya se jugó (youWon); cada compañero juega el suyo por su skill.
+  // Gana el equipo con 2 de 3 duelos. Devuelve { teamWon, won, lost }.
+  function resolveTrucoSeis(youWon) {
+    let won = youWon ? 1 : 0;
+    for (const id of Object.keys(trucoMatesRec)) { if (Math.random() < (TRUCO_MATES[id] ? TRUCO_MATES[id].skill : 0.5)) won++; }
+    const total = 1 + Object.keys(trucoMatesRec).length;   // 3 normalmente
+    return { teamWon: won >= Math.ceil((total + 1) / 2), won, lost: total - won, total };
   }
   // Guido le gana al tahúr (auto-win cinemático) y te pasa el "te perdono" para el cuevero.
   function guidoBeatsTahur() {
@@ -2043,12 +2086,25 @@
             // TRUCOTRON (máquina arcade): premio en FLORES, sin minas/puerta/penalidad — jugás de a una mano
             if (flores > 0) player.flores = (player.flores || 0) + flores;
             setMsg(T(res === 'win' ? 'g.truco.mWin' : 'g.truco.mLose', { n: flores }), res === 'win' ? '#7CFC00' : '#d8c8b0', 5000);
-          } else if (res === 'win') {   // EL TAHÚR (antro): flores + las minas te afanan + abre la puerta al chino
+          } else if (trucoSeisActive && !cueveroUnlocked) {   // RUTA B "DE A 6": tu duelo + los de tus 2 compañeros (3 vs 3)
+            trucoSeisActive = false;
+            const r6 = resolveTrucoSeis(res === 'win');
+            player.flores = (player.flores || 0) + flores;
+            if (r6.teamWon) {
+              applyEdge('truco', 'trucoWon'); trucoEverWon = true;
+              applyEdge('cuevero_gate', 'cueveroUnlocked'); syncCompanions();   // ganaste de a 6 → destraba al cuevero; el equipo se va
+              setMsg(T('g.truco.seisWin', { won: r6.won, lost: r6.lost }), '#7CFC00', 9000);
+              tel('cuevero_gate', { route: 'seis', won: r6.won });
+            } else {
+              player.hp = Math.max(1, player.hp - TRUCO_LOSE);
+              setMsg(T('g.truco.seisLose', { won: r6.won, lost: r6.lost }), '#ff5252', 7500);
+            }
+          } else if (res === 'win') {   // EL TAHÚR (antro), 1v1 ya destrabado: flores + las minas te afanan + abre la puerta al chino
             player.flores = (player.flores || 0) + flores;
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
             player.coins -= robbed; stunUntil = performance.now() + 2600;
             applyEdge('truco', 'trucoWon'); trucoEverWon = true;   // abre la puerta (se consume) + marca el hito (permanente)
-            const firstWin = !cueveroUnlocked; applyEdge('cuevero_gate', 'cueveroUnlocked');   // el tahúr "te perdona" → destraba al cuevero (gate, vía grafo)
+            const firstWin = !cueveroUnlocked; applyEdge('cuevero_gate', 'cueveroUnlocked');   // (compat) el tahúr "te perdona" → destraba al cuevero
             setMsg(T(firstWin ? 'g.truco.winGate' : 'g.truco.win', { n: robbed }), '#ff5252', firstWin ? 9000 : 7000);
             if (firstWin) tel('cuevero_gate', { route: 'propia' });
           }
@@ -2199,6 +2255,12 @@
       companions: () => companions.map(c => c.id),
       compInRoom: () => (rooms[current] && rooms[current].npcs || []).filter(n => n.companion).map(n => n.id),
       go: to => transition({ to, at: { x: 3 * Level.TILE, y: rooms[to].gTop * Level.TILE } }),   // transicionar a una sala
+      // truco DE A 6 (ruta B): hablar al tahúr (ofrece/chequea), reclutar un compañero, ver equipo, resolver 3v3
+      tahur: () => NPC_ACTIONS.truco({}),
+      recruitMate: id => recruitMate({ mate: { id } }),
+      mates: () => Object.keys(trucoMatesRec),
+      seisOffered: () => trucoSeisOffered,
+      seisResolve: youWon => resolveTrucoSeis(youWon),
     },
     // superficie de prueba (e2e) del VECINO de los edificios clausurados: contar historias → pasar → interior
     __vecino: {

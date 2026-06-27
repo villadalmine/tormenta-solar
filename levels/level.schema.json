@@ -383,6 +383,11 @@
        "description": "vecino del edificio clausurado (action:vecino): {edificio} ancla las historias; {interior} = id/índice de sala donde quedás tras pasar el nivel generado.",
        "properties": { "edificio": { "type": "string" }, "interior": {} }
       },
+      "mate": {
+       "type": "object",
+       "description": "compañero de truco reclutable (action:mate, truco de a 6): {id} = id del compañero; {skill} = 0..1, su pericia en el duelo.",
+       "properties": { "id": { "type": "string" }, "skill": { "type": "number" } }
+      },
       "arsenal": {
        "type": "array",
        "description": "fierros que vende el misterioso (action:armas): cada uno {key,cost,ammo,hp}. El motor abre un menú.",

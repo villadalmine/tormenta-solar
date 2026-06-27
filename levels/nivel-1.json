@@ -1877,6 +1877,25 @@
           "id": "galeria-subsuelo-1/npc2",
           "tipo": "npc",
           "render": {
+            "sprite": "linyera"
+          },
+          "x": 22,
+          "name": "Pino el trucero",
+          "interact": {
+            "action": "mate",
+            "mate": {
+              "id": "truco1",
+              "skill": 0.62
+            }
+          },
+          "dialogue": {
+            "text": "“Yo de truco sé un montón, pibe. Si te armás de a 6 contra alguien, contá conmigo.” 🃏"
+          }
+        },
+        {
+          "id": "galeria-subsuelo-1/npc3",
+          "tipo": "npc",
+          "render": {
             "sprite": "misterioso"
           },
           "x": 36,
@@ -1915,7 +1934,7 @@
           }
         },
         {
-          "id": "galeria-subsuelo-1/decor3",
+          "id": "galeria-subsuelo-1/decor4",
           "tipo": "decor",
           "render": {
             "type": "caja"
@@ -1923,7 +1942,7 @@
           "x": 8
         },
         {
-          "id": "galeria-subsuelo-1/decor4",
+          "id": "galeria-subsuelo-1/decor5",
           "tipo": "decor",
           "render": {
             "type": "barril"
@@ -1931,7 +1950,7 @@
           "x": 16
         },
         {
-          "id": "galeria-subsuelo-1/decor5",
+          "id": "galeria-subsuelo-1/decor6",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -1939,7 +1958,7 @@
           "x": 24
         },
         {
-          "id": "galeria-subsuelo-1/decor6",
+          "id": "galeria-subsuelo-1/decor7",
           "tipo": "decor",
           "render": {
             "type": "caja"
@@ -1947,7 +1966,7 @@
           "x": 32
         },
         {
-          "id": "galeria-subsuelo-1/pickup7",
+          "id": "galeria-subsuelo-1/pickup8",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -1956,7 +1975,7 @@
           "y": 9
         },
         {
-          "id": "galeria-subsuelo-1/pickup8",
+          "id": "galeria-subsuelo-1/pickup9",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -1964,7 +1983,7 @@
           "x": 34
         },
         {
-          "id": "galeria-subsuelo-1/pickup9",
+          "id": "galeria-subsuelo-1/pickup10",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -1973,7 +1992,7 @@
           "x": 7
         },
         {
-          "id": "galeria-subsuelo-1/pickup10",
+          "id": "galeria-subsuelo-1/pickup11",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -1982,7 +2001,7 @@
           "x": 24
         },
         {
-          "id": "galeria-subsuelo-1/enemy11",
+          "id": "galeria-subsuelo-1/enemy12",
           "tipo": "enemy",
           "combat": {
             "type": "peaton"
@@ -1990,7 +2009,7 @@
           "x": 18
         },
         {
-          "id": "galeria-subsuelo-1/enemy12",
+          "id": "galeria-subsuelo-1/enemy13",
           "tipo": "enemy",
           "combat": {
             "type": "dron"
@@ -2569,9 +2588,16 @@
             "sprite": "naipero"
           },
           "x": 21,
-          "name": "Jugador",
+          "name": "Coya el naipero",
+          "interact": {
+            "action": "mate",
+            "mate": {
+              "id": "truco2",
+              "skill": 0.55
+            }
+          },
           "dialogue": {
-            "text": "“Callate y seguí.”"
+            "text": "“Al tahúr lo conozco. Si lo querés enfrentar de a 6, yo me sumo a tu mesa, pibe.” 🃏"
           }
         },
         {

@@ -408,6 +408,21 @@ if (require.main === module) {
     // 4) cuevero DESTRABADO: ahora sí vende y dispara la tormenta (CA-2/RF-7)
     G.cuevero(); f = G.flags();
     if (!f.bought || !f.stormed) out.push('FAIL cuevero destrabado no vendió/disparó la tormenta');
+    // 5) RUTA B "DE A 6": reseteo a estado fresco (tahúr descubierto, cuevero trabado, sin Guido) y pruebo el reto 3v3
+    const sb = Game.serialize();
+    Object.assign(sb.flags, { cueveroUnlocked: false, bought: false, stormed: false, guidoSummoned: false, guidoRecruited: false, guidoFollowing: false, tahurDiscovered: true, trucoSeisOffered: false, trucoMates: {} });
+    Game.continueGame(sb);
+    G.tahur(); if (!G.seisOffered()) out.push('FAIL el tahúr no propuso jugar de a 6');
+    if (G.flags().cueveroUnlocked) out.push('FAIL proponer de a 6 NO debe destrabar el cuevero');
+    G.recruitMate('truco1'); if (!G.mates().includes('truco1')) out.push('FAIL no se reclutó al compañero truco1');
+    if (!G.companions().includes('truco1')) out.push('FAIL el compañero de truco no te sigue');
+    G.recruitMate('truco2'); if (G.mates().length !== 2) out.push('FAIL no se armó el equipo de 2');
+    // resolución 3v3 (sin lanzar el arcade): total=3, gana el equipo con 2 de 3; consistente con tu duelo
+    const rW = G.seisResolve(true), rL = G.seisResolve(false);
+    if (rW.total !== 3) out.push('FAIL el partido de a 6 no es 3 jugadores: ' + rW.total);
+    if (rW.won < 1) out.push('FAIL ganando tu duelo, tu equipo debería sumar al menos 1');
+    if (rW.teamWon !== (rW.won >= 2)) out.push('FAIL teamWon inconsistente (win): ' + JSON.stringify(rW));
+    if (rL.teamWon !== (rL.won >= 2)) out.push('FAIL teamWon inconsistente (lose): ' + JSON.stringify(rL));
     return JSON.stringify(out);
   })()`, sandbox);
   const gateRes = JSON.parse(gate);
