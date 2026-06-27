@@ -18,10 +18,18 @@ El juego es 100% estático; se publica en
 - **Pago de la suscripción** (research hecho en `specs/pasarela-pago.md`): falta enganchar una pasarela
   (**Mollie** NL/EU · Mercado Pago/dLocal AR) → webhook → `/provision`. El entitlement por código YA está (ver
   infra-2..6). *(Métricas reales y suscripción por código: HECHO, ver entradas de abajo.)*
-- **Tiendas generadas por IA** (`specs/tiendas-generadas.md`, idea 2026-06-26): le hablás a un NPC-tienda de la
-  **galería de la cueva** (sex-shop, comida rara, masajes, tenebroso) y **entrás a su local**; el NPC declara el
-  **rubro** (`tienda.tipo`) y la IA genera el interior con clientela + mercadería del rubro para **browsear/comprar**
-  (reusa la máquina de niveles, sin meta ni combate, fallback estático). Diseño temprano, NO implementado.
+- **Deuda fina de las features YA implementadas** (pulido, no bloqueante — las features andan):
+  - **Grafo `historia.js`**: el **gate del cuevero** (cuevero/tahúr/guido) y el **vecino**/"pasar" todavía NO son
+    nodos/aristas del grafo (`specs/nivel-1/**` → `tools/gen-historia.mjs`); la discoverabilidad la dan sus menús,
+    pero el HintEngine no los conoce. *(El más on-brand con REGLA #0; bajo riesgo, limpia 2 deudas.)*
+  - **Banco VIVO de historias del vecino** (`edificios-clausurados-historias.md §8`): hoy la IA autora el NIVEL pero
+    el TEXTO de las historias sale de un banco estático (6 relatos). Falta que la IA autore también el texto (patrón
+    propaganda/noticias: cron + `GET/POST` en PVC + cache).
+  - **IA autora la ECONOMÍA de las tiendas** (`tiendas-generadas.md`): precios/efectos hoy anclados al molde (la IA
+    solo re-bautiza). + persistir `shopCache` en localStorage/banco del proxy (hoy en memoria).
+  - **Linyera-guía / Guido "follow" cross-room** (`cuevero-gate-truco.md §9`): hoy scriptado por mensajes (el motor
+    mueve NPCs solo dentro de la sala). Un follow que cruza salas = feature de motor nueva (caro, impacto estético).
+  - **Persistir la historia activa del vecino** (hoy solo se guarda `entrado[edificio]`; las historias se regeneran).
 - **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
 - **Zona multijugador** (`specs/multijugador.md`, idea): cruzarte en tiempo real con otros jugadores +
   interactuar / quests co-op, reusando el SSE/presencia de `online-game`. Diseño temprano.
