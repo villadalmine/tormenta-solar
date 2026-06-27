@@ -56,6 +56,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v208] — 2026-06-27 — 🎨 A0: cada historia del vecino tiene su PROPIO look (paleta + props temáticos, no un molde genérico)
+
+Segunda parte del A0 (que los niveles **reflejen la historia**, no solo el texto). Las historias **vivas** (las que
+autora la IA en el banco) usaban un molde visual **random genérico** (`visualTemplate`) → todas se veían parecidas.
+Ahora cada historia deriva un **look PROPIO y determinístico**: paleta de terror (hash del relato → 1 de **10** hues
+distintos) + **props armados desde su `motif`** (el emoji de la historia + 5 props tenebrosos rotados por el seed).
+Mismo relato → mismo look (consistente); relatos distintos → niveles visualmente distintos. (`motifVisuals` en
+`game.js`.) El `style` (climb/wall/aisles, que ya trae cada historia) varía la estructura. Cache **v208**.
+*(Queda en A0 la variedad más profunda de geometría/enemigos ligada al motif + el spinoff del chino.)*
+
+---
+
 ## [v207] — 2026-06-27 — 🐛 Fixes: saltar carteles AHORA sí anda (umbral) · pre-tormenta NO dispara · nivel del vecino entra AL TOQUE
 
 Más playtest del dueño:

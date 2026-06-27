@@ -1211,10 +1211,28 @@
     const bank = (typeof window !== 'undefined' && window.HISTORIAS_VECINO) || [];
     return bank.filter(s => s && s.id && (s.es || s.en) && (s.edif === edif || !s.edif));
   }
-  // plantilla visual estática (paleta/props) para una historia VIVA — la IA autora el TEXTO, los visuales son curados
-  function visualTemplate(style) {
-    const m = VECINO_STORIES.filter(s => s.style === style), pool = m.length ? m : VECINO_STORIES;
-    return pool[(Math.random() * pool.length) | 0];
+  // paletas de TERROR (10, hues distintos) + props tenebrosos: para que cada historia VIVA tenga un look PROPIO y
+  // temático (no un molde genérico random). Determinístico por historia (hash) → consistente y distinto entre relatos.
+  const HORROR_PALETTES = [
+    { floor: '#1c1622', floor2: '#241c2c', wall: '#3e2e4e', accent: '#c060a0' },  // violeta
+    { floor: '#14181f', floor2: '#1b2029', wall: '#2e3a4a', accent: '#7fd0ff' },  // azul frío
+    { floor: '#1f1414', floor2: '#281a1a', wall: '#4a2e2e', accent: '#ff5252' },  // rojo sangre
+    { floor: '#16181c', floor2: '#1d2026', wall: '#343a44', accent: '#aef0ff' },  // gris fantasma
+    { floor: '#171717', floor2: '#1f1f1f', wall: '#383838', accent: '#9c88c0' },  // negro
+    { floor: '#1a1d12', floor2: '#22271a', wall: '#3a4424', accent: '#a8d860' },  // verde enfermo
+    { floor: '#201810', floor2: '#2a2014', wall: '#4e3a20', accent: '#ffb84d' },  // ámbar viejo
+    { floor: '#1d1218', floor2: '#261820', wall: '#4a2438', accent: '#ff6ec7' },  // rosa carne
+    { floor: '#101a1a', floor2: '#162424', wall: '#244a48', accent: '#4dd6c8' },  // agua podrida
+    { floor: '#181420', floor2: '#20182c', wall: '#382a52', accent: '#b388ff' },  // índigo
+  ];
+  const HORROR_PROPS = ['🕯️', '🚪', '🪞', '🕸️', '⛓️', '🩸', '🪦', '🌑', '💀', '🦇', '🕷️', '🪤'];
+  function hashStr(str) { let h = 0; str = String(str); for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0; return Math.abs(h); }
+  // visuales PROPIOS de una historia viva: paleta (hash → 1 de 10) + props = su motif + 5 props de terror rotados por el seed
+  function motifVisuals(s) {
+    const seed = hashStr(s.id || (s.es && s.es.gancho) || s.motif || 'x');
+    const motif = s.motif || '👻', props = [motif];
+    for (let i = 0; i < 5; i++) props.push(HORROR_PROPS[(seed + i * 7) % HORROR_PROPS.length]);
+    return { palette: HORROR_PALETTES[seed % HORROR_PALETTES.length], props, motif, style: s.style };
   }
   function vecinoGancho(s) {
     if (s.live) { const L = s[vecinoLang()] || s.es || s.en || {}; return L.gancho || s.id; }
@@ -1238,7 +1256,7 @@
   // historia → TEMA ad-hoc para generateLevel (paleta/props/style del relato; nombre = el gancho)
   function themeFromStory(s, edif) {
     const gancho = vecinoGancho(s), intro = vecinoTale(s, edif);
-    const vis = (s.palette && s.props) ? s : visualTemplate(s.style);   // la historia viva toma visuales de un molde curado
+    const vis = (s.palette && s.props) ? s : motifVisuals(s);   // historia VIVA → look PROPIO (paleta+props determinísticos por relato)
     return {
       id: 'historia-' + s.id, motif: s.motif || vis.motif,
       name: { es: gancho, en: gancho }, intro: { es: intro, en: intro },
