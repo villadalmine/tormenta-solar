@@ -56,6 +56,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v223] — 2026-06-28 — 🏁 Telo: pantalla de RESULTADO (escapaste/te chiparon) + música audible
+
+Más feedback del telo. Ahora al terminar la persecución hay una **pantalla de resultado grande y centrada** —
+**🚪💨 ¡ESCAPASTE!** o **🤖💉 ¡TE AGARRÓ!**— que se queda ~2-3s **antes de salir al bar**, así **siempre sabés qué pasó**
+aunque te atrapen rápido o no llegues a leer el cartelito. Y se subió el volumen de la **música de telo** (estaba casi
+inaudible) para que se escuche bien grasa cuando entrás con la rubia. Cache **v223**.
+
+---
+
 ## [v222] — 2026-06-28 — 🏷️ Versión visible + 🤖 el robot del telo (mejor, más justo, lee como robot)
 
 Dos cosas. **(1) La versión del juego ahora se VE** (`specs/version-visible.md`): en la intro (abajo), en ⚙ Opciones y en

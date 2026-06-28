@@ -78,8 +78,12 @@ const Telo = (() => {
         // el ROBOT te persigue para inyectarte el chip — un toque MÁS LENTO que vos: si corrés derecho a la puerta, ZAFÁS.
         const dx = player.x - bear.x, dy = player.y - bear.y, d = Math.hypot(dx, dy) || 1, sp = (96 + pt * 6) * dt;
         bear.x += (dx / d) * sp; bear.y += (dy / d) * sp;
-        if (nearTile(exit, 1.0)) { done = true; exitTo = 'back'; escaped = true; }   // ¡llegaste a la puerta! zafaste
-        else if (d < 20 || pt > 11) { done = true; exitTo = 'back'; chipped = true; }  // te atrapó → te chipea
+        if (nearTile(exit, 1.0)) { phase = 'result'; pt = 0; escaped = true; bear.on = false; Sfx.win && Sfx.win(); }   // ¡llegaste a la puerta! zafaste
+        else if (d < 20 || pt > 11) { phase = 'result'; pt = 0; chipped = true; Sfx.hurt && Sfx.hurt(); }              // te atrapó → te chipea
+      } else if (phase === 'result') {
+        // PANTALLA DE RESULTADO (banner grande): que SIEMPRE leas qué pasó antes de salir al bar
+        prompt = '';
+        if (pt > (chipped ? 3.2 : 2.4)) { done = true; exitTo = 'back'; }
       }
     }
 
@@ -189,6 +193,19 @@ const Telo = (() => {
         ctx2.fillStyle = 'rgba(150,20,20,' + (0.78 + 0.18 * blink) + ')'; ctx2.fillRect(0, 30, VW, 26);
         ctx2.fillStyle = '#fff'; ctx2.font = 'bold 13px monospace'; ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
         ctx2.fillText(T('g.telo.robotBanner'), VW / 2, 43); ctx2.textBaseline = 'alphabetic';
+      }
+      // PANTALLA DE RESULTADO grande (escapaste / te chiparon): centrada, imposible de no leer
+      if (phase === 'result') {
+        ctx2.fillStyle = 'rgba(0,0,0,0.78)'; ctx2.fillRect(0, 0, VW, VH);
+        const ok = escaped, col = ok ? '#7CFC00' : '#ff5252';
+        ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
+        ctx2.fillStyle = col; ctx2.font = 'bold 30px monospace'; ctx2.fillText(T(ok ? 'g.telo.resEscaped' : 'g.telo.resChipped'), VW / 2, VH / 2 - 24);
+        ctx2.fillStyle = '#fff'; ctx2.font = '14px monospace';
+        const sub = T(ok ? 'g.telo.resEscapedSub' : 'g.telo.resChippedSub'), words = sub.split(' '), lines = []; let cur = '';
+        for (const w of words) { const cand = cur ? cur + ' ' + w : w; if ((ctx2.measureText(cand).width || 0) > VW - 80 && cur) { lines.push(cur); cur = w; } else cur = cand; }
+        if (cur) lines.push(cur);
+        lines.forEach((ln, i) => ctx2.fillText(ln, VW / 2, VH / 2 + 8 + i * 20));
+        ctx2.textBaseline = 'alphabetic';
       }
       // mensaje
       let bottom = VH;

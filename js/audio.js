@@ -126,7 +126,7 @@ const Sfx = (() => {
     ['G4','D2',2],['A4','D2',1],['G4','D2',1],
     ['E4','E2',2],['G4','E2',1],['A4','E2',1],
   ];
-  const Telo = makeTrack(TELO, 0.42, { leadVol:0.05, bassVol:0.05, leadType:'triangle' });
+  const Telo = makeTrack(TELO, 0.42, { leadVol:0.10, bassVol:0.09, leadType:'triangle' });   // bien grasa y AUDIBLE (subido de 0.05)
   const ROOM = { metal: Metal, dance: Dance, telo: Telo };
   let musicWanted = false, cumbiaActive = false;
 
