@@ -173,15 +173,17 @@
     { id: 'linyeras',  on: { oracle: true },                          next: 'garbarino', msg: 'g.chip.linyeras' },
     { id: 'garbarino', on: { sprite: 'vendedor', tag: 'garbarino' },  next: 'troyano',   msg: 'g.chip.garbarino', fx: 'becomeGarbarino' },
     { id: 'troyano',   on: { names: ['Maxi', 'Marcos'], all: true },  next: 'consola',   msg: 'g.chip.troyanoDone', partial: 'g.chip.troyano' },
-    { id: 'consola',   on: { flag: 'jubilado' },                      next: 'cure',      msg: 'g.chip.consola', fx: 'buyConsola' },
+    { id: 'consola',   on: { flag: 'jubilado' },                      next: 'consola2',  msg: 'g.chip.jubilados', fx: 'jubiladosFollow' },
+    { id: 'consola2',  on: { flag: 'consolaGuy' },                    next: 'cure',      msg: 'g.chip.consola',   fx: 'getConsola' },
     // 'cure' se completa USANDO la consola del inventario (useConsola), no por NPC.
   ];
   const CHIP_FX = {
     becomeGarbarino() { playingAs = 'garbarino'; },
-    buyConsola() { player.coins = Math.max(0, (player.coins | 0) - 20); addItem('consola'); playingAs = 'carpo'; },
+    jubiladosFollow() { /* los 2 jubilados se vuelven companions (te siguen al arcade) — se derivan en syncCompanions cuando chipStep==='consola2' */ },
+    getConsola() { addItem('consola'); playingAs = 'carpo'; },   // el flaco te da la consola; los jubilados se van rezongando (syncCompanions al pasar a 'cure')
   };
   function chipStart() { chipped = true; chipStep = 'linyeras'; playingAs = 'carpo'; for (const k in chipParts) delete chipParts[k]; }
-  function chipReset() { chipped = false; chipStep = ''; playingAs = 'carpo'; for (const k in chipParts) delete chipParts[k]; }
+  function chipReset() { chipped = false; chipStep = ''; playingAs = 'carpo'; chipLinyeraTalks = 0; for (const k in chipParts) delete chipParts[k]; }
   function chipMatch(npc, on) {
     if (on.oracle) return isOraculo(npc);
     if (on.sprite) return npc.sprite === on.sprite && (!on.tag || hasTag(room(), on.tag));
@@ -200,7 +202,8 @@
     }
     if (step.fx && CHIP_FX[step.fx]) CHIP_FX[step.fx](npc);
     chipStep = step.next; Sfx.win();
-    setMsg(T(step.msg), '#7CFC00', 11000);
+    syncCompanions();   // los compañeros del chip (jubilados que te siguen) se derivan del paso actual
+    setMsg(T(step.msg), '#7CFC00', 15000);   // dialogo importante de la historia → bien LENTO para leer
     if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('chip_' + step.id);
     return true;
   }
@@ -213,6 +216,17 @@
   }
   // pista del chip para los linyeras (saben TODO + en qué paso estás): el HintEngine la prioriza si estás chipeado.
   function chipHint() { return chipped ? T('g.chip.hint.' + chipStep) : null; }
+  // QUEST DEL CHIP, paso 'linyeras' (versión larga): los 3 linyeras aparecen al lado tuyo (companions 'chiplinyera') y
+  // te BOLUDEAN (charlas filosóficas sin sentido) varias veces; recién a la 4ª te tiran la posta (→ Garbarino).
+  let chipLinyeraTalks = 0;
+  function chipLinyeraTalk(n) {
+    if (chipStep !== 'linyeras') return; Sfx.pickup();
+    chipLinyeraTalks++;
+    if (chipLinyeraTalks < 4) { setMsg(T('g.chip.boludeo.' + ((chipLinyeraTalks - 1) % 4)), '#c8b0d8', 9000); return; }
+    setMsg(T('g.chip.linyerasPosta'), '#7CFC00', 14000);   // ya está, la posta: andá al pibe de Garbarino
+    chipStep = 'garbarino'; chipLinyeraTalks = 0; syncCompanions();   // los 3 linyeras se van; arranca el paso Garbarino (CHIP_QUEST data-driven)
+    if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('chip_linyeras');
+  }
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -483,6 +497,7 @@
     guarda:  n => guardaCine(n),
     fifa:    () => playFifa(),
     moza:    n => handleMoza(n),
+    chiplinyera: n => chipLinyeraTalk(n),
   };
   function handleNpc(n) {
     if (n && chipTry(n)) return;   // QUEST DEL CHIP: si estás chipeado y este NPC avanza el arco, lo maneja el quest
@@ -646,7 +661,7 @@
   function setCompanion(id, active, spec) {
     let c = companions.find(x => x.id === id);
     if (active && !c) {
-      c = { id, companion: true, follow: true, action: 'companion', __side: spec.side || -2, followOff: spec.followOff != null ? spec.followOff : -30,
+      c = { id, companion: true, follow: true, action: spec.action || 'companion', __side: spec.side || -2, followOff: spec.followOff != null ? spec.followOff : -30,
             name: spec.name, sprite: spec.sprite, dialog: spec.dialog, x: 0, y: 0 };
       companions.push(c); placeCompanionInRoom(c);
       if (spec.join) setMsg(spec.join, '#7CFC00', 5500);
@@ -671,6 +686,18 @@
       setCompanion(id, !!trucoMatesRec[id] && !cueveroUnlocked,
         { name: m.name, sprite: m.sprite, side, followOff: off, dialog: T('g.truco.mateFollow', { name: m.name }), join: T('g.truco.mateJoin', { name: m.name }) });
     }
+    // QUEST DEL CHIP, paso 'linyeras': los 3 linyeras ilustres APARECEN al lado tuyo y te SIGUEN; les hablás (te boludean)
+    // hasta que te tiran la posta (→ Garbarino). specs/telo-chip-quest.md. Acción 'chiplinyera' (no 'chat': es iterativo).
+    const chipLin = chipped && chipStep === 'linyeras';
+    ORACULOS.slice(0, 3).forEach((o, k) => setCompanion('chiplin' + k, chipLin,
+      { name: o.name, sprite: o.sprite, action: 'chiplinyera', side: k === 0 ? -3 : k === 1 ? 3 : -2, followOff: k === 0 ? -42 : k === 1 ? 42 : -28,
+        dialog: '', join: k === 0 ? T('g.chip.linyerasAppear') : undefined }));
+    // paso 'consola2': los 2 JUBILADOS te SIGUEN hasta el arcade (donde el flaco te da la consola). Al pasar a 'cure' se van rezongando.
+    const chipJub = chipped && chipStep === 'consola2';
+    const JUBS = [{ name: T('g.chip.jubTec'), sprite: 'viejo' }, { name: T('g.chip.jubCommo'), sprite: 'mujer' }];
+    JUBS.forEach((j, k) => setCompanion('chipjub' + k, chipJub,
+      { name: j.name, sprite: j.sprite, action: 'companion', side: k === 0 ? -3 : 3, followOff: k === 0 ? -44 : 44,
+        dialog: T('g.chip.jubFollow'), join: k === 0 ? T('g.chip.jubFollowJoin') : undefined, bye: k === 0 ? T('g.chip.jubBye') : undefined }));
   }
   function clearCompanions() { for (const c of companions.slice()) removeCompanionNpc(c); companions.length = 0; }
   // VOZ del escort: el linyera/Guido no te sigue mudo — te dice A DÓNDE ir, en cada sala y cada tanto, con voz criolla.
@@ -2489,9 +2516,9 @@
       if (teloGame.done) {
         const gotChipped = teloGame.chipped, gotAway = teloGame.escaped; teloGame = null; flash();
         if (Sfx.setRoomTrack) Sfx.setRoomTrack(null);   // corta la música de telo al volver al bar
-        // te chipó el robot Y usaste el CELU de la mesita (llamaste a los linyeras en el telo) → arranca la QUEST ya en
-        // el paso "andá al pibe de Garbarino" (el celu = la llamada a los linyeras). specs/telo-chip-quest.md.
-        if (gotChipped && !chipped) { chipStart(); chipStep = 'garbarino'; }
+        // te chipó el robot y llamaste por el celu → arranca la QUEST en el paso 'linyeras': los 3 linyeras te van a
+        // aparecer al lado (syncCompanions) y te boludean hasta tirarte la posta. specs/telo-chip-quest.md.
+        if (gotChipped && !chipped) chipStart();
         // ESCAPASTE → seguís de joda en el bodegón top-down. TE CHIPARON → bajás al cine (HUD visible: ves el 🤖 + la pista).
         if (!gotChipped && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
         else {

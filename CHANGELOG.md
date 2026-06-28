@@ -56,6 +56,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v225] — 2026-06-28 — 🤖🎮 Quest del chip: los 3 linyeras, los jubilados que te siguen, y FIX clave (no agarraban)
+
+Gran pasada de la quest del chip con tu feedback. **FIX clave:** los jubilados (y cualquier NPC con flag custom)
+**perdían su flag** al construir el nivel (`makeRoom` no copiaba `jubilado`) → "jamás me decían nada / no aparecía la
+consola". **Arreglado** (+ se preserva en v1 y v2). **Versión más larga (la que pediste):** al chiparte, los **TRES
+linyeras aparecen al lado tuyo** y te **boludean** (charlas filosóficas sin sentido, Diógenes/Dante en verso/Pechito)
+hasta que a la 4ª te tiran la posta (→ Garbarino). **Los jubilados ahora te SIGUEN** hasta el **arcade**, donde **el
+flaco parado** (un NPC nuevo) negocia con ellos un **chat estilo Matrix sin sentido** y te **pasa la consola**; los dos
+jubilados se van **rezongando** cuál consola era mejor. Nombrados claro: **"Jubilado de TecToys"** / **"Jubilado de
+Commodore"**. **Diálogos más LENTOS** (15s) para que se lean. El celu del telo ahora muestra el texto **arriba, grande,
+con [E] para seguir**. Y se aclaró el final (te **desplomás dormido** y te despertás sin chip). Cache **v225**.
+
+---
+
 ## [v224] — 2026-06-28 — 🤖📱 Telo: la persecución, justa + el celu en la habitación (feedback dueño)
 
 Más arreglos del telo con tu feedback: **(1)** el Carpo salta al **MEDIO del cuarto** (antes saltaba pegado a la puerta y

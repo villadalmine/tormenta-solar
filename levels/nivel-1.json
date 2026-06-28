@@ -1569,7 +1569,22 @@
           }
         },
         {
-          "id": "arcade-de-lavalle/decor4",
+          "id": "arcade-de-lavalle/npc4",
+          "tipo": "npc",
+          "render": {
+            "sprite": "gamer2"
+          },
+          "x": 13,
+          "name": "El flaco parado",
+          "interact": {
+            "consolaGuy": true
+          },
+          "dialogue": {
+            "text": "“…” (mira las máquinas, no dice nada. Tiene una consola vieja bajo el brazo.) 🎮"
+          }
+        },
+        {
+          "id": "arcade-de-lavalle/decor5",
           "tipo": "decor",
           "render": {
             "type": "planta"
@@ -1577,7 +1592,7 @@
           "x": 24
         },
         {
-          "id": "arcade-de-lavalle/decor5",
+          "id": "arcade-de-lavalle/decor6",
           "tipo": "decor",
           "render": {
             "type": "tacho"
@@ -1585,7 +1600,7 @@
           "x": 3
         },
         {
-          "id": "arcade-de-lavalle/machine6",
+          "id": "arcade-de-lavalle/machine7",
           "tipo": "machine",
           "render": {
             "game": "pacman"
@@ -1597,7 +1612,7 @@
           "name": "PAC-MAN"
         },
         {
-          "id": "arcade-de-lavalle/machine7",
+          "id": "arcade-de-lavalle/machine8",
           "tipo": "machine",
           "render": {
             "game": "galaga"
@@ -1609,7 +1624,7 @@
           "name": "GALAGA"
         },
         {
-          "id": "arcade-de-lavalle/machine8",
+          "id": "arcade-de-lavalle/machine9",
           "tipo": "machine",
           "render": {
             "game": "frogger"
@@ -1621,7 +1636,7 @@
           "name": "FROGGER"
         },
         {
-          "id": "arcade-de-lavalle/machine9",
+          "id": "arcade-de-lavalle/machine10",
           "tipo": "machine",
           "render": {
             "game": "trucotron"
@@ -1633,7 +1648,7 @@
           "name": "TRUCOTRON"
         },
         {
-          "id": "arcade-de-lavalle/pickup10",
+          "id": "arcade-de-lavalle/pickup11",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -1642,7 +1657,7 @@
           "y": 9
         },
         {
-          "id": "arcade-de-lavalle/pickup11",
+          "id": "arcade-de-lavalle/pickup12",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -1651,7 +1666,7 @@
           "x": 24
         },
         {
-          "id": "arcade-de-lavalle/enemy12",
+          "id": "arcade-de-lavalle/enemy13",
           "tipo": "enemy",
           "combat": {
             "type": "pacman",
@@ -1660,7 +1675,7 @@
           "x": 6
         },
         {
-          "id": "arcade-de-lavalle/enemy13",
+          "id": "arcade-de-lavalle/enemy14",
           "tipo": "enemy",
           "combat": {
             "type": "galaga",
@@ -1670,7 +1685,7 @@
           "y": 6
         },
         {
-          "id": "arcade-de-lavalle/enemy14",
+          "id": "arcade-de-lavalle/enemy15",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -8514,7 +8529,10 @@
             "sprite": "viejo"
           },
           "x": 6,
-          "name": "Don Tec",
+          "name": "Jubilado de TecToys",
+          "interact": {
+            "jubilado": true
+          },
           "dialogue": {
             "text": "“Yo armaba las Mega Drive en TecToys, en Brasil. Esos fierros no fallaban, pibe.” 🇧🇷🕹️"
           }
@@ -8526,9 +8544,12 @@
             "sprite": "mujer"
           },
           "x": 10,
-          "name": "Doña Commo",
+          "name": "Jubilado de Commodore",
+          "interact": {
+            "jubilado": true
+          },
           "dialogue": {
-            "text": "“Commodore Argentina, la 64 y la 128. Yo te consigo cualquier consola, tengo contactos en el chino.” 🇦🇷💾"
+            "text": "“Commodore Argentina, la 64 y la 128. Una consola para tu troyano la conseguimos en una.” 🇦🇷💾"
           }
         },
         {

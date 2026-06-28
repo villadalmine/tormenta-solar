@@ -43,7 +43,7 @@ const Level = (() => {
       playerStart: spec.playerStart != null ? feet(spec.playerStart) : null,
       enemies: (spec.enemies || []).map(e => ({ type: e.t, dormant: e.dormant, look: e.look, ...feet(e.x, e.y) })),
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
-      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), tienda: n.tienda && { ...n.tienda }, vecino: n.vecino && { ...n.vecino }, mate: n.mate && { ...n.mate }, ...feet(n.x) })),
+      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, jubilado: n.jubilado, consolaGuy: n.consolaGuy, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), tienda: n.tienda && { ...n.tienda }, vecino: n.vecino && { ...n.vecino }, mate: n.mate && { ...n.mate }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE, ad: d.ad })),
@@ -224,6 +224,8 @@ const Level = (() => {
             dialog:'“¿Te animás al Frogger? Si me ganás, te regalo un vale por un choripán gratis.” 🌭' },
           { name:'El flaco del Trucotron', sprite:'gamer1', x:20, action:'fifa',
             dialog:'“¿Trajiste una Mega Drive? Hay torneo de FIFA original, pibe.” 🎮' },
+          // el flaco que SIEMPRE está parado sin hacer nada — el que tiene la CONSOLA retro (quest del chip, paso final del troyano)
+          { name:'El flaco parado', sprite:'gamer2', x:13, consolaGuy:true, dialog:'“…” (mira las máquinas, no dice nada. Tiene una consola vieja bajo el brazo.) 🎮' },
         ],
         enemies: [{t:'pacman',x:6,dormant:true},{t:'galaga',x:11,y:6,dormant:true},{t:'peaton',x:23,look:'turistaW'}],
         decor: [{t:'planta',x:24},{t:'tacho',x:3}],
@@ -614,9 +616,9 @@ const Level = (() => {
       doors: [{ id:'down', art:'doorUp', label:'bajar: Colombofilia', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: OpenRouter', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
       npcs: [{ name:'Coleccionista', sprite:'gordo', x:17, dialog:'“8, 16, 32 bits... la Family, la Mega, la Super Nintendo. Las busco en MercadoLibre.” 🕹️' },
-        // jubilados ex-TecToys (Brasil) y ex-Commodore Argentina — claves de la quest del chip (consiguen la consola en el chino)
-        { name:'Don Tec', sprite:'viejo', x:6, jubilado:true, dialog:'“Yo armaba las Mega Drive en TecToys, en Brasil. Esos fierros no fallaban, pibe.” 🇧🇷🕹️' },
-        { name:'Doña Commo', sprite:'mujer', x:10, jubilado:true, dialog:'“Commodore Argentina, la 64 y la 128. Yo te consigo cualquier consola, tengo contactos en el chino.” 🇦🇷💾' }],
+        // jubilados ex-TecToys (Brasil) y ex-Commodore Argentina — claves de la quest del chip (te llevan a buscar la consola)
+        { name:'Jubilado de TecToys', sprite:'viejo', x:6, jubilado:true, dialog:'“Yo armaba las Mega Drive en TecToys, en Brasil. Esos fierros no fallaban, pibe.” 🇧🇷🕹️' },
+        { name:'Jubilado de Commodore', sprite:'mujer', x:10, jubilado:true, dialog:'“Commodore Argentina, la 64 y la 128. Una consola para tu troyano la conseguimos en una.” 🇦🇷💾' }],
     })) - 1;
     const cine7 = rooms.push(makeRoom({
       name: 'Cine Lavalle — OpenRouter', tags:['cine','openrouter'], theme: 'arcade', light: 0.5, w: 22,
