@@ -65,17 +65,18 @@ const Telo = (() => {
         // la rubia camina hacia la cama
         const bx = (bed.x + 0.5) * CS, by = (bed.y + 0.5) * CS, dx = bx - she.x, dy = by - she.y, d = Math.hypot(dx, dy) || 1;
         if (d > 2) { she.x += (dx / d) * 120 * dt; she.y += (dy / d) * 120 * dt; }
-        prompt = T('g.telo.toBed');
-        if (nearTile(bed, 1.3)) {   // ¡SALTÁS de la cama! era una TRAMPA: un ROBOT IA te quería chipar. Huí a la puerta.
+        const sheAtBed = d <= 4;                                  // ella YA llegó a la cama
+        prompt = sheAtBed ? T('g.telo.toBed') : T('g.telo.wait');  // si todavía camina, esperala (no se dispara el robot antes)
+        if (sheAtBed && nearTile(bed, 1.3)) {   // ¡EL CARPO PEGA UN SALTO de la cama! era una TRAMPA: un ROBOT IA te quería chipar. Huí a la puerta.
           phase = 'robot'; pt = 0; bear.on = true;
-          bear.x = (bed.x + 1.2) * CS; bear.y = (bed.y + 0.5) * CS;     // el robot estaba ahí, en la cama
-          player.x = (bed.x - 1) * CS; player.y = (bed.y + 0.5) * CS;   // saltás para el lado del cuarto
+          bear.x = (bed.x + 0.8) * CS; bear.y = (bed.y + 0.3) * CS;        // el robot estaba en la cama
+          player.x = (bed.x - 2.6) * CS; player.y = (bed.y + 1.4) * CS;   // SALTÁS lejos, hacia el cuarto/la puerta (ventaja para escapar)
           setMsg(T('g.telo.robot'), 6); Sfx.hurt && Sfx.hurt();
         }
       } else if (phase === 'robot') {
         prompt = T('g.telo.run');
-        // el ROBOT te persigue para inyectarte el chip (más lento que vos: si corrés derecho a la puerta, ZAFÁS)
-        const dx = player.x - bear.x, dy = player.y - bear.y, d = Math.hypot(dx, dy) || 1, sp = (118 + pt * 9) * dt;
+        // el ROBOT te persigue para inyectarte el chip — un toque MÁS LENTO que vos: si corrés derecho a la puerta, ZAFÁS.
+        const dx = player.x - bear.x, dy = player.y - bear.y, d = Math.hypot(dx, dy) || 1, sp = (96 + pt * 6) * dt;
         bear.x += (dx / d) * sp; bear.y += (dy / d) * sp;
         if (nearTile(exit, 1.0)) { done = true; exitTo = 'back'; escaped = true; }   // ¡llegaste a la puerta! zafaste
         else if (d < 20 || pt > 11) { done = true; exitTo = 'back'; chipped = true; }  // te atrapó → te chipea
@@ -138,17 +139,40 @@ const Telo = (() => {
         ctx2.font = '18px serif'; ctx2.fillText('💁‍♀️', ox + she.x, oy + she.y);
       }
 
-      // EL PATOVA de 2 metros: figura OSCURA imponente (casco/máscara + ojos rojos brillando) — da miedo, no es tierno
+      // EL ROBOT IA de 2 metros: METÁLICO, claramente un robot (cuerpo de chapa, panel, antena, brazos con pinzas,
+      // cara-pantalla con ojos LED rojos + jeringa con el chip). Que se LEA como robot, no una mancha.
       if (bear.on) {
-        const px2 = ox + bear.x, py2 = oy + bear.y, pulse = 0.6 + 0.4 * Math.abs(Math.sin(t * 8));
-        ctx2.fillStyle = 'rgba(0,0,0,0.4)'; ctx2.beginPath(); ctx2.ellipse(px2, py2 + 20, 17, 5, 0, 0, Math.PI * 2); ctx2.fill();   // sombra
-        ctx2.fillStyle = '#0b0b12'; ctx2.beginPath(); ctx2.moveTo(px2 - 17, py2 - 8); ctx2.lineTo(px2 + 17, py2 - 8); ctx2.lineTo(px2 + 14, py2 + 20); ctx2.lineTo(px2 - 14, py2 + 20); ctx2.closePath(); ctx2.fill();   // capa/cuerpo
-        ctx2.fillStyle = '#14141c'; ctx2.fillRect(px2 - 12, py2 - 24, 24, 18);   // torso
-        ctx2.fillStyle = '#070709'; ctx2.beginPath(); ctx2.arc(px2, py2 - 30, 11, 0, Math.PI * 2); ctx2.fill();   // casco
-        ctx2.fillStyle = '#1c1c26'; ctx2.fillRect(px2 - 9, py2 - 31, 18, 9);   // máscara/visor
-        ctx2.save(); ctx2.shadowBlur = 9; ctx2.shadowColor = '#ff0000';   // ojos rojos brillando (pulso)
-        ctx2.fillStyle = 'rgba(255,32,32,' + pulse + ')';
-        ctx2.beginPath(); ctx2.arc(px2 - 4, py2 - 30, 2.4, 0, Math.PI * 2); ctx2.arc(px2 + 4, py2 - 30, 2.4, 0, Math.PI * 2); ctx2.fill();
+        const px2 = ox + bear.x, py2 = oy + bear.y, pulse = 0.5 + 0.5 * Math.abs(Math.sin(t * 8)), reach = Math.sin(t * 6) * 3;
+        ctx2.save();
+        ctx2.fillStyle = 'rgba(0,0,0,0.35)'; ctx2.beginPath(); ctx2.ellipse(px2, py2 + 22, 18, 5, 0, 0, Math.PI * 2); ctx2.fill();   // sombra
+        // patas/base
+        ctx2.fillStyle = '#5a626e'; ctx2.fillRect(px2 - 11, py2 + 8, 8, 14); ctx2.fillRect(px2 + 3, py2 + 8, 8, 14);
+        ctx2.fillStyle = '#3a4049'; ctx2.fillRect(px2 - 11, py2 + 18, 8, 4); ctx2.fillRect(px2 + 3, py2 + 18, 8, 4);
+        // torso de chapa (con panel + tornillos)
+        ctx2.fillStyle = '#8c93a0'; ctx2.fillRect(px2 - 14, py2 - 14, 28, 24);
+        ctx2.fillStyle = '#6b7280'; ctx2.fillRect(px2 - 14, py2 - 14, 28, 5);
+        ctx2.fillStyle = '#454b55'; ctx2.fillRect(px2 - 8, py2 - 6, 16, 11);   // panel pecho
+        ctx2.fillStyle = '#2ee0c0'; for (let i = 0; i < 3; i++) ctx2.fillRect(px2 - 6 + i * 5, py2 - 4 + (i % 2) * 3, 3, 2);  // lucecitas
+        ctx2.fillStyle = '#3a4049'; [[-12, -12], [12, -12], [-12, 8], [12, 8]].forEach(p => { ctx2.beginPath(); ctx2.arc(px2 + p[0], py2 + p[1], 1.3, 0, Math.PI * 2); ctx2.fill(); }); // tornillos
+        // brazos metálicos con PINZA, estirándose hacia vos (lado del jugador)
+        const side = (player.x < bear.x) ? -1 : 1;
+        ctx2.strokeStyle = '#7a818c'; ctx2.lineWidth = 5; ctx2.lineCap = 'round';
+        ctx2.beginPath(); ctx2.moveTo(px2 + side * 12, py2 - 8); ctx2.lineTo(px2 + side * (20 + reach), py2 - 2); ctx2.stroke();
+        ctx2.fillStyle = '#c0c6cf'; ctx2.beginPath(); ctx2.arc(px2 + side * (22 + reach), py2 - 2, 3, 0, Math.PI * 2); ctx2.fill();   // pinza
+        // JERINGA con el chip en la otra mano
+        ctx2.strokeStyle = '#7a818c'; ctx2.beginPath(); ctx2.moveTo(px2 - side * 12, py2 - 8); ctx2.lineTo(px2 - side * 18, py2 + 2); ctx2.stroke();
+        ctx2.fillStyle = '#ff4d4d'; ctx2.fillRect(px2 - side * 22, py2 - 2, 6, 3);   // jeringa/chip rojo
+        // cuello + cabeza-pantalla
+        ctx2.fillStyle = '#5a626e'; ctx2.fillRect(px2 - 3, py2 - 18, 6, 5);
+        ctx2.fillStyle = '#9aa1ad'; ctx2.fillRect(px2 - 11, py2 - 32, 22, 16);   // cabeza
+        ctx2.fillStyle = '#15181d'; ctx2.fillRect(px2 - 9, py2 - 30, 18, 11);   // pantalla
+        // antena con luz que titila
+        ctx2.strokeStyle = '#9aa1ad'; ctx2.lineWidth = 2; ctx2.beginPath(); ctx2.moveTo(px2, py2 - 32); ctx2.lineTo(px2, py2 - 40); ctx2.stroke();
+        ctx2.fillStyle = 'rgba(255,60,60,' + pulse + ')'; ctx2.beginPath(); ctx2.arc(px2, py2 - 42, 2.4, 0, Math.PI * 2); ctx2.fill();
+        // ojos LED rojos (pulso) en la pantalla
+        ctx2.shadowBlur = 8; ctx2.shadowColor = '#ff0000'; ctx2.fillStyle = 'rgba(255,40,40,' + (0.6 + 0.4 * pulse) + ')';
+        ctx2.fillRect(px2 - 6, py2 - 27, 4, 3); ctx2.fillRect(px2 + 2, py2 - 27, 4, 3);
+        ctx2.shadowBlur = 0; ctx2.fillStyle = '#ff5a5a'; ctx2.fillRect(px2 - 5, py2 - 22, 10, 1.5);   // "boca" línea
         ctx2.restore();
       }
       // jugador (círculo) — salvo en el jacuzzi (ahí es una silueta)
@@ -159,6 +183,13 @@ const Telo = (() => {
       // barra superior
       ctx2.fillStyle = '#0a0712'; ctx2.fillRect(0, 0, VW, 30);
       ctx2.fillStyle = pal.accent; ctx2.font = 'bold 12px monospace'; ctx2.textAlign = 'left'; ctx2.fillText('💋 ' + T('g.telo.title'), 10, 20);
+      // CARTEL PERSISTENTE arriba durante la fase robot (no se va: aunque te atrapen de una, leés qué pasó)
+      if (phase === 'robot') {
+        const blink = 0.55 + 0.45 * Math.abs(Math.sin(t * 6));
+        ctx2.fillStyle = 'rgba(150,20,20,' + (0.78 + 0.18 * blink) + ')'; ctx2.fillRect(0, 30, VW, 26);
+        ctx2.fillStyle = '#fff'; ctx2.font = 'bold 13px monospace'; ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
+        ctx2.fillText(T('g.telo.robotBanner'), VW / 2, 43); ctx2.textBaseline = 'alphabetic';
+      }
       // mensaje
       let bottom = VH;
       if (msgT > 0 && msg) {

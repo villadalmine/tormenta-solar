@@ -56,6 +56,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v222] — 2026-06-28 — 🏷️ Versión visible + 🤖 el robot del telo (mejor, más justo, lee como robot)
+
+Dos cosas. **(1) La versión del juego ahora se VE** (`specs/version-visible.md`): en la intro (abajo), en ⚙ Opciones y en
+"Tu partida" [P]. Se lee del propio cache-bust `?v=N` (single source, no hay constante que se desincronice) — así sabés
+qué versión agarró el navegador. **(2) El robot del telo, arreglado** con tu feedback: ahora **se dibuja como un ROBOT**
+de verdad (chapa metálica, antena con luz, pantalla con ojos LED rojos, brazos con pinza y una jeringa con el chip), no
+una mancha negra; **el Carpo pega un salto más lejos** de la cama y el **robot es un toque más lento** → ahora SÍ podés
+escapar corriendo a la puerta; hay un **cartel rojo fijo arriba** ("¡ES UN ROBOT! ¡CORRÉ A LA PUERTA!") que no se va, así
+te enterás aunque te atrapen rápido; y **se arregló** que el robot saltara si ibas a la cama **antes** que la rubia (ahora
+espera a que ella llegue). Cache **v222**.
+
+---
+
 ## [v221] — 2026-06-28 — 🤖🎮 LA QUEST DEL CHIP completa: sacátelo con el pibe de Garbarino, un troyano y una consola
 
 El arco del chip ahora es **jugable de punta a punta**. Si el robot del telo te chipa, quedás **chipeado** (🤖 en el HUD)

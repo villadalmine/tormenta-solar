@@ -153,6 +153,8 @@ html, body {
   letter-spacing: 1px;
 }
 .gh-line { font-size: 10.5px; color: #607d8b; margin-top: 10px; margin-bottom: 0; }
+.ver-line { margin-top: 6px; }
+.ver { font-size: 10px; letter-spacing: .08em; color: #4a6270; opacity: .85; }
 .homenaje { font-size: 10.5px; color: #8a7f6a; margin-top: 12px; margin-bottom: 0; line-height: 1.45; }
 .homenaje strong { color: #FFD54F; }
 .gh-link { color: #4FC3F7; text-decoration: none; }

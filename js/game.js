@@ -2361,6 +2361,7 @@
     html += row('🌸', T('g.mystats.flores'), (player && player.flores) | 0);
     html += row('🌙', T('g.stats.days'), s.days);
     html += row('🏆', T('g.stats.hitos'), s.done + '/' + s.total);
+    if (window.__gameVersion) html += row('🏷️', T('g.version'), window.__gameVersion);   // versión del juego (cache-bust)
     html += '</div>' + hitosHtml(s);
     el.innerHTML = html; ov.classList.remove('hidden');
   }
@@ -2572,6 +2573,14 @@
   });
   document.getElementById('startBtn').addEventListener('click', start);
   document.getElementById('restartBtn').addEventListener('click', start);
+  // VERSIÓN del juego visible (specs/version-visible.md): se LEE del cache-bust `?v=N` de un <script> ya cargado
+  // (single source of truth: lo que muestra es exactamente el bundle que corrió; no hay constante que mantener).
+  try {
+    const sc = document.querySelector('script[src*="?v="]'), m = sc && sc.src.match(/[?&]v=([0-9]+)/), ver = m ? ('v' + m[1]) : '';
+    const gv = document.getElementById('gameVersion'); if (gv && ver) gv.textContent = 'TORMENTA SOLAR · ' + ver;
+    const ov = document.getElementById('optVersion'); if (ov && ver) ov.textContent = (typeof T === 'function' ? T('g.version') : 'Versión') + ': ' + ver;
+    window.__gameVersion = ver;
+  } catch (e) {}
   { const b = document.getElementById('myStatsClose'); if (b) b.addEventListener('click', closeMyStats); }
   { const b = document.getElementById('guardaClose'); if (b) b.addEventListener('click', closeGuarda); }
   { const b = document.getElementById('armasClose'); if (b) b.addEventListener('click', closeArmas); }
