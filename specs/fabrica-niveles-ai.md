@@ -261,3 +261,28 @@ contraste). Anotado también en la memoria `backlog` como **A0 (prioritario)**.
   THEME, ya themed); no le aplica el pool de enemigos. La queja del dueño era por los niveles-plataforma (vecino), ya
   resueltos. Si a futuro se quiere que la IA autore geometría **temática** (no solo posiciones), el hook ya existe
   (`aiPlatforms`/`requestGeometry`): falta que el proxy proponga layouts con sentido del relato.
+
+## ⚠️ A0-DEEP — los niveles AÚN no reflejan la HISTORIA: son "niveles para saltar" genéricos (re-reporte dueño 2026-06-28)
+Aún con paleta/props/enemigos por motif (v208/v209), el dueño dice que los niveles generados **siguen sintiéndose
+genéricos**: *"cuando te habla el que cuida el edificio cerrado y cuenta una historia, el nivel no tiene nada que ver,
+son simples niveles para saltar. Solo en el chino meten edificios chinos como decoración."* La **estructura** (geometría)
+no codifica el **relato** — sigue siendo 2-3 salas de plataformas `climb/wall/aisles` con props pegados. Las **tiendas**
+sí se sienten (porque el molde es por rubro), los **niveles no**.
+### Diagnóstico
+El gap real es **SEMÁNTICO/estructural**, no visual: la IA autora TEXTO + (opcional) coords de plataformas, pero NO una
+**secuencia de "beats" del relato** ni **props con sentido** colocados a propósito. La geometría es procedural por `style`.
+### Direcciones (a decidir con el dueño)
+1. **Salas = BEATS del relato:** que la IA autore una **secuencia** de salas, cada una un momento de la historia (ej.
+   juguetes: "el cuarto de la nena" → "la escalera donde cayó" → "la puerta que no abre"), con un **prop ancla** + un
+   **encuentro** por sala. El schema de `requestHistoria` pasa de `{platforms,enemies}` a `{rooms:[{beat,anchorProp,
+   enemyType,hazard}]}` → `generateLevel` arma cada sala alrededor del beat. **(la apuesta grande, la que más mueve la aguja).**
+2. **Vocabulario de `style` por motif:** más layouts temáticos (estantería/juguetería, pista de baile/fiesta, pasillo de
+   manicomio, azotea) además de climb/wall/aisles → la estructura "se ve" como el tema. **(intermedio, data-driven).**
+3. **Props ANCLA con sentido:** la IA coloca props clave (la cuna, el hacha, el piano) en posiciones, no decor random →
+   set-pieces reconocibles del relato. **(barato, alto impacto percibido).**
+4. **Chino spinoff** (`generate()`): mismo problema — estructura genérica + decoración china. Aplicar (1)/(3) ahí también.
+### Atado a
+Los **niveles generados son "los sueños"** del Carpo (ver `inventario-armas.md §6`: ahí usa las armas criollas). Esa
+narrativa (sueño/viaje temporal) **justifica** que sean surreales/temáticos. Recomendación: empezar por **(3) props ancla**
+(barato, se nota) + **(2) más styles**, y evaluar **(1) beats** como la versión completa. **Deuda MEDIA-ALTA, prioritaria
+de las de contenido.** Ver `edificios-clausurados-historias.md §8`, `modelo-de-entidades.md §6¾` (argumento AI-authorable).

@@ -69,9 +69,12 @@ const Bullets = (() => {
         for (const e of enemies) {
           if (!e.alive || e.pacified) continue;
           if (hitRect(b, e)) {
-            // VIOLA (RISAS): apacigua a CUALQUIERA, hasta voladores → muertos de risa, tirados, inofensivos (no mata).
+            // VIOLA (RISAS de Les Luthiers + heavy metal): la GENTE queda muerta de risa con música 🎵; los DRONES/
+            // voladores salen volando ALOCADOS por el heavy metal. En ambos casos: inofensivos, no los mata.
             if (b.kind === 'laugh') {
-              e.pacified = true; e.hostile = false; e.vx = 0; e.flash = 0.08; e.laughing = true;
+              e.hostile = false; e.flash = 0.08;
+              if (e.fly) { e.fleeing = true; e.vx = (Math.random() < 0.5 ? -1 : 1) * (140 + Math.random() * 140); e.vy = -130 - Math.random() * 140; }
+              else { e.pacified = true; e.laughing = true; e.vx = 0; }
               Particles.burst(b.x, b.y, 12, '#ffe14d', 200, 700); Sfx.pickup();
             }
             // DÓLAR contra GENTE (no voladores): la apacigua → se tira al piso a juntar y no jode más (no la mata).

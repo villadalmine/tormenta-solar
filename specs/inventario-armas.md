@@ -60,8 +60,38 @@ viola. La viola queda para todo el run (el cierre "la dejás" es narrativo, en l
 - `e2e.js`: round-trip de guardado incluye inventory/weapon; equipar + disparar viola sin crash (sandbox).
 - `web-smoke.mjs`: sin errores de consola con el nuevo overlay + HUD.
 
-## 5. Deuda / futuro (F2+)
-- Que `buyArmas` (fierro criollo) entregue **armas reales** al inventario (facón melee, FAL ráfaga) en vez de sólo
-  bonus → usa el mismo registro `WEAPONS`. Necesita balance.
+## 5. La VIOLA: efecto música + heavy metal (✅ v216, idea dueño 2026-06-28)
+La risa de la viola NO es genérica: el **proyectil** son notas ♪♫ y al pegar **distingue por tipo**:
+- **Gente (no voladores):** queda **muerta de risa con MÚSICA** (🎵😂, no billetes 💰 como con el dólar). `e.pacified +
+  e.laughing` → el draw muestra notas en vez de plata (`enemies.js`).
+- **Drones / voladores:** salen **volando ALOCADOS por el heavy metal** (🤘🎸), zigzagueando hacia arriba hasta perderse
+  (`e.fleeing` → vuelo errático + despawn fuera de pantalla). Inofensivos, no se mueren.
+Implementado en `fx.js` (hit del kind `laugh`) + `enemies.js` (update `fleeing` + draw `laughing`/`fleeing`).
+
+## 6. Armas CRIOLLAS: pacifista en la calle, "sí loco" en los SUEÑOS (idea dueño 2026-06-28) — DISEÑO
+El dueño quiere que el **fierro criollo** del armero (rebenque/boleadoras/facón/FAL) **se pueda VER y USAR**, pero con
+una vuelta: en el **mundo real el Carpo se NIEGA** (gag pacifista, ✅ ya hecho: `noEquip`+`g.wpn.refuse`). En cambio, en
+los **SUEÑOS / niveles GENERADOS** (los que flashea el vecino del edificio clausurado, el oráculo, el chino) **SÍ los
+usa** ("sí loco, acá lo usamo"), y **cada arma es eficaz contra un TIPO de monstruo** distinto.
+### 6.1 Grafo de objeto (data-driven, REGLA #0 — Type Object de `modelo-de-entidades.md`)
+Cada arma criolla = entidad-arma con **componentes**: `{ id, emoji, label, ctx:'dream', effectiveVs:[tipos], dmgMul }`.
+Ejemplo de catálogo (a balancear):
+| arma | emoji | eficaz contra | por qué (flavor) |
+|---|---|---|---|
+| **rebenque** | 🪢 | `pacman` (rápidos) | los apura/azota, los frena en seco |
+| **boleadoras** | 🔗 | `dron`/`galaga` (voladores) | los enreda en el aire y los baja |
+| **facón** | 🔪 | `peaton` (cuerpo a cuerpo) | el criollo de confianza, melee |
+| **FAL** (Malvinas) | 🔫 | `cuevero` (tiradores) | el único que le aguanta a distancia |
+`effectiveVs` = bonus de daño (`dmgMul`) contra esos tipos; daño normal contra el resto → invita a **cambiar de arma
+según el bicho** (el inventario [I] cobra sentido táctico). El "es un sueño" lo habilita el **contexto** `spinoffLevel`/
+generado (ahí `noEquip` se ignora y aparece la línea "sí loco acá lo usamo"); en la calle real sigue el `g.wpn.refuse`.
+### 6.2 A implementar
+- `WEAPONS` de las criollas con `ctx:'dream'` + `effectiveVs` + `dmgMul`; `equipWeapon` permite equiparlas **solo** si
+  `spinoffLevel`/nivel generado (si no → refuse). El disparo aplica `dmgMul` cuando `combat.type ∈ effectiveVs`.
+- `buyArmas` ya suma `fierro` al inventario; pasar a sumar el arma **específica** comprada (id por `a.key`).
+- Mensaje contextual: en sueño, al equipar → "sí loco, acá lo usamo" (`g.wpn.dreamOk`); en calle → `g.wpn.refuse`.
+- Atar con `fabrica-niveles-ai.md` (los niveles generados son el "sueño") y `modelo-de-entidades.md` §6.97 (capacidades).
+
+## 7. Deuda / futuro (F2+)
 - Items NO-arma en el inventario (curativos, llaves) → el array ya lo soporta; falta UI de "usar".
 - Slots / drop / peso → no hace falta para el alcance actual (YAGNI).

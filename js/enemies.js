@@ -51,6 +51,8 @@ const Enemies = (() => {
   function update(list, dt, room, player, dronesBlind) {
     for (const e of list) {
       if (!e.alive) continue;
+      // VIOLA (heavy metal): el dron sale volando ALOCADO hacia arriba, zigzagueando, hasta perderse. Inofensivo.
+      if (e.fleeing) { e.flash -= dt; e.bob += dt * 10; e.vy -= 60 * dt; e.vx += Math.sin(e.bob * 3) * 60 * dt; e.x += e.vx * dt; e.y += e.vy * dt; if (e.y < -240) e.alive = false; continue; }
       // APACIGUADO con dólares: se tira al piso a juntar guita, no ataca ni te jode más.
       if (e.pacified) { e.vx = 0; if (!e.fly) Level.moveBody(e, room, dt); e.flash -= dt; e.bob += dt * 6; continue; }
       if (e.dormant && !e.hostile) continue;
@@ -117,13 +119,24 @@ const Enemies = (() => {
       ctx.drawImage(frame, drawX + (Math.random()<.5?2:-2), drawY);
       ctx.globalAlpha = 1;
     }
-    // APACIGUADO: tirado juntando billetes (💰 + signos $ flotando)
+    // APACIGUADO: con DÓLARES → junta billetes (💰 + $); con la VIOLA (laughing) → muerto de risa con música (🎵😂)
     if (e.pacified) {
       const hx = cx, hy = e.y - cam.y - 4;
-      ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.fillText('💰', hx, hy + Math.sin(e.bob) * 2);
-      ctx.fillStyle = '#7ee07e'; ctx.font = 'bold 9px monospace';
-      ctx.fillText('$', hx - 9 + (Math.sin(e.bob * 1.3) * 3), e.y - cam.y + e.h - 6);
-      ctx.fillText('$', hx + 9 + (Math.cos(e.bob) * 3), e.y - cam.y + e.h - 10);
+      if (e.laughing) {
+        ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.fillText(Math.sin(e.bob) > 0 ? '😂' : '🎵', hx, hy + Math.sin(e.bob) * 2);
+        ctx.font = '10px serif'; ctx.fillText('🎵', hx - 10 + Math.sin(e.bob * 1.3) * 3, e.y - cam.y + e.h - 8);
+        ctx.fillText('♪', hx + 10 + Math.cos(e.bob) * 3, e.y - cam.y + e.h - 12);
+      } else {
+        ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.fillText('💰', hx, hy + Math.sin(e.bob) * 2);
+        ctx.fillStyle = '#7ee07e'; ctx.font = 'bold 9px monospace';
+        ctx.fillText('$', hx - 9 + (Math.sin(e.bob * 1.3) * 3), e.y - cam.y + e.h - 6);
+        ctx.fillText('$', hx + 9 + (Math.cos(e.bob) * 3), e.y - cam.y + e.h - 10);
+      }
+    }
+    // DRON volando alocado por el heavy metal: 🤘 + notas
+    if (e.fleeing) {
+      ctx.font = '13px serif'; ctx.textAlign = 'center';
+      ctx.fillText(Math.sin(e.bob) > 0 ? '🤘' : '🎸', cx, e.y - cam.y - 6 + Math.sin(e.bob) * 3);
     }
   }
 
