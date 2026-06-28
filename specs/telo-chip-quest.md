@@ -154,3 +154,42 @@ con el dueño (es contenido de varias sesiones).
 **ESCAPE real**: si llegás a la **puerta de salida** antes de que te atrape → `escaped`. Si te atrapa/timeout → `chipped`.
 `game.js`: en el done del telo, si `chipped` → secuencia canned (celu + linyeras se ríen + hook Garbarino) + setea el flag
 `chipped` (para Q1+) + despertás → al bar. i18n `g.telo.robot*`/`g.telo.chip*`.
+
+---
+
+## 6. PENDIENTE — feedback de playtest del dueño (post-v230, PRÓXIMA iteración, NO implementado aún)
+
+El dueño jugó el corte de escena v230 y pidió este lote (anotado para retomar; algunos son bugs, otros features):
+
+1. **Prerrequisito FIFA98 para la consola del Trucotron (bug de lógica).** El paso `consola2` matchea al **flaco del
+   Trucotron** (`consolaGuy`) y te da la consola "de la nada". Pero el flaco **no tiene consola si nunca le diste la
+   Mega Drive** para el torneo de **FIFA 98** (quest `fifa` existente: chino→Mega Drive→Trucotron, +30 monedas; flags
+   `hasMegaDrive`/`fifaWon`, action `fifa` en `level.js:226`). → **El paso `consola2` debe exigir FIFA98 resuelto
+   primero**: si no, el flaco dice "no tengo consola, traeme la Mega Drive / ganá el FIFA" y NO avanza. Recién con el
+   FIFA hecho te entrega la consola retro que corre el troyano.
+
+2. **BUG: dar la consola te devuelve a Carpo antes de tiempo.** Hoy `CHIP_FX.getConsola()` hace `playingAs='carpo'`.
+   **MAL**: al recibir la consola (jubilados/Trucotron) **tenés que SEGUIR siendo el pibe de Garbarino**. El switch de
+   vuelta a Carpo debe pasar **SOLO en la cura**. → quitar el `playingAs='carpo'` de `getConsola`; queda en `garbarino`
+   hasta `cureChip` (que ya hace `chipReset`→`carpo`).
+
+3. **Escena de cura reforzada.** Como el de Garbarino, le llevás la "máquina"/consola a un **linyera**. El linyera
+   **aparece en la habitación donde el Carpo duerme** (telohab), le **da la consola al Carpo**, el Carpo **se despierta,
+   la activa**, queda **curado** y **salís de la sala como si nada**. (Hoy `cureChip` ya hace spawnIn telohab + chipReset
+   + flash; falta la puesta en escena: el linyera entrando, el Carpo levantándose, la activación.)
+
+4. **Loop de hasta 3 veces + RESCATE a la 4ª (feature nueva).** Todo el arco (telo→chip→cura) puede **repetirse hasta
+   3 veces**. La **4ª vez** que el robot te atrapa, **si ya completaste el loop 3 veces**, en lugar de chiparte:
+   **aparecen los linyeras de la nada en la habitación, le disparan RAYOS CÓSMICOS al robot, lo matan, desaparecen y
+   salís normal** (sin chip). → necesita un **contador de loops** (`chipLoops`, persistido) que se pase a `telo.js`
+   (`Telo.create(loopsDone)`); en la fase `robot`/`result` de telo.js, si `loopsDone >= 3` y te atrapan → fase de
+   **rescate** (animación de los linyeras + rayos) en vez de `chipped`; al volver, `exitTo='back'` sin setear el flag
+   `chipped`. i18n nuevo `g.telo.rescue*`.
+
+5. **BUG: los linyeras del telohab preguntan del cine.** En la habitación del telo, el chat IA de los 3 linyeras
+   **sigue preguntando del cine/Mundial**, y eso **no corresponde ahí**. El grounding "solo del chip" (cuando `chipped`)
+   no está suprimiendo del todo el tema cine. → revisar `chatSend`/`worldBrief`/`mundialQuest` con `chipped`: forzar el
+   grounding `g.chip.chatGround` y **suprimir el quest de noticias/cine** para los NPC `chiplin` en `telohab`.
+
+**Orden sugerido:** (5) y (2) son fixes chicos y rápidos; (3) puesta en escena media; (1) prereq FIFA media; (4) es la
+más grande (contador + nueva fase de rescate en telo.js + arte de rayos). Todo data-driven donde se pueda (REGLA #0).
