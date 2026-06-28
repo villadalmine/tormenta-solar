@@ -29,6 +29,7 @@
   const elEndStats = document.getElementById('endStats');
   const elHud = document.getElementById('hud');
   const elHp = document.getElementById('hp');
+  const elWeapon = document.getElementById('weapon');
   const elAmmo = document.getElementById('ammo');
   const elCoins = document.getElementById('coins');
   const elCaramelos = document.getElementById('caramelos');
@@ -246,7 +247,8 @@
       v: 2, current, px: p.x, py: p.y,
       player: { hp: p.hp, ammo: p.ammo, coins: p.coins, forros: p.forros, flores: p.flores, caramelos: p.caramelos,
         birras: p.birras, carne: p.carne, fiambre: p.fiambre, diosa: p.diosa, falopa: p.falopa,
-        spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket },
+        spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket,
+        inventory: (p.inventory || ['escupitajo']).slice(), weapon: p.weapon || 'escupitajo' },
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
         borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered,
         cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing, trucoSeisOffered,
@@ -265,6 +267,8 @@
     reset();                                              // mundo fresco + defaults
     current = Math.max(0, Math.min(rooms.length - 1, snap.current));
     Object.assign(player, snap.player || {});
+    if (!Array.isArray(player.inventory) || !player.inventory.length) player.inventory = ['escupitajo'];   // saneo inventario
+    if (!WEAPONS[player.weapon]) player.weapon = 'escupitajo';
     player.x = snap.px; player.y = snap.py; player.vx = player.vy = 0; player.alive = true;
     const f = snap.flags || {};
     stormed = !!f.stormed; bought = !!f.bought; hasVale = !!f.hasVale; challengeForVale = !!f.challengeForVale;
@@ -451,13 +455,41 @@
   }
   // TESORO de los linyeras (premio del edificio abandonado): el linyera mayor te lo da SOLO si sos gurú,
   // una vez por partida. Maletín de dólares (+guita) + munición + mejora PERMANENTE del escupitajo.
+  // === ARMAS + INVENTARIO (specs/inventario-armas.md) — las armas son DATA; player.inventory guarda los ids, player.weapon = la equipada ===
+  const WEAPONS = {
+    escupitajo: { id: 'escupitajo', emoji: '💦', label: 'g.wpn.escupitajo' },   // default; post-tormenta escupe dólares (dollarMode)
+    viola:      { id: 'viola',      emoji: '🎸', label: 'g.wpn.viola' },         // premio del tesoro: dispara RISAS (apacigua a cualquiera)
+  };
+  function addItem(id) { if (!player.inventory) player.inventory = ['escupitajo']; if (!player.inventory.includes(id)) player.inventory.push(id); }
+  function equipWeapon(id) { if (player.inventory && player.inventory.includes(id) && WEAPONS[id]) { player.weapon = id; return true; } return false; }
+  function openInv() {
+    const ov = document.getElementById('invmenu'), body = document.getElementById('invBody');
+    if (!ov || !body) return;   // headless / sin overlay → no traba
+    const inv = player.inventory || ['escupitajo'];
+    let html = '<div class="end-stats-title">' + T('g.inv.title') + '</div>';
+    if (!inv.length) html += '<div style="opacity:.85">' + T('g.inv.empty') + '</div>';
+    else { html += '<div style="display:flex;flex-direction:column;gap:.4em;margin-top:.5em">';
+      for (const id of inv) { const w = WEAPONS[id]; if (!w) continue; const eq = player.weapon === id;
+        html += '<button class="inv-opt" data-id="' + id + '" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer' + (eq ? ';outline:2px solid #7CFC00' : '') + '">' +
+          w.emoji + ' ' + T(w.label) + '  ' + (eq ? '<span style="color:#7CFC00">' + T('g.inv.equipped') + '</span>' : '<span style="opacity:.7">' + T('g.inv.equip') + '</span>') + '</button>';
+      }
+      html += '</div>'; }
+    body.innerHTML = html;
+    const btns = body.querySelectorAll ? body.querySelectorAll('.inv-opt') : null;
+    if (btns && btns.forEach) btns.forEach(b => b.addEventListener('click', () => { if (equipWeapon(b.getAttribute('data-id'))) { Sfx.pickup(); openInv(); syncHud(); } }));
+    ov.classList.remove('hidden');
+  }
+  function closeInv() { const ov = document.getElementById('invmenu'); if (ov) ov.classList.add('hidden'); }
+  function toggleInv() { const ov = document.getElementById('invmenu'); if (ov && ov.classList.contains('hidden')) openInv(); else closeInv(); }
+
   function grabTesoro(n) {
     if (!bunkerUnlocked) { setMsg(T('g.tesoro.noGuru'), '#ffd54f', 5000); return; }   // (en el búnker ya sos gurú; red de seguridad)
     if (tesoroTaken) { setMsg(T('g.tesoro.empty'), '#aef0c0', 4000); return; }
     tesoroTaken = true;
     player.coins += 150; player.ammo += 40; player.spitDmg = 24;   // escupís más fuerte (14→24), para todo el run
+    addItem('viola'); equipWeapon('viola');   // el gurú te da la VIOLA de Les Luthiers que dispara RISAS (specs/inventario-armas.md)
     Sfx.win();
-    setMsg(T('g.tesoro.grab'), '#7CFC00', 9000);
+    setMsg(T('g.tesoro.viola'), '#7CFC00', 10000);
   }
   // llanto de los ex-millonarios: pool por idioma (I18n.dict) → catálogo (TL) → Dialogos legacy
   function linyeraCry() {
@@ -1755,6 +1787,7 @@
 
   function syncHud() {
     elHp.textContent = Math.max(0, Math.floor(player.hp));
+    if (elWeapon) { const w = WEAPONS[player.weapon || 'escupitajo']; elWeapon.textContent = (w && w.emoji) || '💦'; }
     elAmmo.textContent = player.ammo;
     elCoins.textContent = player.coins;
     elCaramelos.textContent = player.caramelos;
@@ -2281,6 +2314,8 @@
     if (e.key === 'Escape' && cm && !cm.classList.contains('hidden')) { e.preventDefault(); closeCuevero(); return; }
     const vm = document.getElementById('vecinomenu');
     if (e.key === 'Escape' && vm && !vm.classList.contains('hidden')) { e.preventDefault(); closeVecino(); return; }
+    const im = document.getElementById('invmenu');
+    if (e.key === 'Escape' && im && !im.classList.contains('hidden')) { e.preventDefault(); closeInv(); return; }
     if (e.key === 'Escape' && spinoffLevel && state === 'playing') { e.preventDefault(); endSpinoffLevel('flee'); return; }   // salir del nivel-AI
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
@@ -2288,6 +2323,7 @@
     else if (k === 'r' && state === 'playing' && isCine(room()) && cineNoticias.length) cineRead();   // CINE: [R] leer todas en voz alta
     else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? T('g.music.on') : T('g.music.off'), '#9fd3ff', 1200); }
     else if (k === 'p' && (state === 'playing')) { if (myst && myst.classList.contains('hidden')) showMyStats(); else closeMyStats(); }   // "Tu partida"
+    else if (k === 'i' && (state === 'playing')) toggleInv();   // INVENTARIO (armas equipables)
   });
   document.getElementById('startBtn').addEventListener('click', start);
   document.getElementById('restartBtn').addEventListener('click', start);
@@ -2296,6 +2332,7 @@
   { const b = document.getElementById('armasClose'); if (b) b.addEventListener('click', closeArmas); }
   { const b = document.getElementById('cueveroClose'); if (b) b.addEventListener('click', closeCuevero); }
   { const b = document.getElementById('vecinoClose'); if (b) b.addEventListener('click', closeVecino); }
+  { const b = document.getElementById('invClose'); if (b) b.addEventListener('click', closeInv); }
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {

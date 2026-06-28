@@ -6,6 +6,7 @@ const Player = (() => {
       vx: 0, vy: 0, grounded: false, facing: 1,
       hp: 100, ammo: 24, coins: 20, forros: 0, flores: 0, caramelos: 0, birras: 0, carne: 0, fiambre: 0, diosa: 0, falopa: 0, hasMegaDrive: false, hasCementoTicket: false, alive: true,
       spitDmg: 14,   // daño del escupitajo; el TESORO de los linyeras (gurú) lo sube (mejora permanente del run)
+      inventory: ['escupitajo'], weapon: 'escupitajo',   // INVENTARIO (specs/inventario-armas.md): armas que tenés + la equipada
       anim: 'idle', animTime: 0, shootCd: 0, muzzle: 0,
       aim: { x: 1, y: 0 }, hurtCd: 0,
 
@@ -36,9 +37,12 @@ const Player = (() => {
         if (this.ammo <= 0) { Sfx.empty(); this.shootCd = 0.25; return; }
         this.ammo--; this.shootCd = 0.16; this.muzzle = 0.08;
         const sx = this.x + this.w/2 + this.aim.x*18, sy = this.y + 12 + this.aim.y*18;
-        // POST-TORMENTA el Carpo escupe DÓLARES (con la furia temporal): apaciguan a la gente (no matan). dollarMode lo setea game.js.
-        const kind = this.dollarMode ? 'dollar' : 'spit';
-        Bullets.spawn(sx, sy, this.aim.x*720, this.aim.y*720, 'player', this.spitDmg || 14, kind);
+        // El proyectil sale del ARMA EQUIPADA (specs/inventario-armas.md). VIOLA → dispara RISAS (apacigua a cualquiera,
+        // hasta voladores, no mata). ESCUPITAJO → post-tormenta escupe DÓLARES (apaciguan a la gente, no a voladores), pre-tormenta gargajo.
+        const viola = this.weapon === 'viola';
+        const kind = viola ? 'laugh' : (this.dollarMode ? 'dollar' : 'spit');
+        const dmg = viola ? 0 : (this.spitDmg || 14);
+        Bullets.spawn(sx, sy, this.aim.x*720, this.aim.y*720, 'player', dmg, kind);
         this.shots = (this.shots || 0) + 1; this.lastShot = { kind, x: sx, y: sy };   // para que las cámaras "vean" el dólar (game.js)
         Particles.spit(sx, sy, this.aim.x, this.aim.y);
         Sfx.spit();
@@ -74,9 +78,10 @@ const Player = (() => {
         ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(16, 0); ctx.stroke();
         ctx.fillStyle = '#e6c39a'; ctx.beginPath(); ctx.arc(17, 0, 3, 0, Math.PI*2); ctx.fill(); // puño
         if (this.muzzle > 0) {
-          ctx.fillStyle = 'rgba(169,224,138,0.95)';
+          const viola = this.weapon === 'viola';
+          ctx.fillStyle = viola ? 'rgba(255,225,77,0.95)' : 'rgba(169,224,138,0.95)';
           ctx.beginPath(); ctx.arc(21, 0, 5, 0, Math.PI*2); ctx.fill();
-          ctx.fillStyle = 'rgba(200,240,170,0.5)';
+          ctx.fillStyle = viola ? 'rgba(255,240,160,0.5)' : 'rgba(200,240,170,0.5)';
           ctx.beginPath(); ctx.arc(21, 0, 9, 0, Math.PI*2); ctx.fill();
         }
         ctx.restore();

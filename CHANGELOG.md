@@ -56,6 +56,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v210] — 2026-06-28 — 🎸 INVENTARIO + la VIOLA de Les Luthiers que dispara RISAS
+
+Nueva mecánica pedida por el dueño: el **tesoro del búnker** (el linyera mayor, cuando ya sos gurú) ahora, además de
+los dólares y la munición, te entrega una **🎸 viola de Les Luthiers que dispara RISAS** — un arma que **mata de risa,
+no de bala**: apacigua a **CUALQUIER** enemigo (hasta los voladores, a diferencia del dólar que sólo frena a la gente
+de a pie), los deja tirados cagándose de risa 😂, inofensivos. Para eso se implementó un **INVENTARIO**: las armas son
+**DATA** (registro `WEAPONS`), tenés un `inventory` y equipás una con la tecla **[I]** (overlay nuevo); el HUD muestra
+el arma equipada. El **escupitajo** sigue siendo el arma base (post-tormenta escupe dólares). Todo **persiste en el
+guardado** (inventario + arma equipada). El proyectil de risa son **notas musicales** ♪♫ amarillas. *(El cierre "después
+de la tormenta la viola la dejás" ya está en la narración del final.)* SDD `specs/inventario-armas.md`. Cache **v210**.
+
+---
+
 ## [v209] — 2026-06-28 — 👾 A0: los ENEMIGOS (y los peligros) de un nivel generado REFLEJAN la historia
 
 Tercera parte del A0. Hasta ahora **todos** los niveles auto-generados (vecino, oráculo) sacaban sus enemigos de un

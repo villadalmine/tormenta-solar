@@ -69,8 +69,13 @@ const Bullets = (() => {
         for (const e of enemies) {
           if (!e.alive || e.pacified) continue;
           if (hitRect(b, e)) {
+            // VIOLA (RISAS): apacigua a CUALQUIERA, hasta voladores → muertos de risa, tirados, inofensivos (no mata).
+            if (b.kind === 'laugh') {
+              e.pacified = true; e.hostile = false; e.vx = 0; e.flash = 0.08; e.laughing = true;
+              Particles.burst(b.x, b.y, 12, '#ffe14d', 200, 700); Sfx.pickup();
+            }
             // DÓLAR contra GENTE (no voladores): la apacigua → se tira al piso a juntar y no jode más (no la mata).
-            if (b.kind === 'dollar' && !e.fly) {
+            else if (b.kind === 'dollar' && !e.fly) {
               e.pacified = true; e.hostile = false; e.vx = 0; e.flash = 0.08;
               Particles.burst(b.x, b.y, 12, '#7ee07e', 200, 700); Sfx.pickup();
             } else {
@@ -92,6 +97,15 @@ const Bullets = (() => {
     for (const b of list) {
       const a = Math.atan2(b.vy, b.vx);
       ctx.save(); ctx.translate(b.x - cam.x, b.y - cam.y);
+      if (b.from === 'player' && b.kind === 'laugh') {
+        // RISA de la viola: nota musical amarilla que tiembla (Les Luthiers)
+        const wob = Math.sin(((typeof performance !== 'undefined' ? performance.now() : Date.now()) / 70) + (b.spin || 0)) * 2;
+        ctx.translate(0, wob);
+        ctx.fillStyle = '#ffe14d'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText((b.spin || 0) % 2 < 1 ? '♪' : '♫', 0, 0);
+        ctx.fillStyle = 'rgba(255,240,160,0.4)'; ctx.fillText('♪', 0, 0);
+        ctx.restore(); continue;
+      }
       if (b.from === 'player' && b.kind === 'dollar') {
         // BILLETE DE DÓLAR girando (proyectil post-tormenta)
         ctx.rotate((b.spin || 0) + (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 90);

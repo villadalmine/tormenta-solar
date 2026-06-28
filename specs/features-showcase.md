@@ -52,6 +52,10 @@
   **serie** del billete: **buena = legal** (los robots no te ven unos segundos) / **trucha = te siguen disparando**;
   burbuja con "origen detectado" (valija de Kristina, estafa de la AFA, drogas del cartel, Monopoly…). Contenido en
   `rules.dollars` (DATA). Ver `specs/nivel-1/personajes/protagonista.md`.
+- **Inventario + la viola que dispara risas:** las armas son **DATA** (registro `WEAPONS`); tenés un **inventario** y
+  equipás una con **[I]** (el HUD muestra cuál). El **tesoro del búnker** (cuando sos gurú) te da la **🎸 viola de Les
+  Luthiers que dispara RISAS** — apacigua a **cualquiera**, hasta los voladores, muertos de risa 😂 (no los mata). El
+  inventario y el arma equipada **persisten en el guardado**. Ver `specs/inventario-armas.md`.
 - **La caja del chino:** mini-juego de **pago con vuelto en caramelos**, el chino **inventa "inflación"** y te
   quiere cagar; discutís o salen **ninjas**. Tunables = DATA (`CHINO`). Ver `specs/nivel-1/personajes/chino.md`.
 - **El gate del cuevero (truco):** el cuevero que dispara la tormenta **no te vende de una** — está ocupado con el

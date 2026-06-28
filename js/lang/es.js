@@ -7,7 +7,7 @@ const LANG_ES = {
   'intro.p1': 'Una tormenta solar rasgó el tejido del espacio-tiempo y devastó el planeta. Los linyeras juran que no fue el sol: fue un satélite con IA que se cortó solo. Saltás entre momentos de la historia para entender por qué.',
   'intro.p2': 'Estás en la esquina de <strong>Florida y Lavalle</strong>. Podés entrar a los locales: <strong>EducaciónIT</strong> (subí a saludar a los profes y CEOs), el <strong>arcade</strong> (jugá al <strong>Pac-Man</strong> y al <strong>Galaga</strong>) y el <strong>súper chino</strong> (comprá algo para no pasar hambre 🥟). Pero los verdes están abajo: entrá por la <strong>galería</strong> y <strong>bajá a la cueva</strong>.',
   'intro.p3': 'Ahí abajo no hay luz: es todo ilegal, a la sombra. Comprás... y justo en ese momento, allá arriba, <strong>todo se apaga</strong>.',
-  'intro.controls': '<strong>A/D o ←/→</strong> correr · <strong>W / Espacio</strong> saltar · <strong>Mouse</strong> apuntar · <strong>Click (mantené)</strong> disparar · <strong>E</strong> usar puerta / comprar · <strong>M</strong> música · <strong>P</strong> tu partida (tus métricas)',
+  'intro.controls': '<strong>A/D o ←/→</strong> correr · <strong>W / Espacio</strong> saltar · <strong>Mouse</strong> apuntar · <strong>Click (mantené)</strong> disparar · <strong>E</strong> usar puerta / comprar · <strong>I</strong> inventario · <strong>M</strong> música · <strong>P</strong> tu partida (tus métricas)',
   'intro.start': 'ENTRAR A LA PEATONAL',
   'intro.continue': 'CONTINUAR',
   'intro.homenaje': 'Sos <strong>el Carpo</strong>: rockero linyera, pelado, viola al hombro, cero glamour. 🎸 Homenaje cariñoso a los linyeras de Florida y Lavalle (Pechito, Diógenes, Dante). Ficción/parodia, sin afiliación.',

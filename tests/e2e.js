@@ -135,10 +135,13 @@ if (require.main === module) {
     const mod = JSON.parse(JSON.stringify(snap));
     mod.player.coins = 777; mod.flags.stormed = true; mod.player.hasMegaDrive = true;
     mod.flags.cueveroUnlocked = true; mod.flags.tahurDiscovered = true; mod.flags.guidoFollowing = true;   // gate del cuevero
+    mod.player.inventory = ['escupitajo', 'viola']; mod.player.weapon = 'viola';   // INVENTARIO: la viola round-trippea
     Game.continueGame(mod);
     const back = Game.serialize();
     if (!back || back.player.coins !== 777 || !back.flags.stormed || !back.player.hasMegaDrive)
       out.push('FAIL restore no aplicó el snapshot: ' + JSON.stringify(back && { c: back.player.coins, s: back.flags.stormed, m: back.player.hasMegaDrive }));
+    if (!back || !Array.isArray(back.player.inventory) || !back.player.inventory.includes('viola') || back.player.weapon !== 'viola')
+      out.push('FAIL inventario/viola no round-trippeó: ' + JSON.stringify(back && { inv: back.player.inventory, w: back.player.weapon }));
     if (!back || !back.flags.cueveroUnlocked || !back.flags.tahurDiscovered || !back.flags.guidoFollowing)
       out.push('FAIL gate del cuevero no round-trippeó: ' + JSON.stringify(back && back.flags));
     // un snapshot inválido NO debe romper (continueGame cae a start())
