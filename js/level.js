@@ -663,6 +663,7 @@ const Level = (() => {
     wire(cine5, 'up', cine6, 'down');
     wire(cine6, 'up', cine7, 'down');
     wire(cine7, 'up', cine8, 'down');     // 8º piso: Cine EN VIVO (multijugador F1)
+    wire(cine8, 'up', cine9, 'down');     // 9º piso: el BODEGÓN (multijugador F2)
     wire(6, 'down', 7, 'up');
     wire(7, 'down', 8, 'up');
     wire(4, 'secret', 9, 'back');

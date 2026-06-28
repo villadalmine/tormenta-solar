@@ -260,6 +260,7 @@
     'g.trans.secretStore': 'You come in scared... smoke, two tables, people staring at you. "You saw nothing here, kid."',
     'g.trans.cueveros': 'Three caves, three cueveros. Try each one (E)... see who\'ll exchange for you.',
     'g.trans.deeper': 'Further down... keep heading down to the caves.',
+    'g.trans.locked': "That door doesn't lead anywhere yet.",
     'g.storm': '"Done, boss." A tremor: UP TOP everything went out from the solar storm. Down here, in the dark, nothing changes. Go up and escape.',
 
     'g.prompt.cuevero': 'talk to the cuevero',

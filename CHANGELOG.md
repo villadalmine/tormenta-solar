@@ -56,6 +56,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v214] — 2026-06-28 — 🐛 FIX: se trababa al SUBIR AL BODEGÓN (la puerta no estaba cableada)
+
+Bug reportado por el dueño: al subir del cine "EN VIVO" al **bar/bodegón** el juego **se trababa**. Causa: la puerta
+`up` del 8º piso (cine8) **nunca se cableó** a la sala del bodegón (cine9) — faltaba `wire(cine8, 'up', cine9, 'down')`.
+Al cruzar, `current` quedaba `undefined` y el render reventaba cada frame → freeze. **Fix:** se agregó el wire. Además,
+**defensa para el futuro:** `transition()` ahora chequea que la puerta tenga destino válido (`d.to`/`rooms[d.to]`) y si
+no, avisa en vez de romper. (Las puertas "especiales" super/vinilos/chinoback/chinotruco no usan `transition` — van por
+`DOOR_HANDLERS` a sub-modos —, así que el guard no las afecta.) Cache **v214**.
+
+---
+
 ## [v213] — 2026-06-28 — 🔒 BODEGÓN F2b.2: CHAT PRIVADO 1-a-1 (te acercás a alguien y apretás E)
 
 Tal como lo pediste: en el bodegón, además de hablarle a **todos** (frases preset) ahora podés **acercarte a otro

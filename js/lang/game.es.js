@@ -278,6 +278,7 @@
     'g.trans.secretStore': 'Entrás con miedo... humo, dos mesas, gente que te mira. “Acá no viste nada, pibe.”',
     'g.trans.cueveros': 'Tres cuevas, tres cueveros. Probá con cada uno (E)... a ver quién te cambia.',
     'g.trans.deeper': 'Más abajo... seguí bajando hasta las cuevas.',
+    'g.trans.locked': 'Esa puerta no lleva a ningún lado todavía.',
     'g.storm': '“Listo, jefe.” Un temblor: ARRIBA se cortó TODO por la tormenta solar. Acá abajo, sin luz, nada cambia. Subí y escapá.',
 
     // --- prompts ---

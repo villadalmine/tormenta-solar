@@ -1416,6 +1416,7 @@
     }
   }
   function transition(d) {
+    if (d.to == null || !rooms[d.to]) { setMsg(T('g.trans.locked'), '#ffd54f', 3000); return; }   // puerta sin destino → NO romper (defensa)
     current = d.to;
     player.x = d.at.x - player.w/2; player.y = d.at.y - player.h;
     player.vx = 0; player.vy = 0;

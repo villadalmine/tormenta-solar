@@ -8772,7 +8772,14 @@
           },
           "x": 20,
           "label": "subir: el BODEGÓN",
-          "inward": -1
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-el-bodegon",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
         },
         {
           "id": "cine-lavalle-en-vivo/npc0",
@@ -8881,7 +8888,14 @@
           },
           "x": 2,
           "label": "bajar: EN VIVO",
-          "inward": 1
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-en-vivo",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
         },
         {
           "id": "cine-lavalle-el-bodegon/npc0",
