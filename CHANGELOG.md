@@ -56,6 +56,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v220] — 2026-06-28 — 🤖💉 GIRO del telo: ¡la "rubia" es un ROBOT IA que te quiere CHIPAR! (huí o quedás esclavo)
+
+Giro pedido por el dueño: te metés en la cama y **pegás un salto** — no era un patova celoso, es una **TRAMPA de la IA**:
+la "rubia" es un **ROBOT** que te quiere clavar un **CHIP** en la nuca para hacerte su **esclavo**. Ahora hay que **HUIR
+A LA PUERTA**: el robot te persigue (más lento que vos: si corrés derecho, **ZAFÁS**). Si **escapás** → volvés al bar a
+salvo; si **te atrapa** → te **chipea**: manoteás el celu de la mesita, les escribís a los linyeras y **se cagan de risa**
+("¿de qué bando jugás ahora, pibe?"), uno te tira el hook "**esto te lo arregla el pibe de Garbarino**", te despertás y
+huís. *(Esto último es la versión canned —Q0—; el **arco completo** —celu→chat real→**cambio de personaje** al pibe de
+Garbarino→troyano con Maxi/Marcos→jubilados de TecToys/Commodore→comprar consola en el chino→curar el chip— está
+**diseñado** en `specs/telo-chip-quest.md`, a construir por fases.)* Cache **v220**.
+
+---
+
 ## [v219] — 2026-06-28 — 🏩 El telo, mejor: espejos grandes, mesita, ropa tirada, MÚSICA grasa y el PATOVA (no un oso)
 
 Pulido del telo (feedback del dueño): los **espejos** ahora son **grandes y se entienden** (marco dorado + reflejo con

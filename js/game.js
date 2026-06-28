@@ -2416,12 +2416,13 @@
     } else if (state === 'telo' && teloGame) {
       teloGame.update(dt); teloGame.draw(ctx, W, H);
       if (teloGame.done) {
-        const rajado = teloGame.ejected; teloGame = null; flash();
+        const escaped = teloGame.escaped, chipped = teloGame.chipped; teloGame = null; flash();
         if (Sfx.setRoomTrack) Sfx.setRoomTrack(null);   // corta la música de telo al volver al bar
         // volvés al BAR: si el bodegón es top-down, relanzá el sub-modo; si no, al side-scroller
         if (hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón top-down */ }
         else { state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
-        setMsg(T(rajado ? 'g.telo.ejected' : 'g.telo.leave'), '#ff8fc8', rajado ? 7000 : 3000);   // el oso te rajó al bar (o saliste)
+        // chipped = te atrapó el robot IA (Q0 canned: celu + linyeras se ríen + hook Garbarino + te despertás). Ver specs/telo-chip-quest.md
+        setMsg(T(chipped ? 'g.telo.chipped' : escaped ? 'g.telo.escaped' : 'g.telo.leave'), chipped ? '#9be8a0' : '#ff8fc8', chipped ? 11000 : escaped ? 6000 : 3000);
       }
     } else if (state === 'bodegon' && bodegonGame) {
       bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);

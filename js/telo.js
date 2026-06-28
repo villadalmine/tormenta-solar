@@ -27,7 +27,7 @@ const Telo = (() => {
     const player = { x: (exit.x + 0.5) * CS, y: (exit.y + 0.3) * CS, r: 11 };
     const she = { x: (jacuzzi.x + 1.4) * CS, y: (jacuzzi.y + 0.6) * CS };   // la rubia, arranca al lado del jacuzzi
     const bear = { x: (weirdDoor.x + 0.5) * CS, y: (weirdDoor.y + 0.5) * CS, on: false };
-    let phase = 'intro', pt = 0, t = 0, done = false, exitTo = null, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = true, ejected = false;
+    let phase = 'intro', pt = 0, t = 0, done = false, exitTo = null, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = true, escaped = false, chipped = false;
     setMsg(T('g.telo.intro'), 6);
 
     function setMsg(s, dur = 3.5) { msg = s; msgT = dur; }
@@ -66,16 +66,19 @@ const Telo = (() => {
         const bx = (bed.x + 0.5) * CS, by = (bed.y + 0.5) * CS, dx = bx - she.x, dy = by - she.y, d = Math.hypot(dx, dy) || 1;
         if (d > 2) { she.x += (dx / d) * 120 * dt; she.y += (dy / d) * 120 * dt; }
         prompt = T('g.telo.toBed');
-        if (nearTile(bed, 1.3)) { phase = 'bear'; pt = 0; bear.on = true; bear.x = (weirdDoor.x + 0.5) * CS; bear.y = (weirdDoor.y + 0.5) * CS;
-          setMsg(T('g.telo.bear'), 6); Sfx.hurt && Sfx.hurt(); }
-      } else if (phase === 'bear') {
-        prompt = T('g.telo.run');
-        // el OSO te persigue (acelera con el tiempo)
-        const dx = player.x - bear.x, dy = player.y - bear.y, d = Math.hypot(dx, dy) || 1, sp = (95 + pt * 14) * dt;
-        bear.x += (dx / d) * sp; bear.y += (dy / d) * sp;
-        if (d < 22 || pt > 9) {   // te alcanzó (o se acabó la paciencia) → te raja al bar
-          done = true; exitTo = 'back'; ejected = true;
+        if (nearTile(bed, 1.3)) {   // ¡SALTÁS de la cama! era una TRAMPA: un ROBOT IA te quería chipar. Huí a la puerta.
+          phase = 'robot'; pt = 0; bear.on = true;
+          bear.x = (bed.x + 1.2) * CS; bear.y = (bed.y + 0.5) * CS;     // el robot estaba ahí, en la cama
+          player.x = (bed.x - 1) * CS; player.y = (bed.y + 0.5) * CS;   // saltás para el lado del cuarto
+          setMsg(T('g.telo.robot'), 6); Sfx.hurt && Sfx.hurt();
         }
+      } else if (phase === 'robot') {
+        prompt = T('g.telo.run');
+        // el ROBOT te persigue para inyectarte el chip (más lento que vos: si corrés derecho a la puerta, ZAFÁS)
+        const dx = player.x - bear.x, dy = player.y - bear.y, d = Math.hypot(dx, dy) || 1, sp = (118 + pt * 9) * dt;
+        bear.x += (dx / d) * sp; bear.y += (dy / d) * sp;
+        if (nearTile(exit, 1.0)) { done = true; exitTo = 'back'; escaped = true; }   // ¡llegaste a la puerta! zafaste
+        else if (d < 20 || pt > 11) { done = true; exitTo = 'back'; chipped = true; }  // te atrapó → te chipea
       }
     }
 
@@ -171,7 +174,7 @@ const Telo = (() => {
       if (prompt) { ctx2.font = 'bold 13px monospace'; ctx2.textAlign = 'center'; ctx2.fillStyle = 'rgba(0,0,0,0.78)'; ctx2.fillRect(0, bottom - 22, VW, 22); ctx2.fillStyle = pal.accent; ctx2.fillText(prompt, VW / 2, bottom - 7); }
     }
 
-    return { get done() { return done; }, get exitTo() { return exitTo; }, get ejected() { return ejected; },
+    return { get done() { return done; }, get exitTo() { return exitTo; }, get escaped() { return escaped; }, get chipped() { return chipped; },
       get __phase() { return phase; }, __pos: () => ({ x: player.x, y: player.y }), update, draw };
   }
   return { create };
