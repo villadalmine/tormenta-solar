@@ -56,6 +56,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v230] — 2026-06-28 — 🤖💼 Quest del chip: CORTE DE ESCENA — la posta te teletransporta a Garbarino ya siendo el pibe
+
+El dueño reportó por 3ª vez que **no se veía la transformación** (el swap de sprite en el lugar no le quedaba claro). Su
+propia idea, implementada: la transformación deja de ser un swap ambiguo y pasa a ser un **corte de escena duro**. Cuando
+los 3 linyeras te tiran la posta, el juego te **SACA del telo y te mete DENTRO del edificio de Garbarino ya controlando al
+pibe** (`chipBecomeGarbarino`: `playingAs='garbarino'`, `spawnIn` la sala con tag `garbarino`, oculta al NPC vendedor —
+*ahora sos vos*— y arranca directo en el paso `troyano`). El **Carpo (vos, chipeado) queda dibujado ACOSTADO en la cama**
+del telo (`room.carpoInBed` → hero idle rotado + 💤🤖 en el catre). Imposible no ver el cambio: cambia la sala, el sprite
+y la música. Al curarte se deshace todo (`chipReset` restaura `carpoInBed=false` + vendedor visible, para re-jugar). Se
+**eliminó el paso `garbarino`** del grafo `CHIP_QUEST` (lo resuelve la posta) y su fx `becomeGarbarino`. Mensajes
+reescritos (`g.chip.linyerasPosta` = el corte; nueva `g.chip.carpoBed`). Paridad i18n 553/553. Cache **v230**.
+
+---
+
 ## [v229] — 2026-06-28 — 🤖💼 Quest del chip: AHORA SÍ te transformás en el pibe de Garbarino (sprite propio)
 
 El único cabo suelto que reportó el dueño: *"el problema era que nunca me transformé en el de Garbarino"*. El resto

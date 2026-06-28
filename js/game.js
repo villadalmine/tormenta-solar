@@ -170,16 +170,16 @@
   // (comportamiento del quest, que el dueño habilitó como hardcode puntual). REGLA #0: nada de if-chain por paso.
   let chipped = false, chipStep = '', playingAs = 'carpo', chipEverCured = false;
   const chipParts = {};
-  // El paso 'linyeras' NO está acá: se resuelve chateando con los 3 linyeras de la sala 'telohab' (chipLinNote/Posta).
+  // Los pasos 'linyeras' y 'garbarino' NO están acá: se resuelven chateando con los 3 linyeras de la sala 'telohab'
+  // (chipLinNote/Posta). La posta hace el CORTE DE ESCENA (chipBecomeGarbarino): saltás al edificio de Garbarino ya
+  // controlando al vendedor y arrancás directo en 'troyano'. De acá en más, los pasos sí son data-driven por NPC.
   const CHIP_QUEST = [
-    { id: 'garbarino', on: { sprite: 'vendedor', tag: 'garbarino' },  next: 'troyano',   msg: 'g.chip.garbarino', fx: 'becomeGarbarino' },
     { id: 'troyano',   on: { names: ['Maxi', 'Marcos'], all: true },  next: 'consola',   msg: 'g.chip.troyanoDone', partial: 'g.chip.troyano' },
     { id: 'consola',   on: { flag: 'jubilado' },                      next: 'consola2',  msg: 'g.chip.jubilados', fx: 'jubiladosFollow' },
     { id: 'consola2',  on: { flag: 'consolaGuy' },                    next: 'cure',      msg: 'g.chip.consola',   fx: 'getConsola' },
     { id: 'cure',      on: { oracle: true },                          next: '',          msg: 'g.chip.cured',     fx: 'cureChip' },
   ];
   const CHIP_FX = {
-    becomeGarbarino() { playingAs = 'garbarino'; },
     jubiladosFollow() { /* los 2 jubilados se vuelven companions (te siguen al arcade) — se derivan en syncCompanions cuando chipStep==='consola2' */ },
     getConsola() { addItem('consola'); playingAs = 'carpo'; },   // el flaco del Trucotron te da la consola; los jubilados se van rezongando
     // CURA: le diste la consola a un linyera → el juego SALTA a la habitación del telo; el linyera te la mete a la fuerza
@@ -192,7 +192,14 @@
     },
   };
   function chipStart() { chipped = true; chipStep = 'linyeras'; playingAs = 'carpo'; for (const k in chipParts) delete chipParts[k]; }
-  function chipReset() { chipped = false; chipStep = ''; playingAs = 'carpo'; chipLinTalked.clear(); for (const k in chipParts) delete chipParts[k]; }
+  function chipReset() {
+    chipped = false; chipStep = ''; playingAs = 'carpo'; chipLinTalked.clear(); for (const k in chipParts) delete chipParts[k];
+    // deshacer el corte de escena: el Carpo se levanta de la cama y el vendedor de Garbarino vuelve a verse (para re-jugar)
+    for (const r of (typeof rooms !== 'undefined' && rooms) || []) {
+      if (hasTag(r, 'telohab')) r.carpoInBed = false;
+      if (hasTag(r, 'garbarino')) for (const n of r.npcs || []) if (n.sprite === 'vendedor') n.invisible = false;
+    }
+  }
   function chipMatch(npc, on) {
     if (on.oracle) return isOraculo(npc);
     if (on.sprite) return npc.sprite === on.sprite && (!on.tag || hasTag(room(), on.tag));
@@ -232,9 +239,26 @@
   function chipLinNote(n) { if (chipped && chipStep === 'linyeras' && n && n.chiplin) chipLinTalked.add(n.persona || n.name); }
   function chipLinMaybePosta() {
     if (!(chipped && chipStep === 'linyeras' && chipLinTalked.size >= 3)) return;
-    chipStep = 'garbarino'; chipLinTalked.clear();   // seguís siendo el Carpo (chipeado) → vas a BUSCAR al pibe de Garbarino; el switch pasa al hablarle
+    chipLinTalked.clear();
+    // CORTE DE ESCENA (lo pidió el dueño, 3 veces): la posta NO te deja caminando como Carpo. Te SACA del telo y te mete
+    // DENTRO del edificio de Garbarino, ya controlando al PIBE DE GARBARINO. El Carpo (vos, chipeado) queda acostado en la
+    // cama del telo. De acá en más manejás al de Garbarino (NO chipeado) → directo al paso 'troyano'.
+    chipBecomeGarbarino();
     setMsg(T('g.chip.linyerasPosta'), '#7CFC00', 15000);
     if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('chip_linyeras');
+  }
+  // El switch a "pibe de Garbarino": dejá al Carpo acostado en la cama del telohab, saltá al edificio de Garbarino y
+  // tomá control del vendedor (lo ocultamos como NPC porque AHORA sos vos). Corte de escena duro = imposible no verlo.
+  function chipBecomeGarbarino() {
+    playingAs = 'garbarino'; chipStep = 'troyano';
+    const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) rooms[hi].carpoInBed = true;   // el Carpo queda en la cama
+    const gi = rooms.findIndex(r => hasTag(r, 'garbarino'));
+    if (gi >= 0) {
+      const v = (rooms[gi].npcs || []).find(n => n.sprite === 'vendedor'); if (v) v.invisible = true;   // sos vos → no se dibuja al vendedor
+      spawnIn(gi, v ? Math.max(1, Math.round(v.x / Level.TILE)) : 11);
+      if (Sfx.setRoomTrack) Sfx.setRoomTrack('office');
+    }
+    flash(); syncCompanions(); syncHud();
   }
 
   const room = () => rooms[current];
@@ -2132,6 +2156,19 @@
         ctx.beginPath(); ctx.arc(lx, ly, 3, 0, Math.PI * 2); ctx.fill();
         ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = a * 0.5; ctx.beginPath(); ctx.arc(lx, ly, 7, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
+      }
+    }
+    // QUEST DEL CHIP: el Carpo (chipeado) quedó ACOSTADO en la cama del telo mientras vos controlás al pibe de Garbarino.
+    if (r.carpoInBed) {
+      const bed = (r.decor || []).find(d => d.type === 'catre');
+      if (bed && Art.hero && Art.hero.idle) {
+        const f = Art.hero.idle[0];
+        ctx.save();
+        ctx.translate(bed.x - cam.x, bed.feetY - cam.y - 12); ctx.rotate(-Math.PI / 2);
+        ctx.drawImage(f, -f.width / 2, -f.height / 2); ctx.restore();
+        ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+        ctx.fillText('💤🤖', bed.x - cam.x + 16, bed.feetY - cam.y - 26);
+        label(T('g.chip.carpoBed'), bed.x - cam.x, bed.feetY - cam.y - 42, '#ff6b9d');
       }
     }
     if (hasTag(r, 'cine-live')) {       // MULTIJUGADOR F1: pantalla del MUNDO VIVO (refresca cada ~4s)
