@@ -2,6 +2,19 @@
 
 **Estado:** **Q0-Q4 IMPLEMENTADO y jugable (v221)** — arco completo end-to-end. Quedan pulidos (ver §6).
 
+## ✅ v225 — versión "larga" + fixes de playtest
+- **Telo (giro):** caught → el robot **se va y quedás en la habitación** (fase `chipped`) → buscás el **📱 celu en la
+  mesita** (glow) → `phonecall` (texto ARRIBA, grande, `[E]` para seguir) → salís chipeado. La puerta de salida está
+  **marcada** (verde+glow+"SALIDA"+flecha) y el Carpo salta al MEDIO del cuarto (escapable corriendo).
+- **Paso 'linyeras' (largo):** los **3 linyeras aparecen al lado tuyo** (companions `chiplinyera`), te **boludean**
+  (pool `g.chip.boludeo.*`, charlas filosóficas) y a la **4ª** te dan la posta → `garbarino`.
+- **Consola en 2 pasos:** `consola` (hablás a un jubilado en el cine Consolas) → los **2 jubilados te SIGUEN** al arcade
+  (companions, paso `consola2`) → **'El flaco parado'** (NPC nuevo `consolaGuy` en el arcade) → chat estilo Matrix + te
+  **da la consola** + los jubilados se van **rezongando**. → `cure` → usás la consola [I] → curado.
+- **FIX clave:** `makeRoom` (v1) no copiaba flags custom (`jubilado`/`consolaGuy`) → los NPCs perdían el flag → no
+  matcheaban. Arreglado en `makeRoom` + `gen-level` + `mundo`. **Lección:** todo flag de NPC nuevo va a esos 3 lugares.
+- **Legibilidad:** diálogos del chip a 15s; `g.chip.cured` aclara que te desplomás dormido y te despertás.
+
 ## ✅ IMPLEMENTADO (v221) — el arco completo, jugable
 La quest es **DATA** (`CHIP_QUEST` en game.js = grafo lineal de pasos `{id, on, next, msg, fx, partial}`) + un runtime
 GENÉRICO (`chipTry`/`chipMatch`) que matchea el NPC contra `on` (rol/sprite/tag/nombre) y avanza al `next` — **sin
