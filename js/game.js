@@ -163,6 +163,56 @@
   let trucoSeisActive = false;                        // partido de a 6 EN CURSO (el duelo tuyo se resuelve con los de tu equipo)
   const trucoMatesRec = {};                           // id → true: compañeros de truco ya reclutados (te siguen)
   const TRUCO_MATES = { truco1: { name: 'Pino', sprite: 'linyera', skill: 0.62 }, truco2: { name: 'Coya', sprite: 'naipero', skill: 0.55 } };
+  // === QUEST DEL CHIP (specs/telo-chip-quest.md) — el robot IA del telo te chipó; arco para sacártelo ===
+  // La quest es DATA (un grafo lineal de pasos); el runtime `chipTry` es GENÉRICO: matchea el NPC contra `on` (rol/
+  // sprite/tag/nombre, data) y avanza al `next`. Lo único "code" son los efectos nombrados (CHIP_FX) y el comprar/usar
+  // (comportamiento del quest, que el dueño habilitó como hardcode puntual). REGLA #0: nada de if-chain por paso.
+  let chipped = false, chipStep = '', playingAs = 'carpo', chipEverCured = false;
+  const chipParts = {};
+  const CHIP_QUEST = [
+    { id: 'linyeras',  on: { oracle: true },                          next: 'garbarino', msg: 'g.chip.linyeras' },
+    { id: 'garbarino', on: { sprite: 'vendedor', tag: 'garbarino' },  next: 'troyano',   msg: 'g.chip.garbarino', fx: 'becomeGarbarino' },
+    { id: 'troyano',   on: { names: ['Maxi', 'Marcos'], all: true },  next: 'consola',   msg: 'g.chip.troyanoDone', partial: 'g.chip.troyano' },
+    { id: 'consola',   on: { flag: 'jubilado' },                      next: 'cure',      msg: 'g.chip.consola', fx: 'buyConsola' },
+    // 'cure' se completa USANDO la consola del inventario (useConsola), no por NPC.
+  ];
+  const CHIP_FX = {
+    becomeGarbarino() { playingAs = 'garbarino'; },
+    buyConsola() { player.coins = Math.max(0, (player.coins | 0) - 20); addItem('consola'); playingAs = 'carpo'; },
+  };
+  function chipStart() { chipped = true; chipStep = 'linyeras'; playingAs = 'carpo'; for (const k in chipParts) delete chipParts[k]; }
+  function chipReset() { chipped = false; chipStep = ''; playingAs = 'carpo'; for (const k in chipParts) delete chipParts[k]; }
+  function chipMatch(npc, on) {
+    if (on.oracle) return isOraculo(npc);
+    if (on.sprite) return npc.sprite === on.sprite && (!on.tag || hasTag(room(), on.tag));
+    if (on.names) return on.names.includes(npc.name);
+    if (on.flag) return !!npc[on.flag];
+    return false;
+  }
+  // intento genérico de avanzar el quest con este NPC (se llama al tope de handleNpc). true = lo manejó el quest.
+  function chipTry(npc) {
+    if (!chipped) return false;
+    const step = CHIP_QUEST.find(s => s.id === chipStep);
+    if (!step || !chipMatch(npc, step.on)) return false;
+    if (step.on.all && step.partial) {   // paso que necesita VARIOS (Maxi Y Marcos): junta de a uno hasta tenerlos todos
+      chipParts[npc.name] = true;
+      if (!step.on.names.every(n => chipParts[n])) { Sfx.pickup(); setMsg(T(step.partial, { who: npc.name }), '#80cbc4', 8000); return true; }
+    }
+    if (step.fx && CHIP_FX[step.fx]) CHIP_FX[step.fx](npc);
+    chipStep = step.next; Sfx.win();
+    setMsg(T(step.msg), '#7CFC00', 11000);
+    if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('chip_' + step.id);
+    return true;
+  }
+  function useConsola() {   // 'cure': usás la consola del inventario → te hackea el chip → despertás, normal (repetible)
+    if (chipStep !== 'cure') { setMsg(T('g.chip.consolaNotYet'), '#ffd54f', 6000); return; }
+    player.inventory = (player.inventory || []).filter(x => x !== 'consola');
+    if (player.weapon === 'consola') player.weapon = 'escupitajo';
+    chipReset(); chipEverCured = true;
+    closeInv(); Sfx.win(); flash(); setMsg(T('g.chip.cured'), '#7CFC00', 12000);
+  }
+  // pista del chip para los linyeras (saben TODO + en qué paso estás): el HintEngine la prioriza si estás chipeado.
+  function chipHint() { return chipped ? T('g.chip.hint.' + chipStep) : null; }
 
   const room = () => rooms[current];
   const st = () => states[current];
@@ -228,6 +278,7 @@
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
     trucoSeisOffered = false; trucoSeisActive = false; for (const k in trucoMatesRec) delete trucoMatesRec[k];   // truco de a 6, de cero
+    chipReset(); chipEverCured = false;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; roamingNpc = null;
@@ -255,6 +306,7 @@
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
         borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered,
         cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing, trucoSeisOffered,
+        chipped, chipStep, playingAs, chipEverCured, chipParts: { ...chipParts },
         entrado: { ...entradoEdif }, vecino: JSON.parse(JSON.stringify(vecinoState)), trucoMates: { ...trucoMatesRec } },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       // RF-4: estado anclado por POSICIÓN (sala, x), no por índice de array → robusto a reordenar entidades.
@@ -281,6 +333,7 @@
     trucoWon = !!f.trucoWon; trucoEverWon = !!f.trucoEverWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
     cueveroUnlocked = !!f.cueveroUnlocked; tahurDiscovered = !!f.tahurDiscovered; guidoSummoned = !!f.guidoSummoned; guidoRecruited = !!f.guidoRecruited; guidoFollowing = !!f.guidoFollowing;
     trucoSeisOffered = !!f.trucoSeisOffered; trucoSeisActive = false; for (const k in trucoMatesRec) delete trucoMatesRec[k]; if (f.trucoMates) Object.assign(trucoMatesRec, f.trucoMates);
+    chipReset(); chipped = !!f.chipped; chipStep = f.chipStep || ''; playingAs = f.playingAs || 'carpo'; chipEverCured = !!f.chipEverCured; if (f.chipParts) Object.assign(chipParts, f.chipParts);   // quest del chip
     for (const k in entradoEdif) delete entradoEdif[k]; if (f.entrado) Object.assign(entradoEdif, f.entrado);
     for (const k in vecinoState) delete vecinoState[k]; if (f.vecino && typeof f.vecino === 'object') Object.assign(vecinoState, JSON.parse(JSON.stringify(f.vecino)));
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
@@ -432,6 +485,7 @@
     moza:    n => handleMoza(n),
   };
   function handleNpc(n) {
+    if (n && chipTry(n)) return;   // QUEST DEL CHIP: si estás chipeado y este NPC avanza el arco, lo maneja el quest
     const fn = n && NPC_ACTIONS[n.action];
     if (fn) fn(n);
     else { setMsg(TX(n.dialog) || (n.lines && n.lines[(Math.random()*n.lines.length)|0]) || '...', '#aef0c0', 4800); Sfx.pickup(); }
@@ -492,6 +546,8 @@
     viola:      { id: 'viola',      emoji: '🎸', label: 'g.wpn.viola' },         // premio del tesoro: dispara RISAS (apacigua a cualquiera)
     // FIERRO CRIOLLO (del vendedor de armas): va al inventario pero el Carpo NO lo equipa — gag pacifista (no a la violencia).
     fierro:     { id: 'fierro',     emoji: '🪢', label: 'g.wpn.fierro', noEquip: true, refuse: 'g.wpn.refuse' },
+    // CONSOLA (quest del chip): no es arma, es ÍTEM USABLE → "usar" hackea el chip (useConsola). specs/telo-chip-quest.md
+    consola:    { id: 'consola',    emoji: '🎮', label: 'g.wpn.consola', noEquip: true, use: 'useConsola' },
   };
   function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
   function wpnLabel(id) { const w = WEAPONS[id]; if (!w) return ''; return T((stormed && w.stormLabel) ? w.stormLabel : w.label); }
@@ -505,7 +561,8 @@
     if (!inv.length) html += '<div style="opacity:.85">' + T('g.inv.empty') + '</div>';
     else { html += '<div style="display:flex;flex-direction:column;gap:.4em;margin-top:.5em">';
       for (const id of inv) { const w = WEAPONS[id]; if (!w) continue; const eq = player.weapon === id;
-        const badge = w.noEquip ? '<span style="opacity:.7">' + T('g.inv.kept') + '</span>'             // arma criolla: guardada, no se equipa (gag pacifista)
+        const badge = w.use ? '<span style="color:#9be8a0">' + T('g.inv.use') + '</span>'                  // ítem usable (consola)
+          : w.noEquip ? '<span style="opacity:.7">' + T('g.inv.kept') + '</span>'                          // arma criolla: guardada, no se equipa (gag pacifista)
           : eq ? '<span style="color:#7CFC00">' + T('g.inv.equipped') + '</span>' : '<span style="opacity:.7">' + T('g.inv.equip') + '</span>';
         html += '<button class="inv-opt" data-id="' + id + '" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer' + (eq ? ';outline:2px solid #7CFC00' : '') + '">' +
           wpnEmoji(id) + ' ' + wpnLabel(id) + '  ' + badge + '</button>';
@@ -515,6 +572,7 @@
     const btns = body.querySelectorAll ? body.querySelectorAll('.inv-opt') : null;
     if (btns && btns.forEach) btns.forEach(b => b.addEventListener('click', () => {
       const id = b.getAttribute('data-id'), w = WEAPONS[id];
+      if (w && w.use) { const fn = { useConsola }[w.use]; if (fn) fn(); return; }              // ÍTEM usable (consola → hackea el chip)
       if (w && w.noEquip) { closeInv(); setMsg(T(w.refuse), '#9be8a0', 8000); return; }   // el Carpo se niega a la violencia (no equipa el fierro)
       if (equipWeapon(id)) { Sfx.pickup(); openInv(); syncHud(); }
     }));
@@ -875,6 +933,9 @@
   const _nw = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 3);
   function newsMatch(report, answer) { const a = new Set(_nw(answer)); const r = _nw(report); return { shared: r.filter(w => a.has(w)).length, words: r.length }; }
   function getHint(level) {
+    // QUEST DEL CHIP: los linyeras SABEN que estás chipeado y en qué paso vas → pista de máxima prioridad (no te la
+    // tiran toda: el texto por paso es una PISTA). specs/telo-chip-quest.md + directiva "los linyeras saben todo".
+    if (chipped) { const h = chipHint(); if (h) return { id: 'chip', title: 'chip', text: h, level: level | 0 }; }
     // UNIFICACIÓN grafo+quests: una quest activa del oráculo es pista de MÁXIMA prioridad (recordatorio).
     const q = Quests.hintFor('oraculo'); if (q) return { ...q, level: level | 0 };
     if (typeof HintEngine === 'undefined') return null;
@@ -1934,7 +1995,8 @@
 
   function syncHud() {
     elHp.textContent = Math.max(0, Math.floor(player.hp));
-    if (elWeapon) elWeapon.textContent = wpnEmoji(player.weapon || 'escupitajo');   // post-tormenta el escupitajo se ve 💵 (dólares)
+    // QUEST DEL CHIP: si estás chipeado, el HUD lo avisa (🤖 chipeado / 🧑‍💼 controlás al pibe de Garbarino); si no, el arma.
+    if (elWeapon) elWeapon.textContent = chipped ? (playingAs === 'garbarino' ? '🧑‍💼🤖' : '🤖') : wpnEmoji(player.weapon || 'escupitajo');
     elAmmo.textContent = player.ammo;
     elCoins.textContent = player.coins;
     elCaramelos.textContent = player.caramelos;
@@ -2245,20 +2307,24 @@
   function gameStats(won) {
     let items = 0;
     if (states) for (const s of states) for (const pk of s.pickups) if (pk.taken) items++;
+    // HITOS separados en PRIMARIAS (la cadena principal hacia el portal: cada una pide la anterior) vs SECUNDARIAS
+    // (sueltas, no anidadas a la principal). Directiva del dueño 2026-06-28. tier: 'P' | 'S'.
     const hitos = [
-      { k: 'g.hito.tormenta',  done: stormed },
-      { k: 'g.hito.edificio',  done: borrachosHappy },
-      { k: 'g.hito.bunker',    done: bunkerUnlocked },
-      { k: 'g.hito.iorio',     done: chinoEntered },
-      { k: 'g.hito.truco',     done: trucoEverWon },
-      { k: 'g.hito.fifa',      done: fifaWon },
-      { k: 'g.hito.megadrive', done: !!(player && player.hasMegaDrive) },
-      { k: 'g.hito.cemento',   done: !!(player && player.hasCementoTicket) },
-      { k: 'g.hito.armado',    done: armado },
-      { k: 'g.hito.tesoro',    done: tesoroTaken },
-      { k: 'g.hito.portal',    done: !!won },
+      { k: 'g.hito.tormenta',  done: stormed,                              tier: 'P' },   // estalla la tormenta
+      { k: 'g.hito.truco',     done: trucoEverWon,                         tier: 'P' },   // gate del cuevero (truco)
+      { k: 'g.hito.iorio',     done: chinoEntered,                         tier: 'P' },   // entraste al chino
+      { k: 'g.hito.portal',    done: !!won,                                tier: 'P' },   // el portal (ganar)
+      { k: 'g.hito.edificio',  done: borrachosHappy,                       tier: 'S' },   // arco del edificio abandonado
+      { k: 'g.hito.bunker',    done: bunkerUnlocked,                       tier: 'S' },
+      { k: 'g.hito.tesoro',    done: tesoroTaken,                          tier: 'S' },
+      { k: 'g.hito.fifa',      done: fifaWon,                              tier: 'S' },
+      { k: 'g.hito.megadrive', done: !!(player && player.hasMegaDrive),    tier: 'S' },
+      { k: 'g.hito.cemento',   done: !!(player && player.hasCementoTicket), tier: 'S' },
+      { k: 'g.hito.armado',    done: armado,                               tier: 'S' },
+      { k: 'g.hito.chip',      done: chipEverCured,                        tier: 'S' },   // te sacaste el chip del robot del telo
     ];
     return { coins: (player && player.coins) | 0, days: loopCount, items, hitos,
+      prim: hitos.filter(h => h.tier === 'P'), sec: hitos.filter(h => h.tier === 'S'),
       done: hitos.filter(h => h.done).length, total: hitos.length };
   }
   function renderStats(won) {
@@ -2270,9 +2336,14 @@
     html += row('🌙', T('g.stats.days'),  s.days);
     html += row('🎁', T('g.stats.items'), s.items);
     html += row('🏆', T('g.stats.hitos'), s.done + '/' + s.total);
-    html += '</div><ul class="end-hitos">' + s.hitos.map(h =>
-      '<li class="' + (h.done ? 'done' : 'miss') + '">' + (h.done ? '✓' : '·') + ' ' + T(h.k) + '</li>').join('') + '</ul>';
+    html += '</div>' + hitosHtml(s);
     elEndStats.innerHTML = html;
+  }
+  // checklist de hitos AGRUPADO: PRIMARIAS (la cadena principal) + SECUNDARIAS (sueltas). Directiva del dueño.
+  function hitosHtml(s) {
+    const grp = (title, arr) => '<li class="hito-grp">' + title + '</li>' + arr.map(h =>
+      '<li class="' + (h.done ? 'done' : 'miss') + '">' + (h.done ? '✓' : '·') + ' ' + T(h.k) + '</li>').join('');
+    return '<ul class="end-hitos">' + grp(T('g.stats.primarias'), s.prim) + grp(T('g.stats.secundarias'), s.sec) + '</ul>';
   }
   // "TU PARTIDA" (métricas in-game, client-side — specs/metricas-in-game.md F1). Abrible con [P] mientras jugás.
   function showMyStats() {
@@ -2290,8 +2361,7 @@
     html += row('🌸', T('g.mystats.flores'), (player && player.flores) | 0);
     html += row('🌙', T('g.stats.days'), s.days);
     html += row('🏆', T('g.stats.hitos'), s.done + '/' + s.total);
-    html += '</div><ul class="end-hitos">' + s.hitos.map(h =>
-      '<li class="' + (h.done ? 'done' : 'miss') + '">' + (h.done ? '✓' : '·') + ' ' + T(h.k) + '</li>').join('') + '</ul>';
+    html += '</div>' + hitosHtml(s);
     el.innerHTML = html; ov.classList.remove('hidden');
   }
   function closeMyStats() { const ov = document.getElementById('mystats'); if (ov) ov.classList.add('hidden'); }
@@ -2416,13 +2486,14 @@
     } else if (state === 'telo' && teloGame) {
       teloGame.update(dt); teloGame.draw(ctx, W, H);
       if (teloGame.done) {
-        const escaped = teloGame.escaped, chipped = teloGame.chipped; teloGame = null; flash();
+        const gotChipped = teloGame.chipped, gotAway = teloGame.escaped; teloGame = null; flash();
         if (Sfx.setRoomTrack) Sfx.setRoomTrack(null);   // corta la música de telo al volver al bar
         // volvés al BAR: si el bodegón es top-down, relanzá el sub-modo; si no, al side-scroller
         if (hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón top-down */ }
         else { state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
-        // chipped = te atrapó el robot IA (Q0 canned: celu + linyeras se ríen + hook Garbarino + te despertás). Ver specs/telo-chip-quest.md
-        setMsg(T(chipped ? 'g.telo.chipped' : escaped ? 'g.telo.escaped' : 'g.telo.leave'), chipped ? '#9be8a0' : '#ff8fc8', chipped ? 11000 : escaped ? 6000 : 3000);
+        // te atrapó el robot IA → arranca la QUEST DEL CHIP (specs/telo-chip-quest.md). Si ya estabas chipeado, no re-arranca.
+        if (gotChipped && !chipped) chipStart();
+        setMsg(T(gotChipped ? 'g.telo.chipped' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : '#ff8fc8', gotChipped ? 11000 : gotAway ? 6000 : 3000);
       }
     } else if (state === 'bodegon' && bodegonGame) {
       bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);

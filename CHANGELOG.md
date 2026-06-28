@@ -56,6 +56,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v221] — 2026-06-28 — 🤖🎮 LA QUEST DEL CHIP completa: sacátelo con el pibe de Garbarino, un troyano y una consola
+
+El arco del chip ahora es **jugable de punta a punta**. Si el robot del telo te chipa, quedás **chipeado** (🤖 en el HUD)
+y arranca la cadena: **(1)** hablás a un **linyera** → se ríen ("¿de qué bando jugás?") y te mandan al **pibe de Garbarino**;
+**(2)** el vendedor de Garbarino te pasa la posta y **CONTROLÁS AL PIBE DE GARBARINO** (🧑‍💼🤖); **(3)** **Maxi** (EducaciónIT
+p4) **y Marcos** (p9) te arman un **TROYANO**; **(4)** los **jubilados de TecToys/Commodore** (cine, piso Consolas) te
+consiguen una **CONSOLA** en el chino (−20 🪙, va al inventario); **(5)** **usás la consola** desde el inventario [I] →
+hackeás el chip → te despertás, sin chip, todo normal (repetible). Hecho **data-driven** (la quest es un grafo de pasos
+`CHIP_QUEST` + runtime genérico, sin if-chain). **Los linyeras saben todo y te dan PISTAS** del paso actual. Y los
+**hitos** ahora se separan en **★ Principales / ☆ Secundarias** (+ el hito del chip). 2 NPCs nuevos (los jubilados).
+Persiste en el guardado. SDD `specs/telo-chip-quest.md`. Cache **v221**.
+
+---
+
 ## [v220] — 2026-06-28 — 🤖💉 GIRO del telo: ¡la "rubia" es un ROBOT IA que te quiere CHIPAR! (huí o quedás esclavo)
 
 Giro pedido por el dueño: te metés en la cama y **pegás un salto** — no era un patova celoso, es una **TRAMPA de la IA**:

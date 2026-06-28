@@ -1,6 +1,26 @@
 # El giro del telo: la trampa del CHIP + la quest del pibe de Garbarino
 
-**Estado:** SDD / Draft. **Origen:** idea del dueño (2026-06-28) — darle un **giro** al gag del telo: lo que parecía un
+**Estado:** **Q0-Q4 IMPLEMENTADO y jugable (v221)** — arco completo end-to-end. Quedan pulidos (ver §6).
+
+## ✅ IMPLEMENTADO (v221) — el arco completo, jugable
+La quest es **DATA** (`CHIP_QUEST` en game.js = grafo lineal de pasos `{id, on, next, msg, fx, partial}`) + un runtime
+GENÉRICO (`chipTry`/`chipMatch`) que matchea el NPC contra `on` (rol/sprite/tag/nombre) y avanza al `next` — **sin
+if-chain por paso** (REGLA #0, directiva del dueño). Los efectos (`CHIP_FX`: `becomeGarbarino`, `buyConsola`) y el
+`useConsola` son code puntual (comportamiento del quest, habilitado por el dueño). **Flujo:** telo te chipa
+(`chipStart`) → hablás a un **linyera** (se ríen + hook) → al **vendedor de Garbarino** (cambio de PJ `playingAs='garbarino'`)
+→ **Maxi Y Marcos** (troyano, junta de a uno) → **jubilados** (cine Consolas: ex-TecToys/Commodore, te consiguen la
+**consola** −20🪙) → **usar consola** en el inventario (`useConsola`) → curado, despertás (repetible). **Persiste** en el
+save (`chipped/chipStep/playingAs/chipParts/chipEverCured` + inventory). **HUD** avisa 🤖 / 🧑‍💼🤖. **Los linyeras dan
+PISTAS** del paso actual (`getHint` prioriza `chipHint` cuando estás chipeado — "saben todo + en qué vas, no te la tiran").
+**Hitos** reorganizados en **primarias/secundarias** (directiva del dueño) + hito `g.hito.chip` (secundaria). Simplificaciones
+vs la visión: el "celu" = framing del chat de linyeras (no un overlay aparte); el cambio de PJ = flag narrativo (no re-skin);
+el escorte de los jubilados = framing (el comprar se resuelve al hablarles). Ver §6 para los pulidos.
+
+---
+
+**(SDD original abajo.)**
+
+**Estado inicial:** SDD / Draft. **Origen:** idea del dueño (2026-06-28) — darle un **giro** al gag del telo: lo que parecía un
 patova celoso es en realidad una **trampa de la IA** para chiparte y esclavizarte. Si te atrapan, arranca una **quest
 con cambio de personaje** para sacarte el chip. Extiende [[multijugador.md]] §3.2.3 (el telo `js/telo.js`).
 

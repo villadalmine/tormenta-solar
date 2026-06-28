@@ -613,7 +613,10 @@ const Level = (() => {
       name: 'Cine Lavalle — Consolas', tags:['cine','consolas'], theme: 'arcade', light: 0.5, w: 22,
       doors: [{ id:'down', art:'doorUp', label:'bajar: Colombofilia', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: OpenRouter', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
-      npcs: [{ name:'Coleccionista', sprite:'gordo', x:17, dialog:'“8, 16, 32 bits... la Family, la Mega, la Super Nintendo. Las busco en MercadoLibre.” 🕹️' }],
+      npcs: [{ name:'Coleccionista', sprite:'gordo', x:17, dialog:'“8, 16, 32 bits... la Family, la Mega, la Super Nintendo. Las busco en MercadoLibre.” 🕹️' },
+        // jubilados ex-TecToys (Brasil) y ex-Commodore Argentina — claves de la quest del chip (consiguen la consola en el chino)
+        { name:'Don Tec', sprite:'viejo', x:6, jubilado:true, dialog:'“Yo armaba las Mega Drive en TecToys, en Brasil. Esos fierros no fallaban, pibe.” 🇧🇷🕹️' },
+        { name:'Doña Commo', sprite:'mujer', x:10, jubilado:true, dialog:'“Commodore Argentina, la 64 y la 128. Yo te consigo cualquier consola, tengo contactos en el chino.” 🇦🇷💾' }],
     })) - 1;
     const cine7 = rooms.push(makeRoom({
       name: 'Cine Lavalle — OpenRouter', tags:['cine','openrouter'], theme: 'arcade', light: 0.5, w: 22,

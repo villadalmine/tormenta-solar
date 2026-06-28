@@ -8508,20 +8508,28 @@
           }
         },
         {
-          "id": "cine-lavalle-consolas/decor1",
-          "tipo": "decor",
+          "id": "cine-lavalle-consolas/npc1",
+          "tipo": "npc",
           "render": {
-            "type": "sofa"
+            "sprite": "viejo"
           },
-          "x": 6
+          "x": 6,
+          "name": "Don Tec",
+          "dialogue": {
+            "text": "“Yo armaba las Mega Drive en TecToys, en Brasil. Esos fierros no fallaban, pibe.” 🇧🇷🕹️"
+          }
         },
         {
-          "id": "cine-lavalle-consolas/decor2",
-          "tipo": "decor",
+          "id": "cine-lavalle-consolas/npc2",
+          "tipo": "npc",
           "render": {
-            "type": "sofa"
+            "sprite": "mujer"
           },
-          "x": 9
+          "x": 10,
+          "name": "Doña Commo",
+          "dialogue": {
+            "text": "“Commodore Argentina, la 64 y la 128. Yo te consigo cualquier consola, tengo contactos en el chino.” 🇦🇷💾"
+          }
         },
         {
           "id": "cine-lavalle-consolas/decor3",
@@ -8529,7 +8537,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 12
+          "x": 6
         },
         {
           "id": "cine-lavalle-consolas/decor4",
@@ -8537,7 +8545,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 15
+          "x": 9
         },
         {
           "id": "cine-lavalle-consolas/decor5",
@@ -8545,7 +8553,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 7.5
+          "x": 12
         },
         {
           "id": "cine-lavalle-consolas/decor6",
@@ -8553,7 +8561,7 @@
           "render": {
             "type": "sofa"
           },
-          "x": 10.5
+          "x": 15
         },
         {
           "id": "cine-lavalle-consolas/decor7",
@@ -8561,10 +8569,26 @@
           "render": {
             "type": "sofa"
           },
-          "x": 13.5
+          "x": 7.5
         },
         {
           "id": "cine-lavalle-consolas/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 10.5
+        },
+        {
+          "id": "cine-lavalle-consolas/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 13.5
+        },
+        {
+          "id": "cine-lavalle-consolas/decor10",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -8573,7 +8597,7 @@
           "ad": {}
         },
         {
-          "id": "cine-lavalle-consolas/decor9",
+          "id": "cine-lavalle-consolas/decor11",
           "tipo": "decor",
           "render": {
             "type": "cartel"
