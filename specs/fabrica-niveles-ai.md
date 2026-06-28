@@ -244,3 +244,20 @@ Re-test del dueño tras el fix del modelo pago (v204): los niveles auto-generado
 paleta/props del gancho de la historia, no de un molde fijo; (c) **cache-first / abrir estático + enriquecer** (o cron
 pre-generador por edificio, patrón del banco vivo de historias) para matar la espera. Ver `tiendas-generadas.md` (el
 contraste). Anotado también en la memoria `backlog` como **A0 (prioritario)**.
+
+### ✅ A0 CERRADO (v207–v209)
+- **(c) latencia — v207:** `passToBuilding` ahora es **cache-first** (igual que las tiendas): entra AL TOQUE con el
+  tema estático (o el IA-cacheado si ya pasaste) y la IA enriquece **en background** para la próxima vez. `histThemeCache`.
+- **(b) look propio — v208:** `motifVisuals` (en `game.js`): cada historia viva deriva paleta **determinística**
+  (hash del relato → 1 de **10** hues de terror) + props armados desde su `motif`. Mismo relato → mismo look; relatos
+  distintos → niveles distintos. Reemplaza el molde genérico random.
+- **(a) enemigos/peligros por motif — v209:** un solo mapa data-driven `VIBES` + `MOTIF_VIBE` + `vibeFor()` (en
+  `js/nivelai.js`) que `assemble()` consume para **TODOS** los caminos (THEMES del chino, oráculo, vecino). El motif
+  define el **vibe** (slasher/ghost/party/swarm/gunmen/mob) → **pool de tipos** de enemigo + **cantidad** + **tipo de
+  peligro** del piso (fantasma→pozos que ceden, slasher/tiradores→pinchos). Como `requestHistoria`/`requestOraculo`
+  pasan su `motif` a `generateLevel`, heredan el vibe sin tocar nada. Sigue validado por la RED (jugabilidad garantizada).
+  La **geometría** sigue variando por `style` (climb/wall/aisles) que ya trae cada historia.
+- **Nota:** el **spinoff del chino** usa `generate()` (escena top-down, sin enemigos — solo props/npcs temáticos por
+  THEME, ya themed); no le aplica el pool de enemigos. La queja del dueño era por los niveles-plataforma (vecino), ya
+  resueltos. Si a futuro se quiere que la IA autore geometría **temática** (no solo posiciones), el hook ya existe
+  (`aiPlatforms`/`requestGeometry`): falta que el proxy proponga layouts con sentido del relato.

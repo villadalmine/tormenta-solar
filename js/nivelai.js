@@ -123,6 +123,31 @@ const NivelAI = (() => {
     },
   ];
 
+  // ----- ENEMIGOS TEMÁTICOS: el TIPO de enemigo REFLEJA el motif de la historia (no un pool genérico igual para todo).
+  // REGLA #0 (dato): un solo mapa motif→"vibe"→pool, que `assemble` consume para TODOS los caminos (THEMES del chino,
+  // oráculo, historia del vecino). Tipos disponibles: peaton (camina), dron (vuela lento), pacman (rápido), galaga
+  // (vuela rápido), cuevero (dispara). El `count` por vibe densifica/afloja para que un enjambre de juguetes SE SIENTA
+  // distinto a una casa embrujada. Ver specs/fabrica-niveles-ai.md §Deuda A0. -----
+  const VIBES = {
+    slasher: { pool: ['peaton', 'peaton', 'pacman', 'pacman', 'dron'], count: [2, 4], haz: 'spikes' },  // melee agresivo, denso
+    ghost:   { pool: ['galaga', 'galaga', 'dron', 'galaga', 'pacman'], count: [1, 3], haz: 'pit' },     // vuela/flota; el piso cede
+    party:   { pool: ['pacman', 'galaga', 'dron', 'peaton', 'pacman'], count: [2, 3] },   // caótico rápido
+    swarm:   { pool: ['pacman', 'pacman', 'pacman', 'dron', 'galaga'], count: [3, 4] },   // enjambre veloz
+    gunmen:  { pool: ['cuevero', 'cuevero', 'peaton', 'dron', 'galaga'], count: [1, 3], haz: 'spikes' }, // tiradores
+    mob:     { pool: ['peaton', 'peaton', 'peaton', 'dron', 'pacman'], count: [2, 3] },   // patota a pata
+  };
+  // motif (emoji) → vibe. Cubre los motifs de THEMES (chino) + los de terror del vecino/oráculo. Sin match → genérico.
+  const MOTIF_VIBE = {
+    // chino / surreal
+    '🐉': 'swarm', '🧵': 'mob', '🤢': 'swarm', '🛹': 'party', '👜': 'mob',
+    '🧨': 'gunmen', '🎤': 'gunmen', '🧺': 'mob', '💊': 'swarm', '🔞': 'party', '🔮': 'ghost',
+    // terror (vecino) — slasher / fantasma / fiesta / juguetes
+    '🔪': 'slasher', '🩸': 'slasher', '🪓': 'slasher', '💀': 'slasher',
+    '👻': 'ghost', '👧': 'ghost', '🪞': 'ghost', '🕯️': 'ghost', '🐈‍⬛': 'ghost',
+    '🎉': 'party', '🪩': 'party', '🧸': 'swarm', '🪆': 'swarm', '🐀': 'swarm',
+  };
+  const vibeFor = t => VIBES[t.vibe] || VIBES[MOTIF_VIBE[t.motif]] || null;
+
   // ----- TIENDAS GENERADAS (galería de la cueva): el "molde" es el RUBRO. Le hablás al local → entrás a un interior
   // generado (top-down, sub-modo Tienda) con clientela + mercadería COHERENTE para browsear/comprar. DATA = rubro;
   // la IA podrá enriquecer (name/intro/wares); fallback estático = esto. Ver specs/tiendas-generadas.md. -----
@@ -360,6 +385,8 @@ const NivelAI = (() => {
     // pool de enemigos VARIADO (antes solo peaton/dron): pacman es rápido, galaga vuela rápido, cuevero dispara.
     // Pesado hacia peaton/dron para que no sea injusto. La IA autora la POSICIÓN; el tipo lo elige el pool.
     const ENEMY_POOL = ['peaton', 'peaton', 'dron', 'dron', 'pacman', 'galaga', 'cuevero'];
+    // pool/cantidad TEMÁTICOS según el motif de la historia (vibeFor); si el motif no clasifica → genérico balanceado.
+    const vibe = vibeFor(t), enemyPool = vibe ? vibe.pool : ENEMY_POOL, enemyN = vibe ? vibe.count : [1, 3];
     function assemble(i, n, w, plats, noHaz, hazards) {
       const id = 'sala-ai-' + i, ents = [];
       if (i === 0) ents.push({ id: id + '/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } });
@@ -371,14 +398,14 @@ const NivelAI = (() => {
         ? Playable.reachableTops({ w, platforms: plats, entities: [{ tipo: 'marker', x: 2, render: { type: 'spawn' } }] }) : null;
       for (const p of plats) { const ty = p[1] - 1; if (reach && !reach[p[0] + ',' + ty]) continue; if (Math.random() < 0.5) ents.push({ id: id + '/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: ty, give: { item: pick(['ammo', 'coins', 'health']), amount: rnd(3, 6) } }); }
       const aiEn = t.aiEnemies ? sanitizeEnemies(t.aiEnemies, w) : null;   // enemigos autorados por IA (posición) o aleatorios
-      if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || pick(ENEMY_POOL) } }));
-      else for (let k = 0, e = rnd(1, 3); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: pick(ENEMY_POOL) } });
+      if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || pick(enemyPool) } }));
+      else for (let k = 0, e = rnd(enemyN[0], enemyN[1]); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: pick(enemyPool) } });
       // OBSTÁCULOS (pinchos / pozos) en el piso, lejos de columnas sagradas (spawn x2 / meta·puerta w-3) → saltables.
       // El POZO cala el piso (te caés y reaparecés); el PINCHO daña al contacto. Ancho ≤2 → la RED (R4) garantiza salto.
       // `hazards` = lista explícita autorada por IA; si no, se siembran 0-2 procedurales al azar.
       if (!noHaz) {
         if (hazards) hazards.forEach((h, k) => ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: h.x + 0.5, w: h.w, render: { type: h.kind }, combat: { dmg: 12 } }));
-        else for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
+        else for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = vibe && vibe.haz ? vibe.haz === 'pit' : Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
       }
       for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
       return { id, nombre: L(t.name) + (n > 1 ? ' · ' + (i + 1) + '/' + n : ''), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };

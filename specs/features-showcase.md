@@ -65,8 +65,11 @@
   **máquina de niveles genera un nivel** con esa última historia como semilla, y al ganarlo **quedás en el interior
   real** del edificio. Contenido **vivo e infinito** sobre lugares antes muertos: las **historias mismas las escribe
   la IA** (un gancho + un relato corto, propios de cada edificio, ES/EN, banco vivo servido por API y refrescado a
-  diario) con banco estático de respaldo; y el **nivel** también lo autora la IA, todo con fallback. Ver
-  `specs/edificios-clausurados-historias.md`.
+  diario) con banco estático de respaldo; y el **nivel** también lo autora la IA, todo con fallback. **El nivel REFLEJA
+  la historia:** entrás **al toque** (cache-first), cada relato tiene su **look propio** (paleta + props derivados de su
+  motif) y hasta los **enemigos y peligros cambian según el tema** — una casa del *slasher* te tira melee denso, una
+  *embrujada* se llena de voladores, el *karaoke de la mafia* trae tiradores, el piso de una embrujada **cede en pozos**.
+  Ver `specs/edificios-clausurados-historias.md`.
 - **El edificio:** subís **saltando** una escalera de incendios **o** por ascensor (dos caminos); items que
   **regeneran**. **Truco** criollo real (motor puro testeado, cantos + voces). Arcade (Pac-Man/Galaga/Frogger).
 - **Tiendas generadas (galería de la cueva):** le hablás a un local (sex-shop, comida rara, masajes, tenebroso) y

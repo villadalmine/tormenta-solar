@@ -56,6 +56,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v209] — 2026-06-28 — 👾 A0: los ENEMIGOS (y los peligros) de un nivel generado REFLEJAN la historia
+
+Tercera parte del A0. Hasta ahora **todos** los niveles auto-generados (vecino, oráculo) sacaban sus enemigos de un
+**pool genérico igual para todo** → se sentían iguales aunque el texto/look cambiara. Ahora el **TIPO** de enemigo sale
+del **motif** de la historia (REGLA #0: un solo mapa `motif → "vibe" → pool`, que el generador consume para todos los
+caminos): una casa del **🔪 slasher** te tira melee agresivo y denso (peatón/pacman), una **👻 embrujada** te llena de
+**voladores** (galaga/dron), el **🎤 karaoke de la mafia** trae **tiradores** (cueveros), un **🤢 mercado podrido** un
+**enjambre** veloz de pacman, una **patota** (🧵 taller, 👜 feria) viene **a pata**. Cada vibe además ajusta la
+**cantidad** (el enjambre es más denso que la casa de fantasmas) y los **peligros del piso** (fantasma → **pozos** que
+ceden; slasher/tiradores → **pinchos**). Sigue pasando por la RED (jugabilidad garantizada). (`VIBES`/`MOTIF_VIBE`/
+`vibeFor` en `js/nivelai.js`.) Con esto el A0 (niveles que reflejan la historia) queda **cerrado**: texto IA + look
+propio (v208) + geometría por `style` + enemigos/peligros por motif. Cache **v209**.
+
+---
+
 ## [v208] — 2026-06-27 — 🎨 A0: cada historia del vecino tiene su PROPIO look (paleta + props temáticos, no un molde genérico)
 
 Segunda parte del A0 (que los niveles **reflejen la historia**, no solo el texto). Las historias **vivas** (las que
