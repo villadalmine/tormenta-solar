@@ -169,21 +169,29 @@
   // (comportamiento del quest, que el dueño habilitó como hardcode puntual). REGLA #0: nada de if-chain por paso.
   let chipped = false, chipStep = '', playingAs = 'carpo', chipEverCured = false;
   const chipParts = {};
+  // El paso 'linyeras' NO está acá: se resuelve chateando con los 3 linyeras de la sala 'telohab' (chipLinNote/Posta).
   const CHIP_QUEST = [
-    { id: 'linyeras',  on: { oracle: true },                          next: 'garbarino', msg: 'g.chip.linyeras' },
     { id: 'garbarino', on: { sprite: 'vendedor', tag: 'garbarino' },  next: 'troyano',   msg: 'g.chip.garbarino', fx: 'becomeGarbarino' },
     { id: 'troyano',   on: { names: ['Maxi', 'Marcos'], all: true },  next: 'consola',   msg: 'g.chip.troyanoDone', partial: 'g.chip.troyano' },
     { id: 'consola',   on: { flag: 'jubilado' },                      next: 'consola2',  msg: 'g.chip.jubilados', fx: 'jubiladosFollow' },
     { id: 'consola2',  on: { flag: 'consolaGuy' },                    next: 'cure',      msg: 'g.chip.consola',   fx: 'getConsola' },
-    // 'cure' se completa USANDO la consola del inventario (useConsola), no por NPC.
+    { id: 'cure',      on: { oracle: true },                          next: '',          msg: 'g.chip.cured',     fx: 'cureChip' },
   ];
   const CHIP_FX = {
     becomeGarbarino() { playingAs = 'garbarino'; },
     jubiladosFollow() { /* los 2 jubilados se vuelven companions (te siguen al arcade) — se derivan en syncCompanions cuando chipStep==='consola2' */ },
-    getConsola() { addItem('consola'); playingAs = 'carpo'; },   // el flaco te da la consola; los jubilados se van rezongando (syncCompanions al pasar a 'cure')
+    getConsola() { addItem('consola'); playingAs = 'carpo'; },   // el flaco del Trucotron te da la consola; los jubilados se van rezongando
+    // CURA: le diste la consola a un linyera → el juego SALTA a la habitación del telo; el linyera te la mete a la fuerza
+    // (vos chipeado querías hacer estallar el sol) → boom, te dormís, te despertás con resaca y SIN chip. (gag del dueño)
+    cureChip() {
+      player.inventory = (player.inventory || []).filter(x => x !== 'consola'); if (player.weapon === 'consola') player.weapon = 'escupitajo';
+      chipEverCured = true;
+      const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); }
+      chipReset(); flash();
+    },
   };
   function chipStart() { chipped = true; chipStep = 'linyeras'; playingAs = 'carpo'; for (const k in chipParts) delete chipParts[k]; }
-  function chipReset() { chipped = false; chipStep = ''; playingAs = 'carpo'; chipLinyeraTalks = 0; for (const k in chipParts) delete chipParts[k]; }
+  function chipReset() { chipped = false; chipStep = ''; playingAs = 'carpo'; chipLinTalked.clear(); for (const k in chipParts) delete chipParts[k]; }
   function chipMatch(npc, on) {
     if (on.oracle) return isOraculo(npc);
     if (on.sprite) return npc.sprite === on.sprite && (!on.tag || hasTag(room(), on.tag));
@@ -207,24 +215,22 @@
     if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('chip_' + step.id);
     return true;
   }
-  function useConsola() {   // 'cure': usás la consola del inventario → te hackea el chip → despertás, normal (repetible)
-    if (chipStep !== 'cure') { setMsg(T('g.chip.consolaNotYet'), '#ffd54f', 6000); return; }
-    player.inventory = (player.inventory || []).filter(x => x !== 'consola');
-    if (player.weapon === 'consola') player.weapon = 'escupitajo';
-    chipReset(); chipEverCured = true;
-    closeInv(); Sfx.win(); flash(); setMsg(T('g.chip.cured'), '#7CFC00', 12000);
+  function useConsola() {   // la consola NO te la metés vos (chipeado querés estallar el sol): se la das a un LINYERA y él te la mete.
+    closeInv();
+    if (chipStep === 'cure') setMsg(T('g.chip.consolaGiveLinyera'), '#9be8a0', 8000);   // andá a un linyera y dásela
+    else setMsg(T('g.chip.consolaNotYet'), '#ffd54f', 6000);
   }
   // pista del chip para los linyeras (saben TODO + en qué paso estás): el HintEngine la prioriza si estás chipeado.
   function chipHint() { return chipped ? T('g.chip.hint.' + chipStep) : null; }
-  // QUEST DEL CHIP, paso 'linyeras' (versión larga): los 3 linyeras aparecen al lado tuyo (companions 'chiplinyera') y
-  // te BOLUDEAN (charlas filosóficas sin sentido) varias veces; recién a la 4ª te tiran la posta (→ Garbarino).
-  let chipLinyeraTalks = 0;
-  function chipLinyeraTalk(n) {
-    if (chipStep !== 'linyeras') return; Sfx.pickup();
-    chipLinyeraTalks++;
-    if (chipLinyeraTalks < 4) { setMsg(T('g.chip.boludeo.' + ((chipLinyeraTalks - 1) % 4)), '#c8b0d8', 9000); return; }
-    setMsg(T('g.chip.linyerasPosta'), '#7CFC00', 14000);   // ya está, la posta: andá al pibe de Garbarino
-    chipStep = 'garbarino'; chipLinyeraTalks = 0; syncCompanions();   // los 3 linyeras se van; arranca el paso Garbarino (CHIP_QUEST data-driven)
+  // QUEST DEL CHIP, paso 'linyeras' (versión larga): en LA HABITACIÓN DEL TELO están los 3 linyeras CHATEABLES (IA,
+  // personas filosofo/poeta/pechito). Charlás con cada uno (boludeo libre); cuando hablaste con LOS TRES, uno te tira la
+  // posta → pasás a controlar al pibe de Garbarino. El tracking es por persona (chipLinTalked), gatillado en openChat/closeChat.
+  const chipLinTalked = new Set();
+  function chipLinNote(n) { if (chipped && chipStep === 'linyeras' && n && n.chiplin) chipLinTalked.add(n.persona || n.name); }
+  function chipLinMaybePosta() {
+    if (!(chipped && chipStep === 'linyeras' && chipLinTalked.size >= 3)) return;
+    chipStep = 'garbarino'; playingAs = 'garbarino'; chipLinTalked.clear();
+    setMsg(T('g.chip.linyerasPosta'), '#7CFC00', 15000);
     if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('chip_linyeras');
   }
 
@@ -497,7 +503,6 @@
     guarda:  n => guardaCine(n),
     fifa:    () => playFifa(),
     moza:    n => handleMoza(n),
-    chiplinyera: n => chipLinyeraTalk(n),
   };
   function handleNpc(n) {
     if (n && chipTry(n)) return;   // QUEST DEL CHIP: si estás chipeado y este NPC avanza el arco, lo maneja el quest
@@ -686,12 +691,7 @@
       setCompanion(id, !!trucoMatesRec[id] && !cueveroUnlocked,
         { name: m.name, sprite: m.sprite, side, followOff: off, dialog: T('g.truco.mateFollow', { name: m.name }), join: T('g.truco.mateJoin', { name: m.name }) });
     }
-    // QUEST DEL CHIP, paso 'linyeras': los 3 linyeras ilustres APARECEN al lado tuyo y te SIGUEN; les hablás (te boludean)
-    // hasta que te tiran la posta (→ Garbarino). specs/telo-chip-quest.md. Acción 'chiplinyera' (no 'chat': es iterativo).
-    const chipLin = chipped && chipStep === 'linyeras';
-    ORACULOS.slice(0, 3).forEach((o, k) => setCompanion('chiplin' + k, chipLin,
-      { name: o.name, sprite: o.sprite, action: 'chiplinyera', side: k === 0 ? -3 : k === 1 ? 3 : -2, followOff: k === 0 ? -42 : k === 1 ? 42 : -28,
-        dialog: '', join: k === 0 ? T('g.chip.linyerasAppear') : undefined }));
+    // (los 3 linyeras del paso 'linyeras' NO son companions: viven en la sala 'telohab' como NPCs chateables — ver chipLinNote.)
     // paso 'consola2': los 2 JUBILADOS te SIGUEN hasta el arcade (donde el flaco te da la consola). Al pasar a 'cure' se van rezongando.
     const chipJub = chipped && chipStep === 'consola2';
     const JUBS = [{ name: T('g.chip.jubTec'), sprite: 'viejo' }, { name: T('g.chip.jubCommo'), sprite: 'mujer' }];
@@ -972,6 +972,7 @@
 
   function openChat(n) {
     if (typeof AI === 'undefined') { setMsg(TX(n.dialog) || '“...”', '#aef0c0', 4000); return; }
+    chipLinNote(n);   // QUEST DEL CHIP: hablar con un linyera de la habitación cuenta (al hablar con los 3 → posta)
     chatNpc = n; chatBusy = false; hintAsks = 0;
     const key = memKey(n);
     chatHistory = (key && oracleMem[key]) ? oracleMem[key].slice() : [];   // retoma su memoria por identidad
@@ -989,6 +990,7 @@
   function closeChat() {
     elChat.classList.add('hidden'); elChatInput.value = ''; chatNpc = null; peerChat = null;
     if (state === 'chat') state = 'playing';
+    chipLinMaybePosta();   // QUEST DEL CHIP: si ya hablaste con los 3 linyeras de la habitación → la posta (sos el de Garbarino)
   }
   // F2b.2 — CHAT PRIVADO 1-a-1 con otro jugador del bodegón (te acercás + E). Reusa el panel #chat pero el mensaje
   // va por el salón (Salon.whisper) SOLO al destinatario, no a la IA. Texto efímero, sin historial guardado.
@@ -2516,16 +2518,15 @@
       if (teloGame.done) {
         const gotChipped = teloGame.chipped, gotAway = teloGame.escaped; teloGame = null; flash();
         if (Sfx.setRoomTrack) Sfx.setRoomTrack(null);   // corta la música de telo al volver al bar
-        // te chipó el robot y llamaste por el celu → arranca la QUEST en el paso 'linyeras': los 3 linyeras te van a
-        // aparecer al lado (syncCompanions) y te boludean hasta tirarte la posta. specs/telo-chip-quest.md.
+        // te chipó el robot → arranca la QUEST en 'linyeras'. specs/telo-chip-quest.md.
         if (gotChipped && !chipped) chipStart();
-        // ESCAPASTE → seguís de joda en el bodegón top-down. TE CHIPARON → bajás al cine (HUD visible: ves el 🤖 + la pista).
+        // ESCAPASTE → seguís de joda en el bodegón top-down. TE CHIPARON → caés a LA HABITACIÓN DEL TELO (sala real con los 3 linyeras).
         if (!gotChipped && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
         else {
           state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
-          if (gotChipped && hasTag(room(), 'bodegon')) { const d = rooms[current] && rooms[current].doorById && rooms[current].doorById['down']; if (d) transition(d); }   // chipeado: salí del bodegón al cine
+          if (gotChipped) { const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); } }
         }
-        setMsg(T(gotChipped ? 'g.chip.hint.garbarino' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : '#ff8fc8', gotChipped ? 12000 : gotAway ? 6000 : 3000);
+        setMsg(T(gotChipped ? 'g.chip.wakeRoom' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : '#ff8fc8', gotChipped ? 13000 : gotAway ? 6000 : 3000);
       }
     } else if (state === 'bodegon' && bodegonGame) {
       bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);

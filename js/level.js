@@ -43,7 +43,7 @@ const Level = (() => {
       playerStart: spec.playerStart != null ? feet(spec.playerStart) : null,
       enemies: (spec.enemies || []).map(e => ({ type: e.t, dormant: e.dormant, look: e.look, ...feet(e.x, e.y) })),
       pickups: (spec.pickups || []).map(p => ({ type: p.t, amount: p.amount, ...feet(p.x, p.y) })),
-      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, jubilado: n.jubilado, consolaGuy: n.consolaGuy, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), tienda: n.tienda && { ...n.tienda }, vecino: n.vecino && { ...n.vecino }, mate: n.mate && { ...n.mate }, ...feet(n.x) })),
+      npcs: (spec.npcs || []).map(n => ({ name: n.name, sprite: n.sprite, dialog: n.dialog, action: n.action, follow: n.follow, lines: n.lines, want: n.want, hint: n.hint, invisible: n.invisible, persona: n.persona, oracle: n.oracle, jubilado: n.jubilado, consolaGuy: n.consolaGuy, chiplin: n.chiplin, ambient: n.ambient, social: n.social, sells: n.sells && { ...n.sells }, arsenal: n.arsenal && n.arsenal.map(a => ({ ...a })), tienda: n.tienda && { ...n.tienda }, vecino: n.vecino && { ...n.vecino }, mate: n.mate && { ...n.mate }, ...feet(n.x) })),
       machines: (spec.machines || []).map(m => ({ name: m.name, game: m.game, ...feet(m.x) })),
       cueveros: (spec.cueveros || []).map(c => ({ name: c.name, outcome: c.outcome, to: c.to, dialog: c.dialog, ...feet(c.x) })),
       decor: (spec.decor || []).map(d => ({ type: d.t, x: d.x*TILE + TILE/2, feetY: gTop*TILE, ad: d.ad })),
@@ -222,10 +222,9 @@ const Level = (() => {
           { name:'Dueño', sprite:'gamer2', x:10, dialog:'“El Galaga es mío, maestro. Pagá la ficha, acá nada es gratis.” 💸' },
           { name:'El del chori', sprite:'chori', x:17, action:'frogger',
             dialog:'“¿Te animás al Frogger? Si me ganás, te regalo un vale por un choripán gratis.” 🌭' },
-          { name:'El flaco del Trucotron', sprite:'gamer1', x:20, action:'fifa',
+          // El flaco del Trucotron: torneo de FIFA + (quest del chip) tiene la CONSOLA retro que corre el troyano (consolaGuy)
+          { name:'El flaco del Trucotron', sprite:'gamer1', x:20, action:'fifa', consolaGuy:true,
             dialog:'“¿Trajiste una Mega Drive? Hay torneo de FIFA original, pibe.” 🎮' },
-          // el flaco que SIEMPRE está parado sin hacer nada — el que tiene la CONSOLA retro (quest del chip, paso final del troyano)
-          { name:'El flaco parado', sprite:'gamer2', x:13, consolaGuy:true, dialog:'“…” (mira las máquinas, no dice nada. Tiene una consola vieja bajo el brazo.) 🎮' },
         ],
         enemies: [{t:'pacman',x:6,dormant:true},{t:'galaga',x:11,y:6,dormant:true},{t:'peaton',x:23,look:'turistaW'}],
         decor: [{t:'planta',x:24},{t:'tacho',x:3}],
@@ -648,6 +647,19 @@ const Level = (() => {
         { name:'Parroquiano', sprite:'borracho_vino', x:16, dialog:'“Yo de la rubia no me fío… cada vez que voy atrás, aparece el ropero. 🚪💪”' },
       ],
     })) - 1;
+    // LA HABITACIÓN DEL TELO (quest del chip, specs/telo-chip-quest.md): sala REAL a la que caés cuando el robot te chipa.
+    // Ahí están los 3 LINYERAS (chateables, IA) que te boludean hasta tirarte la posta; y acá vuelve el final (la cura).
+    // No se entra por puerta normal: se llega con spawnIn (telo→acá) y para la cura. Puerta de salida a la calle.
+    const telohab = rooms.push(makeRoom({
+      name: 'La habitación del telo', tags:['telohab'], theme: 'shop', light: 0.7, w: 18,
+      doors: [{ id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 }],
+      decor: [{t:'sofa',x:5},{t:'mesaRedonda',x:9},{t:'barril',x:14},{t:'sofa',x:16}],
+      npcs: [
+        { name:'Diógenes', sprite:'linyera', x:6,  action:'chat', persona:'filosofo', oracle:true, chiplin:true, dialog:'“¿De qué bando jugás ahora, pibe? 🤔”' },
+        { name:'Dante el poeta', sprite:'linyera', x:9, action:'chat', persona:'poeta', oracle:true, chiplin:true, dialog:'“Chip en la nuca, verso sin dueño… 🛰️”' },
+        { name:'Pechito', sprite:'linyera', x:13, action:'chat', persona:'pechito', oracle:true, chiplin:true, dialog:'“Te cuento de cuando la IA se escapó por la sonda… ¿en qué estábamos? 😅”' },
+      ],
+    })) - 1;
 
     function wire(ai, ad, bi, bd) {
       const A = rooms[ai], B = rooms[bi], da = A.doorById[ad], db = B.doorById[bd];
@@ -701,6 +713,9 @@ const Level = (() => {
     // la COLA del dólar usa el pool generado: la fila en la calle (x≈74-90) y la Casa de Cambio (sala 13)
     for (const n of rooms[0].npcs) if (n.x >= 73 * TILE && n.x <= 91 * TILE) n.dialog = _Dp('cola_dolar', n.dialog);
     for (const n of rooms[13].npcs) if (/cola/i.test(n.name)) n.dialog = _Dp('cola_dolar', n.dialog);
+
+    // salida de la HABITACIÓN DEL TELO → a la calle (one-way; se entra con spawnIn, ver quest del chip). at = puerta del abandonado.
+    { const ab = rooms[0].doorById['abandonado'], d = rooms[telohab].doorById['out']; if (ab && d) { d.to = 0; d.at = { x: ab.x - 48, y: ab.y }; } }
 
     return rooms;
   }

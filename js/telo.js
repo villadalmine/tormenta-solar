@@ -79,20 +79,11 @@ const Telo = (() => {
         const dx = player.x - bear.x, dy = player.y - bear.y, d = Math.hypot(dx, dy) || 1, sp = (96 + pt * 6) * dt;
         bear.x += (dx / d) * sp; bear.y += (dy / d) * sp;
         if (pt > 0.4 && nearTile(exit, 0.9)) { phase = 'result'; pt = 0; escaped = true; bear.on = false; Sfx.win && Sfx.win(); }   // llegaste a la PUERTA → ESCAPASTE (margen 0.4s para no escapar en el salto)
-        else if (d < 20 || pt > 11) { phase = 'chipped'; pt = 0; chipped = true; bear.on = false; Sfx.hurt && Sfx.hurt(); setMsg(T('g.telo.chipStay'), 10); }  // te atrapó → te CHIPEA, el robot se VA y quedás en el cuarto
+        else if (d < 20 || pt > 11) { phase = 'result'; pt = 0; chipped = true; bear.on = false; Sfx.hurt && Sfx.hurt(); }            // te atrapó → te CHIPEA (el robot se va; al salir caés a la habitación con los linyeras)
       } else if (phase === 'result') {
-        // PANTALLA DE RESULTADO (solo ESCAPASTE): banner grande antes de salir al bar
-        prompt = '';
-        if (pt > 2.4) { done = true; exitTo = 'back'; }
-      } else if (phase === 'chipped') {
-        // CHIPEADO: el robot se fue, quedás en la habitación. Explorás y buscás el CELU en la mesita (E).
-        const atPhone = nearTile(mesita, 1.5);
-        prompt = atPhone ? T('g.telo.phonePrompt') : T('g.telo.chipExplore');
-        if (atPhone && pressed) { phase = 'phonecall'; pt = 0; Sfx.pickup && Sfx.pickup(); }
-      } else if (phase === 'phonecall') {
-        // usaste el celu → llamás a los linyeras (texto ARRIBA, grande, sin apuro). Seguís con E tras leer, o auto a los 14s.
+        // PANTALLA DE RESULTADO grande (escapaste / te chiparon): se lee SIEMPRE antes de salir. Chipeado → game.js te lleva a la habitación.
         prompt = pt > 1.5 ? T('g.telo.contPrompt') : '';
-        if ((pt > 1.5 && pressed) || pt > 14) { done = true; exitTo = 'back'; }
+        if ((pt > 1.5 && pressed) || pt > (chipped ? 6 : 3)) { done = true; exitTo = 'back'; }
       }
     }
 
@@ -212,27 +203,6 @@ const Telo = (() => {
         ctx2.fillStyle = '#fff'; ctx2.font = 'bold 13px monospace'; ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
         ctx2.fillText(T('g.telo.robotBanner'), VW / 2, 43); ctx2.textBaseline = 'alphabetic';
       }
-      // CHIPEADO (explorás): cartel guía arriba + el celu brillando en la mesita
-      if (phase === 'chipped') {
-        ctx2.fillStyle = 'rgba(40,90,60,0.85)'; ctx2.fillRect(0, 30, VW, 26);
-        ctx2.fillStyle = '#cfeede'; ctx2.font = 'bold 12px monospace'; ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
-        ctx2.fillText(T('g.telo.chipBanner'), VW / 2, 43); ctx2.textBaseline = 'alphabetic';
-        const phx = ox + (mesita.x + 0.5) * CS, phy = oy + (mesita.y - 0.1) * CS, gl = 0.5 + 0.5 * Math.abs(Math.sin(t * 5));
-        ctx2.save(); ctx2.shadowBlur = 10 * gl; ctx2.shadowColor = '#5ad6ff'; ctx2.font = '16px serif'; ctx2.textAlign = 'center'; ctx2.fillStyle = '#fff';
-        ctx2.fillText('📱', phx, phy + 5); ctx2.restore();
-      }
-      // LLAMADA al celu: el texto de los linyeras ARRIBA, grande y legible (panel oscuro), sin apuro
-      if (phase === 'phonecall') {
-        ctx2.fillStyle = 'rgba(0,0,0,0.86)'; ctx2.fillRect(0, 30, VW, VH - 30);
-        ctx2.textAlign = 'center'; ctx2.textBaseline = 'top';
-        ctx2.fillStyle = '#5ad6ff'; ctx2.font = 'bold 15px monospace'; ctx2.fillText('📱 ' + T('g.telo.phoneBanner'), VW / 2, 44);
-        ctx2.fillStyle = '#dff3d0'; ctx2.font = '14px monospace';
-        const txt = T('g.telo.phoneCall'), words = txt.split(' '), lines = []; let cur = '';
-        for (const w of words) { const cand = cur ? cur + ' ' + w : w; if ((ctx2.measureText(cand).width || 0) > VW - 70 && cur) { lines.push(cur); cur = w; } else cur = cand; }
-        if (cur) lines.push(cur);
-        lines.forEach((ln, i) => ctx2.fillText(ln, VW / 2, 74 + i * 22));
-        ctx2.textBaseline = 'alphabetic';
-      }
       // PANTALLA DE RESULTADO grande (escapaste / te chiparon): centrada, imposible de no leer
       if (phase === 'result') {
         ctx2.fillStyle = 'rgba(0,0,0,0.78)'; ctx2.fillRect(0, 0, VW, VH);
@@ -244,6 +214,7 @@ const Telo = (() => {
         for (const w of words) { const cand = cur ? cur + ' ' + w : w; if ((ctx2.measureText(cand).width || 0) > VW - 80 && cur) { lines.push(cur); cur = w; } else cur = cand; }
         if (cur) lines.push(cur);
         lines.forEach((ln, i) => ctx2.fillText(ln, VW / 2, VH / 2 + 8 + i * 20));
+        if (pt > 1.5) { ctx2.fillStyle = col; ctx2.font = 'bold 13px monospace'; ctx2.fillText(T('g.telo.contPrompt'), VW / 2, VH - 28); }
         ctx2.textBaseline = 'alphabetic';
       }
       // mensaje

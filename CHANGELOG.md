@@ -56,6 +56,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v226] — 2026-06-28 — 🤖🛸 Quest del chip, rediseño: la habitación del telo + chat con los 3 linyeras + el cierre del sol
+
+Rediseño del flujo del chip según tu visión. **Ahora al chiparte caés a una SALA REAL nueva, "La habitación del telo"**
+(ya no aparecés en el cine), donde están los **3 LINYERAS chateables** (IA: Diógenes/Dante/Pechito). Hablás con **cada
+uno** (chat) y, cuando hablaste con los tres, te tiran la posta → **pasás a controlar al pibe de Garbarino**. La cadena:
+Garbarino → Maxi+Marcos (troyano) → los 2 jubilados **te siguen** al arcade → **El flaco del Trucotron** te da la
+**consola**. **El cierre (tu gag):** le das la consola a **cualquier linyera**, el juego **salta a la habitación** (sos
+el Carpo de nuevo), pero vos —chipeado— le decís que estás **programando que estalle el sol** (efecto universal, las
+galaxias cayendo); el linyera te **rescata metiéndote la consola a la fuerza** → BOOM, te dormís, te despertás con **la
+peor resaca** sintiendo que podés resolver todo… y a los segundos no sabés ni la tabla del 2. Sin chip. **FIX:** `makeRoom`
+preserva los flags custom (`chiplin`/`consolaGuy`). 48 salas. Cache **v226**.
+
+---
+
 ## [v225] — 2026-06-28 — 🤖🎮 Quest del chip: los 3 linyeras, los jubilados que te siguen, y FIX clave (no agarraban)
 
 Gran pasada de la quest del chip con tu feedback. **FIX clave:** los jubilados (y cualquier NPC con flag custom)

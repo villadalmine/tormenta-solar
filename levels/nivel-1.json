@@ -1562,29 +1562,15 @@
           "x": 20,
           "name": "El flaco del Trucotron",
           "interact": {
-            "action": "fifa"
+            "action": "fifa",
+            "consolaGuy": true
           },
           "dialogue": {
             "text": "“¿Trajiste una Mega Drive? Hay torneo de FIFA original, pibe.” 🎮"
           }
         },
         {
-          "id": "arcade-de-lavalle/npc4",
-          "tipo": "npc",
-          "render": {
-            "sprite": "gamer2"
-          },
-          "x": 13,
-          "name": "El flaco parado",
-          "interact": {
-            "consolaGuy": true
-          },
-          "dialogue": {
-            "text": "“…” (mira las máquinas, no dice nada. Tiene una consola vieja bajo el brazo.) 🎮"
-          }
-        },
-        {
-          "id": "arcade-de-lavalle/decor5",
+          "id": "arcade-de-lavalle/decor4",
           "tipo": "decor",
           "render": {
             "type": "planta"
@@ -1592,7 +1578,7 @@
           "x": 24
         },
         {
-          "id": "arcade-de-lavalle/decor6",
+          "id": "arcade-de-lavalle/decor5",
           "tipo": "decor",
           "render": {
             "type": "tacho"
@@ -1600,7 +1586,7 @@
           "x": 3
         },
         {
-          "id": "arcade-de-lavalle/machine7",
+          "id": "arcade-de-lavalle/machine6",
           "tipo": "machine",
           "render": {
             "game": "pacman"
@@ -1612,7 +1598,7 @@
           "name": "PAC-MAN"
         },
         {
-          "id": "arcade-de-lavalle/machine8",
+          "id": "arcade-de-lavalle/machine7",
           "tipo": "machine",
           "render": {
             "game": "galaga"
@@ -1624,7 +1610,7 @@
           "name": "GALAGA"
         },
         {
-          "id": "arcade-de-lavalle/machine9",
+          "id": "arcade-de-lavalle/machine8",
           "tipo": "machine",
           "render": {
             "game": "frogger"
@@ -1636,7 +1622,7 @@
           "name": "FROGGER"
         },
         {
-          "id": "arcade-de-lavalle/machine10",
+          "id": "arcade-de-lavalle/machine9",
           "tipo": "machine",
           "render": {
             "game": "trucotron"
@@ -1648,7 +1634,7 @@
           "name": "TRUCOTRON"
         },
         {
-          "id": "arcade-de-lavalle/pickup11",
+          "id": "arcade-de-lavalle/pickup10",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -1657,7 +1643,7 @@
           "y": 9
         },
         {
-          "id": "arcade-de-lavalle/pickup12",
+          "id": "arcade-de-lavalle/pickup11",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -1666,7 +1652,7 @@
           "x": 24
         },
         {
-          "id": "arcade-de-lavalle/enemy13",
+          "id": "arcade-de-lavalle/enemy12",
           "tipo": "enemy",
           "combat": {
             "type": "pacman",
@@ -1675,7 +1661,7 @@
           "x": 6
         },
         {
-          "id": "arcade-de-lavalle/enemy14",
+          "id": "arcade-de-lavalle/enemy13",
           "tipo": "enemy",
           "combat": {
             "type": "galaga",
@@ -1685,7 +1671,7 @@
           "y": 6
         },
         {
-          "id": "arcade-de-lavalle/enemy15",
+          "id": "arcade-de-lavalle/enemy14",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -9054,6 +9040,133 @@
           },
           "x": 20,
           "ad": {}
+        }
+      ]
+    },
+    {
+      "id": "la-habitacion-del-telo",
+      "nombre": "La habitación del telo",
+      "theme": "shop",
+      "w": 18,
+      "tags": [
+        "telohab"
+      ],
+      "light": 0.7,
+      "entities": [
+        {
+          "id": "la-habitacion-del-telo/door-out",
+          "tipo": "door",
+          "render": {
+            "type": "exit"
+          },
+          "x": 2,
+          "label": "salir a la calle",
+          "inward": 1,
+          "link": {
+            "to": "florida-y-lavalle",
+            "at": {
+              "x": 99.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "la-habitacion-del-telo/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "linyera"
+          },
+          "x": 6,
+          "name": "Diógenes",
+          "interact": {
+            "action": "chat",
+            "persona": "filosofo",
+            "oracle": true,
+            "chiplin": true
+          },
+          "fiche": "filosofo",
+          "comportamiento": {
+            "tormenta": "post-tormenta lo ve como la prueba de que tenía razón: la ciudad por fin se liberó del sistema."
+          },
+          "dialogue": {
+            "text": "“¿De qué bando jugás ahora, pibe? 🤔”"
+          }
+        },
+        {
+          "id": "la-habitacion-del-telo/npc1",
+          "tipo": "npc",
+          "render": {
+            "sprite": "linyera"
+          },
+          "x": 9,
+          "name": "Dante el poeta",
+          "interact": {
+            "action": "chat",
+            "persona": "poeta",
+            "oracle": true,
+            "chiplin": true
+          },
+          "fiche": "poeta",
+          "comportamiento": {
+            "tormenta": "post-tormenta le sale **poesía apocalíptica** del caos; el apagón es su mejor musa."
+          },
+          "dialogue": {
+            "text": "“Chip en la nuca, verso sin dueño… 🛰️”"
+          }
+        },
+        {
+          "id": "la-habitacion-del-telo/npc2",
+          "tipo": "npc",
+          "render": {
+            "sprite": "linyera"
+          },
+          "x": 13,
+          "name": "Pechito",
+          "interact": {
+            "action": "chat",
+            "persona": "pechito",
+            "oracle": true,
+            "chiplin": true
+          },
+          "fiche": "pechito",
+          "comportamiento": {
+            "tormenta": "post-tormenta sigue tranqui, le da charla a todos en el quilombo; el caos no le saca la calidez."
+          },
+          "dialogue": {
+            "text": "“Te cuento de cuando la IA se escapó por la sonda… ¿en qué estábamos? 😅”"
+          }
+        },
+        {
+          "id": "la-habitacion-del-telo/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 5
+        },
+        {
+          "id": "la-habitacion-del-telo/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "mesaRedonda"
+          },
+          "x": 9
+        },
+        {
+          "id": "la-habitacion-del-telo/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "barril"
+          },
+          "x": 14
+        },
+        {
+          "id": "la-habitacion-del-telo/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "sofa"
+          },
+          "x": 16
         }
       ]
     }
