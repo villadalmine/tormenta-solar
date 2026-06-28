@@ -7,14 +7,18 @@
 1. **Telo** (sub-modo): rubia→jacuzzi→cama→robot. **Escapás** (puerta marcada) → al bar. **Te atrapa** → caés a…
 2. **`La habitación del telo`** (sala REAL nueva, tag `telohab`, se entra con `spawnIn`): están los **3 LINYERAS
    chateables** (IA, personas filosofo/poeta/pechito, flag `chiplin`). Hablás con **cada uno** (`chipLinNote` en openChat);
-   al hablar con los 3 (`chipLinMaybePosta` en closeChat) → **posta** → `playingAs='garbarino'`, `chipStep='garbarino'`.
-   Salís por la puerta a la calle.
-3. **`garbarino`** (vendedor de Garbarino, sala 11) → confirma el cambio de PJ → `troyano`.
-4. **`troyano`** (Maxi sala 1 + Marcos sala 3, ambos) → `consola`.
-5. **`consola`** (un jubilado del cine Consolas) → los **2 jubilados te SIGUEN** (companions) → `consola2`.
-6. **`consola2`** (**El flaco del Trucotron**, arcade sala 4, flag `consolaGuy`) → te da la **consola**; jubilados se van
+   al hablar con los 3 (`chipLinMaybePosta` en closeChat) → **posta** → **CORTE DE ESCENA** (`chipBecomeGarbarino`, v230):
+   `playingAs='garbarino'`, **`spawnIn` el edificio de Garbarino**, el NPC vendedor se **oculta** (`invisible=true`, *ahora
+   sos vos*) y arrancás directo en `chipStep='troyano'`. El **Carpo queda dibujado acostado en la cama** del telo
+   (`telohab.carpoInBed=true` → hero idle rotado + 💤🤖 sobre el catre). **No hay paso `garbarino` intermedio** (lo resuelve
+   la posta): cambia sala+sprite+música = la transformación es inequívoca. El sprite del jugador pasa a `Art.npc.vendedor`+💼
+   vía `player.asGarbarino` (player.js draw).
+3. **`troyano`** (Maxi sala 1 + Marcos sala 3, ambos) → `consola`.
+4. **`consola`** (un jubilado del cine Consolas) → los **2 jubilados te SIGUEN** (companions) → `consola2`.
+5. **`consola2`** (**El flaco del Trucotron**, arcade sala 4, flag `consolaGuy`) → te da la **consola**; jubilados se van
    rezongando → `cure`.
-7. **`cure`** (cualquier **linyera/oracle**) → `cureChip`: el juego **salta a `telohab`** (sos el Carpo); vos —chipeado—
+6. **`cure`** (cualquier **linyera/oracle**) → `cureChip`: el juego **salta a `telohab`** (sos el Carpo, `carpoInBed` se
+   limpia); vos —chipeado—
    querés **estallar el sol**, el linyera te **mete la consola a la fuerza** → resaca → **SIN chip**. (`useConsola` redirige:
    no te curás solo.)
 **Lección reforzada:** todo flag custom de NPC (`chiplin`, `consolaGuy`, `jubilado`) va a `makeRoom` + `gen-level` + `mundo`
