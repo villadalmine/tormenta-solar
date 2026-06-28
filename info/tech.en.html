@@ -301,6 +301,35 @@
     </div>
 
     <div class="layer">
+      <div class="n">📡</div>
+      <div class="body">
+        <h3>Real-time multiplayer — with no authority server</h3>
+        <p>The cinema has a <b>"LIVE"</b> floor: a screen showing the <b>living world</b> (how many are playing now, in
+        which area, a ticker of anonymous milestones). And above it a <b>top-down bodegón</b> where you <b>actually run
+        into other players</b>, seated at the tables, with their <b>emotes</b> and <b>preset phrases</b>. The interesting
+        design bit: the server is a <b>relay with no authority</b> (each client posts its state over <b>SSE</b> and
+        receives everyone else's; nobody is "in charge"), it lives in the <b>same proxy</b> (dependency-free Node,
+        in-memory), and because public chat is <b>preset + emotes</b> (no free text) <b>no moderation is needed</b>. If
+        the network drops, the bodegón is a bar you can play solo and <b>nobody notices</b> the online was missing.</p>
+        <div class="tagrow"><span>SSE relay</span><span>no authority</span><span>co-presence</span><span>preset = no moderation</span><span>degrades by itself</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🤖</div>
+      <div class="body">
+        <h3>Stories and quests as DATA — a graph, not a hardcoded script</h3>
+        <p>Quests aren't a pile of <code>if</code>s: they're a <b>graph of steps (data)</b> with a generic runtime that
+        advances on its own based on which NPC you talk to (by role, not by a fixed name). So a whole quest —say,
+        getting out a <b>chip</b> a robot planted in you: you switch character, get a trojan, buy a retro console and use
+        it— is described as <b>data</b> and plugs into the engine without touching the loop's code. The <b>hobos know
+        everything</b> and drop you <b>hints</b> about the step you're on (they don't spell it out), and milestones split
+        into <b>main</b> (the chain) and <b>side</b> (the standalone ones).</p>
+        <div class="tagrow"><span>quest = graph</span><span>data-driven</span><span>hints, not spoilers</span><span>everything is an object</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
       <div class="n">🛡️</div>
       <div class="body">
         <h3>If the GPU dies, the game doesn't — static mode instantly</h3>

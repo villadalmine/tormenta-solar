@@ -300,6 +300,35 @@
     </div>
 
     <div class="layer">
+      <div class="n">📡</div>
+      <div class="body">
+        <h3>Multijugador en tiempo real — sin servidor de autoridad</h3>
+        <p>El cine tiene un piso <b>"EN VIVO"</b>: una pantalla que muestra el <b>mundo vivo</b> (cuántos juegan ahora,
+        en qué zona, un ticker de hitos anónimos). Y arriba un <b>bodegón vista de arriba</b> donde <b>te cruzás con
+        otros jugadores de verdad</b>, sentados a las mesas, con sus <b>emotes</b> y <b>frases preset</b>. Lo interesante
+        del diseño: el server es un <b>relay sin autoridad</b> (cada cliente postea su estado por <b>SSE</b> y recibe el
+        de los demás; nadie "manda"), vive en el <b>mismo proxy</b> (Node sin dependencias, in-memory), y como el chat
+        público es <b>preset + emotes</b> (no texto libre) <b>no hace falta moderación</b>. Si se cae la red, el bodegón
+        es un bar jugable solo y <b>nadie nota</b> que faltaba el online.</p>
+        <div class="tagrow"><span>SSE relay</span><span>sin autoridad</span><span>co-presencia</span><span>preset = sin moderación</span><span>degrada solo</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🤖</div>
+      <div class="body">
+        <h3>Historias y quests como DATA — un grafo, no un guion hardcodeado</h3>
+        <p>Las misiones no son un montón de <code>if</code>: son un <b>grafo de pasos (data)</b> con un runtime genérico
+        que avanza solo según con qué NPC hablás (por rol, no por nombre fijo). Así una quest entera —por ejemplo
+        sacarte un <b>chip</b> que te puso un robot: cambiás de personaje, conseguís un troyano, comprás una consola
+        retro y la usás— se describe como <b>datos</b> y se engancha al motor sin tocar el código del loop. Los
+        <b>linyeras saben todo</b> y te van dando <b>pistas</b> del paso en el que estás (no te lo tiran masticado), y
+        los hitos se separan en <b>principales</b> (la cadena) y <b>secundarias</b> (las sueltas).</p>
+        <div class="tagrow"><span>quest = grafo</span><span>data-driven</span><span>pistas, no spoilers</span><span>todo es un objeto</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
       <div class="n">🛡️</div>
       <div class="body">
         <h3>Si la GPU se cae, no se cae el juego — modo estático al toque</h3>
