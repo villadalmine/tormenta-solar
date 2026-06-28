@@ -56,6 +56,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v213] — 2026-06-28 — 🔒 BODEGÓN F2b.2: CHAT PRIVADO 1-a-1 (te acercás a alguien y apretás E)
+
+Tal como lo pediste: en el bodegón, además de hablarle a **todos** (frases preset) ahora podés **acercarte a otro
+jugador y apretar E** → se abre un **chat privado** entre vos y esa persona (panel de chat, **solo lo ven ustedes dos**).
+El mensaje va por el salón (`Salon.whisper`) dirigido a ese peer, **no a la IA** y **no en público**. Texto efímero
+(no se guarda), con rate-limit. Si alguien te escribe y no tenés el chat abierto, te avisa ("💬 X te habla en privado").
+Reusa el panel `#chat` en "modo peer" (`peerChat` en game.js; `nearestPeer()` elige al más cercano; `openPeerChat`/
+`peerChatSend`/`onPeerWhisper`). Cliente `Salon.whisper/onWhisper` + relay dirigido en el proxy (infra-34). Cache **v213**.
+*(Falta F2b.3: las mesas como puntos de interacción compartida; y F3 = truco PvP.)*
+
+---
+
 ## [v212] — 2026-06-28 — 🍻📡 BODEGÓN F2b: te encontrás con OTROS jugadores EN VIVO (real-time por SSE)
 
 El bodegón ahora es **multijugador real**: al subir te **conectás** (`Salon.join` → stream SSE) y **ves a los otros
@@ -1047,6 +1059,16 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-34] — 2026-06-28 — 🔒 Proxy: chat PRIVADO 1-a-1 del bodegón (`/salon/whisper`, dirigido a un peer)
+
+Sostén del **v213**. El relay del bodegón gana el **mensaje privado dirigido**: `POST /salon/whisper {pid,room,to,msg}`
+→ lo manda **SOLO al stream del destinatario** (no broadcast). Para eso cada sala mantiene `streams: Map<pid,res>`
+(asociado en `/salon/stream`). Texto **efímero** (no se guarda), **rate-limit** ~1.4/s por jugador, cap 200 chars +
+saneo de caracteres de control. El público sigue siendo emotes + frases preset (sin moderación); el privado 1-a-1 es
+acotado (solo a alguien de TU sala-instancia). Probado en aislamiento (6 asserts: privacidad + rate-limit + saneo).
 
 ---
 

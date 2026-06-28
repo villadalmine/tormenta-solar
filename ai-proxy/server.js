@@ -84,7 +84,7 @@ function salonPrune() { const now = Date.now(); for (const [k, v] of SALON) if (
 // BODEGÓN F2b (real-time): sala-instancia -> { peers: Map<pid,estado>, subs: Set<res SSE> }. Matchmaking simple:
 // llena la 1ª sala con lugar (para que la gente SE ENCUENTRE), si no abre otra. Prune de peers viejos (sin pos 20s).
 const BODEGON = new Map(); const BODEGON_CAP = 6, BODEGON_TTL = 20000; let BODEGON_SEQ = 0;
-function bodegonRoom(id) { let r = BODEGON.get(id); if (!r) { r = { peers: new Map(), subs: new Set() }; BODEGON.set(id, r); } return r; }
+function bodegonRoom(id) { let r = BODEGON.get(id); if (!r) { r = { peers: new Map(), subs: new Set(), streams: new Map() }; BODEGON.set(id, r); } return r; }
 function bodegonJoin() { bodegonPrune(); for (const [id, r] of BODEGON) if (r.peers.size < BODEGON_CAP) return id; const id = 'bodegon-' + (++BODEGON_SEQ); bodegonRoom(id); return id; }
 function bodegonBroadcast(r, ev, data) { const line = 'event: ' + ev + '\ndata: ' + JSON.stringify(data) + '\n\n'; for (const s of r.subs) { try { s.write(line); } catch (e) { r.subs.delete(s); } } }
 function bodegonLeave(roomId, pid) { const r = BODEGON.get(roomId); if (r && r.peers.delete(pid)) bodegonBroadcast(r, 'peer-leave', { pid }); }
@@ -487,9 +487,24 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
     res.write('retry: 3000\n\n');
     for (const p of r.peers.values()) if (p.pid !== pid) res.write('event: peer-pos\ndata: ' + JSON.stringify({ pid: p.pid, nick: p.nick, avatar: p.avatar, x: p.x, vx: p.vx }) + '\n\n');
-    r.subs.add(res);
+    r.subs.add(res); if (pid) r.streams.set(pid, res);   // streams: pid -> res, para DIRIGIR mensajes privados (whisper)
     const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch (e) {} }, 15000);
-    req.on('close', () => { clearInterval(ping); r.subs.delete(res); bodegonLeave(room, pid); });
+    req.on('close', () => { clearInterval(ping); r.subs.delete(res); if (r.streams.get(pid) === res) r.streams.delete(pid); bodegonLeave(room, pid); });
+    return;
+  }
+  if (req.url === '/salon/whisper' && req.method === 'POST') {                       // chat PRIVADO 1-a-1 (texto libre, efímero, rate-limit)
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 800) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const room = String(d.room || '').slice(0, 24); const to = String(d.to || '').slice(0, 48);
+      const r = BODEGON.get(room); const p = r && r.peers.get(pid);
+      if (p) { const now = Date.now(); if (now - (p.lastWhisper || 0) >= 700) {   // rate-limit ~1.4/s por jugador
+        p.lastWhisper = now; p.ts = now;
+        const msg = String(d.msg || '').replace(/[\x00-\x1f]/g, ' ').slice(0, 200).trim();
+        const dst = r.streams.get(to);   // SOLO al destinatario (privado)
+        if (msg && dst) { try { dst.write('event: whisper\ndata: ' + JSON.stringify({ from: pid, fromNick: p.nick, msg }) + '\n\n'); } catch (e) {} }
+      } }
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
   }
   if (req.url === '/salon/pos' && req.method === 'POST') {                           // latido + posición (cliente ~6/s), retransmite

@@ -4,7 +4,7 @@
 // El bodegón real-time (F2) irá por SSE a un salon-server dedicado; esto es lo barato de la F1.
 const Salon = (() => {
   const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';   // mismo proxy que ai.js/propaganda.js (F1 prototipo)
-  const off = { beat() {}, live() {}, enabled: false, join(n, a, cb) { cb && cb(null); }, leave() {}, pos() {}, say() {}, onPeers() {}, getPeers() { return new Map(); }, inBodegon() { return false; } };
+  const off = { beat() {}, live() {}, enabled: false, join(n, a, cb) { cb && cb(null); }, leave() {}, pos() {}, say() {}, whisper() {}, onWhisper() {}, onPeers() {}, getPeers() { return new Map(); }, inBodegon() { return false; } };
   if (typeof fetch !== 'function') return off;                    // headless/e2e → no-op
 
   // id por pestaña, COMPARTIDO con presence.js (sobrevive recargas dentro de la pestaña)
@@ -28,7 +28,7 @@ const Salon = (() => {
 
   // ===== F2b — BODEGÓN real-time (specs/multijugador.md §3.2). join → SSE stream → ves a los otros moverse +
   // emotes + frases preset. Capa aditiva: sin EventSource/red, todo es no-op y el bodegón queda single-player. =====
-  let myRoom = null, es = null, lastPos = 0; const peers = new Map(); let peersCb = null;
+  let myRoom = null, es = null, lastPos = 0; const peers = new Map(); let peersCb = null, whisperCb = null;
   function notify() { try { peersCb && peersCb(peers); } catch (e) {} }
   function openStream() {
     if (typeof EventSource !== 'function' || !myRoom) return;
@@ -39,6 +39,7 @@ const Salon = (() => {
       p.x = d.x; if (d.vx != null) p.vx = d.vx; if (d.nick != null) p.nick = d.nick; if (d.avatar != null) p.avatar = d.avatar;
       if (d.emote) { p.emote = d.emote; p.emoteT = Date.now(); } if (p.rx == null) p.rx = d.x; peers.set(d.pid, p); notify(); } catch (x) {} });
     es.addEventListener('say', e => { try { const d = JSON.parse(e.data); const p = peers.get(d.pid); if (p) { p.say = d.i; p.sayT = Date.now(); notify(); } } catch (x) {} });
+    es.addEventListener('whisper', e => { try { const d = JSON.parse(e.data); whisperCb && whisperCb(d); } catch (x) {} });   // chat privado 1-a-1 entrante
     es.onerror = () => {};   // reconexión la maneja el propio EventSource (retry)
   }
   function join(nick, avatar, cb) {
@@ -62,10 +63,12 @@ const Salon = (() => {
     if (myRoom) { const rm = myRoom; myRoom = null; peers.clear();
       try { fetch(PROXY + '/salon/leave', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, room: rm }), keepalive: true }).catch(() => {}); } catch (e) {} }
   }
+  function whisper(to, msg) { if (!myRoom || !to) return; try { fetch(PROXY + '/salon/whisper', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, room: myRoom, to, msg: String(msg || '').slice(0, 200) }) }).catch(() => {}); } catch (e) {} }
+  function onWhisper(cb) { whisperCb = cb; }
   function onPeers(cb) { peersCb = cb; }
   function getPeers() { return peers; }
   function inBodegon() { return !!myRoom; }
 
-  return { beat, live, enabled: true, pid, join, leave, pos, say, onPeers, getPeers, inBodegon };
+  return { beat, live, enabled: true, pid, join, leave, pos, say, whisper, onWhisper, onPeers, getPeers, inBodegon };
 })();
 if (typeof window !== 'undefined') window.Salon = Salon;

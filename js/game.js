@@ -44,6 +44,7 @@
   const elChatLog = document.getElementById('chat-log');
   const elChatInput = document.getElementById('chat-input');
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
+  let peerChat = null;   // F2b.2: si está abierto el chat PRIVADO con otro jugador del bodegón → { pid, nick }
   let newsQuest = null;   // F2 cine: {topic, answer} cuando el linyera te mandó a buscar noticias (efímero, no se guarda)
   let mundialQuest = null;   // §9 quest de los hinchas: {equipo, resultado, shown} — efímero, se resetea al salir del cine
   // QUESTS como DATO (migración v2, F1): registro DECLARATIVO — premios/penalidades/chance/mensajes son data, no
@@ -365,6 +366,7 @@
   }
   function interact() {
     if (state !== 'playing' || transCd > 0) return;
+    if (bodegonOn) { const pe = nearestPeer(); if (pe) { openPeerChat(pe); return; } }   // F2b.2: en el bodegón, E cerca de otro jugador = chat privado
     const it = nearestInteract();
     if (!it) return;
     if (it.kind === 'door') {
@@ -854,10 +856,32 @@
     setTimeout(() => elChatInput && elChatInput.focus(), 30);
   }
   function closeChat() {
-    elChat.classList.add('hidden'); elChatInput.value = ''; chatNpc = null;
+    elChat.classList.add('hidden'); elChatInput.value = ''; chatNpc = null; peerChat = null;
     if (state === 'chat') state = 'playing';
   }
+  // F2b.2 — CHAT PRIVADO 1-a-1 con otro jugador del bodegón (te acercás + E). Reusa el panel #chat pero el mensaje
+  // va por el salón (Salon.whisper) SOLO al destinatario, no a la IA. Texto efímero, sin historial guardado.
+  function openPeerChat(peer) {
+    if (typeof Salon === 'undefined' || !Salon.whisper) return;
+    peerChat = { pid: peer.pid, nick: peer.nick || T('g.bodegon.someone') }; chatNpc = null; chatBusy = false;
+    elChatTitle.textContent = '🔒 ' + peerChat.nick;
+    elChatLog.innerHTML = ''; chatLine('sys', T('g.bodegon.privAwith', { nick: peerChat.nick }));
+    state = 'chat'; elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
+    setTimeout(() => elChatInput && elChatInput.focus(), 30);
+  }
+  function peerChatSend() {
+    const msg = (elChatInput.value || '').trim(); if (!msg || !peerChat) return;
+    elChatInput.value = ''; chatLine('you', msg);
+    if (typeof Salon !== 'undefined' && Salon.whisper) Salon.whisper(peerChat.pid, msg);
+  }
+  // whisper ENTRANTE (otro jugador te habló en privado): si tenés el chat abierto con él → lo agregás; si no, aviso.
+  function onPeerWhisper(d) {
+    if (!d || !d.msg) return;
+    if (peerChat && peerChat.pid === d.from) { chatLine('npc', d.msg); }
+    else setMsg(T('g.bodegon.privFrom', { nick: d.fromNick || T('g.bodegon.someone') }), '#aef0c0', 5000);
+  }
   async function chatSend() {
+    if (peerChat) return peerChatSend();   // F2b.2: chat PRIVADO con otro jugador → va por el salón, no a la IA
     if (chatBusy || !chatNpc) return;
     if (typeof AI !== 'undefined' && AI.setStormed) AI.setStormed(stormed);   // pool pre/post según la tormenta
 
@@ -1534,10 +1558,19 @@
   let bodegonOn = false, myEmote = 0, myEmoteT = 0, mySay = -1, mySayT = 0;
   function syncBodegon(r) {
     const want = hasTag(r, 'bodegon');
-    if (want && !bodegonOn) { bodegonOn = true; if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join('', 'carpo', () => {}); }
+    if (want && !bodegonOn) { bodegonOn = true; if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join(playerNick(), 'carpo', () => {}); }
     else if (!want && bodegonOn) { bodegonOn = false; myEmote = 0; mySay = -1; if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave(); }
   }
   function myTileX() { return Math.round(((player.x + player.w / 2) / TILE) * 10) / 10; }
+  function playerNick() { const id = (typeof Salon !== 'undefined' && Salon.pid) ? Salon.pid : 'xxxx'; return 'Carpo·' + String(id).slice(-3); }
+  // el peer MÁS CERCANO (dentro de ~1.3 tiles) para abrir chat privado con E
+  function nearestPeer() {
+    if (!bodegonOn || typeof Salon === 'undefined' || !Salon.getPeers) return null;
+    const peers = Salon.getPeers(); if (!peers || !peers.size) return null;
+    const px = (player.x + player.w / 2) / TILE; let best = null, bd = 1.3;
+    for (const p of peers.values()) { const d = Math.abs((p.rx != null ? p.rx : p.x) - px); if (d < bd) { bd = d; best = p; } }
+    return best;
+  }
   function bodegonEmote(i) {   // emote propio + se lo mando a los demás (en el próximo pos)
     if (!bodegonOn) return; myEmote = i; myEmoteT = performance.now();
     if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(myTileX(), player.vx, i); Sfx.pickup();
@@ -2402,6 +2435,7 @@
   { const b = document.getElementById('cueveroClose'); if (b) b.addEventListener('click', closeCuevero); }
   { const b = document.getElementById('vecinoClose'); if (b) b.addEventListener('click', closeVecino); }
   { const b = document.getElementById('invClose'); if (b) b.addEventListener('click', closeInv); }
+  if (typeof Salon !== 'undefined' && Salon.onWhisper) Salon.onWhisper(onPeerWhisper);   // F2b.2: recibir chats privados del bodegón
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {

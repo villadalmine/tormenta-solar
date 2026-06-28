@@ -66,8 +66,9 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
 > Cliente `js/salon.js` (`Salon.join/onPeers/getPeers/pos/say/leave/inBodegon`); game.js: `syncBodegon` (join/leave al
 > entrar/salir), `drawBodegonPeers` (interpola + nick + emote + globo), heartbeat de pos en el loop, teclas 1-4 emote /
 > 5-8 frase preset. **Degradación total:** sin red/`EventSource` → bodegón single-player (mozos canned + gag), nadie nota.
-> **FALTA F2b.2:** chat PRIVADO 1-a-1 (§3.2.1, `E` cerca de un peer) + las **mesas como puntos de interacción** (§3.3).
-> Luego **F3** = truco PvP humano (reusa el motor).
+> **✅ F2b.2 HECHO (v213/infra-34):** **chat PRIVADO 1-a-1** (§3.2.1) — `E` cerca de un peer → `#chat` en modo peer →
+> `Salon.whisper` → relay dirigido `/salon/whisper` (solo al destinatario, efímero, rate-limit). **FALTA F2b.3:** las
+> **mesas como puntos de interacción compartida** (§3.3). Luego **F3** = truco PvP humano (reusa el motor).
 
 - Sala nueva `bodegon` (theme nuevo: madera, mesas redondas, mantel, parrilla, vino, fernet). Subís por el ascensor
   del cine. Al entrar → `POST /salon/join` te mete en una **sala-instancia chica (cap ~6)**:
@@ -82,10 +83,15 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
 
 #### 3.2.1 Chat del bodegón — PÚBLICO vs PRIVADO (idea dueño 2026-06-27)
 - **Público:** hablás y sale un **globito para TODOS** los de la sala (mensaje sobre tu cabeza, lo ven todos).
+  ✅ **HECHO (v212):** frases preset (teclas 5-8) → evento `say` broadcast → globo sobre la cabeza del que la tiró.
 - **Privado 1-a-1:** te **acercás a otro jugador y apretás `E`** → se abre un **chat privado** entre vos y ese (panel
   de chat, solo lo ven los dos). Reusa el panel de chat de la IA (`#chat`) pero ruteado por el `salon-server` al peer.
-- *(Recordar §6: empezar con **frases preset + emotes** para el público sin moderación; el privado 1-a-1 con texto
-  libre es más acotado y se modera/rate-limita aparte, fase posterior.)*
+  ✅ **HECHO (v213/infra-34):** `nearestPeer()` (≤1.3 tiles) → `openPeerChat` (reusa `#chat` en "modo peer", `peerChat`
+  en game.js) → `peerChatSend` → `Salon.whisper(to, msg)` → `POST /salon/whisper` → el proxy lo manda **SOLO al stream
+  del destinatario** (`r.streams: Map<pid,res>`). Entrante: `onPeerWhisper` (si el chat está abierto con él lo agrega;
+  si no, aviso `g.bodegon.privFrom`). Texto **efímero** (no se guarda), rate-limit ~1.4/s, cap 200 + saneo de control.
+- *(§6: el público es preset/emotes = **sin moderación**; el privado 1-a-1 es texto libre pero **acotado** —solo a
+  alguien de TU sala-instancia, efímero, rate-limitado—. Moderación/reportes del texto libre = a futuro si se decide.)*
 
 #### 3.2.2 La RUBIA del bodegón y el ROPERO — gag recurrente (idea dueño 2026-06-27)
 - En el bar atiende una **moza rubia explosiva** (NPC canned, no es un jugador): te sirve y **siempre te quiere llevar
@@ -123,8 +129,9 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
    real-time de posiciones.** Máximo wow / mínimo riesgo.
 2. **F2 — BODEGÓN**: **F2a ✅ HECHO (v211)** = la sala bodegón + mozos canned + gag rubia/ropero. **F2b.1 ✅ HECHO
    (v212/infra-33)** = co-presencia real por SSE (salas-instancia + posiciones interpoladas + emotes + frases preset:
-   "subís y te encontrás con otro"). **F2b.2 PENDIENTE** = chat privado 1-a-1 (§3.2.1) + mesas como puntos de
-   interacción (§3.3). (Sin chat libre en lo público → sin moderación, §6.)
+   "subís y te encontrás con otro"). **F2b.2 ✅ chat privado 1-a-1 HECHO (v213/infra-34)** (`E` cerca de un peer →
+   `#chat` ruteado por `/salon/whisper`, dirigido + efímero + rate-limit). **FALTA F2b.3** = mesas como puntos de
+   interacción compartida (§3.3). (Público = preset/emotes → sin moderación, §6.)
 3. **F3 — Co-op real**: **truco PvP** (reusa el motor) + brindis + compartir comida + trueque + 1 quest co-op.
 4. **F4 — Identidad/escala**: nick ligado a `suscripcion` (opcional), más salas, y SI se agrega chat libre →
    moderación/rate-limit/reportes (`seguridad.md`).
