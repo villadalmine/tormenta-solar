@@ -70,6 +70,20 @@ Implementado en `ai-proxy/kaniko-build.yaml` + `web/kaniko-build.yaml`:
 `volumeClaimGC` en `OnWorkflowCompletion` · workspace y registry en `longhorn-nvme` · imágenes de runtime pesadas
 pineadas a un nodo con headroom (no a -01 por inercia; ver `hermes-agent`→`-04` en el repo `infra`).
 
+## 6. Incidente 2026-06-28 — el workflow no marca `Succeeded` a tiempo → "no hay deploy"
+**Síntoma:** un `deploy.sh web` se "colgó": el build de Kaniko **terminó OK** (imagen pusheada al registry) pero el
+**objeto Workflow se quedó en `Running`** ~12 min, así que el `kubectl wait ...=Succeeded` de `deploy.sh` esperaba y el
+**helm/rollout nunca corría → sin deploy**. **Causa raíz:** el **controlador de Argo estaba saturado** — el ns `kaniko`
+es **compartido** y el CI/CD del repo **`online-game`** dejó varios workflows (`cicd-online-game-*`) acumulados (los
+**`Failed` se retienen 1 día** por `secondsAfterFailure: 86400`, igual que los nuestros, para debug). Con ese backlog,
+la **propagación del estado** del workflow se atrasó. El build estuvo bien; lo que falló fue el *status*.
+**Fixes:** (a) **`deploy.sh` endurecido** — si el `wait Succeeded` (ahora 420s) no llega, **cae a chequear el POD del
+build**: si el pod terminó `Succeeded`, sigue (el estado venía atrasado); si no, **aborta con error claro** (nunca un
+deploy silencioso a medias). (b) **Higiene del ns compartido:** los workflows terminados viejos hay que purgarlos
+(`kubectl -n kaniko delete wf <terminados>`); los nuestros (`tormenta-*`) ya se autolimpian (TTL 10min + GC), el churn
+es del CI de `online-game`. **A futuro:** bajar `secondsAfterFailure` del CI de `online-game` (o un `cron` de limpieza de
+workflows terminados), y/o **separar namespaces** por proyecto para que un pipeline no sature el controlador del otro.
+
 ## 4. Mi lectura
 
 - **F1 es el quick-win:** mover los valores a `values-prod.yaml` + `helm upgrade -f` (sin `--reuse-values`)

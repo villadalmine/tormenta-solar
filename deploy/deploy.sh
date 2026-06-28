@@ -52,8 +52,19 @@ sed -i -E "s|($IMG:)[0-9.]+|\1$TAG|g" "$BUILD"
 # 2) build (Kaniko vía Argo, ns kaniko) — clona main, por eso el código tiene que estar pusheado
 echo "  · build (Kaniko)..."
 WF=$(kubectl create -f "$BUILD" -o name | sed 's#.*/##')
-kubectl wait "workflow/$WF" -n kaniko --for=jsonpath='{.status.phase}'=Succeeded --timeout=900s
-echo "  ✓ build $WF OK"
+# Esperamos el Succeeded del WORKFLOW; pero si el controlador de Argo está SATURADO (muchos workflows en el ns kaniko),
+# el estado del objeto puede ATRASARSE aunque el build haya terminado bien → el wait colgaría 15min y "no hay deploy".
+# Por eso: si el wait falla por timeout/estado, caemos a chequear el POD del build (el trabajo REAL). Si el pod terminó
+# OK, seguimos; si no, abortamos con error claro. (Lección del incidente 2026-06-28, ver specs/deploy-pipeline.md.)
+if kubectl wait "workflow/$WF" -n kaniko --for=jsonpath='{.status.phase}'=Succeeded --timeout=420s 2>/dev/null; then
+  echo "  ✓ build $WF OK"
+else
+  echo "  ⚠ el workflow no marcó Succeeded a tiempo (¿controlador saturado?). Chequeo el POD del build..."
+  POD=$(kubectl -n kaniko get pods -l "workflows.argoproj.io/workflow=$WF" -o name 2>/dev/null | head -1)
+  PH=$(kubectl -n kaniko get "$POD" -o jsonpath='{.status.phase}' 2>/dev/null)
+  if [ "$PH" = "Succeeded" ]; then echo "  ✓ el pod del build terminó OK ($PH) — el estado del workflow venía atrasado. Sigo."; \
+  else echo "  ✗ el build NO terminó OK (pod: ${PH:-desconocido}). Abortando (no hay deploy)."; exit 1; fi
+fi
 
 # 3) helm upgrade (SIEMPRE -f values-prod, sin --reuse-values)
 echo "  · helm upgrade..."
