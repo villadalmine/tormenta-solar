@@ -56,6 +56,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v212] — 2026-06-28 — 🍻📡 BODEGÓN F2b: te encontrás con OTROS jugadores EN VIVO (real-time por SSE)
+
+El bodegón ahora es **multijugador real**: al subir te **conectás** (`Salon.join` → stream SSE) y **ves a los otros
+jugadores moverse** en tiempo real (interpolados), cada uno con su **nick**, **emotes** (🍻🤝💃🎸, teclas **1-4**) y
+**frases preset** porteñas (teclas **5-8**: "¿todo bien maestro?", "salú", "tomá que van", "aguante el bodegón"). "Subís
+y te cruzás con alguien." Es un relay **sin autoridad** (cada cliente postea su pos ~6/s y recibe las de los demás), con
+**degradación total**: sin red/`EventSource` el bodegón queda single-player (los mozos canned + el gag de la rubia, v211)
+y **nadie nota que faltaba**. Sin chat de texto libre → emotes + frases preset = **sin moderación** (decisión de diseño).
+`js/salon.js` (cliente F2b) + el relay en el proxy (infra-33). Cache **v212**. *(Falta F2b.2: chat privado 1-a-1 + mesas
+como puntos de interacción; y F3 = truco PvP.)*
+
+---
+
 ## [v211] — 2026-06-28 — 🍻 EL BODEGÓN porteño (9º piso del cine) + el gag de la RUBIA y el ROPERO
 
 Primera parte del **bodegón** del multijugador (F2a, single-player por ahora). Nuevo **9º piso del cine**: un **bodegón
@@ -1034,6 +1047,19 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 - **Sesgo de equipos:** el hincha pregunta con onda — 60% Argentina, 70% equipos jugosos (Brasil/Francia/rivales del
   grupo…), si no, random.
 - Premio: +5 🍬 (sin penalidad: en esta quest el guarda da la verdad, no hay forma de mentir).
+
+---
+
+## [infra-33] — 2026-06-28 — 📡 Proxy → salon-server F2b: el BODEGÓN real-time por SSE (`/salon/join|stream|pos|say|leave`)
+
+Sostén del **v212**. **Decisión de infra:** el `salon-server` del bodegón vive en el **mismo `ai-proxy`** (Node sin deps,
+ya tenía `/salon/beat|live` de la F1, mismo dominio/edge/pipeline), NO en un servicio nuevo ni en `online-game` (que es
+Python/FastAPI, mal fit). Es un **relay SSE SIN autoridad**: solo retransmite entre los de la **misma sala-instancia**
+(cap 6, matchmaking = llena la sala con lugar para que la gente se encuentre). Endpoints: `POST /salon/join` (te asigna
+roomId + snapshot de peers), `GET /salon/stream?room=&pid=` (SSE: `peer-join`/`peer-leave`/`peer-pos`/`say` + ping de
+keep-alive + `X-Accel-Buffering:no`), `POST /salon/pos` (latido + posición, retransmite), `POST /salon/say` (frase
+preset por índice), `POST /salon/leave`. In-memory, efímero, prune de peers viejos (20s) y salas vacías. Sin chat libre
+→ emotes + frases preset (sin moderación). Relay testeado en aislamiento (10 asserts). Proxy bump.
 
 ---
 

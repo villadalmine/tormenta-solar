@@ -58,10 +58,16 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
 ### 3.2 BODEGÓN (F2 — encuentro real-time)
 > **✅ F2a HECHO (v211):** la sala `bodegon` existe (9º piso del cine, `tags:['cine','bodegon']`, theme `shop`, mesas
 > redondas + parrilla + barriles + mozos canned) y el **gag de la rubia y el ropero §3.2.2 está implementado** (NPC
-> `moza` → `handleMoza` en game.js: oferta → 2ª E = sí → flash + `ejectToStreet`). Es el **modo degradado** del bodegón
-> (single-player), que el propio diseño contempla. **FALTA F2b:** el encuentro real-time por SSE (`/salon/join|stream|pos`),
-> que necesita el `salon-server` dedicado — depende de la decisión de infra de §7 (dónde vive). Hasta entonces, el
-> bodegón es un bar canned jugable solo, y "nadie nota que faltaba el online".
+> `moza` → `handleMoza` en game.js: oferta → 2ª E = sí → flash + `ejectToStreet`).
+>
+> **✅ F2b.1 HECHO (v212 / infra-33):** el **encuentro real-time por SSE** funciona. **Decisión de infra (§7) tomada:**
+> el `salon-server` vive en el **mismo `ai-proxy`** (no en `online-game`, que es Python pesado; no en un servicio nuevo).
+> Relay SIN autoridad: `POST /salon/join` (matchmaking, cap 6) + `GET /salon/stream` (SSE) + `POST /salon/pos|say|leave`.
+> Cliente `js/salon.js` (`Salon.join/onPeers/getPeers/pos/say/leave/inBodegon`); game.js: `syncBodegon` (join/leave al
+> entrar/salir), `drawBodegonPeers` (interpola + nick + emote + globo), heartbeat de pos en el loop, teclas 1-4 emote /
+> 5-8 frase preset. **Degradación total:** sin red/`EventSource` → bodegón single-player (mozos canned + gag), nadie nota.
+> **FALTA F2b.2:** chat PRIVADO 1-a-1 (§3.2.1, `E` cerca de un peer) + las **mesas como puntos de interacción** (§3.3).
+> Luego **F3** = truco PvP humano (reusa el motor).
 
 - Sala nueva `bodegon` (theme nuevo: madera, mesas redondas, mantel, parrilla, vino, fernet). Subís por el ascensor
   del cine. Al entrar → `POST /salon/join` te mete en una **sala-instancia chica (cap ~6)**:
@@ -115,9 +121,10 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
 ## 5. Fases (de barato a co-op)
 1. **F1 — CINE EN VIVO** ✅ **HECHO (v205)** (presencia + ticker agregado). Reusa `presence.js` + `/salon/live`. **Cero
    real-time de posiciones.** Máximo wow / mínimo riesgo.
-2. **F2 — BODEGÓN**: **F2a ✅ HECHO (v211)** = la sala bodegón (9º piso) + mozos canned + gag rubia/ropero (modo
-   degradado single-player). **F2b PENDIENTE** = co-presencia real: salas-instancia + posiciones por SSE + emotes +
-   frases preset ("subís y te encontrás con otro"). Necesita el `salon-server` (§7). (Sin chat libre → sin moderación, §6.)
+2. **F2 — BODEGÓN**: **F2a ✅ HECHO (v211)** = la sala bodegón + mozos canned + gag rubia/ropero. **F2b.1 ✅ HECHO
+   (v212/infra-33)** = co-presencia real por SSE (salas-instancia + posiciones interpoladas + emotes + frases preset:
+   "subís y te encontrás con otro"). **F2b.2 PENDIENTE** = chat privado 1-a-1 (§3.2.1) + mesas como puntos de
+   interacción (§3.3). (Sin chat libre en lo público → sin moderación, §6.)
 3. **F3 — Co-op real**: **truco PvP** (reusa el motor) + brindis + compartir comida + trueque + 1 quest co-op.
 4. **F4 — Identidad/escala**: nick ligado a `suscripcion` (opcional), más salas, y SI se agrega chat libre →
    moderación/rate-limit/reportes (`seguridad.md`).
@@ -130,10 +137,11 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
 - **Denial-of-wallet:** el salón NO usa IA (es relay puro) → no toca el cupo de modelos. Barato.
 
 ## 7. Infra / preguntas abiertas
-- **¿Dónde vive el `salon-server`?** ¿Reusar el backend de `online-game` (ya tiene SSE+presencia en prod) o un
-  Deployment Node nuevo `salon`? Propuesta: **servicio propio chico** (SSE), detrás del mismo edge HAProxy/Cilium, PVC
-  solo si quiere persistir el ticker (si no, in-memory). **Pinear a un nodo con headroom (NO `srv-rk1-nvme-01`)** —
-  lección del incidente DiskPressure (ver repo `infra`).
+- **¿Dónde vive el `salon-server`?** ✅ **RESUELTO (infra-33):** vive en el **mismo `ai-proxy`**. Se descartó
+  `online-game` (Python/FastAPI pesado, otro stack, otra DB → mal fit) y un Deployment Node nuevo (infra extra para un
+  relay chico). El ai-proxy ya tenía `/salon/beat|live` (F1), es Node sin deps, mismo dominio/edge/pipeline de deploy, y
+  el relay SSE no usa IA (no compite con el chat). In-memory (sin PVC; efímero = ok, social). Si algún día escala, se
+  parte a un servicio aparte sin tocar el cliente (solo cambia la URL). Corre donde corre el proxy (nodo con headroom).
 - **¿Cuánto aguanta el edge?** SSE = una conexión abierta por jugador en bodegón; el `maxconn` del G4/HAProxy es el
   límite real. F1 (cine) es liviano. F2 escala con salas chicas (cap ~6) → pocas conexiones por sala.
 - **Matchmaking:** ¿global "primera sala con lugar" (simple) o por región/latencia? Propuesta: simple, una cola.

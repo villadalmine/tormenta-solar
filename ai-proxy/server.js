@@ -80,6 +80,16 @@ const SALON = new Map();            // pid -> { sala, ts }
 let SALON_TICK = [];                // ring de hitos recientes anónimos: [{ ev, ts }]
 const SALON_TTL = 35000;            // un jugador cuenta "jugando ahora" 35s tras su último beat
 function salonPrune() { const now = Date.now(); for (const [k, v] of SALON) if (now - v.ts > SALON_TTL) SALON.delete(k); }
+
+// BODEGÓN F2b (real-time): sala-instancia -> { peers: Map<pid,estado>, subs: Set<res SSE> }. Matchmaking simple:
+// llena la 1ª sala con lugar (para que la gente SE ENCUENTRE), si no abre otra. Prune de peers viejos (sin pos 20s).
+const BODEGON = new Map(); const BODEGON_CAP = 6, BODEGON_TTL = 20000; let BODEGON_SEQ = 0;
+function bodegonRoom(id) { let r = BODEGON.get(id); if (!r) { r = { peers: new Map(), subs: new Set() }; BODEGON.set(id, r); } return r; }
+function bodegonJoin() { bodegonPrune(); for (const [id, r] of BODEGON) if (r.peers.size < BODEGON_CAP) return id; const id = 'bodegon-' + (++BODEGON_SEQ); bodegonRoom(id); return id; }
+function bodegonBroadcast(r, ev, data) { const line = 'event: ' + ev + '\ndata: ' + JSON.stringify(data) + '\n\n'; for (const s of r.subs) { try { s.write(line); } catch (e) { r.subs.delete(s); } } }
+function bodegonLeave(roomId, pid) { const r = BODEGON.get(roomId); if (r && r.peers.delete(pid)) bodegonBroadcast(r, 'peer-leave', { pid }); }
+function bodegonPrune() { const now = Date.now(); for (const [id, r] of BODEGON) { for (const [pid, p] of r.peers) if (now - p.ts > BODEGON_TTL) { r.peers.delete(pid); bodegonBroadcast(r, 'peer-leave', { pid }); } if (r.peers.size === 0 && r.subs.size === 0) BODEGON.delete(id); } }
+setInterval(bodegonPrune, 8000);
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL del CHAT (tope duro, tiempo real)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -453,6 +463,60 @@ http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ count: SALON.size }));
       } catch (e) { res.writeHead(400); res.end('bad'); }
     });
+    return;
+  }
+  // ===== SALÓN F2b — BODEGÓN real-time (specs/multijugador.md §3.2). Relay SSE SIN autoridad: el server solo
+  // retransmite posiciones/emotes/frases entre los de la MISMA sala-instancia (cap 6). In-memory, efímero (se pierde
+  // al reiniciar = ok, social). Sin chat libre → emotes + frases PRESET (índice), sin moderación. =====
+  if (req.url === '/salon/join' && req.method === 'POST') {
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 1000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); if (!pid) { res.writeHead(400); return res.end('no pid'); }
+      const nick = String(d.nick || '').slice(0, 16).replace(/[<>]/g, ''); const avatar = (String(d.avatar || 'civil').slice(0, 12)).replace(/[^a-z0-9_]/gi, '');
+      const room = bodegonJoin(); const r = bodegonRoom(room);
+      r.peers.set(pid, { pid, nick, avatar, x: 11, vx: 0, emote: 0, emoteT: 0, ts: Date.now() });
+      bodegonBroadcast(r, 'peer-join', { pid, nick, avatar, x: 11 });
+      const peers = [...r.peers.values()].filter(p => p.pid !== pid).map(p => ({ pid: p.pid, nick: p.nick, avatar: p.avatar, x: p.x, vx: p.vx }));
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ room, peers, cap: BODEGON_CAP }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.url.startsWith('/salon/stream') && req.method === 'GET') {                 // SSE: eventos de la sala-instancia
+    const u = new URL(req.url, 'http://x'); const room = String(u.searchParams.get('room') || '').slice(0, 24); const pid = String(u.searchParams.get('pid') || '').slice(0, 48);
+    const r = BODEGON.get(room); if (!r) { res.writeHead(404); return res.end('no room'); }
+    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
+    res.write('retry: 3000\n\n');
+    for (const p of r.peers.values()) if (p.pid !== pid) res.write('event: peer-pos\ndata: ' + JSON.stringify({ pid: p.pid, nick: p.nick, avatar: p.avatar, x: p.x, vx: p.vx }) + '\n\n');
+    r.subs.add(res);
+    const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch (e) {} }, 15000);
+    req.on('close', () => { clearInterval(ping); r.subs.delete(res); bodegonLeave(room, pid); });
+    return;
+  }
+  if (req.url === '/salon/pos' && req.method === 'POST') {                           // latido + posición (cliente ~6/s), retransmite
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 600) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const room = String(d.room || '').slice(0, 24);
+      const r = BODEGON.get(room); const p = r && r.peers.get(pid);
+      if (p) { p.x = Math.max(1, Math.min(21, +d.x || p.x)); p.vx = Math.max(-260, Math.min(260, +d.vx || 0)); if (d.emote != null) { p.emote = (+d.emote || 0) % 8; p.emoteT = Date.now(); } p.ts = Date.now();
+        bodegonBroadcast(r, 'peer-pos', { pid, x: p.x, vx: p.vx, emote: d.emote != null ? p.emote : undefined }); }
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.url === '/salon/say' && req.method === 'POST') {                           // frase PRESET (índice) → globo público para todos
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 400) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const room = String(d.room || '').slice(0, 24);
+      const r = BODEGON.get(room); const p = r && r.peers.get(pid);
+      if (p) { p.ts = Date.now(); bodegonBroadcast(r, 'say', { pid, i: Math.max(0, Math.min(31, +d.i || 0)) }); }   // i = índice de la frase preset (el cliente la traduce)
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.url === '/salon/leave' && req.method === 'POST') {
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 400) req.destroy(); });
+    req.on('end', () => { try { const d = JSON.parse(pb || '{}'); bodegonLeave(String(d.room || '').slice(0, 24), String(d.pid || '').slice(0, 48)); } catch (e) {}
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); });
     return;
   }
   if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)

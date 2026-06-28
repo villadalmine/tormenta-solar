@@ -4,7 +4,7 @@
 // El bodegón real-time (F2) irá por SSE a un salon-server dedicado; esto es lo barato de la F1.
 const Salon = (() => {
   const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';   // mismo proxy que ai.js/propaganda.js (F1 prototipo)
-  const off = { beat() {}, live() {}, enabled: false };
+  const off = { beat() {}, live() {}, enabled: false, join(n, a, cb) { cb && cb(null); }, leave() {}, pos() {}, say() {}, onPeers() {}, getPeers() { return new Map(); }, inBodegon() { return false; } };
   if (typeof fetch !== 'function') return off;                    // headless/e2e → no-op
 
   // id por pestaña, COMPARTIDO con presence.js (sobrevive recargas dentro de la pestaña)
@@ -25,6 +25,47 @@ const Salon = (() => {
   function live(cb) {
     fetch(PROXY + '/salon/live').then(r => (r.ok ? r.json() : null)).then(d => cb && cb(d)).catch(() => cb && cb(null));
   }
-  return { beat, live, enabled: true, pid };
+
+  // ===== F2b — BODEGÓN real-time (specs/multijugador.md §3.2). join → SSE stream → ves a los otros moverse +
+  // emotes + frases preset. Capa aditiva: sin EventSource/red, todo es no-op y el bodegón queda single-player. =====
+  let myRoom = null, es = null, lastPos = 0; const peers = new Map(); let peersCb = null;
+  function notify() { try { peersCb && peersCb(peers); } catch (e) {} }
+  function openStream() {
+    if (typeof EventSource !== 'function' || !myRoom) return;
+    try { es = new EventSource(PROXY + '/salon/stream?room=' + encodeURIComponent(myRoom) + '&pid=' + encodeURIComponent(pid)); } catch (e) { return; }
+    es.addEventListener('peer-join', e => { try { const d = JSON.parse(e.data); peers.set(d.pid, { ...d, rx: d.x }); notify(); } catch (x) {} });
+    es.addEventListener('peer-leave', e => { try { const d = JSON.parse(e.data); peers.delete(d.pid); notify(); } catch (x) {} });
+    es.addEventListener('peer-pos', e => { try { const d = JSON.parse(e.data); const p = peers.get(d.pid) || { pid: d.pid, rx: d.x };
+      p.x = d.x; if (d.vx != null) p.vx = d.vx; if (d.nick != null) p.nick = d.nick; if (d.avatar != null) p.avatar = d.avatar;
+      if (d.emote) { p.emote = d.emote; p.emoteT = Date.now(); } if (p.rx == null) p.rx = d.x; peers.set(d.pid, p); notify(); } catch (x) {} });
+    es.addEventListener('say', e => { try { const d = JSON.parse(e.data); const p = peers.get(d.pid); if (p) { p.say = d.i; p.sayT = Date.now(); notify(); } } catch (x) {} });
+    es.onerror = () => {};   // reconexión la maneja el propio EventSource (retry)
+  }
+  function join(nick, avatar, cb) {
+    if (typeof fetch !== 'function') { cb && cb(null); return; }
+    fetch(PROXY + '/salon/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, nick: nick || '', avatar: avatar || 'civil' }) })
+      .then(r => (r.ok ? r.json() : null)).then(d => {
+        if (!d || !d.room) { cb && cb(null); return; }
+        myRoom = d.room; peers.clear(); (d.peers || []).forEach(p => peers.set(p.pid, { ...p, rx: p.x }));
+        openStream(); cb && cb(d);
+      }).catch(() => cb && cb(null));
+  }
+  // postear MI posición (tile x 1-21 + vx + emote opcional). Throttle ~160ms salvo que haya emote (entonces ya).
+  function pos(x, vx, emote) {
+    if (!myRoom) return; const now = Date.now();
+    if (emote == null && now - lastPos < 160) return; lastPos = now;
+    try { fetch(PROXY + '/salon/pos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, room: myRoom, x, vx, emote }), keepalive: true }).catch(() => {}); } catch (e) {}
+  }
+  function say(i) { if (!myRoom) return; try { fetch(PROXY + '/salon/say', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, room: myRoom, i }) }).catch(() => {}); } catch (e) {} }
+  function leave() {
+    if (es) { try { es.close(); } catch (e) {} es = null; }
+    if (myRoom) { const rm = myRoom; myRoom = null; peers.clear();
+      try { fetch(PROXY + '/salon/leave', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, room: rm }), keepalive: true }).catch(() => {}); } catch (e) {} }
+  }
+  function onPeers(cb) { peersCb = cb; }
+  function getPeers() { return peers; }
+  function inBodegon() { return !!myRoom; }
+
+  return { beat, live, enabled: true, pid, join, leave, pos, say, onPeers, getPeers, inBodegon };
 })();
 if (typeof window !== 'undefined') window.Salon = Salon;

@@ -48,6 +48,13 @@
     'g.inv.hint': '[I] inventario',
     'g.moza.invite': '💋 La rubia se te arrima: “¿vamos atrás a probar unos traguitos de la casa, corazón? 😏” … (apretá E de nuevo si te animás)',
     'g.moza.ropero': '🚪💪 Apenas decís que sí, de la trastienda sale un ROPERO de dos metros: “el bodegón cierra para vos, campeón” — y te planta en la vereda de un saque. 😵',
+    'g.bodegon.live': '🍻 El BODEGÓN está EN VIVO: hay más gente acá ahora. Teclas 1-4 = emotes (🍻🤝💃🎸) · 5-8 = frases. ¡Salú!',
+    'g.bodegon.solo': '🍻 El bodegón, medio vacío (sin conexión al salón). Igual: birra, picada y la rubia atendiendo. 1-4 emotes · 5-8 frases.',
+    'g.bodegon.someone': 'un parroquiano',
+    'g.bodegon.phrase.0': '¿todo bien, maestro?',
+    'g.bodegon.phrase.1': '¡salú! 🍻',
+    'g.bodegon.phrase.2': 'tomá que van 🍷',
+    'g.bodegon.phrase.3': '¡aguante el bodegón!',
     'g.linyeraCry': [
       '“Yo tenía TRES deptos en Puerto Madero... tres. (se quiebra) Mirá ahí en el inodoro, agarrá, total ya no me sirve de nada...” 😭',
       '“Era gerente de banco. Traje, reuniones, un vacío de mierda. (llora) Hay guita en la caja fuerte, llevate, pibe.” 💼😢',

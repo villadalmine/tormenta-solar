@@ -45,6 +45,13 @@
     'g.inv.hint': '[I] inventory',
     'g.moza.invite': '💋 The blonde leans in: "wanna go out back and try some house drinks, sweetheart? 😏" … (press E again if you dare)',
     'g.moza.ropero': '🚪💪 The second you say yes, a two-meter BOUNCER steps out of the back room: "bar\'s closed for you, champ" — and plants you on the sidewalk in one shove. 😵',
+    'g.bodegon.live': '🍻 The BODEGÓN is LIVE: there are other folks here right now. Keys 1-4 = emotes (🍻🤝💃🎸) · 5-8 = phrases. Cheers!',
+    'g.bodegon.solo': '🍻 The bodegón, half empty (no connection to the salon). Still: beer, snacks and the blonde serving. 1-4 emotes · 5-8 phrases.',
+    'g.bodegon.someone': 'a regular',
+    'g.bodegon.phrase.0': 'all good, maestro?',
+    'g.bodegon.phrase.1': 'cheers! 🍻',
+    'g.bodegon.phrase.2': 'here, round\'s on me 🍷',
+    'g.bodegon.phrase.3': 'long live the bodegón!',
     'g.linyeraCry': [
       '"I had THREE flats in Puerto Madero... three. (breaks down) Look in the toilet there, grab it, it\'s no use to me anymore..." 😭',
       '"I was a bank manager. Suits, meetings, a hole in my soul. (cries) There\'s cash in the safe, take it, kid." 💼😢',

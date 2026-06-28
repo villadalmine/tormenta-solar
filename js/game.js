@@ -208,6 +208,7 @@
     return Level.build();
   }
   function reset() {
+    if (bodegonOn) { bodegonOn = false; if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave(); }   // F2b: cortar el real-time del bodegón al reiniciar
     rooms = buildRooms();   // v2 (data-driven) con auto-fallback a v1 si falla; default v1
     states = rooms.map(r => ({
       enemies: r.enemies.map(Enemies.create),
@@ -1398,6 +1399,7 @@
     updateCam();
     const r = room();
     elFloor.textContent = TX(r.name);
+    syncBodegon(r);   // MULTIJUGADOR F2b: entrar/salir del bodegón conecta/desconecta el real-time (SSE)
     if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
     companions.forEach(placeCompanionInRoom); syncCompanions();   // los compañeros cruzan la puerta CON vos (follow cross-room)
     // ruta A: si el LINYERA te está escoltando y llegaste a la sala de Guido → te avisa "ahí está, hablale" y listo
@@ -1420,6 +1422,7 @@
     else if (r.theme === 'ruina') setMsg(T('g.trans.ruina'), '#b0a0a0', 5000);
     else if (r.theme === 'office') setMsg(hasTag(r,'garbarino') ? T('g.trans.garbarino') : T('g.trans.edu'), '#80cbc4', 4000);
     else if (r.theme === 'arcade') setMsg(stormed ? T('g.trans.arcadeStorm') : T('g.trans.arcade'), stormed ? '#ff5252' : '#ff2e88', 4000);
+    else if (hasTag(r, 'bodegon')) setMsg(T(Salon.inBodegon && Salon.inBodegon() ? 'g.bodegon.live' : 'g.bodegon.solo'), '#ffcf6e', 5000);
     else if (r.theme === 'shop') setMsg(T('g.trans.shop'), '#ffd54f', 3500);
     else if (/[Bb][úu]nker/.test(r.name)) setMsg(T('g.trans.bunker'), '#7CFC00', 7000);
     else if (r.theme === 'secret') setMsg(hasTag(r,'truco') ? T('g.trans.trucoStore') : T('g.trans.secretStore'), '#d8c8b0', 5500);
@@ -1523,6 +1526,56 @@
     ctx.textAlign = 'center';
     ctx.fillStyle = '#7fa6cf'; ctx.font = '11px monospace'; ctx.fillText(T('g.cine.read'), cx, sy + H - 6);
     ctx.restore();
+  }
+  // === MULTIJUGADOR F2b — BODEGÓN real-time (specs/multijugador.md §3.2) ===
+  // Te conectás al entrar (Salon.join → SSE), ves a los OTROS jugadores moverse (interpolados) con su nick + emote +
+  // frase preset. Capa aditiva: sin red/EventSource, el bodegón queda single-player (los mozos canned + el gag rubia).
+  const BODEGON_EMOTES = ['', '🍻', '🤝', '💃', '🎸'];   // teclas 1-4 → emote sobre la cabeza
+  let bodegonOn = false, myEmote = 0, myEmoteT = 0, mySay = -1, mySayT = 0;
+  function syncBodegon(r) {
+    const want = hasTag(r, 'bodegon');
+    if (want && !bodegonOn) { bodegonOn = true; if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join('', 'carpo', () => {}); }
+    else if (!want && bodegonOn) { bodegonOn = false; myEmote = 0; mySay = -1; if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave(); }
+  }
+  function myTileX() { return Math.round(((player.x + player.w / 2) / TILE) * 10) / 10; }
+  function bodegonEmote(i) {   // emote propio + se lo mando a los demás (en el próximo pos)
+    if (!bodegonOn) return; myEmote = i; myEmoteT = performance.now();
+    if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(myTileX(), player.vx, i); Sfx.pickup();
+  }
+  function bodegonPhrase(i) {   // frase PRESET (índice) → globo público para todos
+    if (!bodegonOn) return; mySay = i; mySayT = performance.now();
+    if (typeof Salon !== 'undefined' && Salon.say) Salon.say(i); Sfx.pickup();
+  }
+  // globo de diálogo cortito (peer o propio) sobre una cabeza, en coords de pantalla
+  function drawHeadBubble(sx, topY, txt, col) {
+    ctx.font = '9px monospace'; const w = Math.min(150, ctx.measureText(txt).width + 12);
+    ctx.fillStyle = 'rgba(20,16,10,0.9)'; ctx.strokeStyle = col || '#ffcf6e'; ctx.lineWidth = 1;
+    const bx = sx - w / 2, by = topY - 16;
+    ctx.fillRect(bx, by, w, 14); ctx.strokeRect(bx, by, w, 14);
+    ctx.fillStyle = col || '#ffe2a8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, sx, by + 7);
+    ctx.textBaseline = 'alphabetic';
+  }
+  function drawBodegonPeers(r) {
+    const peers = (typeof Salon !== 'undefined' && Salon.getPeers) ? Salon.getPeers() : null;
+    const floorTop = r.gTop * TILE, f = Art.hero, now = Date.now();
+    if (peers) for (const p of peers.values()) {
+      if (p.rx == null) p.rx = p.x; p.rx += (p.x - p.rx) * 0.2;   // interpolación suave hacia la última pos recibida
+      const feetX = p.rx * TILE, sx = feetX - cam.x, sy = floorTop - cam.y;
+      const moving = Math.abs(p.vx || 0) > 12;
+      const frame = moving ? f.run[Math.floor(performance.now() / 90) % f.run.length] : f.idle[0];
+      ctx.save(); ctx.globalAlpha = 0.92;
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(sx, sy, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
+      if ((p.vx || 0) < 0) { ctx.translate(sx, 0); ctx.scale(-1, 1); ctx.translate(-sx, 0); }
+      ctx.drawImage(frame, sx - 16, sy - 44); ctx.restore();
+      ctx.fillStyle = '#ffe2a8'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(p.nick || T('g.bodegon.someone'), sx, sy - 48);
+      if (p.emote && now - (p.emoteT || 0) < 2500) { ctx.font = '16px serif'; ctx.fillText(BODEGON_EMOTES[p.emote] || '', sx, sy - 58); }
+      if (p.say != null && now - (p.sayT || 0) < 4000) drawHeadBubble(sx, sy - 58, T('g.bodegon.phrase.' + p.say), '#ffcf6e');
+    }
+    // MI propio emote/frase sobre el Carpo (feedback local)
+    const psx = player.x + player.w / 2 - cam.x, psy = player.y - cam.y;
+    if (myEmote && performance.now() - myEmoteT < 2500) { ctx.fillStyle = '#fff'; ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.fillText(BODEGON_EMOTES[myEmote] || '', psx, psy - 6); }
+    if (mySay >= 0 && performance.now() - mySayT < 4000) drawHeadBubble(psx, psy - 6, T('g.bodegon.phrase.' + mySay), '#aef0c0');
   }
   // MULTIJUGADOR F1: la pantalla del piso "EN VIVO" muestra el MUNDO VIVO (cuántos juegan ahora, en qué zona, ticker
   // de hitos). Sin salon-server / sin red → "modo offline". Mismo marco que drawCineScreen.
@@ -1903,6 +1956,7 @@
       if (typeof Salon !== 'undefined' && Salon.enabled && performance.now() > salonPollT) { salonPollT = performance.now() + 4000; Salon.live(d => { salonLive = d; }); }
       drawSalonScreen(r);
     } else if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
+    if (hasTag(r, 'bodegon') && bodegonOn) drawBodegonPeers(r);   // MULTIJUGADOR F2b: los OTROS jugadores en el bodegón
 
     // pozos (hazard kind 'pit') — el piso ya está calado (se ve el fondo); oscurecemos el hueco + postes rojos al borde
     for (const pit of r.pits || []) {
@@ -2191,6 +2245,7 @@
     autosave(t);
     // MULTIJUGADOR F1: latido de presencia cada ~5s mientras jugás (dónde estás) → alimenta el "Cine EN VIVO".
     if (state === 'playing' && typeof Salon !== 'undefined' && Salon.enabled && t > salonBeatT) { salonBeatT = t + 5000; Salon.beat(currentAt()); }
+    if (state === 'playing' && bodegonOn && typeof Salon !== 'undefined' && Salon.pos) Salon.pos(myTileX(), player.vx);   // F2b: posteo MI pos (el cliente throttlea ~160ms)
     if (state === 'arcade' && arcadeGame) {
       arcadeGame.update(dt); arcadeGame.draw(ctx, W, H);
       if (arcadeGame.done) {
@@ -2335,6 +2390,9 @@
     else if (k === 'm') { const on = Sfx.toggleMusic(); setMsg(on ? T('g.music.on') : T('g.music.off'), '#9fd3ff', 1200); }
     else if (k === 'p' && (state === 'playing')) { if (myst && myst.classList.contains('hidden')) showMyStats(); else closeMyStats(); }   // "Tu partida"
     else if (k === 'i' && (state === 'playing')) toggleInv();   // INVENTARIO (armas equipables)
+    else if (bodegonOn && state === 'playing' && /^[1-8]$/.test(k)) {   // BODEGÓN F2b: 1-4 emote, 5-8 frase preset
+      const n = +k; if (n <= 4) bodegonEmote(n); else bodegonPhrase(n - 5);
+    }
   });
   document.getElementById('startBtn').addEventListener('click', start);
   document.getElementById('restartBtn').addEventListener('click', start);
