@@ -130,6 +130,16 @@ gente**, un **mostrador** y el gag de la rubia extendido a un **telo de lujo**.
 - **Fases sugeridas:** **(T1)** el TELO solo (sub-modo `telo.js`, gag completo) colgado del `action:'moza'` actual —
   autocontenido, alto impacto, NO toca el multiplayer. **(T2)** rehacer el bodegón a **top-down** (`salon` sub-modo) con
   mesas + peers + mostrador. T1 no depende de T2.
+- **✅ T1 HECHO (v217):** `js/telo.js` (sub-modo top-down, FSM jacuzzi→cama→oso→eject) lanzado por `enterTelo` desde
+  `handleMoza` (aceptás → telo). Probado e2e.
+- **✅ T2 HECHO (v218):** `js/bodegon.js` (sub-modo top-down): MESAS de madera + **peers ONLINE sentados** (presencia
+  via `Salon.getPeers`, asignados a asientos) + **mostrador con la rubia** (E → invita → E → `goTelo` → lanza el telo) +
+  salida (E/ESC → baja al cine8). **Emotes (1-4) y frases preset (5-8)** dentro del sub-modo (`Salon.pos/say`) + latido.
+  Lanzado en `transition()` al entrar a la sala `bodegon` (si no hay sub-modo → cae al side-scroller, degradación). Tras
+  el telo, si seguís en el bodegón, **relanza** el top-down. **FALTA T2b:** el **chat privado 1-a-1 dentro del top-down**
+  (acercarte a un peer sentado + E → `#chat`) — quedó afuera por el lío de anidar el overlay de chat con el estado del
+  sub-modo; se hace dándole a `closeChat` un `chatReturnState` que vuelva a `'bodegon'` + dibujar el sub-modo bajo el
+  overlay. (El chat privado side-scroller del v213 sigue en el código como fallback, pero ya no se ve con el top-down.)
 
 ### 3.3 Qué hacés JUNTOS (el corazón — lo que no podés solo)
 - **TRUCO PvP humano vs humano** ⭐: dos se sientan a una mesa → partida **persona contra persona** (reusa

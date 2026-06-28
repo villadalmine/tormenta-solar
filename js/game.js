@@ -111,7 +111,7 @@
   let lastT = 0, running = false, msgUntil = 0, msgSkippable = false, shakeUntil = 0, time = 0, transCd = 0;
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
-  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null, teloGame = null;
+  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null, teloGame = null, bodegonGame = null;
   // NIVEL-AI en EL MOTOR REAL (rooms-swap): se guarda el juego principal, se cargan las salas generadas, y al
   // llegar a la meta (o morir/escapar) se RESTAURA todo. spinoffLevel gatea tormenta/quests/save/muerte.
   let spinoffLevel = false, spinoffSave = null, spinoffReward = null, spinoffName = '';
@@ -230,7 +230,7 @@
     trucoSeisOffered = false; trucoSeisActive = false; for (const k in trucoMatesRec) delete trucoMatesRec[k];   // truco de a 6, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
@@ -458,6 +458,13 @@
   function enterTelo() {
     teloGame = Telo.create(); state = 'telo'; flash();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
+  }
+  // T2: el bodegón se ve de ARRIBA (sub-modo top-down): mesas + peers online sentados + la rubia en el mostrador.
+  function enterBodegon() {
+    if (typeof Bodegon === 'undefined' || !Bodegon.create) return false;   // sin el sub-modo → cae al side-scroller (degradación)
+    bodegonGame = Bodegon.create(); state = 'bodegon';
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
+    return true;
   }
   function grabJoyas(n) {
     // tocás las JOYAS → sale el linyera, te suelta su filosofía y te raja a la calle
@@ -1463,6 +1470,7 @@
     const r = room();
     elFloor.textContent = TX(r.name);
     syncBodegon(r);   // MULTIJUGADOR F2b: entrar/salir del bodegón conecta/desconecta el real-time (SSE)
+    if (hasTag(r, 'bodegon') && enterBodegon()) return;   // T2: el bodegón se ve TOP-DOWN (sub-modo); si no hay sub-modo, sigue side-scroller
     if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
     companions.forEach(placeCompanionInRoom); syncCompanions();   // los compañeros cruzan la puerta CON vos (follow cross-room)
     // ruta A: si el LINYERA te está escoltando y llegaste a la sala de Guido → te avisa "ahí está, hablale" y listo
@@ -2407,9 +2415,21 @@
     } else if (state === 'telo' && teloGame) {
       teloGame.update(dt); teloGame.draw(ctx, W, H);
       if (teloGame.done) {
-        const rajado = teloGame.ejected; teloGame = null; state = 'playing'; transCd = 0.35; flash();
-        elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+        const rajado = teloGame.ejected; teloGame = null; flash();
+        // volvés al BAR: si el bodegón es top-down, relanzá el sub-modo; si no, al side-scroller
+        if (hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón top-down */ }
+        else { state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
         setMsg(T(rajado ? 'g.telo.ejected' : 'g.telo.leave'), '#ff8fc8', rajado ? 7000 : 3000);   // el oso te rajó al bar (o saliste)
+      }
+    } else if (state === 'bodegon' && bodegonGame) {
+      bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);
+      if (bodegonGame.done) {
+        const toTelo = bodegonGame.goTelo; bodegonGame = null;
+        if (toTelo) { enterTelo(); }                                  // la rubia te lleva al telo
+        else {                                                        // salir del bodegón → bajás al cine (8º "EN VIVO")
+          state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+          const d = rooms[current] && rooms[current].doorById && rooms[current].doorById['down']; if (d) transition(d);
+        }
       }
     } else {
       update(dt); render();

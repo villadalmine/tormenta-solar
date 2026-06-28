@@ -56,6 +56,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v218] — 2026-06-28 — 🍻🔝 EL BODEGÓN ahora se ve DE ARRIBA (mesas + jugadores online sentados + la rubia)
+
+Segunda parte (T2) del rediseño del salón: el bodegón ahora es una **vista de arriba** (sub-modo nuevo `js/bodegon.js`,
+patrón de las tiendas/telo). Hay **mesas de madera** con los **jugadores ONLINE sentados** (presencia real via SSE,
+`Salon.getPeers`), un **mostrador con la rubia** (te acercás + E → te invita; otra E → te lleva al **telo**, v217) y la
+**salida** (bajás al cine "EN VIVO"). Caminás libre (WASD) y tirás **emotes (1-4)** y **frases preset (5-8)** que ven los
+demás. Si no hay conexión, es un bar canned jugable solo (degradación). *(Falta T2b: el chat privado 1-a-1 dentro del
+top-down — quedó como deuda por el anidado del overlay de chat.)* Cache **v218**.
+
+---
+
 ## [v217] — 2026-06-28 — 🏩 EL TELO de la rubia (gag top-down): jacuzzi → cama → ¡OSO de 2 metros!
 
 El gag de la rubia del bodegón se vuelve una **mini-aventura vista de arriba** (sub-modo nuevo `js/telo.js`, mismo
