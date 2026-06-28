@@ -104,6 +104,33 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
   1ª E = la rubia te invita (`g.moza.invite`); 2ª E = decís que sí → `flash()` + `ejectToStreet(g.moza.ropero)`. NPC
   `La Rubia` (sprite `erotica`) en el bodegón. *(Falta la variante/premio si insistís N veces — deuda fina.)*
 
+#### 3.2.3 VISTA TOP-DOWN del bodegón + el TELO de lujo (idea dueño 2026-06-28) — DISEÑO
+El dueño propone rehacer la sala compartida como **vista de ARRIBA** (top-down), más linda para representar **mesas con
+gente**, un **mostrador** y el gag de la rubia extendido a un **telo de lujo**.
+> **Factibilidad: 🟢 ALTA.** Ya existe el patrón: `js/tienda.js` es un **sub-modo top-down COMPLETO** (player-círculo,
+> grid+colisión, NPCs, `update/draw`, `done`/`exitTo` para volver al juego exacto), igual que super/arcade/spinoff. El
+> bodegón top-down y el telo se hacen **clonando ese patrón** (sub-modo `salonTopdown` + `telo`), sin tocar el motor
+> side-scroller. Los peers (Salon.getPeers) se dibujan en las mesas. **Tono:** registro **paródico/insinuado** (siluetas,
+> vapor, corazones, fade) como ya hace el juego (sex-shop, telo "El Edén", el honeypot) — NUNCA explícito; el remate es el gag.
+- **Bodegón top-down:** entrás (puerta del 9º piso) → sub-modo vista-de-arriba. **Mesas redondas** distribuidas, cada una
+  con **sillas**; los **peers online** se sientan en las mesas (top-down). **Mostrador** a un lado con la **rubia (moza)**:
+  te acercás + E = te atiende/te invita. **Puerta al costado** = la "trastienda" (antes el ropero directo; ahora lleva al telo).
+  El presence/posiciones siguen por SSE (Salon); el render cambia, el relay no.
+- **El TELO de lujo (sub-escena top-down nueva):** si aceptás la invitación → entrás a una **pieza de lujo vista de
+  arriba**: **cama**, **jacuzzi**, **espejos por todos lados**, **pósters** de minas, y una **puerta rara**. Secuencia
+  SCRIPTEADA (canned, single-player, insinuada): (1) ella se mete al **jacuzzi** → te metés → **ducha/chapuzón juntos**
+  (vapor + 2 siluetas + corazones, fade — sin nada explícito). (2) Ella sale y va a la **cama**. (3) te metés en la cama →
+  **al toque** sale un **OSO/ROPERO de 2 metros** ("urzo") de la puerta rara → te **persigue** por la pieza → te **raja
+  de vuelta al bar** (`ejectToBodegon`, no a la calle: volvés al salón). Gag recurrente, el clásico "casi pero no".
+- **Implementación (cuando se decida):** `js/telo.js` (sub-modo top-down clonado de tienda.js: pieza chica, props cama/
+  jacuzzi/espejo/poster, FSM de la secuencia, el oso = entidad que persigue con pathing simple en grid) + lanzado por el
+  `action:'moza'` (en vez del eject directo) cuando aceptás. El bodegón top-down (`salon` sub-modo) es el cambio más
+  grande (rehace el render de la sala); el telo se puede hacer **primero** y solo (gag autocontenido) aunque el bodegón
+  siga side-scroller. i18n del guion (insinuado/cómico). Reusa `ejectToStreet`→variante `ejectToBodegon`.
+- **Fases sugeridas:** **(T1)** el TELO solo (sub-modo `telo.js`, gag completo) colgado del `action:'moza'` actual —
+  autocontenido, alto impacto, NO toca el multiplayer. **(T2)** rehacer el bodegón a **top-down** (`salon` sub-modo) con
+  mesas + peers + mostrador. T1 no depende de T2.
+
 ### 3.3 Qué hacés JUNTOS (el corazón — lo que no podés solo)
 - **TRUCO PvP humano vs humano** ⭐: dos se sientan a una mesa → partida **persona contra persona** (reusa
   `js/truco.js`, motor puro ya testeado; el server relaya cantos/cartas). Es EL gancho social y casi gratis.
