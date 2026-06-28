@@ -2,6 +2,24 @@
 
 **Estado:** **Q0-Q4 IMPLEMENTADO y jugable (v221)** — arco completo end-to-end. Quedan pulidos (ver §6).
 
+## ✅ v226 — REDISEÑO al flujo definitivo (visión del dueño)
+**El grafo final (todo NPC, data-driven):**
+1. **Telo** (sub-modo): rubia→jacuzzi→cama→robot. **Escapás** (puerta marcada) → al bar. **Te atrapa** → caés a…
+2. **`La habitación del telo`** (sala REAL nueva, tag `telohab`, se entra con `spawnIn`): están los **3 LINYERAS
+   chateables** (IA, personas filosofo/poeta/pechito, flag `chiplin`). Hablás con **cada uno** (`chipLinNote` en openChat);
+   al hablar con los 3 (`chipLinMaybePosta` en closeChat) → **posta** → `playingAs='garbarino'`, `chipStep='garbarino'`.
+   Salís por la puerta a la calle.
+3. **`garbarino`** (vendedor de Garbarino, sala 11) → confirma el cambio de PJ → `troyano`.
+4. **`troyano`** (Maxi sala 1 + Marcos sala 3, ambos) → `consola`.
+5. **`consola`** (un jubilado del cine Consolas) → los **2 jubilados te SIGUEN** (companions) → `consola2`.
+6. **`consola2`** (**El flaco del Trucotron**, arcade sala 4, flag `consolaGuy`) → te da la **consola**; jubilados se van
+   rezongando → `cure`.
+7. **`cure`** (cualquier **linyera/oracle**) → `cureChip`: el juego **salta a `telohab`** (sos el Carpo); vos —chipeado—
+   querés **estallar el sol**, el linyera te **mete la consola a la fuerza** → resaca → **SIN chip**. (`useConsola` redirige:
+   no te curás solo.)
+**Lección reforzada:** todo flag custom de NPC (`chiplin`, `consolaGuy`, `jubilado`) va a `makeRoom` + `gen-level` + `mundo`
+(si no, se pierde en v1 → el NPC no matchea). `CHIP_QUEST` es data; el paso `linyeras` y el `cure` usan código puntual.
+
 ## ✅ v225 — versión "larga" + fixes de playtest
 - **Telo (giro):** caught → el robot **se va y quedás en la habitación** (fase `chipped`) → buscás el **📱 celu en la
   mesita** (glow) → `phonecall` (texto ARRIBA, grande, `[E]` para seguir) → salís chipeado. La puerta de salida está
