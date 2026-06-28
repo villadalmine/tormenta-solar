@@ -111,7 +111,7 @@
   let lastT = 0, running = false, msgUntil = 0, msgSkippable = false, shakeUntil = 0, time = 0, transCd = 0;
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
-  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null;
+  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null, teloGame = null;
   // NIVEL-AI en EL MOTOR REAL (rooms-swap): se guarda el juego principal, se cargan las salas generadas, y al
   // llegar a la meta (o morir/escapar) se RESTAURA todo. spinoffLevel gatea tormenta/quests/save/muerte.
   let spinoffLevel = false, spinoffSave = null, spinoffReward = null, spinoffName = '';
@@ -230,7 +230,7 @@
     trucoSeisOffered = false; trucoSeisActive = false; for (const k in trucoMatesRec) delete trucoMatesRec[k];   // truco de a 6, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; roamingNpc = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
@@ -451,8 +451,13 @@
   function handleMoza(n) {
     Sfx.pickup();
     if (!mozaInvited) { mozaInvited = true; setMsg(T('g.moza.invite'), '#ff8fc8', 6000); return; }
-    mozaInvited = false; flash(); Sfx.hurt();
-    ejectToStreet(T('g.moza.ropero'));
+    mozaInvited = false;
+    if (typeof Telo !== 'undefined' && Telo.create) { enterTelo(); return; }   // aceptás → entrás al TELO de lujo (sub-modo top-down)
+    flash(); Sfx.hurt(); ejectToStreet(T('g.moza.ropero'));                     // fallback (sin el sub-modo): el ropero directo
+  }
+  function enterTelo() {
+    teloGame = Telo.create(); state = 'telo'; flash();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
   }
   function grabJoyas(n) {
     // tocás las JOYAS → sale el linyera, te suelta su filosofía y te raja a la calle
@@ -2398,6 +2403,13 @@
         tiendaGame = null; state = 'playing'; transCd = 0.35; flash();
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         setMsg(T('g.tienda.leave'), '#ff9ec7', 2500);
+      }
+    } else if (state === 'telo' && teloGame) {
+      teloGame.update(dt); teloGame.draw(ctx, W, H);
+      if (teloGame.done) {
+        const rajado = teloGame.ejected; teloGame = null; state = 'playing'; transCd = 0.35; flash();
+        elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+        setMsg(T(rajado ? 'g.telo.ejected' : 'g.telo.leave'), '#ff8fc8', rajado ? 7000 : 3000);   // el oso te rajó al bar (o saliste)
       }
     } else {
       update(dt); render();

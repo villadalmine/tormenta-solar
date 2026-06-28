@@ -56,6 +56,29 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v217] — 2026-06-28 — 🏩 EL TELO de la rubia (gag top-down): jacuzzi → cama → ¡OSO de 2 metros!
+
+El gag de la rubia del bodegón se vuelve una **mini-aventura vista de arriba** (sub-modo nuevo `js/telo.js`, mismo
+patrón aislado que las tiendas/super). Aceptás la invitación → entrás a un **telo de lujo**: jacuzzi, cama enorme,
+espejos por todos lados, pósters y una **puerta media rara**. Secuencia: te metés al **jacuzzi** con ella (vapor +
+siluetas + corazones, todo **insinuado y cómico**, nada explícito) → ella se va a la **cama** → te metés → de la puerta
+rara **sale un OSO de DOS METROS** ("¿¡qué hacés con mi mujer!?") que te **persigue** por la pieza → te **agarra y te
+planta de vuelta en el bar**. Gag recurrente, registro paródico de bodegón. (Primera parte —T1— del rediseño del salón;
+el bodegón top-down con mesas + peers online —T2— viene después.) FSM probada de punta a punta. Cache **v217**.
+
+---
+
+## [v216] — 2026-06-28 — 🎸 La viola: gente con MÚSICA (no billetes) + drones que vuelan por el heavy metal
+
+Pulido del arma viola (pedido del dueño): cuando la risa pega, **la gente** queda muerta de risa **con música** (🎵😂,
+ya no con el ícono de billetes 💰 que es del dólar) y los **drones/voladores salen volando ALOCADOS por el heavy metal**
+(🤘🎸, zigzag hacia arriba hasta perderse). `fx.js` (kind `laugh` → `fleeing` para voladores / `laughing` para gente) +
+`enemies.js` (update del vuelo errático + draw de los íconos). Además: la **ayuda de la intro ahora muestra [I]
+inventario**. *(SDD: `inventario-armas.md` §5 efecto viola + §6 armas criollas usables solo en los sueños/niveles
+generados, cada una eficaz vs un tipo de bicho; `fabrica-niveles-ai.md §A0-DEEP`.)* Cache **v216**.
+
+---
+
 ## [v215] — 2026-06-28 — 🃏🎸 Lote de fixes del gate del cuevero + inventario (reportes del dueño)
 
 Varios arreglos del flujo **ruta A (Guido)** + el **inventario**:
