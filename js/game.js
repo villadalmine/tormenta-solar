@@ -457,6 +457,7 @@
   }
   function enterTelo() {
     teloGame = Telo.create(); state = 'telo'; flash();
+    if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo');   // 🎵 música de telo bien grasa (chiptune lento)
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
   }
   // T2: el bodegón se ve de ARRIBA (sub-modo top-down): mesas + peers online sentados + la rubia en el mostrador.
@@ -2416,6 +2417,7 @@
       teloGame.update(dt); teloGame.draw(ctx, W, H);
       if (teloGame.done) {
         const rajado = teloGame.ejected; teloGame = null; flash();
+        if (Sfx.setRoomTrack) Sfx.setRoomTrack(null);   // corta la música de telo al volver al bar
         // volvés al BAR: si el bodegón es top-down, relanzá el sub-modo; si no, al side-scroller
         if (hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón top-down */ }
         else { state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }

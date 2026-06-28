@@ -15,10 +15,14 @@ const Telo = (() => {
     const pal = { floor: '#2a1622', floor2: '#33182a', wall: '#5a2440', accent: '#ff4d8d' };
     // puntos clave (en tiles)
     const jacuzzi = { x: 4, y: 2 }, bed = { x: 10, y: 6 }, weirdDoor = { x: 12, y: 1 }, exit = { x: 7, y: 8 };
+    const mirrors = [{ x: 12, y: 5 }, { x: 12, y: 6.4 }, { x: 12, y: 7.8 }];   // espejos GRANDES pegados a la cama (pared der.)
+    const mesita = { x: 8, y: 6 };                                              // mesita de luz al lado de la cama
+    const clothesHer = { x: 3, y: 3 };                                         // ropa de ella tirada cerca del jacuzzi
+    const clothesYou = { x: 5.3, y: 3 };                                       // la tuya aparece cuando te metés
     const props = [
-      { emoji: '🪞', x: 1, y: 2 }, { emoji: '🪞', x: 1, y: 5 }, { emoji: '🪞', x: 1, y: 7 },
       { emoji: '🖼️', x: 6, y: 1 }, { emoji: '🖼️', x: 9, y: 1 }, { emoji: '🕯️', x: 11, y: 4 },
-      { emoji: '🍾', x: 3, y: 6 }, { emoji: '🥂', x: 4, y: 6 }, { emoji: '🚪', x: weirdDoor.x, y: weirdDoor.y },
+      { emoji: '🍾', x: mesita.x, y: mesita.y - 0.35 }, { emoji: '🥂', x: mesita.x + 0.4, y: mesita.y - 0.35 },
+      { emoji: '🚪', x: weirdDoor.x, y: weirdDoor.y },
     ];
     const player = { x: (exit.x + 0.5) * CS, y: (exit.y + 0.3) * CS, r: 11 };
     const she = { x: (jacuzzi.x + 1.4) * CS, y: (jacuzzi.y + 0.6) * CS };   // la rubia, arranca al lado del jacuzzi
@@ -90,6 +94,25 @@ const Telo = (() => {
       const bx = ox + (bed.x + 0.5) * CS, by = oy + (bed.y + 0.5) * CS;
       ctx2.fillStyle = '#b03050'; ctx2.fillRect(bx - CS * 0.9, by - CS * 0.7, CS * 1.8, CS * 1.4);
       ctx2.fillStyle = '#f0e0e6'; ctx2.fillRect(bx - CS * 0.8, by - CS * 0.6, CS * 1.6, CS * 0.5);   // almohadas
+      ctx2.fillStyle = '#7a1f3a'; ctx2.fillRect(bx - CS * 0.9, by + CS * 0.3, CS * 1.8, CS * 0.4);   // pie de cama
+      // ESPEJOS GRANDES pegados a la cama (marco dorado + reflejo + brillo diagonal)
+      for (const m of mirrors) {
+        const mx = ox + (m.x + 0.5) * CS, my = oy + (m.y + 0.5) * CS, mw = CS * 0.7, mh = CS * 1.25;
+        ctx2.fillStyle = '#caa000'; ctx2.fillRect(mx - mw / 2 - 2, my - mh / 2 - 2, mw + 4, mh + 4);
+        const g = ctx2.createLinearGradient ? ctx2.createLinearGradient(mx, my - mh / 2, mx, my + mh / 2) : null;
+        if (g) { g.addColorStop(0, '#9fd0e8'); g.addColorStop(1, '#4a6a80'); ctx2.fillStyle = g; } else ctx2.fillStyle = '#7fb0c8';
+        ctx2.fillRect(mx - mw / 2, my - mh / 2, mw, mh);
+        ctx2.strokeStyle = 'rgba(255,255,255,0.5)'; ctx2.lineWidth = 2; ctx2.beginPath(); ctx2.moveTo(mx - mw / 2 + 3, my + mh / 2 - 5); ctx2.lineTo(mx + mw / 2 - 4, my - mh / 2 + 6); ctx2.stroke();
+      }
+      // MESITA de luz (madera)
+      const tx = ox + (mesita.x + 0.5) * CS, ty = oy + (mesita.y + 0.5) * CS;
+      ctx2.fillStyle = '#6b4a2a'; ctx2.fillRect(tx - CS * 0.4, ty - CS * 0.35, CS * 0.8, CS * 0.7);
+      ctx2.fillStyle = '#8a6a44'; ctx2.fillRect(tx - CS * 0.34, ty - CS * 0.29, CS * 0.68, CS * 0.2);
+      // ROPA tirada en el piso cerca del jacuzzi (la de ella siempre; la TUYA cuando te metés)
+      ctx2.textAlign = 'center'; ctx2.font = '14px serif';
+      ctx2.fillText('👗', ox + (clothesHer.x + 0.5) * CS, oy + (clothesHer.y + 0.7) * CS);
+      ctx2.fillText('👠', ox + (clothesHer.x + 0.9) * CS, oy + (clothesHer.y + 1.0) * CS);
+      if (phase !== 'intro') { ctx2.fillText('👕', ox + (clothesYou.x + 0.5) * CS, oy + (clothesYou.y + 0.7) * CS); ctx2.fillText('👖', ox + (clothesYou.x + 0.9) * CS, oy + (clothesYou.y + 1.0) * CS); }
       // props (emoji)
       ctx2.textAlign = 'center'; ctx2.font = '17px serif';
       for (const p of props) ctx2.fillText(p.emoji, ox + (p.x + 0.5) * CS, oy + (p.y + 0.72) * CS);
@@ -112,9 +135,18 @@ const Telo = (() => {
         ctx2.font = '18px serif'; ctx2.fillText('💁‍♀️', ox + she.x, oy + she.y);
       }
 
-      // EL OSO de 2 metros
+      // EL PATOVA de 2 metros: figura OSCURA imponente (casco/máscara + ojos rojos brillando) — da miedo, no es tierno
       if (bear.on) {
-        ctx2.font = '30px serif'; ctx2.textAlign = 'center'; ctx2.fillText('🐻', ox + bear.x, oy + bear.y + 8);
+        const px2 = ox + bear.x, py2 = oy + bear.y, pulse = 0.6 + 0.4 * Math.abs(Math.sin(t * 8));
+        ctx2.fillStyle = 'rgba(0,0,0,0.4)'; ctx2.beginPath(); ctx2.ellipse(px2, py2 + 20, 17, 5, 0, 0, Math.PI * 2); ctx2.fill();   // sombra
+        ctx2.fillStyle = '#0b0b12'; ctx2.beginPath(); ctx2.moveTo(px2 - 17, py2 - 8); ctx2.lineTo(px2 + 17, py2 - 8); ctx2.lineTo(px2 + 14, py2 + 20); ctx2.lineTo(px2 - 14, py2 + 20); ctx2.closePath(); ctx2.fill();   // capa/cuerpo
+        ctx2.fillStyle = '#14141c'; ctx2.fillRect(px2 - 12, py2 - 24, 24, 18);   // torso
+        ctx2.fillStyle = '#070709'; ctx2.beginPath(); ctx2.arc(px2, py2 - 30, 11, 0, Math.PI * 2); ctx2.fill();   // casco
+        ctx2.fillStyle = '#1c1c26'; ctx2.fillRect(px2 - 9, py2 - 31, 18, 9);   // máscara/visor
+        ctx2.save(); ctx2.shadowBlur = 9; ctx2.shadowColor = '#ff0000';   // ojos rojos brillando (pulso)
+        ctx2.fillStyle = 'rgba(255,32,32,' + pulse + ')';
+        ctx2.beginPath(); ctx2.arc(px2 - 4, py2 - 30, 2.4, 0, Math.PI * 2); ctx2.arc(px2 + 4, py2 - 30, 2.4, 0, Math.PI * 2); ctx2.fill();
+        ctx2.restore();
       }
       // jugador (círculo) — salvo en el jacuzzi (ahí es una silueta)
       if (phase !== 'bath') {

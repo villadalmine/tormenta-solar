@@ -56,6 +56,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v219] — 2026-06-28 — 🏩 El telo, mejor: espejos grandes, mesita, ropa tirada, MÚSICA grasa y el PATOVA (no un oso)
+
+Pulido del telo (feedback del dueño): los **espejos** ahora son **grandes y se entienden** (marco dorado + reflejo con
+brillo), **pegados a la cama**; hay una **mesita de luz**; **ropa tirada en el piso** cerca del jacuzzi (la de ella, y la
+TUYA aparece cuando te metés 👗👠👕👖); suena **música de telo bien grasa** (el track `telo` chiptune lento, se corta al
+salir). Y el remate: el oso 🐻 (que era "muy tierno" 😄) ahora es un **PATOVA de dos metros TODO DE NEGRO, con máscara y
+los OJOS ROJOS brillando** — da miedo, dibujado a mano (sin líos de marca). Cache **v219**.
+
+---
+
 ## [v218] — 2026-06-28 — 🍻🔝 EL BODEGÓN ahora se ve DE ARRIBA (mesas + jugadores online sentados + la rubia)
 
 Segunda parte (T2) del rediseño del salón: el bodegón ahora es una **vista de arriba** (sub-modo nuevo `js/bodegon.js`,
