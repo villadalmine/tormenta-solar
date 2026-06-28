@@ -129,10 +129,11 @@
   let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let salonLive = null, salonPollT = 0, salonBeatT = 0;   // MULTIJUGADOR F1: mundo vivo (count/byRoom/ticker) + cadencia de latido
+  let escortNudgeT = 0;   // el compañero (linyera/Guido) te RECUERDA a dónde ir cada tanto + en cada sala
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
   let guardaFreeUsed = false;  // la 1ª función vieja del run es gratis; después se cobra (más viejo más caro)
   let guardaAsk = {};          // día → precio ya regateado (si no está, vale el base); se resetea al salir del cine
-  let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0;
+  let gaveBeers = false, borrachosFed = 0, borrachosHappy = false, moneyRecovered = false, fifaWon = false, stunUntil = 0, stunPending = false;
   let bunkerUnlocked = false, loopCount = 0;        // tótem → búnker; loopCount = día del loop
   let chinoFrontOpen = false, decayAcc = 0;         // loop de supervivencia (post-tormenta)
   // REGLAS del nivel como DATA (§6.97): el motor las compone, el nivel las declara (window.LEVEL1.rules).
@@ -222,7 +223,7 @@
     stormed = false; bought = false; hasVale = false; challengeForVale = false; time = 0;
     cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null; mundialQuest = null; mundialApproach = null; ambientBubbles = []; ambientCd = 5;   // cine/quests/chusmerío se resetean por run
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
-    gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0;
+    gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0; stunPending = false;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
@@ -397,6 +398,9 @@
     frogger: () => { challengeForVale = true; setMsg(T('g.frogger.start'), '#ff2e88', 1000); launchArcade('frogger'); },
     truco:   () => {
       if (guidoFollowing && !cueveroUnlocked) { guidoBeatsTahur(); return; }   // ruta A: Guido juega y gana por vos
+      // RUTA A en curso (elegiste "tengo contactos"): el tahúr NO te ofrece de a 6 — ya estás en la cadena de Guido.
+      // Te recuerda que vayas a buscarlo/traerlo. (Bug: antes ofrecía de a 6 aunque hubieras elegido los contactos.)
+      if (!cueveroUnlocked && guidoSummoned) { setMsg(T('g.truco.goGuido'), '#ffd54f', 8000); return; }
       // ruta B "de a 6": el tahúr juega 3 vs 3. Si no se ofreció aún, lo propone; si falta equipo, te manda a buscarlo;
       // con 2 compañeros reclutados → se juega de a 6 (tu duelo real + los de tus compañeros por skill).
       if (!cueveroUnlocked) {
@@ -470,11 +474,16 @@
   // una vez por partida. Maletín de dólares (+guita) + munición + mejora PERMANENTE del escupitajo.
   // === ARMAS + INVENTARIO (specs/inventario-armas.md) — las armas son DATA; player.inventory guarda los ids, player.weapon = la equipada ===
   const WEAPONS = {
-    escupitajo: { id: 'escupitajo', emoji: '💦', label: 'g.wpn.escupitajo' },   // default; post-tormenta escupe dólares (dollarMode)
+    // post-tormenta el escupitajo escupe DÓLARES (apaciguan a la gente): se muestra como "Dólares 💵" (stormEmoji/stormLabel).
+    escupitajo: { id: 'escupitajo', emoji: '💦', label: 'g.wpn.escupitajo', stormEmoji: '💵', stormLabel: 'g.wpn.dolares' },
     viola:      { id: 'viola',      emoji: '🎸', label: 'g.wpn.viola' },         // premio del tesoro: dispara RISAS (apacigua a cualquiera)
+    // FIERRO CRIOLLO (del vendedor de armas): va al inventario pero el Carpo NO lo equipa — gag pacifista (no a la violencia).
+    fierro:     { id: 'fierro',     emoji: '🪢', label: 'g.wpn.fierro', noEquip: true, refuse: 'g.wpn.refuse' },
   };
+  function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
+  function wpnLabel(id) { const w = WEAPONS[id]; if (!w) return ''; return T((stormed && w.stormLabel) ? w.stormLabel : w.label); }
   function addItem(id) { if (!player.inventory) player.inventory = ['escupitajo']; if (!player.inventory.includes(id)) player.inventory.push(id); }
-  function equipWeapon(id) { if (player.inventory && player.inventory.includes(id) && WEAPONS[id]) { player.weapon = id; return true; } return false; }
+  function equipWeapon(id) { const w = WEAPONS[id]; if (w && !w.noEquip && player.inventory && player.inventory.includes(id)) { player.weapon = id; return true; } return false; }
   function openInv() {
     const ov = document.getElementById('invmenu'), body = document.getElementById('invBody');
     if (!ov || !body) return;   // headless / sin overlay → no traba
@@ -483,13 +492,19 @@
     if (!inv.length) html += '<div style="opacity:.85">' + T('g.inv.empty') + '</div>';
     else { html += '<div style="display:flex;flex-direction:column;gap:.4em;margin-top:.5em">';
       for (const id of inv) { const w = WEAPONS[id]; if (!w) continue; const eq = player.weapon === id;
+        const badge = w.noEquip ? '<span style="opacity:.7">' + T('g.inv.kept') + '</span>'             // arma criolla: guardada, no se equipa (gag pacifista)
+          : eq ? '<span style="color:#7CFC00">' + T('g.inv.equipped') + '</span>' : '<span style="opacity:.7">' + T('g.inv.equip') + '</span>';
         html += '<button class="inv-opt" data-id="' + id + '" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer' + (eq ? ';outline:2px solid #7CFC00' : '') + '">' +
-          w.emoji + ' ' + T(w.label) + '  ' + (eq ? '<span style="color:#7CFC00">' + T('g.inv.equipped') + '</span>' : '<span style="opacity:.7">' + T('g.inv.equip') + '</span>') + '</button>';
+          wpnEmoji(id) + ' ' + wpnLabel(id) + '  ' + badge + '</button>';
       }
       html += '</div>'; }
     body.innerHTML = html;
     const btns = body.querySelectorAll ? body.querySelectorAll('.inv-opt') : null;
-    if (btns && btns.forEach) btns.forEach(b => b.addEventListener('click', () => { if (equipWeapon(b.getAttribute('data-id'))) { Sfx.pickup(); openInv(); syncHud(); } }));
+    if (btns && btns.forEach) btns.forEach(b => b.addEventListener('click', () => {
+      const id = b.getAttribute('data-id'), w = WEAPONS[id];
+      if (w && w.noEquip) { closeInv(); setMsg(T(w.refuse), '#9be8a0', 8000); return; }   // el Carpo se niega a la violencia (no equipa el fierro)
+      if (equipWeapon(id)) { Sfx.pickup(); openInv(); syncHud(); }
+    }));
     ov.classList.remove('hidden');
   }
   function closeInv() { const ov = document.getElementById('invmenu'); if (ov) ov.classList.add('hidden'); }
@@ -500,7 +515,7 @@
     if (tesoroTaken) { setMsg(T('g.tesoro.empty'), '#aef0c0', 4000); return; }
     tesoroTaken = true;
     player.coins += 150; player.ammo += 40; player.spitDmg = 24;   // escupís más fuerte (14→24), para todo el run
-    addItem('viola'); equipWeapon('viola');   // el gurú te da la VIOLA de Les Luthiers que dispara RISAS (specs/inventario-armas.md)
+    addItem('viola');   // el gurú te da la VIOLA (a la mochila); NO la auto-equipa: por defecto seguís con los DÓLARES (specs/inventario-armas.md)
     Sfx.win();
     setMsg(T('g.tesoro.viola'), '#7CFC00', 10000);
   }
@@ -587,6 +602,21 @@
     }
   }
   function clearCompanions() { for (const c of companions.slice()) removeCompanionNpc(c); companions.length = 0; }
+  // VOZ del escort: el linyera/Guido no te sigue mudo — te dice A DÓNDE ir, en cada sala y cada tanto, con voz criolla.
+  function activeEscort() { return companions.find(c => c.id === 'linyera' || c.id === 'guido'); }
+  function escortNudge() {
+    const c = activeEscort(); if (!c) return;
+    const r = room(); let key;
+    if (c.id === 'linyera') {                                                  // el linyera te lleva hasta GUIDO (EducaciónIT)
+      if ((r.npcs || []).some(n => n.action === 'guido')) key = 'g.guido.nudgeTalk';      // ya estás con Guido → hablalo
+      else if (r.theme === 'office' && !hasTag(r, 'garbarino')) key = 'g.guido.nudgeUp';  // estás en EducaciónIT → seguí subiendo
+      else key = 'g.guido.nudgeGo';                                                        // andá a EducaciónIT
+    } else {                                                                   // Guido te lleva a la MESA del tahúr (trastienda)
+      if (hasTag(r, 'truco')) key = 'g.guido.nudgeSit';                                    // en la trastienda → sentate a la mesa
+      else key = 'g.guido.nudgeTable';                                                     // llevame a la mesa del tahúr
+    }
+    setMsg(T(key), '#9be8a0', 5200); escortNudgeT = performance.now() + 12000;             // reprograma el recordatorio
+  }
   function resetLoopResources() {            // cajones de falopa y limosnas se renuevan cada loop
     for (const rm of rooms) for (const n of rm.npcs || []) { n.falopaTaken = false; n.limosnaTaken = false; }
   }
@@ -964,6 +994,7 @@
     if ((player.coins || 0) < a.cost) { setMsg(T('g.armas.noCoins', { cost: a.cost }), '#ff5252', 4000); Sfx.empty(); return; }
     player.coins -= a.cost; armasNpc.armado = true; applyEdge('armas', 'armado');
     player.ammo += a.ammo; player.hp = Math.min(MAXHP, player.hp + a.hp);
+    addItem('fierro');   // el fierro criollo queda en el INVENTARIO (no equipable: gag pacifista, ver openInv)
     closeArmas();
     setMsg(T('g.armas.bought', { fierro: T('g.armas.fierro.' + a.key), ammo: a.ammo, hp: a.hp }), '#7CFC00', 7500); Sfx.pickup();
   }
@@ -1253,7 +1284,9 @@
   }
   // Guido le gana al tahúr (auto-win cinemático) y te pasa el "te perdono" para el cuevero.
   function guidoBeatsTahur() {
-    guidoFollowing = false; trucoEverWon = true; applyEdge('cuevero_gate', 'cueveroUnlocked');   // destraba al cuevero vía grafo
+    guidoFollowing = false; trucoEverWon = true;
+    applyEdge('truco', 'trucoWon');                 // ganar el truco (vía Guido) TAMBIÉN abre la puerta al chino (igual que 1v1 / de a 6)
+    applyEdge('cuevero_gate', 'cueveroUnlocked');   // destraba al cuevero vía grafo
     syncCompanions();   // Guido cumplió → se va
     flash(); Sfx.win();
     setMsg(T('g.guido.beats'), '#7CFC00', 9000);
@@ -1428,7 +1461,8 @@
     if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
     companions.forEach(placeCompanionInRoom); syncCompanions();   // los compañeros cruzan la puerta CON vos (follow cross-room)
     // ruta A: si el LINYERA te está escoltando y llegaste a la sala de Guido → te avisa "ahí está, hablale" y listo
-    if (companions.some(c => c.id === 'linyera') && (r.npcs || []).some(n => n.action === 'guido')) setMsg(T('g.guido.escortArrived'), '#7CFC00', 7000);
+    if (companions.some(c => c.id === 'linyera') && (r.npcs || []).some(n => n.action === 'guido')) { setMsg(T('g.guido.escortArrived'), '#7CFC00', 7000); escortNudgeT = performance.now() + 12000; }
+    else if (activeEscort()) escortNudge();   // en cualquier otra sala, el escort te VUELVE a guiar (a dónde ir desde acá)
     if (typeof Mensajero !== 'undefined' && Mensajero.callar) Mensajero.callar();   // corta TTS al cambiar de sala
     if (!isCine(r)) {   // saliste del cine → función vieja, regateo y quest del Mundial vuelven como estaban
       if (mundialApproach) mundialApproach.npc.x = mundialApproach.homeX;   // el hincha vuelve a su lugar
@@ -1790,6 +1824,7 @@
     const r = room(), s = st();
 
     player.stunned = performance.now() < stunUntil;
+    if (stunPending && !player.stunned) { stunPending = false; setMsg(T('g.truco.freed'), '#ffd54f', 5000); }   // el tahúr frena a las minas: "déjenlo al pibe"
     player.dollarMode = stormed;   // post-tormenta el Carpo escupe DÓLARES (apaciguan a la gente)
     player.canShoot = stormed || spinoffLevel;   // PRE-tormenta el Carpo NO dispara (no hay combate); en niveles generados sí
     player.update(dt, r, cam);
@@ -1885,7 +1920,7 @@
 
   function syncHud() {
     elHp.textContent = Math.max(0, Math.floor(player.hp));
-    if (elWeapon) { const w = WEAPONS[player.weapon || 'escupitajo']; elWeapon.textContent = (w && w.emoji) || '💦'; }
+    if (elWeapon) elWeapon.textContent = wpnEmoji(player.weapon || 'escupitajo');   // post-tormenta el escupitajo se ve 💵 (dólares)
     elAmmo.textContent = player.ammo;
     elCoins.textContent = player.coins;
     elCaramelos.textContent = player.caramelos;
@@ -2280,6 +2315,7 @@
     // MULTIJUGADOR F1: latido de presencia cada ~5s mientras jugás (dónde estás) → alimenta el "Cine EN VIVO".
     if (state === 'playing' && typeof Salon !== 'undefined' && Salon.enabled && t > salonBeatT) { salonBeatT = t + 5000; Salon.beat(currentAt()); }
     if (state === 'playing' && bodegonOn && typeof Salon !== 'undefined' && Salon.pos) Salon.pos(myTileX(), player.vx);   // F2b: posteo MI pos (el cliente throttlea ~160ms)
+    if (state === 'playing' && activeEscort() && t > escortNudgeT) escortNudge();   // el escort te RECUERDA a dónde ir cada ~12s
     if (state === 'arcade' && arcadeGame) {
       arcadeGame.update(dt); arcadeGame.draw(ctx, W, H);
       if (arcadeGame.done) {
@@ -2309,7 +2345,7 @@
           } else if (res === 'win') {   // EL TAHÚR (antro), 1v1 ya destrabado: flores + las minas te afanan + abre la puerta al chino
             player.flores = (player.flores || 0) + flores;
             const robbed = Math.min(player.coins, 25 + (Math.random()*35|0));
-            player.coins -= robbed; stunUntil = performance.now() + 2600;
+            player.coins -= robbed; stunUntil = performance.now() + 2000; stunPending = true;   // las minas te rodean y te afanan (gag); el tahúr te libera al toque
             applyEdge('truco', 'trucoWon'); trucoEverWon = true;   // abre la puerta (se consume) + marca el hito (permanente)
             const firstWin = !cueveroUnlocked; applyEdge('cuevero_gate', 'cueveroUnlocked');   // (compat) el tahúr "te perdona" → destraba al cuevero
             setMsg(T(firstWin ? 'g.truco.winGate' : 'g.truco.win', { n: robbed }), '#ff5252', firstWin ? 9000 : 7000);

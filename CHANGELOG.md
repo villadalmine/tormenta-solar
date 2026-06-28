@@ -56,6 +56,27 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v215] — 2026-06-28 — 🃏🎸 Lote de fixes del gate del cuevero + inventario (reportes del dueño)
+
+Varios arreglos del flujo **ruta A (Guido)** + el **inventario**:
+- **El linyera escolta ahora te HABLA y te guía:** cuando elegís "tengo contactos" no te sigue mudo — te dice a dónde
+  ir ("dale pibe, vamo a ver a Guido a EducaciónIT, la tiene clara cantando flor"), te **recuerda cada ~12s** y en
+  **cada sala** (subí, hablá a Guido, llevame a la mesa, sentate). Igual Guido camino a la mesa del tahúr.
+- **El tahúr ya NO te ofrece "de a 6"** si elegiste la ruta de los contactos (Guido): te recuerda que vayas a buscarlo,
+  en vez de proponerte el 3vs3 (que era para la ruta de jugar vos directo).
+- **La puerta al chino (truco) ahora SÍ se abre** cuando ganás el truco **por Guido** (ruta A): `guidoBeatsTahur`
+  faltaba marcar `trucoWon` — por eso no se desbloqueaba aunque hubieras ganado.
+- **Inventario / la viola NO te roba los dólares:** el tesoro ya **no auto-equipa** la viola (queda en la mochila); por
+  defecto seguís con los **💵 dólares** (el HUD y el inventario lo muestran así post-tormenta). Cambiás a la viola con [I].
+- **El fierro criollo va al inventario** pero el Carpo **se niega a usarlo** (gag pacifista: "no a la violencia, esto lo
+  guardo para curar carne o cuatrerear ganado"). Queda como ítem guardado.
+- **El stun post-truco** (las minas te afanan) ahora tiene cierre claro: el tahúr dice "déjenlo al pibe" y te libera
+  (2s, antes 2.6). Ya no parece un freeze.
+
+Cache **v215**.
+
+---
+
 ## [v214] — 2026-06-28 — 🐛 FIX: se trababa al SUBIR AL BODEGÓN (la puerta no estaba cableada)
 
 Bug reportado por el dueño: al subir del cine "EN VIVO" al **bar/bodegón** el juego **se trababa**. Causa: la puerta
