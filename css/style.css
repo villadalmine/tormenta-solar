@@ -83,6 +83,19 @@ html, body {
   text-shadow: 0 0 8px #000;
   pointer-events: none;
 }
+/* objetivo persistente de la quest del chip — cartel rojo fijo arriba */
+#chipBanner {
+  position: absolute;
+  top: 26px; left: 50%; transform: translateX(-50%);
+  max-width: min(92%, 700px);
+  text-align: center;
+  font-size: calc(11px * var(--ui-font-scale, 1)); font-weight: bold;
+  color: #fff; background: rgba(150,20,20,0.9);
+  border: 1px solid rgba(255,120,120,0.6); border-radius: 8px;
+  padding: .3em .8em; z-index: 7; pointer-events: none;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+#chipBanner.hidden { display: none; }
 
 #prompt {
   position: absolute;

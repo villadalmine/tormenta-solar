@@ -38,6 +38,7 @@
   const elMsg = document.getElementById('msg');
   const elFlash = document.getElementById('flash');
   const elFloor = document.getElementById('floorName');
+  const elChipBanner = document.getElementById('chipBanner');
   const elPrompt = document.getElementById('prompt');
   const elChat = document.getElementById('chat');
   const elChatTitle = document.getElementById('chat-title');
@@ -222,6 +223,8 @@
   }
   // pista del chip para los linyeras (saben TODO + en qué paso estás): el HintEngine la prioriza si estás chipeado.
   function chipHint() { return chipped ? T('g.chip.hint.' + chipStep) : null; }
+  // OBJETIVO persistente (cartel rojo fijo arriba): qué tenés que hacer AHORA, por paso. Aclara que seguís chipeado + el cambio de PJ.
+  function chipBannerText() { return chipped ? T('g.chip.obj.' + (chipStep || 'cure')) : ''; }
   // QUEST DEL CHIP, paso 'linyeras' (versión larga): en LA HABITACIÓN DEL TELO están los 3 linyeras CHATEABLES (IA,
   // personas filosofo/poeta/pechito). Charlás con cada uno (boludeo libre); cuando hablaste con LOS TRES, uno te tira la
   // posta → pasás a controlar al pibe de Garbarino. El tracking es por persona (chipLinTalked), gatillado en openChat/closeChat.
@@ -453,7 +456,7 @@
     else if (it.kind === 'machine') handleMachine(it.m);
     else if (it.kind === 'cuevero') handleCuevero(it.c);
   }
-  function launchArcade(game, opts) { arcadeGame = Arcade.create(game, opts); state = 'arcade'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); }
+  function launchArcade(game, opts) { arcadeGame = Arcade.create(game, opts); state = 'arcade'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); }
   // REGISTRO de puertas con HANDLER propio (lanzan sub-modo o bloquean con condición). El handler devuelve true si
   // manejó la puerta (lanzó/bloqueó) o false para caer a la transición normal. La puerta DECLARA su id (data).
   const DOOR_HANDLERS = {
@@ -532,13 +535,13 @@
   function enterTelo() {
     teloGame = Telo.create(); state = 'telo'; flash();
     if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo');   // 🎵 música de telo bien grasa (chiptune lento)
-    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
   }
   // T2: el bodegón se ve de ARRIBA (sub-modo top-down): mesas + peers online sentados + la rubia en el mostrador.
   function enterBodegon() {
     if (typeof Bodegon === 'undefined' || !Bodegon.create) return false;   // sin el sub-modo → cae al side-scroller (degradación)
     bodegonGame = Bodegon.create(); state = 'bodegon';
-    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
   }
   function grabJoyas(n) {
@@ -1022,7 +1025,8 @@
     if (!msg) return;
     elChatInput.value = ''; chatLine('you', msg);
     // CINE: si el linyera te mandó a buscar una noticia, tu mensaje es el REPORTE → runtime de quests lo corrobora.
-    if (isOraculo(chatNpc)) { const r = Quests.report('oraculo', msg); if (r) { chatLine('npc', r.line); return; } }
+    // (si estás CHIPEADO, los linyeras de la habitación NO hablan del cine/Mundial: solo del chip.)
+    if (isOraculo(chatNpc) && !chipped) { const r = Quests.report('oraculo', msg); if (r) { chatLine('npc', r.line); return; } }
     // §9: al hincha, si ya conseguiste el resultado en el guarda, te agradece + premio (runtime).
     if (isHincha(chatNpc)) { const r = Quests.report('hincha', msg); if (r) { chatLine('npc', r.line); return; } }
     chatHistory.push({ role: 'user', content: msg });
@@ -1032,8 +1036,9 @@
     // (la dice con su voz, no inventa ruta). Si la respuesta sale LOCAL, la mostramos explícita (garantía).
     const ground = isOraculo(chatNpc) ? getHint(Math.min(++hintAsks, 3)) : null;
     let groundTxt = (ground && ground.text) || (isHincha(chatNpc) && mundialQuest ? T('g.mundial.ground', { eq: mundialQuest.equipo }) : null);
-    // ECOSISTEMA: el oráculo "sabe" el estado vivo del mundo (datos, no hardcode) → grounding extra
-    if (isOraculo(chatNpc)) groundTxt = [groundTxt, worldBrief()].filter(Boolean).join(' · ');
+    // ECOSISTEMA: el oráculo "sabe" el estado vivo del mundo (datos, no hardcode) → grounding extra.
+    // CHIPEADO: en la habitación del telo, el linyera SOLO te boludea con el chip/la IA/el sol — nada del cine ni el Mundial.
+    if (isOraculo(chatNpc)) groundTxt = [groundTxt, chipped ? T('g.chip.chatGround') : worldBrief()].filter(Boolean).join(' · ');
     let reply;
     try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory, groundTxt); }
     catch (e) { reply = T('g.chat.error'); }
@@ -1150,7 +1155,7 @@
     if (n.hint && (n.talks >= 6 || Math.random() < 0.3)) setMsg(n.hint, '#ffd54f', 5500);
     else setMsg(n.lines ? pick(n.lines) : T('g.borracho.askDefault'), '#ffd54f', 4200);
   }
-  function enterSuper(raid) { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed, raid: !!raid }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; }
+  function enterSuper(raid) { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed, raid: !!raid }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = ''; }
   // NIVEL-AI en EL MOTOR REAL: te colaste a la trastienda del chino → la IA GENERA un nivel-plataforma, pasa la
   // RED (Playable), y lo cargamos en EL motor (rooms-swap). Si por lo que sea no es jugable, abortamos al juego
   // normal (NUNCA un nivel roto). Al llegar a la meta / morir / escapar → endSpinoffLevel restaura todo.
@@ -1232,7 +1237,7 @@
     } else setMsg(T(outcome === 'dead' ? 'g.nivelai.back' : 'g.nivelai.flee'), '#e0b0ff', 4500);
     spinoffReturnRoom = null;
   }
-  function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
+  function enterVinilos() { vinilosGame = Vinilos.create({ player }); state = 'vinilos'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = ''; Sfx.startEighties(); }
   // TIENDA GENERADA (galería de la cueva): le hablás al local → entrás a su interior generado por IA (rubro = dato del
   // NPC). Aditivo: si falta NivelAI/Tienda, cae al menú plano de siempre (buyFromShop). Ver specs/tiendas-generadas.md.
   function enterTienda(n) {
@@ -1243,7 +1248,7 @@
     const scene = NivelAI.generateShop(tdef.tipo, tdef.base, ai);
     if (!scene || !scene.wares || !scene.wares.length) { buyFromShop(n); return; }
     tiendaGame = Tienda.create(scene, { player, maxHp: MAXHP });
-    state = 'tienda'; flash(); elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elMsg.textContent = '';
+    state = 'tienda'; flash(); elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     tel('tienda', { tipo: scene.id, ai: !!ai });
     // si no estaba cacheado, la IA autora el surtido en background → la PRÓXIMA visita ya entra enriquecida
     if (!ai && NivelAI.requestShop) NivelAI.requestShop(tdef.tipo, () => {});
@@ -2026,6 +2031,8 @@
     elHp.textContent = Math.max(0, Math.floor(player.hp));
     // QUEST DEL CHIP: si estás chipeado, el HUD lo avisa (🤖 chipeado / 🧑‍💼 controlás al pibe de Garbarino); si no, el arma.
     if (elWeapon) elWeapon.textContent = chipped ? (playingAs === 'garbarino' ? '🧑‍💼🤖' : '🤖') : wpnEmoji(player.weapon || 'escupitajo');
+    // cartel rojo FIJO arriba con el objetivo actual del chip (persistente → siempre sabés que seguís chipeado + qué hacer)
+    if (elChipBanner) { if (chipped) { elChipBanner.textContent = chipBannerText(); elChipBanner.classList.remove('hidden'); } else elChipBanner.classList.add('hidden'); }
     elAmmo.textContent = player.ammo;
     elCoins.textContent = player.coins;
     elCaramelos.textContent = player.caramelos;
@@ -2414,7 +2421,7 @@
     showEnd();
   }
   function showEnd() {
-    elEnd.classList.remove('hidden'); elHud.classList.add('hidden');
+    elEnd.classList.remove('hidden'); elHud.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden');
     elPrompt.classList.add('hidden'); elFloor.classList.add('hidden');
   }
 

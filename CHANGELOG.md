@@ -56,6 +56,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v228] — 2026-06-28 — 🤖📌 Quest del chip: cartel de objetivo FIJO + linyeras hablan solo del chip (no del cine)
+
+Fixes de claridad de la quest del chip: **(1)** cartel **rojo FIJO arriba** que muestra SIEMPRE el objetivo del paso
+actual (y que seguís chipeado / que sos el pibe de Garbarino) — `#chipBanner`, persistente mientras estás chipeado.
+**(2)** Los **3 linyeras de la habitación ya NO hablan del cine/Mundial**: cuando estás chipeado, su chat IA se groundea
+SOLO al chip/la IA/el sol (y se suprime la quest de noticias). Así la conversación es del chip, no del cine. Cache **v228**.
+
+---
+
 ## [v227] — 2026-06-28 — 🛏️ La habitación del telo ahora SE VE como el telo (cama, pósters, paleta rosa, música grasa)
 
 Fix de tu observación: te despertabas (chipeado) en una sala genérica, y tenía que ser **la MISMA habitación donde salió
