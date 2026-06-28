@@ -80,6 +80,8 @@ const SALON = new Map();            // pid -> { sala, ts }
 let SALON_TICK = [];                // ring de hitos recientes anónimos: [{ ev, ts }]
 const SALON_TTL = 35000;            // un jugador cuenta "jugando ahora" 35s tras su último beat
 function salonPrune() { const now = Date.now(); for (const [k, v] of SALON) if (now - v.ts > SALON_TTL) SALON.delete(k); }
+// IP REAL del cliente (detrás de HAProxy/Cilium): X-Forwarded-For (1ª) → X-Real-IP → socket. Para VALIDAR sesiones (admin).
+function clientIp(req) { const xff = (req.headers['x-forwarded-for'] || '').split(',')[0].trim(); return xff || req.headers['x-real-ip'] || (req.socket && req.socket.remoteAddress) || '?'; }
 
 // BODEGÓN F2b (real-time): sala-instancia -> { peers: Map<pid,estado>, subs: Set<res SSE> }. Matchmaking simple:
 // llena la 1ª sala con lugar (para que la gente SE ENCUENTRE), si no abre otra. Prune de peers viejos (sin pos 20s).
@@ -452,12 +454,21 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ count: SALON.size, byRoom, ticker: SALON_TICK.slice(-12) }));
   }
+  if (req.method === 'GET' && req.url.startsWith('/salon/debug')) {                 // ADMIN: VALIDAR que las sesiones son REALES (pid, sala, IP, edad). Token-gated.
+    const tok = new URL(req.url, 'http://x').searchParams.get('token') || req.headers['x-gen-token'] || '';
+    if (!GEN_TOKEN || tok !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    salonPrune(); bodegonPrune(); const now = Date.now();
+    const sesiones = [...SALON.entries()].map(([pid, v]) => ({ pid, sala: v.sala, ip: v.ip || '?', edadSeg: Math.round((now - v.ts) / 1000) }));
+    const bodegones = [...BODEGON.entries()].map(([room, r]) => ({ room, peers: [...r.peers.values()].map(p => ({ pid: p.pid, nick: p.nick, ip: p.ip || '?', edadSeg: Math.round((now - p.ts) / 1000) })), streams: r.streams.size }));
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ jugandoAhora: SALON.size, sesiones, bodegones, nota: 'presencia REAL: cada sesión = un navegador que mandó /salon/beat en los últimos 35s. Sin simulación.' }, null, 2));
+  }
   if (req.method === 'POST' && req.url === '/salon/beat') {                         // SALÓN F1: latido de presencia + hito opcional
     let pb = '';
     req.on('data', c => { pb += c; if (pb.length > 2000) req.destroy(); });
     req.on('end', () => {
       try { const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48);
-        if (pid) { SALON.set(pid, { sala: String(d.sala || '?').slice(0, 24), ts: Date.now() });
+        if (pid) { SALON.set(pid, { sala: String(d.sala || '?').slice(0, 24), ts: Date.now(), ip: clientIp(req) });   // ip para validar sesiones REALES (GET /salon/debug)
           if (d.ev) { SALON_TICK.push({ ev: String(d.ev).slice(0, 40), ts: Date.now() }); if (SALON_TICK.length > 30) SALON_TICK = SALON_TICK.slice(-30); } }
         salonPrune();
         res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ count: SALON.size }));
@@ -474,7 +485,7 @@ http.createServer((req, res) => {
       const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); if (!pid) { res.writeHead(400); return res.end('no pid'); }
       const nick = String(d.nick || '').slice(0, 16).replace(/[<>]/g, ''); const avatar = (String(d.avatar || 'civil').slice(0, 12)).replace(/[^a-z0-9_]/gi, '');
       const room = bodegonJoin(); const r = bodegonRoom(room);
-      r.peers.set(pid, { pid, nick, avatar, x: 11, vx: 0, emote: 0, emoteT: 0, ts: Date.now() });
+      r.peers.set(pid, { pid, nick, avatar, x: 11, vx: 0, emote: 0, emoteT: 0, ts: Date.now(), ip: clientIp(req) });
       bodegonBroadcast(r, 'peer-join', { pid, nick, avatar, x: 11 });
       const peers = [...r.peers.values()].filter(p => p.pid !== pid).map(p => ({ pid: p.pid, nick: p.nick, avatar: p.avatar, x: p.x, vx: p.vx }));
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ room, peers, cap: BODEGON_CAP }));

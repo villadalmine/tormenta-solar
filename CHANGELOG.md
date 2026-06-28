@@ -1187,6 +1187,17 @@ Los 20 pisos se ensancharon (17→24). El **costado derecho** ahora tiene:
 
 ---
 
+## [infra-35] — 2026-06-28 — 🔎 Proxy: validar que la presencia es REAL — `GET /salon/debug` (admin, con IP)
+
+Para responder "¿la gente jugando es real o confío ciegamente?": la presencia **NO tiene nada simulado** (cada sesión =
+un navegador real que mandó `/salon/beat` en los últimos 35s). Ahora hay forma de **validarlo**: `GET /salon/debug?token=
+<GEN_TOKEN>` (admin, token-gated) devuelve las **sesiones reales** (pid, sala, **IP** del cliente vía `X-Forwarded-For`,
+antigüedad en seg) + las salas-instancia del bodegón (peers con nick/IP) + el `count` de "jugando ahora". Se capturó la
+**IP** en `/salon/beat` y en `/salon/join` (solo visible por el endpoint admin). Útil para confirmar deploys y cazar si
+algo está raro. Proxy bump.
+
+---
+
 ## [infra-34] — 2026-06-28 — 🔒 Proxy: chat PRIVADO 1-a-1 del bodegón (`/salon/whisper`, dirigido a un peer)
 
 Sostén del **v213**. El relay del bodegón gana el **mensaje privado dirigido**: `POST /salon/whisper {pid,room,to,msg}`
