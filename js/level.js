@@ -625,9 +625,23 @@ const Level = (() => {
     // (cuántos juegan ahora, en qué zona, ticker de hitos). Capa aditiva: sin salon-server, dice "modo offline".
     const cine8 = rooms.push(makeRoom({
       name: 'Cine Lavalle — EN VIVO', tags:['cine','cine-live'], theme: 'arcade', light: 0.5, w: 22,
-      doors: [{ id:'down', art:'doorUp', label:'bajar: OpenRouter', x:2, inward:1 }],
+      doors: [{ id:'down', art:'doorUp', label:'bajar: OpenRouter', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: el BODEGÓN', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
-      npcs: [{ name:'El Proyeccionista', sprite:'linyera', x:17, dialog:'“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla.” 📡' }],
+      npcs: [{ name:'El Proyeccionista', sprite:'linyera', x:17, dialog:'“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla. Subí al bodegón si querés un fernet.” 📡' }],
+    })) - 1;
+    // 9º piso del cine — EL BODEGÓN porteño (multijugador F2, specs/multijugador.md §3.2). Por ahora SINGLE-PLAYER
+    // (modo "degradado": mozos canned + el gag de la rubia y el ropero); el encuentro real-time por SSE (F2b) queda
+    // para cuando se decida dónde vive el salon-server. Mesas, parrilla, vino, fernet.
+    const _bodegon = [{t:'mesaRedonda',x:6},{t:'mesaRedonda',x:9},{t:'mesaRedonda',x:13},{t:'mesaRedonda',x:16},{t:'parrilla',x:11},{t:'barril',x:3},{t:'barril',x:19}];
+    const cine9 = rooms.push(makeRoom({
+      name: 'Cine Lavalle — El Bodegón', tags:['cine','bodegon'], theme: 'shop', light: 0.78, w: 22,
+      doors: [{ id:'down', art:'doorUp', label:'bajar: EN VIVO', x:2, inward:1 }],
+      decor: [..._bodegon, ..._ads],
+      npcs: [
+        { name:'La Rubia', sprite:'erotica', x:11, action:'moza', dialog:'“Hola, corazón… ¿te sirvo algo? 😘 Vení que en la puerta de atrás tengo unos tragos de la casa…”' },
+        { name:'Mozo', sprite:'gordo', x:7, dialog:'“Sentate donde quieras, pibe. La picada ya sale. Ojo con la rubia, eh.” 🍷' },
+        { name:'Parroquiano', sprite:'borracho_vino', x:16, dialog:'“Yo de la rubia no me fío… cada vez que voy atrás, aparece el ropero. 🚪💪”' },
+      ],
     })) - 1;
 
     function wire(ai, ad, bi, bd) {

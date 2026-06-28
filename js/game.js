@@ -422,6 +422,7 @@
     chat:    n => openChat(n),
     guarda:  n => guardaCine(n),
     fifa:    () => playFifa(),
+    moza:    n => handleMoza(n),
   };
   function handleNpc(n) {
     const fn = n && NPC_ACTIONS[n.action];
@@ -436,6 +437,15 @@
     player.vx = player.vy = 0; transCd = 0.4;
     updateCam(); elFloor.textContent = TX(rooms[0].name);
     setMsg(msg, '#ffd54f', 7500);
+  }
+  // LA RUBIA del bodegón + el ROPERO (gag recurrente, specs/multijugador.md §3.2.2): te invita a "probar tragos en la
+  // puerta de atrás"; si le decís que SÍ (2da E), aparece un ropero de 2 metros y te raja del bar. Single-player, canned.
+  let mozaInvited = false;
+  function handleMoza(n) {
+    Sfx.pickup();
+    if (!mozaInvited) { mozaInvited = true; setMsg(T('g.moza.invite'), '#ff8fc8', 6000); return; }
+    mozaInvited = false; flash(); Sfx.hurt();
+    ejectToStreet(T('g.moza.ropero'));
   }
   function grabJoyas(n) {
     // tocás las JOYAS → sale el linyera, te suelta su filosofía y te raja a la calle
@@ -504,6 +514,7 @@
     player.y = rm.gTop * Level.TILE - player.h;
     player.vx = player.vy = 0; transCd = 0.4;
     updateCam(); elFloor.textContent = TX(rm.name);
+    mozaInvited = false;   // salir/entrar al bodegón resetea el gag de la rubia
     placeRoamingOraculo(tileX);
   }
   // LINYERA ERRANTE (capa aditiva): al entrar a una sala, si hay una arista de frontera EN ESTE LUGAR,

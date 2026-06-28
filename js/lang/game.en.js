@@ -43,6 +43,8 @@
     'g.inv.equipped': '✓ equipped',
     'g.inv.empty': 'You don\'t have anything yet.',
     'g.inv.hint': '[I] inventory',
+    'g.moza.invite': '💋 The blonde leans in: "wanna go out back and try some house drinks, sweetheart? 😏" … (press E again if you dare)',
+    'g.moza.ropero': '🚪💪 The second you say yes, a two-meter BOUNCER steps out of the back room: "bar\'s closed for you, champ" — and plants you on the sidewalk in one shove. 😵',
     'g.linyeraCry': [
       '"I had THREE flats in Puerto Madero... three. (breaks down) Look in the toilet there, grab it, it\'s no use to me anymore..." 😭',
       '"I was a bank manager. Suits, meetings, a hole in my soul. (cries) There\'s cash in the safe, take it, kid." 💼😢',

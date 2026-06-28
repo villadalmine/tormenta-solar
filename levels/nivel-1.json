@@ -8765,6 +8765,16 @@
           }
         },
         {
+          "id": "cine-lavalle-en-vivo/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: el BODEGÓN",
+          "inward": -1
+        },
+        {
           "id": "cine-lavalle-en-vivo/npc0",
           "tipo": "npc",
           "render": {
@@ -8773,7 +8783,7 @@
           "x": 17,
           "name": "El Proyeccionista",
           "dialogue": {
-            "text": "“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla.” 📡"
+            "text": "“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla. Subí al bodegón si querés un fernet.” 📡"
           }
         },
         {
@@ -8843,6 +8853,142 @@
         },
         {
           "id": "cine-lavalle-en-vivo/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 20,
+          "ad": {}
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-el-bodegon",
+      "nombre": "Cine Lavalle — El Bodegón",
+      "theme": "shop",
+      "w": 22,
+      "tags": [
+        "cine",
+        "bodegon"
+      ],
+      "light": 0.78,
+      "entities": [
+        {
+          "id": "cine-lavalle-el-bodegon/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: EN VIVO",
+          "inward": 1
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "erotica"
+          },
+          "x": 11,
+          "name": "La Rubia",
+          "interact": {
+            "action": "moza"
+          },
+          "dialogue": {
+            "text": "“Hola, corazón… ¿te sirvo algo? 😘 Vení que en la puerta de atrás tengo unos tragos de la casa…”"
+          }
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/npc1",
+          "tipo": "npc",
+          "render": {
+            "sprite": "gordo"
+          },
+          "x": 7,
+          "name": "Mozo",
+          "dialogue": {
+            "text": "“Sentate donde quieras, pibe. La picada ya sale. Ojo con la rubia, eh.” 🍷"
+          }
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/npc2",
+          "tipo": "npc",
+          "render": {
+            "sprite": "borracho_vino"
+          },
+          "x": 16,
+          "name": "Parroquiano",
+          "dialogue": {
+            "text": "“Yo de la rubia no me fío… cada vez que voy atrás, aparece el ropero. 🚪💪”"
+          }
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "mesaRedonda"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "mesaRedonda"
+          },
+          "x": 9
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor5",
+          "tipo": "decor",
+          "render": {
+            "type": "mesaRedonda"
+          },
+          "x": 13
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "mesaRedonda"
+          },
+          "x": 16
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor7",
+          "tipo": "decor",
+          "render": {
+            "type": "parrilla"
+          },
+          "x": 11
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor8",
+          "tipo": "decor",
+          "render": {
+            "type": "barril"
+          },
+          "x": 3
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor9",
+          "tipo": "decor",
+          "render": {
+            "type": "barril"
+          },
+          "x": 19
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor10",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 2,
+          "ad": {}
+        },
+        {
+          "id": "cine-lavalle-el-bodegon/decor11",
           "tipo": "decor",
           "render": {
             "type": "cartel"

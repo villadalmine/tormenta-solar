@@ -56,6 +56,13 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
   de agregados. **Se prototipa primero**: sensación de mundo vivo con mínima plomería.
 
 ### 3.2 BODEGÓN (F2 — encuentro real-time)
+> **✅ F2a HECHO (v211):** la sala `bodegon` existe (9º piso del cine, `tags:['cine','bodegon']`, theme `shop`, mesas
+> redondas + parrilla + barriles + mozos canned) y el **gag de la rubia y el ropero §3.2.2 está implementado** (NPC
+> `moza` → `handleMoza` en game.js: oferta → 2ª E = sí → flash + `ejectToStreet`). Es el **modo degradado** del bodegón
+> (single-player), que el propio diseño contempla. **FALTA F2b:** el encuentro real-time por SSE (`/salon/join|stream|pos`),
+> que necesita el `salon-server` dedicado — depende de la decisión de infra de §7 (dónde vive). Hasta entonces, el
+> bodegón es un bar canned jugable solo, y "nadie nota que faltaba el online".
+
 - Sala nueva `bodegon` (theme nuevo: madera, mesas redondas, mantel, parrilla, vino, fernet). Subís por el ascensor
   del cine. Al entrar → `POST /salon/join` te mete en una **sala-instancia chica (cap ~6)**:
   - **Matchmaking simple:** el server llena la sala actual hasta `cap`; cuando se llena, abre otra. "De a dos suben y
@@ -81,6 +88,9 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
   (te echa a la calle, tipo `ejectToStreet`). Gag que se repite (cada vez que caés). Humor porteño de bodegón.
 - Implementación: NPC `moza` con `action` propia (oferta → confirmás → mini-cinemática del ropero → eject). Canned
   (no necesita el online); funciona aunque estés solo en el bar. Pensar premio/variante si insistís N veces.
+- **✅ HECHO (v211):** `handleMoza(n)` en game.js (flag `mozaInvited`, se resetea al cambiar de sala en `spawnIn`):
+  1ª E = la rubia te invita (`g.moza.invite`); 2ª E = decís que sí → `flash()` + `ejectToStreet(g.moza.ropero)`. NPC
+  `La Rubia` (sprite `erotica`) en el bodegón. *(Falta la variante/premio si insistís N veces — deuda fina.)*
 
 ### 3.3 Qué hacés JUNTOS (el corazón — lo que no podés solo)
 - **TRUCO PvP humano vs humano** ⭐: dos se sientan a una mesa → partida **persona contra persona** (reusa
@@ -103,10 +113,11 @@ POST /salon/say    {pid,room,phrase}                            (frase PRESET o 
   schema (los peers no son data del nivel; son runtime).
 
 ## 5. Fases (de barato a co-op)
-1. **F1 — CINE EN VIVO** (presencia + ticker agregado). Reusa `presence.js` + `/salon/live`. **Cero real-time de
-   posiciones.** Máximo wow / mínimo riesgo. *Empezar acá.*
-2. **F2 — BODEGÓN co-presencia**: salas-instancia + posiciones por SSE + emotes + frases preset. La experiencia
-   "subís y te encontrás con otro". (Sin chat libre → sin moderación, §6.)
+1. **F1 — CINE EN VIVO** ✅ **HECHO (v205)** (presencia + ticker agregado). Reusa `presence.js` + `/salon/live`. **Cero
+   real-time de posiciones.** Máximo wow / mínimo riesgo.
+2. **F2 — BODEGÓN**: **F2a ✅ HECHO (v211)** = la sala bodegón (9º piso) + mozos canned + gag rubia/ropero (modo
+   degradado single-player). **F2b PENDIENTE** = co-presencia real: salas-instancia + posiciones por SSE + emotes +
+   frases preset ("subís y te encontrás con otro"). Necesita el `salon-server` (§7). (Sin chat libre → sin moderación, §6.)
 3. **F3 — Co-op real**: **truco PvP** (reusa el motor) + brindis + compartir comida + trueque + 1 quest co-op.
 4. **F4 — Identidad/escala**: nick ligado a `suscripcion` (opcional), más salas, y SI se agrega chat libre →
    moderación/rate-limit/reportes (`seguridad.md`).

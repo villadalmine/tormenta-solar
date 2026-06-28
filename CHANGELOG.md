@@ -56,6 +56,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v211] — 2026-06-28 — 🍻 EL BODEGÓN porteño (9º piso del cine) + el gag de la RUBIA y el ROPERO
+
+Primera parte del **bodegón** del multijugador (F2a, single-player por ahora). Nuevo **9º piso del cine**: un **bodegón
+porteño** con mesas redondas, parrilla, barriles y mozos. Subís desde el piso EN VIVO. En modo "degradado" (sin el
+servidor de tiempo real) es un bar jugable solo con NPCs canned — tal como dice el diseño. Estrella del piso: **la
+RUBIA explosiva** que atiende y **siempre te quiere llevar a "probar unos tragos en la puerta de atrás"**; si le decís
+que **SÍ** (apretás E de nuevo), de la trastienda sale un **ROPERO de dos metros** que te **planta en la vereda** de un
+saque 😵. Gag recurrente, humor de bodegón. *(El encuentro real-time entre jugadores por SSE —F2b— queda para cuando se
+decida dónde vive el `salon-server`, pregunta de infra abierta.)* 47 salas. SDD `specs/multijugador.md §3.2`. Cache **v211**.
+
+---
+
 ## [v210] — 2026-06-28 — 🎸 INVENTARIO + la VIOLA de Les Luthiers que dispara RISAS
 
 Nueva mecánica pedida por el dueño: el **tesoro del búnker** (el linyera mayor, cuando ya sos gurú) ahora, además de

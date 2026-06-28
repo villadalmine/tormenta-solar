@@ -46,6 +46,8 @@
     'g.inv.equipped': '✓ equipada',
     'g.inv.empty': 'No tenés nada todavía.',
     'g.inv.hint': '[I] inventario',
+    'g.moza.invite': '💋 La rubia se te arrima: “¿vamos atrás a probar unos traguitos de la casa, corazón? 😏” … (apretá E de nuevo si te animás)',
+    'g.moza.ropero': '🚪💪 Apenas decís que sí, de la trastienda sale un ROPERO de dos metros: “el bodegón cierra para vos, campeón” — y te planta en la vereda de un saque. 😵',
     'g.linyeraCry': [
       '“Yo tenía TRES deptos en Puerto Madero... tres. (se quiebra) Mirá ahí en el inodoro, agarrá, total ya no me sirve de nada...” 😭',
       '“Era gerente de banco. Traje, reuniones, un vacío de mierda. (llora) Hay guita en la caja fuerte, llevate, pibe.” 💼😢',

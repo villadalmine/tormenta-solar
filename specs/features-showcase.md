@@ -45,6 +45,11 @@
 - **Banks vivos (todo-API):** noticias del cine (Google News + ESPN Mundial), propaganda de marcas, chusmerío —
   **bancos JSON-en-PVC** que llenan **crons** y sirve el proxy, con **fallback estático**. TTS server (espeak-ng)
   para navegadores sin voz.
+- **Multijugador (cine de Lavalle):** el **8º piso EN VIVO** muestra el **mundo vivo** (cuántos juegan AHORA, en qué
+  zona, ticker de hitos; relay in-memory `/salon`). El **9º piso es un BODEGÓN porteño** (mesas, parrilla, fernet) con
+  la **rubia y el ropero** (gag): te invita a la trastienda, le decís que sí y un patova de dos metros te raja a la
+  vereda. Hoy single-player (modo degradado); el encuentro real-time entre jugadores por SSE viene después. Ver
+  `specs/multijugador.md`.
 
 ## 4. MECÁNICAS con vuelta de tuerca (satíricas, data-driven)
 - **Dólares como arma (post-tormenta):** el Carpo (homenaje a Pappo: melena, birra) **escupe dólares**; a la GENTE
