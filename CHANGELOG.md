@@ -56,6 +56,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v224] — 2026-06-28 — 🤖📱 Telo: la persecución, justa + el celu en la habitación (feedback dueño)
+
+Más arreglos del telo con tu feedback: **(1)** el Carpo salta al **MEDIO del cuarto** (antes saltaba pegado a la puerta y
+"escapabas" al instante; ahora hay que **correr** a la puerta de verdad). **(2)** la **PUERTA está MARCADA**: verde, con
+glow, cartel "SALIDA" y una **flecha pulsante** durante la persecución (sabés a dónde ir). **(3)** si el robot **te
+atrapa, se VA y quedás en la habitación** (como lo charlamos): aparece un **📱 celu brillando en la mesita** → lo agarrás
+[E] → llamás a los linyeras (se cagan de risa + "te lo arregla el de Garbarino") → salís **chipeado con la quest ya
+arrancada**. **(4)** al chiparte ahora **bajás al cine con el HUD visible** (antes volvías al bodegón top-down con el HUD
+oculto → no veías el 🤖 ni la pista). Cache **v224**.
+
+---
+
 ## [v223] — 2026-06-28 — 🏁 Telo: pantalla de RESULTADO (escapaste/te chiparon) + música audible
 
 Más feedback del telo. Ahora al terminar la persecución hay una **pantalla de resultado grande y centrada** —

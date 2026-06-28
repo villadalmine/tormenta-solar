@@ -70,7 +70,7 @@ const Telo = (() => {
         if (sheAtBed && nearTile(bed, 1.3)) {   // ¡EL CARPO PEGA UN SALTO de la cama! era una TRAMPA: un ROBOT IA te quería chipar. Huí a la puerta.
           phase = 'robot'; pt = 0; bear.on = true;
           bear.x = (bed.x + 0.8) * CS; bear.y = (bed.y + 0.3) * CS;        // el robot estaba en la cama
-          player.x = (bed.x - 2.6) * CS; player.y = (bed.y + 1.4) * CS;   // SALTÁS lejos, hacia el cuarto/la puerta (ventaja para escapar)
+          player.x = 5.5 * CS; player.y = 4 * CS;                          // SALTÁS al MEDIO del cuarto (lejos del robot Y de la puerta → hay que correr a la puerta)
           setMsg(T('g.telo.robot'), 6); Sfx.hurt && Sfx.hurt();
         }
       } else if (phase === 'robot') {
@@ -78,12 +78,21 @@ const Telo = (() => {
         // el ROBOT te persigue para inyectarte el chip — un toque MÁS LENTO que vos: si corrés derecho a la puerta, ZAFÁS.
         const dx = player.x - bear.x, dy = player.y - bear.y, d = Math.hypot(dx, dy) || 1, sp = (96 + pt * 6) * dt;
         bear.x += (dx / d) * sp; bear.y += (dy / d) * sp;
-        if (nearTile(exit, 1.0)) { phase = 'result'; pt = 0; escaped = true; bear.on = false; Sfx.win && Sfx.win(); }   // ¡llegaste a la puerta! zafaste
-        else if (d < 20 || pt > 11) { phase = 'result'; pt = 0; chipped = true; Sfx.hurt && Sfx.hurt(); }              // te atrapó → te chipea
+        if (pt > 0.4 && nearTile(exit, 0.9)) { phase = 'result'; pt = 0; escaped = true; bear.on = false; Sfx.win && Sfx.win(); }   // llegaste a la PUERTA → ESCAPASTE (margen 0.4s para no escapar en el salto)
+        else if (d < 20 || pt > 11) { phase = 'chipped'; pt = 0; chipped = true; bear.on = false; Sfx.hurt && Sfx.hurt(); setMsg(T('g.telo.chipStay'), 10); }  // te atrapó → te CHIPEA, el robot se VA y quedás en el cuarto
       } else if (phase === 'result') {
-        // PANTALLA DE RESULTADO (banner grande): que SIEMPRE leas qué pasó antes de salir al bar
+        // PANTALLA DE RESULTADO (solo ESCAPASTE): banner grande antes de salir al bar
         prompt = '';
-        if (pt > (chipped ? 3.2 : 2.4)) { done = true; exitTo = 'back'; }
+        if (pt > 2.4) { done = true; exitTo = 'back'; }
+      } else if (phase === 'chipped') {
+        // CHIPEADO: el robot se fue, quedás en la habitación. Explorás y buscás el CELU en la mesita (E).
+        const atPhone = nearTile(mesita, 1.5);
+        prompt = atPhone ? T('g.telo.phonePrompt') : T('g.telo.chipExplore');
+        if (atPhone && pressed) { phase = 'phonecall'; pt = 0; setMsg(T('g.chip.linyeras'), 10); Sfx.pickup && Sfx.pickup(); }
+      } else if (phase === 'phonecall') {
+        // usaste el celu → llamás a los linyeras (se cagan de risa + hook Garbarino) → salís chipeado, con la quest
+        prompt = '';
+        if (pt > 5) { done = true; exitTo = 'back'; }
       }
     }
 
@@ -124,10 +133,19 @@ const Telo = (() => {
       // props (emoji)
       ctx2.textAlign = 'center'; ctx2.font = '17px serif';
       for (const p of props) ctx2.fillText(p.emoji, ox + (p.x + 0.5) * CS, oy + (p.y + 0.72) * CS);
-      // SALIDA
-      const exx = ox + (exit.x + 0.5) * CS, exy = oy + (exit.y + 0.5) * CS;
-      ctx2.fillStyle = pal.accent; ctx2.globalAlpha = 0.4; ctx2.fillRect(exx - 13, exy - 14, 26, 28); ctx2.globalAlpha = 1;
-      ctx2.font = 'bold 14px serif'; ctx2.fillText('🚪', exx, exy + 6);
+      // SALIDA — MARCADA: puerta verde con glow + cartel "SALIDA"; en la fase robot, BIEN grande + flecha pulsante (sabés a dónde correr)
+      const exx = ox + (exit.x + 0.5) * CS, exy = oy + (exit.y + 0.5) * CS, chase = (phase === 'robot'), pulse = 0.6 + 0.4 * Math.abs(Math.sin(t * 5));
+      ctx2.save();
+      ctx2.fillStyle = chase ? 'rgba(60,220,90,' + (0.5 + 0.4 * pulse) + ')' : 'rgba(60,200,90,0.45)';
+      ctx2.shadowBlur = chase ? 18 * pulse : 8; ctx2.shadowColor = '#3cdc5a';
+      ctx2.fillRect(exx - 15, exy - 17, 30, 34);
+      ctx2.shadowBlur = 0; ctx2.font = 'bold 16px serif'; ctx2.fillStyle = '#fff'; ctx2.fillText('🚪', exx, exy + 6);
+      ctx2.fillStyle = '#7CFC00'; ctx2.font = 'bold 9px monospace'; ctx2.fillText(T('g.telo.exitLabel'), exx, exy - 20);
+      if (chase) {   // flecha pulsante encima, indicando la salida
+        const ay = exy - 30 - 4 * pulse; ctx2.fillStyle = '#7CFC00';
+        ctx2.beginPath(); ctx2.moveTo(exx, ay + 8); ctx2.lineTo(exx - 6, ay); ctx2.lineTo(exx + 6, ay); ctx2.closePath(); ctx2.fill();
+      }
+      ctx2.restore();
 
       // CINEMÁTICA del jacuzzi: vapor + 2 siluetas + corazones (insinuado, cómico, sin nada explícito)
       if (phase === 'bath') {
@@ -193,6 +211,17 @@ const Telo = (() => {
         ctx2.fillStyle = 'rgba(150,20,20,' + (0.78 + 0.18 * blink) + ')'; ctx2.fillRect(0, 30, VW, 26);
         ctx2.fillStyle = '#fff'; ctx2.font = 'bold 13px monospace'; ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
         ctx2.fillText(T('g.telo.robotBanner'), VW / 2, 43); ctx2.textBaseline = 'alphabetic';
+      }
+      // CHIPEADO: el robot se fue, quedaste en el cuarto → cartel guía (buscá el celu) — no se va
+      if (phase === 'chipped' || phase === 'phonecall') {
+        ctx2.fillStyle = 'rgba(40,90,60,0.85)'; ctx2.fillRect(0, 30, VW, 26);
+        ctx2.fillStyle = '#cfeede'; ctx2.font = 'bold 12px monospace'; ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
+        ctx2.fillText(T(phase === 'phonecall' ? 'g.telo.phoneBanner' : 'g.telo.chipBanner'), VW / 2, 43); ctx2.textBaseline = 'alphabetic';
+        // EL CELU brillando sobre la mesita (a buscar)
+        const phx = ox + (mesita.x + 0.5) * CS, phy = oy + (mesita.y - 0.1) * CS, gl = 0.5 + 0.5 * Math.abs(Math.sin(t * 5));
+        ctx2.save(); ctx2.shadowBlur = 10 * gl; ctx2.shadowColor = '#5ad6ff'; ctx2.font = '16px serif'; ctx2.textAlign = 'center'; ctx2.fillStyle = '#fff';
+        ctx2.fillText('📱', phx, phy + 5); ctx2.restore();
+        if (phase === 'chipped' && !nearTile(mesita, 1.5)) { ctx2.fillStyle = '#7CFC00'; ctx2.font = 'bold 9px monospace'; ctx2.fillText('📱', phx, phy - 14); }
       }
       // PANTALLA DE RESULTADO grande (escapaste / te chiparon): centrada, imposible de no leer
       if (phase === 'result') {

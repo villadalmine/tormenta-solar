@@ -2489,12 +2489,16 @@
       if (teloGame.done) {
         const gotChipped = teloGame.chipped, gotAway = teloGame.escaped; teloGame = null; flash();
         if (Sfx.setRoomTrack) Sfx.setRoomTrack(null);   // corta la música de telo al volver al bar
-        // volvés al BAR: si el bodegón es top-down, relanzá el sub-modo; si no, al side-scroller
-        if (hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón top-down */ }
-        else { state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
-        // te atrapó el robot IA → arranca la QUEST DEL CHIP (specs/telo-chip-quest.md). Si ya estabas chipeado, no re-arranca.
-        if (gotChipped && !chipped) chipStart();
-        setMsg(T(gotChipped ? 'g.telo.chipped' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : '#ff8fc8', gotChipped ? 11000 : gotAway ? 6000 : 3000);
+        // te chipó el robot Y usaste el CELU de la mesita (llamaste a los linyeras en el telo) → arranca la QUEST ya en
+        // el paso "andá al pibe de Garbarino" (el celu = la llamada a los linyeras). specs/telo-chip-quest.md.
+        if (gotChipped && !chipped) { chipStart(); chipStep = 'garbarino'; }
+        // ESCAPASTE → seguís de joda en el bodegón top-down. TE CHIPARON → bajás al cine (HUD visible: ves el 🤖 + la pista).
+        if (!gotChipped && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
+        else {
+          state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+          if (gotChipped && hasTag(room(), 'bodegon')) { const d = rooms[current] && rooms[current].doorById && rooms[current].doorById['down']; if (d) transition(d); }   // chipeado: salí del bodegón al cine
+        }
+        setMsg(T(gotChipped ? 'g.chip.hint.garbarino' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : '#ff8fc8', gotChipped ? 12000 : gotAway ? 6000 : 3000);
       }
     } else if (state === 'bodegon' && bodegonGame) {
       bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);
