@@ -64,6 +64,15 @@ const Player = (() => {
         // sombra
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.beginPath(); ctx.ellipse(this.x - cam.x + this.w/2, this.y - cam.y + this.h, 13, 4, 0, 0, Math.PI*2); ctx.fill();
+        // === QUEST DEL CHIP: cuando controlás al PIBE DE GARBARINO te ves como el vendedor (💼), NO como el Carpo ===
+        if (this.asGarbarino && typeof Art !== 'undefined' && Art.npc && Art.npc.vendedor) {
+          ctx.save();
+          if (this.facing < 0) { ctx.translate(drawX + 16, 0); ctx.scale(-1, 1); ctx.translate(-(drawX + 16), 0); }
+          ctx.drawImage(Art.npc.vendedor, drawX, drawY);
+          ctx.restore();
+          ctx.font = '12px serif'; ctx.textAlign = 'center'; ctx.fillText('💼', this.x - cam.x + this.w/2, this.y - cam.y - 6);
+          return;
+        }
         // cuerpo (flip según mira)
         ctx.save();
         if (this.facing < 0) { ctx.translate(drawX + 16, 0); ctx.scale(-1, 1); ctx.translate(-(drawX + 16), 0); }

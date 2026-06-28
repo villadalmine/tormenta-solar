@@ -56,6 +56,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v229] — 2026-06-28 — 🤖💼 Quest del chip: AHORA SÍ te transformás en el pibe de Garbarino (sprite propio)
+
+El único cabo suelto que reportó el dueño: *"el problema era que nunca me transformé en el de Garbarino"*. El resto
+de la quest anda de diez (EducaciónIT Maxi+Marcos → troyano, cine/consolas → jubilados → Trucotron → consola en
+inventario → linyera → de vuelta al telo). **Fix:** al hablarle al vendedor de Garbarino ahora **pasás a CONTROLAR
+visualmente al pibe** — el jugador se dibuja con el sprite del vendedor + badge **💼** (`player.asGarbarino` →
+`player.js draw`), no más el Carpo. El Carpo (vos) **queda chipeado en la cama del telo**; el de Garbarino (que NO
+está chipeado) hace el resto del quest, y al curarte volvés a ser el Carpo. Reframe de todos los carteles/mensajes
+(`g.chip.obj.*`, `g.chip.garbarino`, `g.chip.linyerasPosta`): la posta de los linyeras te manda a **buscarlo** (seguís
+Carpo), el switch pasa **al hablarle**, y de ahí en más el HUD dice "Sos el pibe de Garbarino (el Carpo quedó chipeado
+en la cama)". Paridad i18n ES/EN (552/552). Cache **v229**.
+
+---
+
 ## [v228] — 2026-06-28 — 🤖📌 Quest del chip: cartel de objetivo FIJO + linyeras hablan solo del chip (no del cine)
 
 Fixes de claridad de la quest del chip: **(1)** cartel **rojo FIJO arriba** que muestra SIEMPRE el objetivo del paso

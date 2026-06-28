@@ -232,7 +232,7 @@
   function chipLinNote(n) { if (chipped && chipStep === 'linyeras' && n && n.chiplin) chipLinTalked.add(n.persona || n.name); }
   function chipLinMaybePosta() {
     if (!(chipped && chipStep === 'linyeras' && chipLinTalked.size >= 3)) return;
-    chipStep = 'garbarino'; playingAs = 'garbarino'; chipLinTalked.clear();
+    chipStep = 'garbarino'; chipLinTalked.clear();   // seguís siendo el Carpo (chipeado) → vas a BUSCAR al pibe de Garbarino; el switch pasa al hablarle
     setMsg(T('g.chip.linyerasPosta'), '#7CFC00', 15000);
     if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('chip_linyeras');
   }
@@ -1935,7 +1935,7 @@
     player.stunned = performance.now() < stunUntil;
     if (stunPending && !player.stunned) { stunPending = false; setMsg(T('g.truco.freed'), '#ffd54f', 5000); }   // el tahúr frena a las minas: "déjenlo al pibe"
     player.dollarMode = stormed;   // post-tormenta el Carpo escupe DÓLARES (apaciguan a la gente)
-    player.canShoot = stormed || spinoffLevel;   // PRE-tormenta el Carpo NO dispara (no hay combate); en niveles generados sí
+    player.canShoot = (stormed || spinoffLevel) && playingAs !== 'garbarino';   // PRE-tormenta no dispara; y el pibe de Garbarino tampoco (no es el Carpo)
     player.update(dt, r, cam);
     // las CÁMARAS ven cada dólar disparado → burbuja con la serie (real/trucha)
     if ((player.shots || 0) > shotsSeen) { shotsSeen = player.shots; if (player.lastShot && player.lastShot.kind === 'dollar') spawnDollarBubble(player.lastShot.x, player.lastShot.y); }
@@ -2029,8 +2029,9 @@
 
   function syncHud() {
     elHp.textContent = Math.max(0, Math.floor(player.hp));
-    // QUEST DEL CHIP: si estás chipeado, el HUD lo avisa (🤖 chipeado / 🧑‍💼 controlás al pibe de Garbarino); si no, el arma.
-    if (elWeapon) elWeapon.textContent = chipped ? (playingAs === 'garbarino' ? '🧑‍💼🤖' : '🤖') : wpnEmoji(player.weapon || 'escupitajo');
+    // QUEST DEL CHIP: el sprite del jugador pasa a ser el PIBE DE GARBARINO (player.asGarbarino → player.js draw).
+    player.asGarbarino = (playingAs === 'garbarino');
+    if (elWeapon) elWeapon.textContent = chipped ? (playingAs === 'garbarino' ? '💼' : '🤖') : wpnEmoji(player.weapon || 'escupitajo');
     // cartel rojo FIJO arriba con el objetivo actual del chip (persistente → siempre sabés que seguís chipeado + qué hacer)
     if (elChipBanner) { if (chipped) { elChipBanner.textContent = chipBannerText(); elChipBanner.classList.remove('hidden'); } else elChipBanner.classList.add('hidden'); }
     elAmmo.textContent = player.ammo;
