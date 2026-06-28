@@ -9046,12 +9046,12 @@
     {
       "id": "la-habitacion-del-telo",
       "nombre": "La habitación del telo",
-      "theme": "shop",
+      "theme": "secret",
       "w": 18,
       "tags": [
         "telohab"
       ],
-      "light": 0.7,
+      "light": 0.62,
       "entities": [
         {
           "id": "la-habitacion-del-telo/door-out",
@@ -9140,28 +9140,36 @@
           "id": "la-habitacion-del-telo/decor3",
           "tipo": "decor",
           "render": {
-            "type": "sofa"
+            "type": "catre"
           },
-          "x": 5
+          "x": 4
         },
         {
           "id": "la-habitacion-del-telo/decor4",
           "tipo": "decor",
           "render": {
-            "type": "mesaRedonda"
+            "type": "cartel"
           },
-          "x": 9
+          "x": 7
         },
         {
           "id": "la-habitacion-del-telo/decor5",
           "tipo": "decor",
           "render": {
-            "type": "barril"
+            "type": "tvplasma"
           },
-          "x": 14
+          "x": 10
         },
         {
           "id": "la-habitacion-del-telo/decor6",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 13
+        },
+        {
+          "id": "la-habitacion-del-telo/decor7",
           "tipo": "decor",
           "render": {
             "type": "sofa"

@@ -651,9 +651,10 @@ const Level = (() => {
     // Ahí están los 3 LINYERAS (chateables, IA) que te boludean hasta tirarte la posta; y acá vuelve el final (la cura).
     // No se entra por puerta normal: se llega con spawnIn (telo→acá) y para la cura. Puerta de salida a la calle.
     const telohab = rooms.push(makeRoom({
-      name: 'La habitación del telo', tags:['telohab'], theme: 'shop', light: 0.7, w: 18,
+      // theme 'secret' = el look del telo "El Edén" (paleta rosa); catre = la cama de donde salió el robot; pósters/TV → es la MISMA habitación.
+      name: 'La habitación del telo', tags:['telohab'], theme: 'secret', light: 0.62, w: 18,
       doors: [{ id:'out', art:'exit', label:'salir a la calle', x:2, inward:1 }],
-      decor: [{t:'sofa',x:5},{t:'mesaRedonda',x:9},{t:'barril',x:14},{t:'sofa',x:16}],
+      decor: [{t:'catre',x:4},{t:'cartel',x:7},{t:'tvplasma',x:10},{t:'cartel',x:13},{t:'sofa',x:16}],
       npcs: [
         { name:'Diógenes', sprite:'linyera', x:6,  action:'chat', persona:'filosofo', oracle:true, chiplin:true, dialog:'“¿De qué bando jugás ahora, pibe? 🤔”' },
         { name:'Dante el poeta', sprite:'linyera', x:9, action:'chat', persona:'poeta', oracle:true, chiplin:true, dialog:'“Chip en la nuca, verso sin dueño… 🛰️”' },

@@ -56,6 +56,14 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v227] — 2026-06-28 — 🛏️ La habitación del telo ahora SE VE como el telo (cama, pósters, paleta rosa, música grasa)
+
+Fix de tu observación: te despertabas (chipeado) en una sala genérica, y tenía que ser **la MISMA habitación donde salió
+el robot**. Ahora la "habitación del telo" usa el **look del telo** (theme `secret` = paleta rosa de "El Edén") con la
+**cama** (catre, de donde salió el robot), **pósters** y la **música de telo** sonando. Se lee como el mismo lugar. Cache **v227**.
+
+---
+
 ## [v226] — 2026-06-28 — 🤖🛸 Quest del chip, rediseño: la habitación del telo + chat con los 3 linyeras + el cierre del sol
 
 Rediseño del flujo del chip según tu visión. **Ahora al chiparte caés a una SALA REAL nueva, "La habitación del telo"**

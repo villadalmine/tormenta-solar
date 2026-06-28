@@ -186,7 +186,7 @@
     cureChip() {
       player.inventory = (player.inventory || []).filter(x => x !== 'consola'); if (player.weapon === 'consola') player.weapon = 'escupitajo';
       chipEverCured = true;
-      const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); }
+      const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo'); }
       chipReset(); flash();
     },
   };
@@ -2524,7 +2524,7 @@
         if (!gotChipped && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
         else {
           state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
-          if (gotChipped) { const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); } }
+          if (gotChipped) { const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo'); } }   // misma habitación → misma música grasa
         }
         setMsg(T(gotChipped ? 'g.chip.wakeRoom' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : '#ff8fc8', gotChipped ? 13000 : gotAway ? 6000 : 3000);
       }
