@@ -40,7 +40,16 @@ POST /salon/join   {pid,nick,avatar}                            → BODEGÓN: te
 GET  /salon/stream?room=R   (SSE)                               → eventos: peer-join/leave, peer-pos {pid,x,vx,emote}, say
 POST /salon/pos    {pid,room,x,vx,emote}            throttle ~6/s  (tu posición → fanout a la sala)
 POST /salon/say    {pid,room,phrase}                            (frase PRESET o emote — anti-abuso §6)
+GET  /salon/debug?token=<GEN_TOKEN>   (ADMIN)                    → sesiones REALES {pid,sala,ip,edadSeg} + salas del bodegón
 ```
+
+### ¿La presencia es REAL? (validación — pregunta del dueño 2026-06-28)
+**Sí, no hay nada simulado:** cada sesión "jugando ahora" = un navegador real que mandó `/salon/beat` en los últimos
+35s (el `SALON` Map es in-memory, sólo lo llena ese beat; cero seed/fake/bots en el código). **Para validarlo a mano:**
+`GET /salon/debug?token=<GEN_TOKEN>` (admin, token-gated, infra-35) devuelve las **sesiones con su IP** (capturada de
+`X-Forwarded-For` en `/salon/beat` y `/salon/join`) + antigüedad + las salas del bodegón. Sin token → 403. También se
+ve en los **logs del proxy** (cada beat es un request real). **A futuro (Grafana):** exportar el `count`/byRoom como
+métrica Prometheus para un panel — hoy la validación directa es el endpoint `/salon/debug` + los logs.
 
 ## 3. Los dos pisos (diseño de gameplay)
 
