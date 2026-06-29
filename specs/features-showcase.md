@@ -62,6 +62,13 @@
   equipás una con **[I]** (el HUD muestra cuál). El **tesoro del búnker** (cuando sos gurú) te da la **🎸 viola de Les
   Luthiers que dispara RISAS** — apacigua a **cualquiera**, hasta los voladores, muertos de risa 😂 (no los mata). El
   inventario y el arma equipada **persisten en el guardado**. Ver `specs/inventario-armas.md`.
+- **El telo, el CHIP y el cambio de personaje:** la "rubia" del bodegón te lleva a un telo (sub-modo top-down) que es
+  una **trampa de la IA**: salta un **robot** que te quiere clavar un **chip**. Si escapás, zafás; si te atrapa, caés
+  **chipeado** a la habitación con **3 linyeras** (chat IA groundeado SOLO al chip) que te tiran la posta → **CORTE DE
+  ESCENA**: te teletransportás al edificio y **pasás a controlar al pibe de Garbarino** (el Carpo queda dormido en la
+  cama). Quest data-driven (`CHIP_QUEST`, grafo de pasos + runtime genérico): troyano (Maxi+Marcos) → **consola** (con
+  **prereq de ganar el FIFA 98**) → un linyera te **cura**. **Rejugable hasta 3 veces**; a la **4ª** los linyeras
+  irrumpen y funden al robot a **rayos cósmicos** (rescate). Ver `specs/telo-chip-quest.md`.
 - **La caja del chino:** mini-juego de **pago con vuelto en caramelos**, el chino **inventa "inflación"** y te
   quiere cagar; discutís o salen **ninjas**. Tunables = DATA (`CHINO`). Ver `specs/nivel-1/personajes/chino.md`.
 - **El gate del cuevero (truco):** el cuevero que dispara la tormenta **no te vende de una** — está ocupado con el

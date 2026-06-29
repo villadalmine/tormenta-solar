@@ -10,9 +10,13 @@ te corre un **torneo de FIFA** si trajiste una **Mega Drive**.
 ## Detalle
 - **El del chori** (`action:'frogger'`): te manda a jugar **Frogger**; si ganás → **`vale_chori`**
   (se canjea en la chorería por un choripán +vida).
-- **El flaco del Trucotron** (`action:'fifa'`): si tenés **`mega_drive`** (la comprás en el super,
-  sección CONSOLAS), jugás el **torneo de FIFA 98** → `fifaWon` + **30 monedas**. Si no, te manda a
-  conseguir la consola.
+- **El flaco del Trucotron** (`action:'fifa'`, flag `consolaGuy`): si tenés **`mega_drive`** (la comprás
+  en el super, sección CONSOLAS), jugás el **torneo de FIFA 98** → `fifaWon` + **30 monedas**. Si no, te
+  manda a conseguir la consola.
+  - **Doble rol — QUEST DEL CHIP (`specs/telo-chip-quest.md`):** este mismo flaco es el `consolaGuy` que
+    le da la **consola retro** al pibe de Garbarino para correr el troyano. **Prereq (v231):** NO te la da
+    si antes no **ganaste el FIFA 98** (`fifaWon`); mientras tanto el quest del chip no lo intercepta y corre
+    su `action:'fifa'` normal (te pide la Mega Drive). Recién con el FIFA ganado entrega la consola.
 - Los **dueños** de las máquinas (Pac-Man/Galaga) te cobran ficha cada vez más cara (flavor).
 
 ## Personalidad (fuente para el generador de diálogos y el chat IA)
