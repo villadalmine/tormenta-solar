@@ -1,7 +1,8 @@
 # SDD — Seguridad (fase transversal)
 
-- **Estado:** **Draft** (no implementado — checklist + diseño)
-- **Última actualización:** 2026-06-24
+- **Estado:** **Draft + 1er lote IMPLEMENTADO** — **cabeceras de seguridad / CSP en web + proxy (v238 · infra-40)**, ver §4.
+  El resto del checklist (trivy/gitleaks en CI, CORS acotado, mTLS intra-cluster, anti-DoS) sigue pendiente.
+- **Última actualización:** 2026-06-29
 - **Alcance:** todo el sistema de "Tormenta Solar": juego estático (GitHub Pages + nginx self-hosted),
   proxy de IA (`ai-proxy/`), LiteLLM + cluster k8s, pipeline de build (Kaniko/Argo/registry), DNS/TLS,
   y el futuro bot Telegram→Hermes. Relacionado: [[proxy-ia-deploy]], `juego-self-host.md`, `telegram-hermes.md`.
@@ -84,8 +85,15 @@ estado). Todo el resto vive detrás del gateway, en la LAN/cluster.
   contenido del jugador salvo lo imprescindible; si se loguea, **retención corta** y sin PII.
 - **CORS**: el proxy hoy responde `Access-Control-Allow-Origin: *` (necesario para Pages). Acotar a los
   orígenes propios (github.io + tormenta-solar.cybercirujas.club) en vez de `*`.
-- **Cabeceras de seguridad** en las páginas/nginx: `Content-Security-Policy` (restringir orígenes de
-  script/fetch), `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `X-Frame-Options`/frame-ancestors.
+- ✅ **Cabeceras de seguridad** (HECHO v238 · infra-40, 2026-06-29). **Web** (`web/nginx-default.conf`): **CSP** afinado a
+  lo que el juego REALMENTE usa (`script-src 'self'` — se movió el `GAME_METRICS` inline a `telemetry.js`; `style-src
+  'unsafe-inline'` por los overlays en runtime; `connect-src` = proxy + OpenRouter BYOK; `media-src` = TTS del proxy;
+  `img-src 'self' data: blob:`; `object-src 'none'`; `base-uri 'self'`; `frame-ancestors 'none'`) + `X-Content-Type-Options:
+  nosniff` + `X-Frame-Options: DENY` + `Referrer-Policy: no-referrer` + `Permissions-Policy` (geo/cam/mic/payment off) +
+  `HSTS` 1 año. **Proxy** (`ai-proxy/server.js`): es API → `CSP default-src 'none'; frame-ancestors 'none'` + nosniff +
+  frame-deny + Referrer-Policy (sin tocar el CORS que el juego necesita). **Validado**: CSP cargado en Chromium real (boot
+  + arrancar + abrir inventario/opciones) SIN violaciones; scan de secretos del repo limpio. **Pendiente:** acotar el CORS
+  `*` a los orígenes propios (abajo) + Cilium mTLS intra-cluster + trivy/gitleaks en CI.
 - **localStorage**: autosave + BYOK key son del usuario y locales; documentar que es así (transparencia).
 - **Métricas de ads** (`js/ads.js`): que las impresiones no manden PII; endpoint con rate-limit.
 

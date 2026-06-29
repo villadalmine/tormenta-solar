@@ -1,6 +1,8 @@
 // telemetry.js — métricas de USO del juego (anónimas, agregadas, sin PII). Capa ADITIVA: apagada por defecto;
 // solo manda algo si window.GAME_METRICS apunta a un endpoint (el proxy). Mismo espíritu que ads.js (beacon).
 // Eventos acotados (engine v1/v2, storm, truco, death, win, error, chat...) → el proxy los agrega a Prometheus.
+// El endpoint se setea ACÁ (no en un <script> inline en index.html) para poder usar CSP estricto (script-src 'self'). specs/seguridad.md
+if (typeof window !== 'undefined' && !window.GAME_METRICS) window.GAME_METRICS = 'https://llm-tormenta-solar.cybercirujas.club/game-metrics';
 const Telemetry = (() => {
   const url = () => (typeof window !== 'undefined' && window.GAME_METRICS) || '';
   let queue = [], timer = null;

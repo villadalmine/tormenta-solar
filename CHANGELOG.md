@@ -56,6 +56,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v238 · infra-40] — 2026-06-29 — 🔒 Hardening: cabeceras de seguridad / CSP en la web y el proxy
+
+Primer lote concreto de `specs/seguridad.md` (§4). El prod es público; lo endurecemos sin romper el juego:
+- **Web** (`web/nginx-default.conf`): **Content-Security-Policy** afinado a lo que el juego REALMENTE usa — `script-src
+  'self'` (se sacó el único `<script>` inline: `GAME_METRICS` ahora se setea en `telemetry.js`), `style-src 'unsafe-inline'`
+  (overlays en runtime), `connect-src` = proxy IA + OpenRouter (BYOK), `media-src` = TTS del proxy, `img-src 'self' data:
+  blob:`, `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`. Más `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Permissions-Policy` (geo/cámara/mic/pago off) y **HSTS** 1 año.
+- **Proxy** (`ai-proxy/server.js`): es una API → `CSP default-src 'none'` + nosniff + frame-deny + Referrer-Policy, sin
+  tocar el CORS que el juego necesita.
+- **Validado**: el CSP cargado en Chromium REAL (boot + arrancar + abrir inventario/opciones) NO produce violaciones; scan
+  de secretos del repo limpio. e2e + web-smoke OK. Cache **v238**, proxy **infra-40**.
+
+---
+
 ## [v237 · infra-39] — 2026-06-29 — 🎬 Niveles generados = SECUENCIA de la historia (A0-DEEP (1): salas = BEATS)
 
 Cierra la apuesta grande de `§A0-DEEP`: cada sala del nivel generado es ahora un **MOMENTO del relato** (su propio nombre +

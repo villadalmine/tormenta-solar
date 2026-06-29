@@ -450,6 +450,12 @@ http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session-Id, X-Sub-Code');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Max-Age', '86400');   // cachea el preflight 1 día (menos OPTIONS)
+  // HEADERS DE SEGURIDAD (specs/seguridad.md §4): es una API (JSON/audio), no sirve HTML interactivo → CSP mínimo +
+  // anti-sniff + anti-frame. No tocan el CORS de arriba (que el juego necesita para el POST cross-origin).
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
   if (req.method === 'GET' && (req.url === '/health' || req.url === '/healthz')) { res.writeHead(200); return res.end('ok'); }   // probe k8s
   // TTS del servidor (espeak-ng) → WAV. Para navegadores SIN voz (Chromium/Linux): el juego pide el audio y lo
