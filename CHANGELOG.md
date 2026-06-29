@@ -56,6 +56,30 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v231] — 2026-06-29 — 🤖🎮 Quest del chip: lote de playtest del dueño (FIFA prereq · loop 3×+rescate · 2 bugs · escena de cura)
+
+Cerrado el lote de 5 ítems que el dueño dejó tras jugar el corte de escena v230 (estaban anotados en
+`telo-chip-quest.md §6`). Todo data-driven donde se pudo (REGLA #0):
+- **(1) Prereq FIFA 98 para la consola del Trucotron.** El paso `consola2` (el flaco del Trucotron, `consolaGuy`) ahora
+  lleva `req:'fifa'`: si **no ganaste el FIFA 98** (flag `fifaWon`), el quest **no intercepta** al flaco → corre su quest
+  normal (`playFifa`: te pide la **Mega Drive del chino**, te hace ganar). Recién con `fifaWon` te entrega la consola.
+  Genérico vía `chipReqOk(req)` + campo `req` en el paso (nada de if-chain). Obj/hint de `consola2` reescritos.
+- **(2) BUG: dar la consola te devolvía a Carpo.** `getConsola()` hacía `playingAs='carpo'` — quitado. Ahora **seguís
+  siendo el pibe de Garbarino** hasta la cura (el switch a Carpo es SOLO en `cureChip`→`chipReset`).
+- **(3) Escena de cura.** Al curarte, en la habitación del telo se **monta una mini-escena** (`curaSceneT`, 7s): el
+  **linyera entra con la consola** 🎮 y el **Carpo dormido se despierta y la activa** (💤→😵‍💫). Transitoria, no se serializa.
+- **(4) Loop hasta 3× + RESCATE a la 4ª.** Nuevo contador **`chipLoops`** (persistido, +1 por cura). El telo te chipa
+  hasta 3 veces; a la 4ª (`chipLoops>=3`) el robot **ya no te chipa**: `Telo.create(chipLoops)` dispara una **fase
+  `rescue`** — los **3 linyeras irrumpen y funden al robot a RAYOS CÓSMICOS** (haces multicolor + BOOM) y salís **sin chip**
+  (getter `rescued`; game.js lo trata como un escape). i18n `g.telo.rescue*`/`resRescued*`.
+- **(5) BUG: los linyeras del telohab preguntaban del cine.** El `maybeGive('oraculo')` (que manda al cine a buscar
+  noticias) **no estaba guardado por `!chipped`** — por eso seguía saliendo pese a v228. Guardado: chipeado, los linyeras
+  **solo te boludean con el chip** (el grounding `g.chip.chatGround` + supresión del giver de noticias).
+
+Paridad i18n 582/582. E2E + web-smoke OK. Cache **v231**.
+
+---
+
 ## [v230] — 2026-06-28 — 🤖💼 Quest del chip: CORTE DE ESCENA — la posta te teletransporta a Garbarino ya siendo el pibe
 
 El dueño reportó por 3ª vez que **no se veía la transformación** (el swap de sprite en el lugar no le quedaba claro). Su

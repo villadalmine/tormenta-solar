@@ -168,26 +168,30 @@
   // La quest es DATA (un grafo lineal de pasos); el runtime `chipTry` es GENÉRICO: matchea el NPC contra `on` (rol/
   // sprite/tag/nombre, data) y avanza al `next`. Lo único "code" son los efectos nombrados (CHIP_FX) y el comprar/usar
   // (comportamiento del quest, que el dueño habilitó como hardcode puntual). REGLA #0: nada de if-chain por paso.
-  let chipped = false, chipStep = '', playingAs = 'carpo', chipEverCured = false;
+  let chipped = false, chipStep = '', playingAs = 'carpo', chipEverCured = false, chipLoops = 0;
+  // chipLoops = cuántas veces COMPLETASTE el arco (cura). El telo te chipa hasta 3 veces; la 4ª (chipLoops>=3) el robot
+  // ya no te chipa: los 3 linyeras irrumpen, lo funden a rayos cósmicos y salís sin chip (rescate). specs/telo-chip-quest.md §6.4.
   const chipParts = {};
+  let curaSceneT = 0, curaSceneIdx = -1;   // puesta en escena de la CURA: un linyera entra al telohab y le da la consola al Carpo dormido (transitorio, no se serializa)
   // Los pasos 'linyeras' y 'garbarino' NO están acá: se resuelven chateando con los 3 linyeras de la sala 'telohab'
   // (chipLinNote/Posta). La posta hace el CORTE DE ESCENA (chipBecomeGarbarino): saltás al edificio de Garbarino ya
   // controlando al vendedor y arrancás directo en 'troyano'. De acá en más, los pasos sí son data-driven por NPC.
   const CHIP_QUEST = [
     { id: 'troyano',   on: { names: ['Maxi', 'Marcos'], all: true },  next: 'consola',   msg: 'g.chip.troyanoDone', partial: 'g.chip.troyano' },
     { id: 'consola',   on: { flag: 'jubilado' },                      next: 'consola2',  msg: 'g.chip.jubilados', fx: 'jubiladosFollow' },
-    { id: 'consola2',  on: { flag: 'consolaGuy' },                    next: 'cure',      msg: 'g.chip.consola',   fx: 'getConsola' },
+    { id: 'consola2',  on: { flag: 'consolaGuy' }, req: 'fifa',       next: 'cure',      msg: 'g.chip.consola',   fx: 'getConsola' },
     { id: 'cure',      on: { oracle: true },                          next: '',          msg: 'g.chip.cured',     fx: 'cureChip' },
   ];
   const CHIP_FX = {
     jubiladosFollow() { /* los 2 jubilados se vuelven companions (te siguen al arcade) — se derivan en syncCompanions cuando chipStep==='consola2' */ },
-    getConsola() { addItem('consola'); playingAs = 'carpo'; },   // el flaco del Trucotron te da la consola; los jubilados se van rezongando
+    getConsola() { addItem('consola'); },   // el flaco del Trucotron te da la consola. SEGUÍS siendo el de Garbarino (el switch a Carpo es SOLO en la cura). Los jubilados se van rezongando.
     // CURA: le diste la consola a un linyera → el juego SALTA a la habitación del telo; el linyera te la mete a la fuerza
     // (vos chipeado querías hacer estallar el sol) → boom, te dormís, te despertás con resaca y SIN chip. (gag del dueño)
     cureChip() {
       player.inventory = (player.inventory || []).filter(x => x !== 'consola'); if (player.weapon === 'consola') player.weapon = 'escupitajo';
-      chipEverCured = true;
-      const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo'); }
+      chipEverCured = true; chipLoops++;   // completaste el arco: a la 4ª vez (chipLoops>=3) el telo ya no te chipa, te rescatan
+      const hi = rooms.findIndex(r => hasTag(r, 'telohab'));
+      if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo'); curaSceneT = 7; curaSceneIdx = hi; }   // PUESTA EN ESCENA: el linyera entra y le da la consola al Carpo dormido (7s)
       chipReset(); flash();
     },
   };
@@ -207,11 +211,16 @@
     if (on.flag) return !!npc[on.flag];
     return false;
   }
+  // prerrequisito de un paso (data): hasta no cumplirlo, el quest NO intercepta al NPC → corre su acción normal y te guía.
+  // p.ej. el flaco del Trucotron (consolaGuy) NO te da la consola si no ganaste el FIFA 98: deja correr su quest 'fifa'
+  // (te pide la Mega Drive del chino, te hace jugar) hasta que `fifaWon`; recién ahí el quest del chip lo intercepta.
+  function chipReqOk(req) { return req === 'fifa' ? fifaWon : true; }
   // intento genérico de avanzar el quest con este NPC (se llama al tope de handleNpc). true = lo manejó el quest.
   function chipTry(npc) {
     if (!chipped) return false;
     const step = CHIP_QUEST.find(s => s.id === chipStep);
     if (!step || !chipMatch(npc, step.on)) return false;
+    if (step.req && !chipReqOk(step.req)) return false;   // prereq sin cumplir → que el NPC haga lo suyo (FIFA primero)
     if (step.on.all && step.partial) {   // paso que necesita VARIOS (Maxi Y Marcos): junta de a uno hasta tenerlos todos
       chipParts[npc.name] = true;
       if (!step.on.names.every(n => chipParts[n])) { Sfx.pickup(); setMsg(T(step.partial, { who: npc.name }), '#80cbc4', 8000); return true; }
@@ -325,7 +334,7 @@
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
     trucoSeisOffered = false; trucoSeisActive = false; for (const k in trucoMatesRec) delete trucoMatesRec[k];   // truco de a 6, de cero
-    chipReset(); chipEverCured = false;   // quest del chip, de cero
+    chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; roamingNpc = null;
@@ -353,7 +362,7 @@
       flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
         borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered,
         cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing, trucoSeisOffered,
-        chipped, chipStep, playingAs, chipEverCured, chipParts: { ...chipParts },
+        chipped, chipStep, playingAs, chipEverCured, chipLoops, chipParts: { ...chipParts },
         entrado: { ...entradoEdif }, vecino: JSON.parse(JSON.stringify(vecinoState)), trucoMates: { ...trucoMatesRec } },
       arcadeWon: { pacman: arcadeWon.pacman, galaga: arcadeWon.galaga, frogger: arcadeWon.frogger },
       // RF-4: estado anclado por POSICIÓN (sala, x), no por índice de array → robusto a reordenar entidades.
@@ -380,7 +389,7 @@
     trucoWon = !!f.trucoWon; trucoEverWon = !!f.trucoEverWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
     cueveroUnlocked = !!f.cueveroUnlocked; tahurDiscovered = !!f.tahurDiscovered; guidoSummoned = !!f.guidoSummoned; guidoRecruited = !!f.guidoRecruited; guidoFollowing = !!f.guidoFollowing;
     trucoSeisOffered = !!f.trucoSeisOffered; trucoSeisActive = false; for (const k in trucoMatesRec) delete trucoMatesRec[k]; if (f.trucoMates) Object.assign(trucoMatesRec, f.trucoMates);
-    chipReset(); chipped = !!f.chipped; chipStep = f.chipStep || ''; playingAs = f.playingAs || 'carpo'; chipEverCured = !!f.chipEverCured; if (f.chipParts) Object.assign(chipParts, f.chipParts);   // quest del chip
+    chipReset(); chipped = !!f.chipped; chipStep = f.chipStep || ''; playingAs = f.playingAs || 'carpo'; chipEverCured = !!f.chipEverCured; chipLoops = f.chipLoops | 0; if (f.chipParts) Object.assign(chipParts, f.chipParts);   // quest del chip
     for (const k in entradoEdif) delete entradoEdif[k]; if (f.entrado) Object.assign(entradoEdif, f.entrado);
     for (const k in vecinoState) delete vecinoState[k]; if (f.vecino && typeof f.vecino === 'object') Object.assign(vecinoState, JSON.parse(JSON.stringify(f.vecino)));
     const aw = snap.arcadeWon || {}; arcadeWon.pacman = !!aw.pacman; arcadeWon.galaga = !!aw.galaga; arcadeWon.frogger = !!aw.frogger;
@@ -557,7 +566,7 @@
     flash(); Sfx.hurt(); ejectToStreet(T('g.moza.ropero'));                     // fallback (sin el sub-modo): el ropero directo
   }
   function enterTelo() {
-    teloGame = Telo.create(); state = 'telo'; flash();
+    teloGame = Telo.create(chipLoops); state = 'telo'; flash();   // chipLoops≥3 → el robot ya no te chipa: te RESCATAN (telo.js)
     if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo');   // 🎵 música de telo bien grasa (chiptune lento)
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
   }
@@ -1089,7 +1098,8 @@
     // si el jugador tiene SU key y aun así salió local (offline real, no saturación) → avisar
     else if (typeof AI !== 'undefined' && AI.lastSource() === 'local' && AI.getKey()) chatLine('sys', T('g.chat.localWarn'));
     // CINE: el linyera a veces te manda al cine a buscar un topic → runtime decide (chance/giver desde el registro).
-    if (isOraculo(chatNpc)) { const g = Quests.maybeGive('oraculo'); if (g) chatLine('npc', g.line); }
+    // CHIPEADO: los linyeras de la habitación del telo NO te mandan al cine — solo el chip (suprimir el giver de noticias).
+    if (isOraculo(chatNpc) && !chipped) { const g = Quests.maybeGive('oraculo'); if (g) chatLine('npc', g.line); }
     chatBusy = false;
     if (elChatInput) elChatInput.focus();
   }
@@ -1954,6 +1964,7 @@
     if (state !== 'playing') return;
     time += dt;
     if (transCd > 0) transCd -= dt;
+    if (curaSceneT > 0) { curaSceneT -= dt; if (curaSceneT <= 0) curaSceneIdx = -1; }   // se apaga sola la escena de la cura
     const r = room(), s = st();
 
     player.stunned = performance.now() < stunUntil;
@@ -2169,6 +2180,24 @@
         ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
         ctx.fillText('💤🤖', bed.x - cam.x + 16, bed.feetY - cam.y - 26);
         label(T('g.chip.carpoBed'), bed.x - cam.x, bed.feetY - cam.y - 42, '#ff6b9d');
+      }
+    }
+    // QUEST DEL CHIP — PUESTA EN ESCENA DE LA CURA: un linyera entró al telohab y le da la consola al Carpo dormido;
+    // el Carpo se incorpora y la activa → curado. Transitorio (curaSceneT), se dibuja sobre la cama del telohab.
+    if (curaSceneT > 0 && current === curaSceneIdx) {
+      const bed = (r.decor || []).find(d => d.type === 'catre');
+      if (bed) {
+        const bx = bed.x - cam.x, by = bed.feetY - cam.y, woke = curaSceneT < 4;   // a los ~3s el Carpo se despierta y agarra la consola
+        ctx.save();
+        if (!woke && Art.hero && Art.hero.idle) {   // todavía dormido en la cama (hero acostado, como carpoInBed)
+          const f = Art.hero.idle[0]; ctx.translate(bx, by - 12); ctx.rotate(-Math.PI / 2); ctx.drawImage(f, -f.width / 2, -f.height / 2);
+        }
+        ctx.restore();
+        ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+        ctx.fillText('🧙‍♂️', bx - 30, by - 6);                                   // el linyera al lado de la cama
+        ctx.font = '15px serif'; ctx.fillText(woke ? '🎮⚡' : '🎮', bx - 12, by - 22);   // le da/activa la consola
+        ctx.font = '15px serif'; ctx.fillText(woke ? '😵‍💫' : '💤', bx + 16, by - 24);    // el Carpo: dormido → se despierta
+        label(T(woke ? 'g.chip.curaScene2' : 'g.chip.curaScene1'), bx, by - 44, '#9be8a0');
       }
     }
     if (hasTag(r, 'cine-live')) {       // MULTIJUGADOR F1: pantalla del MUNDO VIVO (refresca cada ~4s)
@@ -2561,9 +2590,10 @@
     } else if (state === 'telo' && teloGame) {
       teloGame.update(dt); teloGame.draw(ctx, W, H);
       if (teloGame.done) {
-        const gotChipped = teloGame.chipped, gotAway = teloGame.escaped; teloGame = null; flash();
+        const gotChipped = teloGame.chipped, gotAway = teloGame.escaped, gotRescued = teloGame.rescued; teloGame = null; flash();
         if (Sfx.setRoomTrack) Sfx.setRoomTrack(null);   // corta la música de telo al volver al bar
         // te chipó el robot → arranca la QUEST en 'linyeras'. specs/telo-chip-quest.md.
+        // RESCATE (4ª vez, ya hiciste 3 loops): los linyeras funden al robot → salís SIN chip (como un escape).
         if (gotChipped && !chipped) chipStart();
         // ESCAPASTE → seguís de joda en el bodegón top-down. TE CHIPARON → caés a LA HABITACIÓN DEL TELO (sala real con los 3 linyeras).
         if (!gotChipped && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
@@ -2571,7 +2601,7 @@
           state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
           if (gotChipped) { const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo'); } }   // misma habitación → misma música grasa
         }
-        setMsg(T(gotChipped ? 'g.chip.wakeRoom' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : '#ff8fc8', gotChipped ? 13000 : gotAway ? 6000 : 3000);
+        setMsg(T(gotChipped ? 'g.chip.wakeRoom' : gotRescued ? 'g.telo.rescued' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : gotRescued ? '#9be8a0' : '#ff8fc8', gotChipped ? 13000 : gotRescued ? 10000 : gotAway ? 6000 : 3000);
       }
     } else if (state === 'bodegon' && bodegonGame) {
       bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);

@@ -1,6 +1,7 @@
 # El giro del telo: la trampa del CHIP + la quest del pibe de Garbarino
 
-**Estado:** **Q0-Q4 IMPLEMENTADO y jugable (v221)** — arco completo end-to-end. Quedan pulidos (ver §6).
+**Estado:** **Q0-Q4 IMPLEMENTADO y jugable (v221)** + corte de escena (v230) + **lote de playtest del dueño CERRADO (v231)** —
+arco completo end-to-end, incluido el loop 3×+rescate y el prereq FIFA. Ver §6 para el detalle del último lote.
 
 ## ✅ v226 — REDISEÑO al flujo definitivo (visión del dueño)
 **El grafo final (todo NPC, data-driven):**
@@ -157,39 +158,36 @@ con el dueño (es contenido de varias sesiones).
 
 ---
 
-## 6. PENDIENTE — feedback de playtest del dueño (post-v230, PRÓXIMA iteración, NO implementado aún)
+## 6. ✅ HECHO (v231) — lote de playtest del dueño (post-v230)
 
-El dueño jugó el corte de escena v230 y pidió este lote (anotado para retomar; algunos son bugs, otros features):
+El dueño jugó el corte de escena v230 y pidió este lote; **todo implementado en v231** (data-driven donde se pudo, REGLA #0):
 
-1. **Prerrequisito FIFA98 para la consola del Trucotron (bug de lógica).** El paso `consola2` matchea al **flaco del
-   Trucotron** (`consolaGuy`) y te da la consola "de la nada". Pero el flaco **no tiene consola si nunca le diste la
-   Mega Drive** para el torneo de **FIFA 98** (quest `fifa` existente: chino→Mega Drive→Trucotron, +30 monedas; flags
-   `hasMegaDrive`/`fifaWon`, action `fifa` en `level.js:226`). → **El paso `consola2` debe exigir FIFA98 resuelto
-   primero**: si no, el flaco dice "no tengo consola, traeme la Mega Drive / ganá el FIFA" y NO avanza. Recién con el
-   FIFA hecho te entrega la consola retro que corre el troyano.
+1. **✅ Prereq FIFA 98 para la consola del Trucotron.** El paso `consola2` lleva `req:'fifa'`. En `chipTry`, si
+   `step.req && !chipReqOk(step.req)` → **devuelve false** (no intercepta) → corre la acción normal del flaco
+   (`NPC_ACTIONS.fifa`→`playFifa`: te pide la **Mega Drive del chino**, te hace ganar). Recién con `fifaWon` el quest del
+   chip lo intercepta y `getConsola` te da la consola. `chipReqOk(req)` = `req==='fifa' ? fifaWon : true`. Genérico, sin
+   if-chain. Obj/hint `consola2` reescritos avisando del FIFA.
 
-2. **BUG: dar la consola te devuelve a Carpo antes de tiempo.** Hoy `CHIP_FX.getConsola()` hace `playingAs='carpo'`.
-   **MAL**: al recibir la consola (jubilados/Trucotron) **tenés que SEGUIR siendo el pibe de Garbarino**. El switch de
-   vuelta a Carpo debe pasar **SOLO en la cura**. → quitar el `playingAs='carpo'` de `getConsola`; queda en `garbarino`
-   hasta `cureChip` (que ya hace `chipReset`→`carpo`).
+2. **✅ BUG: dar la consola te devolvía a Carpo.** Quitado el `playingAs='carpo'` de `CHIP_FX.getConsola()`. Seguís siendo
+   el pibe de Garbarino hasta la cura (el switch a Carpo es SOLO en `cureChip`→`chipReset`).
 
-3. **Escena de cura reforzada.** Como el de Garbarino, le llevás la "máquina"/consola a un **linyera**. El linyera
-   **aparece en la habitación donde el Carpo duerme** (telohab), le **da la consola al Carpo**, el Carpo **se despierta,
-   la activa**, queda **curado** y **salís de la sala como si nada**. (Hoy `cureChip` ya hace spawnIn telohab + chipReset
-   + flash; falta la puesta en escena: el linyera entrando, el Carpo levantándose, la activación.)
+3. **✅ Escena de cura.** `cureChip` setea `curaSceneT=7`/`curaSceneIdx=hi` (transitorio, NO se serializa); en el render del
+   telohab se monta la mini-escena: el **linyera** 🧙‍♂️ entra con la **consola** 🎮 y el **Carpo dormido** 💤 **se despierta**
+   😵‍💫 **y la activa** (🎮⚡, a los ~3s, `woke = curaSceneT < 4`). Se apaga sola (`curaSceneT` en `update`). i18n
+   `g.chip.curaScene1/2`.
 
-4. **Loop de hasta 3 veces + RESCATE a la 4ª (feature nueva).** Todo el arco (telo→chip→cura) puede **repetirse hasta
-   3 veces**. La **4ª vez** que el robot te atrapa, **si ya completaste el loop 3 veces**, en lugar de chiparte:
-   **aparecen los linyeras de la nada en la habitación, le disparan RAYOS CÓSMICOS al robot, lo matan, desaparecen y
-   salís normal** (sin chip). → necesita un **contador de loops** (`chipLoops`, persistido) que se pase a `telo.js`
-   (`Telo.create(loopsDone)`); en la fase `robot`/`result` de telo.js, si `loopsDone >= 3` y te atrapan → fase de
-   **rescate** (animación de los linyeras + rayos) en vez de `chipped`; al volver, `exitTo='back'` sin setear el flag
-   `chipped`. i18n nuevo `g.telo.rescue*`.
+4. **✅ Loop hasta 3× + RESCATE a la 4ª.** Contador **`chipLoops`** (persistido en serialize/restore, +1 en `cureChip`,
+   `=0` en newGame; `chipReset` NO lo toca). `enterTelo` llama `Telo.create(chipLoops)`. En telo.js, fase `robot`: si te
+   atrapan y `loopsDone>=3` → fase **`rescue`** (los 3 linyeras 🧙‍♂️ disparan **rayos cósmicos** multicolor al robot ~2.2s →
+   BOOM → se van) en vez de `chipped`; getter **`rescued`**. En game.js, el done del telo trata `rescued` como un escape
+   (vuelve al bodegón, NO `chipStart`). i18n `g.telo.rescueMsg`/`resRescued`/`resRescuedSub`/`rescued`.
 
-5. **BUG: los linyeras del telohab preguntan del cine.** En la habitación del telo, el chat IA de los 3 linyeras
-   **sigue preguntando del cine/Mundial**, y eso **no corresponde ahí**. El grounding "solo del chip" (cuando `chipped`)
-   no está suprimiendo del todo el tema cine. → revisar `chatSend`/`worldBrief`/`mundialQuest` con `chipped`: forzar el
-   grounding `g.chip.chatGround` y **suprimir el quest de noticias/cine** para los NPC `chiplin` en `telohab`.
+5. **✅ BUG: los linyeras del telohab preguntaban del cine.** Raíz: `Quests.maybeGive('oraculo')` (línea 1092) **no estaba
+   guardado por `!chipped`** — por eso seguía mandándote al cine pese a v228 (que solo había groundeado el chat, no el
+   giver). Guardado con `&& !chipped`. Ahora chipeado: solo el chip (grounding `g.chip.chatGround` + sin giver de noticias).
 
-**Orden sugerido:** (5) y (2) son fixes chicos y rápidos; (3) puesta en escena media; (1) prereq FIFA media; (4) es la
-más grande (contador + nueva fase de rescate en telo.js + arte de rayos). Todo data-driven donde se pueda (REGLA #0).
+**Verificación:** paridad i18n 582/582 · `node tests/e2e.js` OK · `tests/web-smoke.mjs` OK · cache `v231`.
+
+### Pendiente (backlog, fuera de este arco)
+T2b chat privado en el bodegón top-down · F3 truco PvP · carteles+datacenter colaborativos · armas criollas en sueños ·
+A0-deep (niveles generados que reflejen mejor la historia).

@@ -7,7 +7,8 @@ const Telo = (() => {
   const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   const CS = 30, W = 14, H = 10;
 
-  function create() {
+  function create(loopsDone) {
+    loopsDone = loopsDone | 0;   // cuántas veces ya completaste el arco del chip. >=3 → en vez de chiparte, te RESCATAN (rayos cósmicos).
     // grilla: paredes en el borde
     const map = Array.from({ length: H }, () => new Array(W).fill(0));
     for (let x = 0; x < W; x++) { map[0][x] = 1; map[H - 1][x] = 1; }
@@ -27,7 +28,10 @@ const Telo = (() => {
     const player = { x: (exit.x + 0.5) * CS, y: (exit.y + 0.3) * CS, r: 11 };
     const she = { x: (jacuzzi.x + 1.4) * CS, y: (jacuzzi.y + 0.6) * CS };   // la rubia, arranca al lado del jacuzzi
     const bear = { x: (weirdDoor.x + 0.5) * CS, y: (weirdDoor.y + 0.5) * CS, on: false };
-    let phase = 'intro', pt = 0, t = 0, done = false, exitTo = null, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = true, escaped = false, chipped = false;
+    let phase = 'intro', pt = 0, t = 0, done = false, exitTo = null, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = true, escaped = false, chipped = false, rescued = false;
+    // RESCATE (4ª vez, loopsDone>=3): cuando el robot te atrapa NO te chipa; los 3 linyeras irrumpen y lo funden a rayos
+    // cósmicos. Estado de la animación: posiciones de los linyeras + rayos hacia el robot.
+    const liny = [{ x: 1.5, y: 8 }, { x: 7, y: 9 }, { x: 12.5, y: 8 }];
     setMsg(T('g.telo.intro'), 6);
 
     function setMsg(s, dur = 3.5) { msg = s; msgT = dur; }
@@ -79,7 +83,16 @@ const Telo = (() => {
         const dx = player.x - bear.x, dy = player.y - bear.y, d = Math.hypot(dx, dy) || 1, sp = (96 + pt * 6) * dt;
         bear.x += (dx / d) * sp; bear.y += (dy / d) * sp;
         if (pt > 0.4 && nearTile(exit, 0.9)) { phase = 'result'; pt = 0; escaped = true; bear.on = false; Sfx.win && Sfx.win(); }   // llegaste a la PUERTA → ESCAPASTE (margen 0.4s para no escapar en el salto)
-        else if (d < 20 || pt > 11) { phase = 'result'; pt = 0; chipped = true; bear.on = false; Sfx.hurt && Sfx.hurt(); }            // te atrapó → te CHIPEA (el robot se va; al salir caés a la habitación con los linyeras)
+        else if (d < 20 || pt > 11) {
+          // te atrapó. Si ya hiciste el loop 3 veces (loopsDone>=3) → RESCATE: los linyeras lo funden a rayos. Si no → te CHIPEA.
+          if (loopsDone >= 3) { phase = 'rescue'; pt = 0; setMsg(T('g.telo.rescueMsg'), 6); Sfx.win && Sfx.win(); }
+          else { phase = 'result'; pt = 0; chipped = true; bear.on = false; Sfx.hurt && Sfx.hurt(); }                                  // (el robot se va; al salir caés a la habitación con los linyeras)
+        }
+      } else if (phase === 'rescue') {
+        // los 3 linyeras irrumpieron y le tiran RAYOS CÓSMICOS al robot ~2.2s → BOOM, el robot se funde y se van.
+        prompt = '';
+        if (pt > 2.2 && bear.on) { bear.on = false; Sfx.hurt && Sfx.hurt(); }   // BOOM: el robot estalla
+        if (pt > 3.6) { phase = 'result'; pt = 0; rescued = true; }             // pantalla de resultado (saliste SIN chip)
       } else if (phase === 'result') {
         // PANTALLA DE RESULTADO grande (escapaste / te chiparon): se lee SIEMPRE antes de salir. Chipeado → game.js te lleva a la habitación.
         prompt = pt > 1.5 ? T('g.telo.contPrompt') : '';
@@ -188,6 +201,32 @@ const Telo = (() => {
         ctx2.shadowBlur = 0; ctx2.fillStyle = '#ff5a5a'; ctx2.fillRect(px2 - 5, py2 - 22, 10, 1.5);   // "boca" línea
         ctx2.restore();
       }
+      // RESCATE: los 3 LINYERAS irrumpieron y le tiran RAYOS CÓSMICOS al robot (de cada uno sale un haz multicolor pulsante
+      // hacia el robot). Cuando el robot ya estalló (bear.on=false) se ve el BOOM y los linyeras siguen un toque y se van.
+      if (phase === 'rescue') {
+        const tgx = ox + bear.x, tgy = oy + bear.y - 14;
+        if (bear.on) {
+          for (let i = 0; i < liny.length; i++) {
+            const lx = ox + (liny[i].x + 0.5) * CS, ly = oy + (liny[i].y + 0.5) * CS;
+            const hue = (t * 220 + i * 120) % 360, w = 3 + 2.5 * Math.abs(Math.sin(t * 18 + i));
+            ctx2.save(); ctx2.globalCompositeOperation = 'lighter';
+            ctx2.strokeStyle = 'hsl(' + hue + ',100%,65%)'; ctx2.lineWidth = w; ctx2.lineCap = 'round';
+            ctx2.shadowBlur = 14; ctx2.shadowColor = 'hsl(' + hue + ',100%,60%)';
+            ctx2.beginPath(); ctx2.moveTo(lx, ly - 8);
+            const mx = (lx + tgx) / 2 + Math.sin(t * 30 + i) * 6, my = (ly + tgy) / 2 + Math.cos(t * 26 + i) * 6;
+            ctx2.quadraticCurveTo(mx, my, tgx, tgy); ctx2.stroke(); ctx2.restore();
+          }
+        } else {   // BOOM: destello en el lugar del robot
+          const r = 10 + (pt - 2.2) * 90, a = Math.max(0, 1 - (pt - 2.2) / 1.4);
+          ctx2.save(); ctx2.globalCompositeOperation = 'lighter';
+          ctx2.fillStyle = 'rgba(180,240,255,' + (a * 0.8) + ')'; ctx2.beginPath(); ctx2.arc(tgx, tgy, r, 0, Math.PI * 2); ctx2.fill();
+          ctx2.fillStyle = 'rgba(255,255,255,' + a + ')'; ctx2.beginPath(); ctx2.arc(tgx, tgy, r * 0.5, 0, Math.PI * 2); ctx2.fill();
+          ctx2.restore();
+        }
+        // los 3 linyeras (sprites)
+        ctx2.font = '20px serif'; ctx2.textAlign = 'center';
+        for (const l of liny) ctx2.fillText('🧙‍♂️', ox + (l.x + 0.5) * CS, oy + (l.y + 0.7) * CS);
+      }
       // jugador (círculo) — salvo en el jacuzzi (ahí es una silueta)
       if (phase !== 'bath') {
         ctx2.fillStyle = '#36567f'; ctx2.beginPath(); ctx2.arc(ox + player.x, oy + player.y, player.r, 0, Math.PI * 2); ctx2.fill();
@@ -206,11 +245,13 @@ const Telo = (() => {
       // PANTALLA DE RESULTADO grande (escapaste / te chiparon): centrada, imposible de no leer
       if (phase === 'result') {
         ctx2.fillStyle = 'rgba(0,0,0,0.78)'; ctx2.fillRect(0, 0, VW, VH);
-        const ok = escaped, col = ok ? '#7CFC00' : '#ff5252';
+        const ok = escaped || rescued, col = ok ? '#7CFC00' : '#ff5252';
+        const titleKey = rescued ? 'g.telo.resRescued' : escaped ? 'g.telo.resEscaped' : 'g.telo.resChipped';
+        const subKey = rescued ? 'g.telo.resRescuedSub' : escaped ? 'g.telo.resEscapedSub' : 'g.telo.resChippedSub';
         ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
-        ctx2.fillStyle = col; ctx2.font = 'bold 30px monospace'; ctx2.fillText(T(ok ? 'g.telo.resEscaped' : 'g.telo.resChipped'), VW / 2, VH / 2 - 24);
+        ctx2.fillStyle = col; ctx2.font = 'bold 30px monospace'; ctx2.fillText(T(titleKey), VW / 2, VH / 2 - 24);
         ctx2.fillStyle = '#fff'; ctx2.font = '14px monospace';
-        const sub = T(ok ? 'g.telo.resEscapedSub' : 'g.telo.resChippedSub'), words = sub.split(' '), lines = []; let cur = '';
+        const sub = T(subKey), words = sub.split(' '), lines = []; let cur = '';
         for (const w of words) { const cand = cur ? cur + ' ' + w : w; if ((ctx2.measureText(cand).width || 0) > VW - 80 && cur) { lines.push(cur); cur = w; } else cur = cand; }
         if (cur) lines.push(cur);
         lines.forEach((ln, i) => ctx2.fillText(ln, VW / 2, VH / 2 + 8 + i * 20));
@@ -232,7 +273,7 @@ const Telo = (() => {
       if (prompt) { ctx2.font = 'bold 13px monospace'; ctx2.textAlign = 'center'; ctx2.fillStyle = 'rgba(0,0,0,0.78)'; ctx2.fillRect(0, bottom - 22, VW, 22); ctx2.fillStyle = pal.accent; ctx2.fillText(prompt, VW / 2, bottom - 7); }
     }
 
-    return { get done() { return done; }, get exitTo() { return exitTo; }, get escaped() { return escaped; }, get chipped() { return chipped; },
+    return { get done() { return done; }, get exitTo() { return exitTo; }, get escaped() { return escaped; }, get chipped() { return chipped; }, get rescued() { return rescued; },
       get __phase() { return phase; }, __pos: () => ({ x: player.x, y: player.y }), update, draw };
   }
   return { create };
