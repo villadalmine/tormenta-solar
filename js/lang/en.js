@@ -27,6 +27,9 @@ const LANG_EN = {
 
   // --- options ---
   'opt.title': '⚙ OPTIONS',
+  'opt.nick': 'Your name (multiplayer)',
+  'opt.nickPh': 'Your name',
+  'opt.nickIs': 'Your nick:',
   'opt.lang': 'Language / Idioma',
   'opt.font': 'Font size',
   'opt.msgMs': 'Text duration',
