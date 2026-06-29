@@ -57,6 +57,12 @@
   en la pared con la chincheta + el nick (el texto no se ve hasta leer). Banco **server-side en PVC** (un cartel espera
   horas a su lector), cupo + rate-limit + censura básica. **Construís el mundo entre todos, sin verse en vivo.** Ver
   `specs/construccion-colaborativa.md` (C1).
+- **El Datacenter colaborativo GLOBAL (meta de comunidad):** otro piso del cine donde **toda la comunidad** construye un
+  datacenter para **voltear a la IA del satélite** (el endgame sembrado en `g.win.text`). Aportás **partes** (CPU/GPU/
+  disco/red/enfriamiento/energía — DATA, pagás con plata o caramelos del juego) y el **estado es GLOBAL y único**
+  (server-side en PVC): la sala dibuja una **maqueta de racks que se encienden** con el progreso de TODOS, con barra y
+  "lo arman N jugadores". Anti-grief por diseño: **contribuir solo SUMA** (no se sabotea) + cupos por parte + rate-limit
+  → es colaborativo de verdad, uno solo no lo termina. Ver `specs/construccion-colaborativa.md` (D1).
 
 ## 4. MECÁNICAS con vuelta de tuerca (satíricas, data-driven)
 - **Dólares como arma (post-tormenta):** el Carpo (homenaje a Pappo: melena, birra) **escupe dólares**; a la GENTE
