@@ -605,11 +605,18 @@
     // post-tormenta el escupitajo escupe DÓLARES (apaciguan a la gente): se muestra como "Dólares 💵" (stormEmoji/stormLabel).
     escupitajo: { id: 'escupitajo', emoji: '💦', label: 'g.wpn.escupitajo', stormEmoji: '💵', stormLabel: 'g.wpn.dolares' },
     viola:      { id: 'viola',      emoji: '🎸', label: 'g.wpn.viola' },         // premio del tesoro: dispara RISAS (apacigua a cualquiera)
-    // FIERRO CRIOLLO (del vendedor de armas): va al inventario pero el Carpo NO lo equipa — gag pacifista (no a la violencia).
+    // FIERRO CRIOLLO genérico (compat saves viejas): va al inventario pero el Carpo NO lo equipa — gag pacifista.
     fierro:     { id: 'fierro',     emoji: '🪢', label: 'g.wpn.fierro', noEquip: true, refuse: 'g.wpn.refuse' },
+    // ARMAS CRIOLLAS (specs/inventario-armas.md §6): se compran al armero, pero el Carpo SOLO las usa en los SUEÑOS
+    // (niveles generados, ctx:'dream'); en la calle real se niega (refuse). Cada una pega x3 contra UN tipo de bicho.
+    rebenque:   { id: 'rebenque',   emoji: '🪢', label: 'g.wpn.rebenque',   ctx: 'dream', effectiveVs: ['pacman'],          dmgMul: 3, baseDmg: 14 },
+    boleadoras: { id: 'boleadoras', emoji: '🔗', label: 'g.wpn.boleadoras', ctx: 'dream', effectiveVs: ['dron', 'galaga'],  dmgMul: 3, baseDmg: 14 },
+    facon:      { id: 'facon',      emoji: '🔪', label: 'g.wpn.facon',      ctx: 'dream', effectiveVs: ['peaton'],          dmgMul: 3, baseDmg: 16 },
+    fal:        { id: 'fal',        emoji: '🔫', label: 'g.wpn.fal',        ctx: 'dream', effectiveVs: ['cuevero'],         dmgMul: 3, baseDmg: 18 },
     // CONSOLA (quest del chip): no es arma, es ÍTEM USABLE → "usar" hackea el chip (useConsola). specs/telo-chip-quest.md
     consola:    { id: 'consola',    emoji: '🎮', label: 'g.wpn.consola', noEquip: true, use: 'useConsola' },
   };
+  const isDream = () => spinoffLevel;   // los niveles GENERADOS son "los sueños del Carpo": ahí SÍ usa el fierro criollo
   function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
   function wpnLabel(id) { const w = WEAPONS[id]; if (!w) return ''; return T((stormed && w.stormLabel) ? w.stormLabel : w.label); }
   function addItem(id) { if (!player.inventory) player.inventory = ['escupitajo']; if (!player.inventory.includes(id)) player.inventory.push(id); }
@@ -623,7 +630,8 @@
     else { html += '<div style="display:flex;flex-direction:column;gap:.4em;margin-top:.5em">';
       for (const id of inv) { const w = WEAPONS[id]; if (!w) continue; const eq = player.weapon === id;
         const badge = w.use ? '<span style="color:#9be8a0">' + T('g.inv.use') + '</span>'                  // ítem usable (consola)
-          : w.noEquip ? '<span style="opacity:.7">' + T('g.inv.kept') + '</span>'                          // arma criolla: guardada, no se equipa (gag pacifista)
+          : w.ctx === 'dream' ? (eq ? '<span style="color:#7CFC00">' + T('g.inv.equipped') + '</span>' : '<span style="color:#c9a0ff">' + T(isDream() ? 'g.inv.equip' : 'g.inv.dream') + '</span>')   // criolla: equipable solo en sueños
+          : w.noEquip ? '<span style="opacity:.7">' + T('g.inv.kept') + '</span>'                          // fierro genérico: guardado (gag pacifista)
           : eq ? '<span style="color:#7CFC00">' + T('g.inv.equipped') + '</span>' : '<span style="opacity:.7">' + T('g.inv.equip') + '</span>';
         html += '<button class="inv-opt" data-id="' + id + '" style="text-align:left;padding:.6em .9em;font:inherit;cursor:pointer' + (eq ? ';outline:2px solid #7CFC00' : '') + '">' +
           wpnEmoji(id) + ' ' + wpnLabel(id) + '  ' + badge + '</button>';
@@ -634,6 +642,11 @@
     if (btns && btns.forEach) btns.forEach(b => b.addEventListener('click', () => {
       const id = b.getAttribute('data-id'), w = WEAPONS[id];
       if (w && w.use) { const fn = { useConsola }[w.use]; if (fn) fn(); return; }              // ÍTEM usable (consola → hackea el chip)
+      if (w && w.ctx === 'dream') {   // ARMA CRIOLLA: solo se usa en los SUEÑOS (niveles generados); en la calle real, el Carpo se niega.
+        if (isDream()) { player.weapon = id; Sfx.pickup(); setMsg(T('g.wpn.dreamOk', { arma: wpnLabel(id) }), '#7CFC00', 6000); openInv(); syncHud(); }
+        else { closeInv(); setMsg(T('g.wpn.dreamOnly'), '#9be8a0', 8000); }
+        return;
+      }
       if (w && w.noEquip) { closeInv(); setMsg(T(w.refuse), '#9be8a0', 8000); return; }   // el Carpo se niega a la violencia (no equipa el fierro)
       if (equipWeapon(id)) { Sfx.pickup(); openInv(); syncHud(); }
     }));
@@ -1141,9 +1154,10 @@
     if ((player.coins || 0) < a.cost) { setMsg(T('g.armas.noCoins', { cost: a.cost }), '#ff5252', 4000); Sfx.empty(); return; }
     player.coins -= a.cost; armasNpc.armado = true; applyEdge('armas', 'armado');
     player.ammo += a.ammo; player.hp = Math.min(MAXHP, player.hp + a.hp);
-    addItem('fierro');   // el fierro criollo queda en el INVENTARIO (no equipable: gag pacifista, ver openInv)
+    // suma el arma ESPECÍFICA comprada (rebenque/boleadoras/facón/FAL) al inventario; en la calle no la usa, en los sueños SÍ.
+    addItem(WEAPONS[a.key] ? a.key : 'fierro');
     closeArmas();
-    setMsg(T('g.armas.bought', { fierro: T('g.armas.fierro.' + a.key), ammo: a.ammo, hp: a.hp }), '#7CFC00', 7500); Sfx.pickup();
+    setMsg(T('g.armas.bought', { fierro: T('g.armas.fierro.' + a.key), ammo: a.ammo, hp: a.hp }) + ' ' + T('g.wpn.dreamHint'), '#7CFC00', 8500); Sfx.pickup();
   }
   function handleLujo(n) {
     // mismo punto en los pisos de lujo: pre-tormenta son las JOYAS (te raja el linyera),
@@ -1261,6 +1275,7 @@
     player.x = sv.px; player.y = sv.py; player.vx = sv.vx; player.vy = sv.vy;
     if (!player.alive || player.hp <= 0) { player.alive = true; player.hp = Math.max(20, Math.min(MAXHP, sv.hp)); }   // morir en el nivel bonus NO te mata el run
     spinoffLevel = false; spinoffSave = null; state = 'playing'; transCd = 0.4; roamingNpc = null; updateCam();
+    { const w = WEAPONS[player.weapon]; if (w && w.ctx === 'dream') player.weapon = 'escupitajo'; }   // el sueño terminó: el Carpo guarda el fierro criollo (no lo usa despierto)
     elFloor.textContent = TX(rooms[current].name);
     if (outcome === 'win') {
       for (const k in (spinoffReward || {})) player[k] = (player[k] || 0) + (spinoffReward[k] || 0);
@@ -2361,6 +2376,8 @@
     elHp.textContent = Math.max(0, Math.floor(player.hp));
     // QUEST DEL CHIP: el sprite del jugador pasa a ser el PIBE DE GARBARINO (player.asGarbarino → player.js draw).
     player.asGarbarino = (playingAs === 'garbarino');
+    // ARMA CRIOLLA equipada (en sueños): el disparo lleva su daño base + a qué tipo de bicho le pega x3 (lo aplica fx.js).
+    { const w = WEAPONS[player.weapon]; player.weaponCombat = (w && w.effectiveVs) ? { eff: w.effectiveVs, mul: w.dmgMul || 2, dmg: w.baseDmg || 14 } : null; }
     if (elWeapon) elWeapon.textContent = chipped ? (playingAs === 'garbarino' ? '💼' : '🤖') : wpnEmoji(player.weapon || 'escupitajo');
     // cartel rojo FIJO arriba con el objetivo actual del chip (persistente → siempre sabés que seguís chipeado + qué hacer)
     if (elChipBanner) { if (chipped) { elChipBanner.textContent = chipBannerText(); elChipBanner.classList.remove('hidden'); } else elChipBanner.classList.add('hidden'); }

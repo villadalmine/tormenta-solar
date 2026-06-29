@@ -40,9 +40,10 @@ const Player = (() => {
         // El proyectil sale del ARMA EQUIPADA (specs/inventario-armas.md). VIOLA → dispara RISAS (apacigua a cualquiera,
         // hasta voladores, no mata). ESCUPITAJO → post-tormenta escupe DÓLARES (apaciguan a la gente, no a voladores), pre-tormenta gargajo.
         const viola = this.weapon === 'viola';
-        const kind = viola ? 'laugh' : (this.dollarMode ? 'dollar' : 'spit');
-        const dmg = viola ? 0 : (this.spitDmg || 14);
-        Bullets.spawn(sx, sy, this.aim.x*720, this.aim.y*720, 'player', dmg, kind);
+        const crio = this.weaponCombat;   // ARMA CRIOLLA (sueños): proyectil que DAÑA, x3 contra su tipo de bicho (specs/inventario-armas.md §6)
+        const kind = viola ? 'laugh' : crio ? 'spit' : (this.dollarMode ? 'dollar' : 'spit');
+        const dmg = viola ? 0 : crio ? crio.dmg : (this.spitDmg || 14);
+        Bullets.spawn(sx, sy, this.aim.x*720, this.aim.y*720, 'player', dmg, kind, crio ? { eff: crio.eff, mul: crio.mul } : null);
         this.shots = (this.shots || 0) + 1; this.lastShot = { kind, x: sx, y: sy };   // para que las cámaras "vean" el dólar (game.js)
         Particles.spit(sx, sy, this.aim.x, this.aim.y);
         Sfx.spit();

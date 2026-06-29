@@ -49,8 +49,9 @@ const Particles = (() => {
 const Bullets = (() => {
   let list = [];
   function clear() { list = []; }
-  function spawn(x, y, vx, vy, from, dmg, kind) {
+  function spawn(x, y, vx, vy, from, dmg, kind, opts) {
     list.push({ x, y, vx, vy, from, dmg, kind: kind || 'spit', life: 1.6, spin: Math.random() * 6.28,
+      eff: (opts && opts.eff) || null, mul: (opts && opts.mul) || 1,   // ARMA CRIOLLA: a qué tipos le pega x mul (specs/inventario-armas.md §6)
       col: from === 'player' ? '#ffe14d' : '#ff5a5a' });
   }
   function hitRect(b, e) { return b.x > e.x && b.x < e.x + e.w && b.y > e.y && b.y < e.y + e.h; }
@@ -82,8 +83,10 @@ const Bullets = (() => {
               e.pacified = true; e.hostile = false; e.vx = 0; e.flash = 0.08;
               Particles.burst(b.x, b.y, 12, '#7ee07e', 200, 700); Sfx.pickup();
             } else {
-              e.hp -= b.dmg; e.hostile = true; e.flash = 0.08;
-              Particles.burst(b.x, b.y, 6, b.kind === 'dollar' ? '#7ee07e' : '#a9e08a', 170, 600);
+              // ARMA CRIOLLA (sueños): si el bicho es del tipo contra el que es eficaz → daño x mul (boleadoras vs voladores, etc.)
+              const eff = b.eff && b.eff.indexOf(e.type) >= 0;
+              e.hp -= b.dmg * (eff ? b.mul : 1); e.hostile = true; e.flash = 0.08;
+              Particles.burst(b.x, b.y, eff ? 11 : 6, eff ? '#ffd54f' : (b.kind === 'dollar' ? '#7ee07e' : '#a9e08a'), 170, 600);
               if (e.hp <= 0) e.die(); else Sfx.hit();
             }
             dead = true; break;

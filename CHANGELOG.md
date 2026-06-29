@@ -56,6 +56,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v235] — 2026-06-29 — 🪢 Armas CRIOLLAS en los SUEÑOS: pacifista despierto, "sí loco acá lo usamo" dormido
+
+`specs/inventario-armas.md §6`. El **fierro criollo** del armero ahora **se VE y se USA**, pero con la vuelta del dueño:
+en la **calle real el Carpo se niega** (pacifista, ya estaba), pero en los **SUEÑOS** (niveles GENERADOS del vecino/
+oráculo/chino) **SÍ los usa** — y **cada arma pega ×3 contra UN tipo de bicho** (data-driven, Type Object):
+- **rebenque** 🪢 → los **rápidos** (pacman) · **boleadoras** 🔗 → los **voladores** (dron/galaga) · **facón** 🔪 → el
+  **cuerpo a cuerpo** (peatón) · **FAL** 🔫 → los **tiradores** (cuevero).
+El armero ahora te da el arma **específica** que comprás (no un "fierro" genérico). En el inventario `[I]`: despierto dice
+"esto lo uso en los SUEÑOS nomás"; en un sueño lo equipás ("sí loco, ACÁ lo usamo"). El disparo lleva `{eff,mul}` y `fx.js`
+aplica el ×3 al tipo correcto (chispa dorada) → **cambiar de arma según el bicho cobra sentido táctico**. Al despertar
+(salir del nivel generado) se guarda solo. Probado headless. i18n 640/640. Cache **v235**.
+
+---
+
 ## [v234 · infra-38] — 2026-06-29 — 🤖📋🛰️ Construcción colaborativa C2 + D2: la IA deja carteles + el ENDGAME del datacenter
 
 Cierra el SDD `construccion-colaborativa.md` (quedaban C2 y D2):

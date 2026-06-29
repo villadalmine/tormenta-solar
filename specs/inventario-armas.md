@@ -68,7 +68,19 @@ La risa de la viola NO es genérica: el **proyectil** son notas ♪♫ y al pega
   (`e.fleeing` → vuelo errático + despawn fuera de pantalla). Inofensivos, no se mueren.
 Implementado en `fx.js` (hit del kind `laugh`) + `enemies.js` (update `fleeing` + draw `laughing`/`fleeing`).
 
-## 6. Armas CRIOLLAS: pacifista en la calle, "sí loco" en los SUEÑOS (idea dueño 2026-06-28) — DISEÑO
+## 6. Armas CRIOLLAS: pacifista en la calle, "sí loco" en los SUEÑOS — ✅ IMPLEMENTADO (v235, 2026-06-29)
+**Hecho:** 4 armas en `WEAPONS` con `ctx:'dream'` + `effectiveVs` + `dmgMul:3` + `baseDmg` (rebenque→pacman, boleadoras→
+dron/galaga, facón→peaton, FAL→cuevero). `pickArma` suma el arma ESPECÍFICA comprada (`a.key` ∈ rebenque/boleadoras/
+facon/fal). En el inventario `[I]`: si `isDream()` (= `spinoffLevel`, los niveles generados) se EQUIPA ("sí loco acá lo
+usamo", `g.wpn.dreamOk`); en la calle real se niega (`g.wpn.dreamOnly`). El disparo: `syncHud` deriva `player.weaponCombat`
+{eff,mul,dmg} del arma equipada; `player.js fire()` manda un proyectil que DAÑA con `{eff,mul}`; `fx.js` aplica `dmg×mul`
+si `e.type ∈ eff` (chispa dorada). Al terminar el sueño (`endSpinoffLevel`) se desequipa (volvés a `escupitajo`: despierto
+no la usa). Probado headless (x3 al tipo, x1 al resto). i18n `g.wpn.rebenque/boleadoras/facon/fal/dreamOk/dreamOnly/
+dreamHint`, `g.inv.dream`. **Falta (futuro):** balance fino + que la IA del nivel generado spawnee el tipo "contra" del
+arma que llevás (hoy es por motif, ya hay variedad).
+
+### (diseño original ↓)
+### 6.0 — DISEÑO
 El dueño quiere que el **fierro criollo** del armero (rebenque/boleadoras/facón/FAL) **se pueda VER y USAR**, pero con
 una vuelta: en el **mundo real el Carpo se NIEGA** (gag pacifista, ✅ ya hecho: `noEquip`+`g.wpn.refuse`). En cambio, en
 los **SUEÑOS / niveles GENERADOS** (los que flashea el vecino del edificio clausurado, el oráculo, el chino) **SÍ los
