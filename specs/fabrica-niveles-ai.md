@@ -273,9 +273,14 @@ contraste). Anotado también en la memoria `backlog` como **A0 (prioritario)**.
   la RED (Playable) — el piso siempre transita, las plataformas son perchas.
 - **Verificado:** e2e (cada tema 60 frames) + headless (props ancla presentes, 0 problems) + web-smoke. Cache v236.
 
-**Falta (la apuesta grande, deuda media):** **(1) salas = BEATS del relato** (la IA autora una secuencia `{rooms:[{beat,
-anchorProp,enemyType,hazard}]}` → `generateLevel` arma cada sala alrededor del beat). Requiere cambiar el schema de
-`requestHistoria`/`requestOraculo` + el prompt del proxy. Y aplicar lo mismo al spinoff del chino (`generate()` top-down).
+**✅ (1) SALAS = BEATS del relato (HECHO v237, 2026-06-29):** cada sala del nivel generado es un MOMENTO de la historia
+(su propio nombre + set-piece + encuentro), no salas intercambiables. **DATA:** `THEME_BEATS[id]` = secuencia hand-authored
+por tema del chino (`[{n:{es,en}, a:emoji, en:tipoBicho, haz?}]`); la **IA** (oráculo/historia) también autora beats
+(`j.beats` → `sanitizeBeats` → tema ad-hoc). `generateLevel`: si el tema trae beats, `candidate()` hace una sala por beat
+y `assemble(i)` usa `beats[i]` para el **nombre de sala** + **ancla** + **sesgo de enemigo/hazard**. **Proxy:** `BEATS_ASK`
+agregado a los prompts de oráculo/historia + `parseGeom` saca `j.beats`. Fallback total: sin beats → salas genéricas (como
+antes). Verificado headless (super-rasca: "la entrada"→"las góndolas"→"el depósito del dragón" con 🧧→🥫→🐲; IA ad-hoc OK; 0
+problems). **Falta (menor):** aplicar beats al spinoff del chino top-down (`generate()`); afinar que la IA realmente los autore bien (depende del modelo).
 
 <details><summary>(reporte original ↓)</summary>
 

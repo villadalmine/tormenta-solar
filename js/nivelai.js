@@ -155,6 +155,20 @@ const NivelAI = (() => {
     '🎉': '🪩', '🪩': '🪩', '🧸': '🧸', '🪆': '🪆', '🐀': '🧀',
   };
   const anchorFor = t => t.anchor || ANCHOR[t.motif] || t.motif || null;
+  // A0-DEEP (1): BEATS = la secuencia de salas como MOMENTOS del relato (cada sala su nombre + set-piece + encuentro), no
+  // salas intercambiables. DATA por tema (REGLA #0). Cada beat: {n:{es,en} nombre, a:emoji ancla, en:tipo de bicho, haz?}.
+  // La IA (oráculo/historia) también puede autorar beats (j.beats); los estáticos son el "molde" del raid del chino.
+  const THEME_BEATS = {
+    'super-rasca':      [{ n: { es: 'la entrada pegoteada', en: 'the sticky entrance' }, a: '🧧', en: 'pacman' }, { n: { es: 'las góndolas vencidas', en: 'the expired aisles' }, a: '🥫', en: 'dron' }, { n: { es: 'el depósito del dragón', en: "the dragon's storeroom" }, a: '🐲', en: 'cuevero' }],
+    'taller-esclavo':   [{ n: { es: 'el piso de máquinas', en: 'the machine floor' }, a: '🪡', en: 'peaton' }, { n: { es: 'los telares', en: 'the looms' }, a: '🧶', en: 'dron' }, { n: { es: 'la puerta trasera', en: 'the back door' }, a: '🚪', en: 'cuevero' }],
+    'comida-podrida':   [{ n: { es: 'la verdulería', en: 'the greengrocer' }, a: '🥬', en: 'pacman' }, { n: { es: 'la carnicería', en: 'the butcher' }, a: '🍖', en: 'peaton' }, { n: { es: 'la cámara fría', en: 'the cold room' }, a: '🐟', en: 'dron' }],
+    'muralla-skate':    [{ n: { es: 'la rampa', en: 'the ramp' }, a: '🛹', en: 'pacman', haz: 'pit' }, { n: { es: 'las almenas', en: 'the battlements' }, a: '🏯', en: 'dron' }, { n: { es: 'el fin del muro', en: 'end of the wall' }, a: '🐉', en: 'cuevero' }],
+    'feria-trucha':     [{ n: { es: 'los puestos', en: 'the stalls' }, a: '👜', en: 'peaton' }, { n: { es: 'las zapatillas', en: 'the sneakers' }, a: '👟', en: 'pacman' }, { n: { es: 'el puesto del fondo', en: 'the back stall' }, a: '💼', en: 'dron' }],
+    'fabrica-petardos': [{ n: { es: 'el galpón', en: 'the warehouse' }, a: '📦', en: 'peaton' }, { n: { es: 'la pólvora', en: 'the gunpowder' }, a: '🧨', en: 'galaga', haz: 'spikes' }, { n: { es: 'la salida de pólvora', en: 'the powder exit' }, a: '🎆', en: 'cuevero' }],
+    'karaoke-mafia':    [{ n: { es: 'el salón', en: 'the lounge' }, a: '🎤', en: 'peaton' }, { n: { es: 'los reservados', en: 'the private rooms' }, a: '🀄', en: 'dron' }, { n: { es: 'la salida VIP', en: 'the VIP exit' }, a: '🕴️', en: 'cuevero' }],
+    'lavadero-billetes':[{ n: { es: 'los tambores', en: 'the drums' }, a: '🌀', en: 'pacman' }, { n: { es: 'la plata sucia', en: 'the dirty cash' }, a: '💵', en: 'dron' }, { n: { es: 'la salida en seco', en: 'the dry exit' }, a: '🧺', en: 'cuevero' }],
+    'farmacia-vencida': [{ n: { es: 'los estantes', en: 'the shelves' }, a: '💊', en: 'pacman' }, { n: { es: 'los jarabes raros', en: 'the weird syrups' }, a: '🧪', en: 'dron' }, { n: { es: 'la trastienda', en: 'the back room' }, a: '⚗️', en: 'cuevero' }],
+  };
 
   // ----- TIENDAS GENERADAS (galería de la cueva): el "molde" es el RUBRO. Le hablás al local → entrás a un interior
   // generado (top-down, sub-modo Tienda) con clientela + mercadería COHERENTE para browsear/comprar. DATA = rubro;
@@ -353,6 +367,24 @@ const NivelAI = (() => {
     }
     return out.length ? out : null;
   }
+  // BEATS autorados por IA (A0-DEEP 1): cada beat = una sala-momento {name, anchor, enemy, haz?}. Saneo defensivo: cap a 3,
+  // nombre corto, ancla 1 emoji, tipo de bicho válido (si no, lo deja al pool del vibe), haz pit/spikes. null si no hay nada usable.
+  const BEAT_ENEMIES = ['peaton', 'dron', 'pacman', 'galaga', 'cuevero'];
+  function sanitizeBeats(raw) {
+    if (!Array.isArray(raw)) return null;
+    const out = [];
+    for (const b of raw) {
+      if (!b || typeof b !== 'object') continue;
+      const name = String(b.name || b.n || '').slice(0, 28).trim();
+      const a = (typeof b.anchor === 'string' ? b.anchor : (typeof b.a === 'string' ? b.a : '')).slice(0, 4).trim() || null;
+      const en = BEAT_ENEMIES.indexOf(String(b.enemy || b.en)) >= 0 ? String(b.enemy || b.en) : null;
+      const haz = /pit|pozo|hueco/i.test(String(b.haz || b.hazard || '')) ? 'pit' : (/spike|pincho/i.test(String(b.haz || b.hazard || '')) ? 'spikes' : null);
+      if (!name && !a) continue;                              // un beat sin nombre ni ancla no aporta
+      out.push({ n: name || '…', a, en, haz });
+      if (out.length >= 3) break;
+    }
+    return out.length ? out : null;
+  }
 
   // ----- LADRILLO 2 DE LA C: generar un NIVEL-PLATAFORMA REAL (modelo v2 que consume Mundo.fromModel) -----
   // A diferencia de `generate()` (escena top-down del Spinoff), esto produce un MODELO DE NIVEL del MOTOR REAL:
@@ -361,8 +393,10 @@ const NivelAI = (() => {
   // Así la "imaginación" de la IA nunca produce un nivel intransitable. Ver specs/fabrica-niveles-ai.md §4.7.
   function generateLevel(forceId) {
     // forceId puede ser un ID (string) O un TEMA ad-hoc (objeto) — ej. el que INVENTA la IA en el tema 'oraculo'
-    const t = (forceId && typeof forceId === 'object') ? forceId
+    let t = (forceId && typeof forceId === 'object') ? forceId
       : forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(Math.random() * THEMES.length) | 0];
+    // A0-DEEP (1): el tema usa su secuencia de BEATS (la de la IA si vino, si no el molde estático por id). Sin beats → salas genéricas.
+    if (!t.beats && THEME_BEATS[t.id]) t = Object.assign({}, t, { beats: THEME_BEATS[t.id] });
     const GTOP = 12;
     const rnd = (a, b) => a + ((Math.random() * (b - a + 1)) | 0);
     const pick = a => a[(Math.random() * a.length) | 0];
@@ -404,6 +438,9 @@ const NivelAI = (() => {
     const vibe = vibeFor(t), enemyPool = vibe ? vibe.pool : ENEMY_POOL, enemyN = vibe ? vibe.count : [1, 3];
     function assemble(i, n, w, plats, noHaz, hazards) {
       const id = 'sala-ai-' + i, ents = [];
+      // A0-DEEP (1): BEAT del relato para ESTA sala (si el tema trae secuencia) → nombre + set-piece + encuentro propios.
+      const beat = (t.beats && t.beats.length) ? t.beats[i % t.beats.length] : null;
+      const rPool = (beat && beat.en) ? [beat.en, beat.en, beat.en].concat(enemyPool) : enemyPool;   // el beat SESGA el tipo de bicho
       if (i === 0) ents.push({ id: id + '/spawn', tipo: 'marker', x: 2, render: { type: 'spawn' } });
       else ents.push({ id: id + '/door-l', tipo: 'door', x: 2, inward: 1, render: { type: 'door' }, link: { to: 'sala-ai-' + (i - 1) } });
       if (i === n - 1) ents.push({ id: id + '/goal', tipo: 'marker', x: w - 3, render: { type: 'goal' } });
@@ -413,20 +450,22 @@ const NivelAI = (() => {
         ? Playable.reachableTops({ w, platforms: plats, entities: [{ tipo: 'marker', x: 2, render: { type: 'spawn' } }] }) : null;
       for (const p of plats) { const ty = p[1] - 1; if (reach && !reach[p[0] + ',' + ty]) continue; if (Math.random() < 0.5) ents.push({ id: id + '/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: ty, give: { item: pick(['ammo', 'coins', 'health']), amount: rnd(3, 6) } }); }
       const aiEn = t.aiEnemies ? sanitizeEnemies(t.aiEnemies, w) : null;   // enemigos autorados por IA (posición) o aleatorios
-      if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || pick(enemyPool) } }));
-      else for (let k = 0, e = rnd(enemyN[0], enemyN[1]); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: pick(enemyPool) } });
+      if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || pick(rPool) } }));
+      else for (let k = 0, e = rnd(enemyN[0], enemyN[1]); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: pick(rPool) } });
       // OBSTÁCULOS (pinchos / pozos) en el piso, lejos de columnas sagradas (spawn x2 / meta·puerta w-3) → saltables.
       // El POZO cala el piso (te caés y reaparecés); el PINCHO daña al contacto. Ancho ≤2 → la RED (R4) garantiza salto.
       // `hazards` = lista explícita autorada por IA; si no, se siembran 0-2 procedurales al azar.
       if (!noHaz) {
         if (hazards) hazards.forEach((h, k) => ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: h.x + 0.5, w: h.w, render: { type: h.kind }, combat: { dmg: 12 } }));
-        else for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = vibe && vibe.haz ? vibe.haz === 'pit' : Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
+        else for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = beat && beat.haz ? beat.haz === 'pit' : vibe && vibe.haz ? vibe.haz === 'pit' : Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
       }
       for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
-      // A0-DEEP: PROP ANCLA del relato (set-piece grande, posición deliberada = centro del piso) → el nivel "se lee" como la historia.
-      const anchor = anchorFor(t);
+      // A0-DEEP: PROP ANCLA del relato (set-piece grande, posición deliberada = centro del piso) → el nivel "se lee" como la
+      // historia. Con BEATS, cada sala tiene SU propio set-piece (la secuencia de la historia); sin beats, el ancla del tema.
+      const anchor = (beat && beat.a) || anchorFor(t);
       if (anchor) ents.push({ id: id + '/anchor', tipo: 'decor', x: ((w / 2) | 0) + 0.5, render: { type: 'anchor', emoji: anchor } });
-      return { id, nombre: L(t.name) + (n > 1 ? ' · ' + (i + 1) + '/' + n : ''), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };
+      const beatName = beat ? ' · ' + L(beat.n) : (n > 1 ? ' · ' + (i + 1) + '/' + n : '');
+      return { id, nombre: L(t.name) + beatName, theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };
     }
     // UNA sala: si el tema trae geometría IA, se INTENTA; si esa sala no pasa la RED (incl. R4 reachability) se
     // AUTO-REPARA cayendo al layout procedural (garantizado jugable). Así la geometría de la IA llega sólo si sirve.
@@ -446,7 +485,8 @@ const NivelAI = (() => {
       return r;
     }
     function candidate() {
-      const n = rnd(2, 3);                                    // 2-3 salas conectadas por puertas
+      // con BEATS, la secuencia define cuántas salas (cada sala = un beat de la historia); sin beats, 2-3 al azar.
+      const n = (t.beats && t.beats.length) ? Math.min(3, Math.max(2, t.beats.length)) : rnd(2, 3);
       const rooms = []; for (let i = 0; i < n; i++) rooms.push(room(i, n));
       return { schemaVersion: 1, id: 'nivel-ai-' + t.id, nombre: L(t.name), seed: 'ai', rooms };
     }
@@ -488,7 +528,7 @@ const NivelAI = (() => {
           props, npc: { emoji: '🔮', lines: { es: lines, en: lines } },
           goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 },
           style: styles.indexOf(j.style) >= 0 ? j.style : 'climb', decor: ['cartel', 'caja', 'barril', 'tacho'],
-          aiPlatforms, aiEnemies, aiHazards,
+          aiPlatforms, aiEnemies, aiHazards, beats: sanitizeBeats(j.beats) || undefined,   // A0-DEEP (1): salas = beats del relato (si la IA los autoró)
         });
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático 90s)
   }
@@ -541,7 +581,7 @@ const NivelAI = (() => {
           props, npc: { emoji: String(j.motif || '👻').slice(0, 4), lines: { es: lines, en: lines } },
           goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 },
           style: styles.indexOf(j.style) >= 0 ? j.style : 'climb', decor: ['cartel', 'caja', 'barril', 'tacho', 'escombros', 'mueble_roto'],
-          aiPlatforms, aiEnemies, aiHazards,
+          aiPlatforms, aiEnemies, aiHazards, beats: sanitizeBeats(j.beats) || undefined,   // A0-DEEP (1): salas = beats del relato (si la IA los autoró)
         });
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático)
   }

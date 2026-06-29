@@ -56,6 +56,22 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v237 · infra-39] — 2026-06-29 — 🎬 Niveles generados = SECUENCIA de la historia (A0-DEEP (1): salas = BEATS)
+
+Cierra la apuesta grande de `§A0-DEEP`: cada sala del nivel generado es ahora un **MOMENTO del relato** (su propio nombre +
+set-piece + encuentro), no salas intercambiables. Antes el nivel "no tenía nada que ver" con la historia que te contaba el
+vecino; ahora **se recorre como un cuento**:
+- **DATA estática:** `THEME_BEATS[id]` = secuencia hand-authored por tema del raid del chino. Ej. *La Muralla en Skate* →
+  "la rampa" (🛹) → "las almenas" (🏯) → "el fin del muro" (🐉); *Súper Rasca* → "la entrada pegoteada" (🧧) → "las góndolas
+  vencidas" (🥫) → "el depósito del dragón" (🐲). Cada beat sesga también el **tipo de bicho** y el **hazard** de su sala.
+- **La IA autora beats:** el oráculo y la historia del vecino piden `beats` al modelo (`BEATS_ASK` en el proxy) → `j.beats`
+  → `sanitizeBeats` → el nivel del vecino/oráculo se arma como la secuencia que la IA inventó.
+- **`generateLevel`:** si el tema trae beats, una sala por beat; `assemble(i)` usa `beats[i]` para nombre+ancla+enemigo+haz.
+  Fallback total: sin beats → salas genéricas (como antes).
+- Verificado headless (secuencias correctas, 0 problems en la RED) + e2e + web-smoke. Cache **v237**, proxy **infra-39**.
+
+---
+
 ## [v236] — 2026-06-29 — 🏯 Niveles generados que SE LEEN como la historia: props ANCLA + 2 layouts nuevos (A0-DEEP parcial)
 
 `specs/fabrica-niveles-ai.md §A0-DEEP`. El dueño venía diciendo que los niveles generados (sueños del vecino/oráculo/
