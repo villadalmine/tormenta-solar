@@ -8,6 +8,8 @@ fullnameOverride: tormenta-ai-proxy
 image:
   repository: registry.registry:5000/ai/tormenta-ai-proxy
   tag: ""                          # SIEMPRE pasar --set image.tag=<X> en el deploy
+  pullPolicy: Always               # MISMO fix que la web (infra-29): el tag se reusa → IfNotPresent corría imagen vieja
+                                   # cacheada en el nodo (endpoints nuevos daban 405/caían al chat). Always + rollout = pull fresco.
 
 # key de LiteLLM (secret ya existente en el cluster)
 auth:
