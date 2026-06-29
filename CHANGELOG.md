@@ -56,6 +56,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v236] — 2026-06-29 — 🏯 Niveles generados que SE LEEN como la historia: props ANCLA + 2 layouts nuevos (A0-DEEP parcial)
+
+`specs/fabrica-niveles-ai.md §A0-DEEP`. El dueño venía diciendo que los niveles generados (sueños del vecino/oráculo/
+chino) "son simples niveles para saltar", sin relación con el relato. Dos mejoras de alto impacto/bajo costo:
+- **(3) PROPS ANCLA:** cada nivel generado lleva ahora un **set-piece reconocible** del relato, colocado a propósito
+  (centro del piso, emoji GRANDE con glow) — no decor random. Mapa `ANCHOR` (motif→emoji) + `anchorFor` en `nivelai.js`;
+  render nuevo en `game.js`. Ej: muralla→⛩️, súper rasca→🐲, farmacia→⚗️, petardos→🎆, lavadero→🌀.
+- **(2) MÁS STYLES:** 2 layouts de plataformas nuevos — **`shelves`** (estanterías: columnas verticales que trepás;
+  súper/farmacia) y **`rooftop`** (azoteas: plataformas anchas y altas con huecos; fábrica de petardos). El oráculo/historia
+  (IA) ya pueden elegirlos. Todos pasan la RED (Playable): el piso siempre transita, las plataformas son perchas.
+- Verificado: e2e (cada tema 60 frames) + headless (props ancla presentes, 0 problems) + web-smoke. **Falta** la apuesta
+  grande: (1) salas = beats del relato. Cache **v236**.
+
+---
+
 ## [v235] — 2026-06-29 — 🪢 Armas CRIOLLAS en los SUEÑOS: pacifista despierto, "sí loco acá lo usamo" dormido
 
 `specs/inventario-armas.md §6`. El **fierro criollo** del armero ahora **se VE y se USA**, pero con la vuelta del dueño:

@@ -31,7 +31,7 @@ const NivelAI = (() => {
       props: ['🥫', '🧴', '🐀', '🪣', '🥢', '🧧', '🀄', '🥟', '🍜'],
       npc: { emoji: '🧑‍🍳', lines: { es: ['todo vencido, amigo', 'dos por uno casi', 'rata gratis adentro', 'no milar fecha', 'pagá pagá'],
                                       en: ['all expired, amigo', 'almost two for one', 'free rat inside', 'no look date', 'pay pay'] } },
-      goal: { es: 'PASILLO TRUCHO', en: 'DODGY AISLE' }, reward: { caramelos: 3 }, style: 'aisles', decor: ['super_chino', 'kiosko', 'caja', 'barril', 'tacho', 'dispenser'],
+      goal: { es: 'PASILLO TRUCHO', en: 'DODGY AISLE' }, reward: { caramelos: 3 }, style: 'shelves', decor: ['super_chino', 'kiosko', 'caja', 'barril', 'tacho', 'dispenser'],
     },
     {
       id: 'taller-esclavo', motif: '🧵',
@@ -86,7 +86,7 @@ const NivelAI = (() => {
       props: ['🧨', '🎆', '🎇', '💥', '🪔', '🧯', '📦', '🔥'],
       npc: { emoji: '🧑‍🏭', lines: { es: ['no fumes acá', 'mecha corta, ojo', 'todo trucho igual prende', 'cuidado el cajón', 'aiyaa pólvora'],
                                        en: ['no smoking here', 'short fuse, careful', 'fake but still blows', 'mind the crate', 'aiyaa gunpowder'] } },
-      goal: { es: 'SALIDA DE PÓLVORA', en: 'POWDER EXIT' }, reward: { caramelos: 5 }, style: 'climb', decor: ['barril', 'caja', 'tablones', 'escombros', 'dispenser', 'parlante'],
+      goal: { es: 'SALIDA DE PÓLVORA', en: 'POWDER EXIT' }, reward: { caramelos: 5 }, style: 'rooftop', decor: ['barril', 'caja', 'tablones', 'escombros', 'dispenser', 'parlante'],
     },
     {
       id: 'karaoke-mafia', motif: '🎤',
@@ -119,7 +119,7 @@ const NivelAI = (() => {
       props: ['💊', '🧪', '🩹', '💉', '🧫', '🦠', '🧴', '⚗️'],
       npc: { emoji: '🧑‍⚕️', lines: { es: ['vence mañana, comprá', 'cura casi todo', 'sin receta, dale', 'efecto secundario gratis', 'jarabe de la casa'],
                                        en: ['expires tomorrow, buy', 'cures almost all', 'no script, go', 'free side effect', 'house syrup'] } },
-      goal: { es: 'TRASTIENDA', en: 'BACK ROOM' }, reward: { caramelos: 4 }, style: 'climb', decor: ['kiosko', 'caja', 'escritorio', 'dispenser', 'tacho', 'mueble_roto'],
+      goal: { es: 'TRASTIENDA', en: 'BACK ROOM' }, reward: { caramelos: 4 }, style: 'shelves', decor: ['kiosko', 'caja', 'escritorio', 'dispenser', 'tacho', 'mueble_roto'],
     },
   ];
 
@@ -147,6 +147,14 @@ const NivelAI = (() => {
     '🎉': 'party', '🪩': 'party', '🧸': 'swarm', '🪆': 'swarm', '🐀': 'swarm',
   };
   const vibeFor = t => VIBES[t.vibe] || VIBES[MOTIF_VIBE[t.motif]] || null;
+  // A0-DEEP (specs/fabrica-niveles-ai.md): PROP ANCLA = un set-piece RECONOCIBLE del relato, colocado a propósito (no
+  // decor random) → el nivel "se lee" como la historia. motif (emoji) → emoji ancla grande. Sin match → el propio motif.
+  const ANCHOR = {
+    '🐉': '🐲', '🧵': '🪡', '🤢': '🐟', '🛹': '⛩️', '👜': '👟', '🧨': '🎆', '🎤': '🎤', '🧺': '🌀', '💊': '⚗️',
+    '🔮': '👁️', '👻': '🚪', '👧': '🧸', '🪞': '🪞', '🕯️': '🕯️', '🔪': '🔪', '🩸': '🩸', '🪓': '🪓', '💀': '💀',
+    '🎉': '🪩', '🪩': '🪩', '🧸': '🧸', '🪆': '🪆', '🐀': '🧀',
+  };
+  const anchorFor = t => t.anchor || ANCHOR[t.motif] || t.motif || null;
 
   // ----- TIENDAS GENERADAS (galería de la cueva): el "molde" es el RUBRO. Le hablás al local → entrás a un interior
   // generado (top-down, sub-modo Tienda) con clientela + mercadería COHERENTE para browsear/comprar. DATA = rubro;
@@ -373,6 +381,13 @@ const NivelAI = (() => {
       } else if (style === 'aisles') {
         // GÓNDOLAS/ESTANTES: 2 filas horizontales (pasillos) que saltás entre medio
         for (const y of [GTOP - 3, GTOP - 6]) for (let x = 5; x < w - 6; x += rnd(4, 6)) P.push([x, y, rnd(2, 3)]);
+      } else if (style === 'shelves') {
+        // ESTANTERÍAS (juguetería/farmacia/súper): COLUMNAS verticales de estantes cortos que trepás entre medio.
+        // Las columnas no tocan el piso (caminás por abajo) → siempre transitable; los estantes son perchas de pickups.
+        for (let x = 6; x < w - 6; x += rnd(4, 6)) { let y = GTOP - 2; for (let s = 0, m = rnd(2, 3); s < m && y >= 4; s++) { P.push([x, y, 2]); y -= rnd(2, 3); } }
+      } else if (style === 'rooftop') {
+        // AZOTEAS (galpón/altura): plataformas ANCHAS y altas con huecos grandes — saltás de techo en techo (piso siempre abajo).
+        let y = GTOP - 4; for (let x = 5; x < w - 6;) { const pw = rnd(4, 6); P.push([x, y, pw]); x += pw + rnd(2, 3); y = Math.max(GTOP - 6, Math.min(GTOP - 2, y + (Math.random() < 0.5 ? -1 : 1))); }
       } else {
         // CLIMB (default): zigzag que sube
         let px = rnd(5, 7), py = GTOP - 2;
@@ -408,6 +423,9 @@ const NivelAI = (() => {
         else for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = vibe && vibe.haz ? vibe.haz === 'pit' : Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
       }
       for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
+      // A0-DEEP: PROP ANCLA del relato (set-piece grande, posición deliberada = centro del piso) → el nivel "se lee" como la historia.
+      const anchor = anchorFor(t);
+      if (anchor) ents.push({ id: id + '/anchor', tipo: 'decor', x: ((w / 2) | 0) + 0.5, render: { type: 'anchor', emoji: anchor } });
       return { id, nombre: L(t.name) + (n > 1 ? ' · ' + (i + 1) + '/' + n : ''), theme: 'ruina', tags: ['generado', t.id], w, light: 1, platforms: plats, entities: ents };
     }
     // UNA sala: si el tema trae geometría IA, se INTENTA; si esa sala no pasa la RED (incl. R4 reachability) se
@@ -455,7 +473,7 @@ const NivelAI = (() => {
       .then(j => {
         if (!j || !j.name) { if (j) markAi(true); cb(null); return; }   // {} = proxy vivo pero sin texto → no abre circuito
         markAi(true);
-        const styles = ['wall', 'aisles', 'climb'];
+        const styles = ['wall', 'aisles', 'climb', 'shelves', 'rooftop'];
         const props = (typeof j.props === 'string' ? j.props.trim().split(/\s+/) : Array.isArray(j.props) ? j.props : ['🔮', '✨', '👁️', '🌀']).slice(0, 8);
         const lines = (Array.isArray(j.lines) && j.lines.length ? j.lines : ['te conozco, pibe', 'esto es por vos', 'lo pediste vos']).map(s => String(s).slice(0, 40));
         // GEOMETRÍA autorada por la IA (opcional): si manda plataformas/enemigos, los pasamos como aiPlatforms/
@@ -510,7 +528,7 @@ const NivelAI = (() => {
       .then(j => {
         if (!j || !j.name) { if (j) markAi(true); cb(null); return; }   // {} = vivo pero sin texto → no abre circuito
         markAi(true);
-        const styles = ['wall', 'aisles', 'climb'];
+        const styles = ['wall', 'aisles', 'climb', 'shelves', 'rooftop'];
         const props = (typeof j.props === 'string' ? j.props.trim().split(/\s+/) : Array.isArray(j.props) ? j.props : ['👻', '🕯️', '🚪', '🩸']).slice(0, 8);
         const lines = (Array.isArray(j.lines) && j.lines.length ? j.lines : ['no deberías estar acá', 'andate', 'te esperábamos']).map(s => String(s).slice(0, 40));
         const aiPlatforms = sanitizePlatforms(j.platforms, 30);

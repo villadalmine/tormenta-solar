@@ -262,7 +262,24 @@ contraste). Anotado también en la memoria `backlog` como **A0 (prioritario)**.
   resueltos. Si a futuro se quiere que la IA autore geometría **temática** (no solo posiciones), el hook ya existe
   (`aiPlatforms`/`requestGeometry`): falta que el proxy proponga layouts con sentido del relato.
 
-## ⚠️ A0-DEEP — los niveles AÚN no reflejan la HISTORIA: son "niveles para saltar" genéricos (re-reporte dueño 2026-06-28)
+## A0-DEEP — los niveles reflejan más el relato (✅ PARCIAL v236: props ancla + 2 styles; falta (1) beats)
+**Hecho (v236, 2026-06-29):** las direcciones BARATAS/INTERMEDIAS del §A0-DEEP:
+- **(3) PROPS ANCLA:** cada nivel generado lleva un **set-piece RECONOCIBLE** del relato colocado a propósito (centro del
+  piso, emoji GRANDE con glow) — no decor random. Mapa `ANCHOR` (motif→emoji) + `anchorFor(t)` en `nivelai.js`; el render
+  es un caso nuevo en el loop de decor de `game.js` (`d.type==='anchor'`). Ej: muralla→⛩️, súper→🐲, farmacia→⚗️, petardos→🎆.
+- **(2) MÁS STYLES:** 2 layouts nuevos en `layoutPlatforms` — **`shelves`** (estanterías: columnas verticales que trepás,
+  súper/farmacia) y **`rooftop`** (azoteas: plataformas anchas y altas con huecos, galpón de petardos). Asignados a
+  super-rasca/farmacia (shelves) y fabrica-petardos (rooftop); el oráculo/historia (IA) ya pueden elegirlos. Todos pasan
+  la RED (Playable) — el piso siempre transita, las plataformas son perchas.
+- **Verificado:** e2e (cada tema 60 frames) + headless (props ancla presentes, 0 problems) + web-smoke. Cache v236.
+
+**Falta (la apuesta grande, deuda media):** **(1) salas = BEATS del relato** (la IA autora una secuencia `{rooms:[{beat,
+anchorProp,enemyType,hazard}]}` → `generateLevel` arma cada sala alrededor del beat). Requiere cambiar el schema de
+`requestHistoria`/`requestOraculo` + el prompt del proxy. Y aplicar lo mismo al spinoff del chino (`generate()` top-down).
+
+<details><summary>(reporte original ↓)</summary>
+
+### ⚠️ A0-DEEP — los niveles AÚN no reflejan la HISTORIA (re-reporte dueño 2026-06-28)
 Aún con paleta/props/enemigos por motif (v208/v209), el dueño dice que los niveles generados **siguen sintiéndose
 genéricos**: *"cuando te habla el que cuida el edificio cerrado y cuenta una historia, el nivel no tiene nada que ver,
 son simples niveles para saltar. Solo en el chino meten edificios chinos como decoración."* La **estructura** (geometría)
@@ -286,3 +303,4 @@ Los **niveles generados son "los sueños"** del Carpo (ver `inventario-armas.md 
 narrativa (sueño/viaje temporal) **justifica** que sean surreales/temáticos. Recomendación: empezar por **(3) props ancla**
 (barato, se nota) + **(2) más styles**, y evaluar **(1) beats** como la versión completa. **Deuda MEDIA-ALTA, prioritaria
 de las de contenido.** Ver `edificios-clausurados-historias.md §8`, `modelo-de-entidades.md §6¾` (argumento AI-authorable).
+</details>

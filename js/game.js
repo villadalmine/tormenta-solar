@@ -2470,6 +2470,16 @@
 
     // decoración (no colisiona): árboles, faroles, bancos, tachos
     for (const d of r.decor || []) {
+      // A0-DEEP: PROP ANCLA del nivel generado (set-piece del relato) → emoji GRANDE con glow, parado en el piso.
+      if (d.type === 'anchor' && d.emoji) {
+        const ax = d.x - cam.x, ay = d.feetY - cam.y;
+        ctx.save();
+        ctx.shadowBlur = 16; ctx.shadowColor = 'rgba(224,176,255,0.7)';
+        ctx.font = '34px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(d.emoji, ax, ay - 2);
+        ctx.restore();
+        continue;
+      }
       const img = Art.decor[d.type];
       if (img) ctx.drawImage(img, d.x - cam.x - img.width/2, d.feetY - cam.y - img.height);
       if (img && d.type === 'cartel' && d.ad) drawCartelProp(d, img);   // propaganda rotativa: el cartel DECLARA que es superficie publicitaria (componente `ad`), no por regex de sala
