@@ -1,6 +1,7 @@
 # Construcción colaborativa — carteles + datacenter (estilo Death Stranding)
 
-**Estado:** SDD / Draft (diseño, sin implementar). **Origen:** idea del dueño (2026-06-28). Dos features nuevas de
+**Estado:** **C1 (carteles MVP) IMPLEMENTADO (v232 · infra-36, 2026-06-29)** — ver §8. Falta C2 (IA deja carteles) y todo
+el datacenter (D1/D2). **Origen:** idea del dueño (2026-06-28). Dos features nuevas de
 **"construir algo entre todos"** (asincrónico/colaborativo, à la Death Stranding) montadas sobre **pisos vacíos del
 cine**, reusando el `salon-server` (relay del bodegón, ya en el `ai-proxy`) y el patrón de **bancos JSON-en-PVC**.
 
@@ -186,7 +187,16 @@ qué pisos desbloqueaste). Esto es exactamente la separación de las **3 capas d
 ---
 
 ## 8. Fases sugeridas (de barato a grande)
-1. **C1 — Carteles MVP:** 2 pisos + computadora (crear + mis carteles) + banco PVC + render empaquetado + consumo-en-lectura.
+1. **✅ C1 — Carteles MVP (HECHO v232 · infra-36):** 2 pisos del cine ("El Tablón"/"El Tablón 2", entre EN VIVO y el
+   bodegón; tags `carteles`+`carteles-a`/`carteles-b` → floor `carteles-1`/`carteles-2`) + **computadora** (NPC
+   `action:'compu'` → `openCarteles`, overlay `#cartelmenu`: fijar + "mis carteles"). **Backend** (`ai-proxy`): banco
+   `CARTELES` en **PVC** (`/data/carteles.json`) + `GET /carteles?floor=` (sin texto), `POST /carteles` (cupo 24/piso +
+   rate-limit 20s/pid + censura + cap 80), `POST /carteles/read` (consumo-en-lectura → devuelve y borra si no es tuyo),
+   `GET /carteles/mine?pid=`, poda > 7d. **Cliente** `js/carteles.js` (aditivo, offline-safe) + `drawCarteles` (render
+   empaquetado 8×3 con chincheta+nick; `[E]` para leer estando debajo). Anti-abuso v1 = texto corto + rate-limit + lista
+   negra mínima (§4.4 opción 2). **Pendiente de C1:** validación del dueño en prod (2 sesiones para ver el consumo real).
+   <br>(detalle original ↓)
+   - 2 pisos + computadora (crear + mis carteles) + banco PVC + render empaquetado + consumo-en-lectura.
    Texto libre corto + rate-limit (anti-abuso v1). Sin IA todavía.
 2. **C2 — IA deja carteles:** cron/gen acotado (≤30% del cupo) que autora carteles "del salón" (sabor, pistas).
 3. **D1 — Datacenter MVP:** 1 piso + computadora (catálogo de partes data) + estado global PVC + pago coins/caramelos +

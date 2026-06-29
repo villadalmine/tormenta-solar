@@ -629,9 +629,9 @@ const Level = (() => {
     // (cuántos juegan ahora, en qué zona, ticker de hitos). Capa aditiva: sin salon-server, dice "modo offline".
     const cine8 = rooms.push(makeRoom({
       name: 'Cine Lavalle — EN VIVO', tags:['cine','cine-live'], theme: 'arcade', light: 0.5, w: 22,
-      doors: [{ id:'down', art:'doorUp', label:'bajar: OpenRouter', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: el BODEGÓN', x:20, inward:-1 }],
+      doors: [{ id:'down', art:'doorUp', label:'bajar: OpenRouter', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: el Tablón', x:20, inward:-1 }],
       decor: [..._seats, ..._ads],
-      npcs: [{ name:'El Proyeccionista', sprite:'linyera', x:17, dialog:'“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla. Subí al bodegón si querés un fernet.” 📡' }],
+      npcs: [{ name:'El Proyeccionista', sprite:'linyera', x:17, dialog:'“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla. Subí: arriba está el TABLÓN y después el bodegón.” 📡' }],
     })) - 1;
     // 9º piso del cine — EL BODEGÓN porteño (multijugador F2, specs/multijugador.md §3.2). Por ahora SINGLE-PLAYER
     // (modo "degradado": mozos canned + el gag de la rubia y el ropero); el encuentro real-time por SSE (F2b) queda
@@ -639,13 +639,30 @@ const Level = (() => {
     const _bodegon = [{t:'mesaRedonda',x:6},{t:'mesaRedonda',x:9},{t:'mesaRedonda',x:13},{t:'mesaRedonda',x:16},{t:'parrilla',x:11},{t:'barril',x:3},{t:'barril',x:19}];
     const cine9 = rooms.push(makeRoom({
       name: 'Cine Lavalle — El Bodegón', tags:['cine','bodegon'], theme: 'shop', light: 0.78, w: 22,
-      doors: [{ id:'down', art:'doorUp', label:'bajar: EN VIVO', x:2, inward:1 }],
+      doors: [{ id:'down', art:'doorUp', label:'bajar: el Tablón', x:2, inward:1 }],
       decor: [..._bodegon, ..._ads],
       npcs: [
         { name:'La Rubia', sprite:'erotica', x:11, action:'moza', dialog:'“Hola, corazón… ¿te sirvo algo? 😘 Vení que en la puerta de atrás tengo unos tragos de la casa…”' },
         { name:'Mozo', sprite:'gordo', x:7, dialog:'“Sentate donde quieras, pibe. La picada ya sale. Ojo con la rubia, eh.” 🍷' },
         { name:'Parroquiano', sprite:'borracho_vino', x:16, dialog:'“Yo de la rubia no me fío… cada vez que voy atrás, aparece el ropero. 🚪💪”' },
       ],
+    })) - 1;
+    // CARTELES COLABORATIVOS (construccion-colaborativa.md C1): 2 pisos del cine = TABLÓN compartido tipo Death Stranding.
+    // Una COMPUTADORA (NPC action:'compu') te deja fijar un cartel corto; el server (PVC) lo guarda hasta que OTRO lo lee
+    // (consumo-en-lectura). El piso se distingue por el tag 'carteles-a'/'carteles-b' (→ floor 'carteles-1'/'carteles-2').
+    // Van ENTRE el 8º (EN VIVO) y el bodegón (que es sub-modo top-down, no se puede caminar "arriba" de él).
+    const _compuDeco = [{t:'tvplasma',x:6},{t:'tvplasma',x:16}];
+    const carteles1 = rooms.push(makeRoom({
+      name: 'Cine Lavalle — El Tablón', tags:['cine','carteles','carteles-a'], theme: 'arcade', light: 0.5, w: 22,
+      doors: [{ id:'down', art:'doorUp', label:'bajar: EN VIVO', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: Tablón 2', x:20, inward:-1 }],
+      decor: [..._compuDeco, ..._ads],
+      npcs: [{ name:'La computadora del Tablón', sprite:'recepcionista', x:11, action:'compu', dialog:'“Soy el TABLÓN del barrio, pibe. Dejá un cartel para el que venga después; cuando alguien lo lee, se borra. [E] para usarme.” 📋' }],
+    })) - 1;
+    const carteles2 = rooms.push(makeRoom({
+      name: 'Cine Lavalle — El Tablón 2', tags:['cine','carteles','carteles-b'], theme: 'arcade', light: 0.5, w: 22,
+      doors: [{ id:'down', art:'doorUp', label:'bajar: Tablón', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: el BODEGÓN', x:20, inward:-1 }],
+      decor: [..._compuDeco, ..._ads],
+      npcs: [{ name:'La computadora del Tablón', sprite:'recepcionista', x:11, action:'compu', dialog:'“Otro tablón, más lugar para tus carteles. Dejá el tuyo y leé el del vecino. [E] para usarme.” 📋' }],
     })) - 1;
     // LA HABITACIÓN DEL TELO (quest del chip, specs/telo-chip-quest.md): sala REAL a la que caés cuando el robot te chipa.
     // Ahí están los 3 LINYERAS (chateables, IA) que te boludean hasta tirarte la posta; y acá vuelve el final (la cura).
@@ -680,8 +697,10 @@ const Level = (() => {
     wire(cine4, 'up', cine5, 'down');
     wire(cine5, 'up', cine6, 'down');
     wire(cine6, 'up', cine7, 'down');
-    wire(cine7, 'up', cine8, 'down');     // 8º piso: Cine EN VIVO (multijugador F1)
-    wire(cine8, 'up', cine9, 'down');     // 9º piso: el BODEGÓN (multijugador F2)
+    wire(cine7, 'up', cine8, 'down');         // 8º piso: Cine EN VIVO (multijugador F1)
+    wire(cine8, 'up', carteles1, 'down');     // 9º-10º pisos: EL TABLÓN (carteles colaborativos C1) — entre EN VIVO y el bodegón
+    wire(carteles1, 'up', carteles2, 'down');
+    wire(carteles2, 'up', cine9, 'down');     // 11º piso: el BODEGÓN (multijugador F2, sub-modo top-down)
     wire(6, 'down', 7, 'up');
     wire(7, 'down', 8, 'up');
     wire(4, 'secret', 9, 'back');

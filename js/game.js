@@ -130,6 +130,7 @@
   let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let salonLive = null, salonPollT = 0, salonBeatT = 0;   // MULTIJUGADOR F1: mundo vivo (count/byRoom/ticker) + cadencia de latido
+  let cartelBoard = null, cartelPollT = 0, cartelMsg = null, cartelMsgT = 0;   // CARTELES C1: tablón del piso actual (banco server) + el cartel que estás leyendo
   let escortNudgeT = 0;   // el compañero (linyera/Guido) te RECUERDA a dónde ir cada tanto + en cada sala
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
   let guardaFreeUsed = false;  // la 1ª función vieja del run es gratis; después se cobra (más viejo más caro)
@@ -478,7 +479,7 @@
     if (state !== 'playing' || transCd > 0) return;
     if (bodegonOn) { const pe = nearestPeer(); if (pe) { openPeerChat(pe); return; } }   // F2b.2: en el bodegón, E cerca de otro jugador = chat privado
     const it = nearestInteract();
-    if (!it) return;
+    if (!it) { if (hasTag(room(), 'carteles')) tryReadCartel(); return; }   // CARTELES C1: si no hay nada cerca y estás bajo un cartel → leerlo
     if (it.kind === 'door') {
       if (stormed && it.d.collapsesOnStorm) { setMsg(TL('g.ruina'), '#b0a0a0', 4500); return; }
       const h = DOOR_HANDLERS[it.d.id];   // puerta con handler propio (lanza sub-modo / bloquea); si no, transición normal
@@ -538,6 +539,7 @@
     chat:    n => openChat(n),
     guarda:  n => guardaCine(n),
     fifa:    () => playFifa(),
+    compu:   () => openCarteles(),   // CARTELES C1: la computadora del tablón → overlay para fijar/ver carteles
     moza:    n => handleMoza(n),
   };
   function handleNpc(n) {
@@ -1599,6 +1601,7 @@
     updateCam();
     const r = room();
     elFloor.textContent = TX(r.name);
+    cartelBoard = null; cartelPollT = 0; cartelMsg = null;   // CARTELES C1: el tablón se recarga por piso (no arrastrar el anterior)
     syncBodegon(r);   // MULTIJUGADOR F2b: entrar/salir del bodegón conecta/desconecta el real-time (SSE)
     if (hasTag(r, 'bodegon') && enterBodegon()) return;   // T2: el bodegón se ve TOP-DOWN (sub-modo); si no hay sub-modo, sigue side-scroller
     if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
@@ -1819,6 +1822,160 @@
     }
     ctx.restore();
   }
+  // ===== CARTELES COLABORATIVOS C1 (specs/construccion-colaborativa.md) — el TABLÓN compartido. La computadora (NPC
+  // action:'compu') abre un overlay para FIJAR un cartel; el render dibuja los carteles del piso como rects empaquetados
+  // con el nick; al pasar por abajo, [E] lo LEE (y si no es tuyo, lo CONSUME → desaparece). Capa aditiva: sin red, "offline".
+  const CARTEL_COLS = 8, CARTEL_ROWS = 3;   // grilla de empaquetado (cap 24 = COLS×ROWS); el server asigna el slot
+  function cartelFloorOf(r) { return hasTag(r, 'carteles-a') ? 'carteles-1' : hasTag(r, 'carteles-b') ? 'carteles-2' : null; }
+  // celda (en coords de MUNDO) de un slot: la pared del fondo, arriba del piso. Devuelve {x0,x1,y0,y1,cx,cy}.
+  function cartelCell(r, slot) {
+    const left = 2.4 * TILE, right = (r.w - 2.4) * TILE, span = right - left;
+    const cw = span / CARTEL_COLS, ch = 30, gap = 6;
+    const col = slot % CARTEL_COLS, row = (slot / CARTEL_COLS | 0) % CARTEL_ROWS;
+    const top = r.gTop * TILE - 188;
+    const x0 = left + col * cw + 3, x1 = left + (col + 1) * cw - 3, y0 = top + row * (ch + gap), y1 = y0 + ch;
+    return { x0, x1, y0, y1, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+  }
+  function cartelPoll(r) {
+    if (typeof Carteles === 'undefined' || !Carteles.enabled) return;
+    const now = performance.now(); if (now < cartelPollT) return; cartelPollT = now + 5000;
+    const floor = cartelFloorOf(r); if (!floor) return;
+    Carteles.list(floor, d => { if (d && Array.isArray(d.signs)) cartelBoard = { floor, ...d }; });
+  }
+  function drawCarteles(r) {
+    const floor = cartelFloorOf(r); if (!floor) return;
+    const offline = (typeof Carteles === 'undefined' || !Carteles.enabled);
+    const near = offline ? null : cartelSignNear(r);
+    // marco/título del tablón
+    const tx = (r.w * TILE) / 2 - cam.x, ty = r.gTop * TILE - 210 - cam.y;
+    ctx.fillStyle = '#caa46a'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('📋 ' + T('g.cartel.boardTitle'), tx, ty);
+    if (offline || !cartelBoard || cartelBoard.floor !== floor) {
+      ctx.fillStyle = '#5a6a7a'; ctx.font = '11px monospace';
+      ctx.fillText(T(offline ? 'g.cartel.offline' : 'g.cartel.loading'), tx, ty + 18);
+      return;
+    }
+    for (const s of cartelBoard.signs || []) {
+      const c = cartelCell(r, s.slot), sx0 = c.x0 - cam.x, sy0 = c.y0 - cam.y, w = c.x1 - c.x0, h = c.y1 - c.y0;
+      const isNear = near && near.id === s.id;
+      ctx.fillStyle = s.ai ? '#1d2336' : '#2a2118';
+      ctx.fillRect(sx0, sy0, w, h);
+      ctx.strokeStyle = isNear ? '#ffd54f' : (s.ai ? '#5566aa' : '#7a5a32'); ctx.lineWidth = isNear ? 2.5 : 1.5;
+      ctx.strokeRect(sx0, sy0, w, h);
+      // chincheta + nick (el TEXTO no se ve hasta leer)
+      ctx.fillStyle = '#d33'; ctx.beginPath(); ctx.arc(sx0 + w / 2, sy0 + 4, 2.4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = isNear ? '#fff' : '#cdbb99'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+      ctx.fillText((s.ai ? '🤖 ' : '') + (s.nick || '—').slice(0, 12), sx0 + w / 2, sy0 + 18);
+    }
+    if (near) {   // estás abajo de un cartel: prompt para leer
+      const c = cartelCell(r, near.slot);
+      ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(T(near.author === Carteles.pid ? 'g.cartel.readMine' : 'g.cartel.readPrompt'), c.cx - cam.x, c.y1 - cam.y + 13);
+    }
+    // contador del piso
+    ctx.fillStyle = '#8a96a4'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(T('g.cartel.count', { used: cartelBoard.used | 0, cap: cartelBoard.cap | 0 }), tx, r.gTop * TILE - 196 - cam.y);
+    // cartel recién LEÍDO (overlay grande, unos segundos)
+    if (cartelMsg && performance.now() < cartelMsgT) drawCartelRead();
+  }
+  // el cartel más cercano al jugador dentro del alcance de lectura (para resaltar + [E])
+  function cartelSignNear(r) {
+    if (!cartelBoard || !cartelBoard.signs) return null;
+    const pcx = player.x + player.w / 2, pcy = player.y;
+    let best = null, bd = 1e9;
+    for (const s of cartelBoard.signs) {
+      const c = cartelCell(r, s.slot);
+      if (pcx < c.x0 - 14 || pcx > c.x1 + 14) continue;   // tenés que estar DEBAJO de la columna del cartel
+      const d = Math.abs(pcy - c.cy);
+      if (d < bd && d < 150) { bd = d; best = s; }
+    }
+    return best;
+  }
+  function tryReadCartel() {
+    if (typeof Carteles === 'undefined' || !Carteles.enabled) return false;
+    const r = room(); if (!cartelFloorOf(r)) return false;
+    const s = cartelSignNear(r); if (!s) return false;
+    Carteles.read(s.id, d => {
+      if (!d) { cartelBoard = null; cartelPollT = 0; return; }   // ya no estaba → re-poll
+      cartelMsg = { nick: d.nick, text: d.text, ai: d.ai, mine: d.mine }; cartelMsgT = performance.now() + 7000;
+      Sfx.pickup && Sfx.pickup();
+      if (d.consumed && cartelBoard) cartelBoard.signs = (cartelBoard.signs || []).filter(x => x.id !== s.id);   // se borró → sacalo del tablón local ya
+      cartelPollT = 0;
+    });
+    return true;
+  }
+  function drawCartelRead() {
+    const m = cartelMsg; if (!m) return;
+    const W2 = 380, H2 = 130, x = (W - W2) / 2, y = (H - H2) / 2 - 20;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.86)'; ctx.fillRect(x - 8, y - 8, W2 + 16, H2 + 16);
+    ctx.fillStyle = m.ai ? '#1d2336' : '#2a2118'; ctx.fillRect(x, y, W2, H2);
+    ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 2; ctx.strokeRect(x, y, W2, H2);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('📋 ' + (m.ai ? '🤖 ' : '') + (m.nick || '—') + (m.mine ? ' ' + T('g.cartel.yours') : ''), x + W2 / 2, y + 22);
+    ctx.fillStyle = '#f0e8d8'; ctx.font = '14px monospace';
+    const words = String(m.text || '').split(' '), lines = []; let cur = '';
+    for (const w of words) { const cand = cur ? cur + ' ' + w : w; if ((ctx.measureText(cand).width || 0) > W2 - 36 && cur) { lines.push(cur); cur = w; } else cur = cand; }
+    if (cur) lines.push(cur);
+    lines.slice(0, 4).forEach((ln, i) => ctx.fillText(ln, x + W2 / 2, y + 50 + i * 20));
+    ctx.fillStyle = m.mine ? '#9fd3ff' : '#9be8a0'; ctx.font = '10px monospace';
+    ctx.fillText(T(m.mine ? 'g.cartel.readMineNote' : 'g.cartel.consumedNote'), x + W2 / 2, y + H2 - 12);
+    ctx.restore();
+  }
+  // overlay de la COMPUTADORA: fijar un cartel + ver los míos
+  function openCarteles() {
+    const ov = document.getElementById('cartelmenu'); if (!ov) return;
+    state = 'compu'; elPrompt.classList.add('hidden');
+    refreshCartelMenu();
+    ov.classList.remove('hidden');
+    setTimeout(() => { const inp = document.getElementById('cartelText'); if (inp) inp.focus(); }, 30);
+  }
+  function closeCarteles() { const ov = document.getElementById('cartelmenu'); if (ov) ov.classList.add('hidden'); if (state === 'compu') state = 'playing'; }
+  function refreshCartelMenu(note) {
+    const body = document.getElementById('cartelBody'); if (!body) return;
+    const floor = cartelFloorOf(room()) || 'carteles-1';
+    const offline = (typeof Carteles === 'undefined' || !Carteles.enabled);
+    const max = (typeof Carteles !== 'undefined' && Carteles.maxLen) || 80;
+    let html = '<div class="end-stats-title">' + T('g.cartel.menuTitle') + '</div>';
+    html += '<div style="text-align:center;margin:.2em 0 .7em;opacity:.85;font-size:.9em">' + T('g.cartel.menuSub') + '</div>';
+    if (offline) {
+      html += '<div style="text-align:center;color:#ff9e9e;padding:.6em">' + T('g.cartel.offline') + '</div>';
+    } else {
+      html += '<textarea id="cartelText" maxlength="' + max + '" rows="2" placeholder="' + T('g.cartel.placeholder') + '" style="width:100%;box-sizing:border-box;font:inherit;padding:.5em;background:#10202e;color:#cde8ff;border:1.5px solid #4FC3F7;resize:none"></textarea>';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin:.4em 0 .7em"><small id="cartelCount" style="opacity:.7">0/' + max + '</small><button id="cartelPin" style="font:inherit;padding:.45em 1.1em;cursor:pointer;background:#163a16;color:#9be8a0;border:1.5px solid #3cdc5a">📌 ' + T('g.cartel.pin') + '</button></div>';
+    }
+    if (note) html += '<div style="text-align:center;margin:.2em 0 .6em;color:' + (note.ok ? '#9be8a0' : '#ff9e9e') + '">' + note.text + '</div>';
+    html += '<div id="cartelMine" style="margin-top:.5em"><div style="opacity:.7;font-size:.85em">' + T('g.cartel.mineLoading') + '</div></div>';
+    body.innerHTML = html;
+    const ta = document.getElementById('cartelText'), cnt = document.getElementById('cartelCount'), pin = document.getElementById('cartelPin');
+    if (ta && cnt) ta.addEventListener('input', () => { cnt.textContent = ta.value.length + '/' + max; });
+    if (pin) pin.addEventListener('click', () => submitCartel(floor));
+    if (!offline) Carteles.mine(d => {
+      const el = document.getElementById('cartelMine'); if (!el) return;
+      const signs = (d && d.signs) || [];
+      let h = '<div style="opacity:.8;font-size:.85em;margin-bottom:.3em">' + T('g.cartel.mineTitle', { n: signs.length }) + '</div>';
+      if (!signs.length) h += '<div style="opacity:.5;font-size:.85em">' + T('g.cartel.mineEmpty') + '</div>';
+      for (const s of signs) h += '<div style="font-size:.85em;padding:.25em .4em;border-left:2px solid #7a5a32;margin-bottom:.25em;opacity:.9">“' + escapeHtml(s.text) + '” <small style="opacity:.6">· ' + (s.floor === floor ? T('g.cartel.here') : s.floor) + '</small></div>';
+      el.innerHTML = h;
+    });
+  }
+  function submitCartel(floor) {
+    const ta = document.getElementById('cartelText'); if (!ta) return;
+    const text = (ta.value || '').trim();
+    if (!text) { refreshCartelMenu({ ok: false, text: T('g.cartel.empty') }); return; }
+    const pin = document.getElementById('cartelPin'); if (pin) pin.disabled = true;
+    Carteles.post(floor, playerNick(), text, res => {
+      if (res && res.ok) {
+        refreshCartelMenu({ ok: true, text: T('g.cartel.pinned') }); cartelPollT = 0;
+        if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('cartel_pin');
+      } else {
+        const err = (res && res.error) || 'net';
+        refreshCartelMenu({ ok: false, text: T('g.cartel.err.' + (['full', 'rate', 'empty'].includes(err) ? err : 'net')) });
+      }
+    });
+  }
+  function escapeHtml(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
   // [R] (o botón táctil): leé TODAS las noticias en voz alta. Mensajero.hablar usa la voz del navegador y, si no
   // hay (Chromium/Linux), cae al TTS del servidor (espeak-ng vía WebAudio) — con acento según el idioma del juego.
   function cineRead() {
@@ -2203,7 +2360,8 @@
     if (hasTag(r, 'cine-live')) {       // MULTIJUGADOR F1: pantalla del MUNDO VIVO (refresca cada ~4s)
       if (typeof Salon !== 'undefined' && Salon.enabled && performance.now() > salonPollT) { salonPollT = performance.now() + 4000; Salon.live(d => { salonLive = d; }); }
       drawSalonScreen(r);
-    } else if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
+    } else if (hasTag(r, 'carteles')) { cartelPoll(r); drawCarteles(r); }   // CARTELES C1: el TABLÓN compartido (poll ~5s)
+    else if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
     if (hasTag(r, 'bodegon') && bodegonOn) drawBodegonPeers(r);   // MULTIJUGADOR F2b: los OTROS jugadores en el bodegón
 
     // pozos (hazard kind 'pit') — el piso ya está calado (se ve el fondo); oscurecemos el hueco + postes rojos al borde
@@ -2666,6 +2824,8 @@
     if (e.key === 'Escape' && vm && !vm.classList.contains('hidden')) { e.preventDefault(); closeVecino(); return; }
     const im = document.getElementById('invmenu');
     if (e.key === 'Escape' && im && !im.classList.contains('hidden')) { e.preventDefault(); closeInv(); return; }
+    const ctm = document.getElementById('cartelmenu');
+    if (e.key === 'Escape' && ctm && !ctm.classList.contains('hidden')) { e.preventDefault(); closeCarteles(); return; }
     if (e.key === 'Escape' && spinoffLevel && state === 'playing') { e.preventDefault(); endSpinoffLevel('flee'); return; }   // salir del nivel-AI
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
@@ -2694,6 +2854,7 @@
   { const b = document.getElementById('cueveroClose'); if (b) b.addEventListener('click', closeCuevero); }
   { const b = document.getElementById('vecinoClose'); if (b) b.addEventListener('click', closeVecino); }
   { const b = document.getElementById('invClose'); if (b) b.addEventListener('click', closeInv); }
+  { const b = document.getElementById('cartelClose'); if (b) b.addEventListener('click', closeCarteles); }
   if (typeof Salon !== 'undefined' && Salon.onWhisper) Salon.onWhisper(onPeerWhisper);   // F2b.2: recibir chats privados del bodegón
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);

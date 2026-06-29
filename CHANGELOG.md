@@ -56,6 +56,26 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v232 · infra-36] — 2026-06-29 — 📋 Construcción colaborativa C1: EL TABLÓN (carteles à la Death Stranding)
+
+Primer paso del SDD `construccion-colaborativa.md`: un **tablón comunitario** asincrónico. **2 pisos nuevos del cine**
+("El Tablón" y "El Tablón 2", entre EN VIVO y el bodegón → **50 salas**), cada uno con una **computadora** (NPC
+`action:'compu'`) que abre un overlay para **fijar un cartel corto** (≤80 chars). El cartel **vive en el server hasta que
+OTRO jugador lo LEE** (consumo-en-lectura, à la Death Stranding): te parás debajo, **[E]** lo lee → te muestra el texto
+grande y **lo borra del tablón** (si no es tuyo). Los carteles se dibujan **empaquetados** en la pared (grilla 8×3 = cupo
+24/piso) con la **chincheta + el nick** del autor; el texto NO se ve hasta leer.
+
+- **Backend (`ai-proxy`, infra-36):** banco MUTABLE por el jugador, persistido en **PVC** (un cartel espera horas a su
+  lector). Endpoints `GET /carteles?floor=` (sin texto), `POST /carteles` (cupo + **rate-limit** 20s/pid + censura básica
+  + cap 80), `POST /carteles/read` (consumo → devuelve y borra), `GET /carteles/mine?pid=`. Poda > 7 días.
+- **Cliente:** `js/carteles.js` (capa aditiva: sin red → "modo offline", el juego anda igual) + render `drawCarteles` +
+  overlay `#cartelmenu` (fijar + "mis carteles") en `game.js`. Reusa el mismo proxy/pid que `salon.js`.
+- **Anti-abuso v1 (decisión del SDD §4.4):** texto libre corto + rate-limit + lista negra mínima (censura, no rechaza); el
+  consumo-en-lectura limita la exposición a 1 lector. Sin IA todavía (eso es C2).
+- Paridad v1≡v2 (50 salas) + i18n 605/605 + e2e/web-smoke OK. Cache **v232**.
+
+---
+
 ## [v231] — 2026-06-29 — 🤖🎮 Quest del chip: lote de playtest del dueño (FIFA prereq · loop 3×+rescate · 2 bugs · escena de cura)
 
 Cerrado el lote de 5 ítems que el dueño dejó tras jugar el corte de escena v230 (estaban anotados en

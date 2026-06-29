@@ -73,6 +73,28 @@ function loadHistorias() { try { const d = JSON.parse(fs.readFileSync(HISTORIAS_
 function saveHistorias() { try { fs.mkdirSync(HISTORIAS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(HISTORIAS_STORE, JSON.stringify({ historias: HISTORIAS, ts: HISTORIAS_TS })); } catch (e) { console.error('historias store save:', e.message); } }
 loadHistorias();
 
+// CARTELES COLABORATIVOS (specs/construccion-colaborativa.md C1) — tablón compartido tipo Death Stranding: dejás un
+// cartel corto en un piso del cine; DURA hasta que OTRO jugador lo lee (consumo-en-lectura) → se borra y libera el slot.
+// Banco MUTABLE por el jugador (a diferencia de los otros, que son crones IA), PERSISTE en PVC (un cartel espera horas a
+// su lector). 2 pisos: floor 'carteles-1' / 'carteles-2', cada uno con `CARTELES_CAP` celdas (grilla empaquetada).
+let CARTELES = [];   // [{ id, floor, slot, author(pid|'ai'), nick, text, ts }]
+const CARTELES_STORE = process.env.CARTELES_STORE || '/data/carteles.json';
+const CARTELES_CAP = +(process.env.CARTELES_CAP || 24);    // celdas por piso (empaquetado)
+const CARTELES_FLOORS = ['carteles-1', 'carteles-2'];
+const CARTELES_MAXLEN = 80;                                 // chars por cartel (corto a propósito)
+const CARTELES_PRUNE_MS = 7 * 24 * 3600 * 1000;            // poda carteles > 7 días (que no tranquen slots)
+const CARTELES_RATE_MS = 20000;                            // 1 cartel cada 20s por pid (anti-spam)
+const cartelLast = new Map();                              // pid -> ts del último POST
+// lista negra mínima (anti-abuso v1; el consumo-en-lectura ya limita la exposición a 1 lector). Censura, no rechaza.
+const CARTEL_BAN = /\b(put[oa]s?|forr[oa]s?|trolo|negro de mierda|n[ai]zi|hitler|kill yourself|kys)\b/gi;
+let CARTEL_SEQ = 0;
+function loadCarteles() { try { const d = JSON.parse(fs.readFileSync(CARTELES_STORE, 'utf8')); if (d && Array.isArray(d.signs)) CARTELES = d.signs; } catch (e) {} }
+function saveCarteles() { try { fs.mkdirSync(CARTELES_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(CARTELES_STORE, JSON.stringify({ signs: CARTELES })); } catch (e) { console.error('carteles store save:', e.message); } }
+function cartelesPrune() { const now = Date.now(), before = CARTELES.length; CARTELES = CARTELES.filter(s => now - (s.ts || 0) < CARTELES_PRUNE_MS); if (CARTELES.length !== before) saveCarteles(); }
+function cartelClean(t) { return String(t || '').replace(/[\x00-\x1f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, CARTELES_MAXLEN).replace(CARTEL_BAN, m => '*'.repeat(m.length)); }
+function cartelFreeSlot(floor) { const used = new Set(CARTELES.filter(s => s.floor === floor).map(s => s.slot)); for (let i = 0; i < CARTELES_CAP; i++) if (!used.has(i)) return i; return -1; }
+loadCarteles(); cartelesPrune(); setInterval(cartelesPrune, 3600 * 1000).unref?.();
+
 // SALÓN — multijugador F1 (specs/multijugador.md): presencia EN VIVO para el piso "Cine EN VIVO". Relay liviano,
 // in-memory (se pierde al reiniciar = ok, es social). POST /salon/beat {pid,sala,ev?} · GET /salon/live →
 // {count, byRoom, ticker}. (El bodegón real-time F2 irá a un salon-server SSE dedicado; esto es el prototipo F1.)
@@ -543,6 +565,55 @@ http.createServer((req, res) => {
     let pb = ''; req.on('data', c => { pb += c; if (pb.length > 400) req.destroy(); });
     req.on('end', () => { try { const d = JSON.parse(pb || '{}'); bodegonLeave(String(d.room || '').slice(0, 24), String(d.pid || '').slice(0, 48)); } catch (e) {}
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); });
+    return;
+  }
+  // ===== CARTELES COLABORATIVOS (construccion-colaborativa.md C1) — tablón compartido por piso, cupo + consumo-en-lectura.
+  if (req.method === 'GET' && req.url.startsWith('/carteles/mine')) {                // los MÍOS activos (para la computadora)
+    const u = new URL(req.url, 'http://x'); const pid = String(u.searchParams.get('pid') || '').slice(0, 48);
+    cartelesPrune();
+    const mine = CARTELES.filter(s => s.author === pid).map(s => ({ id: s.id, floor: s.floor, slot: s.slot, text: s.text, ts: s.ts }));
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ signs: mine }));
+  }
+  if (req.method === 'GET' && req.url.startsWith('/carteles')) {                     // tablón de un piso (SIN el texto: se revela al LEER)
+    const u = new URL(req.url, 'http://x'); const floor = String(u.searchParams.get('floor') || '').slice(0, 24);
+    cartelesPrune();
+    const signs = CARTELES.filter(s => s.floor === floor).map(s => ({ id: s.id, slot: s.slot, nick: s.nick, ai: !!s.ai, ts: s.ts }));   // SIN text (consumo-en-lectura)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ cap: CARTELES_CAP, used: signs.length, signs }));
+  }
+  if (req.method === 'POST' && req.url === '/carteles/read') {                       // CONSUMO: lo lee OTRO → devuelve el texto y lo BORRA
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 400) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const id = String(d.id || '').slice(0, 40);
+      const i = CARTELES.findIndex(s => s.id === id);
+      if (i < 0) { res.writeHead(404); return res.end(JSON.stringify({ gone: true })); }
+      const s = CARTELES[i];
+      const consume = s.author !== pid;   // si lo lee OTRO (no el autor) → se consume y desaparece
+      if (consume) { CARTELES.splice(i, 1); saveCarteles(); }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ id: s.id, nick: s.nick, text: s.text, ai: !!s.ai, consumed: consume, mine: !consume }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.method === 'POST' && req.url === '/carteles') {                            // CREAR un cartel (cupo + rate-limit)
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 600) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48);
+      const floor = String(d.floor || '').slice(0, 24); const nick = String(d.nick || '').slice(0, 16).replace(/[<>]/g, '') || 'Anónimo';
+      const text = cartelClean(d.text);
+      if (!pid || !CARTELES_FLOORS.includes(floor)) { res.writeHead(400); return res.end(JSON.stringify({ error: 'bad' })); }
+      if (!text) { res.writeHead(400); return res.end(JSON.stringify({ error: 'empty' })); }
+      const now = Date.now();
+      if (now - (cartelLast.get(pid) || 0) < CARTELES_RATE_MS) { res.writeHead(429); return res.end(JSON.stringify({ error: 'rate' })); }
+      cartelesPrune();
+      const slot = cartelFreeSlot(floor);
+      if (slot < 0) { res.writeHead(409); return res.end(JSON.stringify({ error: 'full' })); }
+      const sign = { id: (now.toString(36) + (++CARTEL_SEQ).toString(36)), floor, slot, author: pid, nick, text, ts: now };
+      CARTELES.push(sign); saveCarteles(); cartelLast.set(pid, now);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true, id: sign.id, slot }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
   }
   if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)

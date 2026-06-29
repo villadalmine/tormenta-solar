@@ -8802,10 +8802,10 @@
             "type": "doorUp"
           },
           "x": 20,
-          "label": "subir: el BODEGÓN",
+          "label": "subir: el Tablón",
           "inward": -1,
           "link": {
-            "to": "cine-lavalle-el-bodegon",
+            "to": "cine-lavalle-el-tablon",
             "at": {
               "x": 3.5,
               "y": 12
@@ -8821,7 +8821,7 @@
           "x": 17,
           "name": "El Proyeccionista",
           "dialogue": {
-            "text": "“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla. Subí al bodegón si querés un fernet.” 📡"
+            "text": "“Esta sala te muestra a TODOS los que están jugando AHORA, pibe. Mirá la pantalla. Subí: arriba está el TABLÓN y después el bodegón.” 📡"
           }
         },
         {
@@ -8918,10 +8918,10 @@
             "type": "doorUp"
           },
           "x": 2,
-          "label": "bajar: EN VIVO",
+          "label": "bajar: el Tablón",
           "inward": 1,
           "link": {
-            "to": "cine-lavalle-en-vivo",
+            "to": "cine-lavalle-el-tablon-2",
             "at": {
               "x": 18.5,
               "y": 12
@@ -9034,6 +9034,200 @@
         },
         {
           "id": "cine-lavalle-el-bodegon/decor11",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 20,
+          "ad": {}
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-el-tablon",
+      "nombre": "Cine Lavalle — El Tablón",
+      "theme": "arcade",
+      "w": 22,
+      "tags": [
+        "cine",
+        "carteles",
+        "carteles-a"
+      ],
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-el-tablon/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: EN VIVO",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-en-vivo",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-el-tablon/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: Tablón 2",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-el-tablon-2",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-el-tablon/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "recepcionista"
+          },
+          "x": 11,
+          "name": "La computadora del Tablón",
+          "interact": {
+            "action": "compu"
+          },
+          "dialogue": {
+            "text": "“Soy el TABLÓN del barrio, pibe. Dejá un cartel para el que venga después; cuando alguien lo lee, se borra. [E] para usarme.” 📋"
+          }
+        },
+        {
+          "id": "cine-lavalle-el-tablon/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "tvplasma"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-el-tablon/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "tvplasma"
+          },
+          "x": 16
+        },
+        {
+          "id": "cine-lavalle-el-tablon/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 2,
+          "ad": {}
+        },
+        {
+          "id": "cine-lavalle-el-tablon/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 20,
+          "ad": {}
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-el-tablon-2",
+      "nombre": "Cine Lavalle — El Tablón 2",
+      "theme": "arcade",
+      "w": 22,
+      "tags": [
+        "cine",
+        "carteles",
+        "carteles-b"
+      ],
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-el-tablon-2/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: Tablón",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-el-tablon",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-el-tablon-2/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: el BODEGÓN",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-el-bodegon",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-el-tablon-2/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "recepcionista"
+          },
+          "x": 11,
+          "name": "La computadora del Tablón",
+          "interact": {
+            "action": "compu"
+          },
+          "dialogue": {
+            "text": "“Otro tablón, más lugar para tus carteles. Dejá el tuyo y leé el del vecino. [E] para usarme.” 📋"
+          }
+        },
+        {
+          "id": "cine-lavalle-el-tablon-2/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "tvplasma"
+          },
+          "x": 6
+        },
+        {
+          "id": "cine-lavalle-el-tablon-2/decor2",
+          "tipo": "decor",
+          "render": {
+            "type": "tvplasma"
+          },
+          "x": 16
+        },
+        {
+          "id": "cine-lavalle-el-tablon-2/decor3",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 2,
+          "ad": {}
+        },
+        {
+          "id": "cine-lavalle-el-tablon-2/decor4",
           "tipo": "decor",
           "render": {
             "type": "cartel"
