@@ -100,21 +100,27 @@ loadCarteles(); cartelesPrune(); setInterval(cartelesPrune, 3600 * 1000).unref?.
 // llega a 100% (suma ponderada vs objetivo) se DESTRUYE la IA del satélite (endgame, D2). Persiste en PVC, PERMANENTE.
 // Catálogo de partes = DATA: {max} = cupo por parte, {w} = peso en el progreso (gpu pesa más). El cliente tiene los precios.
 const DC_PARTS = { cpu: { max: 60, w: 1 }, gpu: { max: 40, w: 3 }, disco: { max: 50, w: 1 }, red: { max: 30, w: 1 }, enfriamiento: { max: 20, w: 2 }, energia: { max: 20, w: 2 } };
-const DC_TOTAL = Object.values(DC_PARTS).reduce((a, p) => a + p.max * p.w, 0);   // objetivo (suma ponderada de todos los cupos)
 const DC_STORE = process.env.DATACENTER_STORE || '/data/datacenter.json';
 const DC_RATE_MS = 8000;                          // 1 aporte cada 8s por pid (que sea COLABORATIVO, no lo termina uno solo)
+const DC_SEASON_MULT = 0.25;                      // cada temporada (D2) sube los cupos un 25% → "se reinicia a una v2 más cara"
 const dcLast = new Map();                         // pid -> ts del último aporte
-let DATACENTER = { parts: {}, contributors: {}, ts: 0 };
+let DATACENTER = { season: 1, parts: {}, contributors: {}, done: false, doneAt: 0, ts: 0 };
 for (const k in DC_PARTS) DATACENTER.parts[k] = 0;
-function loadDatacenter() { try { const d = JSON.parse(fs.readFileSync(DC_STORE, 'utf8')); if (d && d.parts) { for (const k in DC_PARTS) DATACENTER.parts[k] = +d.parts[k] || 0; DATACENTER.contributors = d.contributors || {}; DATACENTER.ts = d.ts || 0; } } catch (e) {} }
+function dcEffMax(k) { return Math.round(DC_PARTS[k].max * (1 + DC_SEASON_MULT * ((DATACENTER.season || 1) - 1))); }   // cupo de la TEMPORADA actual
+function dcTotal() { let s = 0; for (const k in DC_PARTS) s += dcEffMax(k) * DC_PARTS[k].w; return s; }
+function loadDatacenter() { try { const d = JSON.parse(fs.readFileSync(DC_STORE, 'utf8')); if (d && d.parts) { DATACENTER.season = d.season || 1; for (const k in DC_PARTS) DATACENTER.parts[k] = +d.parts[k] || 0; DATACENTER.contributors = d.contributors || {}; DATACENTER.done = !!d.done; DATACENTER.doneAt = d.doneAt || 0; DATACENTER.ts = d.ts || 0; } } catch (e) {} }
 function saveDatacenter() { try { fs.mkdirSync(DC_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(DC_STORE, JSON.stringify(DATACENTER)); } catch (e) { console.error('datacenter store save:', e.message); } }
-function dcProgress() { let s = 0; for (const k in DC_PARTS) s += Math.min(DATACENTER.parts[k] || 0, DC_PARTS[k].max) * DC_PARTS[k].w; return s / DC_TOTAL; }
+function dcProgress() { let s = 0; for (const k in DC_PARTS) s += Math.min(DATACENTER.parts[k] || 0, dcEffMax(k)) * DC_PARTS[k].w; return s / dcTotal(); }
 function dcState() {
   const top = Object.entries(DATACENTER.contributors).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([pid, n]) => ({ pid: pid.slice(-4), n }));
-  const caps = {}; for (const k in DC_PARTS) caps[k] = DC_PARTS[k].max;
-  return { parts: DATACENTER.parts, caps, progress: dcProgress(), done: dcProgress() >= 1, contributors: Object.keys(DATACENTER.contributors).length, top, updated: DATACENTER.ts };
+  const caps = {}; for (const k in DC_PARTS) caps[k] = dcEffMax(k);
+  return { season: DATACENTER.season || 1, parts: DATACENTER.parts, caps, progress: dcProgress(), done: !!DATACENTER.done, doneAt: DATACENTER.doneAt || 0, contributors: Object.keys(DATACENTER.contributors).length, top, updated: DATACENTER.ts };
 }
+// arranca una TEMPORADA NUEVA (D2): sube de season (cupos +25%), resetea partes/contribuyentes, done→false. Lo dispara el dueño/cron.
+function dcNewSeason() { DATACENTER.season = (DATACENTER.season || 1) + 1; for (const k in DC_PARTS) DATACENTER.parts[k] = 0; DATACENTER.contributors = {}; DATACENTER.done = false; DATACENTER.doneAt = 0; DATACENTER.ts = Date.now(); saveDatacenter(); }
 loadDatacenter();
+// CARTELES de la IA (C2): cuántos puede dejar la IA por piso = 30% del cupo (siempre queda lugar para jugadores).
+const CARTELES_AI_MAX = Math.max(1, Math.floor(CARTELES_CAP * 0.30));
 
 // SALÓN — multijugador F1 (specs/multijugador.md): presencia EN VIVO para el piso "Cine EN VIVO". Relay liviano,
 // in-memory (se pierde al reiniciar = ok, es social). POST /salon/beat {pid,sala,ev?} · GET /salon/live →
@@ -637,6 +643,29 @@ http.createServer((req, res) => {
     } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
   }
+  // C2 — la IA del salón deja carteles (cron gen-carteles.mjs). Protegido por GEN_TOKEN. Cupo IA = 30% de cada piso (así
+  // SIEMPRE queda lugar para jugadores). Acepta un BATCH {signs:[{floor,nick,text}]}; va llenando slots libres hasta el cupo.
+  if (req.method === 'POST' && req.url === '/carteles/ai') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 20000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const signs = Array.isArray(d.signs) ? d.signs : [];
+      cartelesPrune(); let added = 0; const now = Date.now();
+      for (const s of signs) {
+        const floor = String(s.floor || '').slice(0, 24); if (!CARTELES_FLOORS.includes(floor)) continue;
+        const aiOnFloor = CARTELES.filter(x => x.floor === floor && x.ai).length;
+        if (aiOnFloor >= CARTELES_AI_MAX) continue;                        // cupo IA del piso lleno → no pisar a los jugadores
+        const text = cartelClean(s.text); if (!text) continue;
+        const slot = cartelFreeSlot(floor); if (slot < 0) continue;        // piso lleno
+        const nick = String(s.nick || 'El Salón').slice(0, 16).replace(/[<>]/g, '') || 'El Salón';
+        CARTELES.push({ id: (now.toString(36) + (++CARTEL_SEQ).toString(36)), floor, slot, author: 'ai', ai: true, nick, text, ts: now });
+        added++;
+      }
+      if (added) saveCarteles();
+      res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: true, added, aiCap: CARTELES_AI_MAX }));
+    } catch (e) { res.writeHead(400); res.end('bad json'); } });
+    return;
+  }
   // ===== DATACENTER COLABORATIVO GLOBAL (construccion-colaborativa.md D1) — estado compartido por toda la comunidad.
   if (req.method === 'GET' && req.url === '/datacenter') {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
@@ -647,16 +676,25 @@ http.createServer((req, res) => {
     req.on('end', () => { try {
       const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const part = String(d.part || '');
       if (!pid || !DC_PARTS[part]) { res.writeHead(400); return res.end(JSON.stringify({ error: 'bad' })); }
+      if (DATACENTER.done) { res.writeHead(423); return res.end(JSON.stringify({ error: 'complete', ...dcState() })); }   // D2: temporada cerrada (esperá la nueva)
       const now = Date.now();
       if (now - (dcLast.get(pid) || 0) < DC_RATE_MS) { res.writeHead(429); return res.end(JSON.stringify({ error: 'rate' })); }
-      if ((DATACENTER.parts[part] || 0) >= DC_PARTS[part].max) { res.writeHead(409); return res.end(JSON.stringify({ error: 'partfull', ...dcState() })); }
+      if ((DATACENTER.parts[part] || 0) >= dcEffMax(part)) { res.writeHead(409); return res.end(JSON.stringify({ error: 'partfull', ...dcState() })); }
       DATACENTER.parts[part] = (DATACENTER.parts[part] || 0) + 1;
       DATACENTER.contributors[pid] = (DATACENTER.contributors[pid] || 0) + 1;
-      DATACENTER.ts = now; dcLast.set(pid, now); saveDatacenter();
+      DATACENTER.ts = now; dcLast.set(pid, now);
+      if (!DATACENTER.done && dcProgress() >= 1) { DATACENTER.done = true; DATACENTER.doneAt = now; }   // D2: ¡COMPLETO! → endgame (la comunidad voltea a la IA)
+      saveDatacenter();
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: true, ...dcState() }));
     } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
+  }
+  // D2 — arrancar una TEMPORADA NUEVA (cupos +25%, reset). Protegido por GEN_TOKEN (lo dispara el dueño/cron cuando todos vieron el final).
+  if (req.method === 'POST' && req.url === '/datacenter/season') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    dcNewSeason();
+    res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: true, ...dcState() }));
   }
   if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)
     const u = new URL(req.url, 'http://x'), dias = Object.keys(NOTI_DAYS).sort();

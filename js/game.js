@@ -131,7 +131,7 @@
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let salonLive = null, salonPollT = 0, salonBeatT = 0;   // MULTIJUGADOR F1: mundo vivo (count/byRoom/ticker) + cadencia de latido
   let cartelBoard = null, cartelPollT = 0, cartelMsg = null, cartelMsgT = 0;   // CARTELES C1: tablón del piso actual (banco server) + el cartel que estás leyendo
-  let dcState = null, dcPollT = 0;   // DATACENTER D1: estado GLOBAL de la comunidad (server), refrescado por poll
+  let dcState = null, dcPollT = 0, dcCinemaT = 0;   // DATACENTER D1/D2: estado GLOBAL + la cinemática del endgame (al 100%)
   let escortNudgeT = 0;   // el compañero (linyera/Guido) te RECUERDA a dónde ir cada tanto + en cada sala
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
   let guardaFreeUsed = false;  // la 1ª función vieja del run es gratis; después se cobra (más viejo más caro)
@@ -479,6 +479,7 @@
   function interact() {
     if (state !== 'playing' || transCd > 0) return;
     if (bodegonOn) { const pe = nearestPeer(); if (pe) { openPeerChat(pe); return; } }   // F2b.2: en el bodegón, E cerca de otro jugador = chat privado
+    if (dcCinemaT > performance.now() && hasTag(room(), 'datacenter')) { dcCinemaT = 0; return; }   // D2: [E] cierra la cinemática del endgame
     const it = nearestInteract();
     if (!it) { if (hasTag(room(), 'carteles')) tryReadCartel(); return; }   // CARTELES C1: si no hay nada cerca y estás bajo un cartel → leerlo
     if (it.kind === 'door') {
@@ -1992,7 +1993,18 @@
   function dcPoll(r) {
     if (typeof Datacenter === 'undefined' || !Datacenter.enabled) return;
     const now = performance.now(); if (now < dcPollT) return; dcPollT = now + 5000;
-    Datacenter.get(d => { if (d && d.parts) dcState = d; });
+    Datacenter.get(d => { if (d && d.parts) { dcState = d; dcMaybeEndgame(d); } });
+  }
+  // D2 — ENDGAME: cuando el datacenter llega al 100% (evento GLOBAL), la comunidad voltea a la IA del satélite → cinemática
+  // (pago de g.win.text). Se ve UNA vez por jugador y por temporada (localStorage). El estado global lo da el server (done).
+  function dcSeenKey(s) { return 'ts_dc_seen_s' + (s || 1); }
+  function dcMaybeEndgame(d) {
+    if (!d || !d.done) return;
+    let seen = false; try { seen = localStorage.getItem(dcSeenKey(d.season)) === '1'; } catch (e) {}
+    if (seen) return;
+    try { localStorage.setItem(dcSeenKey(d.season), '1'); } catch (e) {}
+    dcCinemaT = performance.now() + 14000; Sfx.win && Sfx.win();
+    if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('dc_done');
   }
   function drawDatacenter(r) {
     const offline = (typeof Datacenter === 'undefined' || !Datacenter.enabled);
@@ -2014,8 +2026,27 @@
     ctx.fillStyle = '#eaf4ff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
     ctx.fillText(Math.floor(prog * 100) + '%' + (dcState.done ? ' ✓' : ''), cx, by + 12);
     ctx.fillStyle = '#8aa0b4'; ctx.font = '10px monospace';
-    ctx.fillText(T('g.dc.builtBy', { n: dcState.contributors || 0 }), cx, by + 30);
+    ctx.fillText(T('g.dc.builtBy', { n: dcState.contributors || 0 }) + '  ·  ' + T('g.dc.season', { s: dcState.season || 1 }), cx, by + 30);
     drawDcRacks(r, prog);
+    if (dcCinemaT > performance.now()) drawDcCinema();   // D2: cinemática del endgame (100%)
+  }
+  // D2 — la cinemática del endgame: pantalla completa, la comunidad volteó a la IA del satélite (pago de g.win.text).
+  function drawDcCinema() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(2,6,14,0.92)'; ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#7CFC00'; ctx.font = 'bold 22px monospace';
+    ctx.fillText('🛰️💥 ' + T('g.dc.endTitle'), W / 2, 70);
+    ctx.fillStyle = '#eaf4ff'; ctx.font = '14px monospace';
+    const words = T('g.dc.endText').split(' '), lines = []; let cur = '';
+    for (const w of words) { const cand = cur ? cur + ' ' + w : w; if ((ctx.measureText(cand).width || 0) > W - 120 && cur) { lines.push(cur); cur = w; } else cur = cand; }
+    if (cur) lines.push(cur);
+    lines.forEach((ln, i) => ctx.fillText(ln, W / 2, 110 + i * 22));
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace';
+    ctx.fillText(T('g.dc.endSeason'), W / 2, H - 54);
+    ctx.fillStyle = '#9be8a0'; ctx.font = 'bold 12px monospace';
+    ctx.fillText(T('g.dc.contPrompt'), W / 2, H - 30);
+    ctx.restore();
   }
   // la MAQUETA: una fila de racks que se van "encendiendo" (llenando de luces) según el progreso global.
   function drawDcRacks(r, prog) {
@@ -2078,8 +2109,8 @@
         refreshDcMenu({ ok: true, text: T(res.done ? 'g.dc.doneNote' : 'g.dc.thanks', { part: T('g.dc.part.' + id) }) });
       } else {
         const err = (res && res.error) || 'net';
-        if (res && res.parts) dcState = res;   // el server mandó el estado actualizado igual (p.ej. partfull)
-        refreshDcMenu({ ok: false, text: T('g.dc.err.' + (['rate', 'partfull'].includes(err) ? err : 'net')) });
+        if (res && res.parts) { dcState = res; dcMaybeEndgame(res); }   // el server mandó el estado actualizado igual (p.ej. partfull/complete)
+        refreshDcMenu({ ok: false, text: T('g.dc.err.' + (['rate', 'partfull', 'complete'].includes(err) ? err : 'net')) });
       }
     });
   }

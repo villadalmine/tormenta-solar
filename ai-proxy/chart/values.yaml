@@ -56,6 +56,12 @@ chusmerio:                  # frases de chusmerío ambiente (NPCs vivos) generad
   timezone: "America/Argentina/Buenos_Aires"
   model: gemma4-paid
 
+carteles:                   # C2: la IA del salón deja CARTELES en el Tablón (cupo 30%/piso). construccion-colaborativa.md
+  enabled: false
+  schedule: "15 */6 * * *"  # cada 6h (no satura: el server capa al 30% del piso)
+  timezone: "America/Argentina/Buenos_Aires"
+  model: gemma4-paid
+
 historias:                  # banco VIVO de historias de terror del vecino por edificio clausurado (IA)
   enabled: false
   schedule: "45 4 * * *"

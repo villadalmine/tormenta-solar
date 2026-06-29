@@ -108,6 +108,12 @@ chusmerio:
   schedule: "30 4 * * *"
   model: gemma4-paid
 
+# CARTELES (C2): la IA del salón deja carteles cortos en el Tablón (cupo 30%/piso). construccion-colaborativa.md.
+carteles:
+  enabled: true
+  schedule: "15 */6 * * *"   # cada 6h
+  model: gemma4-paid
+
 # VECINO: banco VIVO de historias de terror por edificio clausurado, autoradas por IA (gen-historias.mjs). El modelo
 # SÍ inventa (es el punto). 1×/día. El juego las flashea y usa de semilla del nivel (GET /historias); fallback estático.
 historias:

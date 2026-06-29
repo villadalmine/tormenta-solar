@@ -1,7 +1,7 @@
 # Construcción colaborativa — carteles + datacenter (estilo Death Stranding)
 
-**Estado:** **C1 (carteles MVP) + D1 (datacenter MVP) IMPLEMENTADOS (v232/v233 · infra-36/37, 2026-06-29)** — ver §8.
-Falta **C2** (IA deja carteles) y **D2** (endgame: cinemática al 100% + temporadas). **Origen:** idea del dueño (2026-06-28). Dos features nuevas de
+**Estado:** **COMPLETO — C1 + C2 + D1 + D2 IMPLEMENTADOS (v232→v234 · infra-36/37/38, 2026-06-29)** — ver §8. Único
+futuro: la sala datacenter como **hub multinivel** (cuando exista Nivel 2). **Origen:** idea del dueño (2026-06-28). Dos features nuevas de
 **"construir algo entre todos"** (asincrónico/colaborativo, à la Death Stranding) montadas sobre **pisos vacíos del
 cine**, reusando el `salon-server` (relay del bodegón, ya en el `ai-proxy`) y el patrón de **bancos JSON-en-PVC**.
 
@@ -198,7 +198,9 @@ qué pisos desbloqueaste). Esto es exactamente la separación de las **3 capas d
    <br>(detalle original ↓)
    - 2 pisos + computadora (crear + mis carteles) + banco PVC + render empaquetado + consumo-en-lectura.
    Texto libre corto + rate-limit (anti-abuso v1). Sin IA todavía.
-2. **C2 — IA deja carteles:** cron/gen acotado (≤30% del cupo) que autora carteles "del salón" (sabor, pistas).
+2. **✅ C2 — IA deja carteles (HECHO v234 · infra-38):** cron `gen-carteles.mjs` (CronWorkflow `*-carteles`, cada 6h) →
+   `POST /carteles/ai` (gated `GEN_TOKEN`), `author:'ai'`, **cupo IA = 30%/piso** (`CARTELES_AI_MAX`). El cliente ya los
+   pinta distinto (🤖 + borde azul). Habilitado en values-prod (`carteles.enabled`).
 3. **✅ D1 — Datacenter MVP (HECHO v233 · infra-37):** 1 piso del cine ("El Datacenter", tag `datacenter`, entre el
    Tablón 2 y el bodegón) + **computadora** (NPC `action:'datacenter'` → `openDatacenter`, overlay `#dcmenu`). **Backend**
    (`ai-proxy`): estado `DATACENTER` ÚNICO en PVC permanente (`/data/datacenter.json`) + `GET /datacenter` +
@@ -208,7 +210,12 @@ qué pisos desbloqueaste). Esto es exactamente la separación de las **3 capas d
    confirmar el server. Anti-abuso = solo suma + cupos + rate (§5.6). **Pendiente de D1:** validación del dueño en prod.
    <br>(detalle original ↓) 1 piso + computadora (catálogo de partes data) + estado global PVC + pago coins/caramelos +
    maqueta que crece + barra global (poll). Sin endgame todavía.
-4. **D2 — Endgame:** arista `datacenter_done` → cinemática/final nuevo (matar a la IA). Decidir temporadas (§5.5).
+4. **✅ D2 — Endgame (HECHO v234 · infra-38):** al 100% global el server marca `done` → contribuir queda bloqueado
+   (`423 complete`); el cliente dispara la **cinemática** del endgame (la comunidad voltea a la IA del satélite, pago de
+   `g.win.text`), una vez por jugador/temporada (localStorage `ts_dc_seen_s<season>`). **Temporadas (§5.5 opción A):**
+   `POST /datacenter/season` (gated `GEN_TOKEN`) → `season++`, cupos **+25%** (`dcEffMax`), reset. Lo dispara el dueño/cron
+   cuando todos vieron el final. (No hay arista del grafo: el gatillo es el chequeo cliente de `GET /datacenter` done=true,
+   como recomienda §7.)
 5. **F (multinivel):** la sala datacenter como **hub global** visible desde cualquier nivel (cuando haya Nivel 2+).
 
 ---

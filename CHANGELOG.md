@@ -56,6 +56,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v234 · infra-38] — 2026-06-29 — 🤖📋🛰️ Construcción colaborativa C2 + D2: la IA deja carteles + el ENDGAME del datacenter
+
+Cierra el SDD `construccion-colaborativa.md` (quedaban C2 y D2):
+- **C2 — la IA del salón deja CARTELES.** Cron `gen-carteles.mjs` (CronWorkflow `tormenta-ai-proxy-carteles`, cada 6h)
+  autora carteles cortos (sabor + pistas del juego) y los postea a `POST /carteles/ai` (gated `GEN_TOKEN`). El server los
+  marca `ai:true` y respeta el **cupo IA = 30% por piso** (`CARTELES_AI_MAX`) → siempre queda lugar para jugadores. El
+  cliente ya los dibujaba distinto (🤖 + borde azul).
+- **D2 — el ENDGAME del datacenter + temporadas.** Cuando el progreso GLOBAL llega a **100%**, el server marca `done` →
+  contribuir queda **bloqueado** (`423 complete`). El cliente dispara una **cinemática** (pantalla completa: *"la comunidad
+  volteó a la IA del satélite"*, pago de `g.win.text`) que se ve **una vez por jugador y por temporada** (localStorage).
+  **Temporadas:** `POST /datacenter/season` (gated `GEN_TOKEN`) arranca una temporada nueva (`season++`, cupos **+25%**,
+  reset) — *"se reinicia a una v2 más cara"*. El catálogo de partes ahora escala con la temporada (`dcEffMax`).
+- Paridad v1≡v2 (51 salas) + i18n 632/632 + e2e/web-smoke OK + helm lint OK. Cache **v234**.
+
+**Con esto el SDD de construcción colaborativa queda COMPLETO** (C1 carteles + C2 IA + D1 datacenter + D2 endgame). Lo
+único a futuro: la sala datacenter como hub multinivel (cuando exista Nivel 2).
+
+---
+
 ## [v233 · infra-37] — 2026-06-29 — 🖥️ Construcción colaborativa D1: EL DATACENTER GLOBAL (meta de comunidad)
 
 Segundo paso del SDD `construccion-colaborativa.md`: el **datacenter colaborativo GLOBAL**. **1 piso nuevo del cine**

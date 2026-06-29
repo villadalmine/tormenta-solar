@@ -1,0 +1,63 @@
+{{- if .Values.carteles.enabled }}
+# Argo CronWorkflow (construccion-colaborativa.md C2): la IA del SALÓN deja CARTELES cortos en el Tablón
+# (gen-carteles.mjs, con IA) y los publica en el proxy (POST /carteles/ai, GEN_TOKEN). El server respeta el
+# cupo IA (30% por piso) → siempre queda lugar para los jugadores. Reusa imagen del proxy + SA + GEN_TOKEN.
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-carteles
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+spec:
+  schedules:
+    - {{ .Values.carteles.schedule | default "15 */6 * * *" | quote }}
+  timezone: {{ .Values.carteles.timezone | default "America/Argentina/Buenos_Aires" | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  workflowSpec:
+    entrypoint: gen
+    serviceAccountName: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+    activeDeadlineSeconds: 300
+    ttlStrategy:
+      secondsAfterCompletion: 86400
+      secondsAfterSuccess: 43200
+      secondsAfterFailure: 172800
+    podGC:
+      strategy: OnWorkflowCompletion
+    {{- with .Values.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+    templates:
+      - name: gen
+        retryStrategy:
+          limit: "3"
+          retryPolicy: Always
+          backoff: { duration: "20s", maxDuration: "2m" }
+        container:
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "gen-carteles.mjs"]
+          env:
+            - name: CARTELES_POST_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/carteles/ai"
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}
+            - name: CARTELES_MODEL
+              value: {{ .Values.carteles.model | default "gemma4-paid" | quote }}
+            - name: AI_BASE_URL
+              value: {{ .Values.upstream.baseUrl | quote }}
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tormenta-ai-proxy.secretName" . }}
+                  key: {{ include "tormenta-ai-proxy.secretKey" . }}
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+{{- end }}
