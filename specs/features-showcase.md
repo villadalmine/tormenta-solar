@@ -51,6 +51,12 @@
   preset** porteñas (sin chat libre → sin moderación). Y el gag de la **rubia y el ropero** (te invita a la trastienda,
   le decís que sí y un patova de dos metros te raja a la vereda). Relay sin autoridad con **degradación total** (sin red
   = bar single-player, nadie nota). Ver `specs/multijugador.md`.
+- **El Tablón colaborativo (construcción asincrónica, à la Death Stranding):** 2 pisos del cine donde una **computadora**
+  te deja **fijar un cartel corto** para el próximo jugador que pase. El cartel **vive en el server hasta que OTRO lo
+  LEE** (te parás debajo, **[E]**) → te muestra el texto y **se borra** (consumo-en-lectura). Se dibujan **empaquetados**
+  en la pared con la chincheta + el nick (el texto no se ve hasta leer). Banco **server-side en PVC** (un cartel espera
+  horas a su lector), cupo + rate-limit + censura básica. **Construís el mundo entre todos, sin verse en vivo.** Ver
+  `specs/construccion-colaborativa.md` (C1).
 
 ## 4. MECÁNICAS con vuelta de tuerca (satíricas, data-driven)
 - **Dólares como arma (post-tormenta):** el Carpo (homenaje a Pappo: melena, birra) **escupe dólares**; a la GENTE
