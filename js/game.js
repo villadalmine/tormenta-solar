@@ -131,6 +131,7 @@
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
   let salonLive = null, salonPollT = 0, salonBeatT = 0;   // MULTIJUGADOR F1: mundo vivo (count/byRoom/ticker) + cadencia de latido
   let cartelBoard = null, cartelPollT = 0, cartelMsg = null, cartelMsgT = 0;   // CARTELES C1: tablón del piso actual (banco server) + el cartel que estás leyendo
+  let dcState = null, dcPollT = 0;   // DATACENTER D1: estado GLOBAL de la comunidad (server), refrescado por poll
   let escortNudgeT = 0;   // el compañero (linyera/Guido) te RECUERDA a dónde ir cada tanto + en cada sala
   let cineArchive = null;  // {day, noticias} cuando el GUARDA te vendió una FUNCIÓN VIEJA (otro día); null = día de hoy
   let guardaFreeUsed = false;  // la 1ª función vieja del run es gratis; después se cobra (más viejo más caro)
@@ -540,6 +541,7 @@
     guarda:  n => guardaCine(n),
     fifa:    () => playFifa(),
     compu:   () => openCarteles(),   // CARTELES C1: la computadora del tablón → overlay para fijar/ver carteles
+    datacenter: () => openDatacenter(),   // DATACENTER D1: la computadora del datacenter → overlay para aportar partes
     moza:    n => handleMoza(n),
   };
   function handleNpc(n) {
@@ -1743,7 +1745,15 @@
     else if (!want && bodegonOn) { bodegonOn = false; myEmote = 0; mySay = -1; if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave(); }
   }
   function myTileX() { return Math.round(((player.x + player.w / 2) / TILE) * 10) / 10; }
-  function playerNick() { const id = (typeof Salon !== 'undefined' && Salon.pid) ? Salon.pid : 'xxxx'; return 'Carpo·' + String(id).slice(-3); }
+  // NOMBRE DE USUARIO (specs/nombre-usuario.md): el jugador elige un nombre BASE + el juego le agrega SIEMPRE un sufijo
+  // random de 3 chars (estable, persistido) → cada uno tiene su nick único en el multijugador (bodegón/carteles).
+  function nickSuffix() {
+    try { let s = localStorage.getItem('ts_nick_sfx'); if (!s || !/^[a-z0-9]{3}$/i.test(s)) { s = (Math.random().toString(36) + '000').slice(2, 5).toUpperCase(); localStorage.setItem('ts_nick_sfx', s); } return s; }
+    catch (e) { const id = (typeof Salon !== 'undefined' && Salon.pid) ? Salon.pid : 'xxx'; return String(id).slice(-3).toUpperCase(); }
+  }
+  function nickBase() { try { return (localStorage.getItem('ts_nick') || '').trim() || 'Carpo'; } catch (e) { return 'Carpo'; } }
+  function setNickBase(v) { const clean = String(v || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12); try { localStorage.setItem('ts_nick', clean); } catch (e) {} return clean || 'Carpo'; }
+  function playerNick() { return nickBase() + '·' + nickSuffix(); }
   // el peer MÁS CERCANO (dentro de ~1.3 tiles) para abrir chat privado con E
   function nearestPeer() {
     if (!bodegonOn || typeof Salon === 'undefined' || !Salon.getPeers) return null;
@@ -1976,6 +1986,103 @@
     });
   }
   function escapeHtml(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  // ===== DATACENTER COLABORATIVO GLOBAL D1 (specs/construccion-colaborativa.md) — todos aportan PARTES (plata/caramelos)
+  // a un datacenter ÚNICO (estado server). El render dibuja una MAQUETA de racks que crece con el progreso global; la
+  // computadora (NPC action:'datacenter') abre el catálogo de partes. Capa aditiva: sin red, "offline" (ves la maqueta cacheada).
+  function dcPoll(r) {
+    if (typeof Datacenter === 'undefined' || !Datacenter.enabled) return;
+    const now = performance.now(); if (now < dcPollT) return; dcPollT = now + 5000;
+    Datacenter.get(d => { if (d && d.parts) dcState = d; });
+  }
+  function drawDatacenter(r) {
+    const offline = (typeof Datacenter === 'undefined' || !Datacenter.enabled);
+    const cx = (r.w * TILE) / 2 - cam.x, top = r.gTop * TILE - cam.y;
+    // título + barra global
+    ctx.fillStyle = '#7fd4ff'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('🖥️ ' + T('g.dc.title'), cx, top - 196);
+    if (offline || !dcState) {
+      ctx.fillStyle = '#5a6a7a'; ctx.font = '11px monospace';
+      ctx.fillText(T(offline ? 'g.dc.offline' : 'g.dc.loading'), cx, top - 176);
+      drawDcRacks(r, 0); return;
+    }
+    const prog = Math.max(0, Math.min(1, dcState.progress || 0));
+    // barra
+    const bw = 320, bx = cx - bw / 2, by = top - 184, bh = 16;
+    ctx.fillStyle = '#0a1420'; ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = dcState.done ? '#7CFC00' : '#2e90ff'; ctx.fillRect(bx, by, bw * prog, bh);
+    ctx.strokeStyle = '#3a5366'; ctx.lineWidth = 1.5; ctx.strokeRect(bx, by, bw, bh);
+    ctx.fillStyle = '#eaf4ff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(Math.floor(prog * 100) + '%' + (dcState.done ? ' ✓' : ''), cx, by + 12);
+    ctx.fillStyle = '#8aa0b4'; ctx.font = '10px monospace';
+    ctx.fillText(T('g.dc.builtBy', { n: dcState.contributors || 0 }), cx, by + 30);
+    drawDcRacks(r, prog);
+  }
+  // la MAQUETA: una fila de racks que se van "encendiendo" (llenando de luces) según el progreso global.
+  function drawDcRacks(r, prog) {
+    const N = 10, top = r.gTop * TILE - cam.y, baseY = top - 30, rackW = 26, gap = 8;
+    const totalW = N * rackW + (N - 1) * gap, x0 = (r.w * TILE) / 2 - cam.x - totalW / 2;
+    const lit = Math.round(prog * N);
+    for (let i = 0; i < N; i++) {
+      const x = x0 + i * (rackW + gap), on = i < lit, h = 64;
+      ctx.fillStyle = on ? '#16324a' : '#10171f'; ctx.fillRect(x, baseY - h, rackW, h);
+      ctx.strokeStyle = on ? '#2e90ff' : '#26323e'; ctx.lineWidth = 1.5; ctx.strokeRect(x, baseY - h, rackW, h);
+      for (let u = 0; u < 6; u++) {   // "servidores" (lucecitas) — verdes si el rack está encendido
+        const uy = baseY - h + 6 + u * 9;
+        ctx.fillStyle = on ? (((i + u + (performance.now() / 400 | 0)) % 4) ? '#3cdc5a' : '#1d7a33') : '#1b242e';
+        ctx.fillRect(x + 4, uy, rackW - 8, 4);
+      }
+    }
+  }
+  function openDatacenter() {
+    const ov = document.getElementById('dcmenu'); if (!ov) return;
+    state = 'compu'; elPrompt.classList.add('hidden');   // reusa el estado 'compu' (bloquea movimiento mientras el overlay está abierto)
+    refreshDcMenu();
+    ov.classList.remove('hidden');
+  }
+  function closeDatacenter() { const ov = document.getElementById('dcmenu'); if (ov) ov.classList.add('hidden'); if (state === 'compu') state = 'playing'; }
+  function refreshDcMenu(note) {
+    const body = document.getElementById('dcBody'); if (!body) return;
+    const offline = (typeof Datacenter === 'undefined' || !Datacenter.enabled);
+    const parts = (typeof Datacenter !== 'undefined' && Datacenter.PARTS) || [];
+    let html = '<div class="end-stats-title">' + T('g.dc.menuTitle') + '</div>';
+    html += '<div style="text-align:center;margin:.2em 0 .6em;opacity:.85;font-size:.9em">' + T('g.dc.menuSub') + '</div>';
+    const prog = dcState ? Math.floor((dcState.progress || 0) * 100) : 0;
+    html += '<div style="text-align:center;margin:.2em 0 .7em;color:#7fd4ff">' + T('g.dc.progress', { p: prog, n: dcState ? (dcState.contributors || 0) : 0 }) + '</div>';
+    if (offline) { html += '<div style="text-align:center;color:#ff9e9e;padding:.6em">' + T('g.dc.offline') + '</div>'; }
+    else {
+      html += '<div style="display:flex;flex-direction:column;gap:.35em">';
+      for (const p of parts) {
+        const have = p.pay === 'coins' ? (player.coins || 0) : (player.caramelos || 0);
+        const cur = dcState && dcState.parts ? (dcState.parts[p.id] || 0) : 0, cap = dcState && dcState.caps ? (dcState.caps[p.id] || 0) : 0;
+        const full = cap && cur >= cap, can = have >= p.cost && !full;
+        const payIco = p.pay === 'coins' ? '🪙' : '🍬';
+        html += '<button class="dc-buy" data-id="' + p.id + '"' + (can ? '' : ' disabled') + ' style="display:flex;justify-content:space-between;align-items:center;gap:.6em;padding:.5em .8em;font:inherit;cursor:' + (can ? 'pointer' : 'not-allowed') + ';opacity:' + (can ? '1' : '.5') + ';background:#10202e;color:#cde8ff;border:1.5px solid #2e90ff">';
+        html += '<span>' + p.emoji + ' ' + T('g.dc.part.' + p.id) + ' <small style="opacity:.6">' + cur + '/' + cap + (full ? ' ' + T('g.dc.partFull') : '') + '</small></span> <b>' + p.cost + ' ' + payIco + '</b></button>';
+      }
+      html += '</div>';
+    }
+    if (note) html += '<div style="text-align:center;margin:.5em 0 .2em;color:' + (note.ok ? '#9be8a0' : '#ff9e9e') + '">' + note.text + '</div>';
+    body.innerHTML = html;
+    body.querySelectorAll('.dc-buy').forEach(b => b.addEventListener('click', () => contributePart(b.getAttribute('data-id'))));
+  }
+  function contributePart(id) {
+    const parts = (typeof Datacenter !== 'undefined' && Datacenter.PARTS) || [];
+    const p = parts.find(x => x.id === id); if (!p) return;
+    const have = p.pay === 'coins' ? (player.coins || 0) : (player.caramelos || 0);
+    if (have < p.cost) { refreshDcMenu({ ok: false, text: T(p.pay === 'coins' ? 'g.dc.noCoins' : 'g.dc.noCandy') }); Sfx.empty && Sfx.empty(); return; }
+    Datacenter.contribute(id, res => {
+      if (res && res.ok) {
+        if (p.pay === 'coins') player.coins -= p.cost; else player.caramelos -= p.cost;   // el pago lo descuenta el cliente al confirmar el server
+        dcState = res; syncHud(); Sfx.pickup && Sfx.pickup();
+        if (typeof Mensajero !== 'undefined' && Mensajero.evento) Mensajero.evento('dc_contribute');
+        refreshDcMenu({ ok: true, text: T(res.done ? 'g.dc.doneNote' : 'g.dc.thanks', { part: T('g.dc.part.' + id) }) });
+      } else {
+        const err = (res && res.error) || 'net';
+        if (res && res.parts) dcState = res;   // el server mandó el estado actualizado igual (p.ej. partfull)
+        refreshDcMenu({ ok: false, text: T('g.dc.err.' + (['rate', 'partfull'].includes(err) ? err : 'net')) });
+      }
+    });
+  }
   // [R] (o botón táctil): leé TODAS las noticias en voz alta. Mensajero.hablar usa la voz del navegador y, si no
   // hay (Chromium/Linux), cae al TTS del servidor (espeak-ng vía WebAudio) — con acento según el idioma del juego.
   function cineRead() {
@@ -2361,6 +2468,7 @@
       if (typeof Salon !== 'undefined' && Salon.enabled && performance.now() > salonPollT) { salonPollT = performance.now() + 4000; Salon.live(d => { salonLive = d; }); }
       drawSalonScreen(r);
     } else if (hasTag(r, 'carteles')) { cartelPoll(r); drawCarteles(r); }   // CARTELES C1: el TABLÓN compartido (poll ~5s)
+    else if (hasTag(r, 'datacenter')) { dcPoll(r); drawDatacenter(r); }   // DATACENTER D1: la maqueta global (poll ~5s)
     else if (isCine(r)) drawCineScreen(r);   // pantalla de noticias del CINE (F1b)
     if (hasTag(r, 'bodegon') && bodegonOn) drawBodegonPeers(r);   // MULTIJUGADOR F2b: los OTROS jugadores en el bodegón
 
@@ -2826,6 +2934,8 @@
     if (e.key === 'Escape' && im && !im.classList.contains('hidden')) { e.preventDefault(); closeInv(); return; }
     const ctm = document.getElementById('cartelmenu');
     if (e.key === 'Escape' && ctm && !ctm.classList.contains('hidden')) { e.preventDefault(); closeCarteles(); return; }
+    const dcm = document.getElementById('dcmenu');
+    if (e.key === 'Escape' && dcm && !dcm.classList.contains('hidden')) { e.preventDefault(); closeDatacenter(); return; }
     if (e.key === 'Escape' && spinoffLevel && state === 'playing') { e.preventDefault(); endSpinoffLevel('flee'); return; }   // salir del nivel-AI
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
@@ -2855,6 +2965,7 @@
   { const b = document.getElementById('vecinoClose'); if (b) b.addEventListener('click', closeVecino); }
   { const b = document.getElementById('invClose'); if (b) b.addEventListener('click', closeInv); }
   { const b = document.getElementById('cartelClose'); if (b) b.addEventListener('click', closeCarteles); }
+  { const b = document.getElementById('dcClose'); if (b) b.addEventListener('click', closeDatacenter); }
   if (typeof Salon !== 'undefined' && Salon.onWhisper) Salon.onWhisper(onPeerWhisper);   // F2b.2: recibir chats privados del bodegón
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
@@ -2863,6 +2974,16 @@
     else if (e.key === 'Escape') { e.preventDefault(); closeChat(); }   // (el handler global también lo cubre si pierde foco)
   });
 
+  // NOMBRE DE USUARIO (specs/nombre-usuario.md): input en ⚙ Opciones; guarda el base y muestra el nick final (+sufijo) en vivo.
+  (function () {
+    const inp = typeof document !== 'undefined' && document.getElementById ? document.getElementById('opt-nick') : null;
+    const prev = document.getElementById('opt-nick-preview'); if (!inp) return;
+    const showPrev = () => { if (prev) prev.textContent = (typeof T === 'function' ? T('opt.nickIs') : 'Tu nick:') + ' ' + playerNick(); };
+    try { inp.value = nickBase(); } catch (e) {}
+    showPrev();
+    inp.addEventListener('input', () => { setNickBase(inp.value); showPrev(); });
+    inp.addEventListener('blur', () => { setNickBase(inp.value); });   // al salir, normalizá (no reescribimos el input para no molestar mientras tipea)
+  })();
   // toggle del MOTOR (v1/v2) en ⚙ Opciones. Persiste en localStorage; aplica al (re)empezar.
   (function () {
     const b = typeof document !== 'undefined' && document.getElementById ? document.getElementById('opt-engine') : null;

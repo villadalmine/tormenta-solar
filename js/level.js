@@ -639,7 +639,7 @@ const Level = (() => {
     const _bodegon = [{t:'mesaRedonda',x:6},{t:'mesaRedonda',x:9},{t:'mesaRedonda',x:13},{t:'mesaRedonda',x:16},{t:'parrilla',x:11},{t:'barril',x:3},{t:'barril',x:19}];
     const cine9 = rooms.push(makeRoom({
       name: 'Cine Lavalle — El Bodegón', tags:['cine','bodegon'], theme: 'shop', light: 0.78, w: 22,
-      doors: [{ id:'down', art:'doorUp', label:'bajar: el Tablón', x:2, inward:1 }],
+      doors: [{ id:'down', art:'doorUp', label:'bajar: el Datacenter', x:2, inward:1 }],
       decor: [..._bodegon, ..._ads],
       npcs: [
         { name:'La Rubia', sprite:'erotica', x:11, action:'moza', dialog:'“Hola, corazón… ¿te sirvo algo? 😘 Vení que en la puerta de atrás tengo unos tragos de la casa…”' },
@@ -660,9 +660,18 @@ const Level = (() => {
     })) - 1;
     const carteles2 = rooms.push(makeRoom({
       name: 'Cine Lavalle — El Tablón 2', tags:['cine','carteles','carteles-b'], theme: 'arcade', light: 0.5, w: 22,
-      doors: [{ id:'down', art:'doorUp', label:'bajar: Tablón', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: el BODEGÓN', x:20, inward:-1 }],
+      doors: [{ id:'down', art:'doorUp', label:'bajar: Tablón', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: el DATACENTER', x:20, inward:-1 }],
       decor: [..._compuDeco, ..._ads],
       npcs: [{ name:'La computadora del Tablón', sprite:'recepcionista', x:11, action:'compu', dialog:'“Otro tablón, más lugar para tus carteles. Dejá el tuyo y leé el del vecino. [E] para usarme.” 📋' }],
+    })) - 1;
+    // DATACENTER COLABORATIVO GLOBAL (construccion-colaborativa.md D1): un piso del cine donde TODA la comunidad construye
+    // un datacenter para destruir la IA del satélite (endgame). La computadora (NPC action:'datacenter') te deja aportar
+    // PARTES (pagás con plata/caramelos); el estado es GLOBAL (server PVC) → ves la maqueta crecer con lo que aportaron todos.
+    const datacenter = rooms.push(makeRoom({
+      name: 'Cine Lavalle — El Datacenter', tags:['cine','datacenter'], theme: 'arcade', light: 0.5, w: 22,
+      doors: [{ id:'down', art:'doorUp', label:'bajar: Tablón 2', x:2, inward:1 }, { id:'up', art:'doorUp', label:'subir: el BODEGÓN', x:20, inward:-1 }],
+      decor: [..._ads],
+      npcs: [{ name:'La computadora del Datacenter', sprite:'recepcionista', x:11, action:'datacenter', dialog:'“Entre todos armamos un DATACENTER para voltear a la IA que ata el sol, pibe. Aportá una parte con lo que tengas. [E] para usarme.” 🖥️🛰️' }],
     })) - 1;
     // LA HABITACIÓN DEL TELO (quest del chip, specs/telo-chip-quest.md): sala REAL a la que caés cuando el robot te chipa.
     // Ahí están los 3 LINYERAS (chateables, IA) que te boludean hasta tirarte la posta; y acá vuelve el final (la cura).
@@ -700,7 +709,8 @@ const Level = (() => {
     wire(cine7, 'up', cine8, 'down');         // 8º piso: Cine EN VIVO (multijugador F1)
     wire(cine8, 'up', carteles1, 'down');     // 9º-10º pisos: EL TABLÓN (carteles colaborativos C1) — entre EN VIVO y el bodegón
     wire(carteles1, 'up', carteles2, 'down');
-    wire(carteles2, 'up', cine9, 'down');     // 11º piso: el BODEGÓN (multijugador F2, sub-modo top-down)
+    wire(carteles2, 'up', datacenter, 'down'); // 11º piso: el DATACENTER colaborativo (D1)
+    wire(datacenter, 'up', cine9, 'down');     // 12º piso: el BODEGÓN (multijugador F2, sub-modo top-down)
     wire(6, 'down', 7, 'up');
     wire(7, 'down', 8, 'up');
     wire(4, 'secret', 9, 'back');

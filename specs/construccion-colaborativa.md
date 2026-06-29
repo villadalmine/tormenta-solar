@@ -1,7 +1,7 @@
 # Construcción colaborativa — carteles + datacenter (estilo Death Stranding)
 
-**Estado:** **C1 (carteles MVP) IMPLEMENTADO (v232 · infra-36, 2026-06-29)** — ver §8. Falta C2 (IA deja carteles) y todo
-el datacenter (D1/D2). **Origen:** idea del dueño (2026-06-28). Dos features nuevas de
+**Estado:** **C1 (carteles MVP) + D1 (datacenter MVP) IMPLEMENTADOS (v232/v233 · infra-36/37, 2026-06-29)** — ver §8.
+Falta **C2** (IA deja carteles) y **D2** (endgame: cinemática al 100% + temporadas). **Origen:** idea del dueño (2026-06-28). Dos features nuevas de
 **"construir algo entre todos"** (asincrónico/colaborativo, à la Death Stranding) montadas sobre **pisos vacíos del
 cine**, reusando el `salon-server` (relay del bodegón, ya en el `ai-proxy`) y el patrón de **bancos JSON-en-PVC**.
 
@@ -199,7 +199,14 @@ qué pisos desbloqueaste). Esto es exactamente la separación de las **3 capas d
    - 2 pisos + computadora (crear + mis carteles) + banco PVC + render empaquetado + consumo-en-lectura.
    Texto libre corto + rate-limit (anti-abuso v1). Sin IA todavía.
 2. **C2 — IA deja carteles:** cron/gen acotado (≤30% del cupo) que autora carteles "del salón" (sabor, pistas).
-3. **D1 — Datacenter MVP:** 1 piso + computadora (catálogo de partes data) + estado global PVC + pago coins/caramelos +
+3. **✅ D1 — Datacenter MVP (HECHO v233 · infra-37):** 1 piso del cine ("El Datacenter", tag `datacenter`, entre el
+   Tablón 2 y el bodegón) + **computadora** (NPC `action:'datacenter'` → `openDatacenter`, overlay `#dcmenu`). **Backend**
+   (`ai-proxy`): estado `DATACENTER` ÚNICO en PVC permanente (`/data/datacenter.json`) + `GET /datacenter` +
+   `POST /datacenter/contribute {pid,part}` (valida catálogo `DC_PARTS`={max,w} + cupo + rate-limit 8s/pid). Progreso =
+   suma ponderada/objetivo (gpu pesa ×3). **Cliente** `js/datacenter.js` (catálogo de precios coins/caramelos = DATA) +
+   `drawDatacenter`/`drawDcRacks` (maqueta de racks que se encienden por progreso + barra global). Pago client-side al
+   confirmar el server. Anti-abuso = solo suma + cupos + rate (§5.6). **Pendiente de D1:** validación del dueño en prod.
+   <br>(detalle original ↓) 1 piso + computadora (catálogo de partes data) + estado global PVC + pago coins/caramelos +
    maqueta que crece + barra global (poll). Sin endgame todavía.
 4. **D2 — Endgame:** arista `datacenter_done` → cinemática/final nuevo (matar a la IA). Decidir temporadas (§5.5).
 5. **F (multinivel):** la sala datacenter como **hub global** visible desde cualquier nivel (cuando haya Nivel 2+).

@@ -95,6 +95,27 @@ function cartelClean(t) { return String(t || '').replace(/[\x00-\x1f]/g, ' ').re
 function cartelFreeSlot(floor) { const used = new Set(CARTELES.filter(s => s.floor === floor).map(s => s.slot)); for (let i = 0; i < CARTELES_CAP; i++) if (!used.has(i)) return i; return -1; }
 loadCarteles(); cartelesPrune(); setInterval(cartelesPrune, 3600 * 1000).unref?.();
 
+// DATACENTER COLABORATIVO GLOBAL (specs/construccion-colaborativa.md D1) — un ÚNICO objeto de toda la comunidad. Aportás
+// PARTES (pagás con plata/caramelos en el cliente) → el server suma el contador global. Todos ven el mismo estado. Cuando
+// llega a 100% (suma ponderada vs objetivo) se DESTRUYE la IA del satélite (endgame, D2). Persiste en PVC, PERMANENTE.
+// Catálogo de partes = DATA: {max} = cupo por parte, {w} = peso en el progreso (gpu pesa más). El cliente tiene los precios.
+const DC_PARTS = { cpu: { max: 60, w: 1 }, gpu: { max: 40, w: 3 }, disco: { max: 50, w: 1 }, red: { max: 30, w: 1 }, enfriamiento: { max: 20, w: 2 }, energia: { max: 20, w: 2 } };
+const DC_TOTAL = Object.values(DC_PARTS).reduce((a, p) => a + p.max * p.w, 0);   // objetivo (suma ponderada de todos los cupos)
+const DC_STORE = process.env.DATACENTER_STORE || '/data/datacenter.json';
+const DC_RATE_MS = 8000;                          // 1 aporte cada 8s por pid (que sea COLABORATIVO, no lo termina uno solo)
+const dcLast = new Map();                         // pid -> ts del último aporte
+let DATACENTER = { parts: {}, contributors: {}, ts: 0 };
+for (const k in DC_PARTS) DATACENTER.parts[k] = 0;
+function loadDatacenter() { try { const d = JSON.parse(fs.readFileSync(DC_STORE, 'utf8')); if (d && d.parts) { for (const k in DC_PARTS) DATACENTER.parts[k] = +d.parts[k] || 0; DATACENTER.contributors = d.contributors || {}; DATACENTER.ts = d.ts || 0; } } catch (e) {} }
+function saveDatacenter() { try { fs.mkdirSync(DC_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(DC_STORE, JSON.stringify(DATACENTER)); } catch (e) { console.error('datacenter store save:', e.message); } }
+function dcProgress() { let s = 0; for (const k in DC_PARTS) s += Math.min(DATACENTER.parts[k] || 0, DC_PARTS[k].max) * DC_PARTS[k].w; return s / DC_TOTAL; }
+function dcState() {
+  const top = Object.entries(DATACENTER.contributors).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([pid, n]) => ({ pid: pid.slice(-4), n }));
+  const caps = {}; for (const k in DC_PARTS) caps[k] = DC_PARTS[k].max;
+  return { parts: DATACENTER.parts, caps, progress: dcProgress(), done: dcProgress() >= 1, contributors: Object.keys(DATACENTER.contributors).length, top, updated: DATACENTER.ts };
+}
+loadDatacenter();
+
 // SALÓN — multijugador F1 (specs/multijugador.md): presencia EN VIVO para el piso "Cine EN VIVO". Relay liviano,
 // in-memory (se pierde al reiniciar = ok, es social). POST /salon/beat {pid,sala,ev?} · GET /salon/live →
 // {count, byRoom, ticker}. (El bodegón real-time F2 irá a un salon-server SSE dedicado; esto es el prototipo F1.)
@@ -613,6 +634,27 @@ http.createServer((req, res) => {
       CARTELES.push(sign); saveCarteles(); cartelLast.set(pid, now);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: true, id: sign.id, slot }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  // ===== DATACENTER COLABORATIVO GLOBAL (construccion-colaborativa.md D1) — estado compartido por toda la comunidad.
+  if (req.method === 'GET' && req.url === '/datacenter') {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(dcState()));
+  }
+  if (req.method === 'POST' && req.url === '/datacenter/contribute') {              // sumar UNA parte (valida catálogo + cupo + rate)
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 400) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const part = String(d.part || '');
+      if (!pid || !DC_PARTS[part]) { res.writeHead(400); return res.end(JSON.stringify({ error: 'bad' })); }
+      const now = Date.now();
+      if (now - (dcLast.get(pid) || 0) < DC_RATE_MS) { res.writeHead(429); return res.end(JSON.stringify({ error: 'rate' })); }
+      if ((DATACENTER.parts[part] || 0) >= DC_PARTS[part].max) { res.writeHead(409); return res.end(JSON.stringify({ error: 'partfull', ...dcState() })); }
+      DATACENTER.parts[part] = (DATACENTER.parts[part] || 0) + 1;
+      DATACENTER.contributors[pid] = (DATACENTER.contributors[pid] || 0) + 1;
+      DATACENTER.ts = now; dcLast.set(pid, now); saveDatacenter();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true, ...dcState() }));
     } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
   }

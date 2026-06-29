@@ -8918,10 +8918,10 @@
             "type": "doorUp"
           },
           "x": 2,
-          "label": "bajar: el Tablón",
+          "label": "bajar: el Datacenter",
           "inward": 1,
           "link": {
-            "to": "cine-lavalle-el-tablon-2",
+            "to": "cine-lavalle-el-datacenter",
             "at": {
               "x": 18.5,
               "y": 12
@@ -9176,10 +9176,10 @@
             "type": "doorUp"
           },
           "x": 20,
-          "label": "subir: el BODEGÓN",
+          "label": "subir: el DATACENTER",
           "inward": -1,
           "link": {
-            "to": "cine-lavalle-el-bodegon",
+            "to": "cine-lavalle-el-datacenter",
             "at": {
               "x": 3.5,
               "y": 12
@@ -9228,6 +9228,86 @@
         },
         {
           "id": "cine-lavalle-el-tablon-2/decor4",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 20,
+          "ad": {}
+        }
+      ]
+    },
+    {
+      "id": "cine-lavalle-el-datacenter",
+      "nombre": "Cine Lavalle — El Datacenter",
+      "theme": "arcade",
+      "w": 22,
+      "tags": [
+        "cine",
+        "datacenter"
+      ],
+      "light": 0.5,
+      "entities": [
+        {
+          "id": "cine-lavalle-el-datacenter/door-down",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 2,
+          "label": "bajar: Tablón 2",
+          "inward": 1,
+          "link": {
+            "to": "cine-lavalle-el-tablon-2",
+            "at": {
+              "x": 18.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-el-datacenter/door-up",
+          "tipo": "door",
+          "render": {
+            "type": "doorUp"
+          },
+          "x": 20,
+          "label": "subir: el BODEGÓN",
+          "inward": -1,
+          "link": {
+            "to": "cine-lavalle-el-bodegon",
+            "at": {
+              "x": 3.5,
+              "y": 12
+            }
+          }
+        },
+        {
+          "id": "cine-lavalle-el-datacenter/npc0",
+          "tipo": "npc",
+          "render": {
+            "sprite": "recepcionista"
+          },
+          "x": 11,
+          "name": "La computadora del Datacenter",
+          "interact": {
+            "action": "datacenter"
+          },
+          "dialogue": {
+            "text": "“Entre todos armamos un DATACENTER para voltear a la IA que ata el sol, pibe. Aportá una parte con lo que tengas. [E] para usarme.” 🖥️🛰️"
+          }
+        },
+        {
+          "id": "cine-lavalle-el-datacenter/decor1",
+          "tipo": "decor",
+          "render": {
+            "type": "cartel"
+          },
+          "x": 2,
+          "ad": {}
+        },
+        {
+          "id": "cine-lavalle-el-datacenter/decor2",
           "tipo": "decor",
           "render": {
             "type": "cartel"

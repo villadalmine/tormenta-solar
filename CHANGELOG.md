@@ -56,6 +56,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v233 · infra-37] — 2026-06-29 — 🖥️ Construcción colaborativa D1: EL DATACENTER GLOBAL (meta de comunidad)
+
+Segundo paso del SDD `construccion-colaborativa.md`: el **datacenter colaborativo GLOBAL**. **1 piso nuevo del cine**
+("El Datacenter", entre el Tablón 2 y el bodegón → **51 salas**) con una **computadora** (NPC `action:'datacenter'`) que
+abre el **catálogo de PARTES** (CPU/GPU/disco/red/enfriamiento/energía — DATA, con precio en 🪙 o 🍬). Aportás una parte
+→ se **descuenta del player** y se **suma al contador GLOBAL** (estado único de toda la comunidad, server-side). La sala
+dibuja una **maqueta de racks** que se encienden con el **progreso global** + barra + "lo arman N jugadores". Cuando llega
+a 100% se sembró el endgame (destruir la IA del satélite; la cinemática es D2, pendiente).
+
+- **Backend (`ai-proxy`, infra-37):** estado `DATACENTER` ÚNICO en **PVC permanente** (`/data/datacenter.json`).
+  `GET /datacenter` (parts/caps/progress/done/contributors/top), `POST /datacenter/contribute {pid,part}` (valida part
+  del catálogo + **cupo por parte** + **rate-limit** 8s/pid → suma). Catálogo server = `{max,w}` (gpu pesa ×3); progreso
+  = suma ponderada / objetivo. Anti-abuso: solo SUMA (no se sabotea) + cupos + rate → es colaborativo de verdad.
+- **Cliente:** `js/datacenter.js` (aditivo, offline-safe; catálogo de precios = DATA) + `drawDatacenter`/`drawDcRacks`
+  (maqueta) + overlay `#dcmenu` en `game.js`. Pago client-side (coins/caramelos) al confirmar el server.
+- Paridad v1≡v2 (51 salas) + i18n 626/626 + e2e/web-smoke OK. Cache **v233**.
+
+---
+
 ## [v232 · infra-36] — 2026-06-29 — 📋 Construcción colaborativa C1: EL TABLÓN (carteles à la Death Stranding)
 
 Primer paso del SDD `construccion-colaborativa.md`: un **tablón comunitario** asincrónico. **2 pisos nuevos del cine**

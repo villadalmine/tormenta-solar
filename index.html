@@ -8,7 +8,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TORMENTA SOLAR — Nivel 1: Calle Florida</title>
-<link rel="stylesheet" href="css/style.css?v=232">
+<link rel="stylesheet" href="css/style.css?v=233">
 </head>
 <body>
 <div id="stage">
@@ -101,6 +101,9 @@
   <div id="options" class="overlay hidden">
     <div class="panel">
       <h2 data-i18n="opt.title">⚙ OPCIONES</h2>
+      <div class="opt-row"><span data-i18n="opt.nick">Tu nombre (multijugador)</span>
+        <input id="opt-nick" type="text" maxlength="12" data-i18n-attr="placeholder:opt.nickPh" placeholder="Tu nombre" autocomplete="off" style="flex:1;min-width:6em"></div>
+      <div id="opt-nick-preview" class="opt-note"></div>
       <div class="opt-row"><span data-i18n="opt.lang">Idioma / Language</span>
         <select id="opt-lang" class="opt-select"></select></div>
       <div class="opt-row"><span data-i18n="opt.font">Tamaño de la fuente</span>
@@ -209,57 +212,66 @@
     </div>
   </div>
 
+  <!-- DATACENTER D1: la computadora del datacenter (aportar partes) -->
+  <div id="dcmenu" class="overlay hidden">
+    <div class="panel">
+      <div id="dcBody"></div>
+      <button id="dcClose" data-i18n="opt.close">Cerrar</button>
+    </div>
+  </div>
+
   <!-- storm flash -->
   <div id="flash"></div>
 </div>
 
 <script>window.GAME_METRICS = "https://llm-tormenta-solar.cybercirujas.club/game-metrics";</script>
-<script src="js/config.js?v=232"></script>
-<script src="js/lang/es.js?v=232"></script>
-<script src="js/lang/en.js?v=232"></script>
-<script src="js/lang/game.es.js?v=232"></script>
-<script src="js/lang/game.en.js?v=232"></script>
-<script src="js/lang/level.en.js?v=232"></script>
-<script src="js/dialogos.js?v=232"></script>
-<script src="js/i18n.js?v=232"></script>
-<script src="js/historia.js?v=232"></script>
-<script src="js/hint-engine.js?v=232"></script>
-<script src="js/mensajero.js?v=232"></script>
-<script src="js/truco.js?v=232"></script>
-<script src="js/telemetry.js?v=232"></script>
-<script src="js/audio.js?v=232"></script>
-<script src="js/art.js?v=232"></script>
-<script src="js/input.js?v=232"></script>
-<script src="js/fx.js?v=232"></script>
-<script src="js/level.js?v=232"></script>
-<script src="js/player.js?v=232"></script>
-<script src="js/enemies.js?v=232"></script>
-<script src="js/arcade.js?v=232"></script>
-<script src="js/super.js?v=232"></script>
-<script src="js/vinilos.js?v=232"></script>
-<script src="js/playable.js?v=232"></script>
-<script src="js/nivelai.js?v=232"></script>
-<script src="js/spinoff.js?v=232"></script>
-<script src="js/tienda.js?v=232"></script>
-<script src="js/telo.js?v=232"></script>
-<script src="js/bodegon.js?v=232"></script>
-<script src="js/linyera-pool.js?v=232"></script>
-<script src="js/noticias.js?v=232"></script>
-<script src="js/propaganda.js?v=232"></script>
-<script src="js/chusmerio.js?v=232"></script>
-<script src="js/historias-vecino.js?v=232"></script>
-<script src="js/ai.js?v=232"></script>
+<script src="js/config.js?v=233"></script>
+<script src="js/lang/es.js?v=233"></script>
+<script src="js/lang/en.js?v=233"></script>
+<script src="js/lang/game.es.js?v=233"></script>
+<script src="js/lang/game.en.js?v=233"></script>
+<script src="js/lang/level.en.js?v=233"></script>
+<script src="js/dialogos.js?v=233"></script>
+<script src="js/i18n.js?v=233"></script>
+<script src="js/historia.js?v=233"></script>
+<script src="js/hint-engine.js?v=233"></script>
+<script src="js/mensajero.js?v=233"></script>
+<script src="js/truco.js?v=233"></script>
+<script src="js/telemetry.js?v=233"></script>
+<script src="js/audio.js?v=233"></script>
+<script src="js/art.js?v=233"></script>
+<script src="js/input.js?v=233"></script>
+<script src="js/fx.js?v=233"></script>
+<script src="js/level.js?v=233"></script>
+<script src="js/player.js?v=233"></script>
+<script src="js/enemies.js?v=233"></script>
+<script src="js/arcade.js?v=233"></script>
+<script src="js/super.js?v=233"></script>
+<script src="js/vinilos.js?v=233"></script>
+<script src="js/playable.js?v=233"></script>
+<script src="js/nivelai.js?v=233"></script>
+<script src="js/spinoff.js?v=233"></script>
+<script src="js/tienda.js?v=233"></script>
+<script src="js/telo.js?v=233"></script>
+<script src="js/bodegon.js?v=233"></script>
+<script src="js/linyera-pool.js?v=233"></script>
+<script src="js/noticias.js?v=233"></script>
+<script src="js/propaganda.js?v=233"></script>
+<script src="js/chusmerio.js?v=233"></script>
+<script src="js/historias-vecino.js?v=233"></script>
+<script src="js/ai.js?v=233"></script>
 <!-- motor v2 (data-driven) detrás del toggle de ⚙ Opciones; default v1. Ver specs/modelo-de-entidades.md -->
-<script src="js/mundo.js?v=232"></script>
-<script src="js/level-data.js?v=232"></script>
-<script src="js/game.js?v=232"></script>
-<script src="js/save.js?v=232"></script>
-<script src="js/ads.js?v=232"></script>
-<script src="js/presence.js?v=232"></script>
-<script src="js/salon.js?v=232"></script>
-<script src="js/carteles.js?v=232"></script>
-<script src="js/fit.js?v=232"></script>
+<script src="js/mundo.js?v=233"></script>
+<script src="js/level-data.js?v=233"></script>
+<script src="js/game.js?v=233"></script>
+<script src="js/save.js?v=233"></script>
+<script src="js/ads.js?v=233"></script>
+<script src="js/presence.js?v=233"></script>
+<script src="js/salon.js?v=233"></script>
+<script src="js/carteles.js?v=233"></script>
+<script src="js/datacenter.js?v=233"></script>
+<script src="js/fit.js?v=233"></script>
 <!-- capa MOBILE: dormida en desktop; en táctil inyecta los controles (mobile/touch.js + mobile.css) -->
-<script src="mobile/boot.js?v=232"></script>
+<script src="mobile/boot.js?v=233"></script>
 </body>
 </html>
