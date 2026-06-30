@@ -183,6 +183,11 @@
     'g.bodegon.peerPrompt': '[E] {nick}: play truco or chat 🃏💬',
     'g.bodegon.peerMenu': 'What do you do with {nick}?',
     'g.bodegon.peerMenuOpts': '[1] 🃏 Truco · [2] 💬 Chat · [Esc] nothing',
+    // ── Truco tables (server-authoritative): sit down + wait for a match ──
+    'g.table.sit1': '[E] sit at the 1v1 TRUCO table 🃏',
+    'g.table.sit6': '[E] sit at the 6-HANDED TRUCO table (3v3) 🃏',
+    'g.table.waiting': '🃏 {table} table: waiting for someone to sit… ({n}/{cap})',
+    'g.table.waitHint': 'starts as soon as another player sits · [Esc] get up',
     'g.bodegon.topTitle': 'The Bodegón',
     'g.bodegon.topIntro': '🍻 The bodegón, top-down: tables with the folks playing RIGHT NOW, the counter with the blonde, and the way out. Walk (WASD), throw emotes (1-4) and phrases (5-8). Talk to the blonde if you dare… 💋',
     'g.bodegon.rubiaName': 'the blonde',

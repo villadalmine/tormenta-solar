@@ -186,6 +186,11 @@
     'g.bodegon.peerPrompt': '[E] {nick}: jugar al truco o chatear 🃏💬',
     'g.bodegon.peerMenu': '¿Qué hacés con {nick}?',
     'g.bodegon.peerMenuOpts': '[1] 🃏 Truco · [2] 💬 Chatear · [Esc] nada',
+    // ── MESAS de truco (server-authoritative): sentarse + esperar el pareo ──
+    'g.table.sit1': '[E] sentarte a la mesa de TRUCO 1v1 🃏',
+    'g.table.sit6': '[E] sentarte a la mesa de TRUCO DE A 6 (3v3) 🃏',
+    'g.table.waiting': '🃏 Mesa {table}: esperando que se siente alguien… ({n}/{cap})',
+    'g.table.waitHint': 'apenas se siente otro jugador, arranca · [Esc] levantarte',
     'g.bodegon.topTitle': 'El Bodegón',
     'g.bodegon.topIntro': '🍻 El bodegón, vista de arriba: mesas con la gente que está jugando AHORA, el mostrador con la rubia, y la salida. Caminá (WASD), tirá emotes (1-4) y frases (5-8). Hablale a la rubia si te animás… 💋',
     'g.bodegon.rubiaName': 'la rubia',

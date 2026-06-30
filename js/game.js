@@ -47,7 +47,6 @@
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
   let peerChat = null;   // F2b.2: si está abierto el chat PRIVADO con otro jugador del bodegón → { pid, nick }
   let peerChatFrom = null;   // T2b: desde dónde se abrió el chat privado ('bodegon' → al cerrar volvés al top-down)
-  let peerMenu = null;       // T2b: menú de interacción con un peer sentado en el bodegón → { pid, nick, t }
   let newsQuest = null;   // F2 cine: {topic, answer} cuando el linyera te mandó a buscar noticias (efímero, no se guarda)
   let mundialQuest = null;   // §9 quest de los hinchas: {equipo, resultado, shown} — efímero, se resetea al salir del cine
   // QUESTS como DATO (migración v2, F1): registro DECLARATIVO — premios/penalidades/chance/mensajes son data, no
@@ -116,9 +115,10 @@
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
   let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null, teloGame = null, bodegonGame = null;
   // F3 TRUCO PvP humano (specs/truco.md §F3): match host-autoritativo sobre el whisper del salón.
-  let trucoPvpGame = null, trucoPeer = null, trucoInvite = null, trucoOutInvite = null, trucoHbT = 0, trucoKeyHeld = {};
-  // F3 TRUCO DE A 6 (3v3, specs/truco.md §14): mesa de a 6 con relleno de IA. truco6 = {seatToPid, pidToSeat}.
-  let truco6Game = null, truco6 = null, truco6Lobby = null, truco6Invite = null, trucoWdT = 0;
+  let trucoPvpGame = null, trucoPeer = null, trucoHbT = 0, trucoKeyHeld = {}, trucoWdT = 0;
+  // MESAS server-authoritative (specs/multijugador.md): tableWait = mientras esperás el pareo en una mesa del bodegón.
+  // truco6 = {seatToPid, pidToSeat} (host) o {host} (guest). El lobby lo hace el SERVER (no más invitaciones P2P).
+  let truco6Game = null, truco6 = null, tableWait = null;
   const AI_BOTS = ['Pino', 'Coya', 'Tito', 'Nano', 'Beto'];
   // WATCHDOG de reconexión (deuda F3): un jugador que cierra la pestaña deja de mandar Salon.pos → el relay lo poda
   // (~35s) → desaparece de Salon.getPeers(). En 1v1 cerramos el match ('left'); en a6 lo reemplaza la IA (sigue).
@@ -350,9 +350,8 @@
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; roamingNpc = null;
-    trucoPvpGame = null; trucoPeer = null; trucoInvite = null; trucoOutInvite = null;   // F3 TRUCO PvP, de cero
-    truco6Game = null; truco6 = null; truco6Lobby = null; truco6Invite = null;          // F3 truco de a 6, de cero
-    peerMenu = null; peerChatFrom = null;                                                // T2b interacción/chat de peer, de cero
+    trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null;   // mesas/partidas multijugador, de cero
+    peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
@@ -1088,109 +1087,90 @@
       if (m.t.indexOf('tk-') === 0) { handleTrucoNet(d.from, d.fromNick, m); return; }
       if (m.t.indexOf('t6-') === 0) { handleTruco6(d.from, d.fromNick, m); return; }
     } }
-    if (peerChat && peerChat.pid === d.from) { chatLine('npc', d.msg); }
-    else setMsg(T('g.bodegon.privFrom', { nick: d.fromNick || T('g.bodegon.someone') }), '#aef0c0', 5000);
+    if (peerChat && peerChat.pid === d.from) { chatLine('npc', d.msg); return; }
+    // T2b fix: NO tenés el chat abierto con él → AUTO-ABRIR el panel con su mensaje (antes era un toast del HUD, que
+    // en el bodegón top-down está oculto → no veías nada). Solo si no estás en otra pantalla bloqueante.
+    if (state === 'bodegon' || state === 'playing') {
+      openPeerChat({ pid: d.from, nick: d.fromNick || T('g.bodegon.someone') }, state === 'bodegon' ? 'bodegon' : null);
+      chatLine('npc', d.msg);
+    } else setMsg(T('g.bodegon.privFrom', { nick: d.fromNick || T('g.bodegon.someone') }), '#aef0c0', 5000);
   }
 
-  // ===== F3 TRUCO PvP — handshake + transporte (specs/truco.md §F3) =====
+  // ===== TRUCO PvP — MESAS server-authoritative + transporte de la PARTIDA (specs/truco.md §F3/§14, multijugador) =====
+  // El LOBBY (parear) lo hace el SERVER (/salon/table → table-update/start/end). La PARTIDA ya arrancada viaja por
+  // whisper (host↔guests), igual que antes. Ver specs/multijugador.md.
   function myPid() { return (typeof Salon !== 'undefined' && Salon.pid) ? Salon.pid : 'me'; }
   function sendTk(pid, obj) { if (typeof Salon !== 'undefined' && Salon.whisper && pid) Salon.whisper(pid, JSON.stringify(obj)); }
-  function trucoSeed(a, b) { const s = (a < b) ? a + b : b + a; let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0) || 1; }   // semilla común determinística
   function peerNickOf(pid) { try { const p = Salon.getPeers().get(pid); if (p && p.nick) return p.nick; } catch (e) {} return T('g.bodegon.someone'); }
-  // mensajes del rival: invitaciones + acciones/vistas del match. Solo del oponente actual (privado).
-  function handleTrucoNet(fromPid, fromNick, m) {
-    if (m.t === 'tk-inv') {                                  // me invitan al truco
-      if (trucoPvpGame || trucoInvite) { sendTk(fromPid, { t: 'tk-no' }); return; }   // ocupado
-      trucoInvite = { pid: fromPid, nick: fromNick || peerNickOf(fromPid) }; Sfx.pickup && Sfx.pickup(); return;
-    }
-    if (m.t === 'tk-ok') { if (trucoOutInvite && fromPid === trucoOutInvite.pid && !trucoPvpGame) startTrucoPvp(fromPid, fromNick || trucoOutInvite.nick); return; }
-    if (m.t === 'tk-no') { if (trucoOutInvite && fromPid === trucoOutInvite.pid) { setMsg(T('g.trucopvp.declined', { nick: trucoOutInvite.nick }), '#ffb3b3', 4000); trucoOutInvite = null; } return; }
-    // acciones/vistas/bye del match en curso → SOLO del oponente
-    if (trucoPvpGame && fromPid === trucoPeer) trucoPvpGame.onNet(m);
-  }
-  function sendInvite(pid) {
-    if (!pid || trucoPvpGame) return;
-    trucoOutInvite = { pid, nick: peerNickOf(pid) };
-    sendTk(pid, { t: 'tk-inv' });
-    setMsg(T('g.trucopvp.inviteWait', { nick: trucoOutInvite.nick }), '#ffd54f', 5000);
-  }
-  function startTrucoPvp(peerPid, peerNick) {
-    if (typeof TrucoPvp === 'undefined' || !TrucoPvp.create) return;
-    const role = (myPid() < peerPid) ? 'host' : 'guest';
-    trucoPeer = peerPid; trucoInvite = null; trucoOutInvite = null; trucoHbT = 0; trucoWdT = 5;
-    trucoPvpGame = TrucoPvp.create({ role, myNick: playerNick(), peerNick: peerNick || peerNickOf(peerPid), seed: trucoSeed(myPid(), peerPid), send: o => sendTk(peerPid, o) });
-    state = 'trucopvp'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden');
-    if (elChipBanner) elChipBanner.classList.add('hidden');
-  }
+  function hideHudForMatch() { trucoHbT = 0; trucoWdT = 5; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); }
   function trucoTap(k) { const d = Input.keys[k]; if (d && !trucoKeyHeld[k]) { trucoKeyHeld[k] = true; return true; } if (!d) trucoKeyHeld[k] = false; return false; }
-  function drawTrucoInvite(W, H) {
-    if (!trucoInvite) return;
-    ctx.fillStyle = 'rgba(0,0,0,0.72)'; ctx.fillRect(0, H / 2 - 46, W, 92);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.trucopvp.inviteFrom', { nick: trucoInvite.nick }), W / 2, H / 2 - 12);
-    ctx.fillStyle = '#cfe8c0'; ctx.font = '13px monospace'; ctx.fillText(T('g.trucopvp.inviteAccept'), W / 2, H / 2 + 18);
+
+  // --- el SERVER parea: table-update (esperando) / table-start (arranca con seats+seed) / table-end ---
+  function onTable(m) {
+    if (!m) return;
+    if (m.kind === 'update') { if (tableWait && tableWait.table === m.table) tableWait.seats = (m.seats || []).length; return; }
+    if (m.kind === 'start') {
+      if (trucoPvpGame || truco6Game || !(m.seats || []).includes(myPid())) return;   // no soy de esta mesa / ya jugando
+      tableWait = null;
+      if (m.table === '1v1') startTrucoPvp(m.seats, m.seed); else startTruco6(m.seats, m.seed);
+    }
+    // 'end': la mesa se cortó mientras esperabas → seguís en la espera (otro se puede sentar)
+  }
+  function sitAtTable(table) {   // te sentaste a una mesa del bodegón → al server + a esperar el pareo
+    if (trucoPvpGame || truco6Game || tableWait) return;
+    tableWait = { table, seats: 1 };
+    if (typeof Salon !== 'undefined' && Salon.tableSit) Salon.tableSit(table, () => {});
+    Sfx.pickup && Sfx.pickup();
+  }
+  function leaveTableWait() { if (!tableWait) return; const tbl = tableWait.table; tableWait = null; if (typeof Salon !== 'undefined' && Salon.tableLeave) Salon.tableLeave(tbl); }
+  function drawTableWait(W, H) {
+    if (!tableWait) return;
+    ctx.fillStyle = 'rgba(0,0,0,0.74)'; ctx.fillRect(0, H / 2 - 50, W, 100); ctx.textAlign = 'center';
+    const cap = tableWait.table === '1v1' ? 2 : 6;
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.table.waiting', { table: tableWait.table, n: tableWait.seats, cap }), W / 2, H / 2 - 12);
+    ctx.fillStyle = '#cfe8c0'; ctx.font = '13px monospace'; ctx.fillText(T('g.table.waitHint'), W / 2, H / 2 + 18);
   }
 
-  // ===== F3 TRUCO DE A 6 (3v3, specs/truco.md §14) — lobby (host junta humanos + relleno IA) + ruteo =====
+  // --- arranque del match 1v1 (el server ya nos pareó: seats=[host,guest], seed común) ---
+  function startTrucoPvp(seats, seed) {
+    if (typeof TrucoPvp === 'undefined' || !TrucoPvp.create) return;
+    const mySeat = seats.indexOf(myPid()); if (mySeat < 0) return;
+    const peerPid = seats[1 - mySeat], role = mySeat === 0 ? 'host' : 'guest';
+    trucoPeer = peerPid;
+    trucoPvpGame = TrucoPvp.create({ role, myNick: playerNick(), peerNick: peerNickOf(peerPid), seed, send: o => sendTk(peerPid, o) });
+    state = 'trucopvp'; hideHudForMatch();
+  }
+  function handleTrucoNet(fromPid, fromNick, m) {   // SOLO mensajes de la PARTIDA en curso (el lobby lo hace el server)
+    if (trucoPvpGame && fromPid === trucoPeer) trucoPvpGame.onNet(m);
+  }
+
+  // --- arranque del match de a 6 (seats=humanos por orden de llegada; host=seats[0]; el resto lo llena la IA) ---
+  function buildNicks6(seats) { const nicks = []; seats.forEach((p, k) => { nicks[k] = (p === myPid()) ? playerNick() : peerNickOf(p); }); for (let s = seats.length; s < 6; s++) nicks[s] = AI_BOTS[s % AI_BOTS.length]; return nicks; }
+  function startTruco6(seats, seed) {
+    if (typeof TrucoPvp6 === 'undefined' || !TrucoPvp6.create) return;
+    const mySeat = seats.indexOf(myPid()); if (mySeat < 0) return;
+    const nicks = buildNicks6(seats);
+    if (mySeat === 0) {   // HOST: corre la partida + maneja los asientos IA
+      const seatToPid = {}, pidToSeat = {}, ai = [];
+      seats.forEach((p, k) => { seatToPid[k] = p; pidToSeat[p] = k; ai[k] = false; });
+      for (let s = seats.length; s < 6; s++) ai[s] = true;
+      truco6 = { seatToPid, pidToSeat };
+      const humanSeats = seats.map((p, k) => k).filter(k => seatToPid[k] !== myPid());
+      truco6Game = TrucoPvp6.create({ role: 'host', mySeat: 0, nicks, ai, seed, humanSeats, pushView: (seat, v) => sendTk(seatToPid[seat], { t: 't6-view', v }) });
+    } else {              // GUEST: refleja la vista del host
+      const hostPid = seats[0]; truco6 = { host: hostPid };
+      truco6Game = TrucoPvp6.create({ role: 'guest', mySeat, nicks, sendAct: o => sendTk(hostPid, o) });
+    }
+    state = 'trucopvp6'; hideHudForMatch();
+  }
   function seatOfPid(pid) { return (truco6 && truco6.pidToSeat && truco6.pidToSeat[pid] != null) ? truco6.pidToSeat[pid] : null; }
-  function handleTruco6(fromPid, fromNick, m) {
-    if (m.t === 't6-inv') {                                   // me invitan a sumarme a una mesa de a 6
-      if (truco6Game || truco6Lobby || truco6Invite || trucoPvpGame) return;   // ocupado
-      truco6Invite = { pid: fromPid, nick: fromNick || peerNickOf(fromPid), t: 12 }; Sfx.pickup && Sfx.pickup(); return;
-    }
-    if (m.t === 't6-join') {                                  // soy host: alguien se anotó
-      if (truco6Lobby && truco6Lobby.joiners.length < 5 && !truco6Lobby.joiners.some(j => j.pid === fromPid)) truco6Lobby.joiners.push({ pid: fromPid, nick: fromNick || peerNickOf(fromPid) });
-      return;
-    }
-    if (m.t === 't6-start') {                                 // soy joiner: el host arranca → creo la escena como guest
-      if (truco6Game) return;
-      truco6 = { host: fromPid };
-      truco6Game = TrucoPvp6.create({ role: 'guest', mySeat: m.seat | 0, nicks: m.nicks || [], sendAct: o => sendTk(fromPid, o) });
-      truco6Invite = null; enterTruco6State(); return;
-    }
-    // mensajes del match en curso
+  function handleTruco6(fromPid, fromNick, m) {   // SOLO mensajes de la PARTIDA en curso
     if (!truco6Game) return;
     if (m.t === 't6-view') { truco6Game.onView && truco6Game.onView(m.v); return; }   // guest
     const seat = seatOfPid(fromPid); if (seat == null) return;                          // host: solo asientos conocidos
     if (m.t === 't6-act') truco6Game.onAct(seat, m.a);
     else if (m.t === 't6-hello') truco6Game.onHello(seat);
     else if (m.t === 't6-bye') truco6Game.onBye(seat);
-  }
-  function startTruco6Lobby() {
-    if (truco6Game || truco6Lobby) return;
-    truco6Lobby = { joiners: [], t: 8 };
-    let n = 0; if (typeof Salon !== 'undefined' && Salon.getPeers) { for (const p of Salon.getPeers().values()) { if (p.pid) { sendTk(p.pid, { t: 't6-inv' }); n++; } } }
-    setMsg(T('g.truco6.lobbyStart', { n }), '#ffd54f', 4000);
-  }
-  function startTruco6Host() {
-    const joiners = (truco6Lobby ? truco6Lobby.joiners : []).slice(0, 5);
-    truco6Lobby = null;
-    const seatToPid = {}, pidToSeat = {}, nicks = [], ai = [];
-    nicks[0] = playerNick(); ai[0] = false;                  // asiento 0 = yo (host)
-    joiners.forEach((j, k) => { const s = k + 1; seatToPid[s] = j.pid; pidToSeat[j.pid] = s; nicks[s] = j.nick; ai[s] = false; });
-    for (let s = joiners.length + 1; s < 6; s++) { nicks[s] = AI_BOTS[s % AI_BOTS.length]; ai[s] = true; }
-    truco6 = { seatToPid, pidToSeat };
-    joiners.forEach((j, k) => sendTk(j.pid, { t: 't6-start', seat: k + 1, nicks, host: myPid() }));
-    truco6Game = TrucoPvp6.create({ role: 'host', mySeat: 0, nicks, ai, humanSeats: joiners.map((j, k) => k + 1),
-      pushView: (seat, v) => sendTk(seatToPid[seat], { t: 't6-view', v }) });
-    enterTruco6State();
-  }
-  function enterTruco6State() { trucoHbT = 0; trucoWdT = 5; state = 'trucopvp6'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); }
-  function drawTruco6Lobby(W, H) {
-    ctx.fillStyle = 'rgba(0,0,0,0.74)'; ctx.fillRect(0, H / 2 - 50, W, 100); ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.truco6.lobbyWait', { n: truco6Lobby.joiners.length }), W / 2, H / 2 - 14);
-    ctx.fillStyle = '#cfe8c0'; ctx.font = '12px monospace'; ctx.fillText(T('g.truco6.lobbyHint', { s: Math.max(0, Math.ceil(truco6Lobby.t)) }), W / 2, H / 2 + 14);
-  }
-  function drawTruco6Invite(W, H) {
-    ctx.fillStyle = 'rgba(0,0,0,0.74)'; ctx.fillRect(0, H / 2 - 46, W, 92); ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.truco6.inviteFrom', { nick: truco6Invite.nick }), W / 2, H / 2 - 12);
-    ctx.fillStyle = '#cfe8c0'; ctx.font = '13px monospace'; ctx.fillText(T('g.truco6.inviteAccept'), W / 2, H / 2 + 18);
-  }
-  function drawPeerMenu(W, H) {   // T2b: menú de interacción con un peer del bodegón
-    if (!peerMenu) return;
-    ctx.fillStyle = 'rgba(0,0,0,0.74)'; ctx.fillRect(0, H / 2 - 46, W, 92); ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.bodegon.peerMenu', { nick: peerMenu.nick }), W / 2, H / 2 - 12);
-    ctx.fillStyle = '#cfe8c0'; ctx.font = '13px monospace'; ctx.fillText(T('g.bodegon.peerMenuOpts'), W / 2, H / 2 + 18);
   }
   async function chatSend() {
     if (peerChat) return peerChatSend();   // F2b.2: chat PRIVADO con otro jugador → va por el salón, no a la IA
@@ -3078,27 +3058,13 @@
         setMsg(T(gotChipped ? 'g.chip.wakeRoom' : gotRescued ? 'g.telo.rescued' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : gotRescued ? '#9be8a0' : '#ff8fc8', gotChipped ? 13000 : gotRescued ? 10000 : gotAway ? 6000 : 3000);
       }
     } else if (state === 'bodegon' && bodegonGame) {
-      if (trucoInvite) {                                              // F3: me invitaron al truco 1v1 → overlay aceptar/rechazar
-        bodegonGame.draw(ctx, W, H); drawTrucoInvite(W, H);
-        if (trucoTap('e') || trucoTap('enter') || trucoTap(' ')) { sendTk(trucoInvite.pid, { t: 'tk-ok' }); startTrucoPvp(trucoInvite.pid, trucoInvite.nick); }
-        else if (trucoTap('escape')) { sendTk(trucoInvite.pid, { t: 'tk-no' }); trucoInvite = null; }
-      } else if (truco6Invite) {                                      // F3 a6: me invitan a sumarme a la mesa de a 6
-        bodegonGame.draw(ctx, W, H); drawTruco6Invite(W, H); truco6Invite.t -= dt;
-        if (trucoTap('e') || trucoTap('enter') || trucoTap(' ')) { sendTk(truco6Invite.pid, { t: 't6-join' }); setMsg(T('g.truco6.joined'), '#7CFC00', 6000); truco6Invite = null; }
-        else if (trucoTap('escape') || truco6Invite.t <= 0) truco6Invite = null;
-      } else if (truco6Lobby) {                                       // F3 a6: soy host esperando que se sumen (luego relleno IA)
-        bodegonGame.draw(ctx, W, H); drawTruco6Lobby(W, H); truco6Lobby.t -= dt;
-        if (trucoTap('escape')) { truco6Lobby = null; setMsg(T('g.truco6.cancel'), '#ffcf6e', 3000); }
-        else if (truco6Lobby.t <= 0 || truco6Lobby.joiners.length >= 5) startTruco6Host();
-      } else if (peerMenu) {                                          // T2b: menú de interacción con un peer sentado
-        bodegonGame.draw(ctx, W, H); drawPeerMenu(W, H); peerMenu.t -= dt;
-        if (trucoTap('1')) { const p = peerMenu; peerMenu = null; sendInvite(p.pid); }                       // 🃏 truco 1v1
-        else if (trucoTap('2')) { const p = peerMenu; peerMenu = null; openPeerChat({ pid: p.pid, nick: p.nick }, 'bodegon'); }   // 💬 chat privado
-        else if (trucoTap('escape') || peerMenu.t <= 0) peerMenu = null;
+      if (tableWait) {                                                // esperando que el server paree la mesa (1v1 / 6)
+        bodegonGame.draw(ctx, W, H); drawTableWait(W, H);
+        if (trucoTap('escape')) leaveTableWait();
       } else {
         bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);
-        const ip = bodegonGame.invitePid; if (ip) peerMenu = { pid: ip, nick: peerNickOf(ip), t: 10 };   // T2b: E sobre un peer → menú (truco / chat)
-        if (bodegonGame.sit6) startTruco6Lobby();                     // F3 a6: me senté a la mesa de a 6
+        const cp = bodegonGame.invitePid; if (cp) openPeerChat({ pid: cp, nick: peerNickOf(cp) }, 'bodegon');   // E sobre un peer → chat privado directo
+        const tbl = bodegonGame.sitTable; if (tbl) sitAtTable(tbl);   // E en una mesa → al server a esperar el pareo
         if (bodegonGame.done) {
           const toTelo = bodegonGame.goTelo; bodegonGame = null;
           if (toTelo) { enterTelo(); }                                // la rubia te lleva al telo
@@ -3224,6 +3190,7 @@
   { const b = document.getElementById('cartelClose'); if (b) b.addEventListener('click', closeCarteles); }
   { const b = document.getElementById('dcClose'); if (b) b.addEventListener('click', closeDatacenter); }
   if (typeof Salon !== 'undefined' && Salon.onWhisper) Salon.onWhisper(onPeerWhisper);   // F2b.2: recibir chats privados del bodegón
+  if (typeof Salon !== 'undefined' && Salon.onTable) Salon.onTable(onTable);             // MESAS: el server parea (table-update/start/end)
   document.getElementById('chat-send').addEventListener('click', chatSend);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   elChatInput.addEventListener('keydown', e => {

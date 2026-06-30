@@ -20,11 +20,12 @@ const Bodegon = (() => {
     const seats = []; for (const tb of TABLES) for (const o of SEAToff) seats.push({ x: tb.x + o[0], y: tb.y + o[1] });
     const rubia = { x: 9, y: 1 };   // moza en el mostrador
     const exit = { x: 9, y: 10 };
-    const six = { x: 9, y: 7 };     // F3 a6: la MESA DE A 6 (lugar fijo, sin peers; [E] = sentarte al 3v3)
+    const one = { x: 6, y: 7 };     // MESA DE TRUCO 1v1 ([E] = sentarte; el server te parea con otro humano)
+    const six = { x: 12, y: 7 };    // MESA DE TRUCO DE A 6 (3v3, [E] = sentarte; relleno con IA)
     const player = { x: (exit.x + 0.5) * CS, y: (exit.y - 0.2) * CS, r: 11 };
     let done = false, exitTo = null, goTelo = false, msg = '', msgT = 0, prompt = '', t = 0, escHeld = false, eHeld = true, numHeld = {}, hbT = 0, mozaInv = false;
-    let invitePidOut = null;   // F3 TRUCO PvP 1v1: pid del peer al que invité (game.js lo lee 1× y lo limpia)
-    let sit6Out = false;       // F3 a6: me senté a la mesa de a 6 (game.js lo lee 1× y lo limpia)
+    let invitePidOut = null;   // pid del peer al que me acerqué para CHATEAR (game.js lo lee 1× y lo limpia)
+    let sitTableOut = null;    // '1v1' | '6': me senté a una mesa (game.js lo lee 1× y lo limpia)
     let myEmote = 0, myEmoteT = 0, mySay = -1, mySayT = 0;
     setMsg(T('g.bodegon.topIntro'), 6);
 
@@ -33,24 +34,23 @@ const Bodegon = (() => {
     function freeAt(x, y) { const r = player.r; return !solid(x - r, y - r) && !solid(x + r, y - r) && !solid(x - r, y + r) && !solid(x + r, y + r); }
     const nearTile = (c, d) => Math.hypot(player.x - (c.x + 0.5) * CS, player.y - (c.y + 0.5) * CS) < CS * (d || 1.2);
     const peersMap = () => (typeof Salon !== 'undefined' && Salon.getPeers) ? Salon.getPeers() : null;
-    // F3: peers ONLINE sentados, cada uno en su asiento (mismo orden que el render) → para apuntar+invitar al truco
-    function seatedPeers() {
-      const pm = peersMap(); const out = []; if (!pm) return out; let i = 0;
-      for (const p of pm.values()) { const s = seats[i % seats.length]; i++; out.push({ pid: p.pid, nick: p.nick, x: s.x, y: s.y }); }
-      return out;
-    }
+    // los peers se dibujan en su POSICIÓN REAL (x,y en tiles, interpolada) → caminan en vivo (no más sentados fijos)
+    const peerTx = p => (p.rx != null ? p.rx : (p.x != null ? p.x : 9));
+    const peerTy = p => (p.ry != null ? p.ry : (p.y != null ? p.y : 6));
     function nearestPeer() {
-      let best = null, bd = 1e9;
-      for (const p of seatedPeers()) { if (!p.pid) continue; const d = Math.hypot(player.x - (p.x + 0.5) * CS, player.y - (p.y + 0.5) * CS); if (d < bd) { bd = d; best = p; } }
-      return (best && bd < CS * 1.4) ? best : null;
+      const pm = peersMap(); if (!pm) return null; let best = null, bd = 1e9;
+      for (const p of pm.values()) { if (!p.pid) continue; const d = Math.hypot(player.x - (peerTx(p) + 0.5) * CS, player.y - (peerTy(p) + 0.5) * CS); if (d < bd) { bd = d; best = p; } }
+      return (best && bd < CS * 1.5) ? best : null;
     }
-    function emote(i) { myEmote = i; myEmoteT = t; if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(11, 0, i); Sfx.pickup && Sfx.pickup(); }
+    function postPos(em) { if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(player.x / CS, 0, em, player.y / CS); }   // posición REAL (x,y) → los demás te ven caminar
+    function emote(i) { myEmote = i; myEmoteT = t; postPos(i); Sfx.pickup && Sfx.pickup(); }
     function phrase(i) { mySay = i; mySayT = t; if (typeof Salon !== 'undefined' && Salon.say) Salon.say(i); Sfx.pickup && Sfx.pickup(); }
 
     function update(dt) {
       t += dt; msgT -= dt; hbT -= dt;
       if (done) return;
-      if (hbT <= 0) { hbT = 4; if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(11, 0); }   // latido (que no me poden)
+      // postear MI posición real cada frame (salon.js throttlea ~6/s) → es el latido Y hace que los demás me vean caminar
+      postPos();
       const sp = 168 * dt;
       if (Input.keys['arrowleft'] || Input.keys['a']) { if (freeAt(player.x - sp, player.y)) player.x -= sp; }
       if (Input.keys['arrowright'] || Input.keys['d']) { if (freeAt(player.x + sp, player.y)) player.x += sp; }
@@ -59,20 +59,22 @@ const Bodegon = (() => {
       // emotes (1-4) / frases preset (5-8)
       for (let n = 1; n <= 8; n++) { const k = String(n); if (Input.keys[k]) { if (!numHeld[k]) { numHeld[k] = true; if (n <= 4) emote(n); else phrase(n - 5); } } else numHeld[k] = false; }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; done = true; exitTo = 'cine8'; return; } } else escHeld = false;
-      // interacción: rubia (mostrador), salida, MESA DE A 6 (F3 a6), o INVITAR a un peer sentado al truco 1v1 (F3)
-      const atRubia = nearTile(rubia, 1.4), atExit = nearTile(exit, 1.2), atSix = nearTile(six, 1.2);
-      const peer = (!atRubia && !atExit && !atSix) ? nearestPeer() : null;
+      // interacción: rubia, salida, MESAS (truco 1v1 / 6), o CHATEAR con un peer cercano
+      const atRubia = nearTile(rubia, 1.4), atExit = nearTile(exit, 1.2), atOne = nearTile(one, 1.2), atSix = nearTile(six, 1.2);
+      const peer = (!atRubia && !atExit && !atOne && !atSix) ? nearestPeer() : null;
       prompt = atRubia ? T(mozaInv ? 'g.bodegon.mozaYes' : 'g.bodegon.mozaTalk')
         : atExit ? T('g.bodegon.exitPrompt')
-        : atSix ? T('g.truco6.sitPrompt')
+        : atOne ? T('g.table.sit1')
+        : atSix ? T('g.table.sit6')
         : peer ? T('g.bodegon.peerPrompt', { nick: peer.nick || T('g.bodegon.someone') }) : '';
       const press = Input.keys['e'] || Input.keys[' '] || Input.keys['enter'];
       if (press && !eHeld) {
         eHeld = true;
         if (atRubia) { if (!mozaInv) { mozaInv = true; setMsg(T('g.moza.invite'), 6); } else { done = true; goTelo = true; } }
         else if (atExit) { done = true; exitTo = 'cine8'; }
-        else if (atSix) { sit6Out = true; }
-        else if (peer) { invitePidOut = peer.pid; }   // game.js abre el menú de interacción (truco / chat)
+        else if (atOne) { sitTableOut = '1v1'; }
+        else if (atSix) { sitTableOut = '6'; }
+        else if (peer) { invitePidOut = peer.pid; }   // game.js abre el chat privado con ese peer
       } else if (!press) eHeld = false;
     }
 
@@ -106,12 +108,13 @@ const Bodegon = (() => {
         ctx2.fillStyle = '#8a6a44'; ctx2.beginPath(); ctx2.arc(mx, my, CS * 0.5, 0, Math.PI * 2); ctx2.fill();
         ctx2.font = '12px serif'; ctx2.textAlign = 'center'; ctx2.fillText('🍻', mx, my + 4);
       }
-      // MESA DE A 6 (F3 a6): mesa con paño verde + 🃏 + cartel "TRUCO 6"
-      { const mx = ox + (six.x + 0.5) * CS, my = oy + (six.y + 0.5) * CS;
+      // MESAS DE TRUCO (paño verde + 🃏 + cartel): la 1v1 y la de a 6
+      function trucoTable(c, label) { const mx = ox + (c.x + 0.5) * CS, my = oy + (c.y + 0.5) * CS;
         ctx2.fillStyle = '#15401c'; ctx2.beginPath(); ctx2.arc(mx, my, CS * 0.8, 0, Math.PI * 2); ctx2.fill();
         ctx2.fillStyle = '#1e5a28'; ctx2.beginPath(); ctx2.arc(mx, my, CS * 0.58, 0, Math.PI * 2); ctx2.fill();
         ctx2.font = '15px serif'; ctx2.textAlign = 'center'; ctx2.fillText('🃏', mx, my + 5);
-        ctx2.fillStyle = '#ffd54f'; ctx2.font = 'bold 8px monospace'; ctx2.fillText('TRUCO 6', mx, my - CS * 0.8 - 3); }
+        ctx2.fillStyle = '#ffd54f'; ctx2.font = 'bold 8px monospace'; ctx2.fillText(label, mx, my - CS * 0.8 - 3); }
+      trucoTable(one, 'TRUCO 1v1'); trucoTable(six, 'TRUCO 6');
       // MOSTRADOR + la RUBIA
       ctx2.font = '20px serif'; ctx2.textAlign = 'center';
       ctx2.fillText('💁‍♀️', ox + (rubia.x + 0.5) * CS, oy + (rubia.y + 0.85) * CS);
@@ -121,14 +124,16 @@ const Bodegon = (() => {
       const exx = ox + (exit.x + 0.5) * CS, exy = oy + (exit.y + 0.5) * CS;
       ctx2.fillStyle = pal.accent; ctx2.globalAlpha = 0.4; ctx2.fillRect(exx - 13, exy - 14, 26, 28); ctx2.globalAlpha = 1;
       ctx2.font = 'bold 13px serif'; ctx2.fillText('🪜', exx, exy + 5);
-      // PEERS online sentados (presencia). nearestPeer() resaltado: lo podés invitar al truco
+      // PEERS online EN SU POSICIÓN REAL (interpolada) → caminan en vivo. nearestPeer() resaltado (para chatear).
       const pm = peersMap(); let count = 0, now = Date.now();
       const target = nearestPeer();
-      if (pm) { let i = 0; for (const p of pm.values()) { const s = seats[i % seats.length]; i++; count++;
-        const sx = ox + (s.x + 0.5) * CS, sy = oy + (s.y + 0.5) * CS;
+      if (pm) for (const p of pm.values()) { count++;
+        if (p.rx == null) p.rx = (p.x != null ? p.x : 9); if (p.ry == null) p.ry = (p.y != null ? p.y : 6);
+        p.rx += ((p.x != null ? p.x : p.rx) - p.rx) * 0.2; p.ry += ((p.y != null ? p.y : p.ry) - p.ry) * 0.2;   // interpolación suave
+        const sx = ox + (p.rx + 0.5) * CS, sy = oy + (p.ry + 0.5) * CS;
         if (target && target.pid === p.pid) { ctx2.strokeStyle = '#ffd54f'; ctx2.lineWidth = 2; ctx2.beginPath(); ctx2.arc(sx, sy, 14, 0, Math.PI * 2); ctx2.stroke(); }
         figure(ctx2, sx, sy, '#5a7a9a', p.nick || T('g.bodegon.someone'),
-          p.emote, now - (p.emoteT || 0) < 2500, p.say, now - (p.sayT || 0) < 4000); } }
+          p.emote, now - (p.emoteT || 0) < 2500, p.say, now - (p.sayT || 0) < 4000); }
       // YO (te movés libre)
       figure(ctx2, ox + player.x, oy + player.y, '#36567f', T('g.bodegon.you'), myEmote, t - myEmoteT < 2.5, mySay, t - mySayT < 4);
       // barra superior: nombre + cuántos online
@@ -152,8 +157,8 @@ const Bodegon = (() => {
     }
 
     return { get done() { return done; }, get exitTo() { return exitTo; }, get goTelo() { return goTelo; },
-      get invitePid() { const v = invitePidOut; invitePidOut = null; return v; },   // F3 TRUCO PvP 1v1 (one-shot)
-      get sit6() { const v = sit6Out; sit6Out = false; return v; },                 // F3 a6: me senté a la mesa de a 6 (one-shot)
+      get invitePid() { const v = invitePidOut; invitePidOut = null; return v; },   // peer para CHATEAR (one-shot)
+      get sitTable() { const v = sitTableOut; sitTableOut = null; return v; },       // '1v1' | '6': me senté a una mesa (one-shot)
       update, draw };
   }
   return { create };

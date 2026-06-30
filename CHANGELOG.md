@@ -56,6 +56,26 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v245 · infra-43] — 2026-06-30 — 🔧 Multijugador del bodegón: MESAS en el servidor + chat + peers que caminan
+
+Playtest del dueño con 2 navegadores: el truco 3v3 no juntaba a los dos, el 1v1 no esperaba, el chat no mostraba lo
+que decía el otro y los peers se veían sentados estáticos. Causa: el matchmaking era **P2P sobre whisper** (frágil) y
+el top-down **nunca mandaba la posición real**. **Validé primero el transporte** con 2 clientes curl contra prod →
+el SSE/whisper/pareo andan perfecto; el bug era todo lógica del cliente. Solución:
+- **MESAS en el SERVIDOR (server-authoritative):** `ai-proxy` ahora tiene mesas `1v1` y `6` por sala-instancia +
+  `POST /salon/table {sit|leave}` → emite `table-update`/`table-start`/`table-end`. El server **parea** (1v1 = 2
+  sentados; 6 = ≥2 + cuenta de 8s o lleno), elige el host (orden de llegada) y manda `table-start {seats, seed}`. Se
+  ELIMINÓ el lobby P2P (invitaciones `tk-inv`/`t6-inv`, "doble host"). La PARTIDA ya arrancada sigue por whisper
+  (host↔guests, reusa los motores `truco-net`/`truco-pvp` tal cual). Observable con `/salon/debug` (muestra las mesas).
+- **Mesa 1v1 nueva** + la de 6 en el bodegón (`js/bodegon.js`): te sentás → "esperando que se siente alguien…" → arranca.
+- **Chat arreglado:** el mensaje entrante **auto-abre el panel** (antes era un toast del HUD, **invisible en el
+  top-down** → no veías nada). Las dos direcciones.
+- **Peers que CAMINAN:** el top-down ahora postea tu posición REAL `(x,y)` (`Salon.pos` lleva `y`, relay en el proxy) y
+  dibuja a los demás en su posición viva interpolada (antes los sentaba estáticos en `Salon.pos(11,0)` fijo).
+- e2e + web-smoke + paridad i18n (715/715) OK. Cache **v245**, proxy **0.1.62** (**infra-43**). `specs/multijugador.md`.
+
+---
+
 ## [v244] — 2026-06-30 — ✊ CALLE LAVALLE (Etapa 1): doblás a la izquierda y caés en el piquete copado
 
 Nueva zona contigua a la calle: desde el arranque (Florida y Lavalle), si **doblás a la izquierda** (puerta nueva al

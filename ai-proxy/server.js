@@ -135,12 +135,45 @@ function clientIp(req) { const xff = (req.headers['x-forwarded-for'] || '').spli
 // BODEGÓN F2b (real-time): sala-instancia -> { peers: Map<pid,estado>, subs: Set<res SSE> }. Matchmaking simple:
 // llena la 1ª sala con lugar (para que la gente SE ENCUENTRE), si no abre otra. Prune de peers viejos (sin pos 20s).
 const BODEGON = new Map(); const BODEGON_CAP = 6, BODEGON_TTL = 20000; let BODEGON_SEQ = 0;
-function bodegonRoom(id) { let r = BODEGON.get(id); if (!r) { r = { peers: new Map(), subs: new Set(), streams: new Map() }; BODEGON.set(id, r); } return r; }
+// MESAS de truco SERVER-AUTHORITATIVE (specs/multijugador.md): el server PAREA a los jugadores (rendezvous) y emite
+// table-start; la partida en sí vive en los clientes (whisper host↔guests). Caps: 1v1=2, 6=6. El 6 arranca por
+// cuenta regresiva (≥2 jugadores) o al llenarse. Tras emitir table-start, la mesa se VACÍA (queda libre para otra).
+const TABLE_CAP = { '1v1': 2, '6': 6 }; const TABLE_COUNTDOWN = 8000;
+const mkTable = () => ({ seats: new Map(), state: 'waiting', startAt: 0 });
+function bodegonRoom(id) { let r = BODEGON.get(id); if (!r) { r = { peers: new Map(), subs: new Set(), streams: new Map(), tables: { '1v1': mkTable(), '6': mkTable() } }; BODEGON.set(id, r); } return r; }
 function bodegonJoin() { bodegonPrune(); for (const [id, r] of BODEGON) if (r.peers.size < BODEGON_CAP) return id; const id = 'bodegon-' + (++BODEGON_SEQ); bodegonRoom(id); return id; }
 function bodegonBroadcast(r, ev, data) { const line = 'event: ' + ev + '\ndata: ' + JSON.stringify(data) + '\n\n'; for (const s of r.subs) { try { s.write(line); } catch (e) { r.subs.delete(s); } } }
-function bodegonLeave(roomId, pid) { const r = BODEGON.get(roomId); if (r && r.peers.delete(pid)) bodegonBroadcast(r, 'peer-leave', { pid }); }
-function bodegonPrune() { const now = Date.now(); for (const [id, r] of BODEGON) { for (const [pid, p] of r.peers) if (now - p.ts > BODEGON_TTL) { r.peers.delete(pid); bodegonBroadcast(r, 'peer-leave', { pid }); } if (r.peers.size === 0 && r.subs.size === 0) BODEGON.delete(id); } }
+const tableView = t => ({ seats: [...t.seats.values()].map(s => ({ pid: s.pid, nick: s.nick })), state: t.state });
+function tableSit(r, name, pid, nick) {
+  const t = r.tables[name]; if (!t || t.state === 'playing') return;
+  if (!t.seats.has(pid) && t.seats.size >= TABLE_CAP[name]) return;        // mesa llena
+  t.seats.set(pid, { pid, nick, ts: Date.now() });
+  if (name === '6' && t.seats.size >= 2 && !t.startAt) t.startAt = Date.now() + TABLE_COUNTDOWN;
+  bodegonBroadcast(r, 'table-update', { table: name, ...tableView(t) });
+  tableMaybeStart(r, name);
+}
+function tableLeavePid(r, name, pid) {
+  const t = r.tables[name]; if (!t || !t.seats.has(pid)) return false;
+  t.seats.delete(pid);
+  if (t.seats.size < 2) t.startAt = 0;
+  bodegonBroadcast(r, 'table-update', { table: name, ...tableView(t) });
+  return true;
+}
+function tableMaybeStart(r, name) {
+  const t = r.tables[name]; if (!t || t.state !== 'waiting') return;
+  const n = t.seats.size, cap = TABLE_CAP[name];
+  const ready = (name === '1v1') ? n >= cap : (n >= cap || (n >= 2 && t.startAt && Date.now() >= t.startAt));
+  if (!ready) return;
+  const seats = [...t.seats.keys()], seed = (Math.random() * 1e9) | 0;     // orden de llegada (Map lo preserva)
+  bodegonBroadcast(r, 'table-start', { table: name, host: seats[0], seats, seed });
+  t.seats.clear(); t.startAt = 0;                                         // mesa libre para la próxima (la partida ya vive en los clientes)
+  bodegonBroadcast(r, 'table-update', { table: name, ...tableView(t) });
+}
+function bodegonDropFromTables(r, pid) { for (const name in r.tables) tableLeavePid(r, name, pid); }
+function bodegonLeave(roomId, pid) { const r = BODEGON.get(roomId); if (r) { bodegonDropFromTables(r, pid); if (r.peers.delete(pid)) bodegonBroadcast(r, 'peer-leave', { pid }); } }
+function bodegonPrune() { const now = Date.now(); for (const [id, r] of BODEGON) { for (const [pid, p] of r.peers) if (now - p.ts > BODEGON_TTL) { bodegonDropFromTables(r, pid); r.peers.delete(pid); bodegonBroadcast(r, 'peer-leave', { pid }); } if (r.peers.size === 0 && r.subs.size === 0) BODEGON.delete(id); } }
 setInterval(bodegonPrune, 8000);
+setInterval(() => { for (const r of BODEGON.values()) tableMaybeStart(r, '6'); }, 1000);   // cuenta regresiva de la mesa de 6
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL del CHAT (tope duro, tiempo real)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -514,7 +547,8 @@ http.createServer((req, res) => {
     if (!GEN_TOKEN || tok !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
     salonPrune(); bodegonPrune(); const now = Date.now();
     const sesiones = [...SALON.entries()].map(([pid, v]) => ({ pid, sala: v.sala, ip: v.ip || '?', edadSeg: Math.round((now - v.ts) / 1000) }));
-    const bodegones = [...BODEGON.entries()].map(([room, r]) => ({ room, peers: [...r.peers.values()].map(p => ({ pid: p.pid, nick: p.nick, ip: p.ip || '?', edadSeg: Math.round((now - p.ts) / 1000) })), streams: r.streams.size }));
+    const bodegones = [...BODEGON.entries()].map(([room, r]) => ({ room, peers: [...r.peers.values()].map(p => ({ pid: p.pid, nick: p.nick, ip: p.ip || '?', edadSeg: Math.round((now - p.ts) / 1000) })), streams: r.streams.size,
+      mesas: Object.fromEntries(Object.entries(r.tables || {}).map(([n, t]) => [n, { state: t.state, seats: [...t.seats.values()].map(s => s.nick) }])) }));
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ jugandoAhora: SALON.size, sesiones, bodegones, nota: 'presencia REAL: cada sesión = un navegador que mandó /salon/beat en los últimos 35s. Sin simulación.' }, null, 2));
   }
@@ -578,8 +612,24 @@ http.createServer((req, res) => {
     req.on('end', () => { try {
       const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const room = String(d.room || '').slice(0, 24);
       const r = BODEGON.get(room); const p = r && r.peers.get(pid);
-      if (p) { p.x = Math.max(1, Math.min(21, +d.x || p.x)); p.vx = Math.max(-260, Math.min(260, +d.vx || 0)); if (d.emote != null) { p.emote = (+d.emote || 0) % 8; p.emoteT = Date.now(); } p.ts = Date.now();
-        bodegonBroadcast(r, 'peer-pos', { pid, x: p.x, vx: p.vx, emote: d.emote != null ? p.emote : undefined }); }
+      if (p) { p.x = Math.max(1, Math.min(21, +d.x || p.x)); p.vx = Math.max(-260, Math.min(260, +d.vx || 0));
+        if (d.y != null) p.y = Math.max(1, Math.min(12, +d.y || p.y));   // top-down: posición REAL (x,y) → peers que caminan
+        if (d.emote != null) { p.emote = (+d.emote || 0) % 8; p.emoteT = Date.now(); } p.ts = Date.now();
+        bodegonBroadcast(r, 'peer-pos', { pid, x: p.x, y: p.y, vx: p.vx, emote: d.emote != null ? p.emote : undefined }); }
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.url === '/salon/table' && req.method === 'POST') {                         // MESAS server-authoritative: sentarse/levantarse → table-update/start
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 400) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const room = String(d.room || '').slice(0, 24);
+      const name = (d.table === '6' || d.table === '1v1') ? d.table : null;
+      const r = BODEGON.get(room); const p = r && r.peers.get(pid);
+      if (r && p && name) { p.ts = Date.now();
+        if (d.action === 'sit') tableSit(r, name, pid, p.nick);
+        else if (d.action === 'leave') tableLeavePid(r, name, pid);
+      }
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');
     } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
