@@ -348,6 +348,7 @@
     'g.trans.arcadeStorm': 'The arcade is possessed! Pac-Man and Galaga attack you.',
     'g.trans.arcade': 'Arcade — press E on a machine to play.',
     'g.trans.cine': '🎬 The CINEMA: the screen shows the day\'s news (AI-captured). Different every time.',
+    'g.cine.noTopic': '— no {cat} news today —',
     'g.cine.read': '📰 today\'s news · [R] read aloud · [E] leave',
     'g.cine.reading': '🔊 Reading the news...',
     // MULTIPLAYER F1 — the "Cinema LIVE" floor

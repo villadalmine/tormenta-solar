@@ -1671,9 +1671,13 @@
   // (cineArchive), salen de ese día; si no, del día de hoy (window.NOTICIAS).
   function pickNoticias(r) {
     const ns = (cineArchive && cineArchive.noticias) || (typeof window !== 'undefined' && window.NOTICIAS) || [];
-    const t = cineTopicsFor(r), pool = t ? ns.filter(n => t.includes(n.topic)) : ns, use = pool.length ? pool : ns;
+    const t = cineTopicsFor(r);
+    // piso CON tópico → SOLO sus topics, AUNQUE el banco esté flaco (si no hay, devuelve [] → "sin novedades de ese tópico").
+    // ANTES caía a `ns` (todas) cuando el pool estaba vacío → los pisos sin su tópico mostraban TODOS lo mismo (Mundial repetido
+    // en mundo/tecno/consolas/…). Cada piso respeta su categoría: nunca muestra la de otro piso. Piso SIN tópico → cualquiera.
+    const pool = t ? ns.filter(n => t.includes(n.topic)) : ns;
     const seen = new Set(), out = [];
-    for (const n of use) { if (seen.has(n.topic)) continue; seen.add(n.topic); out.push(n); if (out.length >= 6) break; }
+    for (const n of pool) { if (seen.has(n.topic)) continue; seen.add(n.topic); out.push(n); if (out.length >= 6) break; }
     return out;
   }
   function wrapLines(ctx, text, maxW, cap) {
@@ -1735,7 +1739,7 @@
     ctx.textAlign = 'center';
     ctx.fillStyle = cineArchive ? '#ffb74d' : '#b38bd6'; ctx.font = 'bold 12px monospace';
     ctx.fillText((cineArchive ? '📼 FUNCIÓN VIEJA ' + humanDay(cineArchive.day) + ' · ' : '🎬 CINE · ') + cat.toUpperCase(), cx, sy + 17);
-    if (!ns.length) { ctx.fillStyle = '#5a6a7a'; ctx.font = '14px monospace'; ctx.fillText('— sin señal (volvé luego) —', cx, sy + H / 2); ctx.restore(); return; }
+    if (!ns.length) { ctx.fillStyle = '#5a6a7a'; ctx.font = '13px monospace'; ctx.fillText(T('g.cine.noTopic', { cat: (cat || '').toUpperCase() }), cx, sy + H / 2); ctx.restore(); return; }
     ctx.textAlign = 'left';
     const maxY = sy + H - 16;
     let y = sy + 34;

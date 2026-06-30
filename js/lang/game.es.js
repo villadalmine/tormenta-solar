@@ -366,6 +366,7 @@
     'g.trans.arcadeStorm': '¡El arcade está poseído! Pac-Man y Galaga te atacan.',
     'g.trans.arcade': 'Arcade — apretá E en una máquina para jugar.',
     'g.trans.cine': '🎬 El CINE: la pantalla muestra las noticias del día (capturadas por IA). Cada vez algo distinto.',
+    'g.cine.noTopic': '— sin novedades de {cat} hoy —',
     'g.cine.read': '📰 noticias del día · [R] leer en voz alta · [E] salir',
     'g.cine.reading': '🔊 Leyendo las noticias...',
     // MULTIJUGADOR F1 — el piso "Cine EN VIVO"

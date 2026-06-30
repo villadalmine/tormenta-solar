@@ -56,6 +56,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v239] — 2026-06-29 — 🐛 FIX cine: cada piso respeta SU tópico (no más noticias repetidas entre salas)
+
+Reporte del dueño: en el cine los carteles/noticias se mezclaban — pisos distintos mostraban lo MISMO y no su categoría.
+**Causa:** `pickNoticias` tenía un fallback `pool.length ? pool : ns` → si el banco de noticias no tenía el tópico de
+ese piso (hoy el banco está flaco: solo Mundial+crypto), el piso caía a mostrar TODAS las noticias → Deportes y Finanzas
+salían bien (sus topics SÍ estaban), pero Mundo/Tecno/Consolas/OpenRouter/Colombofilia mostraban todos lo mismo (Mundial
+repetido). **Fix:** cada piso muestra SOLO los topics de su categoría, aunque el banco esté flaco; si no hay novedades de
+ese tópico, la pantalla dice "— sin novedades de {CAT} hoy —" (`g.cine.noTopic`) en vez de robar las de otro piso. (El
+banco se llena con el cron diario de noticias 9am AR; el código ahora es robusto a un banco incompleto.) Cache **v239**.
+
+---
+
 ## [v238 · infra-40] — 2026-06-29 — 🔒 Hardening: cabeceras de seguridad / CSP en la web y el proxy
 
 Primer lote concreto de `specs/seguridad.md` (§4). El prod es público; lo endurecemos sin romper el juego:
