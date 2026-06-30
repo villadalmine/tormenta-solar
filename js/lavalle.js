@@ -152,24 +152,24 @@ const Lavalle = (() => {
       const ox = (VW - W * CS) / 2, oy = 30, TX2 = tx => ox + tx * CS, TY2 = ty => oy + ty * CS;
       const cutY = TY2(3.6);   // la línea del corte
       ctx.fillStyle = '#0b0b11'; ctx.fillRect(0, 0, VW, VH);   // LIMPIAR TODO (si no, se cuela la calle en los márgenes)
-      // skyline oscuro de fondo (que no parezca letterbox) — la 9 de Julio es ANCHA, ocupa todo el ancho
-      ctx.fillStyle = '#13131b'; for (let bx = 0; bx < VW; bx += 46) { const bh = 30 + ((bx * 7) % 40); ctx.fillRect(bx, oy + 4, 40, bh); }
-      // cielo nocturno-anaranjado (resplandor del corte) — todo el ancho
-      const sky = ctx.createLinearGradient(0, oy, 0, cutY); sky.addColorStop(0, '#241a26'); sky.addColorStop(1, '#3a2418');
-      ctx.fillStyle = sky; ctx.fillRect(0, oy + 30, VW, cutY - oy - 30);
-      // EL OBELISCO grande al fondo, centrado en TODA la pantalla (se ve mucho ahora)
+      // skyline BAJO y lejano (downtown detrás) — que el Obelisco DOMINE; nada de letterbox
+      ctx.fillStyle = '#14141c'; for (let bx = 0; bx < VW; bx += 44) { const bh = 12 + ((bx * 7) % 20); ctx.fillRect(bx, oy + 22 - bh, 38, bh); }
+      // cielo de la avenida (noche, leve resplandor) — todo el ancho
+      const sky = ctx.createLinearGradient(0, oy, 0, oy + 46); sky.addColorStop(0, '#1a1622'); sky.addColorStop(1, '#2a2026');
+      ctx.fillStyle = sky; ctx.fillRect(0, oy, VW, 46);
+      // ASFALTO de la 9 DE JULIO — PLANA y ANCHA, TODO el ancho, de la plaza hacia abajo
+      for (let py = oy + 46; py < VH; py += CS) for (let px = 0; px < VW; px += CS) { ctx.fillStyle = ((Math.floor(px / CS) + Math.floor(py / CS)) % 2) ? pal.floor : pal.floor2; ctx.fillRect(px, py, CS, Math.min(CS, VH - py)); }
+      // CARRILES: muchas líneas blancas PARALELAS y verticales (la avenida más ancha del mundo) — NADA de líneas que convergen
+      ctx.strokeStyle = pal.lane; ctx.lineWidth = 2; ctx.setLineDash([16, 13]);
+      for (let lx = 56; lx < VW - 30; lx += 60) { ctx.beginPath(); ctx.moveTo(lx, oy + 48); ctx.lineTo(lx, VH); ctx.stroke(); }
+      ctx.setLineDash([]);
+      // jacarandás a los COSTADOS (en los canteros laterales, fuera del paso) — la 9 de Julio tiene árboles
+      for (const sx of [62, VW - 62]) for (const ty of [4.2, 8, 11.8]) { const ty2 = TY2(ty); ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(sx, ty2 + 10, 11, 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#16301a'; ctx.beginPath(); ctx.arc(sx, ty2, 13, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#22481f'; ctx.beginPath(); ctx.arc(sx - 5, ty2 - 4, 8, 0, Math.PI * 2); ctx.arc(sx + 6, ty2 - 1, 7, 0, Math.PI * 2); ctx.fill(); }
+      // PLAZA DE LA REPÚBLICA (piso claro) + EL OBELISCO grande parado en ella, centrado en TODA la pantalla
+      ctx.fillStyle = '#33312d'; ctx.beginPath(); ctx.ellipse(VW / 2, oy + 46, 132, 19, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#3b3934'; ctx.beginPath(); ctx.ellipse(VW / 2, oy + 46, 92, 12, 0, 0, Math.PI * 2); ctx.fill();
       { const img = (typeof Art !== 'undefined' && Art.decor) ? Art.decor.obelisco : null;
-        if (img) { const sc = 1.35; ctx.drawImage(img, VW / 2 - img.width * sc / 2, cutY - img.height * sc + 12, img.width * sc, img.height * sc); } }
-      // perspectiva de la avenida hacia el Obelisco (carriles convergen) — todo el ancho
-      ctx.strokeStyle = 'rgba(201,192,138,0.45)'; ctx.lineWidth = 1; ctx.setLineDash([7, 9]);
-      for (let lx = 0; lx <= VW; lx += 70) { ctx.beginPath(); ctx.moveTo(lx, cutY); ctx.lineTo(VW / 2 + (lx - VW / 2) * 0.16, oy + 34); ctx.stroke(); }
-      ctx.setLineDash([]);
-      // ASFALTO de la avenida — TODO el ancho (no una franja)
-      for (let y = 4; y < H; y++) for (let px = 0; px < VW; px += CS) { ctx.fillStyle = ((Math.floor(px / CS) + y) % 2) ? pal.floor : pal.floor2; ctx.fillRect(px, TY2(y), CS, CS); }
-      // carriles (avenida ANCHA = muchos) — todo el ancho
-      ctx.strokeStyle = pal.lane; ctx.lineWidth = 2; ctx.setLineDash([14, 12]);
-      for (let lx = 40; lx <= VW - 20; lx += 78) { ctx.beginPath(); ctx.moveTo(lx, cutY); ctx.lineTo(lx, TY2(H - 0.4)); ctx.stroke(); }
-      ctx.setLineDash([]);
+        if (img) { const sc = 1.4; ctx.drawImage(img, VW / 2 - img.width * sc / 2, oy + 48 - img.height * sc, img.width * sc, img.height * sc); } }
       // colectivos / autos chicos PASADA la reja (tránsito parado del otro lado)
       for (const v of vehs) if (v.y < 3.6) vehicle(ctx, TX2(v.x + 0.5), TY2(v.y + 0.5), v.kind, v.col, v.sc);
       // LA REJA cruzando + AUTOS ROTOS + CUBIERTAS + BANDERAS (el corte)

@@ -1,11 +1,29 @@
 # SDD — Calle Lavalle (hacia el Obelisco): el piquete copado
 
-- **Estado:** **Etapa 1 EN CONSTRUCCIÓN** (la primera versión jugable, "miremos cómo anda"). El resto, por etapas (§5).
-- **Última actualización:** 2026-06-30
+- **Estado:** **ETAPA 1.5 HECHA y en prod (v246→v248).** Lavalle es un **sub-modo TOP-DOWN** (`js/lavalle.js`), NO una
+  sala side-scroller. Próximo: Etapa 2 (§5).
+- **Última actualización:** 2026-06-30 (v248)
 - **Origen:** idea del dueño. (Reemplaza el viejo "Nivel 2 = Calle Lavalle" del truco, que se había descartado: esta es
   una visión NUEVA y concreta, desacoplada del truco — Lavalle es una **zona contigua** de la calle, no un premio.)
-- **Relacionado:** `js/level.js` (la calle es la sala 0 `Florida y Lavalle`), `js/art.js` (decor dibujado), `js/audio.js`
-  (la **cumbia** ya existe: `Sfx.setCumbia`), `js/lang/level.en.js` (i18n del nivel, mapa ES→EN), `js/game.js` (transición/música).
+
+## 0. Implementación actual (v246→v248) — ESTO es lo que está hecho (las §2-§3 de abajo son el diseño viejo, superado)
+
+Tras el playtest del dueño, el diseño side-scroller original (§2-§3) **se reemplazó**:
+- **Lavalle = SUB-MODO TOP-DOWN** `js/lavalle.js` (patrón `bodegon.js`/`telo.js`), **no una sala** del nivel. Se ve la
+  avenida **9 de Julio** DE FRENTE: **Obelisco grande** en la **Plaza de la República**, **carriles PARALELOS** a todo el
+  ancho (plana y ancha — NO líneas que convergen, eso parecía un puente colgante; v249) + jacarandás en los costados,
+  la **barricada** del corte (cubiertas apiladas + autos rotos + reja + **banderas** Viva Perón/argentina/Che), tachos
+  al **fuego animado** + olla popular, **colectivos/autos parados** + **patrulleros** (`vehicle()`), y los **piqueteros
+  de cuerpo entero** (`piquetero()`: bandana/capucha, palos, bombo, banderas; sin niños). Cumbia (`Sfx.setCumbia`).
+- **ENTRADA SIN PUERTA:** uno no cruza a otra calle por una puerta. En la sala 0 hay un **cartel de calle** decor
+  `lavalle_sign` (`art.js`) en la esquina; **caminás al borde IZQUIERDO de Florida y PASÁS solo** (`game.js update`:
+  `current===0 && player.x < 1.7*TILE && !stormed → enterLavalle()`). Volvés caminando para ABAJO (`exitTo:'street'` →
+  spawn en `x=5` de la calle). `enterLavalle()` + estado `lavalle` + dispatch en game.js, igual que el bodegón.
+- **NO hay sala side-scroller** de Lavalle (la 52 que existió en v244 se eliminó; el modelo v2 volvió a **51 salas**).
+- Archivos: `js/lavalle.js` (el sub-modo), `js/art.js` (`lavalle_sign` decor + obelisco), `js/game.js` (enterLavalle +
+  auto-pase + dispatch), i18n `g.lavalle.*` en `game.es/en.js`. **Verificado con screenshot real (Playwright).**
+
+- **Relacionado:** `js/lavalle.js` (sub-modo), `js/art.js`, `js/audio.js` (cumbia `Sfx.setCumbia`), `js/game.js`.
 
 ## 1. La visión
 

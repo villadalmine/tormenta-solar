@@ -56,6 +56,40 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v249] — 2026-06-30 — 🛣️ Lavalle: la avenida ahora SÍ parece la 9 de Julio (carriles paralelos, no el puente de Brooklyn)
+
+El dueño: "hiciste el puente de Brooklyn, basate en fotos de la 9 de Julio". Las líneas en perspectiva que convergían a
+un punto parecían los cables de un puente colgante. Corregido sobre la avenida REAL: **carriles blancos PARALELOS y
+verticales** a todo el ancho (la avenida más ancha del mundo), el **Obelisco parado en la Plaza de la República** (piso
+claro), y **jacarandás** en los canteros laterales. Plano y ancho. Solo cliente. Cache **v249**.
+
+---
+
+## [v248] — 2026-06-30 — ✊🏙️ Lavalle = la 9 de Julio (Obelisco grande, carriles, colectivos/autos/patrulleros) + SIN puerta
+
+Más feedback del dueño sobre el piquete: (1) más Obelisco; (2) que parezca la **9 de Julio** con los natos cortando,
+**colectivos y autos parados** y **patrulleros**; (3) la puerta-edificio estaba mal — uno no cruza a otra calle por una
+puerta, **caminás y pasás**.
+- **Look 9 de Julio:** la avenida ocupa **todo el ancho** (asfalto + muchos carriles + perspectiva al Obelisco), el
+  **Obelisco grande y centrado**, **colectivos/autos PARADOS + PATRULLEROS** (helper `vehicle()` top-down con barra de
+  luces), barricada cohesiva (cubiertas + autos rotos + reja + banderas). FIX: faltaba limpiar el canvas → se colaba la
+  calle en los márgenes.
+- **Entrada SIN puerta:** se eliminó la door `lavalle` de la sala 0 + la **sala 52 side-scroller** (la reemplaza el
+  sub-modo) + el wire. Ahora **caminás al borde IZQUIERDO de Florida y pasás solo** (`game.js`), con un cartel de calle
+  `lavalle_sign` (`art.js`) en la esquina. Modelo v2 regenerado → **51 salas** (volvió al original; paridad v1≡v2 OK).
+- e2e + v1≡v2 + paridad i18n (745/745) + headless + screenshot real (Playwright). Solo cliente. Cache **v248**.
+
+---
+
+## [v247] — 2026-06-30 — ✊ Lavalle: el piquete ahora SE LEE como piquete (composición + personajes de cuerpo entero)
+
+Feedback del dueño: "no son cosas sueltas, es un piquete". Recompuesto: barricada del fondo = MURO (cubiertas apiladas
++ autos rotos + la reja + banderas Viva Perón ×2 + **bandera argentina** + Che), tachos al fuego + olla adelante, y
+**piqueteros de CUERPO ENTERO** (campera/piernas/cabeza, bandana/capucha, palos, bombo, banderas) — **sin niños**, solo
+personajes de piquete (encapuchado, del bombo, de la bandera, referente…). Dibujo ordenado por Y. Cache **v247**.
+
+---
+
 ## [v246] — 2026-06-30 — ✊🎶 Lavalle E1.5: el piquete ahora es TOP-DOWN + entrás caminando (cartel, no puerta)
 
 Feedback del dueño sobre la Etapa 1: (1) para ir a Lavalle entrabas por una **puerta de edificio** que decía "VALLE"
