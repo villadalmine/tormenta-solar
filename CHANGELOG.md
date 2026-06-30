@@ -56,6 +56,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v242] — 2026-06-30 — 🧹 Deuda menor cerrada: beats en el sueño top-down + el fierro criollo siempre tiene blanco
+
+Dos puntas finas que quedaban del A0-DEEP y de las armas criollas:
+- **A0-DEEP CERRADO del todo — beats en el spinoff top-down del chino:** `NivelAI.generate()` (la escena top-down,
+  "los sueños del Carpo") ahora siembra las **ANCLAS de los beats** del relato (`THEME_BEATS[id]`) como **props
+  set-piece** (flag `anchor:true`), y `js/spinoff.js` las dibuja **más grandes + glow** (no decor random) → el sueño
+  top-down también "se lee" como la historia, igual que el nivel-plataforma. (Los 9 temas del chino siembran sus
+  anclas, ej. super-rasca → 🧧🥫🐲.) `specs/fabrica-niveles-ai.md §A0-DEEP`.
+- **Armas criollas: el fierro siempre tiene a quién pegarle.** Cada arma criolla pega ×3 contra UN tipo de bicho
+  (rebenque→pacman, boleadoras→dron/galaga, facón→peatón, FAL→cuevero), pero una sala de un solo *vibe* podía no
+  spawnear ese tipo → el arma quedaba inútil. Ahora `ensureCriolloTargets(model)` (en `game.js`, al cargar el sueño)
+  mira las armas criollas que **tenés** y, por cada tipo "contra" que no aparezca, **swapea un enemigo al azar a ese
+  tipo** (no toca geometría → la RED no se altera). `specs/inventario-armas.md §6`.
+
+Solo cliente (sin proxy). Tests e2e + web-smoke OK. Cache **v242**.
+
+---
+
 ## [v241 · infra-42] — 2026-06-30 — 🃏🃏 TRUCO DE A 6 (3v3) PvP con relleno de IA + watchdog de reconexión
 
 El truco multijugador da el salto al **3v3**: en el bodegón hay una **mesa "TRUCO 6"** → te sentás → se arma un

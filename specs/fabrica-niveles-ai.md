@@ -262,7 +262,7 @@ contraste). Anotado también en la memoria `backlog` como **A0 (prioritario)**.
   resueltos. Si a futuro se quiere que la IA autore geometría **temática** (no solo posiciones), el hook ya existe
   (`aiPlatforms`/`requestGeometry`): falta que el proxy proponga layouts con sentido del relato.
 
-## A0-DEEP — los niveles reflejan más el relato (✅ PARCIAL v236: props ancla + 2 styles; falta (1) beats)
+## A0-DEEP — los niveles reflejan el relato (✅ CERRADO: props ancla + 2 styles v236 · salas=BEATS v237 · beats en el top-down v242)
 **Hecho (v236, 2026-06-29):** las direcciones BARATAS/INTERMEDIAS del §A0-DEEP:
 - **(3) PROPS ANCLA:** cada nivel generado lleva un **set-piece RECONOCIBLE** del relato colocado a propósito (centro del
   piso, emoji GRANDE con glow) — no decor random. Mapa `ANCHOR` (motif→emoji) + `anchorFor(t)` en `nivelai.js`; el render
@@ -280,7 +280,11 @@ por tema del chino (`[{n:{es,en}, a:emoji, en:tipoBicho, haz?}]`); la **IA** (or
 y `assemble(i)` usa `beats[i]` para el **nombre de sala** + **ancla** + **sesgo de enemigo/hazard**. **Proxy:** `BEATS_ASK`
 agregado a los prompts de oráculo/historia + `parseGeom` saca `j.beats`. Fallback total: sin beats → salas genéricas (como
 antes). Verificado headless (super-rasca: "la entrada"→"las góndolas"→"el depósito del dragón" con 🧧→🥫→🐲; IA ad-hoc OK; 0
-problems). **Falta (menor):** aplicar beats al spinoff del chino top-down (`generate()`); afinar que la IA realmente los autore bien (depende del modelo).
+problems). **✅ beats al spinoff top-down HECHO (v242):** `generate()` ahora siembra las ANCLAS de los beats
+(`THEME_BEATS[t.id]` o `t.beats`) como **props set-piece** (flag `anchor:true`), y `spinoff.js` las dibuja **más
+grandes + glow** (no decor random) → el sueño top-down también "se lee" como la historia. Verificado: los 9 temas del
+chino siembran anclas (ej. super-rasca → 🧧🥫🐲). **A0-DEEP CERRADO.** Único futuro abierto: afinar que la IA realmente
+autore buenos beats (depende del modelo).
 
 <details><summary>(reporte original ↓)</summary>
 

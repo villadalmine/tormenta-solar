@@ -1328,9 +1328,30 @@
     for (const k in oracleMem) for (const m of (oracleMem[k] || [])) if (m && m.role === 'user' && m.content) out.push(String(m.content).slice(0, 120));
     return out.slice(-8);
   }
+  // ARMAS CRIOLLAS (inventario-armas §6): garantiza que el sueño tenga A QUIÉN pegarle con el fierro criollo que tengas.
+  // Cada arma criolla pega ×3 contra UN tipo de bicho (rebenque→pacman, boleadoras→dron/galaga, facón→peaton, FAL→cuevero),
+  // pero una sala de un solo "vibe" puede no spawnear ese tipo. Acá, por cada arma criolla que TENÉS, si su tipo "contra" no
+  // aparece, swapeo un enemigo al azar a ese tipo (no toca geometría → la RED no se altera). Así el arma criolla sirve.
+  function ensureCriolloTargets(model) {
+    if (!model || !model.rooms) return;
+    const targets = [];
+    for (const id of (player.inventory || [])) { const w = WEAPONS[id]; if (w && w.ctx === 'dream' && Array.isArray(w.effectiveVs)) for (const ty of w.effectiveVs) if (!targets.includes(ty)) targets.push(ty); }
+    if (!targets.length) return;
+    const enemies = [];
+    for (const r of model.rooms) for (const e of (r.entities || [])) if (e.tipo === 'enemy' && e.combat) enemies.push(e);
+    if (!enemies.length) return;
+    const present = new Set(enemies.map(e => e.combat.type));
+    const pool = enemies.slice();
+    for (const ty of targets) {
+      if (present.has(ty)) continue;
+      const idx = (Math.random() * pool.length) | 0, e = pool.splice(idx, 1)[0]; if (!e) break;
+      e.combat.type = ty; present.add(ty);
+    }
+  }
   // construye+valida+swapea un nivel generado. Devuelve true si entró; false si no era jugable (la RED).
   function loadGenLevel(gen, returnRoom) {
     if (!gen) return false;
+    ensureCriolloTargets(gen.model);   // armas criollas en sueños: que el nivel spawnee el tipo "contra" del arma que tenés
     let genRooms = null; try { genRooms = Mundo.fromModel(gen.model); } catch (e) {}
     const playable = (typeof Playable === 'undefined') || Playable.checkLevel(gen.model).ok;   // LA RED
     const hasGoal = genRooms && genRooms.some(r => r.goal);

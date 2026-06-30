@@ -56,9 +56,13 @@ const Spinoff = (() => {
           if (map[y][x] === 1) { ctx.fillStyle = pal.wall; ctx.fillRect(px, py, CS, CS); ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(px, py + CS - 4, CS, 4); }
           else { ctx.fillStyle = ((x + y) % 2) ? pal.floor : pal.floor2; ctx.fillRect(px, py, CS, CS); }
         }
-        // props temáticos (emoji)
-        ctx.textAlign = 'center'; ctx.font = '17px serif';
-        for (const p of scene.props) ctx.fillText(p.emoji, ox + (p.x + 0.5) * CS, oy + (p.y + 0.7) * CS);
+        // props temáticos (emoji); las ANCLAS del relato (A0-DEEP) van más grandes + glow = set-pieces, no decor random
+        ctx.textAlign = 'center';
+        for (const p of scene.props) {
+          const px = ox + (p.x + 0.5) * CS, py = oy + (p.y + 0.7) * CS;
+          if (p.anchor) { ctx.save(); ctx.font = '27px serif'; ctx.shadowColor = pal.accent; ctx.shadowBlur = 12; ctx.fillText(p.emoji, px, py); ctx.restore(); }
+          else { ctx.font = '17px serif'; ctx.fillText(p.emoji, px, py); }
+        }
         // META (portal de salida)
         const gx = ox + (scene.goal.x + 0.5) * CS, gy = oy + (scene.goal.y + 0.5) * CS, pulse = 6 + Math.sin(t * 4) * 3;
         ctx.fillStyle = pal.accent; ctx.beginPath(); ctx.arc(gx, gy, 13, 0, Math.PI * 2); ctx.fill();

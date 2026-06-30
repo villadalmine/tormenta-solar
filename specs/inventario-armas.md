@@ -76,8 +76,11 @@ usamo", `g.wpn.dreamOk`); en la calle real se niega (`g.wpn.dreamOnly`). El disp
 {eff,mul,dmg} del arma equipada; `player.js fire()` manda un proyectil que DAÑA con `{eff,mul}`; `fx.js` aplica `dmg×mul`
 si `e.type ∈ eff` (chispa dorada). Al terminar el sueño (`endSpinoffLevel`) se desequipa (volvés a `escupitajo`: despierto
 no la usa). Probado headless (x3 al tipo, x1 al resto). i18n `g.wpn.rebenque/boleadoras/facon/fal/dreamOk/dreamOnly/
-dreamHint`, `g.inv.dream`. **Falta (futuro):** balance fino + que la IA del nivel generado spawnee el tipo "contra" del
-arma que llevás (hoy es por motif, ya hay variedad).
+dreamHint`, `g.inv.dream`. **✅ Spawn del tipo "contra" HECHO (v242):** al cargar un nivel generado, `game.js`
+`ensureCriolloTargets(model)` mira las armas criollas que TENÉS en el inventario y, por cada tipo "contra" que no
+aparezca en el nivel (una sala de un solo *vibe* puede no spawnearlo), **swapea un enemigo al azar a ese tipo**
+(no toca geometría → la RED no se altera). Así el fierro criollo que llevés SIEMPRE tiene a quién pegarle.
+**Falta (futuro):** balance fino de daño/cantidad.
 
 ### (diseño original ↓)
 ### 6.0 — DISEÑO

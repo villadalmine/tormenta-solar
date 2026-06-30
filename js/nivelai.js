@@ -277,6 +277,10 @@ const NivelAI = (() => {
     function freeTile() { for (let i = 0; i < 60; i++) { const x = rnd(2, W - 3), y = rnd(2, H - 3); if (!used[key(x, y)]) { used[key(x, y)] = 1; return { x, y }; } } return { x: 2, y: 2 }; }
     const props = [];
     for (let i = 0, n = rnd(9, 15); i < n; i++) { const p = freeTile(); props.push({ x: p.x, y: p.y, emoji: t.props[(Math.random() * t.props.length) | 0] }); }
+    // A0-DEEP (1): si el tema trae BEATS (secuencia del relato), sembrá sus ANCLAS como SET-PIECES reconocibles (no props
+    // random) → el sueño top-down "se lee" como la historia, igual que el nivel-plataforma (assemble). Cada ancla = grande.
+    const beats = (t.beats && t.beats.length) ? t.beats : THEME_BEATS[t.id];
+    if (beats) for (const b of beats) { const a = (b && b.a) || anchorFor(t); if (a) { const p = freeTile(); props.push({ x: p.x, y: p.y, emoji: a, anchor: true }); } }
     const npcs = [];
     for (let i = 0, n = rnd(2, 3); i < n; i++) { const p = freeTile(); npcs.push({ x: p.x, y: p.y, emoji: t.npc.emoji, lines: L(t.npc.lines).slice(), say: '', sayT: 0 }); }
     const gp = freeTile();
