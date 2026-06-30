@@ -115,6 +115,55 @@ const Art = (() => {
       g.fillStyle = '#263238'; g.fillRect(2, 3, w-4, 5);
       g.fillStyle = '#1c2429'; for (let y = 11; y < h-2; y += 5) g.fillRect(5, y, w-10, 2);
     }),
+    // --- LAVALLE / el piquete (specs/lavalle.md, Etapa 1) ---
+    tacho_fuego: mk(24, 40, (g, w, h) => {       // tacho prendido fuego
+      g.fillStyle = '#2b3439'; g.fillRect(4, 14, w-8, h-14);
+      g.fillStyle = '#1c2429'; g.fillRect(3, 12, w-6, 4);
+      g.fillStyle = '#11171a'; for (let y = 20; y < h-2; y += 6) g.fillRect(6, y, w-12, 2);
+      g.fillStyle = '#7a1500'; g.beginPath(); g.moveTo(5,14); g.quadraticCurveTo(w/2,-6,w-5,14); g.fill();
+      g.fillStyle = '#e8540a'; g.beginPath(); g.moveTo(8,14); g.quadraticCurveTo(w/2,0,w-8,14); g.fill();
+      g.fillStyle = '#ffb300'; g.beginPath(); g.moveTo(11,14); g.quadraticCurveTo(w/2,5,w-11,14); g.fill();
+      g.fillStyle = '#ffe14d'; g.beginPath(); g.arc(w/2,9,3,0,Math.PI*2); g.fill();
+    }),
+    pancarta: mk(72, 92, (g, w, h) => {          // pancarta "VIVA PERÓN" colgada de dos cañas
+      g.strokeStyle = '#5a3a1a'; g.lineWidth = 3; g.beginPath(); g.moveTo(6,h); g.lineTo(6,8); g.moveTo(w-6,h); g.lineTo(w-6,8); g.stroke();
+      g.fillStyle = '#f3ead8'; g.fillRect(6, 10, w-12, 36);
+      g.strokeStyle = '#bdae93'; g.lineWidth = 1; g.strokeRect(6, 10, w-12, 36);
+      g.fillStyle = '#1f4fa0'; g.font = 'bold 13px monospace'; g.textAlign = 'center';
+      g.fillText('VIVA', w/2, 25); g.fillText('PERÓN', w/2, 40);
+    }),
+    bandera_che: mk(42, 98, (g, w, h) => {       // bandera roja con la cara del Che
+      g.strokeStyle = '#4a3a2a'; g.lineWidth = 3; g.beginPath(); g.moveTo(5,h); g.lineTo(5,4); g.stroke();
+      g.fillStyle = '#b71c1c'; g.fillRect(7, 6, w-10, 42);
+      g.fillStyle = '#7a1212'; g.fillRect(7, 6, w-10, 3);
+      const cxx = 7 + (w-10)/2;
+      g.fillStyle = '#111'; g.beginPath(); g.arc(cxx, 27, 11, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#b71c1c'; g.beginPath(); g.arc(cxx+2, 25, 7, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#111'; g.fillRect(cxx-13, 17, 9, 5);
+    }),
+    olla: mk(42, 46, (g, w, h) => {              // olla popular humeante sobre fuego/ladrillos
+      g.fillStyle = '#7a3b1a'; g.fillRect(4, h-8, w-8, 8);
+      g.fillStyle = '#e8540a'; g.beginPath(); g.moveTo(10,h-8); g.quadraticCurveTo(w/2,h-22,w-10,h-8); g.fill();
+      g.fillStyle = '#ffb300'; g.beginPath(); g.moveTo(14,h-8); g.quadraticCurveTo(w/2,h-16,w-14,h-8); g.fill();
+      g.fillStyle = '#37474f'; g.beginPath(); g.ellipse(w/2, h-20, (w-12)/2, 12, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#263238'; g.fillRect(6, h-30, w-12, 12);
+      g.fillStyle = '#1c2429'; g.beginPath(); g.ellipse(w/2, h-30, (w-12)/2, 5, 0, 0, Math.PI*2); g.fill();
+      g.strokeStyle = 'rgba(220,220,220,0.45)'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(w/2-6,h-34); g.quadraticCurveTo(w/2-12,h-44,w/2-4,h-52); g.moveTo(w/2+6,h-34); g.quadraticCurveTo(w/2+12,h-44,w/2+4,h-52); g.stroke();
+    }),
+    barricada: mk(50, 72, (g, w, h) => {         // el corte: gomas apiladas + maderas + un tacho ladeado
+      for (let i=0;i<3;i++){ g.fillStyle='#1a1a1a'; g.beginPath(); g.ellipse(15, h-10-i*16, 12, 7, 0, 0, Math.PI*2); g.fill(); g.fillStyle='#333'; g.beginPath(); g.ellipse(15, h-10-i*16, 6, 4, 0, 0, Math.PI*2); g.fill(); }
+      g.fillStyle = '#6d4c2f'; g.save(); g.translate(31, h-30); g.rotate(-0.5); g.fillRect(-4,-22,8,44); g.restore();
+      g.fillStyle = '#5a3f26'; g.save(); g.translate(37, h-26); g.rotate(0.4); g.fillRect(-4,-20,8,40); g.restore();
+      g.fillStyle = '#37474f'; g.save(); g.translate(42, h-12); g.rotate(0.3); g.fillRect(-7,-14,14,16); g.restore();
+    }),
+    obelisco: mk(46, 220, (g, w, h) => {         // el Obelisco al fondo (set-piece, detrás de la barricada)
+      g.fillStyle = '#c9cdd2'; g.beginPath(); g.moveTo(w/2-3,18); g.lineTo(w/2+3,18); g.lineTo(w/2+11,h); g.lineTo(w/2-11,h); g.closePath(); g.fill();
+      g.fillStyle = '#aeb3b8'; g.beginPath(); g.moveTo(w/2,4); g.lineTo(w/2+3,18); g.lineTo(w/2-3,18); g.closePath(); g.fill();
+      g.fillStyle = '#9aa0a6'; g.fillRect(w/2-11, h-3, 22, 3);
+      g.fillStyle = '#d8dbdf'; g.fillRect(w/2-2, 24, 2, h-30);
+      g.fillStyle = '#5a5f64'; g.fillRect(w/2-2, 30, 4, 4);
+    }),
     // --- subsuelos / cuevas ---
     caja: mk(30, 28, (g, w, h) => {
       g.fillStyle = '#7a5230'; g.fillRect(2, 4, w-4, h-4);
@@ -1070,6 +1119,7 @@ const Art = (() => {
     garbarino:   { w: 150, h: 200, c: '#e65100', c2: '#bf360c', win: '#fff3e0', sign: 'GARBARINO', sc: '#fff' },
     cemento:     { w: 150, h: 170, c: '#161616', c2: '#0a0a0a', win: '#b71c1c', sign: 'CEMENTO', sc: '#fff' },
     cine:        { w: 156, h: 220, c: '#2a1840', c2: '#1a0f2a', win: '#ffd54f', sign: '🎬 CINE', sc: '#ffe14d' },
+    lavalle:     { w: 120, h: 150, c: '#241f18', c2: '#16120d', win: '#caa45a', sign: 'LAVALLE →', sc: '#ffd54f' },   // la esquina que dobla al piquete/Obelisco
   };
   function drawBuilding(g, sx, gy, style) {
     const s = BUILDINGS[style] || BUILDINGS.galeria;

@@ -2486,7 +2486,7 @@
     for (const n of r.npcs || []) {
       if (n.sprite === 'musico' && Math.abs(player.x+player.w/2 - n.x) < 240) { nearMusico = true; break; }
     }
-    Sfx.setCumbia(nearMusico && !stormed);
+    Sfx.setCumbia((nearMusico || hasTag(r, 'lavalle')) && !stormed);   // §lavalle.md: en el piquete, cumbia al palo
 
     // vendedor que te sigue (Garbarino): camina hacia vos y siempre quiere venderte algo
     for (const n of r.npcs || []) {

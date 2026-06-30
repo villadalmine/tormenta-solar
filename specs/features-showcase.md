@@ -45,6 +45,10 @@
 - **Banks vivos (todo-API):** noticias del cine (Google News + ESPN Mundial), propaganda de marcas, chusmerío —
   **bancos JSON-en-PVC** que llenan **crons** y sirve el proxy, con **fallback estático**. TTS server (espeak-ng)
   para navegadores sin voz.
+- **Calle Lavalle — el piquete copado:** desde el arranque, si **doblás a la izquierda** caés en Calle Lavalle yendo
+  al Obelisco, y está **todo cortado por un piquete de fiesta**: tachos prendidos fuego, pancartas "Viva Perón",
+  banderas del Che, olla popular, pibes jugando, gente copada y **cumbia al palo**; el Obelisco al fondo tras la
+  barricada. Una postal porteña explorable (homenaje/parodia). Ver `specs/lavalle.md`.
 - **Multijugador (cine de Lavalle):** el **8º piso EN VIVO** muestra el **mundo vivo** (cuántos juegan AHORA, en qué
   zona, ticker de hitos; relay in-memory `/salon`). El **9º piso es un BODEGÓN porteño REAL-TIME**: subís y **te
   encontrás con OTROS jugadores** moviéndose en vivo (SSE, interpolados), con su nick, **emotes** (🍻🤝💃🎸) y **frases

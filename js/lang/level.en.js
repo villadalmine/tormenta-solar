@@ -12,6 +12,21 @@ const LEVEL_EN = {
     '"I drop you some lunfardo verses, you drop me a smoke. Fair trade, maestro." 📜',
   '“Soy el linyera más querido del barrio. Vení que charlamos, total el tiempo no se cobra.” 🫶':
     '"I\'m the most beloved bum in the barrio. Come, let\'s chat — time\'s free anyway." 🫶',
+  // ---- LAVALLE / el piquete (specs/lavalle.md, Etapa 1) ----
+  'Lavalle — el piquete': 'Lavalle — the picket',
+  'doblar a Lavalle (al Obelisco)': 'turn down Lavalle (to the Obelisco)',
+  'volver a Florida y Lavalle': 'back to Florida & Lavalle',
+  'Pibita': 'Kid', 'Doña Rosa': 'Doña Rosa', 'La olla popular': 'The soup kitchen', 'Compañero': 'Comrade',
+  'Vecina copada': 'Cool neighbor', 'El del fierro': 'The guy with the piece', 'El de la tumbera': 'The guy with the zip gun', 'El que corta': 'The one blocking the road',
+  '“¡Pasámela, pasámela! ¡Dale que estamos 3 a 2!” ⚽': '"Pass it, pass it! C\'mon, it\'s 3 to 2!" ⚽',
+  '“¡Gooool, la concha de la lora! ¡Aguante el barrio!” 🥅': '"Goooal, bloody hell! Long live the barrio!" 🥅',
+  '“Bienvenido al corte, mi amor. Acá no falta un plato de comida ni una cumbia.” 🪗': '"Welcome to the picket, my love. Here there\'s always a plate of food and a cumbia." 🪗',
+  '“¿Un guisito, pibe? Hay para todos, agarrá un plato. 🍲”': '"A bit of stew, kid? There\'s enough for everyone, grab a plate. 🍲"',
+  '“Acá estamos firme, hermano. Viva Perón, viva el Che, viva la cumbia. ✊🎶”': '"We\'re standing firm here, brother. Long live Perón, long live the Che, long live cumbia. ✊🎶"',
+  '“¡Que suene fuerte esa cumbia, dale! Bailá, no seas amargo. 💃”': '"Crank that cumbia up, c\'mon! Dance, don\'t be a sourpuss. 💃"',
+  '“Tranqui, pibe, el fierro es por las dudas nomás. Acá entre nosotros somos todos compañeros. 🔧”': '"Easy, kid, the piece is just in case. Among us here we\'re all comrades. 🔧"',
+  '“Cuidamos el corte, nada más. Vos pasala bien, comé algo, bailá. 🪅”': '"We just guard the picket, that\'s all. You have a good time, eat something, dance. 🪅"',
+  '“De acá no se pasa, hermano: está todo cortado hasta el Obelisco. Volvé más adelante, que se viene algo grande. 🚧🏛️”': '"You can\'t get past here, brother: it\'s all blocked up to the Obelisco. Come back later — something big is coming. 🚧🏛️"',
   // ---- room names (static) ----
   'Florida y Lavalle': 'Florida & Lavalle',
   'Arcade de Lavalle': 'Lavalle Arcade',

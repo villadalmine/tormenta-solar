@@ -56,6 +56,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v244] — 2026-06-30 — ✊ CALLE LAVALLE (Etapa 1): doblás a la izquierda y caés en el piquete copado
+
+Nueva zona contigua a la calle: desde el arranque (Florida y Lavalle), si **doblás a la izquierda** (puerta nueva al
+extremo izq de la sala 0) entrás a **Calle Lavalle yendo al Obelisco** — y está **todo cortado por un piquete copado**:
+**tachos prendidos fuego**, pancarta "**VIVA PERÓN**", **banderas del Che**, **olla popular**, **pibes jugando**,
+gente con **armas tumberas** (copados, no atacan), todo de fiesta y **cumbia al palo**. El **Obelisco** se ve al fondo,
+detrás de la **barricada** (de ahí no se pasa todavía — gancho de la Etapa 2). **Sin combate**: es una postal ambiental.
+
+- **Etapa 1** (esta): la entrada + el clima. Después le agregamos más (pasar el piquete, el Obelisco, quests, etc.).
+- **Sala nueva** `Lavalle — el piquete` (sala 52, tag `lavalle`, theme street) en `js/level.js` + puerta `lavalle` en
+  la calle + `wire`. **Decor nuevo** dibujado en `js/art.js`: `tacho_fuego`, `pancarta`, `bandera_che`, `olla`,
+  `barricada`, `obelisco` + facade `lavalle`. **Cumbia** al entrar (la cumbia ya existía en `audio.js`; se fuerza con
+  el tag `lavalle`). **9 NPCs** ambientales (pibes, olla popular, compañeros, los del fierro, el que corta).
+- **Modelo v2** regenerado (`tools/gen-level.js` → `levels/nivel-1.json` + `js/level-data.js`, 52 salas) → la
+  **paridad v1≡v2 se mantiene**. i18n ES/EN (`js/lang/level.en.js`). e2e + parity + web-smoke OK. Cache **v244**.
+  SDD `specs/lavalle.md` (Etapa 1 + roadmap E2-E5). Homenaje/parodia cariñosa, sin afiliación.
+
+---
+
 ## [v243] — 2026-06-30 — 💬 Bodegón: los peers como puntos de interacción + chat privado 1-a-1 en el top-down (T2b/F2b.2)
 
 En el **bodegón top-down** ahora te acercás a otro jugador sentado en una mesa y **[E]** abre un **menú de
