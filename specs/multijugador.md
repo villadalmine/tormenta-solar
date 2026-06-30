@@ -76,8 +76,9 @@ métrica Prometheus para un panel — hoy la validación directa es el endpoint 
 > entrar/salir), `drawBodegonPeers` (interpola + nick + emote + globo), heartbeat de pos en el loop, teclas 1-4 emote /
 > 5-8 frase preset. **Degradación total:** sin red/`EventSource` → bodegón single-player (mozos canned + gag), nadie nota.
 > **✅ F2b.2 HECHO (v213/infra-34):** **chat PRIVADO 1-a-1** (§3.2.1) — `E` cerca de un peer → `#chat` en modo peer →
-> `Salon.whisper` → relay dirigido `/salon/whisper` (solo al destinatario, efímero, rate-limit). **FALTA F2b.3:** las
-> **mesas como puntos de interacción compartida** (§3.3).
+> `Salon.whisper` → relay dirigido `/salon/whisper` (solo al destinatario, efímero, rate-limit). **✅ F2b.3 + T2b
+> HECHO (v243):** en el TOP-DOWN, [E] sobre un peer sentado → menú de interacción (truco 1v1 / chat privado); el peer
+> es un punto de interacción real (ver §3.2.1 abajo).
 >
 > **✅ F3 HECHO — TRUCO PvP HUMANO (v240 · infra-41):** truco **1v1 contra otro jugador real** en el bodegón top-down.
 > Te acercás a un peer **sentado** → **[E] invitar** → acepta → partida COMPLETA (envido/flor/truco, mejor de 3) con
@@ -160,10 +161,11 @@ gente**, un **mostrador** y el gag de la rubia extendido a un **telo de lujo**.
   via `Salon.getPeers`, asignados a asientos) + **mostrador con la rubia** (E → invita → E → `goTelo` → lanza el telo) +
   salida (E/ESC → baja al cine8). **Emotes (1-4) y frases preset (5-8)** dentro del sub-modo (`Salon.pos/say`) + latido.
   Lanzado en `transition()` al entrar a la sala `bodegon` (si no hay sub-modo → cae al side-scroller, degradación). Tras
-  el telo, si seguís en el bodegón, **relanza** el top-down. **FALTA T2b:** el **chat privado 1-a-1 dentro del top-down**
-  (acercarte a un peer sentado + E → `#chat`) — quedó afuera por el lío de anidar el overlay de chat con el estado del
-  sub-modo; se hace dándole a `closeChat` un `chatReturnState` que vuelva a `'bodegon'` + dibujar el sub-modo bajo el
-  overlay. (El chat privado side-scroller del v213 sigue en el código como fallback, pero ya no se ve con el top-down.)
+  el telo, si seguís en el bodegón, **relanza** el top-down. **✅ T2b + F2b.3 HECHO (v243):** te acercás a un peer
+  sentado + **[E]** → **menú de interacción** (`drawPeerMenu`: [1] 🃏 truco 1v1 · [2] 💬 chat privado · [Esc]) → el
+  peer es un punto de interacción real. El **chat privado 1-a-1 dentro del top-down** reusa `#chat` + `Salon.whisper`;
+  el anidado del overlay con el sub-modo se resolvió con `peerChatFrom='bodegon'` → `closeChat` **re-entra al bodegón**
+  (`enterBodegon()`) en vez de caer al side-scroller. i18n `g.bodegon.peerPrompt/peerMenu/peerMenuOpts`.
 
 ### 3.3 Qué hacés JUNTOS (el corazón — lo que no podés solo)
 - **TRUCO PvP humano vs humano** ⭐: dos se sientan a una mesa → partida **persona contra persona** (reusa
@@ -191,8 +193,9 @@ gente**, un **mostrador** y el gag de la rubia extendido a un **telo de lujo**.
 2. **F2 — BODEGÓN**: **F2a ✅ HECHO (v211)** = la sala bodegón + mozos canned + gag rubia/ropero. **F2b.1 ✅ HECHO
    (v212/infra-33)** = co-presencia real por SSE (salas-instancia + posiciones interpoladas + emotes + frases preset:
    "subís y te encontrás con otro"). **F2b.2 ✅ chat privado 1-a-1 HECHO (v213/infra-34)** (`E` cerca de un peer →
-   `#chat` ruteado por `/salon/whisper`, dirigido + efímero + rate-limit). **FALTA F2b.3** = mesas como puntos de
-   interacción compartida (§3.3). (Público = preset/emotes → sin moderación, §6.)
+   `#chat` ruteado por `/salon/whisper`, dirigido + efímero + rate-limit; **el chat en el TOP-DOWN se enganchó en v243**).
+   **✅ F2b.3 HECHO (v243)** = peer sentado como punto de interacción (menú [E]: truco 1v1 / chat). (Público =
+   preset/emotes → sin moderación, §6.)
 3. **F3 — Co-op real**: **truco PvP** (reusa el motor) + brindis + compartir comida + trueque + 1 quest co-op.
 4. **F4 — Identidad/escala**: nick ligado a `suscripcion` (opcional), más salas, y SI se agrega chat libre →
    moderación/rate-limit/reportes (`seguridad.md`).

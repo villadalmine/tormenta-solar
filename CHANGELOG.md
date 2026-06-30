@@ -56,6 +56,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v243] — 2026-06-30 — 💬 Bodegón: los peers como puntos de interacción + chat privado 1-a-1 en el top-down (T2b/F2b.2)
+
+En el **bodegón top-down** ahora te acercás a otro jugador sentado en una mesa y **[E]** abre un **menú de
+interacción**: **[1] 🃏 Truco** (la partida 1v1 del F3) o **[2] 💬 Chatear** (chat privado 1-a-1). Antes la [E]
+sobre un peer invitaba directo al truco; ahora es un punto de interacción de verdad.
+- **Chat privado** reusa el panel `#chat` + `Salon.whisper` (efímero, dirigido, sin IA) que ya existía en el
+  side-scroller; lo que faltaba era **engancharlo al sub-modo top-down**: al cerrar el chat volvés al **bodegón**
+  (no al side-scroller) — `peerChatFrom='bodegon'` → `closeChat` re-entra al top-down.
+- Overlay `drawPeerMenu` sobre el bodegón; teclas 1/2/Esc. i18n `g.bodegon.peerPrompt/peerMenu/peerMenuOpts`
+  (ES≡EN). Solo cliente. Tests e2e + paridad (711/711) + web-smoke OK. Cache **v243**. `specs/multijugador.md §3.2.1/3.3`.
+
+---
+
 ## [v242] — 2026-06-30 — 🧹 Deuda menor cerrada: beats en el sueño top-down + el fierro criollo siempre tiene blanco
 
 Dos puntas finas que quedaban del A0-DEEP y de las armas criollas:

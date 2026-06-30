@@ -65,14 +65,14 @@ const Bodegon = (() => {
       prompt = atRubia ? T(mozaInv ? 'g.bodegon.mozaYes' : 'g.bodegon.mozaTalk')
         : atExit ? T('g.bodegon.exitPrompt')
         : atSix ? T('g.truco6.sitPrompt')
-        : peer ? T('g.trucopvp.invitePrompt', { nick: peer.nick || T('g.bodegon.someone') }) : '';
+        : peer ? T('g.bodegon.peerPrompt', { nick: peer.nick || T('g.bodegon.someone') }) : '';
       const press = Input.keys['e'] || Input.keys[' '] || Input.keys['enter'];
       if (press && !eHeld) {
         eHeld = true;
         if (atRubia) { if (!mozaInv) { mozaInv = true; setMsg(T('g.moza.invite'), 6); } else { done = true; goTelo = true; } }
         else if (atExit) { done = true; exitTo = 'cine8'; }
         else if (atSix) { sit6Out = true; }
-        else if (peer) { invitePidOut = peer.pid; setMsg(T('g.trucopvp.inviteSent', { nick: peer.nick || T('g.bodegon.someone') }), 4); }
+        else if (peer) { invitePidOut = peer.pid; }   // game.js abre el menú de interacción (truco / chat)
       } else if (!press) eHeld = false;
     }
 

@@ -46,6 +46,8 @@
   const elChatInput = document.getElementById('chat-input');
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
   let peerChat = null;   // F2b.2: si está abierto el chat PRIVADO con otro jugador del bodegón → { pid, nick }
+  let peerChatFrom = null;   // T2b: desde dónde se abrió el chat privado ('bodegon' → al cerrar volvés al top-down)
+  let peerMenu = null;       // T2b: menú de interacción con un peer sentado en el bodegón → { pid, nick, t }
   let newsQuest = null;   // F2 cine: {topic, answer} cuando el linyera te mandó a buscar noticias (efímero, no se guarda)
   let mundialQuest = null;   // §9 quest de los hinchas: {equipo, resultado, shown} — efímero, se resetea al salir del cine
   // QUESTS como DATO (migración v2, F1): registro DECLARATIVO — premios/penalidades/chance/mensajes son data, no
@@ -350,6 +352,7 @@
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; trucoInvite = null; trucoOutInvite = null;   // F3 TRUCO PvP, de cero
     truco6Game = null; truco6 = null; truco6Lobby = null; truco6Invite = null;          // F3 truco de a 6, de cero
+    peerMenu = null; peerChatFrom = null;                                                // T2b interacción/chat de peer, de cero
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
@@ -1053,13 +1056,19 @@
   }
   function closeChat() {
     elChat.classList.add('hidden'); elChatInput.value = ''; chatNpc = null; peerChat = null;
-    if (state === 'chat') state = 'playing';
+    const from = peerChatFrom; peerChatFrom = null;
+    if (state === 'chat') {
+      // T2b: si el chat privado se abrió DESDE el bodegón top-down → volvés ahí (no al side-scroller)
+      if (from === 'bodegon' && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
+      else state = 'playing';
+    }
     chipLinMaybePosta();   // QUEST DEL CHIP: si ya hablaste con los 3 linyeras de la habitación → la posta (sos el de Garbarino)
   }
   // F2b.2 — CHAT PRIVADO 1-a-1 con otro jugador del bodegón (te acercás + E). Reusa el panel #chat pero el mensaje
   // va por el salón (Salon.whisper) SOLO al destinatario, no a la IA. Texto efímero, sin historial guardado.
-  function openPeerChat(peer) {
+  function openPeerChat(peer, from) {
     if (typeof Salon === 'undefined' || !Salon.whisper) return;
+    peerChatFrom = from || null;   // T2b: 'bodegon' → al cerrar volvés al top-down
     peerChat = { pid: peer.pid, nick: peer.nick || T('g.bodegon.someone') }; chatNpc = null; chatBusy = false;
     elChatTitle.textContent = '🔒 ' + peerChat.nick;
     elChatLog.innerHTML = ''; chatLine('sys', T('g.bodegon.privAwith', { nick: peerChat.nick }));
@@ -1176,6 +1185,12 @@
     ctx.fillStyle = 'rgba(0,0,0,0.74)'; ctx.fillRect(0, H / 2 - 46, W, 92); ctx.textAlign = 'center';
     ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.truco6.inviteFrom', { nick: truco6Invite.nick }), W / 2, H / 2 - 12);
     ctx.fillStyle = '#cfe8c0'; ctx.font = '13px monospace'; ctx.fillText(T('g.truco6.inviteAccept'), W / 2, H / 2 + 18);
+  }
+  function drawPeerMenu(W, H) {   // T2b: menú de interacción con un peer del bodegón
+    if (!peerMenu) return;
+    ctx.fillStyle = 'rgba(0,0,0,0.74)'; ctx.fillRect(0, H / 2 - 46, W, 92); ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.bodegon.peerMenu', { nick: peerMenu.nick }), W / 2, H / 2 - 12);
+    ctx.fillStyle = '#cfe8c0'; ctx.font = '13px monospace'; ctx.fillText(T('g.bodegon.peerMenuOpts'), W / 2, H / 2 + 18);
   }
   async function chatSend() {
     if (peerChat) return peerChatSend();   // F2b.2: chat PRIVADO con otro jugador → va por el salón, no a la IA
@@ -3075,9 +3090,14 @@
         bodegonGame.draw(ctx, W, H); drawTruco6Lobby(W, H); truco6Lobby.t -= dt;
         if (trucoTap('escape')) { truco6Lobby = null; setMsg(T('g.truco6.cancel'), '#ffcf6e', 3000); }
         else if (truco6Lobby.t <= 0 || truco6Lobby.joiners.length >= 5) startTruco6Host();
+      } else if (peerMenu) {                                          // T2b: menú de interacción con un peer sentado
+        bodegonGame.draw(ctx, W, H); drawPeerMenu(W, H); peerMenu.t -= dt;
+        if (trucoTap('1')) { const p = peerMenu; peerMenu = null; sendInvite(p.pid); }                       // 🃏 truco 1v1
+        else if (trucoTap('2')) { const p = peerMenu; peerMenu = null; openPeerChat({ pid: p.pid, nick: p.nick }, 'bodegon'); }   // 💬 chat privado
+        else if (trucoTap('escape') || peerMenu.t <= 0) peerMenu = null;
       } else {
         bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);
-        const ip = bodegonGame.invitePid; if (ip) sendInvite(ip);     // F3: E sobre un peer → lo invito al truco 1v1
+        const ip = bodegonGame.invitePid; if (ip) peerMenu = { pid: ip, nick: peerNickOf(ip), t: 10 };   // T2b: E sobre un peer → menú (truco / chat)
         if (bodegonGame.sit6) startTruco6Lobby();                     // F3 a6: me senté a la mesa de a 6
         if (bodegonGame.done) {
           const toTelo = bodegonGame.goTelo; bodegonGame = null;
