@@ -77,8 +77,20 @@ métrica Prometheus para un panel — hoy la validación directa es el endpoint 
 > 5-8 frase preset. **Degradación total:** sin red/`EventSource` → bodegón single-player (mozos canned + gag), nadie nota.
 > **✅ F2b.2 HECHO (v213/infra-34):** **chat PRIVADO 1-a-1** (§3.2.1) — `E` cerca de un peer → `#chat` en modo peer →
 > `Salon.whisper` → relay dirigido `/salon/whisper` (solo al destinatario, efímero, rate-limit). **✅ F2b.3 + T2b
-> HECHO (v243):** en el TOP-DOWN, [E] sobre un peer sentado → menú de interacción (truco 1v1 / chat privado); el peer
-> es un punto de interacción real (ver §3.2.1 abajo).
+> HECHO (v243):** en el TOP-DOWN, [E] sobre un peer → chat privado; el peer es un punto de interacción real.
+>
+> **🔧 REWORK (v245 · infra-43) — MESAS SERVER-AUTHORITATIVE + chat + peers que caminan.** Playtest del dueño con 2
+> navegadores: el truco no pareaba (matchmaking P2P frágil: "doble host" del a6, invitación 1v1 sin timeout), el chat
+> no mostraba lo del otro (el toast del HUD es **invisible en el top-down**), y los peers se veían **sentados estáticos**
+> (`bodegon.js` posteaba `Salon.pos(11,0)` FIJO). **Validé el transporte primero** (2 clientes curl): SSE/whisper/pareo
+> OK → era todo lógica del cliente. Solución: **el LOBBY lo hace el SERVER** — mesas `1v1`/`6` por sala-instancia +
+> `POST /salon/table {sit|leave}` → `table-update`/`table-start`/`table-end`. El server parea (1v1=2; 6=≥2+cuenta 8s o
+> lleno), elige host (orden de llegada) y emite `table-start {seats,seed}`; tras emitir, la mesa se VACÍA (rendezvous).
+> Se eliminó el handshake P2P (`tk-inv`/`t6-inv`). La PARTIDA ya arrancada sigue por whisper (reusa los motores
+> `truco-net`/`truco-pvp` tal cual). **Chat**: el mensaje entrante AUTO-ABRE el panel. **Peers caminan**: `Salon.pos`
+> lleva `(x,y)` real + relay; el top-down dibuja a los peers en su pos viva interpolada. Mesa **1v1 nueva** + la de 6.
+> Observable con `/salon/debug` (muestra las mesas). Validado en prod (2 clientes → `table-start`). **truco.md §13/§14
+> siguen iguales por dentro; solo cambió cómo se arma la mesa.**
 >
 > **✅ F3 HECHO — TRUCO PvP HUMANO (v240 · infra-41):** truco **1v1 contra otro jugador real** en el bodegón top-down.
 > Te acercás a un peer **sentado** → **[E] invitar** → acepta → partida COMPLETA (envido/flor/truco, mejor de 3) con
