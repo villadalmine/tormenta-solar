@@ -113,7 +113,7 @@
   let lastT = 0, running = false, msgUntil = 0, msgSkippable = false, shakeUntil = 0, time = 0, transCd = 0;
 
   // RF-7: tras la tormenta estos edificios se derrumban (no son refugio ni salida). Quedan clausurados.
-  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null, teloGame = null, bodegonGame = null;
+  let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null, teloGame = null, bodegonGame = null, lavalleGame = null;
   // F3 TRUCO PvP humano (specs/truco.md §F3): match host-autoritativo sobre el whisper del salón.
   let trucoPvpGame = null, trucoPeer = null, trucoHbT = 0, trucoKeyHeld = {}, trucoWdT = 0;
   // MESAS server-authoritative (specs/multijugador.md): tableWait = mientras esperás el pareo en una mesa del bodegón.
@@ -349,7 +349,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -591,6 +591,13 @@
   function enterBodegon() {
     if (typeof Bodegon === 'undefined' || !Bodegon.create) return false;   // sin el sub-modo → cae al side-scroller (degradación)
     bodegonGame = Bodegon.create(); state = 'bodegon';
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // LAVALLE (specs/lavalle.md E1.5): el piquete se ve TOP-DOWN (sub-modo); sin el módulo → cae al side-scroller (sala 52).
+  function enterLavalle() {
+    if (typeof Lavalle === 'undefined' || !Lavalle.create) return false;
+    lavalleGame = Lavalle.create(); state = 'lavalle';
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
   }
@@ -1748,6 +1755,7 @@
     cartelBoard = null; cartelPollT = 0; cartelMsg = null;   // CARTELES C1: el tablón se recarga por piso (no arrastrar el anterior)
     syncBodegon(r);   // MULTIJUGADOR F2b: entrar/salir del bodegón conecta/desconecta el real-time (SSE)
     if (hasTag(r, 'bodegon') && enterBodegon()) return;   // T2: el bodegón se ve TOP-DOWN (sub-modo); si no hay sub-modo, sigue side-scroller
+    if (hasTag(r, 'lavalle') && enterLavalle()) return;   // E1.5: el piquete de Lavalle se ve TOP-DOWN (sub-modo)
     if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
     companions.forEach(placeCompanionInRoom); syncCompanions();   // los compañeros cruzan la puerta CON vos (follow cross-room)
     // ruta A: si el LINYERA te está escoltando y llegaste a la sala de Guido → te avisa "ahí está, hablale" y listo
@@ -2415,6 +2423,8 @@
     // las CÁMARAS ven cada dólar disparado → burbuja con la serie (real/trucha)
     if ((player.shots || 0) > shotsSeen) { shotsSeen = player.shots; if (player.lastShot && player.lastShot.kind === 'dollar') spawnDollarBubble(player.lastShot.x, player.lastShot.y); }
     updateDollarBubbles(dt);
+    // LAVALLE (E1.5): caminás al borde IZQUIERDO de Florida → te lleva SOLO al piquete (sin puerta de edificio, sin E)
+    if (current === 0 && transCd <= 0 && !spinoffLevel) { const ld = r.doorById && r.doorById['lavalle']; if (ld && (player.x + player.w / 2) < ld.x + 18 && enterLavalle()) return; }
 
     // LOOP de supervivencia: tras la tormenta la vida se gasta (SURV.decayHp cada SURV.decayEverySec s). Comé o te morís.
     // En el NIVEL-AI generado NO drena (es un nivel bonus aparte del loop de supervivencia).
@@ -3056,6 +3066,15 @@
           if (gotChipped) { const hi = rooms.findIndex(r => hasTag(r, 'telohab')); if (hi >= 0) { spawnIn(hi, 8); elFloor.textContent = TX(rooms[hi].name); if (Sfx.setRoomTrack) Sfx.setRoomTrack('telo'); } }   // misma habitación → misma música grasa
         }
         setMsg(T(gotChipped ? 'g.chip.wakeRoom' : gotRescued ? 'g.telo.rescued' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : gotRescued ? '#9be8a0' : '#ff8fc8', gotChipped ? 13000 : gotRescued ? 10000 : gotAway ? 6000 : 3000);
+      }
+    } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
+      lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
+      if (lavalleGame.done) {
+        lavalleGame = null; state = 'playing'; transCd = 0.6;
+        elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+        current = 0; const ps = rooms[0]; player.x = 5 * Level.TILE; player.y = ps.gTop * Level.TILE - player.h; player.vx = player.vy = 0;   // de vuelta en Florida, despejado del trigger izq
+        updateCam(); elFloor.textContent = TX(rooms[0].name); Sfx.setAmbient(ambientFor(rooms[0]));
+        setMsg(T('g.lavalle.back'), '#4FC3F7', 3000);
       }
     } else if (state === 'bodegon' && bodegonGame) {
       if (tableWait) {                                                // esperando que el server paree la mesa (1v1 / 6)

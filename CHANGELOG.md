@@ -56,6 +56,23 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v246] — 2026-06-30 — ✊🎶 Lavalle E1.5: el piquete ahora es TOP-DOWN + entrás caminando (cartel, no puerta)
+
+Feedback del dueño sobre la Etapa 1: (1) para ir a Lavalle entrabas por una **puerta de edificio** que decía "VALLE"
+— raro; (2) en perspectiva side-scroller **no parecía un piquete**. Rehecho:
+- **Cómo se entra:** ya NO es una puerta de edificio. En la esquina (sala 0) hay un **cartel nomenclador "CALLE
+  LAVALLE ←"** con flecha + resplandor/humo del piquete, y **caminás al borde izquierdo → te lleva SOLO** (sin apretar
+  E). `js/art.js drawLavalleSign` reemplaza el facade de edificio; auto-entrada en `game.js update`.
+- **El piquete ahora es un sub-modo TOP-DOWN** (`js/lavalle.js`, patrón `bodegon.js`): entrás desde abajo y tenés el
+  piquete **de frente** — el **corte** (vallas/barricada) y el **Obelisco al fondo**, **tachos prendidos fuego ANIMADOS**
+  (llamas + humo en vivo), **olla popular** humeante, pancartas "Viva Perón"/banderas del Che, y la **gente a los
+  costados** (pibes, copados, los del fierro, el que corta) con su frase al acercarte. **Cumbia al palo.** Volvés
+  caminando para abajo. Sin combate (ambiental).
+- Sub-modo testeado headless (200 frames sin crash) + e2e + paridad i18n (737/737) + web-smoke. Solo cliente. Cache
+  **v246**. SDD `specs/lavalle.md`. (La sala side-scroller v244 queda como fallback si falta el módulo.)
+
+---
+
 ## [v245 · infra-43] — 2026-06-30 — 🔧 Multijugador del bodegón: MESAS en el servidor + chat + peers que caminan
 
 Playtest del dueño con 2 navegadores: el truco 3v3 no juntaba a los dos, el 1v1 no esperaba, el chat no mostraba lo

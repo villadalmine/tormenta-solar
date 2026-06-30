@@ -115,54 +115,70 @@ const Art = (() => {
       g.fillStyle = '#263238'; g.fillRect(2, 3, w-4, 5);
       g.fillStyle = '#1c2429'; for (let y = 11; y < h-2; y += 5) g.fillRect(5, y, w-10, 2);
     }),
-    // --- LAVALLE / el piquete (specs/lavalle.md, Etapa 1) ---
-    tacho_fuego: mk(24, 40, (g, w, h) => {       // tacho prendido fuego
-      g.fillStyle = '#2b3439'; g.fillRect(4, 14, w-8, h-14);
-      g.fillStyle = '#1c2429'; g.fillRect(3, 12, w-6, 4);
-      g.fillStyle = '#11171a'; for (let y = 20; y < h-2; y += 6) g.fillRect(6, y, w-12, 2);
-      g.fillStyle = '#7a1500'; g.beginPath(); g.moveTo(5,14); g.quadraticCurveTo(w/2,-6,w-5,14); g.fill();
-      g.fillStyle = '#e8540a'; g.beginPath(); g.moveTo(8,14); g.quadraticCurveTo(w/2,0,w-8,14); g.fill();
-      g.fillStyle = '#ffb300'; g.beginPath(); g.moveTo(11,14); g.quadraticCurveTo(w/2,5,w-11,14); g.fill();
-      g.fillStyle = '#ffe14d'; g.beginPath(); g.arc(w/2,9,3,0,Math.PI*2); g.fill();
+    // --- LAVALLE / el piquete (specs/lavalle.md). Los CONTENEDORES de fuego van casi sin llama (el fuego+humo
+    //     se dibujan VIVOS en game.js: drawPiqueteFx). Acá solo el metal + brasas + glow del borde. ---
+    tacho_fuego: mk(26, 40, (g, w, h) => {       // tacho de chapa (el fuego sale vivo por arriba)
+      g.fillStyle = '#39454c'; g.fillRect(4, 14, w-8, h-14);                       // cuerpo
+      g.fillStyle = '#222d33'; g.fillRect(4, 14, 5, h-14);                         // sombra izq
+      g.fillStyle = '#52626b'; g.fillRect(w-9, 14, 4, h-14);                       // brillo der
+      g.fillStyle = '#11171a'; for (let y = 22; y < h-2; y += 7) g.fillRect(6, y, w-12, 2);   // costillas
+      g.fillStyle = '#1c2429'; g.fillRect(3, 11, w-6, 5);                          // boca
+      g.fillStyle = '#ff7a18'; g.beginPath(); g.ellipse(w/2, 13, (w-10)/2, 3, 0, 0, Math.PI*2); g.fill();   // brasas en la boca
+      g.fillStyle = '#ffd54a'; g.beginPath(); g.ellipse(w/2, 13, (w-14)/2, 1.6, 0, 0, Math.PI*2); g.fill();
     }),
-    pancarta: mk(72, 92, (g, w, h) => {          // pancarta "VIVA PERÓN" colgada de dos cañas
+    pancarta: mk(78, 96, (g, w, h) => {          // pancarta "VIVA PERÓN" — lienzo con leve ondeo + cañas
       g.strokeStyle = '#5a3a1a'; g.lineWidth = 3; g.beginPath(); g.moveTo(6,h); g.lineTo(6,8); g.moveTo(w-6,h); g.lineTo(w-6,8); g.stroke();
-      g.fillStyle = '#f3ead8'; g.fillRect(6, 10, w-12, 36);
-      g.strokeStyle = '#bdae93'; g.lineWidth = 1; g.strokeRect(6, 10, w-12, 36);
-      g.fillStyle = '#1f4fa0'; g.font = 'bold 13px monospace'; g.textAlign = 'center';
-      g.fillText('VIVA', w/2, 25); g.fillText('PERÓN', w/2, 40);
+      g.fillStyle = '#3a2a14'; g.beginPath(); g.arc(6,8,3,0,Math.PI*2); g.arc(w-6,8,3,0,Math.PI*2); g.fill();   // remates de caña
+      g.beginPath(); g.moveTo(6,12); for (let x=6;x<=w-6;x+=6) g.lineTo(x, 12 + Math.sin(x*0.4)*2); g.lineTo(w-6,46); for (let x=w-6;x>=6;x-=6) g.lineTo(x, 46 + Math.sin(x*0.4)*2); g.closePath();
+      g.fillStyle = '#f3ead8'; g.fill(); g.strokeStyle = '#cdbf9f'; g.lineWidth = 1; g.stroke();
+      g.fillStyle = '#1f4fa0'; g.font = 'bold 14px monospace'; g.textAlign = 'center';
+      g.fillText('VIVA', w/2, 26); g.fillText('PERÓN', w/2, 41);
     }),
-    bandera_che: mk(42, 98, (g, w, h) => {       // bandera roja con la cara del Che
+    bandera_che: mk(46, 104, (g, w, h) => {      // bandera roja con la cara icónica del Che (estilizada)
       g.strokeStyle = '#4a3a2a'; g.lineWidth = 3; g.beginPath(); g.moveTo(5,h); g.lineTo(5,4); g.stroke();
-      g.fillStyle = '#b71c1c'; g.fillRect(7, 6, w-10, 42);
-      g.fillStyle = '#7a1212'; g.fillRect(7, 6, w-10, 3);
-      const cxx = 7 + (w-10)/2;
-      g.fillStyle = '#111'; g.beginPath(); g.arc(cxx, 27, 11, 0, Math.PI*2); g.fill();
-      g.fillStyle = '#b71c1c'; g.beginPath(); g.arc(cxx+2, 25, 7, 0, Math.PI*2); g.fill();
-      g.fillStyle = '#111'; g.fillRect(cxx-13, 17, 9, 5);
+      g.fillStyle = '#c0241f'; g.beginPath(); g.moveTo(7,6); g.lineTo(w-3,9); g.lineTo(w-5,49); g.lineTo(7,46); g.closePath(); g.fill();   // paño (leve vuelo)
+      g.fillStyle = '#8c1714'; g.fillRect(7, 6, 3, 40);
+      const cx2 = 9 + (w-12)/2, cy2 = 27;
+      g.fillStyle = '#111';                                                         // pelo/silueta
+      g.beginPath(); g.moveTo(cx2-12,cy2+9); g.quadraticCurveTo(cx2-15,cy2-13,cx2,cy2-13); g.quadraticCurveTo(cx2+15,cy2-13,cx2+13,cy2+10); g.lineTo(cx2+4,cy2+12); g.quadraticCurveTo(cx2,cy2+6,cx2-5,cy2+12); g.closePath(); g.fill();
+      g.fillStyle = '#c0241f'; g.beginPath(); g.ellipse(cx2+1, cy2-1, 6, 7, 0, 0, Math.PI*2); g.fill();   // cara (negativo)
+      g.fillStyle = '#111'; g.beginPath(); g.moveTo(cx2-13,cy2-9); g.lineTo(cx2+9,cy2-13); g.lineTo(cx2+9,cy2-8); g.lineTo(cx2-12,cy2-5); g.closePath(); g.fill();   // boina
+      g.fillStyle = '#ffd54a'; g.beginPath(); for (let k=0;k<5;k++){ const a=-Math.PI/2+k*2*Math.PI/5; g.lineTo(cx2-4 + Math.cos(a)*2.4, cy2-9 + Math.sin(a)*2.4); g.lineTo(cx2-4 + Math.cos(a+Math.PI/5)*1, cy2-9 + Math.sin(a+Math.PI/5)*1); } g.closePath(); g.fill();   // estrellita de la boina
     }),
-    olla: mk(42, 46, (g, w, h) => {              // olla popular humeante sobre fuego/ladrillos
-      g.fillStyle = '#7a3b1a'; g.fillRect(4, h-8, w-8, 8);
-      g.fillStyle = '#e8540a'; g.beginPath(); g.moveTo(10,h-8); g.quadraticCurveTo(w/2,h-22,w-10,h-8); g.fill();
-      g.fillStyle = '#ffb300'; g.beginPath(); g.moveTo(14,h-8); g.quadraticCurveTo(w/2,h-16,w-14,h-8); g.fill();
-      g.fillStyle = '#37474f'; g.beginPath(); g.ellipse(w/2, h-20, (w-12)/2, 12, 0, 0, Math.PI*2); g.fill();
-      g.fillStyle = '#263238'; g.fillRect(6, h-30, w-12, 12);
-      g.fillStyle = '#1c2429'; g.beginPath(); g.ellipse(w/2, h-30, (w-12)/2, 5, 0, 0, Math.PI*2); g.fill();
-      g.strokeStyle = 'rgba(220,220,220,0.45)'; g.lineWidth = 2;
-      g.beginPath(); g.moveTo(w/2-6,h-34); g.quadraticCurveTo(w/2-12,h-44,w/2-4,h-52); g.moveTo(w/2+6,h-34); g.quadraticCurveTo(w/2+12,h-44,w/2+4,h-52); g.stroke();
+    olla: mk(46, 48, (g, w, h) => {              // olla popular sobre ladrillos (el fuego de abajo + vapor van vivos)
+      g.fillStyle = '#8a4a22'; g.fillRect(4, h-7, 12, 7); g.fillRect(w-16, h-7, 12, 7);    // dos pilas de ladrillos
+      g.fillStyle = '#6e3a18'; g.fillRect(4, h-7, 12, 2); g.fillRect(w-16, h-7, 12, 2);
+      g.fillStyle = '#7a2a08'; g.beginPath(); g.ellipse(w/2, h-6, 10, 3, 0, 0, Math.PI*2); g.fill();   // brasas bajo la olla
+      g.fillStyle = '#ff8a1a'; g.beginPath(); g.ellipse(w/2, h-6, 6, 2, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#3a4750'; g.beginPath(); g.ellipse(w/2, h-18, (w-12)/2, 12, 0, 0, Math.PI*2); g.fill();   // panza
+      g.fillStyle = '#2b363d'; g.fillRect(6, h-30, w-12, 12);
+      g.fillStyle = '#566570'; g.fillRect(6, h-30, w-12, 2);                         // borde
+      g.fillStyle = '#0f1518'; g.beginPath(); g.ellipse(w/2, h-30, (w-12)/2, 5, 0, 0, Math.PI*2); g.fill();   // boca (guiso)
+      g.fillStyle = '#5a3a1a'; g.beginPath(); g.ellipse(w/2, h-31, (w-18)/2, 3, 0, 0, Math.PI*2); g.fill();
+      g.strokeStyle = '#1a2228'; g.lineWidth = 2; g.beginPath(); g.arc(6, h-26, 3, 0.5, Math.PI*1.1); g.arc(w-6, h-26, 3, Math.PI*1.9, Math.PI*2.5); g.stroke();   // asas
     }),
-    barricada: mk(50, 72, (g, w, h) => {         // el corte: gomas apiladas + maderas + un tacho ladeado
-      for (let i=0;i<3;i++){ g.fillStyle='#1a1a1a'; g.beginPath(); g.ellipse(15, h-10-i*16, 12, 7, 0, 0, Math.PI*2); g.fill(); g.fillStyle='#333'; g.beginPath(); g.ellipse(15, h-10-i*16, 6, 4, 0, 0, Math.PI*2); g.fill(); }
-      g.fillStyle = '#6d4c2f'; g.save(); g.translate(31, h-30); g.rotate(-0.5); g.fillRect(-4,-22,8,44); g.restore();
-      g.fillStyle = '#5a3f26'; g.save(); g.translate(37, h-26); g.rotate(0.4); g.fillRect(-4,-20,8,40); g.restore();
-      g.fillStyle = '#37474f'; g.save(); g.translate(42, h-12); g.rotate(0.3); g.fillRect(-7,-14,14,16); g.restore();
+    barricada: mk(58, 78, (g, w, h) => {         // el corte: gomas apiladas + pallet + tacho ladeado + banderita
+      for (let i=0;i<3;i++){ const yy=h-11-i*15, xx=15+(i%2?3:0);                    // pila de gomas
+        g.fillStyle='#181818'; g.beginPath(); g.ellipse(xx, yy, 13, 8, 0, 0, Math.PI*2); g.fill();
+        g.fillStyle='#2b2b2b'; g.beginPath(); g.ellipse(xx, yy-1, 13, 7, 0, 0, Math.PI*2); g.fill();
+        g.fillStyle='#3a3a3a'; g.beginPath(); g.ellipse(xx, yy-1, 6, 3.5, 0, 0, Math.PI*2); g.fill(); }
+      g.fillStyle = '#7a5430'; g.save(); g.translate(36, h-22); g.rotate(-0.18);     // pallet de madera
+      for (let k=0;k<4;k++) g.fillRect(-14, -20 + k*11, 30, 6); g.fillRect(-14,-20,5,46); g.fillRect(11,-20,5,46); g.restore();
+      g.fillStyle = '#3a464c'; g.save(); g.translate(48, h-13); g.rotate(0.35); g.fillRect(-8,-15,16,18); g.fillStyle='#2b353a'; g.fillRect(-8,-15,16,3); g.restore();   // tacho ladeado
+      g.strokeStyle = '#6d4c2f'; g.lineWidth = 2; g.beginPath(); g.moveTo(30, h-40); g.lineTo(30, h-58); g.stroke();   // palo
+      g.fillStyle = '#c0241f'; g.beginPath(); g.moveTo(30,h-58); g.lineTo(46,h-55); g.lineTo(30,h-49); g.closePath(); g.fill();   // banderita roja
     }),
-    obelisco: mk(46, 220, (g, w, h) => {         // el Obelisco al fondo (set-piece, detrás de la barricada)
-      g.fillStyle = '#c9cdd2'; g.beginPath(); g.moveTo(w/2-3,18); g.lineTo(w/2+3,18); g.lineTo(w/2+11,h); g.lineTo(w/2-11,h); g.closePath(); g.fill();
-      g.fillStyle = '#aeb3b8'; g.beginPath(); g.moveTo(w/2,4); g.lineTo(w/2+3,18); g.lineTo(w/2-3,18); g.closePath(); g.fill();
-      g.fillStyle = '#9aa0a6'; g.fillRect(w/2-11, h-3, 22, 3);
-      g.fillStyle = '#d8dbdf'; g.fillRect(w/2-2, 24, 2, h-30);
-      g.fillStyle = '#5a5f64'; g.fillRect(w/2-2, 30, 4, 4);
+    obelisco: mk(54, 240, (g, w, h) => {         // el Obelisco (icónico, al fondo detrás de la barricada)
+      const base = h-10;
+      g.fillStyle = '#bfc4ca'; g.beginPath(); g.moveTo(w/2-3.5,26); g.lineTo(w/2+3.5,26); g.lineTo(w/2+13,base); g.lineTo(w/2-13,base); g.closePath(); g.fill();   // fuste
+      g.fillStyle = '#d6dade'; g.beginPath(); g.moveTo(w/2-3.5,26); g.lineTo(w/2-1,26); g.lineTo(w/2-9,base); g.lineTo(w/2-13,base); g.closePath(); g.fill();        // lado iluminado
+      g.fillStyle = '#9aa0a6'; g.beginPath(); g.moveTo(w/2+3.5,26); g.lineTo(w/2+1,26); g.lineTo(w/2+9,base); g.lineTo(w/2+13,base); g.closePath(); g.fill();        // lado en sombra
+      g.fillStyle = '#cfd3d8'; g.beginPath(); g.moveTo(w/2,6); g.lineTo(w/2+4,26); g.lineTo(w/2-4,26); g.closePath(); g.fill();   // punta piramidal
+      g.fillStyle = '#e6e9ec'; g.beginPath(); g.moveTo(w/2,6); g.lineTo(w/2-4,26); g.lineTo(w/2-1,26); g.closePath(); g.fill();
+      g.fillStyle = '#7e848a'; g.fillRect(w/2-9, 38, 18, 3);                          // ventanita superior
+      g.fillStyle = '#5a5f64'; g.fillRect(w/2-2, 33, 4, 4); g.fillRect(w/2-2, 46, 4, 4);   // aberturas
+      g.fillStyle = '#8c9298'; g.fillRect(w/2-15, base, 30, 6);                        // base
+      g.fillStyle = '#73787e'; g.fillRect(w/2-15, base+6, 30, 4);
     }),
     // --- subsuelos / cuevas ---
     caja: mk(30, 28, (g, w, h) => {
@@ -1121,7 +1137,30 @@ const Art = (() => {
     cine:        { w: 156, h: 220, c: '#2a1840', c2: '#1a0f2a', win: '#ffd54f', sign: '🎬 CINE', sc: '#ffe14d' },
     lavalle:     { w: 120, h: 150, c: '#241f18', c2: '#16120d', win: '#caa45a', sign: 'LAVALLE →', sc: '#ffd54f' },   // la esquina que dobla al piquete/Obelisco
   };
+  function drawLavalleSign(g, sx, gy) {   // E1.5: NO un edificio — un cartel callejero "CALLE LAVALLE ←" + glow del piquete
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now()) * 0.001;
+    // resplandor/humo del piquete que se ve "doblando a la izquierda"
+    g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.18 + 0.05 * Math.sin(now * 3);
+    const gr = g.createRadialGradient(sx - 30, gy - 60, 4, sx - 30, gy - 60, 80); gr.addColorStop(0, '#ff8a1a'); gr.addColorStop(1, 'rgba(255,138,26,0)');
+    g.fillStyle = gr; g.fillRect(sx - 110, gy - 150, 130, 150); g.restore();
+    g.save(); g.globalAlpha = 0.22; g.fillStyle = '#888';
+    for (let i = 0; i < 3; i++) { const ph = (now * 0.4 + i * 0.4) % 1; g.beginPath(); g.arc(sx - 34 + Math.sin(now + i) * 8, gy - 70 - ph * 60, 7 + ph * 12, 0, Math.PI * 2); g.fill(); }
+    g.restore();
+    // poste + cartel azul (estilo nomenclador porteño)
+    g.fillStyle = '#3a3f45'; g.fillRect(sx - 2, gy - 92, 4, 92);
+    g.fillStyle = '#0f3d8c'; g.fillRect(sx - 52, gy - 108, 100, 24);
+    g.fillStyle = '#0a2e6b'; g.fillRect(sx - 52, gy - 108, 100, 3);
+    g.strokeStyle = '#cfe0ff'; g.lineWidth = 1.5; g.strokeRect(sx - 50, gy - 106, 96, 20);
+    g.fillStyle = '#fff'; g.font = 'bold 11px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('CALLE LAVALLE', sx, gy - 96); g.textBaseline = 'alphabetic';
+    // FLECHA grande hacia la izquierda (parpadea suave) "para allá vas"
+    g.save(); g.globalAlpha = 0.7 + 0.3 * Math.sin(now * 4); g.fillStyle = '#ffd54a';
+    const ay = gy - 50; g.beginPath(); g.moveTo(sx - 40, ay); g.lineTo(sx - 22, ay - 11); g.lineTo(sx - 22, ay - 4); g.lineTo(sx + 2, ay - 4); g.lineTo(sx + 2, ay + 4); g.lineTo(sx - 22, ay + 4); g.lineTo(sx - 22, ay + 11); g.closePath(); g.fill();
+    g.restore();
+    g.fillStyle = '#9be8a0'; g.font = '8px monospace'; g.textAlign = 'center'; g.fillText('← al Obelisco', sx - 18, gy - 30);
+  }
   function drawBuilding(g, sx, gy, style) {
+    if (style === 'lavalle') return drawLavalleSign(g, sx, gy);
     const s = BUILDINGS[style] || BUILDINGS.galeria;
     const x = sx - s.w/2, y = gy - s.h;
     g.fillStyle = s.c; g.fillRect(x, y, s.w, s.h);
