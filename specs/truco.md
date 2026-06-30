@@ -1,4 +1,4 @@
-# SDD — Truco de verdad: reglas completas, truco de a 6, reclutamiento y Calle Lavalle
+# SDD — Truco de verdad: reglas completas, truco de a 6 (1v1 + 3v3 PvP), reclutamiento
 
 - **Estado:** **F1 + F2 + F3(PvP 1v1) + a6(3v3 PvP con IA-fill) IMPLEMENTADOS**. Resto en fases (§12).
 - **Última actualización:** 2026-06-30
@@ -18,7 +18,7 @@
 - **F2 hecho:** el tahúr **pregunta el formato** (fase 'choose': [3] mejor de 3 manos / [1] a 15 puntos);
   `makeTruco` ahora es una **PARTIDA multi-mano** (startDeal/concludeDeal, marcador de partida, falta envido
   dinámico en a15). e2e juega una partida completa en ambos formatos.
-- **Falta:** tabla skill (F4, el `bias` del reparto ya está en el motor), a6 (F5), cabarulo, Lavalle.
+- **Falta:** tabla skill (F4, el `bias` del reparto ya está en el motor). [a6 ✅ §14 · cabarulo y Lavalle ❌ descartados]
 - **Relacionado:** `js/arcade.js` (`makeTruco`, hoy un placeholder), el grafo (`historia.js`/`hint-engine.js`),
   `carteles-ia.md` (generación de excusas con NPU/GPU/cloud + el Mensajero), `nivel-1/**` (personajes).
 
@@ -26,8 +26,8 @@
 
 Hoy el truco es un **mini-juego trucho**: decisiones con `Math.random()`, sin reglas reales, y premia en
 **forros**. Lo convertimos en un **truco argentino de verdad** (envido familia, truco/retruco/vale cuatro, flor),
-con **dos formatos**, un **truco de a 6 (3v3)** con reclutamiento de compañeros, una **tabla de skill** que sesga
-las cartas, y al ganar **se abre un mapa nuevo: Calle Lavalle**. El premio pasa de forros a **flores**.
+con **dos formatos**, un **truco de a 6 (3v3)** con reclutamiento de compañeros y una **tabla de skill** que sesga
+las cartas. El premio pasa de forros a **flores**. (El "mapa nuevo Calle Lavalle" al ganar fue **descartado** — §10.)
 
 ## 2. Estado actual (lo que hay)
 
@@ -76,27 +76,18 @@ Al sentarte con el **tahúr**, te pregunta: **"¿jugamos a 3 manos, o el primero
 - **A 3 manos = MEJOR DE 3 RONDAS** (decidido): se juegan rondas hasta que alguien gana 2. Rápido.
 - **A 15 puntos:** partida normal (el de a 6 es a 30, §6). Falta envido usa los puntos que faltan para 15.
 
-## 5. Premio: flores + el Cabarulo (DECIDIDO — dos monedas)
+## 5. Premio: flores (DECIDIDO — dos monedas)
 
 - Ganar el truco da **flores** (`player.flores`), **no** forros. `forrosDelta` → **`floresDelta`** en el
   resultado del arcade. **Flores y forros conviven** como **dos monedas separadas** con usos distintos; los
   **shops actuales siguen cobrando en forros** (no se toca la economía existente).
 - El `applyEdge('truco','trucoWon')` (puerta del tahúr) se mantiene como hito existente.
 
-### 5.1 El Cabarulo (el sink, usa LAS DOS monedas + el chat IA)
+### 5.1 El Cabarulo — ❌ DESCARTADO (decisión del dueño, 2026-06-30)
 
-Un **local nuevo** (cabaret cirujeado). Las dos monedas tienen rol:
-
-- **ENTRAR = forros (vía charla absurda con el cafiolo/patovica).** El de la puerta te quiere cobrar **mucha
-  plata** para entrar; **no la tenés** → se abre una **charla con IA** (el cafiolo es una **persona chateable
-  nueva**) que **itera absurda** hasta que cede: *"bueno pibe, tenés forros… dame **5** y entrás."* → pagás
-  **5 forros** y entrás. (Es un **gate por chat**: reusa el sistema de personas/`ai.js`; el desbloqueo se dispara
-  cuando la charla llega al acuerdo, no por un precio fijo en pantalla.)
-- **ADENTRO = flores (cortejo).** Les **das flores a las mujeres** del cabarulo (para **no perder plata**) → las
-  chicas **se enamoran** de vos. Pero el **cafiolo** te **echa** porque "**no las dejás laburar**" → te saca
-  cagando. (El loop interno fino: **TBD**, "después vemos mejor qué pasa adentro".)
-- **Personajes nuevos:** el **cafiolo** (persona chateable, gate de entrada) + las **mujeres** del cabarulo
-  (receptoras de flores). Entidades a crear.
+El sink "Cabarulo" (cabaret cirujeado: entrar pagando forros vía chat con el cafiolo + cortejar con flores a las
+mujeres) **NO se va a hacer.** El dueño lo descartó. (Si en el futuro hace falta un uso para las flores, se diseña
+otro sink desde cero.)
 
 ## 6. Truco de a 6 (3 vs 3) — evento aleatorio
 
@@ -153,14 +144,12 @@ A los **mejores jugadores se les reparten mejores cartas** (no es trampa visible
 - Sin LLM: es lógica de juego (heurísticas + un poco de azar por tier). El LLM **solo** para las **excusas** y,
   opcional, **chau-canto** floreado ("¡quiero retruco y las pelotas!") como sabor.
 
-## 10. Grafo + Calle Lavalle (mapa nuevo)
+## 10. Calle Lavalle (Nivel 2) — ❌ DESCARTADO (decisión del dueño, 2026-06-30)
 
-- **Ganar el truco** (el de a 6, o el 1v1 según §11) **habilita un hito** y **abre Calle Lavalle**: resulta que
-  había un **piquete** que resistió **con o sin tormenta**. Lavalle = **caos** (contenido **TBD**, "después
-  definimos").
-- En el grafo: arista nueva `truco6_win` (o se reusa `trucoWon`) con `sets:{lavalleOpen:true}`; el mapa Lavalle
-  se carga como nivel/zona nueva (probable `specs/nivel-2-lavalle.md` + datos en `level-data.js`/`mundo.js`).
-- **Si PERDÉS** la partida: podés ir a **buscar otros jugadores** (re-reclutar) y reintentar.
+El "Nivel 2 = Calle Lavalle" (un mapa nuevo que se abría al ganar el truco; el piquete que resistió la tormenta)
+**NO se va a hacer.** El dueño lo descartó. Ganar el truco se queda con los hitos que YA tiene (`trucoWon` abre la
+puerta del tahúr al chino; el premio en flores). No hay nivel/zona nueva ligada al truco.
+(Nota: "Florida y Lavalle" como **esquina/setting del Nivel 1** sigue igual — esto descarta solo el Nivel 2.)
 
 ## 11. Preguntas abiertas
 
@@ -168,18 +157,13 @@ A los **mejores jugadores se les reparten mejores cartas** (no es trampa visible
 - ✅ **Flor:** **con flor siempre** (1v1 y a6).
 - ✅ **Formato "3 manos":** **mejor de 3 rondas** (gana 2).
 - ✅ **Monedas:** **dos separadas** — truco→**flores**; shops siguen en **forros** (no se toca la economía).
-- ✅ **Cabarulo (§5.1):** local nuevo; **forros = entrar** (charla absurda con el cafiolo hasta "dame 5 forros");
-  **flores = cortejar** a las mujeres (se enamoran → el cafiolo te echa por "no las dejás laburar").
+- ❌ **Cabarulo:** DESCARTADO (§5.1). **Lavalle (Nivel 2):** DESCARTADO (§10).
 
 ### Pendientes (se afinan al llegar a esa fase)
-- **Truco de a 6 "primera mano global hasta 15":** mecánica EXACTA de "baza global" vs "1v1 con el de enfrente"
-  (default tentativo: hasta 15 se compara la baza entre los 6; pasados 15, 1v1 con tu vis-à-vis). **Confirmar en F5.**
-- **Disparo del truco de a 6:** probabilidad por loop/visita + cuánto se anticipa para pre-generar excusas
-  (default: se dispara al entrar a la sala del tahúr, con un margen para la NPU).
-- **Roster** de invitables y del cabarulo: faltan entidades (jubilados, turista/gringo, garbarino, vinilero,
-  cafiolo, mujeres) → crearlas con el template de entidades.
-- **Adentro del cabarulo:** el loop fino post-cortejo.
-- **Lavalle:** todo el contenido del nivel 2.
+- **Regla de la casa del a6:** la mecánica de baza global/1v1 + umbral 10 está IMPLEMENTADA (§14) en `bazaMode`, a
+  validar fino en playtest.
+- **Roster** de invitables: faltan entidades (jubilados, turista/gringo, garbarino, vinilero) → crearlas con el
+  template de entidades (para el reclutamiento F6, si se hace).
 
 ## 12. Mi lectura del SDD (cómo lo veo)
 
@@ -188,18 +172,17 @@ A los **mejores jugadores se les reparten mejores cartas** (no es trampa visible
   1. **F1 — Motor de truco 1v1 REAL** (jerarquía, envido familia, truco/retruco/vale4, manos/parda; flor opcional)
      reemplazando `makeTruco`, con la IA `decidir()`. **Es el cimiento de todo** y ya mejora el juego solo.
   2. **F2 — Formatos** (3 manos / a 15) + **negociación con el tahúr**.
-  3. **F3 — Premio flores** + definir el sink "cabarulo" (o dejar flores acumulables).
+  3. **F3 — Premio flores** ✅ (las flores se acumulan; sin sink — el cabarulo se descartó).
   4. **F4 — Tabla de skill** (sesgo de reparto + nivel de IA por tier). Aplica a 1v1 ya.
-  5. **F5 — Truco de a 6** (3v3 a 30, regla de la casa, IA de 5 jugadores). **La parte más pesada.**
-  6. **F6 — Reclutamiento** (roster + sí/no temático + **excusas con NPU/GPU/cloud** vía Mensajero) + **hito**.
-  7. **F7 — Calle Lavalle** (mapa nuevo; diseño aparte).
+  5. **F5 — Truco de a 6** ✅ HECHO como PvP+IA-fill (§14).
+  6. **F6 — Reclutamiento** (roster + sí/no temático + **excusas con NPU/GPU/cloud** vía Mensajero) — opcional, si se hace.
+  7. ~~**F7 — Calle Lavalle**~~ ❌ DESCARTADO (§10).
 - **Riesgos:** (a) **se eligió con flor siempre** → la **flor multi-jugador en el 3v3 es la lógica más cara** del
-  proyecto; mitigación: el motor `decidir()` y el cálculo de flor/envido se construyen y testean **primero en
-  1v1** (F1) y recién se generalizan a 6 (F5), reusando el mismo núcleo; (b) crear **muchas entidades nuevas**
-  (jubilados, turista, garbarino, vinilero, **cafiolo + mujeres del cabarulo**); (c) Lavalle es **otro nivel
-  entero** (alcance grande aparte).
-- **Lo que ya juega a favor:** el **grafo + applyEdge + Mensajero** ya existen → el hito, las excusas y el
-  desbloqueo de Lavalle encajan limpio. El motor de truco es **puro** (testeable con e2e sin render).
+  proyecto; mitigación: el motor y el cálculo de flor/envido se construyeron y testearon **primero en 1v1** y recién
+  se generalizaron a 6, reusando el mismo núcleo; (b) crear **entidades nuevas** para el reclutamiento (jubilados,
+  turista, garbarino, vinilero), sólo si se hace F6.
+- **Lo que ya juega a favor:** el **grafo + applyEdge + Mensajero** ya existen → los hitos y las excusas encajan
+  limpio. El motor de truco es **puro** (testeable con e2e sin render).
 - **Recomendación:** arrancar por **F1 (motor 1v1 real)** — es autónomo, testeable, y todo lo demás se apoya ahí.
 
 ## 13. F3 — TRUCO PvP HUMANO-vs-HUMANO (IMPLEMENTADO, v240 · infra-41)
@@ -233,7 +216,7 @@ cada carta/canto/respuesta del rival viaja por la red.
   multijugador. Mitigación futura: validación cruzada / autoridad en el server.
 - **Reconexión dura:** si el rival cierra la pestaña sin `tk-bye`, el que queda sale con `Esc` (no hay watchdog por
   timeout todavía).
-- **Truco de a 6 PvP** (3v3 humano) y **cabarulo/Lavalle** siguen pendientes (§5-§7, §12 F5-F7).
+- **Truco de a 6 PvP** (3v3 humano) ✅ HECHO (§14). El **cabarulo** y **Calle Lavalle** quedaron ❌ **descartados** (§5.1, §10).
 
 ## 14. TRUCO DE A 6 (3v3) PvP — IMPLEMENTADO (v241 · infra-42)
 
