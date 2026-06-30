@@ -1,43 +1,42 @@
-// lavalle.js — SUB-MODO "Calle Lavalle / el piquete" VISTA DE ARRIBA-DE FRENTE (specs/lavalle.md, Etapa 1.5). En vez de
-// la perspectiva side-scroller (no parecía piquete), Lavalle es un sub-modo top-down COHESIVO: entrás desde ABAJO
-// (venís de Florida) y tenés el corte DE FRENTE. La BARRICADA del fondo = muro de CUBIERTAS apiladas + AUTOS ROTOS +
-// la reja + BANDERAS (Viva Perón, argentina, Che); adelante, tachos prendidos fuego (animados) + olla popular; y los
-// PIQUETEROS de cuerpo entero (bandana/capucha, palos, bombo, banderas) — sin combate, ambiental, cumbia al palo.
-// Volvés caminando al borde de abajo. Patrón aislado como bodegon.js/telo.js.
+// lavalle.js — SUB-MODO "Calle Lavalle / el piquete" sobre la AVENIDA 9 DE JULIO, VISTA DE ARRIBA-DE FRENTE
+// (specs/lavalle.md, Etapa 1.5). Entrás desde ABAJO (venís de Florida) y tenés el corte DE FRENTE sobre la avenida más
+// ancha: el OBELISCO grande al fondo, los carriles, y los NATOS cortando la calle — barricada de CUBIERTAS + AUTOS ROTOS
+// + reja + BANDERAS (Viva Perón, argentina, Che), tachos al fuego (animados), olla popular, COLECTIVOS y autos PARADOS
+// (tránsito cortado) y algún PATRULLERO. Piqueteros de cuerpo entero. Sin combate, cumbia al palo. Volvés caminando abajo.
 const Lavalle = (() => {
   const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   const CS = 30, W = 18, H = 15;
-  const shade = (c, f) => c;   // (placeholder; usamos colores fijos de sombra)
 
   function create() {
     const map = Array.from({ length: H }, () => new Array(W).fill(0));
-    for (let x = 0; x < W; x++) { map[0][x] = 1; map[1][x] = 1; map[2][x] = 1; }   // el CORTE (barricada) = pared, 3 filas
+    for (let x = 0; x < W; x++) { map[0][x] = 1; map[1][x] = 1; map[2][x] = 1; map[3][x] = 1; }   // arriba: avenida+corte (más lejos) = pared → se ve EL OBELISCO grande
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W - 1] = 1; }
-    const pal = { floor: '#26262b', floor2: '#2c2c32', line: '#5a5a48' };
+    const pal = { floor: '#222227', floor2: '#27272d', lane: '#c9c08a' };
     const player = { x: 9 * CS, y: (H - 1.5) * CS, r: 11, dir: -1, walk: 0 };
 
-    // --- composición del piquete (de atrás hacia adelante) ---
-    // autos rotos que cortan, flanqueando
-    const cars = [{ x: 3.2, y: 3.4, col: '#7a3b2a', tilt: -0.12 }, { x: 14.8, y: 3.6, col: '#3a5a6a', tilt: 0.1 }];
-    // pilas de cubiertas (gomas) a lo largo de la barricada
-    const tires = [{ x: 6, y: 3.2, n: 4 }, { x: 8, y: 3.5, n: 3 }, { x: 10, y: 3.2, n: 4 }, { x: 12, y: 3.5, n: 3 }, { x: 5, y: 3.6, n: 2 }, { x: 13, y: 3.7, n: 2 }];
-    // banderas: en la barricada (colgadas/en mástil) + las que llevan algunos piqueteros
-    const flags = [{ x: 2.4, y: 2.2, k: 'peron' }, { x: 5.5, y: 2.0, k: 'arg' }, { x: 9, y: 1.9, k: 'peron' }, { x: 12.5, y: 2.0, k: 'arg' }, { x: 15.4, y: 2.2, k: 'che' }];
-    // tachos prendidos fuego (animados), agrupados frente al corte
-    const barrels = [{ x: 4.5, y: 5.5 }, { x: 9, y: 4.7 }, { x: 13.5, y: 5.5 }, { x: 7, y: 8.5 }, { x: 11.4, y: 8.7 }];
-    const olla = { x: 2.7, y: 7.6 };
+    // --- el corte (barricada) abajo del todo del fondo, así arriba se ve la avenida + el Obelisco ---
+    const cars = [{ x: 3.6, y: 3.5, col: '#7a3b2a', tilt: -0.1 }, { x: 14.4, y: 3.6, col: '#3a5a6a', tilt: 0.1 }];
+    const tires = [{ x: 6, y: 3.3, n: 4 }, { x: 8, y: 3.5, n: 3 }, { x: 10, y: 3.3, n: 4 }, { x: 12, y: 3.5, n: 3 }, { x: 5, y: 3.6, n: 2 }, { x: 13, y: 3.7, n: 2 }];
+    const flags = [{ x: 2.4, y: 2.6, k: 'peron' }, { x: 5.4, y: 2.4, k: 'arg' }, { x: 11.5, y: 2.4, k: 'peron' }, { x: 14.4, y: 2.6, k: 'che' }];
+    // COLECTIVOS / AUTOS / PATRULLEROS parados (tránsito cortado): unos lejos (chicos, pasada la reja) y otros a los costados
+    const vehs = [
+      { x: 6.5, y: 1.4, kind: 'auto', col: '#9aa0a8', sc: 0.62 }, { x: 11.4, y: 1.5, kind: 'bus', col: '#b23b2e', sc: 0.62 },
+      { x: 1.9, y: 6.2, kind: 'bus', col: '#2f7a44', sc: 1 }, { x: 16.1, y: 6.6, kind: 'auto', col: '#3a5a8a', sc: 1 },
+      { x: 1.9, y: 10, kind: 'police', col: '#eceef2', sc: 1 }, { x: 16.1, y: 10.2, kind: 'police', col: '#eceef2', sc: 1 },
+    ];
+    const barrels = [{ x: 5, y: 5.5 }, { x: 9, y: 4.7 }, { x: 13, y: 5.5 }, { x: 7, y: 8.5 }, { x: 11.4, y: 8.7 }];
+    const olla = { x: 4, y: 7.4 };
 
-    // los PIQUETEROS (de cuerpo entero). col=campera, hair, bandana?, hood?, holds?, flagK?, name/line.
     const folks = [
-      { x: 9, y: 3.4, col: '#5a2a2a', bandana: '#c0241f', holds: 'stick', barricada: true, name: T('g.lavalle.npc.corta'), line: T('g.lavalle.line.corta') },
-      { x: 6.5, y: 5.6, col: '#2e3a55', hood: '#1c2230', holds: 'stick', name: T('g.lavalle.npc.encapuchado'), line: T('g.lavalle.line.encapuchado') },
-      { x: 11.6, y: 5.7, col: '#3a4a2a', bandana: '#2a2a2a', name: T('g.lavalle.npc.fierro'), line: T('g.lavalle.line.fierro') },
-      { x: 4.4, y: 7.7, col: '#5a3a5a', name: T('g.lavalle.npc.rosa'), line: T('g.lavalle.line.rosa') },
-      { x: 14, y: 7.5, col: '#2a4a4a', holds: 'bombo', name: T('g.lavalle.npc.bombo'), line: T('g.lavalle.line.bombo') },
-      { x: 7.5, y: 10, col: '#4a3a1a', holds: 'flag', flagK: 'arg', name: T('g.lavalle.npc.bandera'), line: T('g.lavalle.line.bandera') },
+      { x: 9, y: 4.0, col: '#5a2a2a', bandana: '#c0241f', holds: 'stick', name: T('g.lavalle.npc.corta'), line: T('g.lavalle.line.corta') },
+      { x: 6.6, y: 5.7, col: '#2e3a55', hood: '#1c2230', holds: 'stick', name: T('g.lavalle.npc.encapuchado'), line: T('g.lavalle.line.encapuchado') },
+      { x: 11.4, y: 5.8, col: '#3a4a2a', bandana: '#2a2a2a', name: T('g.lavalle.npc.fierro'), line: T('g.lavalle.line.fierro') },
+      { x: 5.6, y: 7.6, col: '#5a3a5a', name: T('g.lavalle.npc.rosa'), line: T('g.lavalle.line.rosa') },
+      { x: 13.6, y: 7.6, col: '#2a4a4a', holds: 'bombo', name: T('g.lavalle.npc.bombo'), line: T('g.lavalle.line.bombo') },
+      { x: 7.4, y: 10, col: '#4a3a1a', holds: 'flag', flagK: 'arg', name: T('g.lavalle.npc.bandera'), line: T('g.lavalle.line.bandera') },
       { x: 11, y: 10.2, col: '#3a2a4a', holds: 'flag', flagK: 'peron', name: T('g.lavalle.npc.copado'), line: T('g.lavalle.line.copado') },
-      { x: 5, y: 11.4, col: '#6a4a2a', name: T('g.lavalle.npc.referente'), line: T('g.lavalle.line.referente') },
-      { x: 13.4, y: 11.2, col: '#5a3a3a', dance: true, name: T('g.lavalle.npc.vecina'), line: T('g.lavalle.line.vecina') },
+      { x: 6, y: 11.6, col: '#6a4a2a', name: T('g.lavalle.npc.referente'), line: T('g.lavalle.line.referente') },
+      { x: 12.6, y: 11.5, col: '#5a3a3a', dance: true, name: T('g.lavalle.npc.vecina'), line: T('g.lavalle.line.vecina') },
     ];
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null;
     setMsg(T('g.lavalle.intro'), 6);
@@ -82,101 +81,121 @@ const Lavalle = (() => {
       for (let i = 0; i < n; i++) { const yy = y - i * 9;
         ctx.fillStyle = '#141414'; ctx.beginPath(); ctx.ellipse(x, yy, 14, 9, 0, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.ellipse(x, yy - 1, 14, 8, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#3a3a3a'; ctx.beginPath(); ctx.ellipse(x, yy - 1, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.ellipse(x, yy - 1, 7, 4, 0, 0, Math.PI * 2); ctx.lineWidth = 0; ctx.fill(); ctx.fillStyle = '#3a3a3a'; ctx.beginPath(); ctx.ellipse(x, yy - 1.5, 5, 2.6, 0, 0, Math.PI * 2); ctx.fill(); }
+        ctx.fillStyle = '#3a3a3a'; ctx.beginPath(); ctx.ellipse(x, yy - 1.5, 5, 2.6, 0, 0, Math.PI * 2); ctx.fill(); }
     }
     function brokenCar(ctx, x, y, col, tilt) {
       ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
       ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(0, 18, 30, 7, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-30, 14); ctx.lineTo(-26, -8); ctx.lineTo(26, -8); ctx.lineTo(30, 14); ctx.closePath(); ctx.fill();   // carrocería
-      ctx.fillStyle = '#2a2a2e'; ctx.fillRect(-18, -16, 36, 10);                  // techo/cabina
-      ctx.fillStyle = '#11161c'; ctx.fillRect(-15, -14, 30, 6);                   // parabrisas roto
-      ctx.strokeStyle = '#6a7078'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-9, -14); ctx.lineTo(-3, -8); ctx.moveTo(2, -14); ctx.lineTo(7, -9); ctx.stroke();   // grietas
-      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(-30, 4, 60, 4);            // óxido/sombra base
-      ctx.fillStyle = '#141414'; ctx.beginPath(); ctx.arc(-20, 16, 5, 0, Math.PI); ctx.arc(20, 16, 5, 0, Math.PI); ctx.fill();   // gomas pinchadas
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-30, 14); ctx.lineTo(-26, -8); ctx.lineTo(26, -8); ctx.lineTo(30, 14); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#2a2a2e'; ctx.fillRect(-18, -16, 36, 10); ctx.fillStyle = '#11161c'; ctx.fillRect(-15, -14, 30, 6);
+      ctx.strokeStyle = '#6a7078'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-9, -14); ctx.lineTo(-3, -8); ctx.moveTo(2, -14); ctx.lineTo(7, -9); ctx.stroke();
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(-30, 4, 60, 4);
+      ctx.fillStyle = '#141414'; ctx.beginPath(); ctx.arc(-20, 16, 5, 0, Math.PI); ctx.arc(20, 16, 5, 0, Math.PI); ctx.fill();
       ctx.restore();
     }
-    function drawFlag(ctx, x, y, k, wav) {
+    // vehículo PARADO (vista de arriba, mirando hacia el Obelisco): colectivo / auto / patrullero
+    function vehicle(ctx, x, y, kind, col, sc) {
+      sc = sc || 1; const w = 19 * sc, h = (kind === 'bus' ? 44 : 28) * sc;
+      ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(x, y + h / 2 - 1, w / 2 + 2, 4 * sc, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = col; ctx.fillRect(x - w / 2, y - h / 2, w, h);
+      ctx.fillStyle = 'rgba(255,255,255,0.10)'; ctx.fillRect(x - w / 2, y - h / 2, w, 3 * sc);
+      ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(x - w / 2, y - h / 2, 3 * sc, h);
+      ctx.fillStyle = '#0e1418'; ctx.fillRect(x - w / 2 + 3 * sc, y - h / 2 + 4 * sc, w - 6 * sc, 6 * sc);   // parabrisas
+      ctx.fillRect(x - w / 2 + 3 * sc, y + h / 2 - 10 * sc, w - 6 * sc, 6 * sc);                              // luneta
+      if (kind === 'bus') { ctx.fillStyle = '#16222c'; for (let yy = y - h / 2 + 13 * sc; yy < y + h / 2 - 12 * sc; yy += 7 * sc) { ctx.fillRect(x - w / 2 + 1.5 * sc, yy, 3 * sc, 5 * sc); ctx.fillRect(x + w / 2 - 4.5 * sc, yy, 3 * sc, 5 * sc); }
+        ctx.fillStyle = '#1a1a1a'; ctx.fillRect(x - w / 2, y - 1, w, 3 * sc); }
+      if (kind === 'police') { ctx.fillStyle = '#1f4fa0'; ctx.fillRect(x - w / 2, y - 1, w, 4 * sc);
+        ctx.fillStyle = '#d11'; ctx.fillRect(x - 5 * sc, y - h / 2 - 2.5 * sc, 5 * sc, 3 * sc); ctx.fillStyle = '#1f6fff'; ctx.fillRect(x, y - h / 2 - 2.5 * sc, 5 * sc, 3 * sc); }   // barra de luces
+      ctx.fillStyle = '#ffe9a0'; ctx.fillRect(x - w / 2 + 2 * sc, y - h / 2, 3 * sc, 2 * sc); ctx.fillRect(x + w / 2 - 5 * sc, y - h / 2, 3 * sc, 2 * sc);   // faros
+      ctx.fillStyle = '#7a1010'; ctx.fillRect(x - w / 2 + 2 * sc, y + h / 2 - 2 * sc, 3 * sc, 2 * sc); ctx.fillRect(x + w / 2 - 5 * sc, y + h / 2 - 2 * sc, 3 * sc, 2 * sc);
+    }
+    function drawFlag(ctx, x, y, k) {
       ctx.strokeStyle = '#6d4c2f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y + 20); ctx.lineTo(x, y - 20); ctx.stroke();
-      const fw = 30, fh = 20, ox = x + 1, oy = y - 20; const w0 = wav ? Math.sin(t * 4 + x) * 2 : 0;
+      const fw = 30, fh = 20, ox = x + 1, oy = y - 20, w0 = Math.sin(t * 4 + x) * 2;
       if (k === 'peron') { ctx.fillStyle = '#f3ead8'; ctx.fillRect(ox, oy, fw, fh); ctx.fillStyle = '#1f4fa0'; ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center'; ctx.fillText('VIVA', ox + fw / 2, oy + 9); ctx.fillText('PERÓN', ox + fw / 2, oy + 17); }
       else if (k === 'arg') { ctx.fillStyle = '#74acdf'; ctx.fillRect(ox, oy + w0, fw, fh / 3); ctx.fillStyle = '#fff'; ctx.fillRect(ox, oy + fh / 3 + w0, fw, fh / 3); ctx.fillStyle = '#74acdf'; ctx.fillRect(ox, oy + 2 * fh / 3 + w0, fw, fh / 3); ctx.fillStyle = '#f6b40e'; ctx.beginPath(); ctx.arc(ox + fw / 2, oy + fh / 2 + w0, 3.2, 0, Math.PI * 2); ctx.fill(); }
       else { ctx.fillStyle = '#c0241f'; ctx.fillRect(ox, oy, fw - 4, fh); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(ox + 13, oy + 9, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#c0241f'; ctx.beginPath(); ctx.arc(ox + 14, oy + 10, 3.5, 0, Math.PI * 2); ctx.fill(); }
     }
-    // piquetero de CUERPO ENTERO (front view). o: {col,hair,bandana,hood,holds,flagK,dance}
     function piquetero(ctx, x, y, o, talk, hl) {
       o = o || {}; const sw = o.dance ? Math.sin(t * 6 + x) * 3 : 0;
       ctx.fillStyle = 'rgba(0,0,0,0.30)'; ctx.beginPath(); ctx.ellipse(x, y + 17, 9, 3, 0, 0, Math.PI * 2); ctx.fill();
       if (hl) { ctx.strokeStyle = '#ffd54a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x, y + 17, 13, 5, 0, 0, Math.PI * 2); ctx.stroke(); }
-      // piernas + zapatillas
       ctx.fillStyle = '#202a3a'; ctx.fillRect(x - 5, y + 5, 4, 11); ctx.fillRect(x + 1, y + 5, 4, 11);
       ctx.fillStyle = '#101216'; ctx.fillRect(x - 6, y + 15, 5, 3); ctx.fillRect(x + 1, y + 15, 5, 3);
-      // torso (campera) + sombra lateral
       ctx.fillStyle = o.col || '#3a4a6a'; ctx.fillRect(x - 7, y - 8 + sw, 14, 14);
       ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(x - 7, y - 8 + sw, 4, 14);
-      // brazos
       ctx.fillStyle = o.col || '#3a4a6a'; ctx.fillRect(x - 9, y - 7 + sw, 3, 11); ctx.fillRect(x + 6, y - 7 + sw, 3, 11);
-      ctx.fillStyle = '#d9a878'; ctx.fillRect(x - 9, y + 3 + sw, 3, 2); ctx.fillRect(x + 6, y + 3 + sw, 3, 2);   // manos
-      // cabeza
+      ctx.fillStyle = '#d9a878'; ctx.fillRect(x - 9, y + 3 + sw, 3, 2); ctx.fillRect(x + 6, y + 3 + sw, 3, 2);
       ctx.fillStyle = '#d9a878'; ctx.beginPath(); ctx.arc(x, y - 13 + sw, 5, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = o.hair || '#1c1410'; ctx.beginPath(); ctx.arc(x, y - 15 + sw, 5, Math.PI, 0); ctx.fill();
-      if (o.bandana) { ctx.fillStyle = o.bandana; ctx.fillRect(x - 5, y - 13 + sw, 10, 4); }              // bandana en la cara
-      if (o.hood) { ctx.fillStyle = o.hood; ctx.beginPath(); ctx.arc(x, y - 14 + sw, 6.5, Math.PI * 0.85, Math.PI * 2.15); ctx.fill(); }   // capucha
-      // sostiene
+      if (o.bandana) { ctx.fillStyle = o.bandana; ctx.fillRect(x - 5, y - 13 + sw, 10, 4); }
+      if (o.hood) { ctx.fillStyle = o.hood; ctx.beginPath(); ctx.arc(x, y - 14 + sw, 6.5, Math.PI * 0.85, Math.PI * 2.15); ctx.fill(); }
       if (o.holds === 'stick') { ctx.strokeStyle = '#6d4c2f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, y + 3 + sw); ctx.lineTo(x + 11, y - 18); ctx.stroke(); }
-      if (o.holds === 'bombo') { ctx.fillStyle = '#c0241f'; ctx.beginPath(); ctx.arc(x + 11, y + sw, 8, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#7a3b12'; ctx.fillRect(x + 14, y - 9 + sw, 2, 8); }   // bombo
-      if (o.holds === 'flag') drawFlag(ctx, x + 11, y - 4 + sw, o.flagK || 'arg', true);
+      if (o.holds === 'bombo') { ctx.fillStyle = '#c0241f'; ctx.beginPath(); ctx.arc(x + 11, y + sw, 8, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#7a3b12'; ctx.fillRect(x + 14, y - 9 + sw, 2, 8); }
+      if (o.holds === 'flag') drawFlag(ctx, x + 11, y - 4 + sw, o.flagK || 'arg');
       if (talk) bubble(ctx, x, y - 22 + sw, talk);
     }
-    function carpo(ctx, x, y) {   // EL CARPO de cuerpo entero, de espaldas (melena + campera + viola)
+    function carpo(ctx, x, y) {
       const sw = Math.sin(player.walk) * 2;
       ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(x, y + 17, 9, 3, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#3a3340'; ctx.fillRect(x - 5, y + 5, 4, 11 + sw); ctx.fillRect(x + 1, y + 5, 4, 11 - sw);   // jeans
+      ctx.fillStyle = '#3a3340'; ctx.fillRect(x - 5, y + 5, 4, 11 + sw); ctx.fillRect(x + 1, y + 5, 4, 11 - sw);
       ctx.fillStyle = '#15110f'; ctx.fillRect(x - 6, y + 15 + sw, 5, 3); ctx.fillRect(x + 1, y + 15 - sw, 5, 3);
-      ctx.fillStyle = '#4a3b2a'; ctx.fillRect(x - 8, y - 8, 16, 15);                          // campera marrón
-      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x - 8, y - 8, 4, 15);
-      ctx.save(); ctx.translate(x + 6, y - 2); ctx.rotate(0.55); ctx.fillStyle = '#7a3b12'; ctx.fillRect(-3.5, -12, 7, 22); ctx.fillStyle = '#d8a24a'; ctx.fillRect(-1, -12, 2, 22); ctx.restore();   // viola al hombro
-      ctx.fillStyle = '#2a2018'; ctx.beginPath(); ctx.arc(x, y - 13, 7, 0, Math.PI * 2); ctx.fill();   // melena (de atrás)
-      ctx.fillStyle = '#241b14'; ctx.fillRect(x - 7, y - 12, 14, 9);
+      ctx.fillStyle = '#4a3b2a'; ctx.fillRect(x - 8, y - 8, 16, 15); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x - 8, y - 8, 4, 15);
+      ctx.save(); ctx.translate(x + 6, y - 2); ctx.rotate(0.55); ctx.fillStyle = '#7a3b12'; ctx.fillRect(-3.5, -12, 7, 22); ctx.fillStyle = '#d8a24a'; ctx.fillRect(-1, -12, 2, 22); ctx.restore();
+      ctx.fillStyle = '#2a2018'; ctx.beginPath(); ctx.arc(x, y - 13, 7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#241b14'; ctx.fillRect(x - 7, y - 12, 14, 9);
     }
     function bubble(ctx, x, y, txt) { ctx.font = '9px monospace'; const tw = Math.min(180, ctx.measureText(txt).width + 10);
       ctx.fillStyle = 'rgba(15,12,8,0.92)'; ctx.fillRect(x - tw / 2, y - 12, tw, 13);
       ctx.fillStyle = '#ffe2a8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x, y - 5); ctx.textBaseline = 'alphabetic'; }
 
     function draw(ctx, VW, VH) {
-      const ox = (VW - W * CS) / 2, oy = 30;
-      ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, VH);
-      // asfalto
-      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const px = ox + x * CS, py = oy + y * CS;
-        ctx.fillStyle = ((x + y) % 2) ? pal.floor : pal.floor2; ctx.fillRect(px, py, CS, CS); }
-      ctx.strokeStyle = pal.line; ctx.lineWidth = 3; ctx.setLineDash([12, 10]); ctx.beginPath(); ctx.moveTo(ox + 9 * CS, oy + 3 * CS); ctx.lineTo(ox + 9 * CS, oy + (H - 0.5) * CS); ctx.stroke(); ctx.setLineDash([]);
-      const TX2 = tx => ox + tx * CS, TY2 = ty => oy + ty * CS;
-      // EL OBELISCO al fondo (detrás de todo)
-      { const img = (typeof Art !== 'undefined' && Art.decor) ? Art.decor.obelisco : null; if (img) ctx.drawImage(img, TX2(9) - img.width / 2, oy - img.height + 64); }
-      // LA REJA (valla metálica) cruzando el fondo
-      ctx.strokeStyle = '#6a6a72'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(ox + CS, oy + 1.5 * CS); ctx.lineTo(ox + (W - 1) * CS, oy + 1.5 * CS); ctx.stroke();
-      ctx.lineWidth = 2; for (let x = 1; x < W; x += 0.6) { ctx.beginPath(); ctx.moveTo(ox + x * CS, oy + 0.9 * CS); ctx.lineTo(ox + x * CS, oy + 2 * CS); ctx.stroke(); }
-      // AUTOS ROTOS (parte de la barricada)
+      const ox = (VW - W * CS) / 2, oy = 30, TX2 = tx => ox + tx * CS, TY2 = ty => oy + ty * CS;
+      const cutY = TY2(3.6);   // la línea del corte
+      ctx.fillStyle = '#0b0b11'; ctx.fillRect(0, 0, VW, VH);   // LIMPIAR TODO (si no, se cuela la calle en los márgenes)
+      // skyline oscuro de fondo (que no parezca letterbox) — la 9 de Julio es ANCHA, ocupa todo el ancho
+      ctx.fillStyle = '#13131b'; for (let bx = 0; bx < VW; bx += 46) { const bh = 30 + ((bx * 7) % 40); ctx.fillRect(bx, oy + 4, 40, bh); }
+      // cielo nocturno-anaranjado (resplandor del corte) — todo el ancho
+      const sky = ctx.createLinearGradient(0, oy, 0, cutY); sky.addColorStop(0, '#241a26'); sky.addColorStop(1, '#3a2418');
+      ctx.fillStyle = sky; ctx.fillRect(0, oy + 30, VW, cutY - oy - 30);
+      // EL OBELISCO grande al fondo, centrado en TODA la pantalla (se ve mucho ahora)
+      { const img = (typeof Art !== 'undefined' && Art.decor) ? Art.decor.obelisco : null;
+        if (img) { const sc = 1.35; ctx.drawImage(img, VW / 2 - img.width * sc / 2, cutY - img.height * sc + 12, img.width * sc, img.height * sc); } }
+      // perspectiva de la avenida hacia el Obelisco (carriles convergen) — todo el ancho
+      ctx.strokeStyle = 'rgba(201,192,138,0.45)'; ctx.lineWidth = 1; ctx.setLineDash([7, 9]);
+      for (let lx = 0; lx <= VW; lx += 70) { ctx.beginPath(); ctx.moveTo(lx, cutY); ctx.lineTo(VW / 2 + (lx - VW / 2) * 0.16, oy + 34); ctx.stroke(); }
+      ctx.setLineDash([]);
+      // ASFALTO de la avenida — TODO el ancho (no una franja)
+      for (let y = 4; y < H; y++) for (let px = 0; px < VW; px += CS) { ctx.fillStyle = ((Math.floor(px / CS) + y) % 2) ? pal.floor : pal.floor2; ctx.fillRect(px, TY2(y), CS, CS); }
+      // carriles (avenida ANCHA = muchos) — todo el ancho
+      ctx.strokeStyle = pal.lane; ctx.lineWidth = 2; ctx.setLineDash([14, 12]);
+      for (let lx = 40; lx <= VW - 20; lx += 78) { ctx.beginPath(); ctx.moveTo(lx, cutY); ctx.lineTo(lx, TY2(H - 0.4)); ctx.stroke(); }
+      ctx.setLineDash([]);
+      // colectivos / autos chicos PASADA la reja (tránsito parado del otro lado)
+      for (const v of vehs) if (v.y < 3.6) vehicle(ctx, TX2(v.x + 0.5), TY2(v.y + 0.5), v.kind, v.col, v.sc);
+      // LA REJA cruzando + AUTOS ROTOS + CUBIERTAS + BANDERAS (el corte)
+      ctx.strokeStyle = '#6a6a72'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke();
+      ctx.lineWidth = 2; for (let x = 1; x < W; x += 0.6) { ctx.beginPath(); ctx.moveTo(TX2(x), TY2(2.4)); ctx.lineTo(TX2(x), TY2(3.5)); ctx.stroke(); }
       for (const c of cars) brokenCar(ctx, TX2(c.x), TY2(c.y), c.col, c.tilt);
-      // CUBIERTAS apiladas (el muro del corte)
       for (const tr of tires) tireStack(ctx, TX2(tr.x), TY2(tr.y), tr.n);
-      // BANDERAS (Viva Perón, argentina, Che) en el corte
-      for (const f of flags) drawFlag(ctx, TX2(f.x), TY2(f.y), f.k, true);
-      // TACHOS prendidos fuego (animados) — orden por y
+      for (const f of flags) drawFlag(ctx, TX2(f.x), TY2(f.y), f.k);
+      // tachos al fuego (animados)
       const fb = barrels.map((b, i) => ({ b, i })).sort((a, z) => a.b.y - z.b.y);
       for (const { b, i } of fb) { const fx = TX2(b.x + 0.5), fy = TY2(b.y + 0.5);
         ctx.fillStyle = '#39454c'; ctx.fillRect(fx - 9, fy - 4, 18, 22); ctx.fillStyle = '#222d33'; ctx.fillRect(fx - 9, fy - 4, 5, 22);
         ctx.fillStyle = '#1c2429'; ctx.fillRect(fx - 10, fy - 6, 20, 4); fire(ctx, fx, fy - 6, 1, i * 1.7); }
-      // OLLA popular
+      // olla
       { const olx = TX2(olla.x + 0.5), oly = TY2(olla.y + 0.5); fire(ctx, olx, oly + 8, 0.7, 4.1);
         ctx.fillStyle = '#3a4750'; ctx.beginPath(); ctx.ellipse(olx, oly, 15, 9, 0, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#0f1518'; ctx.beginPath(); ctx.ellipse(olx, oly - 6, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#5a3a1a'; ctx.beginPath(); ctx.ellipse(olx, oly - 6, 8, 3, 0, 0, Math.PI * 2); ctx.fill(); }
-      // PIQUETEROS + VOS, ordenados por Y (los de más abajo tapan a los de arriba)
-      const ents = folks.map(f => ({ f, y: f.y })).concat([{ player: true, y: player.y / CS - 0.5 }]).sort((a, z) => a.y - z.y);
+      // colectivos / autos / patrulleros PARADOS a los costados (este lado) + piqueteros + VOS, ordenados por Y
+      const ents = vehs.filter(v => v.y >= 3.6).map(v => ({ v, y: v.y }))
+        .concat(folks.map(f => ({ f, y: f.y })))
+        .concat([{ player: true, y: player.y / CS - 0.5 }]).sort((a, z) => a.y - z.y);
       for (const e of ents) {
-        if (e.player) { carpo(ctx, ox + player.x, oy + player.y); }
-        else { const f = e.f; piquetero(ctx, TX2(f.x + 0.5), TY2(f.y + 0.5), f, near === f ? f.line : '', near === f); }
+        if (e.player) carpo(ctx, ox + player.x, oy + player.y);
+        else if (e.v) vehicle(ctx, TX2(e.v.x + 0.5), TY2(e.v.y + 0.5), e.v.kind, e.v.col, e.v.sc);
+        else piquetero(ctx, TX2(e.f.x + 0.5), TY2(e.f.y + 0.5), e.f, near === e.f ? e.f.line : '', near === e.f);
       }
       // barra superior + mensajes
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 26);

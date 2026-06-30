@@ -120,24 +120,6 @@
           "x": 5
         },
         {
-          "id": "florida-y-lavalle/door-lavalle",
-          "tipo": "door",
-          "render": {
-            "type": "door",
-            "facade": "lavalle"
-          },
-          "x": 2,
-          "label": "doblar a Lavalle (al Obelisco)",
-          "inward": 1,
-          "link": {
-            "to": "lavalle-el-piquete",
-            "at": {
-              "x": 3.5,
-              "y": 12
-            }
-          }
-        },
-        {
           "id": "florida-y-lavalle/door-edu",
           "tipo": "door",
           "render": {
@@ -757,12 +739,20 @@
           "id": "florida-y-lavalle/decor28",
           "tipo": "decor",
           "render": {
+            "type": "lavalle_sign"
+          },
+          "x": 1.6
+        },
+        {
+          "id": "florida-y-lavalle/decor29",
+          "tipo": "decor",
+          "render": {
             "type": "arbol"
           },
           "x": 7
         },
         {
-          "id": "florida-y-lavalle/decor29",
+          "id": "florida-y-lavalle/decor30",
           "tipo": "decor",
           "render": {
             "type": "farol"
@@ -770,7 +760,7 @@
           "x": 16
         },
         {
-          "id": "florida-y-lavalle/decor30",
+          "id": "florida-y-lavalle/decor31",
           "tipo": "decor",
           "render": {
             "type": "parlante"
@@ -778,7 +768,7 @@
           "x": 21
         },
         {
-          "id": "florida-y-lavalle/decor31",
+          "id": "florida-y-lavalle/decor32",
           "tipo": "decor",
           "render": {
             "type": "instrumentos"
@@ -786,7 +776,7 @@
           "x": 27
         },
         {
-          "id": "florida-y-lavalle/decor32",
+          "id": "florida-y-lavalle/decor33",
           "tipo": "decor",
           "render": {
             "type": "kiosko"
@@ -794,7 +784,7 @@
           "x": 38
         },
         {
-          "id": "florida-y-lavalle/decor33",
+          "id": "florida-y-lavalle/decor34",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -803,7 +793,7 @@
           "ad": {}
         },
         {
-          "id": "florida-y-lavalle/decor34",
+          "id": "florida-y-lavalle/decor35",
           "tipo": "decor",
           "render": {
             "type": "arbol"
@@ -811,7 +801,7 @@
           "x": 54
         },
         {
-          "id": "florida-y-lavalle/decor35",
+          "id": "florida-y-lavalle/decor36",
           "tipo": "decor",
           "render": {
             "type": "mesa_ajedrez"
@@ -819,7 +809,7 @@
           "x": 64
         },
         {
-          "id": "florida-y-lavalle/decor36",
+          "id": "florida-y-lavalle/decor37",
           "tipo": "decor",
           "render": {
             "type": "cartel"
@@ -828,7 +818,7 @@
           "ad": {}
         },
         {
-          "id": "florida-y-lavalle/decor37",
+          "id": "florida-y-lavalle/decor38",
           "tipo": "decor",
           "render": {
             "type": "tacho"
@@ -836,7 +826,7 @@
           "x": 94
         },
         {
-          "id": "florida-y-lavalle/decor38",
+          "id": "florida-y-lavalle/decor39",
           "tipo": "decor",
           "render": {
             "type": "camara"
@@ -844,7 +834,7 @@
           "x": 33
         },
         {
-          "id": "florida-y-lavalle/decor39",
+          "id": "florida-y-lavalle/decor40",
           "tipo": "decor",
           "render": {
             "type": "camara"
@@ -852,7 +842,7 @@
           "x": 72
         },
         {
-          "id": "florida-y-lavalle/pickup40",
+          "id": "florida-y-lavalle/pickup41",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -862,7 +852,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup41",
+          "id": "florida-y-lavalle/pickup42",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -871,7 +861,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup42",
+          "id": "florida-y-lavalle/pickup43",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -880,7 +870,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup43",
+          "id": "florida-y-lavalle/pickup44",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -890,7 +880,7 @@
           "y": 10
         },
         {
-          "id": "florida-y-lavalle/pickup44",
+          "id": "florida-y-lavalle/pickup45",
           "tipo": "pickup",
           "give": {
             "item": "ammo"
@@ -898,7 +888,7 @@
           "x": 24
         },
         {
-          "id": "florida-y-lavalle/pickup45",
+          "id": "florida-y-lavalle/pickup46",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -906,7 +896,7 @@
           "x": 60
         },
         {
-          "id": "florida-y-lavalle/pickup46",
+          "id": "florida-y-lavalle/pickup47",
           "tipo": "pickup",
           "give": {
             "item": "coins",
@@ -915,7 +905,7 @@
           "x": 84
         },
         {
-          "id": "florida-y-lavalle/enemy47",
+          "id": "florida-y-lavalle/enemy48",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -924,7 +914,7 @@
           "x": 14
         },
         {
-          "id": "florida-y-lavalle/enemy48",
+          "id": "florida-y-lavalle/enemy49",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -933,7 +923,7 @@
           "x": 20
         },
         {
-          "id": "florida-y-lavalle/enemy49",
+          "id": "florida-y-lavalle/enemy50",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -942,7 +932,7 @@
           "x": 32
         },
         {
-          "id": "florida-y-lavalle/enemy50",
+          "id": "florida-y-lavalle/enemy51",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -951,7 +941,7 @@
           "x": 42
         },
         {
-          "id": "florida-y-lavalle/enemy51",
+          "id": "florida-y-lavalle/enemy52",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -960,7 +950,7 @@
           "x": 56
         },
         {
-          "id": "florida-y-lavalle/enemy52",
+          "id": "florida-y-lavalle/enemy53",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -969,7 +959,7 @@
           "x": 70
         },
         {
-          "id": "florida-y-lavalle/enemy53",
+          "id": "florida-y-lavalle/enemy54",
           "tipo": "enemy",
           "combat": {
             "type": "peaton",
@@ -978,7 +968,7 @@
           "x": 95
         },
         {
-          "id": "florida-y-lavalle/enemy54",
+          "id": "florida-y-lavalle/enemy55",
           "tipo": "enemy",
           "combat": {
             "type": "dron"
@@ -987,7 +977,7 @@
           "y": 6
         },
         {
-          "id": "florida-y-lavalle/enemy55",
+          "id": "florida-y-lavalle/enemy56",
           "tipo": "enemy",
           "combat": {
             "type": "dron"
@@ -9467,256 +9457,6 @@
             "type": "sofa"
           },
           "x": 16
-        }
-      ]
-    },
-    {
-      "id": "lavalle-el-piquete",
-      "nombre": "Lavalle — el piquete",
-      "theme": "street",
-      "w": 42,
-      "tags": [
-        "lavalle"
-      ],
-      "light": 1,
-      "entities": [
-        {
-          "id": "lavalle-el-piquete/marker0",
-          "tipo": "marker",
-          "render": {
-            "type": "spawn"
-          },
-          "x": 4
-        },
-        {
-          "id": "lavalle-el-piquete/door-out",
-          "tipo": "door",
-          "render": {
-            "type": "door"
-          },
-          "x": 2,
-          "label": "volver a Florida y Lavalle",
-          "inward": 1,
-          "link": {
-            "to": "florida-y-lavalle",
-            "at": {
-              "x": 3.5,
-              "y": 12
-            }
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc1",
-          "tipo": "npc",
-          "render": {
-            "sprite": "nino"
-          },
-          "x": 7,
-          "name": "Pibe",
-          "dialogue": {
-            "text": "“¡Pasámela, pasámela! ¡Dale que estamos 3 a 2!” ⚽"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc2",
-          "tipo": "npc",
-          "render": {
-            "sprite": "civil2"
-          },
-          "x": 9,
-          "name": "Pibita",
-          "dialogue": {
-            "text": "“¡Gooool, la concha de la lora! ¡Aguante el barrio!” 🥅"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc3",
-          "tipo": "npc",
-          "render": {
-            "sprite": "mujer"
-          },
-          "x": 14,
-          "name": "Doña Rosa",
-          "dialogue": {
-            "text": "“Bienvenido al corte, mi amor. Acá no falta un plato de comida ni una cumbia.” 🪗"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc4",
-          "tipo": "npc",
-          "render": {
-            "sprite": "gordo"
-          },
-          "x": 17,
-          "name": "La olla popular",
-          "dialogue": {
-            "text": "“¿Un guisito, pibe? Hay para todos, agarrá un plato. 🍲”"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc5",
-          "tipo": "npc",
-          "render": {
-            "sprite": "civil1"
-          },
-          "x": 21,
-          "name": "Compañero",
-          "dialogue": {
-            "text": "“Acá estamos firme, hermano. Viva Perón, viva el Che, viva la cumbia. ✊🎶”"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc6",
-          "tipo": "npc",
-          "render": {
-            "sprite": "civil4"
-          },
-          "x": 26,
-          "name": "Vecina copada",
-          "dialogue": {
-            "text": "“¡Que suene fuerte esa cumbia, dale! Bailá, no seas amargo. 💃”"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc7",
-          "tipo": "npc",
-          "render": {
-            "sprite": "linyera"
-          },
-          "x": 24,
-          "name": "El del fierro",
-          "dialogue": {
-            "text": "“Tranqui, pibe, el fierro es por las dudas nomás. Acá entre nosotros somos todos compañeros. 🔧”"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc8",
-          "tipo": "npc",
-          "render": {
-            "sprite": "cuevero"
-          },
-          "x": 31,
-          "name": "El de la tumbera",
-          "dialogue": {
-            "text": "“Cuidamos el corte, nada más. Vos pasala bien, comé algo, bailá. 🪅”"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/npc9",
-          "tipo": "npc",
-          "render": {
-            "sprite": "civil3"
-          },
-          "x": 35,
-          "name": "El que corta",
-          "dialogue": {
-            "text": "“De acá no se pasa, hermano: está todo cortado hasta el Obelisco. Volvé más adelante, que se viene algo grande. 🚧🏛️”"
-          }
-        },
-        {
-          "id": "lavalle-el-piquete/decor10",
-          "tipo": "decor",
-          "render": {
-            "type": "parlante"
-          },
-          "x": 6
-        },
-        {
-          "id": "lavalle-el-piquete/decor11",
-          "tipo": "decor",
-          "render": {
-            "type": "tacho_fuego"
-          },
-          "x": 9
-        },
-        {
-          "id": "lavalle-el-piquete/decor12",
-          "tipo": "decor",
-          "render": {
-            "type": "tacho_fuego"
-          },
-          "x": 19
-        },
-        {
-          "id": "lavalle-el-piquete/decor13",
-          "tipo": "decor",
-          "render": {
-            "type": "tacho_fuego"
-          },
-          "x": 29
-        },
-        {
-          "id": "lavalle-el-piquete/decor14",
-          "tipo": "decor",
-          "render": {
-            "type": "pancarta"
-          },
-          "x": 13
-        },
-        {
-          "id": "lavalle-el-piquete/decor15",
-          "tipo": "decor",
-          "render": {
-            "type": "olla"
-          },
-          "x": 16
-        },
-        {
-          "id": "lavalle-el-piquete/decor16",
-          "tipo": "decor",
-          "render": {
-            "type": "bandera_che"
-          },
-          "x": 23
-        },
-        {
-          "id": "lavalle-el-piquete/decor17",
-          "tipo": "decor",
-          "render": {
-            "type": "bandera_che"
-          },
-          "x": 34
-        },
-        {
-          "id": "lavalle-el-piquete/decor18",
-          "tipo": "decor",
-          "render": {
-            "type": "parlante"
-          },
-          "x": 27
-        },
-        {
-          "id": "lavalle-el-piquete/decor19",
-          "tipo": "decor",
-          "render": {
-            "type": "barricada"
-          },
-          "x": 37
-        },
-        {
-          "id": "lavalle-el-piquete/decor20",
-          "tipo": "decor",
-          "render": {
-            "type": "obelisco"
-          },
-          "x": 40
-        },
-        {
-          "id": "lavalle-el-piquete/pickup21",
-          "tipo": "pickup",
-          "give": {
-            "item": "coins",
-            "amount": 4
-          },
-          "x": 18
-        },
-        {
-          "id": "lavalle-el-piquete/pickup22",
-          "tipo": "pickup",
-          "give": {
-            "item": "health"
-          },
-          "x": 12
         }
       ]
     }

@@ -115,6 +115,16 @@ const Art = (() => {
       g.fillStyle = '#263238'; g.fillRect(2, 3, w-4, 5);
       g.fillStyle = '#1c2429'; for (let y = 11; y < h-2; y += 5) g.fillRect(5, y, w-10, 2);
     }),
+    // cartel de calle "LAVALLE ←" en la esquina (E1.5): NO una puerta — marca que caminando al borde izq pasás a Lavalle
+    lavalle_sign: mk(70, 98, (g, w, h) => {
+      g.fillStyle = '#3a3f45'; g.fillRect(w / 2 - 2, 22, 4, h - 22);
+      g.fillStyle = '#0f3d8c'; g.fillRect(8, 8, w - 16, 22); g.fillStyle = '#0a2e6b'; g.fillRect(8, 8, w - 16, 3);
+      g.strokeStyle = '#cfe0ff'; g.lineWidth = 1.5; g.strokeRect(10, 10, w - 20, 18);
+      g.fillStyle = '#fff'; g.font = 'bold 11px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('LAVALLE', w / 2, 20); g.textBaseline = 'alphabetic';
+      g.fillStyle = '#ffd54a'; const ay = 46; g.beginPath(); g.moveTo(6, ay); g.lineTo(22, ay - 10); g.lineTo(22, ay - 4); g.lineTo(w - 8, ay - 4); g.lineTo(w - 8, ay + 4); g.lineTo(22, ay + 4); g.lineTo(22, ay + 10); g.closePath(); g.fill();
+      g.fillStyle = '#9be8a0'; g.font = '8px monospace'; g.fillText('← al Obelisco', w / 2, 60);
+    }),
     // --- LAVALLE / el piquete (specs/lavalle.md). Los CONTENEDORES de fuego van casi sin llama (el fuego+humo
     //     se dibujan VIVOS en game.js: drawPiqueteFx). Acá solo el metal + brasas + glow del borde. ---
     tacho_fuego: mk(26, 40, (g, w, h) => {       // tacho de chapa (el fuego sale vivo por arriba)
@@ -1137,30 +1147,7 @@ const Art = (() => {
     cine:        { w: 156, h: 220, c: '#2a1840', c2: '#1a0f2a', win: '#ffd54f', sign: '🎬 CINE', sc: '#ffe14d' },
     lavalle:     { w: 120, h: 150, c: '#241f18', c2: '#16120d', win: '#caa45a', sign: 'LAVALLE →', sc: '#ffd54f' },   // la esquina que dobla al piquete/Obelisco
   };
-  function drawLavalleSign(g, sx, gy) {   // E1.5: NO un edificio — un cartel callejero "CALLE LAVALLE ←" + glow del piquete
-    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now()) * 0.001;
-    // resplandor/humo del piquete que se ve "doblando a la izquierda"
-    g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.18 + 0.05 * Math.sin(now * 3);
-    const gr = g.createRadialGradient(sx - 30, gy - 60, 4, sx - 30, gy - 60, 80); gr.addColorStop(0, '#ff8a1a'); gr.addColorStop(1, 'rgba(255,138,26,0)');
-    g.fillStyle = gr; g.fillRect(sx - 110, gy - 150, 130, 150); g.restore();
-    g.save(); g.globalAlpha = 0.22; g.fillStyle = '#888';
-    for (let i = 0; i < 3; i++) { const ph = (now * 0.4 + i * 0.4) % 1; g.beginPath(); g.arc(sx - 34 + Math.sin(now + i) * 8, gy - 70 - ph * 60, 7 + ph * 12, 0, Math.PI * 2); g.fill(); }
-    g.restore();
-    // poste + cartel azul (estilo nomenclador porteño)
-    g.fillStyle = '#3a3f45'; g.fillRect(sx - 2, gy - 92, 4, 92);
-    g.fillStyle = '#0f3d8c'; g.fillRect(sx - 52, gy - 108, 100, 24);
-    g.fillStyle = '#0a2e6b'; g.fillRect(sx - 52, gy - 108, 100, 3);
-    g.strokeStyle = '#cfe0ff'; g.lineWidth = 1.5; g.strokeRect(sx - 50, gy - 106, 96, 20);
-    g.fillStyle = '#fff'; g.font = 'bold 11px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText('CALLE LAVALLE', sx, gy - 96); g.textBaseline = 'alphabetic';
-    // FLECHA grande hacia la izquierda (parpadea suave) "para allá vas"
-    g.save(); g.globalAlpha = 0.7 + 0.3 * Math.sin(now * 4); g.fillStyle = '#ffd54a';
-    const ay = gy - 50; g.beginPath(); g.moveTo(sx - 40, ay); g.lineTo(sx - 22, ay - 11); g.lineTo(sx - 22, ay - 4); g.lineTo(sx + 2, ay - 4); g.lineTo(sx + 2, ay + 4); g.lineTo(sx - 22, ay + 4); g.lineTo(sx - 22, ay + 11); g.closePath(); g.fill();
-    g.restore();
-    g.fillStyle = '#9be8a0'; g.font = '8px monospace'; g.textAlign = 'center'; g.fillText('← al Obelisco', sx - 18, gy - 30);
-  }
   function drawBuilding(g, sx, gy, style) {
-    if (style === 'lavalle') return drawLavalleSign(g, sx, gy);
     const s = BUILDINGS[style] || BUILDINGS.galeria;
     const x = sx - s.w/2, y = gy - s.h;
     g.fillStyle = s.c; g.fillRect(x, y, s.w, s.h);

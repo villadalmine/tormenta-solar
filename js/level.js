@@ -77,7 +77,6 @@ const Level = (() => {
         platforms: [[16,11,2],[36,11,2],[52,11,2],[68,11,2],[9,9,3],[27,9,3],[45,9,3]],
         playerStart: 5,
         doors: [
-          { id:'lavalle', art:'door',        facade:'lavalle',     label:'doblar a Lavalle (al Obelisco)', x:2, inward:1 },   // §lavalle.md E1: girás a la izq → el piquete
           { id:'edu',     art:'educacionit', facade:'educacionit', label:'entrar a EducaciónIT', x:10, inward:1, collapsesOnStorm:true },
           { id:'arcade',  art:'arcade',      facade:'arcade',      label:'entrar al arcade',     x:28, inward:1, collapsesOnStorm:true },
           { id:'choris',  art:'door',        facade:'choris',      label:'entrar a la chorería', x:46, inward:1, collapsesOnStorm:true },
@@ -90,6 +89,7 @@ const Level = (() => {
           { id:'super',   art:'superchino',  facade:'superchino',  label:'entrar al super chino', x:112, inward:-1 },
         ],
         decor: [
+          {t:'lavalle_sign',x:1.6},   // §lavalle.md E1.5: cartel de calle "LAVALLE ←" — caminás al borde IZQ y pasás (NO es una puerta)
           {t:'arbol',x:7},{t:'farol',x:16},{t:'parlante',x:21},{t:'instrumentos',x:27},
           {t:'kiosko',x:38},{t:'cartel',x:46,ad:true},{t:'arbol',x:54},{t:'mesa_ajedrez',x:64},{t:'cartel',x:82,ad:true},{t:'tacho',x:94},
           {t:'camara',x:33},{t:'camara',x:72},   // cámaras de seguridad: "ven" los dólares que disparás (serie buena/trucha)
@@ -689,48 +689,11 @@ const Level = (() => {
       ],
     })) - 1;
 
-    // LAVALLE — el piquete copado (hacia el Obelisco). specs/lavalle.md, ETAPA 1: postal ambiental, sin combate.
-    // Entrás por la izq de la calle (puerta 'lavalle'), aparecés acá a la izq y caminás a la derecha hacia el
-    // piquete + el Obelisco; la BARRICADA corta al fondo (de ahí no se pasa en E1 = gancho de Etapa 2). Cumbia al palo.
-    const lavalle = rooms.length;
-    rooms.push(makeRoom({
-      name: 'Lavalle — el piquete', theme: 'street', tags: ['lavalle'], light: 1.0, w: 42,
-      playerStart: 4,
-      doors: [{ id:'out', art:'door', label:'volver a Florida y Lavalle', x:2, inward:1 }],
-      decor: [
-        {t:'parlante',x:6},                                            // los bafles: cumbia al palo
-        {t:'tacho_fuego',x:9},{t:'tacho_fuego',x:19},{t:'tacho_fuego',x:29},   // tachos prendidos fuego
-        {t:'pancarta',x:13},                                           // pancarta "VIVA PERÓN"
-        {t:'olla',x:16},                                              // olla popular
-        {t:'bandera_che',x:23},{t:'bandera_che',x:34},                 // banderas del Che
-        {t:'parlante',x:27},
-        {t:'barricada',x:37},                                         // el corte: gomas/maderas/tachos (no se pasa en E1)
-        {t:'obelisco',x:40},                                         // el Obelisco al fondo, detrás de la barricada
-      ],
-      npcs: [
-        // pibes jugando a la pelota
-        { name:'Pibe', sprite:'nino',   x:7,  dialog:'“¡Pasámela, pasámela! ¡Dale que estamos 3 a 2!” ⚽' },
-        { name:'Pibita', sprite:'civil2', x:9, dialog:'“¡Gooool, la concha de la lora! ¡Aguante el barrio!” 🥅' },
-        // gente copada / cumbia
-        { name:'Doña Rosa', sprite:'mujer', x:14, dialog:'“Bienvenido al corte, mi amor. Acá no falta un plato de comida ni una cumbia.” 🪗' },
-        { name:'La olla popular', sprite:'gordo', x:17, dialog:'“¿Un guisito, pibe? Hay para todos, agarrá un plato. 🍲”' },
-        { name:'Compañero', sprite:'civil1', x:21, dialog:'“Acá estamos firme, hermano. Viva Perón, viva el Che, viva la cumbia. ✊🎶”' },
-        { name:'Vecina copada', sprite:'civil4', x:26, dialog:'“¡Que suene fuerte esa cumbia, dale! Bailá, no seas amargo. 💃”' },
-        // los del piquete con armas tumberas — copados, no atacan
-        { name:'El del fierro', sprite:'linyera', x:24, dialog:'“Tranqui, pibe, el fierro es por las dudas nomás. Acá entre nosotros somos todos compañeros. 🔧”' },
-        { name:'El de la tumbera', sprite:'cuevero', x:31, dialog:'“Cuidamos el corte, nada más. Vos pasala bien, comé algo, bailá. 🪅”' },
-        // el que corta — gancho de Etapa 2 (el Obelisco)
-        { name:'El que corta', sprite:'civil3', x:35, dialog:'“De acá no se pasa, hermano: está todo cortado hasta el Obelisco. Volvé más adelante, que se viene algo grande. 🚧🏛️”' },
-      ],
-      pickups: [{t:'coins',x:18,amount:4},{t:'health',x:12}],
-    }));
-
     function wire(ai, ad, bi, bd) {
       const A = rooms[ai], B = rooms[bi], da = A.doorById[ad], db = B.doorById[bd];
       da.to = bi; da.at = { x: db.x + db.inward*48, y: db.y };
       db.to = ai; db.at = { x: da.x + da.inward*48, y: da.y };
     }
-    wire(0, 'lavalle', lavalle, 'out');   // §lavalle.md E1: la calle ↔ el piquete
     wire(0, 'edu', 1, 'out');
     wire(1, 'up', 2, 'down');
     wire(2, 'up', 3, 'down');

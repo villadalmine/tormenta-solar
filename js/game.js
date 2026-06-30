@@ -1755,7 +1755,6 @@
     cartelBoard = null; cartelPollT = 0; cartelMsg = null;   // CARTELES C1: el tablón se recarga por piso (no arrastrar el anterior)
     syncBodegon(r);   // MULTIJUGADOR F2b: entrar/salir del bodegón conecta/desconecta el real-time (SSE)
     if (hasTag(r, 'bodegon') && enterBodegon()) return;   // T2: el bodegón se ve TOP-DOWN (sub-modo); si no hay sub-modo, sigue side-scroller
-    if (hasTag(r, 'lavalle') && enterLavalle()) return;   // E1.5: el piquete de Lavalle se ve TOP-DOWN (sub-modo)
     if (hasTag(r, 'truco')) tahurDiscovered = true;   // entraste a la trastienda → descubriste al tahúr (gate del cuevero)
     companions.forEach(placeCompanionInRoom); syncCompanions();   // los compañeros cruzan la puerta CON vos (follow cross-room)
     // ruta A: si el LINYERA te está escoltando y llegaste a la sala de Guido → te avisa "ahí está, hablale" y listo
@@ -2423,8 +2422,8 @@
     // las CÁMARAS ven cada dólar disparado → burbuja con la serie (real/trucha)
     if ((player.shots || 0) > shotsSeen) { shotsSeen = player.shots; if (player.lastShot && player.lastShot.kind === 'dollar') spawnDollarBubble(player.lastShot.x, player.lastShot.y); }
     updateDollarBubbles(dt);
-    // LAVALLE (E1.5): caminás al borde IZQUIERDO de Florida → te lleva SOLO al piquete (sin puerta de edificio, sin E)
-    if (current === 0 && transCd <= 0 && !spinoffLevel) { const ld = r.doorById && r.doorById['lavalle']; if (ld && (player.x + player.w / 2) < ld.x + 18 && enterLavalle()) return; }
+    // LAVALLE (E1.5): caminás al borde IZQUIERDO de Florida → PASÁS solo al piquete (NO hay puerta; uno no cruza a otra calle por una puerta)
+    if (current === 0 && transCd <= 0 && !stormed && !spinoffLevel && (player.x + player.w / 2) < 1.7 * Level.TILE && enterLavalle()) return;
 
     // LOOP de supervivencia: tras la tormenta la vida se gasta (SURV.decayHp cada SURV.decayEverySec s). Comé o te morís.
     // En el NIVEL-AI generado NO drena (es un nivel bonus aparte del loop de supervivencia).
