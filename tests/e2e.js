@@ -6,8 +6,8 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
-const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','truco-net.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','truco-pvp.js','mundo.js','level-data.js','game.js'];
+const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -354,6 +354,45 @@ if (require.main === module) {
   const tp = JSON.parse(tpvp);
   if (tp.length) { console.error('❌ TRUCO PvP F3:\n' + tp.join('\n')); process.exit(1); }
   console.log('✓ truco PvP F3: motor host-autoritativo (12 partidas, sin sesgo) + escena host/guest por whisper terminan consistentes');
+
+  // ---- TRUCO DE A 6 F3 (3v3, §14): motor TrucoNet6 (IA-fill) + escena host/guest por whisper ----
+  const t6 = vm.runInContext(`(() => {
+    const out = [];
+    let modes = {};
+    // 1) MOTOR all-IA: corre solo vía update(dt); termina con equipo ganador y score coherente; ejercita ambos modos de baza
+    for (let s = 1; s <= 20; s++) {
+      const m = TrucoNet6.match({ seed: s, ai: [true,true,true,true,true,true] }); m.start();
+      let g = 0;
+      while (!m.done && g++ < 30000) { m.update(0.3); const v = m.viewFor(0); if (v.phase === 'play') modes[v.mode] = (modes[v.mode]||0)+1; }
+      if (!m.done) { out.push('FAIL a6 motor seed '+s+' no terminó'); continue; }
+      if (m.winnerTeam !== 'A' && m.winnerTeam !== 'B') { out.push('FAIL a6 motor seed '+s+' sin equipo ganador'); continue; }
+      const vw = m.viewFor(m.winnerTeam === 'A' ? 0 : 1);
+      if (vw.score.me < vw.score.opp) out.push('FAIL a6 motor seed '+s+' ganador con menos puntos');
+    }
+    if (!modes.global || !modes.pairs) out.push('FAIL a6 motor: no se ejercitaron ambos modos de baza ('+JSON.stringify(modes)+')');
+    // 2) ESCENA host(seat0) + guest(seat1) humanos + 4 IA, por transporte en memoria → ambos terminan con resultados OPUESTOS
+    function playScene(seed) {
+      const inbox = { host: [], guest: [] };
+      const host = TrucoPvp6.create({ role:'host', mySeat:0, nicks:['H','G'], seed, ai:[false,false,true,true,true,true],
+        humanSeats:[1], pushView:(seat,v)=>{ if(seat===1) inbox.guest.push({t:'t6-view', v}); } });
+      const guest = TrucoPvp6.create({ role:'guest', mySeat:1, nicks:['H','G'], sendAct:o=>inbox.host.push(o) });
+      const keys = { host:{}, guest:{} };
+      const dG = () => { while(inbox.guest.length){ const m=inbox.guest.shift(); guest.onView(m.v); } };
+      const dH = () => { while(inbox.host.length){ const m=inbox.host.shift(); if(m.t==='t6-act') host.onAct(1,m.a); else if(m.t==='t6-hello') host.onHello(1); else if(m.t==='t6-bye') host.onBye(1); } };
+      function decide(cl){ const v=cl.view, k={}; if(v&&v.phase==='play'&&v.turn){ if(v.pending&&v.pending.mine)k['q']=true; else if(!v.pending){const i=v.hand.findIndex(h=>!h.used); if(i>=0)k[String(i+1)]=true;} } return k; }
+      let f=0; while(f++<30000){ dH(); dG(); keys.host=decide(host); Input.keys=keys.host; host.update(0.1); host.draw(__mkCtx(),800,448); dG(); dH(); keys.guest=decide(guest); Input.keys=keys.guest; guest.update(0.1); guest.draw(__mkCtx(),800,448); if(host.done&&guest.done)break; }
+      dG();
+      return { host, guest };
+    }
+    const sc = playScene(7);
+    if (!sc.host.done || !sc.guest.done) out.push('FAIL a6 escena no terminó');
+    else if ((sc.host.result==='win') === (sc.guest.result==='win')) out.push('FAIL a6 escena resultados inconsistentes '+sc.host.result+'/'+sc.guest.result);
+    Input.keys = {};
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const t6r = JSON.parse(t6);
+  if (t6r.length) { console.error('❌ TRUCO DE A 6 F3:\n' + t6r.join('\n')); process.exit(1); }
+  console.log('✓ truco de a 6 F3 (3v3): motor IA-fill (20 partidas, ambos modos de baza) + escena host/guest por whisper terminan consistentes');
 
   // ---- grafo de historia + motor de pistas (HintEngine) ----
   const hint = vm.runInContext(`(() => {

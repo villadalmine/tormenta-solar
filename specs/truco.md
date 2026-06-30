@@ -1,8 +1,10 @@
 # SDD — Truco de verdad: reglas completas, truco de a 6, reclutamiento y Calle Lavalle
 
-- **Estado:** **F1 + F2 + F3(PvP humano) IMPLEMENTADOS**. Resto en fases (§12).
+- **Estado:** **F1 + F2 + F3(PvP 1v1) + a6(3v3 PvP con IA-fill) IMPLEMENTADOS**. Resto en fases (§12).
 - **Última actualización:** 2026-06-30
 - **F3 PvP HUMANO hecho (v240 · infra-41):** truco **1v1 contra OTRO jugador real** en el bodegón (no la IA). Ver §13.
+- **TRUCO DE A 6 (3v3) PvP hecho (v241 · infra-42):** mesa de a 6 en el bodegón, humanos + relleno de IA, regla
+  de la casa del dueño. Ver §14.
 - **Tamaño:** **GRANDE** (es el feature más pesado del backlog — ver §12 mi lectura). Multi-fase.
 - **F1 hecho:** `js/truco.js` (motor puro: jerarquía/envido/flor/parda, testeado e2e) + `arcade.js makeTruco`
   reescrito sobre él: cantos reales (envido/real/falta, truco/retruco/vale4, flor) con quiero/no quiero,
@@ -232,3 +234,41 @@ cada carta/canto/respuesta del rival viaja por la red.
 - **Reconexión dura:** si el rival cierra la pestaña sin `tk-bye`, el que queda sale con `Esc` (no hay watchdog por
   timeout todavía).
 - **Truco de a 6 PvP** (3v3 humano) y **cabarulo/Lavalle** siguen pendientes (§5-§7, §12 F5-F7).
+
+## 14. TRUCO DE A 6 (3v3) PvP — IMPLEMENTADO (v241 · infra-42)
+
+3v3 multijugador real en el bodegón, **desacoplado del gate del cuevero** (el de-a-6 single-player de §6/`resolveTrucoSeis`
+sigue existiendo aparte; aquel es abstracto). Decisiones del dueño: **mesa de a 6 en el bodegón**, **relleno con IA**
+(humanos presentes + bots IA llenan los asientos vacíos → jugable solo o con gente, escala a 6 humanos).
+
+### 14.1 La regla de la casa (interpretación implementada — a validar en playtest)
+Toda la mecánica de bazas vive en `bazaMode(bazaIdx, scoreMax)` (en `js/truco-net6.js`) → un solo lugar para corregir.
+- **Equipos alternados:** A = asientos {0,2,4}, B = {1,3,5}; "el de enfrente" = `(seat+3)%6` (siempre del otro equipo).
+- **Baza 1 = GLOBAL:** tiran los 6 rotando por turno; la carta más alta gana la baza **para su equipo**.
+- **Baza 2 = 1v1:** cada uno vs su vis-à-vis; el equipo que gana **2 de 3** duelos cruzados se lleva la baza.
+- **Baza 3 = GLOBAL** (desempate).
+- **Umbral 10:** si algún equipo llegó a **10 puntos**, de ahí en más **todas** las bazas son GLOBAL.
+- Gana la **mano** el equipo con 2 de 3 bazas. **Partida a 15.** Envido/flor **por equipo** (el más alto de cada bando).
+
+### 14.2 Arquitectura (reusa el host-autoritativo del F3)
+- **Host = el que se sienta:** corre TODA la partida (las 6 manos), valida las acciones de los humanos (por whisper) y
+  **maneja los asientos IA** por heurística (`Truco.aiPlayCard`/`aiAcceptEnvido`, con delay para que se vea). Empuja una
+  **vista por jugador humano** que solo revela SU mano (las cartas jugadas son públicas).
+- **Lobby:** al sentarte (`bodegon.js` → `sit6`), el host manda `t6-inv` a todos los peers del bodegón (~8s). Los que
+  aceptan (`t6-join`) ocupan asientos humanos; los vacíos se llenan con IA; el host manda `t6-start{seat,nicks}` a cada
+  uno y crea la escena. Si nadie acepta → vos + 5 IA.
+- **Mensajes** (JSON por el whisper del salón): `t6-inv/join/start/hello/act/view/bye`. El host trackea `seatToPid`/
+  `pidToSeat`. Cap del whisper subido 700→900 (las vistas de a6 llegan a ~765 chars).
+- **Archivos:** `js/truco-net6.js` (motor PURO), `js/truco-pvp6.js` (escena host/guest), `js/bodegon.js` (mesa fija
+  "TRUCO 6" + `get sit6`), `js/game.js` (lobby/matchmaking + ruteo `t6-*` + estado `trucopvp6` + premio).
+
+### 14.3 Watchdog de reconexión (cierra la deuda fina del F3)
+Un jugador que cierra la pestaña deja de mandar `Salon.pos` → el relay lo poda (~35s) → desaparece de `Salon.getPeers()`.
+El host lo detecta (`trucoPeerGone`) y: en **a6** lo reemplaza un **bot IA** (`dropToAI`, la partida sigue); en **1v1**
+cierra el match limpio. Reusa la presencia del salón (sin protocolo de ping nuevo). Cierra "reconexión dura por timeout".
+
+### 14.4 Deuda de a6 (v1 → futuro)
+- **Host malicioso** podría trampear (relay sin autoridad) — fuera de alcance v1.
+- La **regla de la casa** es mi interpretación de lo que pidió el dueño; está toda en `bazaMode` para ajustar tras playtest.
+- **Contraflor** real en 3v3 (hoy cada flor = +3 a su equipo, auto al repartir, sin cadena). Envido por equipo simplificado.
+- Cantos: el ping-pong de respuesta es entre dos asientos adyacentes (uno por equipo), no "cualquiera del equipo rival".

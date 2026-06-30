@@ -63,7 +63,7 @@ const Salon = (() => {
     if (myRoom) { const rm = myRoom; myRoom = null; peers.clear();
       try { fetch(PROXY + '/salon/leave', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, room: rm }), keepalive: true }).catch(() => {}); } catch (e) {} }
   }
-  function whisper(to, msg) { if (!myRoom || !to) return; try { fetch(PROXY + '/salon/whisper', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, room: myRoom, to, msg: String(msg || '').slice(0, 700) }) }).catch(() => {}); } catch (e) {} }   // cap 700: el truco PvP F3 manda vistas JSON por acá
+  function whisper(to, msg) { if (!myRoom || !to) return; try { fetch(PROXY + '/salon/whisper', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, room: myRoom, to, msg: String(msg || '').slice(0, 900) }) }).catch(() => {}); } catch (e) {} }   // cap 900: el truco PvP F3 (1v1 + a6) manda vistas JSON por acá
   function onWhisper(cb) { whisperCb = cb; }
   function onPeers(cb) { peersCb = cb; }
   function getPeers() { return peers; }

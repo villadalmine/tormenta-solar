@@ -115,6 +115,12 @@
   let arcadeGame = null, superGame = null, vinilosGame = null, spinoffGame = null, tiendaGame = null, teloGame = null, bodegonGame = null;
   // F3 TRUCO PvP humano (specs/truco.md §F3): match host-autoritativo sobre el whisper del salón.
   let trucoPvpGame = null, trucoPeer = null, trucoInvite = null, trucoOutInvite = null, trucoHbT = 0, trucoKeyHeld = {};
+  // F3 TRUCO DE A 6 (3v3, specs/truco.md §14): mesa de a 6 con relleno de IA. truco6 = {seatToPid, pidToSeat}.
+  let truco6Game = null, truco6 = null, truco6Lobby = null, truco6Invite = null, trucoWdT = 0;
+  const AI_BOTS = ['Pino', 'Coya', 'Tito', 'Nano', 'Beto'];
+  // WATCHDOG de reconexión (deuda F3): un jugador que cierra la pestaña deja de mandar Salon.pos → el relay lo poda
+  // (~35s) → desaparece de Salon.getPeers(). En 1v1 cerramos el match ('left'); en a6 lo reemplaza la IA (sigue).
+  function trucoPeerGone(pid) { try { const ps = Salon.getPeers && Salon.getPeers(); return !!ps && !ps.has(pid); } catch (e) { return false; } }
   // NIVEL-AI en EL MOTOR REAL (rooms-swap): se guarda el juego principal, se cargan las salas generadas, y al
   // llegar a la meta (o morir/escapar) se RESTAURA todo. spinoffLevel gatea tormenta/quests/save/muerte.
   let spinoffLevel = false, spinoffSave = null, spinoffReward = null, spinoffName = '';
@@ -343,6 +349,7 @@
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; trucoInvite = null; trucoOutInvite = null;   // F3 TRUCO PvP, de cero
+    truco6Game = null; truco6 = null; truco6Lobby = null; truco6Invite = null;          // F3 truco de a 6, de cero
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
@@ -1068,7 +1075,10 @@
   function onPeerWhisper(d) {
     if (!d || !d.msg) return;
     // F3 TRUCO PvP: los mensajes del protocolo viajan por el MISMO whisper (JSON con t:'tk-*'). Ruteo primero.
-    if (d.msg.charAt(0) === '{') { let m = null; try { m = JSON.parse(d.msg); } catch (e) {} if (m && typeof m.t === 'string' && m.t.indexOf('tk-') === 0) { handleTrucoNet(d.from, d.fromNick, m); return; } }
+    if (d.msg.charAt(0) === '{') { let m = null; try { m = JSON.parse(d.msg); } catch (e) {} if (m && typeof m.t === 'string') {
+      if (m.t.indexOf('tk-') === 0) { handleTrucoNet(d.from, d.fromNick, m); return; }
+      if (m.t.indexOf('t6-') === 0) { handleTruco6(d.from, d.fromNick, m); return; }
+    } }
     if (peerChat && peerChat.pid === d.from) { chatLine('npc', d.msg); }
     else setMsg(T('g.bodegon.privFrom', { nick: d.fromNick || T('g.bodegon.someone') }), '#aef0c0', 5000);
   }
@@ -1098,7 +1108,7 @@
   function startTrucoPvp(peerPid, peerNick) {
     if (typeof TrucoPvp === 'undefined' || !TrucoPvp.create) return;
     const role = (myPid() < peerPid) ? 'host' : 'guest';
-    trucoPeer = peerPid; trucoInvite = null; trucoOutInvite = null; trucoHbT = 0;
+    trucoPeer = peerPid; trucoInvite = null; trucoOutInvite = null; trucoHbT = 0; trucoWdT = 5;
     trucoPvpGame = TrucoPvp.create({ role, myNick: playerNick(), peerNick: peerNick || peerNickOf(peerPid), seed: trucoSeed(myPid(), peerPid), send: o => sendTk(peerPid, o) });
     state = 'trucopvp'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden');
     if (elChipBanner) elChipBanner.classList.add('hidden');
@@ -1110,6 +1120,62 @@
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.trucopvp.inviteFrom', { nick: trucoInvite.nick }), W / 2, H / 2 - 12);
     ctx.fillStyle = '#cfe8c0'; ctx.font = '13px monospace'; ctx.fillText(T('g.trucopvp.inviteAccept'), W / 2, H / 2 + 18);
+  }
+
+  // ===== F3 TRUCO DE A 6 (3v3, specs/truco.md §14) — lobby (host junta humanos + relleno IA) + ruteo =====
+  function seatOfPid(pid) { return (truco6 && truco6.pidToSeat && truco6.pidToSeat[pid] != null) ? truco6.pidToSeat[pid] : null; }
+  function handleTruco6(fromPid, fromNick, m) {
+    if (m.t === 't6-inv') {                                   // me invitan a sumarme a una mesa de a 6
+      if (truco6Game || truco6Lobby || truco6Invite || trucoPvpGame) return;   // ocupado
+      truco6Invite = { pid: fromPid, nick: fromNick || peerNickOf(fromPid), t: 12 }; Sfx.pickup && Sfx.pickup(); return;
+    }
+    if (m.t === 't6-join') {                                  // soy host: alguien se anotó
+      if (truco6Lobby && truco6Lobby.joiners.length < 5 && !truco6Lobby.joiners.some(j => j.pid === fromPid)) truco6Lobby.joiners.push({ pid: fromPid, nick: fromNick || peerNickOf(fromPid) });
+      return;
+    }
+    if (m.t === 't6-start') {                                 // soy joiner: el host arranca → creo la escena como guest
+      if (truco6Game) return;
+      truco6 = { host: fromPid };
+      truco6Game = TrucoPvp6.create({ role: 'guest', mySeat: m.seat | 0, nicks: m.nicks || [], sendAct: o => sendTk(fromPid, o) });
+      truco6Invite = null; enterTruco6State(); return;
+    }
+    // mensajes del match en curso
+    if (!truco6Game) return;
+    if (m.t === 't6-view') { truco6Game.onView && truco6Game.onView(m.v); return; }   // guest
+    const seat = seatOfPid(fromPid); if (seat == null) return;                          // host: solo asientos conocidos
+    if (m.t === 't6-act') truco6Game.onAct(seat, m.a);
+    else if (m.t === 't6-hello') truco6Game.onHello(seat);
+    else if (m.t === 't6-bye') truco6Game.onBye(seat);
+  }
+  function startTruco6Lobby() {
+    if (truco6Game || truco6Lobby) return;
+    truco6Lobby = { joiners: [], t: 8 };
+    let n = 0; if (typeof Salon !== 'undefined' && Salon.getPeers) { for (const p of Salon.getPeers().values()) { if (p.pid) { sendTk(p.pid, { t: 't6-inv' }); n++; } } }
+    setMsg(T('g.truco6.lobbyStart', { n }), '#ffd54f', 4000);
+  }
+  function startTruco6Host() {
+    const joiners = (truco6Lobby ? truco6Lobby.joiners : []).slice(0, 5);
+    truco6Lobby = null;
+    const seatToPid = {}, pidToSeat = {}, nicks = [], ai = [];
+    nicks[0] = playerNick(); ai[0] = false;                  // asiento 0 = yo (host)
+    joiners.forEach((j, k) => { const s = k + 1; seatToPid[s] = j.pid; pidToSeat[j.pid] = s; nicks[s] = j.nick; ai[s] = false; });
+    for (let s = joiners.length + 1; s < 6; s++) { nicks[s] = AI_BOTS[s % AI_BOTS.length]; ai[s] = true; }
+    truco6 = { seatToPid, pidToSeat };
+    joiners.forEach((j, k) => sendTk(j.pid, { t: 't6-start', seat: k + 1, nicks, host: myPid() }));
+    truco6Game = TrucoPvp6.create({ role: 'host', mySeat: 0, nicks, ai, humanSeats: joiners.map((j, k) => k + 1),
+      pushView: (seat, v) => sendTk(seatToPid[seat], { t: 't6-view', v }) });
+    enterTruco6State();
+  }
+  function enterTruco6State() { trucoHbT = 0; trucoWdT = 5; state = 'trucopvp6'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); }
+  function drawTruco6Lobby(W, H) {
+    ctx.fillStyle = 'rgba(0,0,0,0.74)'; ctx.fillRect(0, H / 2 - 50, W, 100); ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.truco6.lobbyWait', { n: truco6Lobby.joiners.length }), W / 2, H / 2 - 14);
+    ctx.fillStyle = '#cfe8c0'; ctx.font = '12px monospace'; ctx.fillText(T('g.truco6.lobbyHint', { s: Math.max(0, Math.ceil(truco6Lobby.t)) }), W / 2, H / 2 + 14);
+  }
+  function drawTruco6Invite(W, H) {
+    ctx.fillStyle = 'rgba(0,0,0,0.74)'; ctx.fillRect(0, H / 2 - 46, W, 92); ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 16px monospace'; ctx.fillText(T('g.truco6.inviteFrom', { nick: truco6Invite.nick }), W / 2, H / 2 - 12);
+    ctx.fillStyle = '#cfe8c0'; ctx.font = '13px monospace'; ctx.fillText(T('g.truco6.inviteAccept'), W / 2, H / 2 + 18);
   }
   async function chatSend() {
     if (peerChat) return peerChatSend();   // F2b.2: chat PRIVADO con otro jugador → va por el salón, no a la IA
@@ -2976,13 +3042,22 @@
         setMsg(T(gotChipped ? 'g.chip.wakeRoom' : gotRescued ? 'g.telo.rescued' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : gotRescued ? '#9be8a0' : '#ff8fc8', gotChipped ? 13000 : gotRescued ? 10000 : gotAway ? 6000 : 3000);
       }
     } else if (state === 'bodegon' && bodegonGame) {
-      if (trucoInvite) {                                              // F3: me invitaron al truco → overlay aceptar/rechazar (bodegón de fondo)
+      if (trucoInvite) {                                              // F3: me invitaron al truco 1v1 → overlay aceptar/rechazar
         bodegonGame.draw(ctx, W, H); drawTrucoInvite(W, H);
         if (trucoTap('e') || trucoTap('enter') || trucoTap(' ')) { sendTk(trucoInvite.pid, { t: 'tk-ok' }); startTrucoPvp(trucoInvite.pid, trucoInvite.nick); }
         else if (trucoTap('escape')) { sendTk(trucoInvite.pid, { t: 'tk-no' }); trucoInvite = null; }
+      } else if (truco6Invite) {                                      // F3 a6: me invitan a sumarme a la mesa de a 6
+        bodegonGame.draw(ctx, W, H); drawTruco6Invite(W, H); truco6Invite.t -= dt;
+        if (trucoTap('e') || trucoTap('enter') || trucoTap(' ')) { sendTk(truco6Invite.pid, { t: 't6-join' }); setMsg(T('g.truco6.joined'), '#7CFC00', 6000); truco6Invite = null; }
+        else if (trucoTap('escape') || truco6Invite.t <= 0) truco6Invite = null;
+      } else if (truco6Lobby) {                                       // F3 a6: soy host esperando que se sumen (luego relleno IA)
+        bodegonGame.draw(ctx, W, H); drawTruco6Lobby(W, H); truco6Lobby.t -= dt;
+        if (trucoTap('escape')) { truco6Lobby = null; setMsg(T('g.truco6.cancel'), '#ffcf6e', 3000); }
+        else if (truco6Lobby.t <= 0 || truco6Lobby.joiners.length >= 5) startTruco6Host();
       } else {
         bodegonGame.update(dt); bodegonGame.draw(ctx, W, H);
-        const ip = bodegonGame.invitePid; if (ip) sendInvite(ip);     // F3: aprete E sobre un peer → lo invito al truco
+        const ip = bodegonGame.invitePid; if (ip) sendInvite(ip);     // F3: E sobre un peer → lo invito al truco 1v1
+        if (bodegonGame.sit6) startTruco6Lobby();                     // F3 a6: me senté a la mesa de a 6
         if (bodegonGame.done) {
           const toTelo = bodegonGame.goTelo; bodegonGame = null;
           if (toTelo) { enterTelo(); }                                // la rubia te lleva al telo
@@ -2992,9 +3067,25 @@
           }
         }
       }
+    } else if (state === 'trucopvp6' && truco6Game) {
+      truco6Game.update(dt); truco6Game.draw(ctx, W, H);
+      trucoHbT -= dt; if (trucoHbT <= 0) { trucoHbT = 4; if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(11, 0); }
+      // watchdog (host): un humano que se fue → lo toma la IA y la partida sigue
+      trucoWdT -= dt; if (trucoWdT <= 0) { trucoWdT = 5; if (truco6 && truco6.seatToPid) for (const s in truco6.seatToPid) { const pid = truco6.seatToPid[s]; if (trucoPeerGone(pid)) { truco6Game.onBye(+s); delete truco6.pidToSeat[pid]; delete truco6.seatToPid[s]; } } }
+      if (truco6Game.done) {
+        const res = truco6Game.result, flores = truco6Game.floresDelta || 0, wasHost = !!(truco6 && truco6.seatToPid); truco6Game = null;
+        if (wasHost && truco6.seatToPid) for (const s in truco6.seatToPid) sendTk(truco6.seatToPid[s], { t: 't6-bye' });   // cerrar a los humanos (en fin normal ya terminaron por la vista; en abandono → 'left')
+        truco6 = null;
+        if (res === 'win') { player.flores = (player.flores || 0) + flores; setMsg(T('g.truco6.youWin', { n: flores }), '#7CFC00', 6000); sessTrucoW++; }
+        else if (res === 'left') setMsg(T('g.truco6.ended'), '#ffcf6e', 5000);
+        else { setMsg(T('g.truco6.youLose'), '#ff5252', 5000); sessTrucoL++; }
+        if (hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
+        else { state = 'playing'; transCd = 0.35; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+      }
     } else if (state === 'trucopvp' && trucoPvpGame) {
       trucoPvpGame.update(dt); trucoPvpGame.draw(ctx, W, H);
       trucoHbT -= dt; if (trucoHbT <= 0) { trucoHbT = 4; if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(11, 0); }   // mantené viva mi presencia (si no, el relay me poda)
+      trucoWdT -= dt; if (trucoWdT <= 0) { trucoWdT = 5; if (trucoPeer && trucoPeerGone(trucoPeer)) trucoPvpGame.onNet({ t: 'tk-bye' }); }   // watchdog: el rival se fue → cerrar
       if (trucoPvpGame.done) {
         const res = trucoPvpGame.result, flores = trucoPvpGame.floresDelta || 0; trucoPvpGame = null; trucoPeer = null;
         if (res === 'win') { player.flores = (player.flores || 0) + flores; setMsg(T('g.trucopvp.youWin', { n: flores }), '#7CFC00', 6000); sessTrucoW++; }

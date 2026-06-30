@@ -20,9 +20,11 @@ const Bodegon = (() => {
     const seats = []; for (const tb of TABLES) for (const o of SEAToff) seats.push({ x: tb.x + o[0], y: tb.y + o[1] });
     const rubia = { x: 9, y: 1 };   // moza en el mostrador
     const exit = { x: 9, y: 10 };
+    const six = { x: 9, y: 7 };     // F3 a6: la MESA DE A 6 (lugar fijo, sin peers; [E] = sentarte al 3v3)
     const player = { x: (exit.x + 0.5) * CS, y: (exit.y - 0.2) * CS, r: 11 };
     let done = false, exitTo = null, goTelo = false, msg = '', msgT = 0, prompt = '', t = 0, escHeld = false, eHeld = true, numHeld = {}, hbT = 0, mozaInv = false;
-    let invitePidOut = null;   // F3 TRUCO PvP: pid del peer al que invité (game.js lo lee 1× y lo limpia)
+    let invitePidOut = null;   // F3 TRUCO PvP 1v1: pid del peer al que invité (game.js lo lee 1× y lo limpia)
+    let sit6Out = false;       // F3 a6: me senté a la mesa de a 6 (game.js lo lee 1× y lo limpia)
     let myEmote = 0, myEmoteT = 0, mySay = -1, mySayT = 0;
     setMsg(T('g.bodegon.topIntro'), 6);
 
@@ -57,17 +59,19 @@ const Bodegon = (() => {
       // emotes (1-4) / frases preset (5-8)
       for (let n = 1; n <= 8; n++) { const k = String(n); if (Input.keys[k]) { if (!numHeld[k]) { numHeld[k] = true; if (n <= 4) emote(n); else phrase(n - 5); } } else numHeld[k] = false; }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; done = true; exitTo = 'cine8'; return; } } else escHeld = false;
-      // interacción: rubia (mostrador), salida, o INVITAR a un peer sentado al truco (F3)
-      const atRubia = nearTile(rubia, 1.4), atExit = nearTile(exit, 1.2);
-      const peer = (!atRubia && !atExit) ? nearestPeer() : null;
+      // interacción: rubia (mostrador), salida, MESA DE A 6 (F3 a6), o INVITAR a un peer sentado al truco 1v1 (F3)
+      const atRubia = nearTile(rubia, 1.4), atExit = nearTile(exit, 1.2), atSix = nearTile(six, 1.2);
+      const peer = (!atRubia && !atExit && !atSix) ? nearestPeer() : null;
       prompt = atRubia ? T(mozaInv ? 'g.bodegon.mozaYes' : 'g.bodegon.mozaTalk')
         : atExit ? T('g.bodegon.exitPrompt')
+        : atSix ? T('g.truco6.sitPrompt')
         : peer ? T('g.trucopvp.invitePrompt', { nick: peer.nick || T('g.bodegon.someone') }) : '';
       const press = Input.keys['e'] || Input.keys[' '] || Input.keys['enter'];
       if (press && !eHeld) {
         eHeld = true;
         if (atRubia) { if (!mozaInv) { mozaInv = true; setMsg(T('g.moza.invite'), 6); } else { done = true; goTelo = true; } }
         else if (atExit) { done = true; exitTo = 'cine8'; }
+        else if (atSix) { sit6Out = true; }
         else if (peer) { invitePidOut = peer.pid; setMsg(T('g.trucopvp.inviteSent', { nick: peer.nick || T('g.bodegon.someone') }), 4); }
       } else if (!press) eHeld = false;
     }
@@ -102,6 +106,12 @@ const Bodegon = (() => {
         ctx2.fillStyle = '#8a6a44'; ctx2.beginPath(); ctx2.arc(mx, my, CS * 0.5, 0, Math.PI * 2); ctx2.fill();
         ctx2.font = '12px serif'; ctx2.textAlign = 'center'; ctx2.fillText('🍻', mx, my + 4);
       }
+      // MESA DE A 6 (F3 a6): mesa con paño verde + 🃏 + cartel "TRUCO 6"
+      { const mx = ox + (six.x + 0.5) * CS, my = oy + (six.y + 0.5) * CS;
+        ctx2.fillStyle = '#15401c'; ctx2.beginPath(); ctx2.arc(mx, my, CS * 0.8, 0, Math.PI * 2); ctx2.fill();
+        ctx2.fillStyle = '#1e5a28'; ctx2.beginPath(); ctx2.arc(mx, my, CS * 0.58, 0, Math.PI * 2); ctx2.fill();
+        ctx2.font = '15px serif'; ctx2.textAlign = 'center'; ctx2.fillText('🃏', mx, my + 5);
+        ctx2.fillStyle = '#ffd54f'; ctx2.font = 'bold 8px monospace'; ctx2.fillText('TRUCO 6', mx, my - CS * 0.8 - 3); }
       // MOSTRADOR + la RUBIA
       ctx2.font = '20px serif'; ctx2.textAlign = 'center';
       ctx2.fillText('💁‍♀️', ox + (rubia.x + 0.5) * CS, oy + (rubia.y + 0.85) * CS);
@@ -142,7 +152,8 @@ const Bodegon = (() => {
     }
 
     return { get done() { return done; }, get exitTo() { return exitTo; }, get goTelo() { return goTelo; },
-      get invitePid() { const v = invitePidOut; invitePidOut = null; return v; },   // F3 TRUCO PvP (one-shot)
+      get invitePid() { const v = invitePidOut; invitePidOut = null; return v; },   // F3 TRUCO PvP 1v1 (one-shot)
+      get sit6() { const v = sit6Out; sit6Out = false; return v; },                 // F3 a6: me senté a la mesa de a 6 (one-shot)
       update, draw };
   }
   return { create };

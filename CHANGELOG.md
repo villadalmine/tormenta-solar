@@ -56,6 +56,33 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v241 · infra-42] — 2026-06-30 — 🃏🃏 TRUCO DE A 6 (3v3) PvP con relleno de IA + watchdog de reconexión
+
+El truco multijugador da el salto al **3v3**: en el bodegón hay una **mesa "TRUCO 6"** → te sentás → se arma un
+**truco de a 6** con los jugadores reales que se sumen y **bots de IA** que llenan los asientos vacíos (jugable ya,
+solo o con gente; escala a 6 humanos). Premio en **flores** al equipo ganador.
+
+- **Regla de la casa** (la del dueño, encapsulada en `bazaMode` para ajustar fácil): equipos alternados
+  (A={0,2,4} B={1,3,5}); **baza 1 = GLOBAL** (tiran los 6, la más alta gana para su equipo), **baza 2 = 1v1**
+  (cada uno vs el de enfrente, mayoría de duelos), **baza 3 = global**; al llegar un equipo a **10**, todas las
+  bazas vuelven a ser globales. Partida **a 15**. Envido/flor **por equipo**.
+- **Host-autoritativo** (`js/truco-net6.js`, motor PURO + testeado): el que se sienta corre TODA la partida (las 6
+  manos), valida a los humanos por whisper y **maneja los asientos IA** por heurística (`Truco.aiPlayCard`/
+  `aiAcceptEnvido`), empujando una vista por jugador que no revela manos ajenas. **Lobby**: el host invita a los
+  peers (`t6-inv`), los que aceptan (`t6-join`) ocupan asientos, el resto se llena con IA, arranca (`t6-start`).
+- **Escena** `js/truco-pvp6.js`: los 6 alrededor de una mesa ovalada (color por equipo, 🤖 los bots), tu mano
+  interactiva. `js/bodegon.js` suma la mesa fija "TRUCO 6"; `js/game.js` el lobby/matchmaking + estado `trucopvp6`.
+- **DEUDA F3 cerrada — watchdog de reconexión:** un jugador que cierra la pestaña deja de latir → el relay lo poda →
+  desaparece de `Salon.getPeers()`; en **a6** lo reemplaza un **bot IA** (la partida sigue), en **1v1** el match
+  cierra limpio. Reusa la presencia del salón (sin protocolo de ping nuevo).
+- **Transporte:** cap del whisper subido 700→900 (las vistas de a6 son más grandes) en cliente + proxy
+  (**infra-42**, proxy `0.1.61`). Tests: e2e nuevo (20 partidas del motor IA-fill, ambos modos de baza + escena
+  host/guest por whisper consistentes) + paridad i18n (36 claves `g.truco6.*`, 708/708) + web-smoke. Cache **v241**.
+  SDD `specs/truco.md §14`. **Deuda v1:** host malicioso (relay sin autoridad); la "regla de la casa" es mi
+  interpretación (a validar en playtest, está toda en `bazaMode`); contraflor real en 3v3.
+
+---
+
 ## [v240 · infra-41] — 2026-06-30 — 🃏 TRUCO PvP humano-vs-humano en el bodegón (multijugador F3)
 
 El truco deja de ser **solo contra la IA**: ahora podés jugar una **partida 1v1 contra OTRO jugador real** en el

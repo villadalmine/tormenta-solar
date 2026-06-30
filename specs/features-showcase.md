@@ -55,6 +55,11 @@
   a jugar al truco** → si acepta, juegan una **partida completa** (envido, flor, truco/retruco/vale cuatro, mejor de 3)
   uno contra el otro, con premio en **flores**. Es **host-autoritativo** (uno corre la partida y valida; el rival nunca
   ve tus cartas) y viaja por el mismo canal del salón, sin servidor de juego aparte. Ver `specs/truco.md §13`.
+- **Truco de a 6 (3v3) con relleno de IA:** una mesa "TRUCO 6" en el bodegón → te sentás → se arma un **truco de a 6**
+  con los jugadores reales que se sumen y **bots de IA** que completan los asientos vacíos (jugable solo o con gente,
+  escala a 6 humanos). Con la **regla de la casa**: la primera ronda la juegan todos (gana la carta más alta), la
+  segunda es 1v1 contra el de enfrente, y al llegar a 10 puntos vuelve a jugar todos. Premio en flores al equipo
+  ganador; si alguien se va, lo reemplaza la IA y la partida sigue. Ver `specs/truco.md §14`.
 - **El Tablón colaborativo (construcción asincrónica, à la Death Stranding):** 2 pisos del cine donde una **computadora**
   te deja **fijar un cartel corto** para el próximo jugador que pase. El cartel **vive en el server hasta que OTRO lo
   LEE** (te parás debajo, **[E]**) → te muestra el texto y **se borra** (consumo-en-lectura). Se dibujan **empaquetados**

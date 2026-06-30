@@ -565,7 +565,7 @@ http.createServer((req, res) => {
       const r = BODEGON.get(room); const p = r && r.peers.get(pid);
       if (p) { const now = Date.now(); if (now - (p.lastWhisper || 0) >= 250) {   // rate-limit ~4/s (el truco empuja vistas por turno)
         p.lastWhisper = now; p.ts = now;
-        const msg = String(d.msg || '').replace(/[\x00-\x1f]/g, ' ').slice(0, 700).trim();
+        const msg = String(d.msg || '').replace(/[\x00-\x1f]/g, ' ').slice(0, 900).trim();
         const dst = r.streams.get(to);   // SOLO al destinatario (privado)
         if (msg && dst) { try { dst.write('event: whisper\ndata: ' + JSON.stringify({ from: pid, fromNick: p.nick, msg }) + '\n\n'); } catch (e) {} }
       } }

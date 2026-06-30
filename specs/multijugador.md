@@ -85,7 +85,14 @@ métrica Prometheus para un panel — hoy la validación directa es el endpoint 
 > revelan la mano del rival) sobre el **mismo whisper del salón** (mensajes JSON `tk-*`; cap subido para las vistas).
 > El salón **no se desconecta** durante el match (heartbeat propio); al terminar volvés al bodegón. Motor puro
 > testeado `js/truco-net.js` + escena `js/truco-pvp.js` + targeting de peer en `js/bodegon.js`. Detalle: `truco.md §13`.
-> **Deuda v1:** host malicioso podría trampear (relay sin autoridad); reconexión dura por timeout; **truco de a 6 PvP**.
+>
+> **✅ TRUCO DE A 6 (3v3) hecho (v241 · infra-42):** mesa fija "TRUCO 6" en el bodegón → te sentás → **lobby** (el
+> host invita a los peers; los que aceptan ocupan asientos, los vacíos los llenan **bots de IA**) → **3v3 real** con
+> la **regla de la casa** del dueño (bazas global/1v1 + umbral 10; `truco.md §14`). Host-autoritativo (maneja los
+> asientos IA por heurística + empuja vistas a los humanos). `js/truco-net6.js` + `js/truco-pvp6.js`. **Watchdog de
+> reconexión** (cierra la deuda del 1v1): un humano que se va → en a6 lo toma la IA, en 1v1 cierra el match (reusa la
+> presencia del salón). **Deuda v1:** host malicioso (relay sin autoridad); la regla de la casa es interpretación a
+> validar; contraflor real en 3v3.
 
 - Sala nueva `bodegon` (theme nuevo: madera, mesas redondas, mantel, parrilla, vino, fernet). Subís por el ascensor
   del cine. Al entrar → `POST /salon/join` te mete en una **sala-instancia chica (cap ~6)**:
