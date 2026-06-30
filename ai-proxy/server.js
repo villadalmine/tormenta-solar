@@ -558,14 +558,14 @@ http.createServer((req, res) => {
     req.on('close', () => { clearInterval(ping); r.subs.delete(res); if (r.streams.get(pid) === res) r.streams.delete(pid); bodegonLeave(room, pid); });
     return;
   }
-  if (req.url === '/salon/whisper' && req.method === 'POST') {                       // chat PRIVADO 1-a-1 (texto libre, efímero, rate-limit)
-    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 800) req.destroy(); });
+  if (req.url === '/salon/whisper' && req.method === 'POST') {                       // chat PRIVADO 1-a-1 (texto libre) + protocolo del TRUCO PvP (vistas JSON), efímero, rate-limit
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 1400) req.destroy(); });   // cap subido: las vistas del truco son JSON
     req.on('end', () => { try {
       const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const room = String(d.room || '').slice(0, 24); const to = String(d.to || '').slice(0, 48);
       const r = BODEGON.get(room); const p = r && r.peers.get(pid);
-      if (p) { const now = Date.now(); if (now - (p.lastWhisper || 0) >= 700) {   // rate-limit ~1.4/s por jugador
+      if (p) { const now = Date.now(); if (now - (p.lastWhisper || 0) >= 250) {   // rate-limit ~4/s (el truco empuja vistas por turno)
         p.lastWhisper = now; p.ts = now;
-        const msg = String(d.msg || '').replace(/[\x00-\x1f]/g, ' ').slice(0, 200).trim();
+        const msg = String(d.msg || '').replace(/[\x00-\x1f]/g, ' ').slice(0, 700).trim();
         const dst = r.streams.get(to);   // SOLO al destinatario (privado)
         if (msg && dst) { try { dst.write('event: whisper\ndata: ' + JSON.stringify({ from: pid, fromNick: p.nick, msg }) + '\n\n'); } catch (e) {} }
       } }

@@ -77,7 +77,15 @@ métrica Prometheus para un panel — hoy la validación directa es el endpoint 
 > 5-8 frase preset. **Degradación total:** sin red/`EventSource` → bodegón single-player (mozos canned + gag), nadie nota.
 > **✅ F2b.2 HECHO (v213/infra-34):** **chat PRIVADO 1-a-1** (§3.2.1) — `E` cerca de un peer → `#chat` en modo peer →
 > `Salon.whisper` → relay dirigido `/salon/whisper` (solo al destinatario, efímero, rate-limit). **FALTA F2b.3:** las
-> **mesas como puntos de interacción compartida** (§3.3). Luego **F3** = truco PvP humano (reusa el motor).
+> **mesas como puntos de interacción compartida** (§3.3).
+>
+> **✅ F3 HECHO — TRUCO PvP HUMANO (v240 · infra-41):** truco **1v1 contra otro jugador real** en el bodegón top-down.
+> Te acercás a un peer **sentado** → **[E] invitar** → acepta → partida COMPLETA (envido/flor/truco, mejor de 3) con
+> premio en **flores**. **Host-autoritativo** (`host=min(pid)` tiene las dos manos + valida + empuja vistas que no
+> revelan la mano del rival) sobre el **mismo whisper del salón** (mensajes JSON `tk-*`; cap subido para las vistas).
+> El salón **no se desconecta** durante el match (heartbeat propio); al terminar volvés al bodegón. Motor puro
+> testeado `js/truco-net.js` + escena `js/truco-pvp.js` + targeting de peer en `js/bodegon.js`. Detalle: `truco.md §13`.
+> **Deuda v1:** host malicioso podría trampear (relay sin autoridad); reconexión dura por timeout; **truco de a 6 PvP**.
 
 - Sala nueva `bodegon` (theme nuevo: madera, mesas redondas, mantel, parrilla, vino, fernet). Subís por el ascensor
   del cine. Al entrar → `POST /salon/join` te mete en una **sala-instancia chica (cap ~6)**:

@@ -56,6 +56,31 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v240 · infra-41] — 2026-06-30 — 🃏 TRUCO PvP humano-vs-humano en el bodegón (multijugador F3)
+
+El truco deja de ser **solo contra la IA**: ahora podés jugar una **partida 1v1 contra OTRO jugador real** en el
+bodegón. Te acercás a alguien sentado en una mesa → **[E] invitar al truco** → si acepta, se juega una **partida
+completa** (envido familia, flor, truco/retruco/vale cuatro, quiero/no, "el envido está primero", mejor de 3 manos),
+con el premio en **flores** al ganador.
+
+- **Motor host-autoritativo** (`js/truco-net.js`, PURO y testeado): uno de los dos corre la partida (tiene las DOS
+  manos), valida cada acción y expone una **vista por jugador** que NUNCA incluye la mano del rival (anti-trampa de
+  cliente vanilla). Reusa el motor de reglas `Truco`. El host se elige determinístico por pid (ambos computan igual).
+- **Transporte:** viaja por el **mismo whisper del salón** (relay SSE sin autoridad) — mensajes JSON `tk-*`
+  (invitación/aceptar/acción/vista/bye). El salón **nunca se desconecta** durante el match (heartbeat propio); al
+  terminar volvés al bodegón. Subí el cap del whisper (cliente 200→700, proxy `msg` 200→700 · body 800→1400 ·
+  rate-limit 700→250ms) para que entren las vistas JSON (**infra-41**, proxy `0.1.60`).
+- **UX:** escena `js/truco-pvp.js` (mismo look de cartas que el truco vs IA) — `1-3` cartas · `V` envido · `T` truco ·
+  `Q` quiero · `N` no · `Esc` me voy. El peer más cercano se resalta en la mesa; overlay de invitación entrante.
+- **Degradación total:** sin red / si el rival se va, el match cierra limpio ("se fue el rival", sin penalidad) y el
+  bodegón sigue 100% jugable. Capa aditiva con `typeof` guards.
+- Tests: e2e nuevo (12 partidas del motor sin sesgo estructural + escena host/guest por whisper terminan
+  consistentes) + paridad i18n (31 claves `g.trucopvp.*` ES≡EN) + web-smoke. Cache **v240**.
+  SDD `specs/truco.md §F3` + `specs/multijugador.md §F3`. **Deuda v1:** un host malicioso podría trampear (relay sin
+  autoridad, igual que el resto del multijugador); reconexión dura por timeout (hoy salís con Esc).
+
+---
+
 ## [v239] — 2026-06-29 — 🐛 FIX cine: cada piso respeta SU tópico (no más noticias repetidas entre salas)
 
 Reporte del dueño: en el cine los carteles/noticias se mezclaban — pisos distintos mostraban lo MISMO y no su categoría.

@@ -51,6 +51,10 @@
   preset** porteñas (sin chat libre → sin moderación). Y el gag de la **rubia y el ropero** (te invita a la trastienda,
   le decís que sí y un patova de dos metros te raja a la vereda). Relay sin autoridad con **degradación total** (sin red
   = bar single-player, nadie nota). Ver `specs/multijugador.md`.
+- **Truco PvP humano-vs-humano:** en el bodegón te acercás a otro jugador real sentado en una mesa → **[E] lo invitás
+  a jugar al truco** → si acepta, juegan una **partida completa** (envido, flor, truco/retruco/vale cuatro, mejor de 3)
+  uno contra el otro, con premio en **flores**. Es **host-autoritativo** (uno corre la partida y valida; el rival nunca
+  ve tus cartas) y viaja por el mismo canal del salón, sin servidor de juego aparte. Ver `specs/truco.md §13`.
 - **El Tablón colaborativo (construcción asincrónica, à la Death Stranding):** 2 pisos del cine donde una **computadora**
   te deja **fijar un cartel corto** para el próximo jugador que pase. El cartel **vive en el server hasta que OTRO lo
   LEE** (te parás debajo, **[E]**) → te muestra el texto y **se borra** (consumo-en-lectura). Se dibujan **empaquetados**

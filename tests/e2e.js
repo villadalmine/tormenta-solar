@@ -6,8 +6,8 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
-const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','mundo.js','level-data.js','game.js'];
+const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','truco-net.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','truco-pvp.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -305,6 +305,55 @@ if (require.main === module) {
   const tm = JSON.parse(trucoMatch);
   if (tm.length) { console.error('❌ TRUCO PARTIDA:\n' + tm.join('\n')); process.exit(1); }
   console.log('✓ truco F2: partida completa (3 manos + a 15) termina con win/lose + flores');
+
+  // ---- TRUCO PvP F3 (host-autoritativo): motor TrucoNet + escena TrucoPvp host/guest sobre transporte en memoria ----
+  const tpvp = vm.runInContext(`(() => {
+    const out = [];
+    // 1) MOTOR puro: una partida simulando los dos seats (host corre el match; el guest actúa vía act('guest',...))
+    function playEngine(seed) {
+      const m = TrucoNet.match(seed); m.start(); let g = 0;
+      while (!m.done && g++ < 5000) {
+        if (m.viewFor('host').phase === 'play') {
+          const ts = m.viewFor('host').turn ? 'host' : 'guest'; const v = m.viewFor(ts);
+          if (v.pending && !v.pending.mine) m.act(ts, { k:'resp', r:'quiero' });
+          else if (v.turn && !v.pending) { const i = v.hand.findIndex(h => !h.used); if (i>=0) m.act(ts,{k:'play',i}); else m.update(0.5); }
+          else m.update(0.5);
+        } else m.update(0.5);
+      }
+      return m;
+    }
+    let host=0, guest=0;
+    for (let s = 1; s <= 12; s++) {
+      const m = playEngine(s*13+1);
+      if (!m.done) { out.push('FAIL engine seed '+s+' no terminó'); continue; }
+      if (m.winnerSeat !== 'host' && m.winnerSeat !== 'guest') { out.push('FAIL engine seed '+s+' sin ganador'); continue; }
+      const v = m.viewFor(m.winnerSeat); if (v.score.me < 2) out.push('FAIL engine seed '+s+' ganador con score '+v.score.me);
+      if (m.winnerSeat==='host') host++; else guest++;
+    }
+    if (host === 0 || guest === 0) out.push('FAIL engine: ganador estructuralmente sesgado (host '+host+' / guest '+guest+')');
+    // 2) ESCENA host/guest sobre transporte en memoria (whisper simulado): ambos terminan con resultados consistentes
+    function playScene(seed) {
+      const inbox = { host: [], guest: [] };
+      const cl = { host: TrucoPvp.create({ role:'host', peerNick:'G', seed, send:o=>inbox.guest.push(o) }),
+                   guest: TrucoPvp.create({ role:'guest', peerNick:'H', seed, send:o=>inbox.host.push(o) }) };
+      const keys = { host:{}, guest:{} };
+      const deliver = () => { for (const w of ['host','guest']) while (inbox[w].length) cl[w].onNet(inbox[w].shift()); };
+      function decide(w){ const v=cl[w].view, k=keys[w]; for(const x in k)k[x]=false; if(!v||v.phase!=='play')return;
+        if(v.pending && !v.pending.mine){ k['q']=true; return; } if(v.pending && v.pending.mine) return;
+        if(v.turn){ const i=v.hand.findIndex(h=>!h.used); if(i>=0) k[String(i+1)]=true; } }
+      let f=0; while(f++<5000){ deliver(); for(const w of ['host','guest']){ decide(w); Input.keys = keys[w]; cl[w].update(1/60); cl[w].draw(__mkCtx(), 800, 448); } deliver(); if(cl.host.done && cl.guest.done) break; }
+      return cl;
+    }
+    const sc = playScene(99);
+    if (!sc.host.done || !sc.guest.done) out.push('FAIL scene no terminó');
+    else if ((sc.host.result==='win') === (sc.guest.result==='win')) out.push('FAIL scene resultados inconsistentes '+sc.host.result+'/'+sc.guest.result);
+    else if (sc.host.result==='win' && (sc.host.floresDelta|0) < 1) out.push('FAIL scene ganador sin flores');
+    Input.keys = {};
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const tp = JSON.parse(tpvp);
+  if (tp.length) { console.error('❌ TRUCO PvP F3:\n' + tp.join('\n')); process.exit(1); }
+  console.log('✓ truco PvP F3: motor host-autoritativo (12 partidas, sin sesgo) + escena host/guest por whisper terminan consistentes');
 
   // ---- grafo de historia + motor de pistas (HintEngine) ----
   const hint = vm.runInContext(`(() => {

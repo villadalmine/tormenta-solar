@@ -22,6 +22,7 @@ const Bodegon = (() => {
     const exit = { x: 9, y: 10 };
     const player = { x: (exit.x + 0.5) * CS, y: (exit.y - 0.2) * CS, r: 11 };
     let done = false, exitTo = null, goTelo = false, msg = '', msgT = 0, prompt = '', t = 0, escHeld = false, eHeld = true, numHeld = {}, hbT = 0, mozaInv = false;
+    let invitePidOut = null;   // F3 TRUCO PvP: pid del peer al que invité (game.js lo lee 1× y lo limpia)
     let myEmote = 0, myEmoteT = 0, mySay = -1, mySayT = 0;
     setMsg(T('g.bodegon.topIntro'), 6);
 
@@ -30,6 +31,17 @@ const Bodegon = (() => {
     function freeAt(x, y) { const r = player.r; return !solid(x - r, y - r) && !solid(x + r, y - r) && !solid(x - r, y + r) && !solid(x + r, y + r); }
     const nearTile = (c, d) => Math.hypot(player.x - (c.x + 0.5) * CS, player.y - (c.y + 0.5) * CS) < CS * (d || 1.2);
     const peersMap = () => (typeof Salon !== 'undefined' && Salon.getPeers) ? Salon.getPeers() : null;
+    // F3: peers ONLINE sentados, cada uno en su asiento (mismo orden que el render) → para apuntar+invitar al truco
+    function seatedPeers() {
+      const pm = peersMap(); const out = []; if (!pm) return out; let i = 0;
+      for (const p of pm.values()) { const s = seats[i % seats.length]; i++; out.push({ pid: p.pid, nick: p.nick, x: s.x, y: s.y }); }
+      return out;
+    }
+    function nearestPeer() {
+      let best = null, bd = 1e9;
+      for (const p of seatedPeers()) { if (!p.pid) continue; const d = Math.hypot(player.x - (p.x + 0.5) * CS, player.y - (p.y + 0.5) * CS); if (d < bd) { bd = d; best = p; } }
+      return (best && bd < CS * 1.4) ? best : null;
+    }
     function emote(i) { myEmote = i; myEmoteT = t; if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(11, 0, i); Sfx.pickup && Sfx.pickup(); }
     function phrase(i) { mySay = i; mySayT = t; if (typeof Salon !== 'undefined' && Salon.say) Salon.say(i); Sfx.pickup && Sfx.pickup(); }
 
@@ -45,14 +57,18 @@ const Bodegon = (() => {
       // emotes (1-4) / frases preset (5-8)
       for (let n = 1; n <= 8; n++) { const k = String(n); if (Input.keys[k]) { if (!numHeld[k]) { numHeld[k] = true; if (n <= 4) emote(n); else phrase(n - 5); } } else numHeld[k] = false; }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; done = true; exitTo = 'cine8'; return; } } else escHeld = false;
-      // interacción: rubia (mostrador) o salida
+      // interacción: rubia (mostrador), salida, o INVITAR a un peer sentado al truco (F3)
       const atRubia = nearTile(rubia, 1.4), atExit = nearTile(exit, 1.2);
-      prompt = atRubia ? T(mozaInv ? 'g.bodegon.mozaYes' : 'g.bodegon.mozaTalk') : atExit ? T('g.bodegon.exitPrompt') : '';
+      const peer = (!atRubia && !atExit) ? nearestPeer() : null;
+      prompt = atRubia ? T(mozaInv ? 'g.bodegon.mozaYes' : 'g.bodegon.mozaTalk')
+        : atExit ? T('g.bodegon.exitPrompt')
+        : peer ? T('g.trucopvp.invitePrompt', { nick: peer.nick || T('g.bodegon.someone') }) : '';
       const press = Input.keys['e'] || Input.keys[' '] || Input.keys['enter'];
       if (press && !eHeld) {
         eHeld = true;
         if (atRubia) { if (!mozaInv) { mozaInv = true; setMsg(T('g.moza.invite'), 6); } else { done = true; goTelo = true; } }
         else if (atExit) { done = true; exitTo = 'cine8'; }
+        else if (peer) { invitePidOut = peer.pid; setMsg(T('g.trucopvp.inviteSent', { nick: peer.nick || T('g.bodegon.someone') }), 4); }
       } else if (!press) eHeld = false;
     }
 
@@ -95,11 +111,14 @@ const Bodegon = (() => {
       const exx = ox + (exit.x + 0.5) * CS, exy = oy + (exit.y + 0.5) * CS;
       ctx2.fillStyle = pal.accent; ctx2.globalAlpha = 0.4; ctx2.fillRect(exx - 13, exy - 14, 26, 28); ctx2.globalAlpha = 1;
       ctx2.font = 'bold 13px serif'; ctx2.fillText('🪜', exx, exy + 5);
-      // PEERS online sentados (presencia)
-      const pm = peersMap(); let i = 0, count = 0, now = Date.now();
-      if (pm) for (const p of pm.values()) { const s = seats[i % seats.length]; i++; count++;
-        figure(ctx2, ox + (s.x + 0.5) * CS, oy + (s.y + 0.5) * CS, '#5a7a9a', p.nick || T('g.bodegon.someone'),
-          p.emote, now - (p.emoteT || 0) < 2500, p.say, now - (p.sayT || 0) < 4000); }
+      // PEERS online sentados (presencia). nearestPeer() resaltado: lo podés invitar al truco
+      const pm = peersMap(); let count = 0, now = Date.now();
+      const target = nearestPeer();
+      if (pm) { let i = 0; for (const p of pm.values()) { const s = seats[i % seats.length]; i++; count++;
+        const sx = ox + (s.x + 0.5) * CS, sy = oy + (s.y + 0.5) * CS;
+        if (target && target.pid === p.pid) { ctx2.strokeStyle = '#ffd54f'; ctx2.lineWidth = 2; ctx2.beginPath(); ctx2.arc(sx, sy, 14, 0, Math.PI * 2); ctx2.stroke(); }
+        figure(ctx2, sx, sy, '#5a7a9a', p.nick || T('g.bodegon.someone'),
+          p.emote, now - (p.emoteT || 0) < 2500, p.say, now - (p.sayT || 0) < 4000); } }
       // YO (te movés libre)
       figure(ctx2, ox + player.x, oy + player.y, '#36567f', T('g.bodegon.you'), myEmote, t - myEmoteT < 2.5, mySay, t - mySayT < 4);
       // barra superior: nombre + cuántos online
@@ -122,7 +141,9 @@ const Bodegon = (() => {
       if (prompt) { ctx2.font = 'bold 12px monospace'; ctx2.textAlign = 'center'; ctx2.fillStyle = 'rgba(0,0,0,0.78)'; ctx2.fillRect(0, bottom - 22, VW, 22); ctx2.fillStyle = pal.accent; ctx2.fillText(prompt, VW / 2, bottom - 7); }
     }
 
-    return { get done() { return done; }, get exitTo() { return exitTo; }, get goTelo() { return goTelo; }, update, draw };
+    return { get done() { return done; }, get exitTo() { return exitTo; }, get goTelo() { return goTelo; },
+      get invitePid() { const v = invitePidOut; invitePidOut = null; return v; },   // F3 TRUCO PvP (one-shot)
+      update, draw };
   }
   return { create };
 })();

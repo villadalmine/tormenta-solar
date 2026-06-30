@@ -1,7 +1,8 @@
 # SDD — Truco de verdad: reglas completas, truco de a 6, reclutamiento y Calle Lavalle
 
-- **Estado:** **F1 + F2 IMPLEMENTADOS** (motor 1v1 real + cantos voceados + formatos/partida). Resto en fases (§12).
-- **Última actualización:** 2026-06-24
+- **Estado:** **F1 + F2 + F3(PvP humano) IMPLEMENTADOS**. Resto en fases (§12).
+- **Última actualización:** 2026-06-30
+- **F3 PvP HUMANO hecho (v240 · infra-41):** truco **1v1 contra OTRO jugador real** en el bodegón (no la IA). Ver §13.
 - **Tamaño:** **GRANDE** (es el feature más pesado del backlog — ver §12 mi lectura). Multi-fase.
 - **F1 hecho:** `js/truco.js` (motor puro: jerarquía/envido/flor/parda, testeado e2e) + `arcade.js makeTruco`
   reescrito sobre él: cantos reales (envido/real/falta, truco/retruco/vale4, flor) con quiero/no quiero,
@@ -198,3 +199,36 @@ A los **mejores jugadores se les reparten mejores cartas** (no es trampa visible
 - **Lo que ya juega a favor:** el **grafo + applyEdge + Mensajero** ya existen → el hito, las excusas y el
   desbloqueo de Lavalle encajan limpio. El motor de truco es **puro** (testeable con e2e sin render).
 - **Recomendación:** arrancar por **F1 (motor 1v1 real)** — es autónomo, testeable, y todo lo demás se apoya ahí.
+
+## 13. F3 — TRUCO PvP HUMANO-vs-HUMANO (IMPLEMENTADO, v240 · infra-41)
+
+Truco **1v1 contra otro jugador real** en el bodegón top-down (multijugador §F3). El oponente ya **no es la IA**:
+cada carta/canto/respuesta del rival viaja por la red.
+
+- **Disparo (UX):** en el bodegón te acercás a un peer **sentado** en una mesa → se resalta → **[E] invitar al
+  truco**. Al otro le aparece un overlay (`[E] aceptar · [Esc] no`). Aceptado → ambos entran al sub-modo `trucopvp`.
+- **Modelo host-autoritativo:** `host = min(myPid, peerPid)` (ambos lo computan igual). El host corre la partida
+  (tiene las DOS manos), valida cada acción y empuja una **vista por jugador** que **nunca** incluye la mano del
+  rival (anti-trampa de cliente vanilla). El guest solo manda intenciones y refleja la vista que recibe.
+- **Transporte:** el **mismo whisper del salón** (`Salon.whisper`/`onWhisper`, relay SSE sin autoridad). Mensajes
+  JSON con `t`: `tk-inv`/`tk-ok`/`tk-no` (handshake), `tk-hello` (guest listo → re-push), `tk-act` (acción del
+  guest), `tk-view` (vista del host), `tk-bye` (abandono). Cap del whisper subido (cliente 200→700; proxy `msg`
+  200→700 · body 800→1400 · rate-limit 700→250ms) para que entren las vistas JSON. El salón **nunca se desconecta**
+  durante el match (heartbeat `Salon.pos` propio); al terminar se vuelve al bodegón top-down.
+- **Reglas:** reusa el motor puro `Truco` + la lógica de `makeTruco` (mismos `envQ/envN/trucoQ/trucoN`, faltaPts,
+  "el envido está primero", parda). **Con flor siempre** (auto al repartir, sin contraflor). Formato **mejor de 3
+  manos**. Premio en **flores** al ganador (`floresAcc`).
+- **Archivos:** `js/truco-net.js` (motor host-autoritativo PURO, testeable: `match()/start/act/viewFor`),
+  `js/truco-pvp.js` (escena host/guest), `js/bodegon.js` (targeting de peer + `invitePid`), `js/game.js`
+  (handshake + ruteo whisper `tk-*` + estado `trucopvp` + premio), `js/salon.js` + `ai-proxy/server.js` (cap whisper).
+- **Tests:** e2e — 12 partidas del motor (sin sesgo estructural host/guest) + escena host/guest sobre transporte en
+  memoria terminan consistentes (1 win / 1 lose, flores al ganador). Paridad i18n: 31 claves `g.trucopvp.*` ES≡EN.
+- **Degradación:** sin red / EventSource / si el rival se va → el match cierra limpio (`tk-bye` → "se fue el rival",
+  sin penalidad de flores); el bodegón sigue 100% jugable. Capa aditiva con `typeof` guards.
+
+### 13.1 Deuda de F3 (v1 → futuro)
+- **Host malicioso** podría trampear (relay sin autoridad) — fuera de alcance v1, igual que el resto del
+  multijugador. Mitigación futura: validación cruzada / autoridad en el server.
+- **Reconexión dura:** si el rival cierra la pestaña sin `tk-bye`, el que queda sale con `Esc` (no hay watchdog por
+  timeout todavía).
+- **Truco de a 6 PvP** (3v3 humano) y **cabarulo/Lavalle** siguen pendientes (§5-§7, §12 F5-F7).
