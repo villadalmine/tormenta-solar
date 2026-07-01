@@ -273,7 +273,11 @@ const Lavalle = (() => {
       // barra superior + mensajes
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 26);
       ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'left'; ctx.fillText('✊ ' + T('g.lavalle.title'), 10, 18);
-      ctx.textAlign = 'right'; ctx.fillStyle = '#9be8a0'; ctx.font = '10px monospace'; ctx.fillText('WASD moverte · ↓ volver · 🎶', VW - 10, 18);
+      // MULTIJUGADOR: cuántos estamos en el piquete AHORA (vos + peers). Feedback directo del online.
+      { const nPeers = (typeof Salon !== 'undefined' && Salon.getPeers && Salon.inBodegon && Salon.inBodegon()) ? Salon.getPeers().size : 0;
+        ctx.textAlign = 'center'; ctx.fillStyle = nPeers ? '#9be8a0' : '#6a6a72'; ctx.font = 'bold 11px monospace';
+        ctx.fillText('👥 ' + (nPeers + 1) + (nPeers ? '' : ' (solo)'), VW / 2, 18); }
+      ctx.textAlign = 'right'; ctx.fillStyle = '#9be8a0'; ctx.font = '10px monospace'; ctx.fillText('WASD · ↓ volver · 🎶', VW - 10, 18);
       let bottom = VH;
       if (msgT > 0 && msg) { ctx.font = '12px monospace'; ctx.textAlign = 'center';
         const words = msg.split(' '), lines = []; let cur = '';

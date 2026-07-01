@@ -42,7 +42,8 @@ const Config = (() => {
       if (document.querySelectorAll) document.querySelectorAll('.opt-btn').forEach(b => b.addEventListener('click', () => {
         set(b.getAttribute('data-k'), (cfg[b.getAttribute('data-k')] || 0) + parseFloat(b.getAttribute('data-d')));
       }));
-      document.addEventListener('keydown', e => { if ((e.key || '').toLowerCase() === 'o') toggle(); });
+      // atajo 'o' → abre/cierra Opciones, PERO no si estás escribiendo en un campo (ej. tu nombre con una "o" cerraba el panel)
+      document.addEventListener('keydown', e => { if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return; if ((e.key || '').toLowerCase() === 'o') toggle(); });
       refreshUI();
     } catch (e) { /* la UI es opcional */ }
   }

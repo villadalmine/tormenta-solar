@@ -887,6 +887,14 @@ http.createServer((req, res) => {
       `# HELP tormenta_ai_unique_sessions_today Session-ids distintos vistos hoy (usuarios aprox)\n# TYPE tormenta_ai_unique_sessions_today gauge\ntormenta_ai_unique_sessions_today ${UNIQ.sids.size}\n` +
       `# HELP tormenta_ai_unique_ips_today IPs remotas distintas vistas hoy (real con PROXY protocol)\n# TYPE tormenta_ai_unique_ips_today gauge\ntormenta_ai_unique_ips_today ${UNIQ.ips.size}\n` +
       `# HELP tormenta_ai_sub_codes Códigos de suscripción válidos (pagos)\n# TYPE tormenta_ai_sub_codes gauge\ntormenta_ai_sub_codes ${SUB_CODES.size}\n`;
+    // JUGADORES ONLINE (presencia REAL, Grafana "quién está jugando"): latido /salon/beat + conexiones al relay en vivo.
+    salonPrune(); bodegonPrune();
+    const bySpace = {}; for (const r of BODEGON.values()) bySpace[r.space || 'bodegon'] = (bySpace[r.space || 'bodegon'] || 0) + r.peers.size;
+    out +=
+      `# HELP tormenta_players_online Jugadores con latido de presencia en los últimos ${Math.round(SALON_TTL / 1000)}s\n# TYPE tormenta_players_online gauge\ntormenta_players_online ${SALON.size}\n` +
+      `# HELP tormenta_players_realtime Jugadores conectados al relay en vivo (SSE), por espacio\n# TYPE tormenta_players_realtime gauge\n` +
+      `tormenta_players_realtime{space="bodegon"} ${bySpace.bodegon || 0}\n` +
+      `tormenta_players_realtime{space="lavalle"} ${bySpace.lavalle || 0}\n`;
     // BANCOS DEL ECOSISTEMA (observabilidad: ¿están poblados y frescos? → Grafana/alertas). age_seconds = frescura.
     const ageS = ts => ts ? Math.round((Date.now() - ts) / 1000) : -1;
     out +=

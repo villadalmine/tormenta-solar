@@ -2969,8 +2969,11 @@
     if (freezeReported) freezeReported = false;                                          // se recuperó del freeze
     const dt = Math.min(0.04, (t - lastT)/1000) || 0; lastT = t;
     autosave(t);
-    // MULTIJUGADOR F1: latido de presencia cada ~5s mientras jugás (dónde estás) → alimenta el "Cine EN VIVO".
-    if (state === 'playing' && typeof Salon !== 'undefined' && Salon.enabled && t > salonBeatT) { salonBeatT = t + 5000; Salon.beat(currentAt()); }
+    // MULTIJUGADOR F1: latido de presencia cada ~5s mientras jugás (dónde estás) → "Cine EN VIVO" + métrica online.
+    // Late en CUALQUIER estado de juego (intro cerrada), no solo 'playing' → así en sub-modos (Lavalle/bodegón/arcade)
+    // no caés de la cuenta de "jugando ahora".
+    if (elIntro && elIntro.classList.contains('hidden') && typeof Salon !== 'undefined' && Salon.enabled && t > salonBeatT) {
+      salonBeatT = t + 5000; Salon.beat(state === 'lavalle' ? 'lavalle' : (state === 'bodegon' ? 'bodegon' : currentAt())); }
     if (state === 'playing' && bodegonOn && typeof Salon !== 'undefined' && Salon.pos) Salon.pos(myTileX(), player.vx);   // F2b: posteo MI pos (el cliente throttlea ~160ms)
     if (state === 'playing' && activeEscort() && t > escortNudgeT) escortNudge();   // el escort te RECUERDA a dónde ir cada ~12s
     if (state === 'arcade' && arcadeGame) {

@@ -56,6 +56,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v254 · infra-44] — 2026-07-01 — 🐛 Lote playtest: nombre en Opciones + presencia online (Grafana) + contador en Lavalle
+
+Tres cosas del playtest del dueño:
+- **FIX ⚙ Opciones — no dejaba escribir el nombre:** el atajo global tecla **"o"** (abre/cierra Opciones, `js/config.js`)
+  no chequeaba si estabas tipeando → al poner una "o" en el nombre, se cerraba el panel ("dos letras y chau"). Ahora
+  el atajo ignora los `input/textarea/select`.
+- **Presencia "quién está jugando" (Grafana):** (1) el latido `/salon/beat` ahora late en **cualquier estado de juego**
+  (intro cerrada), no solo `playing` → en sub-modos (Lavalle/bodegón/arcade) ya no caés a 0. (2) **infra-44 (proxy 0.1.66):**
+  `/metrics` expone **`tormenta_players_online`** (latidos en los últimos 35s) + **`tormenta_players_realtime{space}`**
+  (conectados al relay en vivo, bodegón/lavalle) → **ahora Grafana SÍ puede graficar quién juega** (antes no existía la
+  métrica, por eso no lo veías).
+- **Lavalle: contador 👥 en la barra** — muestra cuántos estamos en el piquete ("👥 1 (solo)" vs "👥 3") → feedback
+  directo del multijugador (además de ver a los peers caminar).
+- **Nota multijugador:** el relay anda (validado con 2 clientes + `/salon/debug`); si "no ves a nadie" es porque los
+  otros dispositivos no están **dentro del sub-modo de Lavalle** al mismo tiempo — el contador 👥 ahora lo evidencia.
+- e2e + headless OK. Cache **v254**.
+
+---
+
 ## [v253 · infra-43] — 2026-07-01 — 🐛 FIX Lavalle multijugador: el "fantasma que te perseguía" eras VOS
 
 Playtest del dueño: *"no veo nada multiplayer, a veces se mueve solo y me persigue alguien"*. Era el **eco de tu propia
