@@ -646,8 +646,8 @@ http.createServer((req, res) => {
     let pb = ''; req.on('data', c => { pb += c; if (pb.length > 400) req.destroy(); });
     req.on('end', () => { try {
       const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const room = String(d.room || '').slice(0, 24);
-      const name = (d.table === '6' || d.table === '1v1') ? d.table : null;
       const r = BODEGON.get(room); const p = r && r.peers.get(pid);
+      const name = (r && r.tables && r.tables[d.table]) ? d.table : null;   // acepta cualquier mesa del ESPACIO (bodegón: 1v1/6 · lavalle: corte)
       if (r && p && name) { p.ts = Date.now();
         if (d.action === 'sit') tableSit(r, name, pid, p.nick);
         else if (d.action === 'leave') tableLeavePid(r, name, pid);
