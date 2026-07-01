@@ -7,7 +7,10 @@ const Lavalle = (() => {
   const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   const CS = 30, W = 18, H = 15;
 
-  function create() {
+  function create(opts) {
+    opts = opts || {};
+    const allWon = !!opts.allWon;   // ganaste los 5 mini-juegos → la barricada se abre y podés pasar (fiesta peronista)
+    let fiesta = false, fiestaT = 0;
     const map = Array.from({ length: H }, () => new Array(W).fill(0));
     for (let x = 0; x < W; x++) { map[0][x] = 1; map[1][x] = 1; map[2][x] = 1; map[3][x] = 1; }   // arriba: avenida+corte (más lejos) = pared → se ve EL OBELISCO grande
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W - 1] = 1; }
@@ -49,17 +52,23 @@ const Lavalle = (() => {
     // el LIENZO largo "VIVA PERÓN ×N" cruza la hilera de atrás, colgado ALTO (no tapa a nadie)
     const banner = { y: 3.7 };
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null, peerReq = null, corteReq = false, sogaReq = false, bomboReq = false, ollaReq = false, pancaReq = false;
-    setMsg(T('g.lavalle.intro'), 6);
+    setMsg(opts.intro || (allWon ? T('g.lavalle.introOpen') : T('g.lavalle.intro')), opts.intro ? 7 : 6);
     if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(true);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
     function solid(px, py) { const tx = Math.floor(px / CS), ty = Math.floor(py / CS); if (tx < 0 || ty < 0 || tx >= W || ty >= H) return ty < H; return map[ty] && map[ty][tx] === 1; }
     function freeAt(x, y) { const r = player.r; return !solid(x - r, y - r) && !solid(x + r, y - r) && !solid(x - r, y + r) && !solid(x + r, y + r); }
     const nearTile = (c, d) => Math.hypot(player.x - (c.x + 0.5) * CS, player.y - (c.y + 0.5) * CS) < CS * (d || 1.4);
-    function leave() { if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(false); done = true; exitTo = 'street'; }
+    function leave() { if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(false); if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(false); done = true; exitTo = 'street'; }
+    // FIESTA PERONISTA: pasaste el corte → el peronista te toma juramento, arranca la Marcha y todos bailan y morfan chori
+    function startFiesta() {
+      if (fiesta) return; fiesta = true; fiestaT = 0;
+      setMsg(T('g.lavalle.oath'), 9);
+      if (typeof Sfx !== 'undefined') { if (Sfx.setCumbia) Sfx.setCumbia(false); if (Sfx.setMarcha) Sfx.setMarcha(true); }
+    }
 
     function update(dt) {
-      t += dt; msgT -= dt;
+      t += dt; msgT -= dt; if (fiesta) fiestaT += dt;
       if (done) return;
       const sp = 165 * dt; let mvx = 0, mvy = 0;
       if (Input.keys['arrowleft'] || Input.keys['a']) mvx = -1;
@@ -93,6 +102,10 @@ const Lavalle = (() => {
       } else if (near && near.chat) {
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; chatReq = { name: near.name, persona: near.persona, kind: 'linyera' }; } } else eHeld = false;
         prompt = T('g.lavalle.chatHint', { n: near.name });
+      } else if (allWon && !fiesta && player.y < 5 * CS && Math.abs(player.x / CS - 9) < 2 && !near) {
+        // ganaste los 5 → el HUECO del corte: pasás y el peronista te toma juramento (fiesta)
+        if (Input.keys['e']) { if (!eHeld) { eHeld = true; startFiesta(); } } else eHeld = false;
+        prompt = T('g.lavalle.oathHint');
       } else if (player.y < 5 * CS && !near) {
         // arriba, contra el corte → armar el mini-juego co-op "Aguantar el corte"
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; corteReq = true; } } else eHeld = false;
@@ -264,11 +277,18 @@ const Lavalle = (() => {
         if (img) { const sc = 1.4; ctx.drawImage(img, VW / 2 - img.width * sc / 2, oy + 48 - img.height * sc, img.width * sc, img.height * sc); } }
       // colectivos / autos chicos PASADA la reja (tránsito parado del otro lado)
       for (const v of vehs) if (v.y < 3.6) vehicle(ctx, TX2(v.x + 0.5), TY2(v.y + 0.5), v.kind, v.col, v.sc);
-      // LA REJA cruzando + AUTOS ROTOS + CUBIERTAS + BANDERAS (el corte)
-      ctx.strokeStyle = '#6a6a72'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke();
-      ctx.lineWidth = 2; for (let x = 1; x < W; x += 0.6) { ctx.beginPath(); ctx.moveTo(TX2(x), TY2(2.4)); ctx.lineTo(TX2(x), TY2(3.5)); ctx.stroke(); }
+      // LA REJA cruzando + AUTOS ROTOS + CUBIERTAS + BANDERAS (el corte). Si ganaste los 5 → HUECO en el medio (pasás).
+      const inGap = x => allWon && x > 7.3 && x < 10.7;
+      ctx.strokeStyle = '#6a6a72'; ctx.lineWidth = 3;
+      if (allWon) { ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(7.3), TY2(3.0)); ctx.moveTo(TX2(10.7), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke(); }
+      else { ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke(); }
+      ctx.lineWidth = 2; for (let x = 1; x < W; x += 0.6) { if (inGap(x)) continue; ctx.beginPath(); ctx.moveTo(TX2(x), TY2(2.4)); ctx.lineTo(TX2(x), TY2(3.5)); ctx.stroke(); }
+      if (allWon) {   // resplandor del hueco + flecha "pasá"
+        const gx = TX2(9), gy = TY2(3.0); ctx.save(); ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 4); const gr = ctx.createRadialGradient(gx, gy, 4, gx, gy, 60); gr.addColorStop(0, 'rgba(255,224,74,0.6)'); gr.addColorStop(1, 'rgba(255,224,74,0)'); ctx.fillStyle = gr; ctx.fillRect(gx - 60, gy - 40, 120, 80); ctx.restore();
+        if (!fiesta) { ctx.fillStyle = '#ffe14a'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.fillText('↑ ' + T('g.lavalle.pass'), gx, gy - 4); }
+      }
       for (const c of cars) { brokenCar(ctx, TX2(c.x), TY2(c.y), c.col, c.tilt); smoke(ctx, TX2(c.x) + 14 * (c.tilt < 0 ? -1 : 1), TY2(c.y) - 12, c.x, 3, 0.14); }   // humito del motor
-      for (const tr of tires) tireStack(ctx, TX2(tr.x), TY2(tr.y), tr.n);
+      for (const tr of tires) { if (inGap(tr.x)) continue; tireStack(ctx, TX2(tr.x), TY2(tr.y), tr.n); }
       for (const f of flags) drawFlag(ctx, TX2(f.x), TY2(f.y), f.k);
       // el LIENZO largo "VIVA PERÓN" cruza ALTO la hilera de atrás (antes que la multitud, colgado sobre sus cabezas)
       longBanner(ctx, TX2, TY2);
@@ -300,6 +320,12 @@ const Lavalle = (() => {
           if (e.peer.nick) { ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,0.6)'; const tw = ctx.measureText(e.peer.nick).width + 6; ctx.fillRect(px - tw / 2, py - 30, tw, 11); ctx.fillStyle = '#9be8a0'; ctx.fillText(e.peer.nick, px, py - 21); }
           if (e.peer.emote && Date.now() - (e.peer.emoteT || 0) < 2200) { ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillText(['', '🍻', '🤝', '💃', '🎸'][e.peer.emote] || '', px, py - 32); } }
         else piquetero(ctx, TX2(e.f.x + 0.5), TY2(e.f.y + 0.5), e.f, near === e.f ? e.f.line : '', near === e.f);
+      }
+      // FIESTA PERONISTA: choripanes que bailan sobre la gente + confeti + banner "VIVA PERÓN"
+      if (fiesta) {
+        for (let i = 0; i < 10; i++) { const px = TX2(2 + i * 1.5 + Math.sin(t * 2 + i) * 0.2 + 0.5), py = TY2(5.2 + (i % 3) * 0.7) - Math.abs(Math.sin(t * 4 + i)) * 8; ctx.font = '15px monospace'; ctx.textAlign = 'center'; ctx.fillText('🌭', px, py); }
+        for (let i = 0; i < 24; i++) { const ph = (t * 0.7 + i * 0.13) % 1; ctx.globalAlpha = 0.8 * (1 - ph); ctx.fillStyle = ['#74acdf', '#fff', '#f6b40e', '#c0241f'][i % 4]; const cxp = (i * 71 % VW), cyp = 30 + ph * (VH - 60); ctx.fillRect(cxp, cyp, 3, 3); } ctx.globalAlpha = 1;
+        ctx.fillStyle = 'rgba(179,20,26,0.92)'; ctx.fillRect(0, 30, VW, 24); ctx.fillStyle = '#fff'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center'; ctx.fillText('✊ ¡VIVA PERÓN! — ' + T('g.lavalle.fiesta'), VW / 2, 47);
       }
       // barra superior + mensajes
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 26);

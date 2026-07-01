@@ -103,6 +103,16 @@ const Sfx = (() => {
   const Music = makeTrack(TANGO, 0.34, { leadVol:0.05, bassVol:0.05 });
   const Cumbia = makeTrack(CUMBIA, 0.21, { leadVol:0.05, bassVol:0.06, staccato:0.55, guira:true });
   const Eighties = makeTrack(EIGHTIES, 0.20, { leadVol:0.05, bassVol:0.05, leadType:'square' });
+  // MARCHA PERONISTA (chiptune, homenaje): "Los muchachos peronistas / todos unidos triunfaremos / ¡Viva Perón!"
+  const MARCHA = [
+    ['G4','C2',1],['G4','C2',1],['G4','C2',1],['C5','C2',1],   // Los mu-cha-chos pe-
+    ['C5','G2',1],['B4','G2',1],['A4','G2',1],['G4','G2',1],   // -ro-nis-tas
+    ['A4','F2',1],['A4','F2',1],['A4','F2',1],['D5','F2',1],   // to-dos u-ni-dos
+    ['D5','G2',1],['C5','G2',1],['B4','G2',1],['A4','G2',1],   // triun-fa-re-mos
+    ['C5','C2',1],['C5','C2',1],['G4','G2',2],                  // ¡Vi-va Pe-rón!
+    ['C5','C2',1],['C5','C2',1],['C5','C2',2],                  // ¡Vi-va Pe-rón!
+  ];
+  const Marcha = makeTrack(MARCHA, 0.26, { leadVol:0.06, bassVol:0.06, leadType:'square', staccato:0.6, guira:true });
   // heavy metal argentino (Almafuerte) prueba de sonido
   const METAL = [
     ['E4','E2',1],['E4','E2',1],['G4','E2',1],['E4','E2',1],
@@ -128,7 +138,7 @@ const Sfx = (() => {
   ];
   const Telo = makeTrack(TELO, 0.42, { leadVol:0.10, bassVol:0.09, leadType:'triangle' });   // bien grasa y AUDIBLE (subido de 0.05)
   const ROOM = { metal: Metal, dance: Dance, telo: Telo };
-  let musicWanted = false, cumbiaActive = false;
+  let musicWanted = false, cumbiaActive = false, marchaActive = false;
 
   return {
     init() { ensure(); },
@@ -192,6 +202,10 @@ const Sfx = (() => {
     startMusic() { musicWanted = true; if (!cumbiaActive) Music.start(); },
     stopMusic() { musicWanted = false; Music.stop(); },
     toggleMusic() { musicWanted = !musicWanted; if (musicWanted && !cumbiaActive) Music.start(); else Music.stop(); return musicWanted; },
+    setMarcha(on) {   // Marcha Peronista (fiesta de Lavalle al ganar los 5 mini-juegos)
+      if (on && !marchaActive) { marchaActive = true; Music.stop(); Cumbia.stop(); cumbiaActive = false; Marcha.start(); }
+      else if (!on && marchaActive) { marchaActive = false; Marcha.stop(); if (musicWanted) Music.start(); }
+    },
     setCumbia(on) {
       if (on && !cumbiaActive) { cumbiaActive = true; Music.stop(); Cumbia.start(); }
       else if (!on && cumbiaActive) { cumbiaActive = false; Cumbia.stop(); if (musicWanted) Music.start(); }

@@ -601,9 +601,9 @@
     return true;
   }
   // LAVALLE (specs/lavalle.md E1.5): el piquete se ve TOP-DOWN (sub-modo); sin el módulo → cae al side-scroller (sala 52).
-  function enterLavalle() {
+  function enterLavalle(intro) {
     if (typeof Lavalle === 'undefined' || !Lavalle.create) return false;
-    lavalleGame = Lavalle.create(); state = 'lavalle';
+    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon() }); state = 'lavalle';
     // MULTIJUGADOR (specs/lavalle-multijugador.md F1): Lavalle es un ESPACIO aparte del bodegón; te ves con los otros
     // que están en el piquete. Aditivo: sin red, queda la postal single-player.
     if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join(playerNick(), 'carpo', () => {}, 'lavalle');
@@ -644,6 +644,11 @@
     fal:        { id: 'fal',        emoji: '🔫', label: 'g.wpn.fal',        ctx: 'dream', effectiveVs: ['cuevero'],         dmgMul: 3, baseDmg: 18 },
     // CONSOLA (quest del chip): no es arma, es ÍTEM USABLE → "usar" hackea el chip (useConsola). specs/telo-chip-quest.md
     consola:    { id: 'consola',    emoji: '🎮', label: 'g.wpn.consola', noEquip: true, use: 'useConsola' },
+    // ITEMS DE PIQUETE (premios de los mini-juegos co-op de Lavalle): coleccionables del inventario (por ahora flavor).
+    chori:      { id: 'chori',      emoji: '🌭', label: 'g.wpn.chori',   noEquip: true },
+    palo:       { id: 'palo',       emoji: '🏏', label: 'g.wpn.palo',    noEquip: true },
+    mortero:    { id: 'mortero',    emoji: '🎆', label: 'g.wpn.mortero', noEquip: true },
+    molotov:    { id: 'molotov',    emoji: '🧨', label: 'g.wpn.molotov', noEquip: true },
   };
   const isDream = () => spinoffLevel;   // los niveles GENERADOS son "los sueños del Carpo": ahí SÍ usa el fierro criollo
   function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
@@ -1268,6 +1273,19 @@
   }
   function handlePancarta(fromPid, m) {
     if (pancaGame && !pancaGame.isHost && m.t === 'lv5-state') pancaGame.applyState(m);
+  }
+  // RECOMPENSA de los mini-juegos del piquete: ganar da un ÍTEM de piquete al inventario + marca el juego como ganado.
+  // Ganar los 5 abre la barricada (piqueteAllWon → Fase 2). Se persiste en localStorage.
+  const PIQUETE_GAMES = ['corte', 'soga', 'bombo', 'olla', 'pancarta'];
+  function loadPiqueteWon() { try { return JSON.parse(localStorage.getItem('ts_piqueteWon') || '{}') || {}; } catch (e) { return {}; } }
+  function savePiqueteWon(w) { try { localStorage.setItem('ts_piqueteWon', JSON.stringify(w)); } catch (e) {} }
+  function piqueteAllWon() { const w = loadPiqueteWon(); return PIQUETE_GAMES.every(g => w[g]); }
+  function pReward(res, gameKey, itemId) {
+    if (res !== 'win') return '';
+    const w = loadPiqueteWon(); w[gameKey] = true; savePiqueteWon(w);
+    addItem(itemId); player.flores = (player.flores || 0) + 2;
+    let extra = piqueteAllWon() ? (' ' + T('g.piquete.allWon')) : '';
+    return ' ' + T('g.piquete.reward', { item: T(WEAPONS[itemId].label) }) + extra;
   }
   async function chatSend() {
     if (peerChat) return peerChatSend();   // F2b.2: chat PRIVADO con otro jugador → va por el salón, no a la IA
@@ -3202,36 +3220,36 @@
       piqueteGame.update(dt); piqueteGame.draw(ctx, W, H);
       if (piqueteGame.done) {
         const res = piqueteGame.result; piqueteGame = null;
-        setMsg(T(res === 'win' ? 'g.piquete.won' : res === 'lose' ? 'g.piquete.lost' : 'g.piquete.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
-        if (enterLavalle()) { /* de vuelta al piquete top-down */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+        const m = T(res === 'win' ? 'g.piquete.won' : res === 'lose' ? 'g.piquete.lost' : 'g.piquete.left') + pReward(res, 'corte', 'molotov');
+        if (enterLavalle(m)) { /* de vuelta al piquete top-down (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'soga' && sogaGame) {                           // Lavalle: "La soga" (tug of war co-op)
       sogaGame.update(dt); sogaGame.draw(ctx, W, H);
       if (sogaGame.done) {
         const res = sogaGame.result; sogaGame = null;
-        setMsg(T(res === 'win' ? 'g.soga.won' : res === 'lose' ? 'g.soga.lost' : 'g.soga.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
-        if (enterLavalle()) { /* de vuelta al piquete */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+        const m = T(res === 'win' ? 'g.soga.won' : res === 'lose' ? 'g.soga.lost' : 'g.soga.left') + pReward(res, 'soga', 'palo');
+        if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'bombo' && bomboGame) {                         // Lavalle: "Bombo & cumbia" (ritmo co-op)
       bomboGame.update(dt); bomboGame.draw(ctx, W, H);
       if (bomboGame.done) {
         const res = bomboGame.result; bomboGame = null;
-        setMsg(T(res === 'win' ? 'g.bombo.won' : res === 'lose' ? 'g.bombo.lost' : 'g.bombo.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
-        if (enterLavalle()) { /* de vuelta al piquete */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+        const m = T(res === 'win' ? 'g.bombo.won' : res === 'lose' ? 'g.bombo.lost' : 'g.bombo.left') + pReward(res, 'bombo', 'mortero');
+        if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'olla' && ollaGame) {                          // Lavalle: "Reparto de la olla" (reacción co-op)
       ollaGame.update(dt); ollaGame.draw(ctx, W, H);
       if (ollaGame.done) {
         const res = ollaGame.result; ollaGame = null;
-        setMsg(T(res === 'win' ? 'g.olla.won' : res === 'lose' ? 'g.olla.lost' : 'g.olla.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
-        if (enterLavalle()) { /* de vuelta al piquete */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+        const m = T(res === 'win' ? 'g.olla.won' : res === 'lose' ? 'g.olla.lost' : 'g.olla.left') + pReward(res, 'olla', 'chori');
+        if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'pancarta' && pancaGame) {                     // Lavalle: "Pintar la pancarta" (colaborativo)
       pancaGame.update(dt); pancaGame.draw(ctx, W, H);
       if (pancaGame.done) {
         const res = pancaGame.result; pancaGame = null;
-        setMsg(T(res === 'win' ? 'g.pancarta.won' : res === 'lose' ? 'g.pancarta.lost' : 'g.pancarta.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
-        if (enterLavalle()) { /* de vuelta al piquete */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+        const m = T(res === 'win' ? 'g.pancarta.won' : res === 'lose' ? 'g.pancarta.lost' : 'g.pancarta.left') + pReward(res, 'pancarta', 'palo');
+        if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'trucopvp6' && truco6Game) {
       truco6Game.update(dt); truco6Game.draw(ctx, W, H);
