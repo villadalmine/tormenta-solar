@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -273,6 +273,14 @@ if (require.main === module) {
     const gb = Mundo.fromModel(go.model);
     if (!gb[0].playerStart || !gb[gb.length - 1].goal) throw new Error('tema oraculo (objeto) no construye');
     ok.push('nivelai-oraculo');
+    // FASE 2 LAVALLE: "Aguantar el corte" — el host simula olas + barricada y TERMINA (win/lose) sin crash
+    const pq = Piquete.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 7, sendState: () => {} });
+    for (let i = 0; i < 800 && !pq.done; i++) { pq.update(0.05); pq.draw(C, 960, 540); }
+    if (!pq.done || !['win', 'lose', 'flee'].includes(pq.result)) throw new Error('piquete host no termina: ' + pq.result);
+    // guest: aplica estado del host sin crash
+    const pg = Piquete.create({ role: 'guest', seats: ['h', 'me'], myPid: 'me', seed: 7 });
+    pg.applyState({ t: 'lv-state', h: 80, w: 2, p: 'play', e: [5, 2, 9, 1.5] }); pg.draw(C, 960, 540);
+    ok.push('piquete:' + pq.result);
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

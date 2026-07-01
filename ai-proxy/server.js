@@ -143,7 +143,8 @@ const BODEGON = new Map(); const BODEGON_CAP = 6, BODEGON_TTL = 20000; let BODEG
 // sin `space` → 'bodegon' (comportamiento actual). 'lavalle' = el piquete co-op ("Aguantar el corte", cap 6).
 const SPACE_TABLES = { bodegon: { '1v1': 2, '6': 6 }, lavalle: { corte: 6 } };
 const TABLE_CAP = { '1v1': 2, '6': 6, corte: 6 }; const TABLE_COUNTDOWN = 8000;
-const CD_TABLES = new Set(['6', 'corte']);   // mesas que arrancan por cuenta regresiva (≥2) o al llenarse (las demás = solo al llenarse)
+const CD_TABLES = new Set(['6', 'corte']);   // mesas que arrancan por cuenta regresiva o al llenarse (las demás = solo al llenarse)
+const CD_MIN = { '6': 2, corte: 1 };          // mínimo de jugadores para arrancar por cuenta regresiva (corte = co-op, arranca solo)
 const mkTable = () => ({ seats: new Map(), state: 'waiting', startAt: 0 });
 function bodegonRoom(id, space) {
   let r = BODEGON.get(id);
@@ -161,21 +162,21 @@ function tableSit(r, name, pid, nick) {
   const t = r.tables[name]; if (!t || t.state === 'playing') return;
   if (!t.seats.has(pid) && t.seats.size >= TABLE_CAP[name]) return;        // mesa llena
   t.seats.set(pid, { pid, nick, ts: Date.now() });
-  if (CD_TABLES.has(name) && t.seats.size >= 2 && !t.startAt) t.startAt = Date.now() + TABLE_COUNTDOWN;
+  if (CD_TABLES.has(name) && t.seats.size >= (CD_MIN[name] || 2) && !t.startAt) t.startAt = Date.now() + TABLE_COUNTDOWN;
   bodegonBroadcast(r, 'table-update', { table: name, ...tableView(t) });
   tableMaybeStart(r, name);
 }
 function tableLeavePid(r, name, pid) {
   const t = r.tables[name]; if (!t || !t.seats.has(pid)) return false;
   t.seats.delete(pid);
-  if (t.seats.size < 2) t.startAt = 0;
+  if (t.seats.size < (CD_MIN[name] || 2)) t.startAt = 0;
   bodegonBroadcast(r, 'table-update', { table: name, ...tableView(t) });
   return true;
 }
 function tableMaybeStart(r, name) {
   const t = r.tables[name]; if (!t || t.state !== 'waiting') return;
   const n = t.seats.size, cap = TABLE_CAP[name];
-  const ready = CD_TABLES.has(name) ? (n >= cap || (n >= 2 && t.startAt && Date.now() >= t.startAt)) : (n >= cap);
+  const ready = CD_TABLES.has(name) ? (n >= cap || (n >= (CD_MIN[name] || 2) && t.startAt && Date.now() >= t.startAt)) : (n >= cap);
   if (!ready) return;
   const seats = [...t.seats.keys()], seed = (Math.random() * 1e9) | 0;     // orden de llegada (Map lo preserva)
   MINIGAME_STARTS[name] = (MINIGAME_STARTS[name] || 0) + 1;                // métrica: cuántas partidas de cada mini-juego arrancaron

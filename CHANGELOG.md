@@ -87,6 +87,22 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v259 · infra-49] — 2026-07-01 — ✊🔥 Lavalle FASE 2: "Aguantar el corte" (mini-juego CO-OP multijugador)
+
+El mini-juego co-op del piquete (specs/lavalle-multijugador.md §3). 2/4/6 jugadores (o vos solo) defienden la BARRICADA
+de olas de DESALOJO (la yuta) que bajan desde el Obelisco: las frenás con el CUERPO (chocarlas las stunea y empuja);
+si una llega a la barricada le baja HP. Aguantás 3 olas → GANÁS; HP 0 → PERDÉS.
+- **Host-authoritative** (como el truco): host = seats[0] simula (enemigos + HP, seed compartido) y transmite el estado
+  por whisper (`lv-state`); los guests renderizan. Las posiciones viajan por `Salon.pos` (el host las usa para el choque).
+  Módulo nuevo `js/piquete.js` (degradable: sin red = co-op de a uno).
+- **Lobby:** en Lavalle, [E] contra la **barricada** (arriba) → te sentás a la mesa `corte` (server-authoritative,
+  reusa el pareo del truco). **infra-49 (proxy 0.1.71):** la mesa `corte` arranca por cuenta regresiva desde **1 jugador**
+  (`CD_MIN`, es co-op) o al llenarse (6). Overlay "esperando compañeros…". Al terminar volvés al piquete top-down.
+- `js/game.js` (startPiquete + onTable 'corte' + ruteo `lv-*` + dispatch + lobby en Lavalle), i18n `g.piquete.*` +
+  `g.lavalle.corteHint` (ES≡EN), e2e (host termina win/lose + guest aplica estado). Cache **v259**.
+
+---
+
 ## [v258] — 2026-07-01 — 🐛 FIX Lavalle: el [E] sobre el jugador online no aparecía (coords de peers desalineadas)
 
 Los peers se dibujaban y detectaban con un offset de +0.5 tile que no aplica a su posición real (el centro, igual que

@@ -58,6 +58,12 @@ const Piquete = (() => {
       if (mvx && nx > CS && nx < (W - 1) * CS) player.x = nx;
       if (mvy && ny > (BARR_Y + 0.2) * CS && ny < (H - 1) * CS) player.y = ny;   // no cruzás la barricada (defendés de este lado)
       if (mvx) player.dir = mvx; player.walk = (mvx || mvy) ? player.walk + dt * 10 : 0;
+      // multijugador: posteo MI posición e interpolo a los peers (mismo espacio 'lavalle' del salón)
+      if (typeof Salon !== 'undefined' && Salon.pos && Salon.inBodegon && Salon.inBodegon()) {
+        Salon.pos(Math.round(player.x / CS * 10) / 10, mvx || player.dir, undefined, Math.round(player.y / CS * 10) / 10);
+        const pm = Salon.getPeers && Salon.getPeers(); const k = Math.min(1, dt * 12);
+        if (pm) for (const p of pm.values()) { if (p.rx == null) p.rx = p.x != null ? p.x : 9; if (p.ry == null) p.ry = p.y != null ? p.y : 8; p.rx += ((p.x != null ? p.x : p.rx) - p.rx) * k; p.ry += ((p.y != null ? p.y : p.ry) - p.ry) * k; }
+      }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave('flee'); return; } } else escHeld = false;
 
       if (isHost) hostSim(dt); else if (msgT <= 0 && phase === 'intro') phase = 'play';
