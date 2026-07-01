@@ -87,6 +87,19 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v263 · infra-51] — 2026-07-01 — 🪢 Lavalle: 2º mini-juego co-op "LA SOGA" (tug of war contra el desalojo)
+
+Segundo mini-juego del piquete (specs/lavalle-multijugador.md §6). El piquete (todos los jugadores) tira de la soga
+contra el DESALOJO (bots que escalan con la cantidad de humanos). Apretás ESPACIO/E rápido = tirás; llevás la soga a tu
+lado → GANÁS; te arrastran → PERDÉS. Host-authoritative (`js/soga.js`): el host es dueño de la posición de la soga
+(sus tirones + los de los guests por `lv2-pull` + la fuerza del bot) y la transmite (`lv2-state`). Jugable solo (vs bots).
+- **Lobby:** en Lavalle, [E] abajo-izquierda → mesa `soga` (server, arranca solo o hasta 6). **infra-51 (proxy 0.1.73):**
+  espacio lavalle ahora tiene mesas `corte` + `soga`.
+- `js/soga.js`, `js/game.js` (startSoga + onTable 'soga' + ruteo `lv2-*` + dispatch + 2º gather point), i18n `g.soga.*` +
+  `g.lavalle.sogaHint` (ES≡EN), e2e (pierde sin tirar / gana tirando fuerte). Cache **v263**.
+
+---
+
 ## [v260-262] — 2026-07-01 — 🐛🔧 FIX RAÍZ del multijugador: salon.js cargaba DESPUÉS de game.js
 
 **El bug que rompía TODO el multijugador** (lo pescó el dueño: "esto pasa en todos los salones"). En `index.html`

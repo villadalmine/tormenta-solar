@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','soga.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -281,6 +281,14 @@ if (require.main === module) {
     const pg = Piquete.create({ role: 'guest', seats: ['h', 'me'], myPid: 'me', seed: 7 });
     pg.applyState({ t: 'lv-state', h: 80, w: 2, p: 'play', e: [5, 2, 9, 1.5] }); pg.draw(C, 960, 540);
     ok.push('piquete:' + pq.result);
+    // "LA SOGA": host solo (sin tirar) → el desalojo gana (lose); tirando mucho → gana (win)
+    const sg = Soga.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 3, sendState: () => {} });
+    for (let i = 0; i < 600 && !sg.done; i++) { sg.update(0.05); sg.draw(C, 960, 540); }   // sin input → pierde
+    if (sg.result !== 'lose') throw new Error('soga sin tirar debería perder: ' + sg.result);
+    const sg2 = Soga.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 3, sendState: () => {} });
+    for (let i = 0; i < 600 && !sg2.done; i++) { sg2.tapExternal(); sg2.update(0.05); sg2.draw(C, 960, 540); }   // tirando cada frame → gana
+    if (sg2.result !== 'win') throw new Error('soga tirando fuerte debería ganar: ' + sg2.result);
+    ok.push('soga:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

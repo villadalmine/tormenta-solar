@@ -1,7 +1,12 @@
 # SDD — Lavalle MULTIJUGADOR: "Aguantar el corte" (co-op de piquete)
 
-- **Estado:** **Diseño / en construcción.** Fase 1 (plomería: verse + juntarse) primero; Fase 2 (el mini-juego).
+- **Estado:** **Fase 1 + Fase 2 HECHAS y en prod (v252→v262).** Verse+juntarse (F1), chat privado con el peer, y el
+  mini-juego co-op **"Aguantar el corte"** (F2, `js/piquete.js`). Próximo: MÁS mini-juegos (§6).
 - **Última actualización:** 2026-07-01
+- **⚠️ GOTCHA que rompía TODO el multijugador (v262):** en `index.html`, `salon.js` DEBE cargar **ANTES** de
+  `game.js`. game.js registra `Salon.onWhisper`/`Salon.onTable` en su init (parse-time); si `Salon` no existe aún, los
+  callbacks NO se registran y los eventos entrantes (whisper, table-start) se descartan → chat/mesas/piquete mudos. Ver
+  memoria [[orden-scripts-salon]]. Diagnóstico: 2 navegadores Playwright con **contextos separados** (distinto pid).
 - **Origen:** idea del dueño — *"que esta parte de Lavalle sea una zona multiplayer; te podés juntar con otros y hacer
   piquete; si se unen 2/4/6 jugadores salen mini-juegos de piquete (a definir)"*. Mini-juego elegido para el 1er
   prototipo: **"Aguantar el corte"** (co-op wave-defense).
