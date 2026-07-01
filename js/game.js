@@ -1099,6 +1099,7 @@
   }
   // whisper ENTRANTE (otro jugador te habló en privado): si tenés el chat abierto con él → lo agregás; si no, aviso.
   function onPeerWhisper(d) {
+    if (typeof window !== 'undefined') window.__ts_wh = { state, from: d && d.from, msg: d && d.msg, hadPeer: !!peerChat };   // DEBUG multijugador
     if (!d || !d.msg) return;
     // F3 TRUCO PvP: los mensajes del protocolo viajan por el MISMO whisper (JSON con t:'tk-*'). Ruteo primero.
     if (d.msg.charAt(0) === '{') { let m = null; try { m = JSON.parse(d.msg); } catch (e) {} if (m && typeof m.t === 'string') {
