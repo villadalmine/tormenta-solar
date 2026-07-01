@@ -56,6 +56,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v250] — 2026-07-01 — ✊🔥 Lavalle: la postal AHORA VIVE (cumbia, multitud, fuego que ilumina, humo, chispas)
+
+Pulido ambiental del piquete: **toda la gente rebota al ritmo de la cumbia** y **el bombo se TOCA** (el palo golpea y el
+parche late en el pulso); **multitud de fondo** apretada contra el corte (el piquete se siente LLENO); los tachos al
+fuego ahora **iluminan el asfalto** (charco de luz cálida) + tiran **chispas**; **humo** saliendo de los autos rotos.
+Solo cliente (`js/lavalle.js`). e2e + web-smoke OK. Cache **v250**.
+
+---
+
 ## [v249] — 2026-06-30 — 🛣️ Lavalle: la avenida ahora SÍ parece la 9 de Julio (carriles paralelos, no el puente de Brooklyn)
 
 El dueño: "hiciste el puente de Brooklyn, basate en fotos de la 9 de Julio". Las líneas en perspectiva que convergían a

@@ -38,6 +38,9 @@ const Lavalle = (() => {
       { x: 6, y: 11.6, col: '#6a4a2a', name: T('g.lavalle.npc.referente'), line: T('g.lavalle.line.referente') },
       { x: 12.6, y: 11.5, col: '#5a3a3a', dance: true, name: T('g.lavalle.npc.vecina'), line: T('g.lavalle.line.vecina') },
     ];
+    // MULTITUD de fondo (chiquitos, apretados contra el corte) → el piquete se siente lleno
+    const crowd = []; const ccol = ['#3a4a6a', '#5a3a3a', '#3a5a4a', '#4a3a5a', '#5a4a2a', '#2e4a5a'];
+    for (let i = 0; i < 16; i++) crowd.push({ x: 1.6 + i * 1.0, y: 4.2 + ((i * 3) % 3) * 0.32, col: ccol[i % ccol.length], ph: i * 1.3 });
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null;
     setMsg(T('g.lavalle.intro'), 6);
     if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(true);
@@ -69,12 +72,23 @@ const Lavalle = (() => {
     function fire(ctx, sx, sy, scale, seed) {
       const fl = a => 0.7 + 0.3 * Math.sin(t * 9 + seed + a);
       ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      // charco de LUZ CÁLIDA en el asfalto (el fuego ilumina el piso)
+      const gr = ctx.createRadialGradient(sx, sy + 8 * scale, 2, sx, sy + 8 * scale, 36 * scale);
+      gr.addColorStop(0, 'rgba(255,140,30,' + (0.30 * fl(0)).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,120,20,0)');
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(sx, sy + 8 * scale, 36 * scale, 17 * scale, 0, 0, Math.PI * 2); ctx.fill();
+      // llamas
       ctx.fillStyle = 'rgba(180,40,0,0.5)'; blob(ctx, sx, sy, 11 * scale * fl(0), 17 * scale * fl(1));
       ctx.fillStyle = 'rgba(232,84,10,0.7)'; blob(ctx, sx, sy, 8 * scale * fl(2), 13 * scale * fl(0.5));
       ctx.fillStyle = 'rgba(255,179,0,0.85)'; blob(ctx, sx, sy + 2 * scale, 5 * scale * fl(1.5), 8 * scale * fl(2.5));
       ctx.fillStyle = 'rgba(255,232,120,0.9)'; blob(ctx, sx, sy + 3 * scale, 2.4 * scale, 4 * scale * fl(3));
+      // CHISPAS subiendo
+      for (let k = 0; k < 4; k++) { const ph = (t * 0.9 + k * 0.27 + seed) % 1; ctx.globalAlpha = 0.9 * (1 - ph); ctx.fillStyle = (k % 2) ? '#ffd54a' : '#ff8a1a'; ctx.fillRect(sx + Math.sin(t * 3 + k + seed) * 7 * scale, sy - ph * 42 * scale, 1.6 * scale, 1.6 * scale); }
       ctx.restore();
+      // humo
       ctx.save(); for (let i = 0; i < 3; i++) { const ph = (t * 0.5 + i * 0.4 + seed) % 1; ctx.globalAlpha = 0.22 * (1 - ph); ctx.fillStyle = '#8a8a92'; ctx.beginPath(); ctx.arc(sx + Math.sin(t + i + seed) * 6 * scale, sy - 16 * scale - ph * 34 * scale, (3 + ph * 7) * scale, 0, Math.PI * 2); ctx.fill(); } ctx.restore();
+    }
+    function smoke(ctx, sx, sy, seed, n, alpha) {   // humo suelto (autos rotos)
+      ctx.save(); for (let i = 0; i < (n || 3); i++) { const ph = (t * 0.35 + i * 0.5 + seed) % 1; ctx.globalAlpha = (alpha || 0.16) * (1 - ph); ctx.fillStyle = '#6a6a72'; ctx.beginPath(); ctx.arc(sx + Math.sin(t * 0.8 + i + seed) * 7, sy - ph * 46, (4 + ph * 9), 0, Math.PI * 2); ctx.fill(); } ctx.restore();
     }
     function blob(ctx, x, y, rx, ry) { ctx.beginPath(); ctx.moveTo(x, y - ry); ctx.quadraticCurveTo(x + rx, y - ry * 0.3, x, y); ctx.quadraticCurveTo(x - rx, y - ry * 0.3, x, y - ry); ctx.fill(); }
     function tireStack(ctx, x, y, n) {
@@ -117,7 +131,8 @@ const Lavalle = (() => {
       else { ctx.fillStyle = '#c0241f'; ctx.fillRect(ox, oy, fw - 4, fh); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(ox + 13, oy + 9, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#c0241f'; ctx.beginPath(); ctx.arc(ox + 14, oy + 10, 3.5, 0, Math.PI * 2); ctx.fill(); }
     }
     function piquetero(ctx, x, y, o, talk, hl) {
-      o = o || {}; const sw = o.dance ? Math.sin(t * 6 + x) * 3 : 0;
+      o = o || {}; const beat = Math.abs(Math.sin(t * 3.3 + x * 0.5));   // pulso de cumbia: TODOS rebotan un poco
+      const sw = o.dance ? Math.sin(t * 6 + x) * 3 : -beat * 1.4;
       ctx.fillStyle = 'rgba(0,0,0,0.30)'; ctx.beginPath(); ctx.ellipse(x, y + 17, 9, 3, 0, 0, Math.PI * 2); ctx.fill();
       if (hl) { ctx.strokeStyle = '#ffd54a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x, y + 17, 13, 5, 0, 0, Math.PI * 2); ctx.stroke(); }
       ctx.fillStyle = '#202a3a'; ctx.fillRect(x - 5, y + 5, 4, 11); ctx.fillRect(x + 1, y + 5, 4, 11);
@@ -131,7 +146,11 @@ const Lavalle = (() => {
       if (o.bandana) { ctx.fillStyle = o.bandana; ctx.fillRect(x - 5, y - 13 + sw, 10, 4); }
       if (o.hood) { ctx.fillStyle = o.hood; ctx.beginPath(); ctx.arc(x, y - 14 + sw, 6.5, Math.PI * 0.85, Math.PI * 2.15); ctx.fill(); }
       if (o.holds === 'stick') { ctx.strokeStyle = '#6d4c2f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, y + 3 + sw); ctx.lineTo(x + 11, y - 18); ctx.stroke(); }
-      if (o.holds === 'bombo') { ctx.fillStyle = '#c0241f'; ctx.beginPath(); ctx.arc(x + 11, y + sw, 8, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#7a3b12'; ctx.fillRect(x + 14, y - 9 + sw, 2, 8); }
+      if (o.holds === 'bombo') { const r0 = 8 + beat * 1.3;   // el bombo LATE y el palo GOLPEA en el pulso
+        ctx.fillStyle = '#c0241f'; ctx.beginPath(); ctx.arc(x + 11, y + sw, r0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = beat > 0.85 ? '#fff' : '#e2e2e2'; ctx.beginPath(); ctx.arc(x + 11, y + sw, r0 - 3, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 5, y - 7 + sw); ctx.lineTo(x + 12, y + sw - 9 + beat * 9); ctx.stroke(); }
       if (o.holds === 'flag') drawFlag(ctx, x + 11, y - 4 + sw, o.flagK || 'arg');
       if (talk) bubble(ctx, x, y - 22 + sw, talk);
     }
@@ -143,6 +162,13 @@ const Lavalle = (() => {
       ctx.fillStyle = '#4a3b2a'; ctx.fillRect(x - 8, y - 8, 16, 15); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x - 8, y - 8, 4, 15);
       ctx.save(); ctx.translate(x + 6, y - 2); ctx.rotate(0.55); ctx.fillStyle = '#7a3b12'; ctx.fillRect(-3.5, -12, 7, 22); ctx.fillStyle = '#d8a24a'; ctx.fillRect(-1, -12, 2, 22); ctx.restore();
       ctx.fillStyle = '#2a2018'; ctx.beginPath(); ctx.arc(x, y - 13, 7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#241b14'; ctx.fillRect(x - 7, y - 12, 14, 9);
+    }
+    function smallFolk(ctx, x, y, col, ph) {   // figura chica de la multitud (rebota a la cumbia)
+      const b = -Math.abs(Math.sin(t * 3.3 + ph)) * 1.2;
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x, y + 6, 5, 1.8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = col; ctx.fillRect(x - 4, y - 5 + b, 8, 9);
+      ctx.fillStyle = '#c99a70'; ctx.beginPath(); ctx.arc(x, y - 8 + b, 3.4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1c1410'; ctx.beginPath(); ctx.arc(x, y - 9.5 + b, 3.4, Math.PI, 0); ctx.fill();
     }
     function bubble(ctx, x, y, txt) { ctx.font = '9px monospace'; const tw = Math.min(180, ctx.measureText(txt).width + 10);
       ctx.fillStyle = 'rgba(15,12,8,0.92)'; ctx.fillRect(x - tw / 2, y - 12, tw, 13);
@@ -175,9 +201,11 @@ const Lavalle = (() => {
       // LA REJA cruzando + AUTOS ROTOS + CUBIERTAS + BANDERAS (el corte)
       ctx.strokeStyle = '#6a6a72'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke();
       ctx.lineWidth = 2; for (let x = 1; x < W; x += 0.6) { ctx.beginPath(); ctx.moveTo(TX2(x), TY2(2.4)); ctx.lineTo(TX2(x), TY2(3.5)); ctx.stroke(); }
-      for (const c of cars) brokenCar(ctx, TX2(c.x), TY2(c.y), c.col, c.tilt);
+      for (const c of cars) { brokenCar(ctx, TX2(c.x), TY2(c.y), c.col, c.tilt); smoke(ctx, TX2(c.x) + 14 * (c.tilt < 0 ? -1 : 1), TY2(c.y) - 12, c.x, 3, 0.14); }   // humito del motor
       for (const tr of tires) tireStack(ctx, TX2(tr.x), TY2(tr.y), tr.n);
       for (const f of flags) drawFlag(ctx, TX2(f.x), TY2(f.y), f.k);
+      // MULTITUD de fondo contra el corte (da la sensación de piquete LLENO), dibujada detrás de todo lo de adelante
+      ctx.save(); ctx.globalAlpha = 0.85; for (const c of crowd) smallFolk(ctx, TX2(c.x + 0.5), TY2(c.y + 0.5), c.col, c.ph); ctx.restore();
       // tachos al fuego (animados)
       const fb = barrels.map((b, i) => ({ b, i })).sort((a, z) => a.b.y - z.b.y);
       for (const { b, i } of fb) { const fx = TX2(b.x + 0.5), fy = TY2(b.y + 0.5);
