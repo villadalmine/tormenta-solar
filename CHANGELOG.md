@@ -56,6 +56,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-45] — 2026-07-01 — 📊 Métricas del online: dónde están, lobbies y partidas de mini-juego + dashboard Grafana
+
+Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.67), sin tocar el cliente.
+- **Nuevas métricas en `/metrics`:** `tormenta_players_by_sala{sala}` (DÓNDE está cada jugador online: calle/cueva/
+  lavalle/bodegon/…), `tormenta_minigame_lobby{game}` (sentados esperando en un lobby, por juego: 1v1/6/corte) y
+  `tormenta_minigame_starts_total{game}` (counter de partidas iniciadas). Se suman a `tormenta_players_online` y
+  `tormenta_players_realtime{space}` (infra-44).
+- **Dashboard Grafana nuevo** `ai-proxy/chart/dashboards/tormenta-online.json` (ConfigMap auto-importado por el sidecar,
+  label `grafana_dashboard`): "Jugando ahora", "online en el tiempo (cuándo)", "en vivo por espacio", "dónde están"
+  (donut por sala), "en lobby de mini-juego", "partidas iniciadas / hora".
+- Validado local: `players_online`, `by_sala{lavalle/calle}`, `minigame_*` responden. Queda listo para instrumentar la
+  Fase 2 (el beat reportará `lavalle:corte` al entrar al mini-juego).
+
+---
+
 ## [v254 · infra-44] — 2026-07-01 — 🐛 Lote playtest: nombre en Opciones + presencia online (Grafana) + contador en Lavalle
 
 Tres cosas del playtest del dueño:

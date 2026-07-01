@@ -128,6 +128,7 @@ const CARTELES_AI_MAX = Math.max(1, Math.floor(CARTELES_CAP * 0.30));
 const SALON = new Map();            // pid -> { sala, ts }
 let SALON_TICK = [];                // ring de hitos recientes anónimos: [{ ev, ts }]
 const SALON_TTL = 35000;            // un jugador cuenta "jugando ahora" 35s tras su último beat
+const MINIGAME_STARTS = {};         // métrica: contador de partidas iniciadas por mini-juego (corte/1v1/6)
 function salonPrune() { const now = Date.now(); for (const [k, v] of SALON) if (now - v.ts > SALON_TTL) SALON.delete(k); }
 // IP REAL del cliente (detrás de HAProxy/Cilium): X-Forwarded-For (1ª) → X-Real-IP → socket. Para VALIDAR sesiones (admin).
 function clientIp(req) { const xff = (req.headers['x-forwarded-for'] || '').split(',')[0].trim(); return xff || req.headers['x-real-ip'] || (req.socket && req.socket.remoteAddress) || '?'; }
@@ -177,6 +178,7 @@ function tableMaybeStart(r, name) {
   const ready = CD_TABLES.has(name) ? (n >= cap || (n >= 2 && t.startAt && Date.now() >= t.startAt)) : (n >= cap);
   if (!ready) return;
   const seats = [...t.seats.keys()], seed = (Math.random() * 1e9) | 0;     // orden de llegada (Map lo preserva)
+  MINIGAME_STARTS[name] = (MINIGAME_STARTS[name] || 0) + 1;                // métrica: cuántas partidas de cada mini-juego arrancaron
   bodegonBroadcast(r, 'table-start', { table: name, host: seats[0], seats, seed });
   t.seats.clear(); t.startAt = 0;                                         // mesa libre para la próxima (la partida ya vive en los clientes)
   bodegonBroadcast(r, 'table-update', { table: name, ...tableView(t) });
@@ -890,11 +892,25 @@ http.createServer((req, res) => {
     // JUGADORES ONLINE (presencia REAL, Grafana "quién está jugando"): latido /salon/beat + conexiones al relay en vivo.
     salonPrune(); bodegonPrune();
     const bySpace = {}; for (const r of BODEGON.values()) bySpace[r.space || 'bodegon'] = (bySpace[r.space || 'bodegon'] || 0) + r.peers.size;
+    // DÓNDE están (didáctica del online): agrupo los latidos por 'sala' (calle/cueva/lavalle/lavalle:corte/bodegon/…).
+    const bySala = {}; const salaKey = s => String(s || '?').slice(0, 24).replace(/[\n"\\]/g, ''); for (const v of SALON.values()) { const k = salaKey(v.sala); bySala[k] = (bySala[k] || 0) + 1; }
+    // mesas de mini-juego ESPERANDO ahora (lobby abierto), por juego
+    const waiting = {}; for (const r of BODEGON.values()) for (const nm in r.tables) if (r.tables[nm].seats.size > 0) waiting[nm] = (waiting[nm] || 0) + r.tables[nm].seats.size;
     out +=
       `# HELP tormenta_players_online Jugadores con latido de presencia en los últimos ${Math.round(SALON_TTL / 1000)}s\n# TYPE tormenta_players_online gauge\ntormenta_players_online ${SALON.size}\n` +
       `# HELP tormenta_players_realtime Jugadores conectados al relay en vivo (SSE), por espacio\n# TYPE tormenta_players_realtime gauge\n` +
       `tormenta_players_realtime{space="bodegon"} ${bySpace.bodegon || 0}\n` +
-      `tormenta_players_realtime{space="lavalle"} ${bySpace.lavalle || 0}\n`;
+      `tormenta_players_realtime{space="lavalle"} ${bySpace.lavalle || 0}\n` +
+      `# HELP tormenta_players_by_sala Jugadores online por lugar donde están (último beat)\n# TYPE tormenta_players_by_sala gauge\n` +
+      (Object.keys(bySala).length ? Object.entries(bySala).map(([k, n]) => `tormenta_players_by_sala{sala="${k}"} ${n}\n`).join('') : `tormenta_players_by_sala{sala="none"} 0\n`) +
+      `# HELP tormenta_minigame_lobby Jugadores sentados en un lobby de mini-juego ahora, por juego\n# TYPE tormenta_minigame_lobby gauge\n` +
+      `tormenta_minigame_lobby{game="1v1"} ${waiting['1v1'] || 0}\n` +
+      `tormenta_minigame_lobby{game="6"} ${waiting['6'] || 0}\n` +
+      `tormenta_minigame_lobby{game="corte"} ${waiting.corte || 0}\n` +
+      `# HELP tormenta_minigame_starts_total Partidas de mini-juego iniciadas desde el arranque del proxy, por juego\n# TYPE tormenta_minigame_starts_total counter\n` +
+      `tormenta_minigame_starts_total{game="1v1"} ${MINIGAME_STARTS['1v1'] || 0}\n` +
+      `tormenta_minigame_starts_total{game="6"} ${MINIGAME_STARTS['6'] || 0}\n` +
+      `tormenta_minigame_starts_total{game="corte"} ${MINIGAME_STARTS.corte || 0}\n`;
     // BANCOS DEL ECOSISTEMA (observabilidad: ¿están poblados y frescos? → Grafana/alertas). age_seconds = frescura.
     const ageS = ts => ts ? Math.round((Date.now() - ts) / 1000) : -1;
     out +=
