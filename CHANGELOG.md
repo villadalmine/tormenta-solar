@@ -87,6 +87,21 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v266 · infra-54] — 2026-07-01 — 🎨 Lavalle: 5º mini-juego co-op "PINTAR LA PANCARTA" + SET COMPLETO (5 juegos)
+
+Quinto y último del set. Entre todos PINTAN la pancarta gigante: movés el pincel (WASD) y pintás las celdas de la tela;
+llenás ≥90% antes de que se acabe el tiempo → GANÁS. Colaborativo: cuantos más pinten, más rápido. Host-authoritative
+(`js/pancarta.js`): cada jugador postea la pos de SU pincel (Salon.pos); el host pinta las celdas bajo CADA pincel y
+transmite la grilla (`lv5-state`). Jugable solo.
+- **Lobby:** [E] a la derecha del piquete → mesa `pancarta`. **infra-54 (proxy 0.1.76):** espacio lavalle con las 5
+  mesas: `corte` + `soga` + `bombo` + `olla` + `pancarta`.
+- **🎉 SET COMPLETO — 5 mini-juegos co-op del piquete**, cada uno con su gather point y su mecánica distinta:
+  ✊ corte (defensa) · 🪢 soga (mash) · 🥁 bombo (ritmo) · 🍲 olla (reacción) · 🎨 pancarta (pintar en movimiento).
+- `js/pancarta.js`, `js/game.js` (startPancarta + onTable + `lv5-*` + dispatch + 5º gather point), i18n `g.pancarta.*` +
+  `g.lavalle.pancaHint` (ES≡EN), e2e. Cache **v266**.
+
+---
+
 ## [v265 · infra-53] — 2026-07-01 — 🍲 Lavalle: 4º mini-juego co-op "REPARTO DE LA OLLA" (reacción)
 
 Cuarto mini-juego del piquete. Los vecinos hacen COLA con hambre (barra de paciencia que baja); apretás ESPACIO/E para

@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','soga.js','bombo.js','olla.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -305,6 +305,13 @@ if (require.main === module) {
     for (let i = 0; i < 1200 && !ol2.done; i++) { ol2.update(0.05); ol2.draw(C, 960, 540); }
     if (ol2.result !== 'lose') throw new Error('olla sin servir debería perder: ' + ol2.result);
     ok.push('olla:ok');
+    // "PINTAR LA PANCARTA": sin moverse (poco pintado) → pierde por tiempo; guest applyState sin crash
+    const pc = Pancarta.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 1, sendState: () => {} });
+    for (let i = 0; i < 1100 && !pc.done; i++) { pc.update(0.05); pc.draw(C, 960, 540); }
+    if (pc.result !== 'lose') throw new Error('pancarta sin pintar debería perder: ' + pc.result);
+    const pcg = Pancarta.create({ role: 'guest', seats: ['h', 'me'], myPid: 'me' });
+    pcg.applyState({ t: 'lv5-state', g: '1'.repeat(18 * 9), pr: 1, tl: 5, p: 'play' }); pcg.draw(C, 960, 540);
+    ok.push('pancarta:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));
