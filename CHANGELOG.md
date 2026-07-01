@@ -87,6 +87,21 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v264 · infra-52] — 2026-07-01 — 🥁 Lavalle: 3er mini-juego co-op "BOMBO & CUMBIA" (ritmo)
+
+Tercer mini-juego del piquete. Tocás el bombo AL RITMO (ESPACIO/E en el pulso, el anillo verde) para subir EL AGUANTE
+del piquete; buen timing + combo = mucho aguante, fuera de ritmo = poco; el aguante decae. Llenás la barra antes de que
+se corte la cumbia → GANÁS. Host-authoritative (`js/bombo.js`): cada cliente juzga SUS taps contra su propio pulso y
+manda el aporte (`lv3-tap`); el host suma el aguante global, corre el reloj y transmite (`lv3-state`). Jugable solo.
+- **Lobby:** [E] abajo-DERECHA en Lavalle → mesa `bombo`. **infra-52 (proxy 0.1.74):** espacio lavalle con mesas
+  `corte` + `soga` + `bombo`.
+- FIX (mismo patrón que soga): el aguante llegaba a 100 pero el decay lo bajaba antes del chequeo → nunca ganaba; ahora
+  chequea la victoria ANTES del decay.
+- `js/bombo.js`, `js/game.js` (startBombo + onTable 'bombo' + `lv3-*` + dispatch + 3er gather point), i18n `g.bombo.*` +
+  `g.lavalle.bomboHint` (ES≡EN), e2e (tocando gana / sin tocar pierde). Cache **v264**.
+
+---
+
 ## [v263 · infra-51] — 2026-07-01 — 🪢 Lavalle: 2º mini-juego co-op "LA SOGA" (tug of war contra el desalojo)
 
 Segundo mini-juego del piquete (specs/lavalle-multijugador.md §6). El piquete (todos los jugadores) tira de la soga

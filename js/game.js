@@ -122,6 +122,7 @@
   let truco6Game = null, truco6 = null, tableWait = null;
   let piqueteGame = null;   // Fase 2 Lavalle: mini-juego co-op "Aguantar el corte" (mesa 'corte')
   let sogaGame = null;      // Lavalle: mini-juego co-op "La soga" (mesa 'soga')
+  let bomboGame = null;     // Lavalle: mini-juego co-op "Bombo & cumbia" (mesa 'bombo')
   const AI_BOTS = ['Pino', 'Coya', 'Tito', 'Nano', 'Beto'];
   // WATCHDOG de reconexión (deuda F3): un jugador que cierra la pestaña deja de mandar Salon.pos → el relay lo poda
   // (~35s) → desaparece de Salon.getPeers(). En 1v1 cerramos el match ('left'); en a6 lo reemplaza la IA (sigue).
@@ -353,7 +354,7 @@
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; roamingNpc = null;
-    trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null;   // mesas/partidas multijugador, de cero
+    trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
@@ -1107,6 +1108,7 @@
       if (m.t.indexOf('t6-') === 0) { handleTruco6(d.from, d.fromNick, m); return; }
       if (m.t.indexOf('lv-') === 0) { handlePiquete(d.from, m); return; }   // Fase 2: estado del "Aguantar el corte"
       if (m.t.indexOf('lv2-') === 0) { handleSoga(d.from, m); return; }      // "La soga": tirón / estado
+      if (m.t.indexOf('lv3-') === 0) { handleBombo(d.from, m); return; }      // "Bombo & cumbia": tap / estado
     } }
     if (peerChat && peerChat.pid === d.from) { chatLine('npc', d.msg); return; }
     // T2b fix: NO tenés el chat abierto con él → AUTO-ABRIR el panel con su mensaje (antes era un toast del HUD, que
@@ -1132,17 +1134,18 @@
     if (!m) return;
     if (m.kind === 'update') { if (tableWait && tableWait.table === m.table) tableWait.seats = (m.seats || []).length; return; }
     if (m.kind === 'start') {
-      if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || !(m.seats || []).includes(myPid())) return;   // no soy de esta mesa / ya jugando
+      if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || bomboGame || !(m.seats || []).includes(myPid())) return;   // no soy de esta mesa / ya jugando
       tableWait = null;
       if (m.table === '1v1') startTrucoPvp(m.seats, m.seed);
       else if (m.table === 'corte') startPiquete(m.seats, m.seed);
       else if (m.table === 'soga') startSoga(m.seats, m.seed);
+      else if (m.table === 'bombo') startBombo(m.seats, m.seed);
       else startTruco6(m.seats, m.seed);
     }
     // 'end': la mesa se cortó mientras esperabas → seguís en la espera (otro se puede sentar)
   }
   function sitAtTable(table) {   // te sentaste a una mesa (bodegón/lavalle) → al server + a esperar el pareo
-    if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || tableWait) return;
+    if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || bomboGame || tableWait) return;
     tableWait = { table, seats: 1 };
     if (typeof Salon !== 'undefined' && Salon.tableSit) Salon.tableSit(table, () => {});
     Sfx.pickup && Sfx.pickup();
@@ -1220,6 +1223,19 @@
     if (!sogaGame) return;
     if (m.t === 'lv2-pull' && sogaGame.isHost) sogaGame.onPull();     // host: tirón de un guest
     else if (m.t === 'lv2-state' && !sogaGame.isHost) sogaGame.applyState(m);   // guest: estado del host
+  }
+  // Lavalle: "Bombo & cumbia" (ritmo co-op). host suma el aguante global; guests mandan lv3-tap, host transmite lv3-state.
+  function startBombo(seats, seed) {
+    if (typeof Bombo === 'undefined' || !Bombo.create) return;
+    const host = seats[0], role = (myPid() === host) ? 'host' : 'guest';
+    lavalleGame = null;
+    bomboGame = Bombo.create({ role, seats, myPid: myPid(), hostPid: host, seed, sendState: (pid, obj) => sendTk(pid, obj) });
+    state = 'bombo'; hideHudForMatch();
+  }
+  function handleBombo(fromPid, m) {
+    if (!bomboGame) return;
+    if (m.t === 'lv3-tap' && bomboGame.isHost) bomboGame.onTap(m);
+    else if (m.t === 'lv3-state' && !bomboGame.isHost) bomboGame.applyState(m);
   }
   async function chatSend() {
     if (peerChat) return peerChatSend();   // F2b.2: chat PRIVADO con otro jugador → va por el salón, no a la IA
@@ -3119,6 +3135,7 @@
       if (lp && lp.pid) { chatReturnTo = 'lavalle'; openPeerChat({ pid: lp.pid, nick: lp.nick || peerNickOf(lp.pid) }, 'lavalle'); }
       if (lavalleGame.joinCorte) sitAtTable('corte');                 // [E] en la barricada → armar "Aguantar el corte" (server parea)
       if (lavalleGame.joinSoga) sitAtTable('soga');                   // [E] abajo-izq → "La soga"
+      if (lavalleGame.joinBombo) sitAtTable('bombo');                 // [E] abajo-der → "Bombo & cumbia"
       if (tableWait) drawTableWait(W, H);                             // overlay "esperando compañeros…"
       if (lavalleGame.done) {
         if (tableWait) leaveTableWait();                              // si salís de Lavalle mientras esperabas → cancelá la mesa
@@ -3159,6 +3176,13 @@
       if (sogaGame.done) {
         const res = sogaGame.result; sogaGame = null;
         setMsg(T(res === 'win' ? 'g.soga.won' : res === 'lose' ? 'g.soga.lost' : 'g.soga.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
+        if (enterLavalle()) { /* de vuelta al piquete */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+      }
+    } else if (state === 'bombo' && bomboGame) {                         // Lavalle: "Bombo & cumbia" (ritmo co-op)
+      bomboGame.update(dt); bomboGame.draw(ctx, W, H);
+      if (bomboGame.done) {
+        const res = bomboGame.result; bomboGame = null;
+        setMsg(T(res === 'win' ? 'g.bombo.won' : res === 'lose' ? 'g.bombo.lost' : 'g.bombo.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
         if (enterLavalle()) { /* de vuelta al piquete */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'trucopvp6' && truco6Game) {

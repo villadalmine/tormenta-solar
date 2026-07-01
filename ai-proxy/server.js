@@ -141,10 +141,10 @@ const BODEGON = new Map(); const BODEGON_CAP = 6, BODEGON_TTL = 20000; let BODEG
 // cuenta regresiva (≥2 jugadores) o al llenarse. Tras emitir table-start, la mesa se VACÍA (queda libre para otra).
 // ESPACIOS (specs/lavalle-multijugador.md §1): cada espacio tiene su POOL de rooms y su set de mesas. Retro-compat:
 // sin `space` → 'bodegon' (comportamiento actual). 'lavalle' = el piquete co-op ("Aguantar el corte", cap 6).
-const SPACE_TABLES = { bodegon: { '1v1': 2, '6': 6 }, lavalle: { corte: 6, soga: 6 } };
-const TABLE_CAP = { '1v1': 2, '6': 6, corte: 6, soga: 6 }; const TABLE_COUNTDOWN = 8000;
-const CD_TABLES = new Set(['6', 'corte', 'soga']);   // mesas que arrancan por cuenta regresiva o al llenarse (las demás = solo al llenarse)
-const CD_MIN = { '6': 2, corte: 1, soga: 1 };         // mínimo de jugadores para arrancar por cuenta regresiva (co-op = arranca solo)
+const SPACE_TABLES = { bodegon: { '1v1': 2, '6': 6 }, lavalle: { corte: 6, soga: 6, bombo: 6 } };
+const TABLE_CAP = { '1v1': 2, '6': 6, corte: 6, soga: 6, bombo: 6 }; const TABLE_COUNTDOWN = 8000;
+const CD_TABLES = new Set(['6', 'corte', 'soga', 'bombo']);   // mesas que arrancan por cuenta regresiva o al llenarse (las demás = solo al llenarse)
+const CD_MIN = { '6': 2, corte: 1, soga: 1, bombo: 1 };        // mínimo de jugadores para arrancar por cuenta regresiva (co-op = arranca solo)
 const mkTable = () => ({ seats: new Map(), state: 'waiting', startAt: 0 });
 function bodegonRoom(id, space) {
   let r = BODEGON.get(id);
