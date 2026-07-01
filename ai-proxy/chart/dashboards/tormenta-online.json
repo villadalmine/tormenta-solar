@@ -1,67 +1,306 @@
 {
   "title": "Tormenta Solar — Online / Multijugador (quién juega, dónde, mini-juegos)",
   "uid": "tormenta-online",
-  "tags": ["tormenta-solar", "online", "multijugador"],
+  "tags": [
+    "tormenta-solar",
+    "online",
+    "multijugador"
+  ],
   "timezone": "",
   "schemaVersion": 39,
   "refresh": "30s",
-  "time": { "from": "now-6h", "to": "now" },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
   "templating": {
     "list": [
-      { "name": "datasource", "type": "datasource", "query": "prometheus", "current": {}, "hide": 0, "label": "Datasource" }
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0,
+        "label": "Datasource"
+      }
     ]
   },
   "panels": [
     {
       "type": "stat",
       "title": "Jugando AHORA (presencia)",
-      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "green", "value": null } ] } } },
-      "options": { "colorMode": "value", "graphMode": "area", "textMode": "value" },
-      "targets": [ { "expr": "sum(tormenta_players_online)", "legendFormat": "online", "refId": "A" } ]
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(tormenta_players_online)",
+          "legendFormat": "online",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "timeseries",
       "title": "Jugadores online — en el tiempo (cuándo juegan)",
-      "gridPos": { "h": 7, "w": 12, "x": 6, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "fillOpacity": 20, "lineWidth": 2 } } },
-      "targets": [ { "expr": "sum(tormenta_players_online)", "legendFormat": "online", "refId": "A" } ]
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 6,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineWidth": 2
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(tormenta_players_online)",
+          "legendFormat": "online",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "bargauge",
       "title": "En vivo por ESPACIO (relay SSE)",
-      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "palette-classic" } } },
-      "options": { "orientation": "horizontal", "displayMode": "gradient" },
-      "targets": [ { "expr": "sum by (space) (tormenta_players_realtime)", "legendFormat": "{{space}}", "refId": "A" } ]
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      },
+      "targets": [
+        {
+          "expr": "sum by (space) (tormenta_players_realtime)",
+          "legendFormat": "{{space}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "piechart",
       "title": "DÓNDE están ahora (por lugar)",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 7 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "options": { "legend": { "displayMode": "table", "placement": "right", "values": ["value"] }, "pieType": "donut" },
-      "targets": [ { "expr": "sum by (sala) (tormenta_players_by_sala) > 0", "legendFormat": "{{sala}}", "refId": "A" } ]
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut"
+      },
+      "targets": [
+        {
+          "expr": "sum by (sala) (tormenta_players_by_sala) > 0",
+          "legendFormat": "{{sala}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "stat",
       "title": "En lobby de mini-juego (esperando)",
-      "gridPos": { "h": 8, "w": 6, "x": 8, "y": 7 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "blue", "value": null } ] } } },
-      "options": { "colorMode": "value", "graphMode": "none", "textMode": "value_and_name" },
-      "targets": [ { "expr": "sum by (game) (tormenta_minigame_lobby)", "legendFormat": "{{game}}", "refId": "A" } ]
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 8,
+        "y": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "sum by (game) (tormenta_minigame_lobby)",
+          "legendFormat": "{{game}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "timeseries",
       "title": "Partidas de mini-juego iniciadas / hora",
-      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 7 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "bars", "fillOpacity": 60, "lineWidth": 1, "stacking": { "mode": "normal" } } } },
-      "targets": [ { "expr": "sum by (game) (increase(tormenta_minigame_starts_total[1h]))", "legendFormat": "{{game}}", "refId": "A" } ]
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 14,
+        "y": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "lineWidth": 1,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (game) (increase(tormenta_minigame_starts_total[1h]))",
+          "legendFormat": "{{game}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "piechart",
+      "title": "Juegos jugados (24h)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut"
+      },
+      "targets": [
+        {
+          "expr": "sum by (result) (increase(tormenta_game_events_total{event=\"minigame\"}[24h]))",
+          "legendFormat": "{{result}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "barchart",
+      "title": "Quests / hitos completados (24h)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal"
+      },
+      "targets": [
+        {
+          "expr": "sum by (result) (increase(tormenta_game_events_total{event=\"quest\"}[24h]))",
+          "legendFormat": "{{result}}",
+          "refId": "A"
+        }
+      ]
     }
   ]
 }

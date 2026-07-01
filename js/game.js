@@ -887,6 +887,7 @@
     const e = edges.find(x => x.id === id);
     if (typeof Mensajero !== 'undefined') Mensajero.evento(id);   // "qué acaba de pasar" (capa aditiva)
     if (typeof Salon !== 'undefined' && Salon.enabled) Salon.beat(currentAt(), id);   // MULTIJUGADOR F1: hito anónimo al ticker del "Cine EN VIVO"
+    tel('quest', { result: id });   // métrica: qué quest/arista de la historia se completó (dashboard)
     if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); return true; }
     if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) FLAG_SETTERS[fallbackFlag](true);   // grafo ausente → red de seguridad
     return false;
@@ -1145,6 +1146,7 @@
     if (m.kind === 'start') {
       if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || bomboGame || ollaGame || pancaGame || !(m.seats || []).includes(myPid())) return;   // no soy de esta mesa / ya jugando
       tableWait = null;
+      tel('minigame', { result: m.table });   // métrica: qué juego se jugó (dashboard)
       if (m.table === '1v1') startTrucoPvp(m.seats, m.seed);
       else if (m.table === 'corte') startPiquete(m.seats, m.seed);
       else if (m.table === 'soga') startSoga(m.seats, m.seed);
@@ -3075,7 +3077,9 @@
     // Late en CUALQUIER estado de juego (intro cerrada), no solo 'playing' → así en sub-modos (Lavalle/bodegón/arcade)
     // no caés de la cuenta de "jugando ahora".
     if (elIntro && elIntro.classList.contains('hidden') && typeof Salon !== 'undefined' && Salon.enabled && t > salonBeatT) {
-      salonBeatT = t + 5000; Salon.beat(state === 'lavalle' ? 'lavalle' : (state === 'bodegon' ? 'bodegon' : currentAt())); }
+      // reporta DÓNDE estás: los mini-juegos y sub-modos como su propio 'sala' → el dashboard ve quién juega a qué
+      const MINI = { piquete: 'aguantar-corte', soga: 'la-soga', bombo: 'bombo', olla: 'olla', pancarta: 'pancarta', trucopvp: 'truco-1v1', trucopvp6: 'truco-6', arcade: 'arcade', bodegon: 'bodegon', lavalle: 'lavalle' };
+      salonBeatT = t + 5000; Salon.beat(MINI[state] || currentAt()); }
     if (state === 'playing' && bodegonOn && typeof Salon !== 'undefined' && Salon.pos) Salon.pos(myTileX(), player.vx);   // F2b: posteo MI pos (el cliente throttlea ~160ms)
     if (state === 'playing' && activeEscort() && t > escortNudgeT) escortNudge();   // el escort te RECUERDA a dónde ir cada ~12s
     if (state === 'arcade' && arcadeGame) {

@@ -236,7 +236,7 @@ function obsLatency(model, backend, sec) {
 // Métricas de USO DEL JUEGO (telemetría del cliente, agregada, SIN PII). Labels acotados por whitelist
 // para que no explote la cardinalidad. Sirve para "¿cuántos en v1 vs v2?" + funnel (storm/truco/win/death).
 const GAME = {};                          // 'event="..",engine="..",result="..",lang=".."' -> count
-const GAME_EVENTS = new Set(['session', 'storm', 'truco', 'death', 'win', 'error', 'engine_fallback', 'chat', 'freeze']);
+const GAME_EVENTS = new Set(['session', 'storm', 'truco', 'death', 'win', 'error', 'engine_fallback', 'chat', 'freeze', 'minigame', 'quest']);
 const cleanLbl = (v, max) => String(v == null ? '' : v).replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, max || 16);
 function incGame(ev) {
   const e = cleanLbl(ev && ev.e, 24);
