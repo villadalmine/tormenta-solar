@@ -87,6 +87,20 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v260-262] — 2026-07-01 — 🐛🔧 FIX RAÍZ del multijugador: salon.js cargaba DESPUÉS de game.js
+
+**El bug que rompía TODO el multijugador** (lo pescó el dueño: "esto pasa en todos los salones"). En `index.html`
+`js/salon.js` se cargaba DESPUÉS de `js/game.js`, así que en la init de game.js `Salon` era `undefined` y las líneas
+`Salon.onWhisper(onPeerWhisper)` / `Salon.onTable(onTable)` **NUNCA se registraban** → los whispers ENTRANTES y los
+eventos de mesa (`table-start`) se descartaban silenciosamente. Efectos: **chat privado del bodegón no recibía**, el
+**pareo de mesas del truco** (1v1/a6) fallaba, y en Lavalle no llegaba el chat ni arrancaba el mini-juego.
+- **FIX:** mover `presence.js` + `salon.js` ANTES de `game.js` en `index.html`. Verificado con 2 navegadores reales
+  (Playwright, contextos separados): el whisper entrante ahora dispara `onPeerWhisper` y **el chat se auto-abre con el
+  mensaje** del otro jugador. Un solo cambio arregla bodegón + truco + Lavalle. Cache **v262**.
+- (De paso: `[E]` sobre el jugador online en Lavalle ya alineado, v258.)
+
+---
+
 ## [v259 · infra-49] — 2026-07-01 — ✊🔥 Lavalle FASE 2: "Aguantar el corte" (mini-juego CO-OP multijugador)
 
 El mini-juego co-op del piquete (specs/lavalle-multijugador.md §3). 2/4/6 jugadores (o vos solo) defienden la BARRICADA
