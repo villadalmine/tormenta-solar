@@ -48,7 +48,7 @@ const Lavalle = (() => {
     CROWD_ROWS.forEach((r, ri) => { for (let i = 0; i < 15; i++) crowd.push({ x: 1.9 + i * 1.0, y: r.y + (i % 2) * 0.1, col: ccol[(i + ri) % ccol.length], ph: i * 1.3 + ri * 0.7, sc: r.sc, a: r.a }); });
     // el LIENZO largo "VIVA PERÓN ×N" cruza la hilera de atrás, colgado ALTO (no tapa a nadie)
     const banner = { y: 3.7 };
-    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null;
+    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null, peerReq = null;
     setMsg(T('g.lavalle.intro'), 6);
     if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(true);
 
@@ -79,9 +79,18 @@ const Lavalle = (() => {
       if (player.y < (H - 4) * CS) exitArmed = true;                       // subiste al piquete → ya se puede salir por abajo
       if (exitArmed && player.y > (H - 0.6) * CS) { leave(); return; }      // salir caminando hacia abajo (solo si ya entraste)
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); return; } } else escHeld = false;
+      // ¿hay un JUGADOR ONLINE cerca? (para chat privado por whisper, como en el bodegón)
+      let nearPeer = null;
+      if (typeof Salon !== 'undefined' && Salon.getPeers && Salon.inBodegon && Salon.inBodegon()) {
+        const px = player.x / CS, py = player.y / CS; let bd = 1.6;
+        for (const p of Salon.getPeers().values()) { if (p.rx == null || !p.pid) continue; const d = Math.hypot(px - (p.rx + 0.5), py - ((p.ry != null ? p.ry : 8) + 0.5)); if (d < bd) { bd = d; nearPeer = p; } }
+      }
       near = null; for (const f of folks) if (nearTile(f, 1.5)) { near = f; break; }
-      // [E] cerca del linyera peronista → abrir chat (lo consume game.js vía openChatNpc)
-      if (near && near.chat) {
+      // [E]: PRIORIDAD al jugador online (chat privado) → después el linyera peronista (chat IA). Ambos los consume game.js.
+      if (nearPeer) {
+        if (Input.keys['e']) { if (!eHeld) { eHeld = true; peerReq = { pid: nearPeer.pid, nick: nearPeer.nick || '' }; } } else eHeld = false;
+        prompt = T('g.lavalle.peerChat', { n: nearPeer.nick || '?' });
+      } else if (near && near.chat) {
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; chatReq = { name: near.name, persona: near.persona, kind: 'linyera' }; } } else eHeld = false;
         prompt = T('g.lavalle.chatHint', { n: near.name });
       } else {
@@ -292,7 +301,8 @@ const Lavalle = (() => {
 
     return {
       get done() { return done; }, get exitTo() { return exitTo; }, update, draw,
-      get openChatNpc() { const r = chatReq; chatReq = null; return r; },   // one-shot: game.js abre el chat y vuelve a Lavalle
+      get openChatNpc() { const r = chatReq; chatReq = null; return r; },   // one-shot: game.js abre el chat IA y vuelve a Lavalle
+      get openPeerChat() { const r = peerReq; peerReq = null; return r; },   // one-shot: game.js abre el chat privado con el jugador online
     };
   }
   return { create };

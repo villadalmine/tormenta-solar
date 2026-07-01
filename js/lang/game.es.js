@@ -211,6 +211,7 @@
     'g.lavalle.npc.referente': 'La referente', 'g.lavalle.line.referente': 'estamos organizados. el corte no afloja ✊',
     'g.lavalle.npc.peronista': 'El linyera peronista', 'g.lavalle.line.peronista': 'preguntame lo que quieras, pibe… total todo termina en Perón ✊',
     'g.lavalle.chatHint': '[E] hablar con {n} (sabe TODO de Perón) ✊',
+    'g.lavalle.peerChat': '[E] chatear con {n} 💬',
     'g.bodegon.topTitle': 'El Bodegón',
     'g.bodegon.topIntro': '🍻 El bodegón, vista de arriba: mesas con la gente que está jugando AHORA, el mostrador con la rubia, y la salida. Caminá (WASD), tirá emotes (1-4) y frases (5-8). Hablale a la rubia si te animás… 💋',
     'g.bodegon.rubiaName': 'la rubia',

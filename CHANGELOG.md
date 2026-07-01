@@ -87,6 +87,16 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v257] — 2026-07-01 — 💬 Lavalle: chat privado con el jugador ONLINE ([E] sobre un peer)
+
+Ya se ve al otro jugador en el piquete y no se traba; faltaba poder HABLARLE. Ahora [E] cerca de un jugador online
+→ **chat privado por whisper** (como en el bodegón). Al cerrar volvés a Lavalle. Prioridad del [E]: primero el peer
+(chat privado), después el linyera peronista (chat IA). Los whispers ENTRANTES estando en Lavalle también abren el chat.
+- `js/lavalle.js` (detección de peer cercano + `openPeerChat` getter), `js/game.js` (wire + onPeerWhisper para `lavalle`),
+  i18n `g.lavalle.peerChat` (ES≡EN). Solo cliente. e2e + paridad + headless OK. Cache **v257**.
+
+---
+
 ## [v256] — 2026-07-01 — 🐛 FIX Lavalle: entrar con 's' apretada te sacaba al instante (y parecía "no puedo entrar")
 
 Segundo caso del bug de teclas: si salías del piquete caminando con **'s' apretada**, al re-entrar spawneabas cerca

@@ -1107,8 +1107,9 @@
     if (peerChat && peerChat.pid === d.from) { chatLine('npc', d.msg); return; }
     // T2b fix: NO tenés el chat abierto con él → AUTO-ABRIR el panel con su mensaje (antes era un toast del HUD, que
     // en el bodegón top-down está oculto → no veías nada). Solo si no estás en otra pantalla bloqueante.
-    if (state === 'bodegon' || state === 'playing') {
-      openPeerChat({ pid: d.from, nick: d.fromNick || T('g.bodegon.someone') }, state === 'bodegon' ? 'bodegon' : null);
+    if (state === 'bodegon' || state === 'playing' || state === 'lavalle') {
+      if (state === 'lavalle') chatReturnTo = 'lavalle';
+      openPeerChat({ pid: d.from, nick: d.fromNick || T('g.bodegon.someone') }, state === 'bodegon' ? 'bodegon' : (state === 'lavalle' ? 'lavalle' : null));
       chatLine('npc', d.msg);
     } else setMsg(T('g.bodegon.privFrom', { nick: d.fromNick || T('g.bodegon.someone') }), '#aef0c0', 5000);
   }
@@ -3083,6 +3084,8 @@
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
       const lc = lavalleGame.openChatNpc;                             // [E] sobre el linyera peronista → chat IA (vuelve a Lavalle)
       if (lc) { chatReturnTo = 'lavalle'; openChat({ name: lc.name, persona: lc.persona }); }
+      const lp = lavalleGame.openPeerChat;                            // [E] sobre un jugador ONLINE → chat privado (whisper), vuelve a Lavalle
+      if (lp && lp.pid) { chatReturnTo = 'lavalle'; openPeerChat({ pid: lp.pid, nick: lp.nick || peerNickOf(lp.pid) }, 'lavalle'); }
       if (lavalleGame.done) {
         if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave();   // salir del espacio 'lavalle'
         if (typeof Input !== 'undefined' && Input.clear) Input.clear();   // soltar teclas al volver a la calle (evita seguir caminando/re-trigger)
