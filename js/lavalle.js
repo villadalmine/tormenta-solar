@@ -12,7 +12,8 @@ const Lavalle = (() => {
     for (let x = 0; x < W; x++) { map[0][x] = 1; map[1][x] = 1; map[2][x] = 1; map[3][x] = 1; }   // arriba: avenida+corte (más lejos) = pared → se ve EL OBELISCO grande
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W - 1] = 1; }
     const pal = { floor: '#222227', floor2: '#27272d', lane: '#c9c08a' };
-    const player = { x: 9 * CS, y: (H - 1.5) * CS, r: 11, dir: -1, walk: 0 };
+    const player = { x: 9 * CS, y: (H - 2.5) * CS, r: 11, dir: -1, walk: 0 };
+    let exitArmed = false;   // la salida (caminar hacia abajo) se ARMA recién cuando entraste al piquete (subiste) → así entrar con 's' apretada NO te saca al toque
 
     // --- el corte (barricada) abajo del todo del fondo, así arriba se ve la avenida + el Obelisco ---
     const cars = [{ x: 3.6, y: 3.5, col: '#7a3b2a', tilt: -0.1 }, { x: 14.4, y: 3.6, col: '#3a5a6a', tilt: 0.1 }];
@@ -75,7 +76,8 @@ const Lavalle = (() => {
         if (pm) for (const p of pm.values()) { if (p.rx == null) p.rx = (p.x != null ? p.x : 9); if (p.ry == null) p.ry = (p.y != null ? p.y : 8);
           p.rx += ((p.x != null ? p.x : p.rx) - p.rx) * k; p.ry += ((p.y != null ? p.y : p.ry) - p.ry) * k; }
       }
-      if (player.y > (H - 0.6) * CS) { leave(); return; }
+      if (player.y < (H - 4) * CS) exitArmed = true;                       // subiste al piquete → ya se puede salir por abajo
+      if (exitArmed && player.y > (H - 0.6) * CS) { leave(); return; }      // salir caminando hacia abajo (solo si ya entraste)
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); return; } } else escHeld = false;
       near = null; for (const f of folks) if (nearTile(f, 1.5)) { near = f; break; }
       // [E] cerca del linyera peronista → abrir chat (lo consume game.js vía openChatNpc)

@@ -602,6 +602,7 @@
     // MULTIJUGADOR (specs/lavalle-multijugador.md F1): Lavalle es un ESPACIO aparte del bodegón; te ves con los otros
     // que están en el piquete. Aditivo: sin red, queda la postal single-player.
     if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join(playerNick(), 'carpo', () => {}, 'lavalle');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();   // soltar teclas apretadas al entrar (si no, entrás y salís al toque)
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
   }
@@ -3084,6 +3085,7 @@
       if (lc) { chatReturnTo = 'lavalle'; openChat({ name: lc.name, persona: lc.persona }); }
       if (lavalleGame.done) {
         if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave();   // salir del espacio 'lavalle'
+        if (typeof Input !== 'undefined' && Input.clear) Input.clear();   // soltar teclas al volver a la calle (evita seguir caminando/re-trigger)
         lavalleGame = null; state = 'playing'; transCd = 0.6;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         current = 0; const ps = rooms[0]; player.x = 5 * Level.TILE; player.y = ps.gTop * Level.TILE - player.h; player.vx = player.vy = 0;   // de vuelta en Florida, despejado del trigger izq

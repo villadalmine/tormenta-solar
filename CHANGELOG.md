@@ -87,6 +87,18 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v256] — 2026-07-01 — 🐛 FIX Lavalle: entrar con 's' apretada te sacaba al instante (y parecía "no puedo entrar")
+
+Segundo caso del bug de teclas: si salías del piquete caminando con **'s' apretada**, al re-entrar spawneabas cerca
+del borde de abajo y la 's' te empujaba fuera **al instante** → parecía que "no se podía entrar más" (entrabas y salías
+en el mismo frame).
+- **FIX (`js/lavalle.js`):** la salida por caminar-hacia-abajo se **ARMA recién cuando entraste al piquete** (subiste
+  por encima de la fila del corte); entrar con una tecla apretada ya NO te expulsa. Spawn un poco más arriba + `Input.clear()`
+  al entrar y al salir de Lavalle (game.js).
+- Solo cliente. e2e OK. Cache **v256**.
+
+---
+
 ## [v255] — 2026-07-01 — 🐛 FIX "se movía solo y salía de Lavalle" (tecla trabada al abrir el chat) + no podía volver a entrar
 
 Playtest: en Lavalle, al hablar con el linyera peronista, el Carpo "se movía solo y salía", y después no se podía
