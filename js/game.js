@@ -120,6 +120,7 @@
   // MESAS server-authoritative (specs/multijugador.md): tableWait = mientras esperás el pareo en una mesa del bodegón.
   // truco6 = {seatToPid, pidToSeat} (host) o {host} (guest). El lobby lo hace el SERVER (no más invitaciones P2P).
   let truco6Game = null, truco6 = null, tableWait = null;
+  let globoGame = null;     // MAPA A: el globo del mundo (satélites + bases) — sala de situación del búnker
   let piqueteGame = null;   // Fase 2 Lavalle: mini-juego co-op "Aguantar el corte" (mesa 'corte')
   let sogaGame = null;      // Lavalle: mini-juego co-op "La soga" (mesa 'soga')
   let bomboGame = null;     // Lavalle: mini-juego co-op "Bombo & cumbia" (mesa 'bombo')
@@ -355,7 +356,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -561,8 +562,17 @@
     fifa:    () => playFifa(),
     compu:   () => openCarteles(),   // CARTELES C1: la computadora del tablón → overlay para fijar/ver carteles
     datacenter: () => openDatacenter(),   // DATACENTER D1: la computadora del datacenter → overlay para aportar partes
+    globo:   () => enterGlobo(),   // MAPA A: la sala de situación del búnker → el globo con satélites/bases
     moza:    n => handleMoza(n),
   };
+  // MAPA DEL MUNDO (specs/mapas-satelites-bunkers.md): sub-modo GLOBO que gira (satélites rebeldes + bases).
+  function enterGlobo() {
+    if (typeof Globo === 'undefined' || !Globo.create) return false;
+    globoGame = Globo.create(); state = 'globo';
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
   function handleNpc(n) {
     if (n && chipTry(n)) return;   // QUEST DEL CHIP: si estás chipeado y este NPC avanza el arco, lo maneja el quest
     const fn = n && NPC_ACTIONS[n.action];
@@ -3181,6 +3191,9 @@
         }
         setMsg(T(gotChipped ? 'g.chip.wakeRoom' : gotRescued ? 'g.telo.rescued' : gotAway ? 'g.telo.escaped' : 'g.telo.leave'), gotChipped ? '#9be8a0' : gotRescued ? '#9be8a0' : '#ff8fc8', gotChipped ? 13000 : gotRescued ? 10000 : gotAway ? 6000 : 3000);
       }
+    } else if (state === 'globo' && globoGame) {                      // MAPA A: el globo del mundo (sala de situación)
+      globoGame.update(dt); globoGame.draw(ctx, W, H);
+      if (globoGame.done) { globoGame = null; state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
       const lc = lavalleGame.openChatNpc;                             // [E] sobre el linyera peronista → chat IA (vuelve a Lavalle)

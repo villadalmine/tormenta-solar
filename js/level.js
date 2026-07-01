@@ -520,6 +520,8 @@ const Level = (() => {
       npcs: [
         { name:'', sprite:'linyera', invisible:true, x:10, action:'loop' },   // el CATRE (decor) es el punto de dormir
         { name:'Linyera', sprite:'linyera', x:5,  dialog:'“Bienvenido al búnker, gurú. Acá nadie labura. Tirate en el catre cuando quieras pasar el día. 🛖”' },
+        // SALA DE SITUACIÓN: un globo/monitor para ver los satélites rebeldes y las bases (Mapa A, specs/mapas-satelites-bunkers.md)
+        { name:'La sala de situación', sprite:'recepcionista', x:8, action:'globo', dialog:'“Mirá el mundo, gurú: los satélites rebeldes que desataron la tormenta y las bases del pueblo. [E] para abrir el mapa. 🛰️🌎”' },
         // el linyera MAYOR te entrega el TESORO de los linyeras (premio del edificio: solo para el gurú)
         { name:'Linyera mayor', sprite:'linyera', x:13, action:'tesoro',
           dialog:'“Vos sos el gurú... a vos sí te lo damos. Guardamos un maletín toda la vida para alguien que entienda. Tomá: la guita y un secreto para que escupas como Dios manda.” 🐵💼' },
