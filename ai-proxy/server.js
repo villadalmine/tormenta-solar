@@ -626,7 +626,7 @@ http.createServer((req, res) => {
       const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); const room = String(d.room || '').slice(0, 24);
       const r = BODEGON.get(room); const p = r && r.peers.get(pid);
       if (p) { p.x = Math.max(1, Math.min(21, +d.x || p.x)); p.vx = Math.max(-260, Math.min(260, +d.vx || 0));
-        if (d.y != null) p.y = Math.max(1, Math.min(12, +d.y || p.y));   // top-down: posición REAL (x,y) → peers que caminan
+        if (d.y != null) p.y = Math.max(1, Math.min(14, +d.y || p.y));   // top-down: posición REAL (x,y) → peers que caminan (14 cubre bodegón y lavalle)
         if (d.emote != null) { p.emote = (+d.emote || 0) % 8; p.emoteT = Date.now(); } p.ts = Date.now();
         bodegonBroadcast(r, 'peer-pos', { pid, x: p.x, y: p.y, vx: p.vx, emote: d.emote != null ? p.emote : undefined }); }
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');

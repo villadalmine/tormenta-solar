@@ -33,12 +33,12 @@ const Salon = (() => {
   function openStream() {
     if (typeof EventSource !== 'function' || !myRoom) return;
     try { es = new EventSource(PROXY + '/salon/stream?room=' + encodeURIComponent(myRoom) + '&pid=' + encodeURIComponent(pid)); } catch (e) { return; }
-    es.addEventListener('peer-join', e => { try { const d = JSON.parse(e.data); peers.set(d.pid, { ...d, rx: d.x }); notify(); } catch (x) {} });
+    es.addEventListener('peer-join', e => { try { const d = JSON.parse(e.data); if (d.pid === pid) return; peers.set(d.pid, { ...d, rx: d.x }); notify(); } catch (x) {} });
     es.addEventListener('peer-leave', e => { try { const d = JSON.parse(e.data); peers.delete(d.pid); notify(); } catch (x) {} });
-    es.addEventListener('peer-pos', e => { try { const d = JSON.parse(e.data); const p = peers.get(d.pid) || { pid: d.pid, rx: d.x };
+    es.addEventListener('peer-pos', e => { try { const d = JSON.parse(e.data); if (d.pid === pid) return; const p = peers.get(d.pid) || { pid: d.pid, rx: d.x };   // NUNCA a mí mismo (el server retransmite a todos → evita el "fantasma que te persigue")
       p.x = d.x; if (d.y != null) p.y = d.y; if (d.vx != null) p.vx = d.vx; if (d.nick != null) p.nick = d.nick; if (d.avatar != null) p.avatar = d.avatar;
       if (d.emote) { p.emote = d.emote; p.emoteT = Date.now(); } if (p.rx == null) p.rx = d.x; if (p.ry == null && d.y != null) p.ry = d.y; peers.set(d.pid, p); notify(); } catch (x) {} });
-    es.addEventListener('say', e => { try { const d = JSON.parse(e.data); const p = peers.get(d.pid); if (p) { p.say = d.i; p.sayT = Date.now(); notify(); } } catch (x) {} });
+    es.addEventListener('say', e => { try { const d = JSON.parse(e.data); if (d.pid === pid) return; const p = peers.get(d.pid); if (p) { p.say = d.i; p.sayT = Date.now(); notify(); } } catch (x) {} });
     es.addEventListener('whisper', e => { try { const d = JSON.parse(e.data); whisperCb && whisperCb(d); } catch (x) {} });   // chat privado 1-a-1 entrante
     // MESAS server-authoritative (specs/multijugador.md): el server parea y emite el arranque
     es.addEventListener('table-update', e => { try { tableCb && tableCb({ kind: 'update', ...JSON.parse(e.data) }); } catch (x) {} });

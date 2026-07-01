@@ -56,6 +56,23 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v253 · infra-43] — 2026-07-01 — 🐛 FIX Lavalle multijugador: el "fantasma que te perseguía" eras VOS
+
+Playtest del dueño: *"no veo nada multiplayer, a veces se mueve solo y me persigue alguien"*. Era el **eco de tu propia
+posición**: el `salon-server` retransmite `peer-pos`/`peer-join`/`say` a **todos** los subs (incluido el que lo mandó),
+y el cliente se agregaba **a sí mismo** como peer → un doble que te seguía (más obvio en Lavalle, donde solés estar solo).
+- **FIX (`js/salon.js`):** ignorar los eventos cuyo `pid` es el mío (`d.pid === pid → return`) en `peer-pos`/`peer-join`/
+  `say`. Solo → no ves ningún peer (correcto); con otro conectado, lo ves caminar. (Para ver multiplayer hacen falta 2
+  navegadores en Lavalle.)
+- **`ai-proxy` (infra-43, 0.1.65):** el clamp de `y` de `/salon/pos` sube 12→14 (cubre la altura de Lavalle, H=15; antes
+  los peers de abajo quedaban pegados a y=12).
+- **Nota chat IA:** el linyera peronista **responde bien en personaje** cuando el pool contesta; los "no anda" son el
+  **pool free saturado** (tarda 30-40s y el cliente corta a ~9s → fallback). No es específico del peronista (le pasa a
+  todas las personas ahora). Palanca = ruteo a modelo más rápido/pago (decisión de infra).
+- e2e + headless OK. Cache **v253**.
+
+---
+
 ## [v252 · infra-42] — 2026-07-01 — ✊👥 Lavalle MULTIJUGADOR (Fase 1): te ves con los otros en el piquete
 
 Arranca **Lavalle como zona multijugador** (SDD `specs/lavalle-multijugador.md`). El multijugador es la capa de
