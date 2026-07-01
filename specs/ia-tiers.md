@@ -87,6 +87,16 @@ FREE/anónimo → LiteLLM (hermes) → AI_MODEL: gemma4-free → gemma4-paid →
    → debe devolver `"tier":"paid"` (no `"fallback":true`).
 4. Si el **anónimo** cae siempre a fallback → chequear `AUTOPILOT=0` y que `gemma4-paid` esté en `AI_MODEL`.
 
+## 5.1 Hallazgo abierto (2026-07-01) — el anónimo no llega a contestar aunque el orden ya es correcto
+
+Con `AUTOPILOT=0` el proxy YA intenta el pago (verificado en `model_attempts_total`: `gemma4-free → http_429`,
+después `gemma4-paid → timeout`). **Pero `gemma4-paid` VÍA LiteLLM se cuelga (timeout)**, mientras el MISMO modelo
+**directo a OpenRouter** (`google/gemma-4-31b-it`, el path premium) contesta `ok` al toque. → **El cuello está en
+LiteLLM** (su deployment `gemma4-paid`), no en el proxy. **Acción (dominio del dueño / LiteLLM):** revisar/arreglar el
+deployment `gemma4-paid` en LiteLLM (o declarar fallbacks en `litellm_settings.fallbacks`, ver `pruebas-modelos.md`),
+**o** rutear el pago del anónimo también directo a OpenRouter con una key COMPARTIDA del dev (hoy `AI_API_KEY` es la de
+LiteLLM/hermes, no sirve para OpenRouter directo → haría falta una key OpenRouter del dev para el pool free).
+
 ## 6. Deuda / a futuro
 - Unificar: que TODO código premium sea provisionado (deprecar el `SUB_CODES` env/manual que usa hermes).
 - Autoservicio real (pasarela de pago → `/provision` automático). Hoy el dueño crea y reparte a mano.
