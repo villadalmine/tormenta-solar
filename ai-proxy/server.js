@@ -296,6 +296,12 @@ function paidHit() { paidRoll().n++; }
 // Un código válido en el header X-Sub-Code → tier PAGO: salta el free y el cupo del free, va DIRECTO a la
 // cadena paga (SUB_MODELS) → siempre IA real rápida, sin pool. Email/DB/pago/key-por-código = fases que siguen.
 const SUB_CODES = new Set((process.env.SUB_CODES || '').split(',').map(s => s.trim()).filter(Boolean));
+// Los códigos agregados en RUNTIME (POST /sub-codes) PERSISTEN en PVC → sobreviven reinicios/redeploys (antes eran
+// solo en memoria y cada restart los borraba, matando las suscripciones manuales). Se fusionan con los del env.
+const SUBCODES_STORE = process.env.SUBCODES_STORE || '/data/subcodes.json';
+function loadSubCodes() { try { const a = JSON.parse(fs.readFileSync(SUBCODES_STORE, 'utf8')); if (Array.isArray(a)) a.forEach(c => c && SUB_CODES.add(String(c))); } catch (e) {} }
+function saveSubCodes() { try { fs.mkdirSync(SUBCODES_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(SUBCODES_STORE, JSON.stringify([...SUB_CODES])); } catch (e) { console.error('subcodes store save:', e.message); } }
+loadSubCodes();
 const SUB_MODELS = (process.env.SUB_MODELS || 'gemma4-paid,claude-sonnet').split(',').map(s => s.trim()).filter(Boolean);
 const SUB_USAGE = {};                          // code(corto) -> count (volumen por código; cardinalidad = #códigos)
 const SUB_COST = {};                           // code(corto) -> US$ acumulado (gasto por código)
@@ -841,6 +847,7 @@ http.createServer((req, res) => {
       try { const d = JSON.parse(pb || '{}'); const code = (d.code || '').toString().trim();
         if (!code) { res.writeHead(400); return res.end('no code'); }
         if (d.revoke) SUB_CODES.delete(code); else SUB_CODES.add(code);
+        saveSubCodes();   // PERSISTE en PVC → sobrevive reinicios/redeploys
         res.writeHead(200); res.end(JSON.stringify({ ok: true, codes: SUB_CODES.size }));
       } catch (e) { res.writeHead(400); res.end('bad json'); }
     });
