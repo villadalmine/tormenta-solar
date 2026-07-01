@@ -1061,11 +1061,13 @@
     if (isOraculo(n)) showHint(0);   // el linyera arranca con una pista críptica (nivel 0)
     if (isHincha(n)) hinchaGreeting();   // §9: te pregunta por un equipo / te recuerda / te agradece
     state = 'chat';
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();   // soltar teclas de movimiento (si no, al enfocar el input se pierden los keyup → teclas trabadas)
     elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
     setTimeout(() => elChatInput && elChatInput.focus(), 30);
   }
   function closeChat() {
     elChat.classList.add('hidden'); elChatInput.value = ''; chatNpc = null; peerChat = null;
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();   // al volver al juego, soltar teclas que quedaron apretadas mientras tipeabas ("se movía solo")
     const from = peerChatFrom; peerChatFrom = null;
     if (state === 'chat') {
       // Lavalle: el chat con el linyera peronista se abrió DESDE el piquete top-down → volvés ahí (lavalleGame sigue vivo)
@@ -1084,7 +1086,8 @@
     peerChat = { pid: peer.pid, nick: peer.nick || T('g.bodegon.someone') }; chatNpc = null; chatBusy = false;
     elChatTitle.textContent = '🔒 ' + peerChat.nick;
     elChatLog.innerHTML = ''; chatLine('sys', T('g.bodegon.privAwith', { nick: peerChat.nick }));
-    state = 'chat'; elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
+    state = 'chat'; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elChat.classList.remove('hidden');
     setTimeout(() => elChatInput && elChatInput.focus(), 30);
   }
   function peerChatSend() {

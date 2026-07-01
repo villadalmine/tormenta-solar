@@ -14,6 +14,9 @@ const Input = (() => {
       if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
     });
     document.addEventListener('keyup', e => { if (!typing(e)) keys[e.key.toLowerCase()] = false; });
+    // si la ventana pierde el foco (o se abre el chat y tipeás), los keyup se PIERDEN → teclas trabadas
+    // ("se mueve solo"). Al perder foco, soltamos todo.
+    window.addEventListener('blur', clear);
     function toCanvas(e) {
       const r = canvas.getBoundingClientRect();
       mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
@@ -25,10 +28,11 @@ const Input = (() => {
     canvas.addEventListener('contextmenu', e => e.preventDefault());
   }
 
+  function clear() { for (const k in keys) keys[k] = false; }   // soltar TODAS las teclas (evita teclas trabadas al abrir/cerrar el chat o cambiar de modo)
   const left  = () => keys['a'] || keys['arrowleft'];
   const right = () => keys['d'] || keys['arrowright'];
   const jump  = () => keys['w'] || keys[' '] || keys['arrowup'];
   const pressed = k => !!keys[k];
 
-  return { bind, keys, mouse, left, right, jump, pressed };
+  return { bind, keys, mouse, left, right, jump, pressed, clear };
 })();

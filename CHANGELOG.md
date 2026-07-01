@@ -87,6 +87,20 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v255] — 2026-07-01 — 🐛 FIX "se movía solo y salía de Lavalle" (tecla trabada al abrir el chat) + no podía volver a entrar
+
+Playtest: en Lavalle, al hablar con el linyera peronista, el Carpo "se movía solo y salía", y después no se podía
+volver a entrar. Causa: si venías CAMINANDO (tecla apretada) y abrías el chat, el input tomaba el foco y el `keyup`
+de esa tecla lo tragaba el guard de tipeo de `input.js` → la tecla quedaba **trabada en `true`** → al volver del chat
+el jugador se movía solo (y si era ↓, cruzaba el borde y salía del piquete); la salida + la tecla trabada trababan la
+re-entrada.
+- **FIX (`js/input.js`):** `Input.clear()` (suelta todas las teclas) + se llama al **abrir y cerrar el chat**
+  (`openChat`/`openPeerChat`/`closeChat`) y en `window blur`. La re-entrada a Lavalle no tiene bloqueo: con las teclas
+  destrabadas, caminás a la izquierda y entrás de nuevo.
+- Solo cliente. e2e OK. Cache **v255**.
+
+---
+
 ## [v254 · infra-44] — 2026-07-01 — 🐛 Lote playtest: nombre en Opciones + presencia online (Grafana) + contador en Lavalle
 
 Tres cosas del playtest del dueño:
