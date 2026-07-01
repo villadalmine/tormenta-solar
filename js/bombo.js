@@ -6,6 +6,9 @@
 const Bombo = (() => {
   const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   const BEAT = 0.5, WINDOW = 0.18, SONG = 22, TARGET = 100, HIT = 7, OFF = 1, DECAY = 5;
+  // cada golpe al ritmo va CANTANDO la Marcha Peronista (en orden) + tira alguna consigna de Perón (homenaje/parodia)
+  const MARCHA = ['¡Los muchachos peronistas!', 'todos unidos triunfaremos', 'y como siempre daremos', 'un grito de corazón:', '¡Viva Perón! ¡Viva Perón!', 'Por ese gran argentino', 'que se supo conquistar', 'a la gran masa del pueblo', 'combatiendo al capital'];
+  const PERON = ['La única verdad es la realidad', 'Mejor que decir es hacer', 'Los únicos privilegiados son los niños', 'La patria es el otro', '¡Perón cumple, Evita dignifica!', 'Braden o Perón', 'De la casa al trabajo, del trabajo a casa'];
 
   function create(opts) {
     opts = opts || {};
@@ -16,6 +19,7 @@ const Bombo = (() => {
 
     let aguante = 0, timeLeft = SONG, phase = 'intro', done = false, exitTo = null, t = 0, sendT = 0;
     let combo = 0, hitFx = 0, msg = '', msgT = 0, escHeld = false, tapHeld = false, result = null;
+    let marchaIdx = 0, goodHits = 0; const floaters = [];   // frases que suben y se desvanecen en cada golpe al ritmo
     let raguante = 0, rphase = 'play', rtime = SONG;
     setMsg(T('g.bombo.intro'), 4);
     if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(true);
@@ -28,6 +32,12 @@ const Bombo = (() => {
       const good = beatDist() < WINDOW;
       hitFx = good ? 1 : 0.4; combo = good ? combo + 1 : 0;
       if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup();
+      if (good) {   // al ritmo → canta la Marcha (en orden) y de a ratos una consigna de Perón
+        goodHits++;
+        const txt = (goodHits % 5 === 0) ? PERON[(Math.random() * PERON.length) | 0] : MARCHA[marchaIdx++ % MARCHA.length];
+        floaters.push({ txt, t: 0, dx: (Math.random() - 0.5) * 80 });
+        if (floaters.length > 6) floaters.shift();
+      }
       const add = (good ? HIT : OFF) + Math.min(6, Math.floor(combo / 4));   // combo suma un plus
       if (isHost) aguante = Math.min(TARGET, aguante + add);
       else if (typeof Salon !== 'undefined' && Salon.whisper && opts.hostPid) Salon.whisper(opts.hostPid, JSON.stringify({ t: 'lv3-tap', a: add }));
@@ -37,6 +47,7 @@ const Bombo = (() => {
 
     function update(dt) {
       t += dt; msgT -= dt; hitFx = Math.max(0, hitFx - dt * 3);
+      for (let i = floaters.length - 1; i >= 0; i--) { floaters[i].t += dt; if (floaters[i].t > 1.8) floaters.splice(i, 1); }
       if (done) return;
       const tapNow = Input.keys[' '] || Input.keys['e'] || Input.keys['w'] || Input.keys['arrowup'];
       if (tapNow) { if (!tapHeld) { tapHeld = true; tap(); } } else tapHeld = false;
@@ -67,6 +78,10 @@ const Bombo = (() => {
       ctx.fillStyle = hitFx > 0.6 ? '#fff' : '#efe7d8'; ctx.beginPath(); ctx.arc(cx, cy, R - 10, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#c0241f'; ctx.font = 'bold 22px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🥁', cx, cy); ctx.textBaseline = 'alphabetic';
       if (combo >= 4) { ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 15px monospace'; ctx.fillText('x' + combo + ' ¡AL PALO!', cx, cy + R + 34); }
+      // frases de la Marcha / consignas de Perón que suben y se desvanecen en cada golpe al ritmo
+      ctx.textAlign = 'center'; ctx.font = 'bold 13px monospace';
+      for (const f of floaters) { const a = Math.max(0, 1 - f.t / 1.8); ctx.globalAlpha = a; ctx.fillStyle = '#ffe14a'; ctx.fillText(f.txt, cx + f.dx, cy - R - 16 - f.t * 46); }
+      ctx.globalAlpha = 1;
       // barra de AGUANTE
       const bw = VW * 0.6, bx = (VW - bw) / 2, by = VH - 54;
       ctx.fillStyle = '#331'; ctx.fillRect(bx, by, bw, 16); ctx.fillStyle = a > 66 ? '#7CFC00' : a > 33 ? '#ffd54f' : '#e07b39'; ctx.fillRect(bx, by, bw * a / TARGET, 16);
