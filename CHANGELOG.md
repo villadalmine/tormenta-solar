@@ -87,6 +87,20 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v265 · infra-53] — 2026-07-01 — 🍲 Lavalle: 4º mini-juego co-op "REPARTO DE LA OLLA" (reacción)
+
+Cuarto mini-juego del piquete. Los vecinos hacen COLA con hambre (barra de paciencia que baja); apretás ESPACIO/E para
+servirle un plato al MÁS URGENTE. Servís 12 → GANÁS; si se van 6 con hambre (enojados) → PERDÉS. Host-authoritative
+(`js/olla.js`): el host spawnea la cola, corre la paciencia y sirve (propio o por `lv4-serve` de un guest); transmite
+(`lv4-state`). Jugable solo; la demanda (spawn) escala con la cantidad de jugadores.
+- **Lobby:** [E] EN LA OLLA popular (centro-izq del piquete) → mesa `olla`. **infra-53 (proxy 0.1.75):** espacio lavalle
+  con mesas `corte` + `soga` + `bombo` + `olla`.
+- `js/olla.js`, `js/game.js` (startOlla + onTable 'olla' + `lv4-*` + dispatch + 4º gather point), i18n `g.olla.*` +
+  `g.lavalle.ollaHint` (ES≡EN), e2e (sirviendo gana / sin servir pierde). Cache **v265**.
+- **4 mini-juegos del piquete listos** (corte + soga + bombo + olla); falta Pintar la pancarta.
+
+---
+
 ## [v264 · infra-52] — 2026-07-01 — 🥁 Lavalle: 3er mini-juego co-op "BOMBO & CUMBIA" (ritmo)
 
 Tercer mini-juego del piquete. Tocás el bombo AL RITMO (ESPACIO/E en el pulso, el anillo verde) para subir EL AGUANTE

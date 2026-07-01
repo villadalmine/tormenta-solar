@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','soga.js','bombo.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','soga.js','bombo.js','olla.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -297,6 +297,14 @@ if (require.main === module) {
     for (let i = 0; i < 900 && !bm2.done; i++) { bm2.update(0.05); bm2.draw(C, 960, 540); }
     if (bm2.result !== 'lose') throw new Error('bombo sin tocar debería perder: ' + bm2.result);
     ok.push('bombo:ok');
+    // "REPARTO DE LA OLLA": sirviendo cada frame → gana; sin servir → se van enojados → pierde
+    const ol = Olla.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 9, sendState: () => {} });
+    for (let i = 0; i < 1200 && !ol.done; i++) { ol.tapExternal(); ol.update(0.05); ol.draw(C, 960, 540); }
+    if (ol.result !== 'win') throw new Error('olla sirviendo debería ganar: ' + ol.result);
+    const ol2 = Olla.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 9, sendState: () => {} });
+    for (let i = 0; i < 1200 && !ol2.done; i++) { ol2.update(0.05); ol2.draw(C, 960, 540); }
+    if (ol2.result !== 'lose') throw new Error('olla sin servir debería perder: ' + ol2.result);
+    ok.push('olla:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

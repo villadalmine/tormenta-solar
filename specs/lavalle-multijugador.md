@@ -94,7 +94,8 @@ ambiente, cumbia.
 - ✅ **Aguantar el corte** (co-op wave-defense) — HECHO (v259, mesa `corte`, `js/piquete.js`).
 - ✅ **La soga** (tug of war co-op vs el desalojo) — HECHO (v263, mesa `soga`, `js/soga.js`; jugable solo vs bots).
 - ✅ **Bombo & cumbia** (ritmo co-op) — HECHO (v264, mesa `bombo`, `js/bombo.js`; tocás al pulso, subís el aguante).
-- ⏳ **Reparto de la olla** (co-op contrarreloj), **Pintar la pancarta** (colaborativo).
+- ✅ **Reparto de la olla** (reacción co-op) — HECHO (v265, mesa `olla`, `js/olla.js`; servís al vecino más urgente).
+- ⏳ **Pintar la pancarta** (colaborativo).
 - **Patrón para sumar uno:** (1) módulo `js/<juego>.js` host-authoritative (create({role,seats,myPid,seed,sendState})
   + update/draw/applyState + get done/exitTo/result/isHost); (2) server: sumar la mesa a `SPACE_TABLES.lavalle` +
   `TABLE_CAP` + `CD_TABLES` + `CD_MIN` (proxy redeploy); (3) `game.js`: `start<Juego>` + rama en `onTable` + ruteo del

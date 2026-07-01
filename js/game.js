@@ -123,6 +123,7 @@
   let piqueteGame = null;   // Fase 2 Lavalle: mini-juego co-op "Aguantar el corte" (mesa 'corte')
   let sogaGame = null;      // Lavalle: mini-juego co-op "La soga" (mesa 'soga')
   let bomboGame = null;     // Lavalle: mini-juego co-op "Bombo & cumbia" (mesa 'bombo')
+  let ollaGame = null;      // Lavalle: mini-juego co-op "Reparto de la olla" (mesa 'olla')
   const AI_BOTS = ['Pino', 'Coya', 'Tito', 'Nano', 'Beto'];
   // WATCHDOG de reconexión (deuda F3): un jugador que cierra la pestaña deja de mandar Salon.pos → el relay lo poda
   // (~35s) → desaparece de Salon.getPeers(). En 1v1 cerramos el match ('left'); en a6 lo reemplaza la IA (sigue).
@@ -354,7 +355,7 @@
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
     arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; roamingNpc = null;
-    trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null;   // mesas/partidas multijugador, de cero
+    trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
@@ -1109,6 +1110,7 @@
       if (m.t.indexOf('lv-') === 0) { handlePiquete(d.from, m); return; }   // Fase 2: estado del "Aguantar el corte"
       if (m.t.indexOf('lv2-') === 0) { handleSoga(d.from, m); return; }      // "La soga": tirón / estado
       if (m.t.indexOf('lv3-') === 0) { handleBombo(d.from, m); return; }      // "Bombo & cumbia": tap / estado
+      if (m.t.indexOf('lv4-') === 0) { handleOlla(d.from, m); return; }       // "Reparto de la olla": servir / estado
     } }
     if (peerChat && peerChat.pid === d.from) { chatLine('npc', d.msg); return; }
     // T2b fix: NO tenés el chat abierto con él → AUTO-ABRIR el panel con su mensaje (antes era un toast del HUD, que
@@ -1134,18 +1136,19 @@
     if (!m) return;
     if (m.kind === 'update') { if (tableWait && tableWait.table === m.table) tableWait.seats = (m.seats || []).length; return; }
     if (m.kind === 'start') {
-      if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || bomboGame || !(m.seats || []).includes(myPid())) return;   // no soy de esta mesa / ya jugando
+      if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || bomboGame || ollaGame || !(m.seats || []).includes(myPid())) return;   // no soy de esta mesa / ya jugando
       tableWait = null;
       if (m.table === '1v1') startTrucoPvp(m.seats, m.seed);
       else if (m.table === 'corte') startPiquete(m.seats, m.seed);
       else if (m.table === 'soga') startSoga(m.seats, m.seed);
       else if (m.table === 'bombo') startBombo(m.seats, m.seed);
+      else if (m.table === 'olla') startOlla(m.seats, m.seed);
       else startTruco6(m.seats, m.seed);
     }
     // 'end': la mesa se cortó mientras esperabas → seguís en la espera (otro se puede sentar)
   }
   function sitAtTable(table) {   // te sentaste a una mesa (bodegón/lavalle) → al server + a esperar el pareo
-    if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || bomboGame || tableWait) return;
+    if (trucoPvpGame || truco6Game || piqueteGame || sogaGame || bomboGame || ollaGame || tableWait) return;
     tableWait = { table, seats: 1 };
     if (typeof Salon !== 'undefined' && Salon.tableSit) Salon.tableSit(table, () => {});
     Sfx.pickup && Sfx.pickup();
@@ -1236,6 +1239,19 @@
     if (!bomboGame) return;
     if (m.t === 'lv3-tap' && bomboGame.isHost) bomboGame.onTap(m);
     else if (m.t === 'lv3-state' && !bomboGame.isHost) bomboGame.applyState(m);
+  }
+  // Lavalle: "Reparto de la olla" (reacción co-op). host sirve; guests mandan lv4-serve, host transmite lv4-state.
+  function startOlla(seats, seed) {
+    if (typeof Olla === 'undefined' || !Olla.create) return;
+    const host = seats[0], role = (myPid() === host) ? 'host' : 'guest';
+    lavalleGame = null;
+    ollaGame = Olla.create({ role, seats, myPid: myPid(), hostPid: host, seed, sendState: (pid, obj) => sendTk(pid, obj) });
+    state = 'olla'; hideHudForMatch();
+  }
+  function handleOlla(fromPid, m) {
+    if (!ollaGame) return;
+    if (m.t === 'lv4-serve' && ollaGame.isHost) ollaGame.onServe();
+    else if (m.t === 'lv4-state' && !ollaGame.isHost) ollaGame.applyState(m);
   }
   async function chatSend() {
     if (peerChat) return peerChatSend();   // F2b.2: chat PRIVADO con otro jugador → va por el salón, no a la IA
@@ -3136,6 +3152,7 @@
       if (lavalleGame.joinCorte) sitAtTable('corte');                 // [E] en la barricada → armar "Aguantar el corte" (server parea)
       if (lavalleGame.joinSoga) sitAtTable('soga');                   // [E] abajo-izq → "La soga"
       if (lavalleGame.joinBombo) sitAtTable('bombo');                 // [E] abajo-der → "Bombo & cumbia"
+      if (lavalleGame.joinOlla) sitAtTable('olla');                   // [E] en la olla → "Reparto de la olla"
       if (tableWait) drawTableWait(W, H);                             // overlay "esperando compañeros…"
       if (lavalleGame.done) {
         if (tableWait) leaveTableWait();                              // si salís de Lavalle mientras esperabas → cancelá la mesa
@@ -3183,6 +3200,13 @@
       if (bomboGame.done) {
         const res = bomboGame.result; bomboGame = null;
         setMsg(T(res === 'win' ? 'g.bombo.won' : res === 'lose' ? 'g.bombo.lost' : 'g.bombo.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
+        if (enterLavalle()) { /* de vuelta al piquete */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+      }
+    } else if (state === 'olla' && ollaGame) {                          // Lavalle: "Reparto de la olla" (reacción co-op)
+      ollaGame.update(dt); ollaGame.draw(ctx, W, H);
+      if (ollaGame.done) {
+        const res = ollaGame.result; ollaGame = null;
+        setMsg(T(res === 'win' ? 'g.olla.won' : res === 'lose' ? 'g.olla.lost' : 'g.olla.left'), res === 'win' ? '#7CFC00' : '#ffcf6e', 6000);
         if (enterLavalle()) { /* de vuelta al piquete */ } else { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'trucopvp6' && truco6Game) {
