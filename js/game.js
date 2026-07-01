@@ -47,6 +47,7 @@
   let chatNpc = null, chatHistory = [], chatBusy = false, hintAsks = 0, chatFallbacks = 0;
   let peerChat = null;   // F2b.2: si está abierto el chat PRIVADO con otro jugador del bodegón → { pid, nick }
   let peerChatFrom = null;   // T2b: desde dónde se abrió el chat privado ('bodegon' → al cerrar volvés al top-down)
+  let chatReturnTo = null;   // Lavalle: chat IA abierto desde un sub-modo top-down ('lavalle' → al cerrar volvés ahí)
   let newsQuest = null;   // F2 cine: {topic, answer} cuando el linyera te mandó a buscar noticias (efímero, no se guarda)
   let mundialQuest = null;   // §9 quest de los hinchas: {equipo, resultado, shown} — efímero, se resetea al salir del cine
   // QUESTS como DATO (migración v2, F1): registro DECLARATIVO — premios/penalidades/chance/mensajes son data, no
@@ -1064,9 +1065,11 @@
     elChat.classList.add('hidden'); elChatInput.value = ''; chatNpc = null; peerChat = null;
     const from = peerChatFrom; peerChatFrom = null;
     if (state === 'chat') {
+      // Lavalle: el chat con el linyera peronista se abrió DESDE el piquete top-down → volvés ahí (lavalleGame sigue vivo)
+      if (chatReturnTo === 'lavalle' && lavalleGame) { chatReturnTo = null; state = 'lavalle'; }
       // T2b: si el chat privado se abrió DESDE el bodegón top-down → volvés ahí (no al side-scroller)
-      if (from === 'bodegon' && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
-      else state = 'playing';
+      else if (from === 'bodegon' && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
+      else { chatReturnTo = null; state = 'playing'; }
     }
     chipLinMaybePosta();   // QUEST DEL CHIP: si ya hablaste con los 3 linyeras de la habitación → la posta (sos el de Garbarino)
   }
@@ -3068,6 +3071,8 @@
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
+      const lc = lavalleGame.openChatNpc;                             // [E] sobre el linyera peronista → chat IA (vuelve a Lavalle)
+      if (lc) { chatReturnTo = 'lavalle'; openChat({ name: lc.name, persona: lc.persona }); }
       if (lavalleGame.done) {
         lavalleGame = null; state = 'playing'; transCd = 0.6;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');

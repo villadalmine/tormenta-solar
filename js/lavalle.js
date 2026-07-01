@@ -29,19 +29,25 @@ const Lavalle = (() => {
 
     const folks = [
       { x: 9, y: 4.0, col: '#5a2a2a', bandana: '#c0241f', holds: 'stick', name: T('g.lavalle.npc.corta'), line: T('g.lavalle.line.corta') },
-      { x: 6.6, y: 5.7, col: '#2e3a55', hood: '#1c2230', holds: 'stick', name: T('g.lavalle.npc.encapuchado'), line: T('g.lavalle.line.encapuchado') },
-      { x: 11.4, y: 5.8, col: '#3a4a2a', bandana: '#2a2a2a', name: T('g.lavalle.npc.fierro'), line: T('g.lavalle.line.fierro') },
-      { x: 5.6, y: 7.6, col: '#5a3a5a', name: T('g.lavalle.npc.rosa'), line: T('g.lavalle.line.rosa') },
-      { x: 13.6, y: 7.6, col: '#2a4a4a', holds: 'bombo', name: T('g.lavalle.npc.bombo'), line: T('g.lavalle.line.bombo') },
-      { x: 7.4, y: 10, col: '#4a3a1a', holds: 'flag', flagK: 'arg', name: T('g.lavalle.npc.bandera'), line: T('g.lavalle.line.bandera') },
-      { x: 11, y: 10.2, col: '#3a2a4a', holds: 'flag', flagK: 'peron', name: T('g.lavalle.npc.copado'), line: T('g.lavalle.line.copado') },
-      { x: 6, y: 11.6, col: '#6a4a2a', name: T('g.lavalle.npc.referente'), line: T('g.lavalle.line.referente') },
-      { x: 12.6, y: 11.5, col: '#5a3a3a', dance: true, name: T('g.lavalle.npc.vecina'), line: T('g.lavalle.line.vecina') },
+      // ABANDERADOS en cada PUNTA (bandera argentina)
+      { x: 2.4, y: 6.6, col: '#3a4a6a', holds: 'flag', flagK: 'arg', name: T('g.lavalle.npc.bandera'), line: T('g.lavalle.line.bandera') },
+      { x: 15.6, y: 6.7, col: '#4a3a2a', holds: 'flag', flagK: 'arg', name: T('g.lavalle.npc.bandera'), line: T('g.lavalle.line.bandera') },
+      // el del bombo + la que baila (vida)
+      { x: 5.4, y: 7.9, col: '#2a4a4a', holds: 'bombo', name: T('g.lavalle.npc.bombo'), line: T('g.lavalle.line.bombo') },
+      { x: 13.8, y: 8.1, col: '#5a3a3a', dance: true, name: T('g.lavalle.npc.vecina'), line: T('g.lavalle.line.vecina') },
+      // TRÍO del frente que interactuás; el del CENTRO es el LINYERA PERONISTA (chat)
+      { x: 7, y: 10.6, col: '#2e3a55', hood: '#1c2230', name: T('g.lavalle.npc.encapuchado'), line: T('g.lavalle.line.encapuchado') },
+      { x: 9, y: 10.7, col: '#3a2a18', hair: '#241812', linyera: true, chat: true, persona: 'peronista',
+        name: T('g.lavalle.npc.peronista'), line: T('g.lavalle.line.peronista') },
+      { x: 11, y: 10.6, col: '#3a4a2a', bandana: '#2a2a2a', name: T('g.lavalle.npc.fierro'), line: T('g.lavalle.line.fierro') },
     ];
-    // MULTITUD de fondo (chiquitos, apretados contra el corte) → el piquete se siente lleno
+    // MULTITUD de fondo en TRES HILERAS (profundidad: la de atrás más chica y tenue) → el piquete se siente lleno
     const crowd = []; const ccol = ['#3a4a6a', '#5a3a3a', '#3a5a4a', '#4a3a5a', '#5a4a2a', '#2e4a5a'];
-    for (let i = 0; i < 16; i++) crowd.push({ x: 1.6 + i * 1.0, y: 4.2 + ((i * 3) % 3) * 0.32, col: ccol[i % ccol.length], ph: i * 1.3 });
-    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null;
+    const CROWD_ROWS = [{ y: 4.35, sc: 0.7, a: 0.6 }, { y: 5.05, sc: 0.85, a: 0.78 }, { y: 5.75, sc: 1.0, a: 0.92 }];
+    CROWD_ROWS.forEach((r, ri) => { for (let i = 0; i < 15; i++) crowd.push({ x: 1.9 + i * 1.0, y: r.y + (i % 2) * 0.1, col: ccol[(i + ri) % ccol.length], ph: i * 1.3 + ri * 0.7, sc: r.sc, a: r.a }); });
+    // el LIENZO largo "VIVA PERÓN ×N" cruza la hilera de atrás, colgado ALTO (no tapa a nadie)
+    const banner = { y: 3.7 };
+    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null;
     setMsg(T('g.lavalle.intro'), 6);
     if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(true);
 
@@ -65,7 +71,14 @@ const Lavalle = (() => {
       if (player.y > (H - 0.6) * CS) { leave(); return; }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); return; } } else escHeld = false;
       near = null; for (const f of folks) if (nearTile(f, 1.5)) { near = f; break; }
-      prompt = near ? (near.name + ': ' + near.line) : (player.y > (H - 2.4) * CS ? T('g.lavalle.exitHint') : '');
+      // [E] cerca del linyera peronista → abrir chat (lo consume game.js vía openChatNpc)
+      if (near && near.chat) {
+        if (Input.keys['e']) { if (!eHeld) { eHeld = true; chatReq = { name: near.name, persona: near.persona, kind: 'linyera' }; } } else eHeld = false;
+        prompt = T('g.lavalle.chatHint', { n: near.name });
+      } else {
+        eHeld = false;
+        prompt = near ? (near.name + ': ' + near.line) : (player.y > (H - 2.4) * CS ? T('g.lavalle.exitHint') : '');
+      }
     }
 
     // ───────── helpers de dibujo ─────────
@@ -143,6 +156,9 @@ const Lavalle = (() => {
       ctx.fillStyle = '#d9a878'; ctx.fillRect(x - 9, y + 3 + sw, 3, 2); ctx.fillRect(x + 6, y + 3 + sw, 3, 2);
       ctx.fillStyle = '#d9a878'; ctx.beginPath(); ctx.arc(x, y - 13 + sw, 5, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = o.hair || '#1c1410'; ctx.beginPath(); ctx.arc(x, y - 15 + sw, 5, Math.PI, 0); ctx.fill();
+      if (o.linyera) {   // el linyera peronista: melena caída + barba
+        ctx.fillStyle = o.hair || '#241812'; ctx.fillRect(x - 6, y - 15 + sw, 3, 9); ctx.fillRect(x + 3, y - 15 + sw, 3, 9);
+        ctx.beginPath(); ctx.arc(x, y - 10 + sw, 4, 0, Math.PI); ctx.fill(); }
       if (o.bandana) { ctx.fillStyle = o.bandana; ctx.fillRect(x - 5, y - 13 + sw, 10, 4); }
       if (o.hood) { ctx.fillStyle = o.hood; ctx.beginPath(); ctx.arc(x, y - 14 + sw, 6.5, Math.PI * 0.85, Math.PI * 2.15); ctx.fill(); }
       if (o.holds === 'stick') { ctx.strokeStyle = '#6d4c2f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, y + 3 + sw); ctx.lineTo(x + 11, y - 18); ctx.stroke(); }
@@ -163,12 +179,24 @@ const Lavalle = (() => {
       ctx.save(); ctx.translate(x + 6, y - 2); ctx.rotate(0.55); ctx.fillStyle = '#7a3b12'; ctx.fillRect(-3.5, -12, 7, 22); ctx.fillStyle = '#d8a24a'; ctx.fillRect(-1, -12, 2, 22); ctx.restore();
       ctx.fillStyle = '#2a2018'; ctx.beginPath(); ctx.arc(x, y - 13, 7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#241b14'; ctx.fillRect(x - 7, y - 12, 14, 9);
     }
-    function smallFolk(ctx, x, y, col, ph) {   // figura chica de la multitud (rebota a la cumbia)
-      const b = -Math.abs(Math.sin(t * 3.3 + ph)) * 1.2;
-      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x, y + 6, 5, 1.8, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = col; ctx.fillRect(x - 4, y - 5 + b, 8, 9);
-      ctx.fillStyle = '#c99a70'; ctx.beginPath(); ctx.arc(x, y - 8 + b, 3.4, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#1c1410'; ctx.beginPath(); ctx.arc(x, y - 9.5 + b, 3.4, Math.PI, 0); ctx.fill();
+    function smallFolk(ctx, x, y, col, ph, sc) {   // figura chica de la multitud (rebota a la cumbia); sc = escala por hilera
+      sc = sc || 1; const b = -Math.abs(Math.sin(t * 3.3 + ph)) * 1.2 * sc;
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x, y + 6 * sc, 5 * sc, 1.8 * sc, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = col; ctx.fillRect(x - 4 * sc, y - 5 * sc + b, 8 * sc, 9 * sc);
+      ctx.fillStyle = '#c99a70'; ctx.beginPath(); ctx.arc(x, y - 8 * sc + b, 3.4 * sc, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1c1410'; ctx.beginPath(); ctx.arc(x, y - 9.5 * sc + b, 3.4 * sc, Math.PI, 0); ctx.fill();
+    }
+    // el LIENZO largo "VIVA PERÓN ×N" colgado ALTO sobre la hilera de atrás (entre dos varas, no tapa a nadie)
+    function longBanner(ctx, TX2, TY2) {
+      const by = TY2(banner.y), bx0 = TX2(1.2), bx1 = TX2(W - 1.2), bw = bx1 - bx0;
+      ctx.strokeStyle = '#5a3a1a'; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(bx0, by + 18); ctx.lineTo(bx0, by - 6); ctx.moveTo(bx1, by + 18); ctx.lineTo(bx1, by - 6); ctx.stroke();
+      const wob = Math.sin(t * 2.2) * 1.5;
+      ctx.fillStyle = '#f3ead8'; ctx.fillRect(bx0, by - 4 + wob, bw, 15);
+      ctx.strokeStyle = '#cdbf9f'; ctx.lineWidth = 1; ctx.strokeRect(bx0, by - 4 + wob, bw, 15);
+      ctx.fillStyle = '#b3141a'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const step = 96; for (let x = bx0 + step / 2; x < bx1; x += step) ctx.fillText('VIVA PERÓN', x, by + 4 + wob);
+      ctx.textBaseline = 'alphabetic';
     }
     function bubble(ctx, x, y, txt) { ctx.font = '9px monospace'; const tw = Math.min(180, ctx.measureText(txt).width + 10);
       ctx.fillStyle = 'rgba(15,12,8,0.92)'; ctx.fillRect(x - tw / 2, y - 12, tw, 13);
@@ -204,8 +232,10 @@ const Lavalle = (() => {
       for (const c of cars) { brokenCar(ctx, TX2(c.x), TY2(c.y), c.col, c.tilt); smoke(ctx, TX2(c.x) + 14 * (c.tilt < 0 ? -1 : 1), TY2(c.y) - 12, c.x, 3, 0.14); }   // humito del motor
       for (const tr of tires) tireStack(ctx, TX2(tr.x), TY2(tr.y), tr.n);
       for (const f of flags) drawFlag(ctx, TX2(f.x), TY2(f.y), f.k);
-      // MULTITUD de fondo contra el corte (da la sensación de piquete LLENO), dibujada detrás de todo lo de adelante
-      ctx.save(); ctx.globalAlpha = 0.85; for (const c of crowd) smallFolk(ctx, TX2(c.x + 0.5), TY2(c.y + 0.5), c.col, c.ph); ctx.restore();
+      // el LIENZO largo "VIVA PERÓN" cruza ALTO la hilera de atrás (antes que la multitud, colgado sobre sus cabezas)
+      longBanner(ctx, TX2, TY2);
+      // MULTITUD de fondo en 3 HILERAS (profundidad: la de atrás más chica/tenue) → el piquete se siente LLENO
+      for (const c of crowd) { ctx.save(); ctx.globalAlpha = c.a; smallFolk(ctx, TX2(c.x + 0.5), TY2(c.y + 0.5), c.col, c.ph, c.sc); ctx.restore(); }
       // tachos al fuego (animados)
       const fb = barrels.map((b, i) => ({ b, i })).sort((a, z) => a.b.y - z.b.y);
       for (const { b, i } of fb) { const fx = TX2(b.x + 0.5), fy = TY2(b.y + 0.5);
@@ -239,7 +269,10 @@ const Lavalle = (() => {
       if (prompt) { ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(0, bottom - 22, VW, 22); ctx.fillStyle = '#ffd54f'; ctx.fillText(prompt, VW / 2, bottom - 7); }
     }
 
-    return { get done() { return done; }, get exitTo() { return exitTo; }, update, draw };
+    return {
+      get done() { return done; }, get exitTo() { return exitTo; }, update, draw,
+      get openChatNpc() { const r = chatReq; chatReq = null; return r; },   // one-shot: game.js abre el chat y vuelve a Lavalle
+    };
   }
   return { create };
 })();

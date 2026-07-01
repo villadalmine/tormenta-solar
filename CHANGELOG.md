@@ -56,6 +56,30 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v251 · infra-41] — 2026-07-01 — ✊🇦🇷 Lavalle: multitud en 3 hileras + lienzo "VIVA PERÓN" + el LINYERA PERONISTA (chat IA)
+
+Iteración de la postal del piquete y **primer NPC chateable de Lavalle** (roadmap E5):
+- **Multitud en 3 HILERAS** (`CROWD_ROWS` con escala/alfa por fila): la de atrás chica y tenue, la de adelante a tamaño
+  real → **sensación de profundidad**, el piquete se ve más lleno (`smallFolk` ahora escala por hilera).
+- **Abanderados en cada PUNTA**: un piquetero con la **bandera argentina** en cada extremo de la fila.
+- **Lienzo largo "VIVA PERÓN ×N"** colgado ALTO sobre la hilera de atrás (entre dos varas, sobre las cabezas — no tapa
+  a nadie) (`longBanner`).
+- **Trío del frente** que interactuás; el del **CENTRO es EL LINYERA PERONISTA**: NPC nuevo tipo linyera, **chateable
+  con IA** ([E] al lado). Persona `peronista` (server-side + copia BYOK): peronista de primera línea que **se sabe TODO
+  de Perón** (hasta la Marcha Peronista) y **cualquier cosa que le preguntes la lleva de vuelta a Perón** y a cómo
+  funciona el mundo según Perón. Ficha `specs/nivel-1/personajes/peronista.md` (fuente del prompt).
+- **Chat desde el sub-modo top-down:** `lavalle.js` expone `openChatNpc` (one-shot); `game.js` abre el chat IA y al
+  cerrar **vuelve a Lavalle** (`chatReturnTo`), sin recrear la escena.
+- **infra-41 (proxy 0.1.63):** `ai-proxy/personas.js` regenerado (nueva persona `peronista`; de paso **se reconstruyó
+  la ficha `hincha.md`** que faltaba y hacía que el regen la perdiera — ahora las 10 personas salen de fichas).
+- i18n `g.lavalle.npc/line.peronista` + `g.lavalle.chatHint` (ES≡EN). e2e + paridad + screenshot real OK. Cache **v251**.
+
+**Nota de arquitectura (REGLA #0):** el **chat del peronista SÍ es v2** (persona=dato de ficha + memoria + grounding).
+La **escena** de Lavalle sigue hardcodeada en `js/lavalle.js` (sub-modo isla, igual que bodegón/telo) — deuda anotada;
+el enganche al grafo es E4/E5 de `specs/lavalle.md`.
+
+---
+
 ## [v250] — 2026-07-01 — ✊🔥 Lavalle: la postal AHORA VIVE (cumbia, multitud, fuego que ilumina, humo, chispas)
 
 Pulido ambiental del piquete: **toda la gente rebota al ritmo de la cumbia** y **el bombo se TOCA** (el palo golpea y el

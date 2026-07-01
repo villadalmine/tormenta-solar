@@ -206,6 +206,8 @@
     'g.lavalle.npc.bombo': 'The drummer', 'g.lavalle.line.bombo': 'drums and cymbals, let the blockade be heard! 🥁',
     'g.lavalle.npc.bandera': 'The flag bearer', 'g.lavalle.line.bandera': 'long live the homeland, comrade! 🇦🇷',
     'g.lavalle.npc.referente': 'The organizer', 'g.lavalle.line.referente': "we're organized. the blockade holds ✊",
+    'g.lavalle.npc.peronista': 'The Peronist hobo', 'g.lavalle.line.peronista': 'ask me anything, kid… it all ends up back at Perón ✊',
+    'g.lavalle.chatHint': '[E] talk to {n} (knows EVERYTHING about Perón) ✊',
     'g.bodegon.topTitle': 'The Bodegón',
     'g.bodegon.topIntro': '🍻 The bodegón, top-down: tables with the folks playing RIGHT NOW, the counter with the blonde, and the way out. Walk (WASD), throw emotes (1-4) and phrases (5-8). Talk to the blonde if you dare… 💋',
     'g.bodegon.rubiaName': 'the blonde',

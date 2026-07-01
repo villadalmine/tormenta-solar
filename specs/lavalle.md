@@ -1,8 +1,8 @@
 # SDD — Calle Lavalle (hacia el Obelisco): el piquete copado
 
-- **Estado:** **ETAPA 1.5 HECHA y en prod (v246→v248).** Lavalle es un **sub-modo TOP-DOWN** (`js/lavalle.js`), NO una
-  sala side-scroller. Próximo: Etapa 2 (§5).
-- **Última actualización:** 2026-06-30 (v248)
+- **Estado:** **ETAPA 1.5 HECHA y en prod (v246→v251).** Lavalle es un **sub-modo TOP-DOWN** (`js/lavalle.js`), NO una
+  sala side-scroller. **E5 (chat IA) ARRANCÓ:** el linyera peronista ya es chateable. Próximo: Etapa 2 (§5).
+- **Última actualización:** 2026-07-01 (v251)
 - **Origen:** idea del dueño. (Reemplaza el viejo "Nivel 2 = Calle Lavalle" del truco, que se había descartado: esta es
   una visión NUEVA y concreta, desacoplada del truco — Lavalle es una **zona contigua** de la calle, no un premio.)
 
@@ -23,7 +23,17 @@ Tras el playtest del dueño, el diseño side-scroller original (§2-§3) **se re
 - Archivos: `js/lavalle.js` (el sub-modo), `js/art.js` (`lavalle_sign` decor + obelisco), `js/game.js` (enterLavalle +
   auto-pase + dispatch), i18n `g.lavalle.*` en `game.es/en.js`. **Verificado con screenshot real (Playwright).**
 
-- **Relacionado:** `js/lavalle.js` (sub-modo), `js/art.js`, `js/audio.js` (cumbia `Sfx.setCumbia`), `js/game.js`.
+- **v250 (la postal VIVE):** cumbia (todos rebotan), bombo que se toca, multitud de fondo, tachos que iluminan +
+  chispas, humo de los autos rotos.
+- **v251 (multitud 3 hileras + lienzo + peronista chateable):** la multitud es de **3 HILERAS** con escala/alfa por
+  fila (`CROWD_ROWS`; `smallFolk(…, sc)`) → profundidad; **abanderado con bandera argentina en cada PUNTA**; **lienzo
+  largo "VIVA PERÓN ×N"** colgado alto sobre la hilera de atrás (`longBanner`, no tapa a nadie); **trío del frente** con
+  el **LINYERA PERONISTA** al centro = **primer NPC chateable de Lavalle** (persona `peronista`, ficha
+  `nivel-1/personajes/peronista.md`; sabe TODO de Perón y todo lo lleva a Perón). El sub-modo expone `openChatNpc`
+  (one-shot) y `game.js` abre el chat IA y **vuelve a Lavalle al cerrar** (`chatReturnTo`), sin recrear la escena.
+  **Deuda REGLA #0:** el chat es v2 (persona=dato+memoria+grounding); la escena sigue hardcodeada (sub-modo isla).
+- **Relacionado:** `js/lavalle.js` (sub-modo), `js/art.js`, `js/audio.js` (cumbia `Sfx.setCumbia`), `js/game.js`,
+  `ai-proxy/personas.js` (persona `peronista`), `js/ai.js` (copia BYOK).
 
 ## 1. La visión
 
