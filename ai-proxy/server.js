@@ -143,6 +143,8 @@ const BODEGON = new Map(); const BODEGON_CAP = 6, BODEGON_TTL = 20000; let BODEG
 // sin `space` → 'bodegon' (comportamiento actual). 'lavalle' = el piquete co-op ("Aguantar el corte", cap 6).
 const SPACE_TABLES = { bodegon: { '1v1': 2, '6': 6 }, lavalle: { corte: 6, soga: 6, bombo: 6, olla: 6, pancarta: 6 } };
 const TABLE_CAP = { '1v1': 2, '6': 6, corte: 6, soga: 6, bombo: 6, olla: 6, pancarta: 6 }; const TABLE_COUNTDOWN = 8000;
+// cuenta regresiva POR mesa: las co-op de Lavalle arrancan RÁPIDO (3s, jugables solo) — el truco de 6 espera más para juntar gente
+const CD_MS = { '6': 8000, corte: 3000, soga: 3000, bombo: 3000, olla: 3000, pancarta: 3000 };
 const CD_TABLES = new Set(['6', 'corte', 'soga', 'bombo', 'olla', 'pancarta']);   // mesas que arrancan por cuenta regresiva o al llenarse (las demás = solo al llenarse)
 const CD_MIN = { '6': 2, corte: 1, soga: 1, bombo: 1, olla: 1, pancarta: 1 };     // mínimo de jugadores para arrancar por cuenta regresiva (co-op = arranca solo)
 const mkTable = () => ({ seats: new Map(), state: 'waiting', startAt: 0 });
@@ -162,7 +164,7 @@ function tableSit(r, name, pid, nick) {
   const t = r.tables[name]; if (!t || t.state === 'playing') return;
   if (!t.seats.has(pid) && t.seats.size >= TABLE_CAP[name]) return;        // mesa llena
   t.seats.set(pid, { pid, nick, ts: Date.now() });
-  if (CD_TABLES.has(name) && t.seats.size >= (CD_MIN[name] || 2) && !t.startAt) t.startAt = Date.now() + TABLE_COUNTDOWN;
+  if (CD_TABLES.has(name) && t.seats.size >= (CD_MIN[name] || 2) && !t.startAt) t.startAt = Date.now() + (CD_MS[name] || TABLE_COUNTDOWN);
   bodegonBroadcast(r, 'table-update', { table: name, ...tableView(t) });
   tableMaybeStart(r, name);
 }

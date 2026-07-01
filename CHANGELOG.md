@@ -87,6 +87,25 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v267 · infra-55] — 2026-07-01 — 🎮 Playtest del dueño: reworks de los mini-juegos del piquete
+
+Iteración sobre los 5 mini-juegos con feedback del dueño:
+- **Aguantar el corte:** MÁS RÁPIDO escalando con jugadores (`speedMul`, olas más veloces y seguidas); **conteo** de lo
+  que falta ("Ola n/3 · faltan X"); y **JEFE FINAL: ROBOCOP** 🤖 tras las 3 olas → se activa el **RAYO SOLAR**, [E] le
+  disparás hasta fritarlo (guests por `lv-ray`). Robocop rompe la barricada si llega → hay que matarlo con el rayo.
+- **La soga → "EMPUJAR EL PATRULLERO":** reskin (no pegaba con el piquete). Ahora empujás un **patrullero** contra una
+  **barricada de canas MORFANDO** (empujan flojo). Mismo motor, otra piel + tema.
+- **Reparto de la olla — REDISEÑO:** los vecinos **se acercan** en cola; cada uno pide un plato — 🌭 chori a la
+  pomarola / 🍲 guiso / 🥘 locro — y servís con **[1]/[2]/[3]**; caen **canas 🚓 y políticos 🎩 colados a los que NO hay
+  que dar de comer** (penaliza). 3 ollas dibujadas.
+- **Pintar la pancarta — REDISEÑO:** ahora es **pintar-por-color**: la pancarta dice **VIVA PERÓN** (letras de
+  plantilla), **elegís color [1] celeste / [2] blanco** y pintás cada celda del color correcto (los de la bandera).
+- **Lobbies MÁS RÁPIDOS (infra-55, proxy 0.1.77):** las mesas co-op de Lavalle arrancan la cuenta en **3s** (antes 8s)
+  → entrás casi al toque; el truco de 6 sigue en 8s (juntar gente).
+- e2e (todos terminan/renderizan) + i18n ES≡EN. Cache **v267**.
+
+---
+
 ## [v266 · infra-54] — 2026-07-01 — 🎨 Lavalle: 5º mini-juego co-op "PINTAR LA PANCARTA" + SET COMPLETO (5 juegos)
 
 Quinto y último del set. Entre todos PINTAN la pancarta gigante: movés el pincel (WASD) y pintás las celdas de la tela;

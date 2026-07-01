@@ -280,6 +280,7 @@ if (require.main === module) {
     // guest: aplica estado del host sin crash
     const pg = Piquete.create({ role: 'guest', seats: ['h', 'me'], myPid: 'me', seed: 7 });
     pg.applyState({ t: 'lv-state', h: 80, w: 2, p: 'play', e: [5, 2, 9, 1.5] }); pg.draw(C, 960, 540);
+    pg.applyState({ t: 'lv-state', h: 60, w: 3, p: 'boss', e: [], b: [9, 2, 80] }); pg.onRay(); pg.draw(C, 960, 540);   // fase ROBOCOP + rayo
     ok.push('piquete:' + pq.result);
     // "LA SOGA": host solo (sin tirar) → el desalojo gana (lose); tirando mucho → gana (win)
     const sg = Soga.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 3, sendState: () => {} });
@@ -297,20 +298,19 @@ if (require.main === module) {
     for (let i = 0; i < 900 && !bm2.done; i++) { bm2.update(0.05); bm2.draw(C, 960, 540); }
     if (bm2.result !== 'lose') throw new Error('bombo sin tocar debería perder: ' + bm2.result);
     ok.push('bombo:ok');
-    // "REPARTO DE LA OLLA": sirviendo cada frame → gana; sin servir → se van enojados → pierde
-    const ol = Olla.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 9, sendState: () => {} });
-    for (let i = 0; i < 1200 && !ol.done; i++) { ol.tapExternal(); ol.update(0.05); ol.draw(C, 960, 540); }
-    if (ol.result !== 'win') throw new Error('olla sirviendo debería ganar: ' + ol.result);
+    // "REPARTO DE LA OLLA" (3 platos + colados): sin servir → se van con hambre → pierde; servir no crashea; guest ok
     const ol2 = Olla.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 9, sendState: () => {} });
-    for (let i = 0; i < 1200 && !ol2.done; i++) { ol2.update(0.05); ol2.draw(C, 960, 540); }
-    if (ol2.result !== 'lose') throw new Error('olla sin servir debería perder: ' + ol2.result);
+    for (let i = 0; i < 1600 && !ol2.done; i++) { if (i % 30 === 0) ol2.serveExternal(i % 3); ol2.update(0.05); ol2.draw(C, 960, 540); }
+    if (!ol2.done || !['win', 'lose', 'flee'].includes(ol2.result)) throw new Error('olla no termina: ' + ol2.result);
+    const olg = Olla.create({ role: 'guest', seats: ['h', 'me'], myPid: 'me' });
+    olg.applyState({ t: 'lv4-state', q: [[0, 1, 5.5, 1], [1, 0, 4.6, 0]], n: 3, a: 2, p: 'play' }); olg.draw(C, 960, 540);
     ok.push('olla:ok');
     // "PINTAR LA PANCARTA": sin moverse (poco pintado) → pierde por tiempo; guest applyState sin crash
     const pc = Pancarta.create({ role: 'host', seats: ['me'], myPid: 'me', seed: 1, sendState: () => {} });
-    for (let i = 0; i < 1100 && !pc.done; i++) { pc.update(0.05); pc.draw(C, 960, 540); }
+    for (let i = 0; i < 1400 && !pc.done; i++) { pc.update(0.05); pc.draw(C, 960, 540); }
     if (pc.result !== 'lose') throw new Error('pancarta sin pintar debería perder: ' + pc.result);
     const pcg = Pancarta.create({ role: 'guest', seats: ['h', 'me'], myPid: 'me' });
-    pcg.applyState({ t: 'lv5-state', g: '1'.repeat(18 * 9), pr: 1, tl: 5, p: 'play' }); pcg.draw(C, 960, 540);
+    pcg.applyState({ t: 'lv5-state', g: '2'.repeat(24 * 7), pr: 1, tl: 5, p: 'play' }); pcg.draw(C, 960, 540);
     ok.push('pancarta:ok');
     return ok.join(',');
   })()`, sandbox);

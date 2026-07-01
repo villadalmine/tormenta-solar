@@ -1214,8 +1214,10 @@
     piqueteGame = Piquete.create({ role, seats, myPid: myPid(), seed, sendState: (pid, obj) => sendTk(pid, obj) });
     state = 'piquete'; hideHudForMatch();
   }
-  function handlePiquete(fromPid, m) {   // guest: estado del host
-    if (piqueteGame && !piqueteGame.isHost && m.t === 'lv-state') piqueteGame.applyState(m);
+  function handlePiquete(fromPid, m) {
+    if (!piqueteGame) return;
+    if (m.t === 'lv-state' && !piqueteGame.isHost) piqueteGame.applyState(m);
+    else if (m.t === 'lv-ray' && piqueteGame.isHost) piqueteGame.onRay();   // guest disparó el rayo solar a Robocop
   }
   // Lavalle: "La soga" (tug of war co-op). host = seats[0]; guests mandan lv2-pull, host transmite lv2-state.
   function startSoga(seats, seed) {
@@ -1253,7 +1255,7 @@
   }
   function handleOlla(fromPid, m) {
     if (!ollaGame) return;
-    if (m.t === 'lv4-serve' && ollaGame.isHost) ollaGame.onServe();
+    if (m.t === 'lv4-serve' && ollaGame.isHost) ollaGame.onServe(m);
     else if (m.t === 'lv4-state' && !ollaGame.isHost) ollaGame.applyState(m);
   }
   // Lavalle: "Pintar la pancarta" (colaborativo). host pinta bajo cada pincel (pos por Salon.pos) + transmite lv5-state.
