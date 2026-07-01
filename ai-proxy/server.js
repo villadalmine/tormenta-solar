@@ -610,10 +610,15 @@ http.createServer((req, res) => {
     const r = BODEGON.get(room); if (!r) { res.writeHead(404); return res.end('no room'); }
     res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
     res.write('retry: 3000\n\n');
+    // AUTO-REJOIN: si el SSE reconecta (o llega antes que el /join) y el pid NO está en peers → re-agregarlo. Antes, al
+    // reconectar el stream, el close borraba el peer y no volvía → "los jugadores no se ven" + el truco no pareaba.
+    if (pid && !r.peers.has(pid)) { r.peers.set(pid, { pid, nick: '', avatar: 'carpo', x: 11, vx: 0, emote: 0, emoteT: 0, ts: Date.now(), ip: clientIp(req) }); bodegonBroadcast(r, 'peer-join', { pid, nick: '', avatar: 'carpo', x: 11 }); }
     for (const p of r.peers.values()) if (p.pid !== pid) res.write('event: peer-pos\ndata: ' + JSON.stringify({ pid: p.pid, nick: p.nick, avatar: p.avatar, x: p.x, vx: p.vx }) + '\n\n');
     r.subs.add(res); if (pid) r.streams.set(pid, res);   // streams: pid -> res, para DIRIGIR mensajes privados (whisper)
     const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch (e) {} }, 15000);
-    req.on('close', () => { clearInterval(ping); r.subs.delete(res); if (r.streams.get(pid) === res) r.streams.delete(pid); bodegonLeave(room, pid); });
+    // al cerrar el stream: sacar el sub/stream, PERO NO el peer (lo maneja el TTL prune o /salon/leave). Así un reconnect
+    // del EventSource no te hace desaparecer para todos.
+    req.on('close', () => { clearInterval(ping); r.subs.delete(res); if (r.streams.get(pid) === res) r.streams.delete(pid); });
     return;
   }
   if (req.url === '/salon/whisper' && req.method === 'POST') {                       // chat PRIVADO 1-a-1 (texto libre) + protocolo del TRUCO PvP (vistas JSON), efímero, rate-limit

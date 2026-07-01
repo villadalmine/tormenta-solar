@@ -39,8 +39,8 @@ const Bodegon = (() => {
     const peerTy = p => (p.ry != null ? p.ry : (p.y != null ? p.y : 6));
     function nearestPeer() {
       const pm = peersMap(); if (!pm) return null; let best = null, bd = 1e9;
-      for (const p of pm.values()) { if (!p.pid) continue; const d = Math.hypot(player.x - (peerTx(p) + 0.5) * CS, player.y - (peerTy(p) + 0.5) * CS); if (d < bd) { bd = d; best = p; } }
-      return (best && bd < CS * 1.5) ? best : null;
+      for (const p of pm.values()) { if (!p.pid) continue; const d = Math.hypot(player.x - peerTx(p) * CS, player.y - peerTy(p) * CS); if (d < bd) { bd = d; best = p; } }
+      return (best && bd < CS * 1.8) ? best : null;
     }
     function postPos(em) { if (typeof Salon !== 'undefined' && Salon.pos) Salon.pos(player.x / CS, 0, em, player.y / CS); }   // posición REAL (x,y) → los demás te ven caminar
     function emote(i) { myEmote = i; myEmoteT = t; postPos(i); Sfx.pickup && Sfx.pickup(); }
@@ -130,7 +130,7 @@ const Bodegon = (() => {
       if (pm) for (const p of pm.values()) { count++;
         if (p.rx == null) p.rx = (p.x != null ? p.x : 9); if (p.ry == null) p.ry = (p.y != null ? p.y : 6);
         p.rx += ((p.x != null ? p.x : p.rx) - p.rx) * 0.2; p.ry += ((p.y != null ? p.y : p.ry) - p.ry) * 0.2;   // interpolación suave
-        const sx = ox + (p.rx + 0.5) * CS, sy = oy + (p.ry + 0.5) * CS;
+        const sx = ox + p.rx * CS, sy = oy + p.ry * CS;   // p.rx/ry = tile-centro (como player.x/CS); sin +0.5 (si no, corridos)
         if (target && target.pid === p.pid) { ctx2.strokeStyle = '#ffd54f'; ctx2.lineWidth = 2; ctx2.beginPath(); ctx2.arc(sx, sy, 14, 0, Math.PI * 2); ctx2.stroke(); }
         figure(ctx2, sx, sy, '#5a7a9a', p.nick || T('g.bodegon.someone'),
           p.emote, now - (p.emoteT || 0) < 2500, p.say, now - (p.sayT || 0) < 4000); }
