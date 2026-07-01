@@ -32,7 +32,10 @@ extraEnv:
   # F2 ModelScorer (auto-pilot "más barato-bueno"): cruza disponibilidad+latencia+precio reales y arma la
   # cadena sola. CANDIDATES = pool free (varios, así si gemma4-free se satura, otro free responde) + el pago
   # entra solo como red (último). FLOOR = piso que nunca falta. CHAIN_MAX 3 = 2 free + 1 pago.
-  - { name: AUTOPILOT, value: "1" }
+  # AUTOPILOT OFF (default): usa la cadena ESTÁTICA AI_MODEL = gemma4-free → gemma4-paid → claude-sonnet
+  # (free PRIMERO, y el PAGO nuestro asegurado como red). Con AUTOPILOT=1 metía 2+ free adelante y con
+  # PER_MODEL 6s / budget 10.5s NUNCA llegaba al pago → el anónimo caía a fallback. Ver specs/ia-tiers.md.
+  - { name: AUTOPILOT, value: "0" }
   - { name: CANDIDATES, value: "gemma4-free,gpt-oss-free,llama70b-free,kimi-free,gemma4-paid,claude-sonnet" }
   - { name: FLOOR_MODEL, value: "gemma4-free" }
   - { name: CHAIN_MAX, value: "4" }                 # 2 free + gemma4-paid + claude-sonnet (respaldo)

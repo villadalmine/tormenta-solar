@@ -56,6 +56,22 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-48] — 2026-07-01 — 🎛️ Tiers de IA claros (Free/Premium/BYOK) + FIX anónimo no llegaba al pago + /provision con código propio
+
+Ordenar y documentar el ruteo del chat (el dueño pidió dejarlo claro por escrito). Proxy 0.1.70.
+- **SDD nuevo `specs/ia-tiers.md`** (fuente única): 3 tiers — **Free/anónimo** (key compartida hermes → LiteLLM →
+  cadena free→pago), **Premium** (código `TS-PREMIUM-…` con key PROPIA de OpenRouter, DIRECTO, trackable por usuario),
+  **BYOK** (key del jugador, directo). Diagrama de decisión + runbook + métricas por tier.
+- **FIX anónimo caía siempre a fallback:** `AUTOPILOT=1` metía 2+ modelos free adelante y con PER_MODEL 6s / budget
+  10.5s **nunca llegaba al pago**. Ahora **`AUTOPILOT=0`** → cadena estática `gemma4-free → gemma4-paid → claude-sonnet`
+  (free primero, PAGO nuestro asegurado como red). "Si no pone nada, usa nuestra key paga" ahora sí funciona.
+- **`/provision` acepta `code` propio** (+ `force`): permite crear los `TS-PREMIUM-…` con su propia key de OpenRouter
+  (antes solo autogeneraba `TS-<hex>`). Así el premium es OpenRouter DIRECTO y trackable por código (lo que el dueño
+  quería: métricas por usuario).
+- Solo proxy 0.1.70 (+ values-prod AUTOPILOT).
+
+---
+
 ## [infra-45] — 2026-07-01 — 📊 Métricas del online: dónde están, lobbies y partidas de mini-juego + dashboard Grafana
 
 Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.67), sin tocar el cliente.

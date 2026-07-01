@@ -812,7 +812,9 @@ http.createServer((req, res) => {
         const email = (d.email || '').toString().trim().slice(0, 120);
         const limit = +d.limit || DEFAULT_SUB_LIMIT;
         if (!email) { res.writeHead(400); return res.end('email requerido'); }
-        const code = genCode();
+        // código: el dueño puede pasar uno PROPIO (ej. TS-PREMIUM-...) para provisionarlo con su key OpenRouter; si no, autogenera.
+        const code = (d.code || '').toString().trim().replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64) || genCode();
+        if (STORE[code] && STORE[code].orKey && !d.force) { res.writeHead(409, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ error: 'code ya provisionado (usá force:true para recrear la key)', code })); }
         const { key, hash } = await orCreateKey(email + ' · ' + code, limit);   // label = email+código (OpenRouter sabe de quién es)
         const expiresAt = Date.now() + SUB_TTL_DAYS * 86400000;                 // vence en 1 mes
         STORE[code] = { email, orKey: key, hash, limit, createdAt: Date.now(), expiresAt };
