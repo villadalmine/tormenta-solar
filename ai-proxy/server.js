@@ -138,17 +138,29 @@ const BODEGON = new Map(); const BODEGON_CAP = 6, BODEGON_TTL = 20000; let BODEG
 // MESAS de truco SERVER-AUTHORITATIVE (specs/multijugador.md): el server PAREA a los jugadores (rendezvous) y emite
 // table-start; la partida en sí vive en los clientes (whisper host↔guests). Caps: 1v1=2, 6=6. El 6 arranca por
 // cuenta regresiva (≥2 jugadores) o al llenarse. Tras emitir table-start, la mesa se VACÍA (queda libre para otra).
-const TABLE_CAP = { '1v1': 2, '6': 6 }; const TABLE_COUNTDOWN = 8000;
+// ESPACIOS (specs/lavalle-multijugador.md §1): cada espacio tiene su POOL de rooms y su set de mesas. Retro-compat:
+// sin `space` → 'bodegon' (comportamiento actual). 'lavalle' = el piquete co-op ("Aguantar el corte", cap 6).
+const SPACE_TABLES = { bodegon: { '1v1': 2, '6': 6 }, lavalle: { corte: 6 } };
+const TABLE_CAP = { '1v1': 2, '6': 6, corte: 6 }; const TABLE_COUNTDOWN = 8000;
+const CD_TABLES = new Set(['6', 'corte']);   // mesas que arrancan por cuenta regresiva (≥2) o al llenarse (las demás = solo al llenarse)
 const mkTable = () => ({ seats: new Map(), state: 'waiting', startAt: 0 });
-function bodegonRoom(id) { let r = BODEGON.get(id); if (!r) { r = { peers: new Map(), subs: new Set(), streams: new Map(), tables: { '1v1': mkTable(), '6': mkTable() } }; BODEGON.set(id, r); } return r; }
-function bodegonJoin() { bodegonPrune(); for (const [id, r] of BODEGON) if (r.peers.size < BODEGON_CAP) return id; const id = 'bodegon-' + (++BODEGON_SEQ); bodegonRoom(id); return id; }
+function bodegonRoom(id, space) {
+  let r = BODEGON.get(id);
+  if (!r) { space = space || id.split('-')[0] || 'bodegon'; const tdef = SPACE_TABLES[space] || SPACE_TABLES.bodegon;
+    const tables = {}; for (const nm in tdef) tables[nm] = mkTable();
+    r = { peers: new Map(), subs: new Set(), streams: new Map(), space, tables }; BODEGON.set(id, r); }
+  return r;
+}
+function bodegonJoin(space) { space = SPACE_TABLES[space] ? space : 'bodegon'; bodegonPrune();
+  for (const [id, r] of BODEGON) if (r.space === space && r.peers.size < BODEGON_CAP) return id;
+  const id = space + '-' + (++BODEGON_SEQ); bodegonRoom(id, space); return id; }
 function bodegonBroadcast(r, ev, data) { const line = 'event: ' + ev + '\ndata: ' + JSON.stringify(data) + '\n\n'; for (const s of r.subs) { try { s.write(line); } catch (e) { r.subs.delete(s); } } }
 const tableView = t => ({ seats: [...t.seats.values()].map(s => ({ pid: s.pid, nick: s.nick })), state: t.state });
 function tableSit(r, name, pid, nick) {
   const t = r.tables[name]; if (!t || t.state === 'playing') return;
   if (!t.seats.has(pid) && t.seats.size >= TABLE_CAP[name]) return;        // mesa llena
   t.seats.set(pid, { pid, nick, ts: Date.now() });
-  if (name === '6' && t.seats.size >= 2 && !t.startAt) t.startAt = Date.now() + TABLE_COUNTDOWN;
+  if (CD_TABLES.has(name) && t.seats.size >= 2 && !t.startAt) t.startAt = Date.now() + TABLE_COUNTDOWN;
   bodegonBroadcast(r, 'table-update', { table: name, ...tableView(t) });
   tableMaybeStart(r, name);
 }
@@ -162,7 +174,7 @@ function tableLeavePid(r, name, pid) {
 function tableMaybeStart(r, name) {
   const t = r.tables[name]; if (!t || t.state !== 'waiting') return;
   const n = t.seats.size, cap = TABLE_CAP[name];
-  const ready = (name === '1v1') ? n >= cap : (n >= cap || (n >= 2 && t.startAt && Date.now() >= t.startAt));
+  const ready = CD_TABLES.has(name) ? (n >= cap || (n >= 2 && t.startAt && Date.now() >= t.startAt)) : (n >= cap);
   if (!ready) return;
   const seats = [...t.seats.keys()], seed = (Math.random() * 1e9) | 0;     // orden de llegada (Map lo preserva)
   bodegonBroadcast(r, 'table-start', { table: name, host: seats[0], seats, seed });
@@ -173,7 +185,7 @@ function bodegonDropFromTables(r, pid) { for (const name in r.tables) tableLeave
 function bodegonLeave(roomId, pid) { const r = BODEGON.get(roomId); if (r) { bodegonDropFromTables(r, pid); if (r.peers.delete(pid)) bodegonBroadcast(r, 'peer-leave', { pid }); } }
 function bodegonPrune() { const now = Date.now(); for (const [id, r] of BODEGON) { for (const [pid, p] of r.peers) if (now - p.ts > BODEGON_TTL) { bodegonDropFromTables(r, pid); r.peers.delete(pid); bodegonBroadcast(r, 'peer-leave', { pid }); } if (r.peers.size === 0 && r.subs.size === 0) BODEGON.delete(id); } }
 setInterval(bodegonPrune, 8000);
-setInterval(() => { for (const r of BODEGON.values()) tableMaybeStart(r, '6'); }, 1000);   // cuenta regresiva de la mesa de 6
+setInterval(() => { for (const r of BODEGON.values()) for (const nm in r.tables) if (CD_TABLES.has(nm)) tableMaybeStart(r, nm); }, 1000);   // cuenta regresiva (mesa 6 / corte)
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL del CHAT (tope duro, tiempo real)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
@@ -547,7 +559,7 @@ http.createServer((req, res) => {
     if (!GEN_TOKEN || tok !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
     salonPrune(); bodegonPrune(); const now = Date.now();
     const sesiones = [...SALON.entries()].map(([pid, v]) => ({ pid, sala: v.sala, ip: v.ip || '?', edadSeg: Math.round((now - v.ts) / 1000) }));
-    const bodegones = [...BODEGON.entries()].map(([room, r]) => ({ room, peers: [...r.peers.values()].map(p => ({ pid: p.pid, nick: p.nick, ip: p.ip || '?', edadSeg: Math.round((now - p.ts) / 1000) })), streams: r.streams.size,
+    const bodegones = [...BODEGON.entries()].map(([room, r]) => ({ room, space: r.space || 'bodegon', peers: [...r.peers.values()].map(p => ({ pid: p.pid, nick: p.nick, ip: p.ip || '?', edadSeg: Math.round((now - p.ts) / 1000) })), streams: r.streams.size,
       mesas: Object.fromEntries(Object.entries(r.tables || {}).map(([n, t]) => [n, { state: t.state, seats: [...t.seats.values()].map(s => s.nick) }])) }));
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ jugandoAhora: SALON.size, sesiones, bodegones, nota: 'presencia REAL: cada sesión = un navegador que mandó /salon/beat en los últimos 35s. Sin simulación.' }, null, 2));
@@ -573,7 +585,8 @@ http.createServer((req, res) => {
     req.on('end', () => { try {
       const d = JSON.parse(pb || '{}'); const pid = String(d.pid || '').slice(0, 48); if (!pid) { res.writeHead(400); return res.end('no pid'); }
       const nick = String(d.nick || '').slice(0, 16).replace(/[<>]/g, ''); const avatar = (String(d.avatar || 'civil').slice(0, 12)).replace(/[^a-z0-9_]/gi, '');
-      const room = bodegonJoin(); const r = bodegonRoom(room);
+      const space = SPACE_TABLES[d.space] ? d.space : 'bodegon';   // §espacios: 'bodegon' (default) | 'lavalle'
+      const room = bodegonJoin(space); const r = bodegonRoom(room, space);
       r.peers.set(pid, { pid, nick, avatar, x: 11, vx: 0, emote: 0, emoteT: 0, ts: Date.now(), ip: clientIp(req) });
       bodegonBroadcast(r, 'peer-join', { pid, nick, avatar, x: 11 });
       const peers = [...r.peers.values()].filter(p => p.pid !== pid).map(p => ({ pid: p.pid, nick: p.nick, avatar: p.avatar, x: p.x, vx: p.vx }));

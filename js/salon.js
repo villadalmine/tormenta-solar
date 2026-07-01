@@ -28,7 +28,7 @@ const Salon = (() => {
 
   // ===== F2b — BODEGÓN real-time (specs/multijugador.md §3.2). join → SSE stream → ves a los otros moverse +
   // emotes + frases preset. Capa aditiva: sin EventSource/red, todo es no-op y el bodegón queda single-player. =====
-  let myRoom = null, es = null, lastPos = 0; const peers = new Map(); let peersCb = null, whisperCb = null, tableCb = null;
+  let myRoom = null, mySpace = 'bodegon', es = null, lastPos = 0; const peers = new Map(); let peersCb = null, whisperCb = null, tableCb = null;
   function notify() { try { peersCb && peersCb(peers); } catch (e) {} }
   function openStream() {
     if (typeof EventSource !== 'function' || !myRoom) return;
@@ -46,9 +46,10 @@ const Salon = (() => {
     es.addEventListener('table-end', e => { try { tableCb && tableCb({ kind: 'end', ...JSON.parse(e.data) }); } catch (x) {} });
     es.onerror = () => {};   // reconexión la maneja el propio EventSource (retry)
   }
-  function join(nick, avatar, cb) {
+  function join(nick, avatar, cb, space) {
     if (typeof fetch !== 'function') { cb && cb(null); return; }
-    fetch(PROXY + '/salon/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, nick: nick || '', avatar: avatar || 'civil' }) })
+    mySpace = space || 'bodegon';
+    fetch(PROXY + '/salon/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, nick: nick || '', avatar: avatar || 'civil', space: mySpace }) })
       .then(r => (r.ok ? r.json() : null)).then(d => {
         if (!d || !d.room) { cb && cb(null); return; }
         myRoom = d.room; peers.clear(); (d.peers || []).forEach(p => peers.set(p.pid, { ...p, rx: p.x }));

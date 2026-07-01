@@ -68,6 +68,13 @@ const Lavalle = (() => {
       if (mvx) { if (freeAt(player.x + mvx * sp, player.y)) player.x += mvx * sp; player.dir = mvx; }
       if (mvy) { if (freeAt(player.x, player.y + mvy * sp)) player.y += mvy * sp; }
       player.walk = (mvx || mvy) ? player.walk + dt * 10 : 0;
+      // MULTIJUGADOR (espacio 'lavalle'): posteo MI posición (tiles) e interpolo a los peers → los ves caminar
+      if (typeof Salon !== 'undefined' && Salon.enabled && Salon.pos && Salon.inBodegon && Salon.inBodegon()) {
+        Salon.pos(Math.round(player.x / CS * 10) / 10, mvx || player.dir, undefined, Math.round(player.y / CS * 10) / 10);
+        const pm = Salon.getPeers && Salon.getPeers(); const k = Math.min(1, dt * 10);
+        if (pm) for (const p of pm.values()) { if (p.rx == null) p.rx = (p.x != null ? p.x : 9); if (p.ry == null) p.ry = (p.y != null ? p.y : 8);
+          p.rx += ((p.x != null ? p.x : p.rx) - p.rx) * k; p.ry += ((p.y != null ? p.y : p.ry) - p.ry) * k; }
+      }
       if (player.y > (H - 0.6) * CS) { leave(); return; }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); return; } } else escHeld = false;
       near = null; for (const f of folks) if (nearTile(f, 1.5)) { near = f; break; }
@@ -249,10 +256,18 @@ const Lavalle = (() => {
       // colectivos / autos / patrulleros PARADOS a los costados (este lado) + piqueteros + VOS, ordenados por Y
       const ents = vehs.filter(v => v.y >= 3.6).map(v => ({ v, y: v.y }))
         .concat(folks.map(f => ({ f, y: f.y })))
-        .concat([{ player: true, y: player.y / CS - 0.5 }]).sort((a, z) => a.y - z.y);
+        .concat([{ player: true, y: player.y / CS - 0.5 }]);
+      // MULTIJUGADOR: los OTROS jugadores del piquete (interpolados), ordenados por Y con todo lo demás
+      const pm = (typeof Salon !== 'undefined' && Salon.getPeers && Salon.inBodegon && Salon.inBodegon()) ? Salon.getPeers() : null;
+      if (pm) for (const p of pm.values()) if (p.rx != null) ents.push({ peer: p, y: (p.ry != null ? p.ry : 8) });
+      ents.sort((a, z) => a.y - z.y);
       for (const e of ents) {
         if (e.player) carpo(ctx, ox + player.x, oy + player.y);
         else if (e.v) vehicle(ctx, TX2(e.v.x + 0.5), TY2(e.v.y + 0.5), e.v.kind, e.v.col, e.v.sc);
+        else if (e.peer) { const px = TX2((e.peer.rx || 9) + 0.5), py = TY2((e.peer.ry != null ? e.peer.ry : 8) + 0.5);
+          piquetero(ctx, px, py, { col: '#3f5a4a', hair: '#2a1a10' }, '', false);
+          if (e.peer.nick) { ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,0.6)'; const tw = ctx.measureText(e.peer.nick).width + 6; ctx.fillRect(px - tw / 2, py - 30, tw, 11); ctx.fillStyle = '#9be8a0'; ctx.fillText(e.peer.nick, px, py - 21); }
+          if (e.peer.emote && Date.now() - (e.peer.emoteT || 0) < 2200) { ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillText(['', '🍻', '🤝', '💃', '🎸'][e.peer.emote] || '', px, py - 32); } }
         else piquetero(ctx, TX2(e.f.x + 0.5), TY2(e.f.y + 0.5), e.f, near === e.f ? e.f.line : '', near === e.f);
       }
       // barra superior + mensajes

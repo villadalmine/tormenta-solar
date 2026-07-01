@@ -599,6 +599,9 @@
   function enterLavalle() {
     if (typeof Lavalle === 'undefined' || !Lavalle.create) return false;
     lavalleGame = Lavalle.create(); state = 'lavalle';
+    // MULTIJUGADOR (specs/lavalle-multijugador.md F1): Lavalle es un ESPACIO aparte del bodegón; te ves con los otros
+    // que están en el piquete. Aditivo: sin red, queda la postal single-player.
+    if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join(playerNick(), 'carpo', () => {}, 'lavalle');
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
   }
@@ -3074,6 +3077,7 @@
       const lc = lavalleGame.openChatNpc;                             // [E] sobre el linyera peronista → chat IA (vuelve a Lavalle)
       if (lc) { chatReturnTo = 'lavalle'; openChat({ name: lc.name, persona: lc.persona }); }
       if (lavalleGame.done) {
+        if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave();   // salir del espacio 'lavalle'
         lavalleGame = null; state = 'playing'; transCd = 0.6;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         current = 0; const ps = rooms[0]; player.x = 5 * Level.TILE; player.y = ps.gTop * Level.TILE - player.h; player.vx = player.vy = 0;   // de vuelta en Florida, despejado del trigger izq

@@ -56,6 +56,24 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v252 · infra-42] — 2026-07-01 — ✊👥 Lavalle MULTIJUGADOR (Fase 1): te ves con los otros en el piquete
+
+Arranca **Lavalle como zona multijugador** (SDD `specs/lavalle-multijugador.md`). El multijugador es la capa de
+presencia (SSE del `salon-server`), **NO va por el grafo** — igual que el cine y el bodegón.
+- **ESPACIOS en el salon-server (infra-42, proxy 0.1.64):** `POST /salon/join` ahora acepta `space`
+  (`'bodegon'` default | `'lavalle'`); cada espacio tiene su **pool de rooms** y su set de **mesas** (bodegón: 1v1/6;
+  lavalle: `corte`). Retro-compatible (sin `space` = comportamiento actual). Mesas por-cuenta-regresiva generalizadas
+  (`CD_TABLES`). `/salon/debug` muestra el `space` por room. Validado local: bodegón y lavalle caen en pools separados.
+- **Fase 1 (verse + juntarse):** al entrar a Lavalle te unís al espacio `lavalle` (`Salon.join(..., 'lavalle')`),
+  posteás tu posición real y **ves a los otros jugadores caminando** por el piquete (interpolados, con su nick + emote),
+  mezclados con la multitud. Aditivo: sin red, queda la **postal single-player** (multitud + peronista).
+- **Próximo (Fase 2):** el mini-juego co-op **"Aguantar el corte"** (defender la barricada de las olas de desalojo,
+  2/4/6 jugadores; host-authoritative con la mesa `corte`). Diseño en `specs/lavalle-multijugador.md §3`.
+- `js/salon.js` (`join(...,space)`), `js/game.js` (join/leave en `enterLavalle`), `js/lavalle.js` (pos + peers).
+  e2e + headless OK. Cache **v252**.
+
+---
+
 ## [v251 · infra-41] — 2026-07-01 — ✊🇦🇷 Lavalle: multitud en 3 hileras + lienzo "VIVA PERÓN" + el LINYERA PERONISTA (chat IA)
 
 Iteración de la postal del piquete y **primer NPC chateable de Lavalle** (roadmap E5):
