@@ -90,8 +90,14 @@ ambiente, cumbia.
 - `node tests/e2e.js` + `tests/web-smoke.mjs` + paridad i18n.
 - Manual 2 navegadores: entrar a Lavalle → verse → juntarse → aguantar una ola → ganar/perder consistente.
 
-## 6. Roadmap (post-prototipo)
-- Otros mini-juegos: **La soga** (PvP por equipos), **Bombo & cumbia** (ritmo co-op), **Reparto de la olla** (co-op),
-  **Pintar la pancarta** (colaborativo). Cada uno = otra `table` del espacio `lavalle`.
+## 6. Roadmap (mini-juegos del piquete) — cada uno = otra `table` del espacio `lavalle`
+- ✅ **Aguantar el corte** (co-op wave-defense) — HECHO (v259, mesa `corte`, `js/piquete.js`).
+- ✅ **La soga** (tug of war co-op vs el desalojo) — HECHO (v263, mesa `soga`, `js/soga.js`; jugable solo vs bots).
+- ⏳ **Bombo & cumbia** (ritmo co-op), **Reparto de la olla** (co-op contrarreloj), **Pintar la pancarta** (colaborativo).
+- **Patrón para sumar uno:** (1) módulo `js/<juego>.js` host-authoritative (create({role,seats,myPid,seed,sendState})
+  + update/draw/applyState + get done/exitTo/result/isHost); (2) server: sumar la mesa a `SPACE_TABLES.lavalle` +
+  `TABLE_CAP` + `CD_TABLES` + `CD_MIN` (proxy redeploy); (3) `game.js`: `start<Juego>` + rama en `onTable` + ruteo del
+  prefijo whisper en `onPeerWhisper` + rama en el dispatch + gather point que llame `sitAtTable`; (4) 3er gather point
+  en `js/lavalle.js` + getter `join<Juego>`; (5) i18n + e2e (headless win/lose) + script tag en index.html.
 - Enganche a lo colaborativo global (el "aguante" del corte suma a un contador global tipo datacenter).
 - Server-authoritative real (simulación en el proxy) si el host-authoritative no alcanza con lag.
