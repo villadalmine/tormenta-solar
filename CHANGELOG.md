@@ -87,6 +87,14 @@ Observabilidad del multijugador (para "ver qué pasa" en vivo). Solo proxy (0.1.
 
 ---
 
+## [v258] — 2026-07-01 — 🐛 FIX Lavalle: el [E] sobre el jugador online no aparecía (coords de peers desalineadas)
+
+Los peers se dibujaban y detectaban con un offset de +0.5 tile que no aplica a su posición real (el centro, igual que
+tu jugador) → nunca quedabas "lo bastante cerca" de forma consistente. Alineado (draw + detección usan la pos tal cual,
+sin +0.5) + radio de detección 1.6→2.0. Ahora aparece "[E] chatear con {n}". Solo cliente. Cache **v258**.
+
+---
+
 ## [v257] — 2026-07-01 — 💬 Lavalle: chat privado con el jugador ONLINE ([E] sobre un peer)
 
 Ya se ve al otro jugador en el piquete y no se traba; faltaba poder HABLARLE. Ahora [E] cerca de un jugador online

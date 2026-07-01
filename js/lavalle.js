@@ -82,8 +82,8 @@ const Lavalle = (() => {
       // ¿hay un JUGADOR ONLINE cerca? (para chat privado por whisper, como en el bodegón)
       let nearPeer = null;
       if (typeof Salon !== 'undefined' && Salon.getPeers && Salon.inBodegon && Salon.inBodegon()) {
-        const px = player.x / CS, py = player.y / CS; let bd = 1.6;
-        for (const p of Salon.getPeers().values()) { if (p.rx == null || !p.pid) continue; const d = Math.hypot(px - (p.rx + 0.5), py - ((p.ry != null ? p.ry : 8) + 0.5)); if (d < bd) { bd = d; nearPeer = p; } }
+        const px = player.x / CS, py = player.y / CS; let bd = 2.0;
+        for (const p of Salon.getPeers().values()) { if (p.rx == null || !p.pid) continue; const d = Math.hypot(px - p.rx, py - (p.ry != null ? p.ry : 8)); if (d < bd) { bd = d; nearPeer = p; } }
       }
       near = null; for (const f of folks) if (nearTile(f, 1.5)) { near = f; break; }
       // [E]: PRIORIDAD al jugador online (chat privado) → después el linyera peronista (chat IA). Ambos los consume game.js.
@@ -275,7 +275,7 @@ const Lavalle = (() => {
       for (const e of ents) {
         if (e.player) carpo(ctx, ox + player.x, oy + player.y);
         else if (e.v) vehicle(ctx, TX2(e.v.x + 0.5), TY2(e.v.y + 0.5), e.v.kind, e.v.col, e.v.sc);
-        else if (e.peer) { const px = TX2((e.peer.rx || 9) + 0.5), py = TY2((e.peer.ry != null ? e.peer.ry : 8) + 0.5);
+        else if (e.peer) { const px = TX2(e.peer.rx || 9), py = TY2(e.peer.ry != null ? e.peer.ry : 8);
           piquetero(ctx, px, py, { col: '#3f5a4a', hair: '#2a1a10' }, '', false);
           if (e.peer.nick) { ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,0.6)'; const tw = ctx.measureText(e.peer.nick).width + 6; ctx.fillRect(px - tw / 2, py - 30, tw, 11); ctx.fillStyle = '#9be8a0'; ctx.fillText(e.peer.nick, px, py - 21); }
           if (e.peer.emote && Date.now() - (e.peer.emoteT || 0) < 2200) { ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillText(['', '🍻', '🤝', '💃', '🎸'][e.peer.emote] || '', px, py - 32); } }
