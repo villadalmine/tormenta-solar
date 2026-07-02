@@ -1,8 +1,8 @@
 # SDD — Calle Lavalle (hacia el Obelisco): el piquete copado
 
-- **Estado:** **ETAPA 1.5 HECHA y en prod (v246→v251).** Lavalle es un **sub-modo TOP-DOWN** (`js/lavalle.js`), NO una
-  sala side-scroller. **E5 (chat IA) ARRANCÓ:** el linyera peronista ya es chateable. Próximo: Etapa 2 (§5).
-- **Última actualización:** 2026-07-01 (v251)
+- **Estado:** 🎉 **ARCO COMPLETO y en prod (v246→v280):** E1 postal · E1.5 top-down · E2 Obelisco · E3 tormenta/
+  satélite · E4 grafo (18 aristas) · E5 chat IA (peronista) + 5 mini-juegos co-op multijugador + fiesta/Marcha.
+- **Última actualización:** 2026-07-02 (v280)
 - **Origen:** idea del dueño. (Reemplaza el viejo "Nivel 2 = Calle Lavalle" del truco, que se había descartado: esta es
   una visión NUEVA y concreta, desacoplada del truco — Lavalle es una **zona contigua** de la calle, no un premio.)
 
@@ -113,8 +113,10 @@ agregando la entrada al **mapa ES→EN** de `js/lang/level.en.js` (`levelTx`). P
 - ✅ **E3 — la tormenta acá: HECHO (v279).** El piquete AGUANTA (entrada post-tormenta + aurora glitch, la fiesta
   sigue = refugio festivo). Y en el Obelisco: **PELEA contra el SATÉLITE REBELDE** (telegrafía rayo rojo, 3 ❤️, rayo
   solar [E]) → herirlo = hito + premio + gancho al DATACENTER (el golpe final es colaborativo, D2). `ts_sat_down`.
-- **E4 — interacciones/quests:** la olla popular (dar/recibir comida), los pibes (un picadito), los del corte (un
-  favor), conexión con la economía (forros/flores/caramelos) y el grafo de historia.
+- ✅ **E4 — el GRAFO: HECHO (v280).** El arco entero es una cadena de `historia.js` (18 aristas): `piquete_juegos` →
+  `piquete_juramento` → `obelisco_llegada` → `satelite_herido` (ficha `nivel-1/lugares/lavalle-quest.md`, hints 4
+  niveles ES/EN; flags de zona en localStorage). El HintEngine guía todo el arco y el Mensajero reacciona. *(Las
+  interacciones menores — picadito, favores de la olla — quedan como color futuro.)*
 - **E5 — chat IA:** algún personaje del piquete chateable (oráculo del barrio) que sepa del corte y del Obelisco.
 
 ## 6. Deuda / TBD

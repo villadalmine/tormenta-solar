@@ -62,8 +62,9 @@ const Lavalle = (() => {
     const nearTile = (c, d) => Math.hypot(player.x - (c.x + 0.5) * CS, player.y - (c.y + 0.5) * CS) < CS * (d || 1.4);
     function leave() { if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(false); if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(false); done = true; exitTo = 'street'; }
     // FIESTA PERONISTA: pasaste el corte → el peronista te toma juramento, arranca la Marcha y todos bailan y morfan chori
+    let juraReq = false;
     function startFiesta() {
-      if (fiesta) return; fiesta = true; fiestaT = 0;
+      if (fiesta) return; fiesta = true; fiestaT = 0; juraReq = true;
       setMsg(T('g.lavalle.oath'), 9);
       if (typeof Sfx !== 'undefined') { if (Sfx.setCumbia) Sfx.setCumbia(false); if (Sfx.setMarcha) Sfx.setMarcha(true); }
       for (let y = 0; y <= 3; y++) for (let x = 8; x <= 10; x++) map[y][x] = 0;   // E2: el HUECO se abre DE VERDAD (colisión) → podés subir al Obelisco
@@ -362,6 +363,7 @@ const Lavalle = (() => {
       get joinBombo() { const r = bomboReq; bomboReq = false; return r; },     // one-shot: [E] abajo-der → "Bombo & cumbia"
       get joinOlla() { const r = ollaReq; ollaReq = false; return r; },         // one-shot: [E] en la olla → "Reparto de la olla"
       get joinPanca() { const r = pancaReq; pancaReq = false; return r; },       // one-shot: [E] a la derecha → "Pintar la pancarta"
+      get juramentoDone() { const r = juraReq; juraReq = false; return r; },      // one-shot: juró → game.js aplica la arista del grafo
     };
   }
   return { create };

@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 // solo las FICHAS (personajes/ + edificios/); el spec historia-grafo.md tiene bloques de EJEMPLO, no reales.
-const FICHA_DIRS = [path.join(ROOT, 'specs', 'nivel-1', 'personajes'), path.join(ROOT, 'specs', 'nivel-1', 'edificios')];
+const FICHA_DIRS = [path.join(ROOT, 'specs', 'nivel-1', 'personajes'), path.join(ROOT, 'specs', 'nivel-1', 'edificios'), path.join(ROOT, 'specs', 'nivel-1', 'lugares')];
 const OUT = path.join(ROOT, 'js', 'historia.js');
 
 // junta todos los .md bajo specs/nivel-1 (recursivo)

@@ -583,6 +583,7 @@
   function enterObelisco() {
     if (typeof Obelisco === 'undefined' || !Obelisco.create) return false;
     obeliscoGame = Obelisco.create({ stormed, satDown: satDown() }); state = 'obelisco';
+    if (!lsFlag('ts_obelisco_visto')) applyEdge('obelisco_llegada', 'obeliscoLlegado');   // GRAFO (E4)
     evlog('hito', 'llegó al Obelisco');   // momento memorable (memoria del barrio)
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
@@ -897,7 +898,13 @@
     cueveroUnlocked:  v => cueveroUnlocked = v,
     tahurDiscovered:  v => tahurDiscovered = v,
     guidoFollowing:   v => guidoFollowing = v,
+    // QUEST DE LAVALLE (specs/nivel-1/lugares/lavalle-quest.md): progresión de ZONA → localStorage (sobrevive loops)
+    piqueteCampeon:   v => { try { localStorage.setItem('ts_piq_campeon', v ? '1' : ''); } catch (e) {} },
+    juramento:        v => { try { localStorage.setItem('ts_juramento', v ? '1' : ''); } catch (e) {} },
+    obeliscoLlegado:  v => { try { localStorage.setItem('ts_obelisco_visto', v ? '1' : ''); } catch (e) {} },
+    sateliteHerido:   v => { try { localStorage.setItem('ts_sat_down', v ? '1' : ''); } catch (e) {} },
   };
+  const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
   const FLAG_GETTERS = {
     stormed: () => stormed, bunkerUnlocked: () => bunkerUnlocked, secretUnlocked: () => secretUnlocked,
@@ -933,6 +940,11 @@
       hasCementoTicket: !!(player && player.hasCementoTicket),
       cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing,
       vecinoSeen: Object.keys(entradoEdif).length > 0,
+      // quest de Lavalle (persistida en localStorage — ver FLAG_SETTERS)
+      piqueteCampeon: piqueteAllWon() || lsFlag('ts_piq_campeon'),
+      juramento: lsFlag('ts_juramento'),
+      obeliscoLlegado: lsFlag('ts_obelisco_visto'),
+      sateliteHerido: lsFlag('ts_sat_down'),
       sleptOnce: loopCount > 0,
     };
   }
@@ -1416,8 +1428,10 @@
   function piqueteAllWon() { const w = loadPiqueteWon(); return PIQUETE_GAMES.every(g => w[g]); }
   function pReward(res, gameKey, itemId) {
     if (res !== 'win') return '';
+    const antes = piqueteAllWon();
     const w = loadPiqueteWon(); w[gameKey] = true; savePiqueteWon(w);
     evlog('minijuego', gameKey);
+    if (!antes && piqueteAllWon()) applyEdge('piquete_juegos', 'piqueteCampeon');   // GRAFO: ganaste los 5 (E4)
     addItem(itemId); player.flores = (player.flores || 0) + 2;
     let extra = piqueteAllWon() ? (' ' + T('g.piquete.allWon')) : '';
     return ' ' + T('g.piquete.reward', { item: T(WEAPONS[itemId].label) }) + extra;
@@ -3332,9 +3346,8 @@
         const res = obeliscoGame.result; obeliscoGame = null;
         let m = null;
         if (res === 'satwin') {   // E3: LO HERISTE → hito histórico + premio + gancho al datacenter
-          try { localStorage.setItem('ts_sat_down', '1'); } catch (e) {}
+          applyEdge('satelite_herido', 'sateliteHerido');   // GRAFO (E4): setea ts_sat_down + evlog hito + Mensajero
           player.flores = (player.flores || 0) + 10; player.caramelos = (player.caramelos || 0) + 10;
-          evlog('hito', 'hirió al satélite rebelde');
           m = T('g.obelisco.satWin');
         } else if (res === 'satlose') m = T('g.obelisco.satLose');
         if (!enterLavalle(m)) { if (m) setMsg(m, res === 'satwin' ? '#7CFC00' : '#ff8f8f', 8000); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
@@ -3345,6 +3358,7 @@
       if (lc) { chatReturnTo = 'lavalle'; openChat({ name: lc.name, persona: lc.persona }); }
       const lp = lavalleGame.openPeerChat;                            // [E] sobre un jugador ONLINE → chat privado (whisper), vuelve a Lavalle
       if (lp && lp.pid) { chatReturnTo = 'lavalle'; openPeerChat({ pid: lp.pid, nick: lp.nick || peerNickOf(lp.pid) }, 'lavalle'); }
+      if (lavalleGame.juramentoDone && !lsFlag('ts_juramento')) applyEdge('piquete_juramento', 'juramento');   // GRAFO (E4)
       if (lavalleGame.joinCorte) sitAtTable('corte');                 // [E] en la barricada → armar "Aguantar el corte" (server parea)
       if (lavalleGame.joinSoga) sitAtTable('soga');                   // [E] abajo-izq → "La soga"
       if (lavalleGame.joinBombo) sitAtTable('bombo');                 // [E] abajo-der → "Bombo & cumbia"
