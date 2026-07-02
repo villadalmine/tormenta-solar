@@ -579,9 +579,10 @@
     return true;
   }
   // LAVALLE E2 (specs/lavalle.md): pasaste el corte → la plaza del Obelisco. Al salir volvés al piquete.
+  const satDown = () => { try { return localStorage.getItem('ts_sat_down') === '1'; } catch (e) { return false; } };
   function enterObelisco() {
     if (typeof Obelisco === 'undefined' || !Obelisco.create) return false;
-    obeliscoGame = Obelisco.create(); state = 'obelisco';
+    obeliscoGame = Obelisco.create({ stormed, satDown: satDown() }); state = 'obelisco';
     evlog('hito', 'llegó al Obelisco');   // momento memorable (memoria del barrio)
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
@@ -635,7 +636,7 @@
   // LAVALLE (specs/lavalle.md E1.5): el piquete se ve TOP-DOWN (sub-modo); sin el módulo → cae al side-scroller (sala 52).
   function enterLavalle(intro) {
     if (typeof Lavalle === 'undefined' || !Lavalle.create) return false;
-    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon() }); state = 'lavalle';
+    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon(), stormed }); state = 'lavalle';
     // MULTIJUGADOR (specs/lavalle-multijugador.md F1): Lavalle es un ESPACIO aparte del bodegón; te ves con los otros
     // que están en el piquete. Aditivo: sin red, queda la postal single-player.
     if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join(playerNick(), 'carpo', () => {}, 'lavalle');
@@ -2667,7 +2668,7 @@
     if ((player.shots || 0) > shotsSeen) { shotsSeen = player.shots; if (player.lastShot && player.lastShot.kind === 'dollar') spawnDollarBubble(player.lastShot.x, player.lastShot.y); }
     updateDollarBubbles(dt);
     // LAVALLE (E1.5): caminás al borde IZQUIERDO de Florida → PASÁS solo al piquete (NO hay puerta; uno no cruza a otra calle por una puerta)
-    if (current === 0 && transCd <= 0 && !stormed && !spinoffLevel && (player.x + player.w / 2) < 1.7 * Level.TILE && enterLavalle()) return;
+    if (current === 0 && transCd <= 0 && !spinoffLevel && (player.x + player.w / 2) < 1.7 * Level.TILE && enterLavalle()) return;   // post-tormenta también: el piquete AGUANTA (E3)
 
     // LOOP de supervivencia: tras la tormenta la vida se gasta (SURV.decayHp cada SURV.decayEverySec s). Comé o te morís.
     // En el NIVEL-AI generado NO drena (es un nivel bonus aparte del loop de supervivencia).
@@ -3327,7 +3328,17 @@
       if (globoGame.done) { globoGame = null; state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
     } else if (state === 'obelisco' && obeliscoGame) {                // Lavalle E2: la plaza del Obelisco
       obeliscoGame.update(dt); obeliscoGame.draw(ctx, W, H);
-      if (obeliscoGame.done) { obeliscoGame = null; if (!enterLavalle()) { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); } }
+      if (obeliscoGame.done) {
+        const res = obeliscoGame.result; obeliscoGame = null;
+        let m = null;
+        if (res === 'satwin') {   // E3: LO HERISTE → hito histórico + premio + gancho al datacenter
+          try { localStorage.setItem('ts_sat_down', '1'); } catch (e) {}
+          player.flores = (player.flores || 0) + 10; player.caramelos = (player.caramelos || 0) + 10;
+          evlog('hito', 'hirió al satélite rebelde');
+          m = T('g.obelisco.satWin');
+        } else if (res === 'satlose') m = T('g.obelisco.satLose');
+        if (!enterLavalle(m)) { if (m) setMsg(m, res === 'satwin' ? '#7CFC00' : '#ff8f8f', 8000); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+      }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
       const lc = lavalleGame.openChatNpc;                             // [E] sobre el linyera peronista → chat IA (vuelve a Lavalle)

@@ -53,7 +53,7 @@ const Lavalle = (() => {
     // el LIENZO largo "VIVA PERÓN ×N" cruza la hilera de atrás, colgado ALTO (no tapa a nadie)
     const banner = { y: 3.7 };
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null, peerReq = null, corteReq = false, sogaReq = false, bomboReq = false, ollaReq = false, pancaReq = false;
-    setMsg(opts.intro || (allWon ? T('g.lavalle.introOpen') : T('g.lavalle.intro')), opts.intro ? 7 : 6);
+    setMsg(opts.intro || (opts.stormed ? T('g.lavalle.stormIntro') : allWon ? T('g.lavalle.introOpen') : T('g.lavalle.intro')), opts.intro ? 7 : 6);
     if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(true);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
@@ -332,6 +332,9 @@ const Lavalle = (() => {
         for (let i = 0; i < 24; i++) { const ph = (t * 0.7 + i * 0.13) % 1; ctx.globalAlpha = 0.8 * (1 - ph); ctx.fillStyle = ['#74acdf', '#fff', '#f6b40e', '#c0241f'][i % 4]; const cxp = (i * 71 % VW), cyp = 30 + ph * (VH - 60); ctx.fillRect(cxp, cyp, 3, 3); } ctx.globalAlpha = 1;
         ctx.fillStyle = 'rgba(179,20,26,0.92)'; ctx.fillRect(0, 30, VW, 24); ctx.fillStyle = '#fff'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center'; ctx.fillText('✊ ¡VIVA PERÓN! — ' + T('g.lavalle.fiesta'), VW / 2, 47);
       }
+      // E3: la TORMENTA pega afuera — aurora glitcheada sobre el piquete (que AGUANTA)
+      if (opts.stormed) { ctx.save(); ctx.globalAlpha = 0.07 + 0.05 * Math.sin(t * 6); ctx.fillStyle = '#ff3040';
+        for (let i = 0; i < 3; i++) ctx.fillRect(0, 40 + i * 60 + Math.sin(t * 2.5 + i) * 10, VW, 12); ctx.restore(); }
       // barra superior + mensajes
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 26);
       ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'left'; ctx.fillText('✊ ' + T('g.lavalle.title'), 10, 18);

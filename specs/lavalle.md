@@ -110,8 +110,9 @@ agregando la entrada al **mapa ES→EN** de `js/lang/level.en.js` (`levelTx`). P
   piquete (v269: hueco + juramento al peronista + fiesta) → la colisión se abre, "el que corta" se corre, subís por el
   hueco → **`js/obelisco.js`**: Plaza de la República de noche, Obelisco gigante con pintada, la Marcha de fondo, el
   SATÉLITE REBELDE con ojo rojo cruzando el cielo, y el CUIDADOR ([E], 4 líneas, gancho de E3).
-- **E3 — qué pasa con la tormenta acá:** si Lavalle se "glitchea" como la calle (enemigos, peligros) o queda como
-  refugio festivo.
+- ✅ **E3 — la tormenta acá: HECHO (v279).** El piquete AGUANTA (entrada post-tormenta + aurora glitch, la fiesta
+  sigue = refugio festivo). Y en el Obelisco: **PELEA contra el SATÉLITE REBELDE** (telegrafía rayo rojo, 3 ❤️, rayo
+  solar [E]) → herirlo = hito + premio + gancho al DATACENTER (el golpe final es colaborativo, D2). `ts_sat_down`.
 - **E4 — interacciones/quests:** la olla popular (dar/recibir comida), los pibes (un picadito), los del corte (un
   favor), conexión con la economía (forros/flores/caramelos) y el grafo de historia.
 - **E5 — chat IA:** algún personaje del piquete chateable (oráculo del barrio) que sepa del corte y del Obelisco.

@@ -336,6 +336,17 @@ if (require.main === module) {
     Input.keys['w'] = true; for (let i = 0; i < 220 && !lvx.done; i++) lvx.update(0.05); Input.keys['w'] = false;
     if (!lvx.done || lvx.exitTo !== 'obelisco') throw new Error('lavalle no cruza al obelisco: ' + lvx.exitTo + ' done=' + lvx.done);
     ok.push('obelisco:ok');
+    // E3 — la PELEA del satélite (post-tormenta): manteniendo el rayo solar, lo herís antes de que te frite → satwin
+    if (Input.clear) Input.clear();
+    const obb = Obelisco.create({ stormed: true });
+    Input.keys['e'] = true;
+    for (let i = 0; i < 500 && !obb.done; i++) { obb.update(0.05); obb.draw(C, 960, 540); }
+    Input.keys['e'] = false;
+    if (!obb.done || obb.result !== 'satwin') throw new Error('pelea del satélite no gana: ' + obb.result + ' done=' + obb.done);
+    // ya herido → postal con satélite humeando (sin crash)
+    const obd = Obelisco.create({ stormed: true, satDown: true });
+    for (let i = 0; i < 60; i++) { obd.update(0.05); obd.draw(C, 960, 540); }
+    ok.push('satelite:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));
