@@ -13,6 +13,15 @@ El juego es 100% estático; se publica en
 
 ## 🔭 Próximamente — Roadmap (SDDs draft, sin implementar)
 
+- ⭐ **ESTADO DEL JUGADOR: NaN + respawn peronista** (`specs/estado-jugador.md`, marcado 2026-07-02): DIAGNÓSTICO
+  hecho del bug de NaN (comparaciones con undefined no frenan compras → `coins -= undefined` → NaN que se propaga y
+  PERSISTE en el save; fuente probable: ítems malformados del `ts_shopCache_v1`/bancos IA) → fix en 3 capas
+  (`sanePlayer()` + `num()` fail-closed en compras + higiene del cache) con **evento `nan` por campo al dashboard**.
+  Y **respawn peronista**: morir SIN búnker → despertás en el piquete ("¡Flaco! te teletransportaste como un RAYO
+  SOLAR") con hp 50 + chori, sin perder el save.
+- ⭐ **Tracker juegos del piquete** (`specs/lavalle-multijugador.md §7`): ocultable con [H], se borra solo cuando el
+  grafo dice que el juramento pasó, estado del grafo, juegos siempre rejugables (multiplayer).
+
 - ⭐ **MAPA DEL JUEGO** (`specs/mapa-juego.md`, marcado 2026-07-02): automap estilo DOOM con **TAB** — el CORTE de la
   manzana (calle horizontal, edificios por pisos arriba, subsuelos abajo, sub-modos colgados), "estás acá" con piso
   resaltado, hover/cursor con info, zoom por edificio, y MARCADORES del grafo (quests ✓/⭐/🔒 vía Historia×HintEngine,

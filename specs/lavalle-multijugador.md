@@ -104,3 +104,23 @@ ambiente, cumbia.
   en `js/lavalle.js` + getter `join<Juego>`; (5) i18n + e2e (headless win/lose) + script tag en index.html.
 - Enganche a lo colaborativo global (el "aguante" del corte suma a un contador global tipo datacenter).
 - Server-authoritative real (simulación en el proxy) si el host-authoritative no alcanza con lag.
+
+## 7. TRACKER de los juegos del piquete (marcado por el dueño, 2026-07-02)
+
+### 7.1 Cómo FUNCIONA HOY (para que quede claro el mecanismo)
+- Cada mini-juego GANADO se marca en **`ts_piqueteWon`** (localStorage, `{corte:true, soga:true, …}`) vía `pReward()`
+  (game.js) — que además te da el ítem de piquete + flores. **Los juegos son SIEMPRE rejugables** (multiplayer, mesas
+  del server): re-ganar re-premia flores (el ítem es único).
+- `piqueteAllWon()` = los 5 en true → (a) la barricada muestra el HUECO, (b) [E] = juramento → **arista del GRAFO
+  `piquete_juegos` → `piquete_juramento`** (`historiaState().piqueteCampeon/juramento`, v280) → el HintEngine guía y
+  el estado ES del grafo, como pide el dueño.
+- **Tracker actual (v285):** en la barra superior de Lavalle: ✊🚔🥁🍲🎨 (ganado = prendido, falta = apagado) + "n/5"
+  (lee `opts.won` = `ts_piqueteWon`).
+
+### 7.2 Lo PEDIDO (mejora, F-tracker)
+1. **Ocultable con una tecla:** [H] en Lavalle alterna el tracker (persistir la preferencia en `ts_ui_tracker`).
+2. **Se BORRA solo cuando la quest pasó:** si `historiaState().juramento` (el grafo sabe) → el tracker desaparece
+   (o se reduce a un ✓ chico) — ya cumplió su función de guiarte; los juegos siguen jugables igual (multiplayer).
+3. **Estado desde el GRAFO:** el agregado (`piqueteCampeon`/`juramento`) se lee de `historiaState()`; el detalle
+   por-juego sigue en `ts_piqueteWon` (es el desglose del flag agregado — mismo dato, dos granularidades).
+4. **Hover/cerca de cada gather-point:** el prompt ya nombra el juego; sumar "(ya ganado ✓)" si corresponde.

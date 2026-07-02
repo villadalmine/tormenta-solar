@@ -1,7 +1,7 @@
 # SDD — EL MAPA DEL JUEGO (automap estilo DOOM): dónde estás, qué hay, qué falta — todo desde el GRAFO
 
 - **Estado:** **Diseño (marcado por el dueño, 2026-07-02).** Sin implementar; este doc es el plan.
-- **La idea (dueño):** apretás **TAB** (M está tomada por la música) en cualquier parte y se abre un MAPA que muestra
+- **La idea (dueño):** apretás **TAB** en cualquier parte (decisión 2026-07-02: M queda para la música, confirmado por el dueño) y se abre un MAPA que muestra
   **dónde estás**. Como los niveles son 2D side-scroller, la mejor representación es un automap simple estilo DOOM.
   Hover del mouse (o moverte con el cursor) → info. Si estás en un edificio de varios pisos, marca TU piso y permite
   **zoom in/out por pisos**. Visualmente interesante y rico: marca **quests terminadas/pendientes, dónde están los
