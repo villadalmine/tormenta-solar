@@ -305,6 +305,8 @@
   // Reporta un error del cliente al beacon (window.ERR_BEACON) si está configurado. Best-effort, sin PII.
   // Apagado por defecto (sin endpoint = no-op). Tag con el motor para distinguir fallas de v2 vs v1.
   function tel(name, labels) { try { if (typeof Telemetry !== 'undefined') Telemetry.event(name, labels); } catch (e) {} }
+  // BUS DE EVENTOS en tiempo real (npcs-vivos §5.3 F4a): lo FRESCO que hiciste, para que el mundo reaccione.
+  function evlog(ev, detail) { try { if (typeof Eventos !== 'undefined') Eventos.push(ev, detail); } catch (e) {} }
   function telOnce(key, name, labels) { try { if (typeof Telemetry !== 'undefined') Telemetry.once(key, name, labels); } catch (e) {} }
   function reportClientError(msg, err) {
     try {
@@ -908,6 +910,7 @@
     if (typeof Mensajero !== 'undefined') Mensajero.evento(id);   // "qué acaba de pasar" (capa aditiva)
     if (typeof Salon !== 'undefined' && Salon.enabled) Salon.beat(currentAt(), id);   // MULTIJUGADOR F1: hito anónimo al ticker del "Cine EN VIVO"
     tel('quest', { result: id });   // métrica: qué quest/arista de la historia se completó (dashboard)
+    evlog('hito', id);   // al bus de eventos (los NPC comentan lo fresco)
     if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); return true; }
     if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) FLAG_SETTERS[fallbackFlag](true);   // grafo ausente → red de seguridad
     return false;
@@ -981,6 +984,9 @@
     if (s.chinoEntered) b.push('ya entró al super chino tras la tormenta');
     if (s.bunkerUnlocked) b.push('ya es gurú (búnker abierto)');
     if (s.loopCount > 0) b.push('lleva ' + s.loopCount + ' día(s) en el loop de supervivencia');
+    // F4a (npcs-vivos §5.3): lo FRESCO — últimos movimientos del jugador (bus de eventos) + qué hacen OTROS jugadores
+    if (typeof Eventos !== 'undefined' && Eventos.last) { const evs = Eventos.last(5); if (evs.length) b.push('ÚLTIMOS MOVIMIENTOS del jugador, en orden (lo más reciente al final; comentalo con tu voz si viene al caso): ' + evs.map(e => e.ev + (e.detail ? ' "' + e.detail + '"' : '')).join(' → ')); }
+    if (salonLive && Array.isArray(salonLive.ticker) && salonLive.ticker.length) b.push('en el BARRIO, OTROS jugadores hicieron hace poco: ' + salonLive.ticker.slice(-3).map(x => x.ev).join(', '));
     return 'ESTADO DEL JUEGO (datos reales del ecosistema, todo está conectado; usalo con tu voz si viene al caso, NO inventes rutas ni datos): ' + b.join('; ') + '.';
   }
   // ---- NPCs VIVOS: chusmerío ambiente (globitos) — los NPC se hablan entre ellos / te tiran data de lo que hiciste.
@@ -994,11 +1000,54 @@
     if (s.chinoEntered) L.push('me contaron que entró al chino y afanó todo gratis 😱');
     if (s.bunkerUnlocked) L.push('el pibe se hizo gurú, tiene el búnker');
     if (s.diosa) L.push('¿viste que anda con una Diosa Tropical?');
+    // F4a: chusme de lo RECIÉN hecho (bus de eventos — los NPC 'vieron' lo que acabás de hacer)
+    if (typeof Eventos !== 'undefined' && Eventos.recent) for (const e of Eventos.recent(120000).slice(-3)) {
+      if (e.ev === 'hito') L.push('¿viste? el pibe recién se mandó lo de "' + e.detail + '"');
+      else if (e.ev === 'minijuego') L.push('recién ganó en el piquete, ¡qué aguante tiene!');
+      else if (e.ev === 'charla') L.push('recién lo vi chamuyando con ' + e.detail + ', ¿de qué hablarán?');
+      else if (e.ev === 'muerte') L.push('al pibe lo bajaron recién… mala leche');
+    }
     L.push(s.stormed ? 'desde la tormenta esto es un quilombo, loco' : 'algo raro tiene el sol hoy, ¿no sentís?');
     if (s.carteles && s.carteles.length) L.push('probate el ' + s.carteles[0].brand + ', dicen que está bárbaro');
     if (s.cine && s.cine.mundialTabla) L.push('andá al cine que pasan el Mundial');
     if (s.quests.mundial && !s.quests.mundial.shown) L.push('hay un hincha que se muere por saber cómo salió ' + s.quests.mundial.equipo);
     return L.length ? L : ['¿no tenés un puchito, maestro?'];   // el flavor sale del banco/estático; esto es red de seguridad
+  }
+  // ── NPCs VIVOS F4b (npcs-vivos §5.3): DRIVES — deambulan, van a chusmear con otro, y a veces TE BUSCAN si hiciste
+  // algo notable (sienten la necesidad). Solo decorativos/oráculos: NUNCA los de quest/tienda/want/follow.
+  const wanderOk = n => n && !n.invisible && !n.follow && n.ambient !== false && !n.want && !n.sells && !n.arsenal &&
+    !n.tienda && !n.vecino && (!n.action || n.action === 'chat');
+  let seekCd = 0;   // cooldown global del "te busca" (que no te persigan todos a la vez)
+  function clampNx(r, x) { return Math.max(Level.TILE * 1.2, Math.min(((r.w || 24) - 1.5) * Level.TILE, x)); }
+  function updateDrives(r, dt) {
+    seekCd -= dt;
+    const ns = (r.npcs || []).filter(wanderOk);
+    for (const n of ns) {
+      if (n.homeX == null) { n.homeX = n.x; n.wCd = 2 + Math.random() * 8; }
+      if (n.wTarget != null) {                                        // caminando hacia su objetivo
+        const dx = n.wTarget - n.x;
+        if (Math.abs(dx) < 6) {                                        // llegó
+          if (n.wSeek) { ambientBubbles.push({ npc: n, text: n.wSeek, from: time, until: time + 5.4 }); n.wSeek = null; }
+          else if (n.wChusme) { ambientCd = Math.min(ambientCd, 0.4); n.wChusme = false; }   // llegó al otro → dispara el mini-diálogo
+          n.wTarget = null; n.wCd = 5 + Math.random() * 9;
+        } else n.x += Math.sign(dx) * Math.min(42 * dt, Math.abs(dx));
+        continue;
+      }
+      n.wCd -= dt; if (n.wCd > 0) continue;
+      const fresh = (typeof Eventos !== 'undefined' && Eventos.fresh) ? Eventos.fresh(45000) : null;
+      const roll = Math.random();
+      if (fresh && n.oracle && seekCd <= 0 && Math.abs(player.x - n.x) < 900) {
+        // TE BUSCA: pasó algo notable hace poco → el oráculo camina hacia vos y te lo comenta (globito)
+        seekCd = 45; n.wTarget = clampNx(r, player.x + (Math.random() < 0.5 ? -46 : 46));
+        n.wSeek = '¡che pibe! me enteré de lo tuyo' + (fresh.detail ? ': "' + fresh.detail + '"' : '') + ' 👀';
+      } else if (roll < 0.3) {
+        // va a CHUSMEAR: camina hasta otro NPC elegible cercano; al llegar arranca el mini-diálogo del chusmerío
+        const others = ns.filter(o => o !== n && Math.abs(o.x - n.x) < 600);
+        if (others.length) { const o = others[(Math.random() * others.length) | 0]; n.wTarget = clampNx(r, o.x + (o.x > n.x ? -52 : 52)); n.wChusme = true; }
+        else n.wCd = 4;
+      } else if (roll < 0.85) n.wTarget = clampNx(r, n.homeX + (Math.random() * 140 - 70));   // deambula cerca de su lugar
+      else n.wCd = 3 + Math.random() * 5;                              // se queda pancho
+    }
   }
   function eligibleNpcs(r) {   // NPCs vivos: participa del chusmerío si el componente `ambient` no es false (declarativo)
     return (r.npcs || []).filter(n => { if (n.invisible || !n.name || n.ambient === false) return false; const sx = n.x - cam.x; return sx > 30 && sx < 770; });
@@ -1305,6 +1354,7 @@
   function pReward(res, gameKey, itemId) {
     if (res !== 'win') return '';
     const w = loadPiqueteWon(); w[gameKey] = true; savePiqueteWon(w);
+    evlog('minijuego', gameKey);
     addItem(itemId); player.flores = (player.flores || 0) + 2;
     let extra = piqueteAllWon() ? (' ' + T('g.piquete.allWon')) : '';
     return ' ' + T('g.piquete.reward', { item: T(WEAPONS[itemId].label) }) + extra;
@@ -1341,6 +1391,7 @@
     sessChats++;   // "Tu partida": cuántas veces charlaste
     // métrica: ¿el chat dio IA real o cayó al pool? + con qué MOTOR (para ver tu "v1 chat no anda")
     tel('chat', { engine: engineUsed, result: (typeof AI !== 'undefined' && AI.lastFallback && AI.lastFallback()) ? 'fallback' : (typeof AI !== 'undefined' && AI.lastSource ? AI.lastSource() : 'ai') });
+    evlog('charla', chatNpc && (chatNpc.persona || chatNpc.name));
     const mk = memKey(chatNpc); if (mk) oracleMem[mk] = chatHistory.slice(-12);   // guardá su memoria (cap 12 turnos)
     if (ground && typeof AI !== 'undefined' && AI.lastSource() === 'local') chatLine('npc', '💡 ' + ground.text);
     // SATURACIÓN del free (la línea en personaje ya la dio el pool): cada tanto, avisá que es por el plan free
@@ -1874,6 +1925,7 @@
     }
   }
   function transition(d) {
+    evlog('sala', (rooms[d.to] || {}).name || d.to);
     if (d.to == null || !rooms[d.to]) { setMsg(T('g.trans.locked'), '#ffd54f', 3000); return; }   // puerta sin destino → NO romper (defensa)
     current = d.to;
     player.x = d.at.x - player.w/2; player.y = d.at.y - player.h;
@@ -2620,6 +2672,7 @@
     ambientCd -= dt;
     if (ambientCd <= 0) { ambientCd = 7 + Math.random() * 8; spawnAmbient(); }
     if (ambientBubbles.length) ambientBubbles = ambientBubbles.filter(b => b.until > time && (r.npcs || []).includes(b.npc));
+    updateDrives(r, dt);   // F4b: los NPC se mueven solos (deambular / chusmear / buscarte)
     // §9: el hincha SE ACERCA a agradecerte tras el dato del guarda; al llegar, premio + se vuelve a su lugar.
     if (mundialApproach && (r.npcs || []).includes(mundialApproach.npc)) {
       const h = mundialApproach.npc, target = player.x + player.w/2 - 22;
@@ -3075,6 +3128,7 @@
     if (state === 'dead') return;
     state = 'dead'; running = false; Sfx.stopHum(); Sfx.stopAmbient();
     tel('death', { engine: engineUsed });
+    evlog('muerte', '');
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // moriste de verdad: guardado a la basura
     elEndTitle.textContent = T('g.die.title'); elEndTitle.style.color = '#ff5252';
     elEndText.innerHTML = T('g.die.text'); renderStats(false);
@@ -3099,7 +3153,9 @@
     if (elIntro && elIntro.classList.contains('hidden') && typeof Salon !== 'undefined' && Salon.enabled && t > salonBeatT) {
       // reporta DÓNDE estás: los mini-juegos y sub-modos como su propio 'sala' → el dashboard ve quién juega a qué
       const MINI = { piquete: 'aguantar-corte', soga: 'la-soga', bombo: 'bombo', olla: 'olla', pancarta: 'pancarta', trucopvp: 'truco-1v1', trucopvp6: 'truco-6', arcade: 'arcade', bodegon: 'bodegon', lavalle: 'lavalle' };
-      salonBeatT = t + 5000; Salon.beat(MINI[state] || currentAt()); }
+      salonBeatT = t + 5000; Salon.beat(MINI[state] || currentAt());
+      // F4a: refresco LENTO del mundo vivo (ticker de otros jugadores) para el grounding de los NPC, esté donde esté
+      if (performance.now() > salonPollT + 56000) { salonPollT = performance.now() - 4000 + 60000; Salon.live(d => { if (d) salonLive = d; }); } }
     if (state === 'playing' && bodegonOn && typeof Salon !== 'undefined' && Salon.pos) Salon.pos(myTileX(), player.vx);   // F2b: posteo MI pos (el cliente throttlea ~160ms)
     if (state === 'playing' && activeEscort() && t > escortNudgeT) escortNudge();   // el escort te RECUERDA a dónde ir cada ~12s
     if (state === 'arcade' && arcadeGame) {
