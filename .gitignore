@@ -15,3 +15,8 @@ tests/screenshots/
 # clave de OpenRouter (modo A, generación de diálogos) — NUNCA commitear
 tools/openrouter.key
 tools/.env
+# artefactos del Autoplay QA (se regeneran en cada corrida)
+tests/autoplay/reporte.json
+tests/autoplay/reporte.md
+tests/autoplay/prompt-autofix.md
+tests/screenshots/autoplay/

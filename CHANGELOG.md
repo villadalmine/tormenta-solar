@@ -28,10 +28,17 @@ El juego es 100% estático; se publica en
   NPCs IA 💬, juegos 🕹️, tiendas, gente online por sala). 100% data-driven (sale del modelo v2 + wiring + x reales).
   Fases F1-F4.
 
-- ⭐ **AUTOPLAY QA** (`specs/autoplay-qa.md`, marcado 2026-07-02): un bot Playwright que JUEGA el juego por PARTES
-  (8 suites: boot/calle/historia/lavalle/multi/ia/mapas/apis) como DAG de **Argo CronWorkflow** → veredicto JSON por
-  suite ("hilar fino qué anda y qué no") → `reporte.md` en PVC → y si falla, **genera el PROMPT de auto-fix** (F3a:
-  archivo para pegar en Claude Code; F3b: hermes-agent lo toma solo). Fases F1 (suites locales) → F4.
+- **AUTOPLAY QA** (`specs/autoplay-qa.md`): ✅ **F1+F3a HECHOS (2026-07-02, `tests/autoplay/`)** — suites
+  01-boot/05-multi/06-ia/08-apis + runner (`node tests/autoplay/run.mjs`) que junta veredictos JSON → `reporte.md`
+  y, si algo falla, **genera el PROMPT de auto-fix** (`prompt-autofix.md`) + exit 1. Validado contra PROD (4/4
+  verdes; 06-ia cuida la billetera: 1 chat free + premium solo con `QA_SUB_CODE`). El CronWorkflow de Argo quedó
+  listo en `tests/autoplay/argo-cronworkflow.yaml` — **NO aplicado** (esperando OK del dueño). Falta F4 (suites
+  02-calle/03-historia/04-lavalle/07-mapas) + F3b (hermes lo toma solo).
+- ⭐ **CHAT LINYERA UX: ideas que quedan picando + iconos de espera** (`specs/chat-linyera-ux.md`, marcado
+  2026-07-02): (1) si el linyera te tira una idea (ej. "andá al cine") NO tenés que contestarle ya — la idea queda
+  REGISTRADA (bus de eventos + memoria del barrio) y si le venís con eso después, SE ACUERDA ("¿y? ¿fuiste al cine
+  como te dije?"); (2) mientras esperás la respuesta de la IA, el chat muestra iconos animados del mundo
+  (☀️⛈️🍷🥩💾🤖) para que se sepa que está pensando.
 
 - **Rotación en LiteLLM** (`specs/pruebas-modelos.md §2.7`): `gemma2:2b` en la GPU como primario
   (+ `keep_alive`) con **fallback a `gemma4-free`** (OpenRouter) si la GPU se apaga. El usuario lo itera aparte.

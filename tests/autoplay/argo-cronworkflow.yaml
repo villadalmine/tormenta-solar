@@ -1,0 +1,48 @@
+# Autoplay QA — CronWorkflow para Argo (specs/autoplay-qa.md §4 / F2)
+# ⚠️ NO APLICADO al cluster (regla del dueño: no tocar infra sin OK). Para activarlo:
+#     kubectl apply -n ai -f tests/autoplay/argo-cronworkflow.yaml
+#     (y para un run manual: argo submit --from cronwf/tormenta-autoplay -n ai)
+# Notas antes de aplicar:
+#  - La imagen de Playwright es multi-arch (amd64/arm64) — en el cluster mixto puede caer en un rk1 (arm64): OK.
+#  - QA_SUB_CODE (premium) es OPCIONAL: si se quiere probar el tier pago, crear un secret y descomentar el env.
+#  - El reporte queda en el PVC qa (montar el mismo en el ai-proxy si después se quiere servir GET /qa/reporte).
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: tormenta-autoplay
+  namespace: ai
+spec:
+  schedule: "0 8 * * *"          # 05:00 AR (UTC-3)
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  workflowSpec:
+    activeDeadlineSeconds: 900   # que no cuelgue (lección del cron de carteles)
+    entrypoint: qa
+    volumeClaimTemplates:
+      - metadata: { name: work }
+        spec: { accessModes: [ReadWriteOnce], resources: { requests: { storage: 1Gi } } }
+    templates:
+      - name: qa
+        container:
+          image: mcr.microsoft.com/playwright:v1.49.0-jammy
+          workingDir: /work
+          command: [bash, -lc]
+          args:
+            - |
+              set -e
+              git clone --depth 1 https://github.com/villadalmine/tormenta-solar.git repo
+              cd repo && npm i playwright@1.49.0 --no-save 2>/dev/null || true
+              QA_OUT=/work node tests/autoplay/run.mjs || true
+              echo "── reporte ──"; cat /work/reporte.md
+              # si falló, el prompt de auto-fix queda en /work/prompt-autofix.md (F3a: el dueño lo pega en Claude Code)
+              if [ -f /work/prompt-autofix.md ]; then echo "── PROMPT AUTO-FIX ──"; cat /work/prompt-autofix.md; exit 1; fi
+          env:
+            - { name: TARGET_URL, value: "https://tormenta-solar.cybercirujas.club/" }
+            - { name: PROXY_URL, value: "https://llm-tormenta-solar.cybercirujas.club" }
+            # - name: QA_SUB_CODE                       # opcional: probar tier premium (1 chat por corrida)
+            #   valueFrom: { secretKeyRef: { name: qa-sub-code, key: code } }
+          volumeMounts:
+            - { name: work, mountPath: /work }
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { memory: 2Gi }
