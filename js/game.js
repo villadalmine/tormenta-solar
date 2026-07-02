@@ -573,7 +573,7 @@
   // MAPA DEL MUNDO (specs/mapas-satelites-bunkers.md): sub-modo GLOBO que gira (satélites rebeldes + bases).
   function enterGlobo() {
     if (typeof Globo === 'undefined' || !Globo.create) return false;
-    globoGame = Globo.create(); state = 'globo';
+    globoGame = Globo.create({ satDown: satDown() }); state = 'globo';
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -592,7 +592,13 @@
   // MAPA B (specs/mapas-satelites-bunkers.md F2): el plano del búnker — construís módulos desde la entrada de tu base.
   function enterBunkerMapa() {
     if (typeof BunkerMapa === 'undefined' || !BunkerMapa.create) return false;
-    bunkerMapaGame = BunkerMapa.create({ player }); state = 'bunkermapa';
+    bunkerMapaGame = BunkerMapa.create({ player, threats: () => {
+      const out = [];   // enemigos VIVOS por sala (radar REAL) — states[i].enemies es el estado vivo del mundo
+      for (let i = 0; i < rooms.length; i++) { const st = states && states[i]; if (!st) continue;
+        const n = (st.enemies || []).filter(e => e && e.alive).length;
+        if (n) out.push({ f: i / rooms.length, n, name: TX(rooms[i].name) }); }
+      return out;
+    } }); state = 'bunkermapa';
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -1547,7 +1553,19 @@
     player.coins = Math.floor(player.coins * (SURV.sleepCoinKeepMin + Math.random() * (SURV.sleepCoinKeepMax - SURV.sleepCoinKeepMin)));  // monedas: te queda algo (parcial, aleatorio)
     player.hp = SURV.fullHp; player.alive = true; decayAcc = 0;             // descansás: arrancás el día lleno
     chinoFrontOpen = false; flash();
-    setMsg(T('g.loop.sleep', { n: loopCount }), '#7CFC00', 8000);
+    const bh = bunkerHarvest();   // F3 (mapas): mientras dormís, TU BÚNKER PRODUCE (huerta/depósito/catre/defensa)
+    setMsg(T('g.loop.sleep', { n: loopCount }) + (bh ? ' ' + bh : ''), '#7CFC00', bh ? 10000 : 8000);
+  }
+  // F3 (specs/mapas-satelites-bunkers.md): lo que construiste en EL PLANO produce al dormir el loop.
+  function bunkerHarvest() {
+    let mods = []; try { mods = JSON.parse(localStorage.getItem('ts_bunker_v1') || '[]') || []; } catch (e) {}
+    const c = k => mods.filter(m => m && m.id === k).length;
+    const car = c('huerta') * 2, mon = c('deposito') * 3, extra = c('catre') * 5 + c('defensa') * 5;
+    if (!car && !mon && !extra) return '';
+    if (car) player.caramelos = (player.caramelos || 0) + car;
+    if (mon) player.coins = (player.coins || 0) + mon;
+    if (extra) player.coins = (player.coins || 0) + extra;   // catres alquilados + defensa que ahuyenta chorros → changa
+    return T('g.bmapa.harvest', { c: car, m: mon + extra });
   }
   function playFifa() {
     if (!player.hasMegaDrive) { setMsg(T('g.fifa.noMega'), '#9fd3ff', 5000); return; }

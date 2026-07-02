@@ -48,8 +48,10 @@ compartido, o local por jugador para el MVP.
   + arrastrar para girar + click-selección con tooltip. Sin gameplay todavía (postal interactiva). *Entregable chico
   y vistoso; valida la idea.*
 - ✅ **F2 — Mapa B búnker (grilla + construir): HECHO (v274, `js/bunkermapa.js`).** Grilla 13×7, entrada fija 🚪 desde tu base (conectividad obligatoria), 6 módulos DATA con costo en monedas, X devuelve la mitad, persiste en localStorage; radar ambiental arriba (blips + barrido). NPC "El plano del búnker" en el búnker.
-- **F3 — Conexión:** el progreso del datacenter/satélite se refleja en el globo; el búnker da bonus/defensa; enemigos
-  reales en el radar.
+- ✅ **F3 — Conexión: HECHO (v281).** Radar del plano = enemigos VIVOS reales por sala (provider desde game.js;
+  el módulo 📡 identifica las señales con nombre+cantidad). El búnker PRODUCE al dormir el loop (huerta→🍬,
+  depósito/catre/defensa→🪙, mensaje de cosecha). El globo muestra la barra del DATACENTER global junto al satélite
+  rebelde (+ satélite humeando si `ts_sat_down`).
 - **F4 — (ambición) redondo-rotable + zoom** para el búnker, si la grilla cuadrada quedó corta.
 
 ## 5. Deuda / preguntas abiertas

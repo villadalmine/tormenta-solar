@@ -19,9 +19,12 @@ const Globo = (() => {
     { name: 'Nodo IA-3', lon: 240, lat: 20 },
   ];
 
-  function create() {
+  function create(opts) {
+    opts = opts || {};
     let yaw = 0, tilt = -0.42, drag = false, dragDist = 0, lastX = 0, prevDown = false;
     let sel = null, done = false, exitTo = null, t = 0, escHeld = false;
+    let dc = null;   // F3: estado GLOBAL del datacenter (el arma del barrio contra la IA) → se muestra junto al satélite
+    if (typeof Datacenter !== 'undefined' && Datacenter.get) Datacenter.get(d => { if (d) dc = d; });
 
     function rot(lat, lon) {   // (lat,lon)→ vector rotado por yaw (giro) + tilt (inclinación). z>0 = frente (visible).
       const la = lat * D2R, lo = lon * D2R + yaw;
@@ -77,10 +80,19 @@ const Globo = (() => {
       const orb = R * 1.28;
       for (const s of SATS) { const p = rot(s.lat, s.lon + (yaw * 40 / D2R) * 0 + t * 40); const sx = cx + orb * p.x, sy = cy - orb * p.y; geo.push({ sx, sy, z: p.z + 0.01, ref: s });
         const front = p.z > -0.2; if (!front) continue;
-        ctx.fillStyle = s.ai ? (sel === s ? '#fff' : '#ff4d4d') : (sel === s ? '#fff' : '#8fb0e0');
+        const hurt = s.ai && opts.satDown;   // lo heriste en el Obelisco → acá también se lo ve tocado
+        ctx.fillStyle = s.ai ? (sel === s ? '#fff' : (hurt ? '#a05050' : '#ff4d4d')) : (sel === s ? '#fff' : '#8fb0e0');
         ctx.beginPath(); ctx.arc(sx, sy, sel === s ? 6 : 4, 0, Math.PI * 2); ctx.fill();
-        if (s.ai) { ctx.strokeStyle = 'rgba(255,80,80,' + (0.4 + 0.4 * Math.sin(t * 6)) + ')'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(sx, sy, 9, 0, Math.PI * 2); ctx.stroke(); }
-        ctx.fillStyle = '#cfd8e6'; ctx.font = '9px monospace'; ctx.textAlign = 'left'; ctx.fillText(s.name, sx + 8, sy + 3); }
+        if (s.ai && !hurt) { ctx.strokeStyle = 'rgba(255,80,80,' + (0.4 + 0.4 * Math.sin(t * 6)) + ')'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(sx, sy, 9, 0, Math.PI * 2); ctx.stroke(); }
+        if (hurt) for (let i = 0; i < 2; i++) { const ph = (t * 0.6 + i * 0.5) % 1; ctx.globalAlpha = 0.35 * (1 - ph); ctx.fillStyle = '#888'; ctx.beginPath(); ctx.arc(sx + Math.sin(t + i) * 3, sy - 4 - ph * 14, 2 + ph * 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+        ctx.fillStyle = '#cfd8e6'; ctx.font = '9px monospace'; ctx.textAlign = 'left'; ctx.fillText(s.name + (hurt ? ' 🔥' : ''), sx + 8, sy + 3);
+        // F3: el DATACENTER del barrio = la barra de "cuánto falta para BAJARLO" (estado global real del server)
+        if (s.ai && dc) { const pr = dc.done ? 1 : Math.max(0, Math.min(1, +dc.progress || 0)); const bw = 74;
+          ctx.fillStyle = '#221'; ctx.fillRect(sx - bw / 2, sy + 12, bw, 6);
+          ctx.fillStyle = dc.done ? '#7CFC00' : '#e0b34a'; ctx.fillRect(sx - bw / 2, sy + 12, bw * pr, 6);
+          ctx.strokeStyle = '#000'; ctx.strokeRect(sx - bw / 2, sy + 12, bw, 6);
+          ctx.fillStyle = '#cfe8c0'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+          ctx.fillText(T(dc.done ? 'g.globo.dcDone' : 'g.globo.dc', { pct: Math.round(pr * 100) }), sx, sy + 27); } }
       _geo = geo;
       // barra + tooltip
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 26);

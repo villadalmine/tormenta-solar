@@ -19,6 +19,7 @@ const BunkerMapa = (() => {
   function create(opts) {
     opts = opts || {};
     const player = opts.player || { coins: 0 };
+    let threats = [], thT = 0;   // F3: amenazas REALES (enemigos vivos por sala) — refresca cada ~1s
     const ENT = { x: 0, y: 3 };                    // la ENTRADA desde tu base (fija, borde izquierdo)
     const cells = {};                              // "x,y" -> id de módulo
     let cur = { x: 1, y: 3 }, selIdx = 0, done = false, exitTo = null, t = 0, msg = '', msgT = 0;
@@ -49,6 +50,7 @@ const BunkerMapa = (() => {
     function update(dt) {
       t += dt; msgT -= dt;
       if (done) return;
+      thT -= dt; if (thT <= 0) { thT = 1; try { threats = (opts.threats && opts.threats()) || []; } catch (e) { threats = []; } }
       if (tap('arrowleft') || tap('a')) cur.x = Math.max(0, cur.x - 1);
       if (tap('arrowright') || tap('d')) cur.x = Math.min(GW - 1, cur.x + 1);
       if (tap('arrowup') || tap('w')) cur.y = Math.max(0, cur.y - 1);
@@ -72,11 +74,17 @@ const BunkerMapa = (() => {
       for (let gx = 12; gx < VW - 12; gx += 34) { ctx.strokeStyle = 'rgba(40,120,70,0.25)'; ctx.beginPath(); ctx.moveTo(gx, ry0); ctx.lineTo(gx, ry0 + rh); ctx.stroke(); }
       const sweep = 12 + ((t * 90) % (VW - 24));   // línea de barrido
       ctx.strokeStyle = 'rgba(80,255,140,0.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sweep, ry0); ctx.lineTo(sweep, ry0 + rh); ctx.stroke();
-      for (let i = 0; i < 5; i++) {                // blips enemigos (ambiental en F2; F3 = enemigos reales)
-        const bx = 12 + ((i * 167 + t * (14 + i * 7)) % (VW - 34)), by = ry0 + 10 + ((i * 53) % (rh - 20));
+      // F3: blips = enemigos VIVOS REALES por sala; con el módulo 📡 construido, además IDENTIFICÁS dónde
+      const hasRadar = Object.keys(cells).some(k => cells[k] === 'radar');
+      if (threats.length) for (let i = 0; i < threats.length; i++) { const th = threats[i];
+        const bx = 12 + th.f * (VW - 34), by = ry0 + 12 + ((i * 37) % (rh - 24));
         const glow = Math.max(0, 1 - Math.abs(bx - sweep) / 90);
-        ctx.fillStyle = 'rgba(255,80,80,' + (0.35 + 0.65 * glow).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(bx, by, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,80,80,' + (0.35 + 0.65 * glow).toFixed(2) + ')';
+        ctx.beginPath(); ctx.arc(bx, by, Math.min(6, 2 + th.n), 0, Math.PI * 2); ctx.fill();
+        if (hasRadar && glow > 0.25) { ctx.fillStyle = 'rgba(140,255,170,' + glow.toFixed(2) + ')'; ctx.font = '8px monospace'; ctx.textAlign = 'left'; ctx.fillText((th.name || '?') + ' ×' + th.n, Math.min(bx + 6, VW - 110), by + 3); }
       }
+      else { ctx.fillStyle = '#3f7a52'; ctx.font = '10px monospace'; ctx.textAlign = 'center'; ctx.fillText(T('g.bmapa.noThreat'), VW / 2, ry0 + rh / 2 + 3); }
+      if (threats.length && !hasRadar) { ctx.fillStyle = '#69d68a'; ctx.font = '8px monospace'; ctx.textAlign = 'right'; ctx.fillText(T('g.bmapa.needRadar'), VW - 18, ry0 + rh - 6); }
       ctx.fillStyle = '#69d68a'; ctx.font = '9px monospace'; ctx.textAlign = 'left'; ctx.fillText('📡 ' + T('g.bmapa.radar'), 18, ry0 + 12);
       // ── LA GRILLA del búnker ──
       const gy0 = ry0 + rh + 14, paletteH = 56;
