@@ -13,6 +13,11 @@ El juego es 100% estático; se publica en
 
 ## 🔭 Próximamente — Roadmap (SDDs draft, sin implementar)
 
+- ⭐ **AUTOPLAY QA** (`specs/autoplay-qa.md`, marcado 2026-07-02): un bot Playwright que JUEGA el juego por PARTES
+  (8 suites: boot/calle/historia/lavalle/multi/ia/mapas/apis) como DAG de **Argo CronWorkflow** → veredicto JSON por
+  suite ("hilar fino qué anda y qué no") → `reporte.md` en PVC → y si falla, **genera el PROMPT de auto-fix** (F3a:
+  archivo para pegar en Claude Code; F3b: hermes-agent lo toma solo). Fases F1 (suites locales) → F4.
+
 - **Rotación en LiteLLM** (`specs/pruebas-modelos.md §2.7`): `gemma2:2b` en la GPU como primario
   (+ `keep_alive`) con **fallback a `gemma4-free`** (OpenRouter) si la GPU se apaga. El usuario lo itera aparte.
 - **Pago de la suscripción** (research hecho en `specs/pasarela-pago.md`): falta enganchar una pasarela
