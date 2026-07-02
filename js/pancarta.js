@@ -50,7 +50,7 @@ const Pancarta = (() => {
       for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) if (Math.hypot(cx + 0.5 - gx, cy + 0.5 - gy) < BR) paint[cy * GW + cx] = col;
     }
     function brushPoints() {
-      const pts = [{ x: brush.gx, y: brush.gy, c: color }];
+      const pts = [{ x: brush.gx, y: brush.gy, c: color, me: true }];
       if (typeof Salon !== 'undefined' && Salon.getPeers) { const pm = Salon.getPeers(); for (const pid of seats) { if (pid === myPid) continue; const p = pm.get(pid); if (p && p.rx != null) pts.push({ x: p.rx, y: p.ry != null ? p.ry : GH / 2, c: (p.vx === 2 ? 2 : 1) }); } }
       return pts;
     }
@@ -76,7 +76,9 @@ const Pancarta = (() => {
       if (!isHost) { if (rphase === 'intro' && msgT <= 0) rphase = 'play'; return; }
       if (phase === 'intro') { if (msgT <= 0) phase = 'play'; return; }
       if (phase !== 'play') return;
-      for (const p of brushPoints()) paintAround(p.x, p.y, p.c);
+      // el pincel pinta SOLO apretando E/ESPACIO (pincel neutral al moverte) — ganás pintando con intención, no barriendo
+      const painting = Input.keys['e'] || Input.keys[' '];
+      for (const p of brushPoints()) if (p.me ? painting : true) paintAround(p.x, p.y, p.c);
       timeLeft -= dt;
       const prog = progressOf(paint);
       if (prog >= TARGET) return leave('win');

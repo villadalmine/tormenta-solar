@@ -214,8 +214,8 @@ function backendOf(model) {            // model_name → backend (OpenRouter / G
   if (m.includes('paid') || m.includes('gpt-4o') || m.includes('haiku') || m.includes('gemini')) return 'openrouter-paid';
   return 'openrouter';                 // *-free, etc.
 }
-function incChat(model, backend, outcome) {
-  const k = `model="${model}",backend="${backend}",outcome="${outcome}"`;
+function incChat(model, backend, outcome, persona) {
+  const k = `model="${model}",backend="${backend}",outcome="${outcome}",persona="${cleanLbl(persona || '-', 20)}"`;
   CHAT[k] = (CHAT[k] || 0) + 1;
 }
 // Intentos POR modelo de la cadena (llm-metrics F1): result ∈ ok|timeout|http_429|http_404|http_other|empty.
@@ -236,7 +236,7 @@ function obsLatency(model, backend, sec) {
 // Métricas de USO DEL JUEGO (telemetría del cliente, agregada, SIN PII). Labels acotados por whitelist
 // para que no explote la cardinalidad. Sirve para "¿cuántos en v1 vs v2?" + funnel (storm/truco/win/death).
 const GAME = {};                          // 'event="..",engine="..",result="..",lang=".."' -> count
-const GAME_EVENTS = new Set(['session', 'storm', 'truco', 'death', 'win', 'error', 'engine_fallback', 'chat', 'freeze', 'minigame', 'quest']);
+const GAME_EVENTS = new Set(['session', 'storm', 'truco', 'death', 'win', 'error', 'engine_fallback', 'chat', 'freeze', 'minigame', 'quest', 'arcade', 'playtime']);
 const cleanLbl = (v, max) => String(v == null ? '' : v).replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, max || 16);
 function incGame(ev) {
   const e = cleanLbl(ev && ev.e, 24);
@@ -1288,14 +1288,14 @@ http.createServer((req, res) => {
       const { reply, model, usage } = await ask(buildMessages(npc, message, history, grounding), { sub, user: sub ? subCode : undefined, orKey: rec && rec.orKey });
       const dt = Date.now() - t0; M.durMsSum += dt; M.durCount++;
       const be = backendOf(model);
-      incChat(model, be, sub ? 'ai_sub' : 'ai'); obsLatency(model, be, dt / 1000);   // ← modelo/backend/tier + latencia
+      incChat(model, be, sub ? 'ai_sub' : 'ai', npcLbl); obsLatency(model, be, dt / 1000);   // ← modelo/backend/tier + latencia
       if (sub) subCharge(subCode, model, usage);   // gasto US$ + tokens por código (quién gastó cuánto)
       reqLog({ sid, ip, npc: npcLbl, model, be, outcome: sub ? 'ai_sub' : 'ai', code: sub ? subShort(subCode) : undefined, usd: sub ? +costUsd(model, usage).toFixed(5) : undefined, ms: dt });
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ reply, tier: sub ? 'paid' : 'free' }));
     } catch (e) {
       const outcome = e.timedOut ? 'timeout' : 'error';
       if (!e.timedOut) M.errors++;     // timeout ya contado en ask()
-      M.fallbackLines++; incChat('-', '-', outcome);
+      M.fallbackLines++; incChat('-', '-', outcome, npcLbl);
       reqLog({ sid, ip, npc: npcLbl, model: '-', be: '-', outcome, ms: Date.now() - t0 });
       // línea TEMÁTICA de timeout (combina con el cliente): la tormenta saturó el modelo
       const line = e.timedOut

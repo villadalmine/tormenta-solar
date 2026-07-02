@@ -123,6 +123,7 @@
   let globoGame = null;     // MAPA A: el globo del mundo (satélites + bases) — sala de situación del búnker
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
+  let lavalleSpawn = null;  // al volver de un mini-juego, re-spawn EN su punto (no en la entrada)
   let piqueteGame = null;   // Fase 2 Lavalle: mini-juego co-op "Aguantar el corte" (mesa 'corte')
   let sogaGame = null;      // Lavalle: mini-juego co-op "La soga" (mesa 'soga')
   let bomboGame = null;     // Lavalle: mini-juego co-op "Bombo & cumbia" (mesa 'bombo')
@@ -148,7 +149,7 @@
   let dollarBubbles = [], shotsSeen = 0, legalBlindUntil = 0;
   let ambientBubbles = [], ambientCd = 5;   // NPCs VIVOS: chusmean entre ellos y de lo que hiciste (globitos)
   let cineNoticias = [];   // noticias que muestra la pantalla del cine (varias, del banco /noticias, filtradas por piso)
-  let salonLive = null, salonPollT = 0, salonBeatT = 0;   // MULTIJUGADOR F1: mundo vivo (count/byRoom/ticker) + cadencia de latido
+  let salonLive = null, salonPollT = 0, salonBeatT = 0, playtimeT = 300000;   // MULTIJUGADOR F1: mundo vivo (count/byRoom/ticker) + cadencia de latido
   let cartelBoard = null, cartelPollT = 0, cartelMsg = null, cartelMsgT = 0;   // CARTELES C1: tablón del piso actual (banco server) + el cartel que estás leyendo
   let dcState = null, dcPollT = 0, dcCinemaT = 0;   // DATACENTER D1/D2: estado GLOBAL + la cinemática del endgame (al 100%)
   let escortNudgeT = 0;   // el compañero (linyera/Guido) te RECUERDA a dónde ir cada tanto + en cada sala
@@ -515,7 +516,7 @@
     else if (it.kind === 'machine') handleMachine(it.m);
     else if (it.kind === 'cuevero') handleCuevero(it.c);
   }
-  function launchArcade(game, opts) { arcadeGame = Arcade.create(game, opts); state = 'arcade'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); }
+  function launchArcade(game, opts) { arcadeGame = Arcade.create(game, opts); state = 'arcade'; tel('arcade', { result: game }); evlog('arcade', game); elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); }
   // REGISTRO de puertas con HANDLER propio (lanzan sub-modo o bloquean con condición). El handler devuelve true si
   // manejó la puerta (lanzó/bloqueó) o false para caer a la transición normal. La puerta DECLARA su id (data).
   const DOOR_HANDLERS = {
@@ -643,7 +644,7 @@
   // LAVALLE (specs/lavalle.md E1.5): el piquete se ve TOP-DOWN (sub-modo); sin el módulo → cae al side-scroller (sala 52).
   function enterLavalle(intro) {
     if (typeof Lavalle === 'undefined' || !Lavalle.create) return false;
-    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon(), stormed }); state = 'lavalle';
+    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon(), stormed, won: loadPiqueteWon(), spawn: lavalleSpawn }); lavalleSpawn = null; state = 'lavalle';
     // MULTIJUGADOR (specs/lavalle-multijugador.md F1): Lavalle es un ESPACIO aparte del bodegón; te ves con los otros
     // que están en el piquete. Aditivo: sin red, queda la postal single-player.
     if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join(playerNick(), 'carpo', () => {}, 'lavalle');
@@ -3254,6 +3255,7 @@
       // reporta DÓNDE estás: los mini-juegos y sub-modos como su propio 'sala' → el dashboard ve quién juega a qué
       const MINI = { piquete: 'aguantar-corte', soga: 'la-soga', bombo: 'bombo', olla: 'olla', pancarta: 'pancarta', trucopvp: 'truco-1v1', trucopvp6: 'truco-6', arcade: 'arcade', bodegon: 'bodegon', lavalle: 'lavalle' };
       salonBeatT = t + 5000; Salon.beat(MINI[state] || currentAt());
+      if (t > playtimeT) { playtimeT = t + 300000; tel('playtime', {}); }   // 1 tick = 5 min jugados (métrica didáctica)
       // F4a: refresco LENTO del mundo vivo (ticker de otros jugadores) para el grounding de los NPC, esté donde esté
       if (performance.now() > salonPollT + 56000) { salonPollT = performance.now() - 4000 + 60000; Salon.live(d => { if (d) salonLive = d; }); } }
     if (state === 'playing' && bodegonOn && typeof Salon !== 'undefined' && Salon.pos) Salon.pos(myTileX(), player.vx);   // F2b: posteo MI pos (el cliente throttlea ~160ms)
@@ -3420,6 +3422,7 @@
       piqueteGame.update(dt); piqueteGame.draw(ctx, W, H);
       if (piqueteGame.done) {
         const res = piqueteGame.result; piqueteGame = null;
+        lavalleSpawn = { x: 9, y: 5 };
         const m = T(res === 'win' ? 'g.piquete.won' : res === 'lose' ? 'g.piquete.lost' : 'g.piquete.left') + pReward(res, 'corte', 'molotov');
         if (enterLavalle(m)) { /* de vuelta al piquete top-down (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
@@ -3427,6 +3430,7 @@
       sogaGame.update(dt); sogaGame.draw(ctx, W, H);
       if (sogaGame.done) {
         const res = sogaGame.result; sogaGame = null;
+        lavalleSpawn = { x: 2.6, y: 11 };
         const m = T(res === 'win' ? 'g.soga.won' : res === 'lose' ? 'g.soga.lost' : 'g.soga.left') + pReward(res, 'soga', 'palo');
         if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
@@ -3434,6 +3438,7 @@
       bomboGame.update(dt); bomboGame.draw(ctx, W, H);
       if (bomboGame.done) {
         const res = bomboGame.result; bomboGame = null;
+        lavalleSpawn = { x: 15.4, y: 11 };
         const m = T(res === 'win' ? 'g.bombo.won' : res === 'lose' ? 'g.bombo.lost' : 'g.bombo.left') + pReward(res, 'bombo', 'mortero');
         if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
@@ -3441,6 +3446,7 @@
       ollaGame.update(dt); ollaGame.draw(ctx, W, H);
       if (ollaGame.done) {
         const res = ollaGame.result; ollaGame = null;
+        lavalleSpawn = { x: 4.5, y: 9.6 };
         const m = T(res === 'win' ? 'g.olla.won' : res === 'lose' ? 'g.olla.lost' : 'g.olla.left') + pReward(res, 'olla', 'chori');
         if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
@@ -3448,6 +3454,7 @@
       pancaGame.update(dt); pancaGame.draw(ctx, W, H);
       if (pancaGame.done) {
         const res = pancaGame.result; pancaGame = null;
+        lavalleSpawn = { x: 13.5, y: 9.6 };
         const m = T(res === 'win' ? 'g.pancarta.won' : res === 'lose' ? 'g.pancarta.lost' : 'g.pancarta.left') + pReward(res, 'pancarta', 'palo');
         if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }

@@ -1,0 +1,426 @@
+{
+ "title": "Tormenta Solar — GPU / Modelos (LiteLLM + DCGM + ruteo)",
+ "uid": "tormenta-gpu-modelos",
+ "tags": [
+  "tormenta-solar",
+  "gpu",
+  "modelos"
+ ],
+ "timezone": "",
+ "schemaVersion": 39,
+ "refresh": "30s",
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "datasource",
+    "type": "datasource",
+    "query": "prometheus",
+    "current": {},
+    "hide": 0,
+    "label": "Datasource"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "type": "timeseries",
+   "title": "GPU: utilización (%)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 0,
+    "y": 0
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "DCGM_FI_DEV_GPU_UTIL",
+     "legendFormat": "GPU {{gpu}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU: memoria usada (MiB)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 8,
+    "y": 0
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "mbytes",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "DCGM_FI_DEV_FB_USED",
+     "legendFormat": "GPU {{gpu}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU: temperatura (°C) / potencia (W)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 16,
+    "y": 0
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "DCGM_FI_DEV_GPU_TEMP",
+     "legendFormat": "temp {{gpu}}",
+     "refId": "A"
+    },
+    {
+     "expr": "DCGM_FI_DEV_POWER_USAGE",
+     "legendFormat": "power {{gpu}}",
+     "refId": "B"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "LiteLLM: requests/min",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 0,
+    "y": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum(rate(litellm_proxy_total_requests_metric_total[5m])) * 60",
+     "legendFormat": "req/min",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "LiteLLM: latencia total p95 (s)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 8,
+    "y": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "histogram_quantile(0.95, sum by (le) (rate(litellm_request_total_latency_metric_bucket[10m])))",
+     "legendFormat": "p95",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "LiteLLM: en vuelo (concurrencia)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 16,
+    "y": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum(litellm_in_flight_requests)",
+     "legendFormat": "in flight",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "LiteLLM: tokens/min (in vs out)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 0,
+    "y": 14
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum(rate(litellm_input_tokens_metric_total[5m])) * 60",
+     "legendFormat": "in",
+     "refId": "A"
+    },
+    {
+     "expr": "sum(rate(litellm_output_tokens_metric_total[5m])) * 60",
+     "legendFormat": "out",
+     "refId": "B"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "LiteLLM: gasto acumulado (US$)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 8,
+    "y": 14
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum(litellm_spend_metric_total)",
+     "legendFormat": "US$",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Proxy: intentos por modelo y resultado (qué se cae)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 16,
+    "y": 14
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 60,
+      "lineWidth": 2,
+      "stacking": {
+       "mode": "normal"
+      }
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum by (model, result) (rate(tormenta_ai_model_attempts_total[10m])) * 60",
+     "legendFormat": "{{model}} {{result}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Proxy: latencia p95 del chat por modelo (s)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 0,
+    "y": 21
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "histogram_quantile(0.95, sum by (le, model) (rate(tormenta_ai_chat_latency_seconds_bucket[15m])))",
+     "legendFormat": "{{model}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Presupuesto pago hoy (usado / tope)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 8,
+    "y": 21
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "steps": [
+       {
+        "color": "yellow",
+        "value": null
+       }
+      ]
+     }
+    }
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "textMode": "value"
+   },
+   "targets": [
+    {
+     "expr": "tormenta_ai_paid_calls_today",
+     "legendFormat": "",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Precios OpenRouter (US$/M tok, completion)",
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 16,
+    "y": 21
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "tormenta_openrouter_price_usd{kind=\"completion\"} * 1e6",
+     "legendFormat": "{{model}}",
+     "refId": "A"
+    }
+   ]
+  }
+ ]
+}

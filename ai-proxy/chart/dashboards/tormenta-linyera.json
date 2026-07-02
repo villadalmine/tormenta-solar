@@ -1,172 +1,888 @@
 {
-  "title": "Tormenta Solar — Chat del Linyera",
-  "uid": "tormenta-linyera",
-  "tags": ["tormenta-solar", "llm", "linyera"],
-  "timezone": "browser",
-  "schemaVersion": 39,
-  "refresh": "30s",
-  "time": { "from": "now-6h", "to": "now" },
-  "templating": {
-    "list": [
-      { "name": "datasource", "type": "datasource", "query": "prometheus", "current": {}, "hide": 0, "label": "Datasource" }
-    ]
-  },
-  "panels": [
-    {
-      "type": "stat", "title": "Chats / min", "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "sum(rate(tormenta_ai_requests_total[5m])) * 60", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "% timeouts (5m)", "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.1 }, { "color": "red", "value": 0.2 } ] } } },
-      "targets": [ { "expr": "sum(rate(tormenta_ai_timeouts_total[5m])) / clamp_min(sum(rate(tormenta_ai_requests_total[5m])), 1)", "refId": "A" } ]
-    },
-    {
-      "type": "piechart", "title": "Backend (OpenRouter / GPU / NPU)", "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "sum by (backend) (increase(tormenta_ai_chat_total[1h]))", "legendFormat": "{{backend}}", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "Latencia media (ms)", "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "ms", "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 4000 }, { "color": "red", "value": 8000 } ] } } },
-      "targets": [ { "expr": "max(tormenta_ai_latency_ms_avg)", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Usos por modelo", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "sum by (model) (rate(tormenta_ai_chat_total{outcome=\"ai\"}[5m]))", "legendFormat": "{{model}}", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Resultado (ai / timeout / error / ratelimited)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "custom": { "stacking": { "mode": "normal" } } } },
-      "targets": [ { "expr": "sum by (outcome) (rate(tormenta_ai_chat_total[5m]))", "legendFormat": "{{outcome}}", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Latencia p95 por modelo (s)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "s" } },
-      "targets": [ { "expr": "histogram_quantile(0.95, sum by (le, model) (rate(tormenta_ai_chat_latency_seconds_bucket[5m])))", "legendFormat": "p95 {{model}}", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Fallback lines (degradación)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "sum(rate(tormenta_ai_fallback_lines_total[5m]))", "legendFormat": "fallback/s", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Intentos por modelo y resultado (qué free se cae)", "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "custom": { "stacking": { "mode": "normal" } } } },
-      "targets": [ { "expr": "sum by (model, result) (increase(tormenta_ai_model_attempts_total[15m]))", "legendFormat": "{{model}} · {{result}}", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Precios OpenRouter (US$/token, completion) — en el tiempo", "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
-      "targets": [ { "expr": "tormenta_openrouter_price_usd{kind=\"completion\"}", "legendFormat": "{{model}}", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "Free de cuenta: seg. al reset (0 = OK)", "gridPos": { "h": 5, "w": 6, "x": 0, "y": 37 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
-      "targets": [ { "expr": "max(tormenta_ai_free_blocked_seconds)", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "Respuestas pagas hoy (tope 600)", "gridPos": { "h": 5, "w": 6, "x": 6, "y": 37 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 480 }, { "color": "red", "value": 600 } ] } } },
-      "targets": [ { "expr": "max(tormenta_ai_paid_calls_today)", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "Sesiones únicas hoy", "gridPos": { "h": 5, "w": 6, "x": 12, "y": 37 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "max(tormenta_ai_unique_sessions_today)", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "IPs únicas hoy (real con PROXY protocol)", "gridPos": { "h": 5, "w": 6, "x": 18, "y": 37 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "max(tormenta_ai_unique_ips_today)", "refId": "A" } ]
-    },
-    {
-      "type": "bargauge", "title": "Score del ModelScorer (F2: mayor = mejor para rutear)", "gridPos": { "h": 8, "w": 8, "x": 0, "y": 42 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "options": { "orientation": "horizontal", "displayMode": "gradient" },
-      "targets": [ { "expr": "tormenta_ai_model_score", "legendFormat": "{{model}}", "instant": true, "refId": "A" } ]
-    },
-    {
-      "type": "bargauge", "title": "Disponibilidad por modelo (okRate)", "gridPos": { "h": 8, "w": 8, "x": 8, "y": 42 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "percentunit", "max": 1 } },
-      "options": { "orientation": "horizontal", "displayMode": "gradient" },
-      "targets": [ { "expr": "tormenta_ai_model_okrate", "legendFormat": "{{model}}", "instant": true, "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Posición en la cadena activa (1 = primero, 0 = fuera)", "gridPos": { "h": 8, "w": 8, "x": 16, "y": 42 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "tormenta_ai_chain_position", "legendFormat": "{{model}}", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Cupo / abuso: capped + ratelimited (/min)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 50 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "custom": { "stacking": { "mode": "normal" } } } },
-      "targets": [ { "expr": "sum by (outcome) (rate(tormenta_ai_chat_total{outcome=~\"capped|ratelimited\"}[5m])) * 60", "legendFormat": "{{outcome}}", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Gasto pago: respuestas pagas hoy vs tope", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 50 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "tormenta_ai_paid_calls_today", "legendFormat": "pagas hoy", "refId": "A" }, { "expr": "tormenta_ai_paid_budget_daily", "legendFormat": "tope", "refId": "B" } ]
-    },
-    {
-      "type": "row", "title": "💳 Suscripciones (por código)", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 58 }
-    },
-    {
-      "type": "stat", "title": "Códigos provisionados (con key propia)", "gridPos": { "h": 5, "w": 6, "x": 0, "y": 59 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "max(tormenta_ai_sub_provisioned)", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "Códigos válidos (env + provisionados)", "gridPos": { "h": 5, "w": 6, "x": 6, "y": 59 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "max(tormenta_ai_sub_codes)", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "Gasto REAL total de subs (US$)", "gridPos": { "h": 5, "w": 6, "x": 12, "y": 59 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
-      "targets": [ { "expr": "sum(tormenta_ai_sub_real_cost_usd)", "refId": "A" } ]
-    },
-    {
-      "type": "stat", "title": "Chats premium (sub) /min", "gridPos": { "h": 5, "w": 6, "x": 18, "y": 59 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "sum(rate(tormenta_ai_chat_total{outcome=\"ai_sub\"}[5m])) * 60", "refId": "A" } ]
-    },
-    {
-      "type": "bargauge", "title": "GASTO REAL por código (US$, de OpenRouter)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 64 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
-      "options": { "orientation": "horizontal", "displayMode": "gradient" },
-      "targets": [ { "expr": "tormenta_ai_sub_real_cost_usd", "legendFormat": "{{code}}", "instant": true, "refId": "A" } ]
-    },
-    {
-      "type": "bargauge", "title": "Tope (budget) por código (US$)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 64 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
-      "options": { "orientation": "horizontal", "displayMode": "lcd" },
-      "targets": [ { "expr": "tormenta_ai_sub_limit_usd", "legendFormat": "{{code}}", "instant": true, "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Gasto ESTIMADO por código (US$) — por modelo×tokens", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 72 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
-      "targets": [ { "expr": "tormenta_ai_sub_cost_usd", "legendFormat": "{{code}}", "refId": "A" } ]
-    },
-    {
-      "type": "timeseries", "title": "Chats por código (1h)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 72 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "targets": [ { "expr": "sum by (code) (increase(tormenta_ai_sub_usage_total[1h]))", "legendFormat": "{{code}}", "refId": "A" } ]
-    }
+ "title": "Tormenta Solar — Chat del Linyera",
+ "uid": "tormenta-linyera",
+ "tags": [
+  "tormenta-solar",
+  "llm",
+  "linyera"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "refresh": "30s",
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "datasource",
+    "type": "datasource",
+    "query": "prometheus",
+    "current": {},
+    "hide": 0,
+    "label": "Datasource"
+   }
   ]
+ },
+ "panels": [
+  {
+   "type": "stat",
+   "title": "Chats / min",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 0,
+    "y": 0
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "sum(rate(tormenta_ai_requests_total[5m])) * 60",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "% timeouts (5m)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 6,
+    "y": 0
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "thresholds": {
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 0.1
+       },
+       {
+        "color": "red",
+        "value": 0.2
+       }
+      ]
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum(rate(tormenta_ai_timeouts_total[5m])) / clamp_min(sum(rate(tormenta_ai_requests_total[5m])), 1)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "piechart",
+   "title": "Backend (OpenRouter / GPU / NPU)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 12,
+    "y": 0
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "sum by (backend) (increase(tormenta_ai_chat_total[1h]))",
+     "legendFormat": "{{backend}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Latencia media (ms)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 18,
+    "y": 0
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "ms",
+     "thresholds": {
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 4000
+       },
+       {
+        "color": "red",
+        "value": 8000
+       }
+      ]
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "max(tormenta_ai_latency_ms_avg)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Usos por modelo",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 5
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "sum by (model) (rate(tormenta_ai_chat_total{outcome=\"ai\"}[5m]))",
+     "legendFormat": "{{model}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Resultado (ai / timeout / error / ratelimited)",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 5
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "stacking": {
+       "mode": "normal"
+      }
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum by (outcome) (rate(tormenta_ai_chat_total[5m]))",
+     "legendFormat": "{{outcome}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Latencia p95 por modelo (s)",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 13
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s"
+    }
+   },
+   "targets": [
+    {
+     "expr": "histogram_quantile(0.95, sum by (le, model) (rate(tormenta_ai_chat_latency_seconds_bucket[5m])))",
+     "legendFormat": "p95 {{model}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Fallback lines (degradación)",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 13
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "sum(rate(tormenta_ai_fallback_lines_total[5m]))",
+     "legendFormat": "fallback/s",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Intentos por modelo y resultado (qué free se cae)",
+   "gridPos": {
+    "h": 8,
+    "w": 24,
+    "x": 0,
+    "y": 21
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "stacking": {
+       "mode": "normal"
+      }
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum by (model, result) (increase(tormenta_ai_model_attempts_total[15m]))",
+     "legendFormat": "{{model}} · {{result}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Precios OpenRouter (US$/token, completion) — en el tiempo",
+   "gridPos": {
+    "h": 8,
+    "w": 24,
+    "x": 0,
+    "y": 29
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD"
+    }
+   },
+   "targets": [
+    {
+     "expr": "tormenta_openrouter_price_usd{kind=\"completion\"}",
+     "legendFormat": "{{model}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Free de cuenta: seg. al reset (0 = OK)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 0,
+    "y": 37
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "thresholds": {
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "max(tormenta_ai_free_blocked_seconds)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Respuestas pagas hoy (tope 600)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 6,
+    "y": 37
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 480
+       },
+       {
+        "color": "red",
+        "value": 600
+       }
+      ]
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "max(tormenta_ai_paid_calls_today)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Sesiones únicas hoy",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 12,
+    "y": 37
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "max(tormenta_ai_unique_sessions_today)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "IPs únicas hoy (real con PROXY protocol)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 18,
+    "y": 37
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "max(tormenta_ai_unique_ips_today)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "bargauge",
+   "title": "Score del ModelScorer (F2: mayor = mejor para rutear)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 42
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "gradient"
+   },
+   "targets": [
+    {
+     "expr": "tormenta_ai_model_score",
+     "legendFormat": "{{model}}",
+     "instant": true,
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "bargauge",
+   "title": "Disponibilidad por modelo (okRate)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 42
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "max": 1
+    }
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "gradient"
+   },
+   "targets": [
+    {
+     "expr": "tormenta_ai_model_okrate",
+     "legendFormat": "{{model}}",
+     "instant": true,
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Posición en la cadena activa (1 = primero, 0 = fuera)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 42
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "tormenta_ai_chain_position",
+     "legendFormat": "{{model}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Cupo / abuso: capped + ratelimited (/min)",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 50
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "stacking": {
+       "mode": "normal"
+      }
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum by (outcome) (rate(tormenta_ai_chat_total{outcome=~\"capped|ratelimited\"}[5m])) * 60",
+     "legendFormat": "{{outcome}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Gasto pago: respuestas pagas hoy vs tope",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 50
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "tormenta_ai_paid_calls_today",
+     "legendFormat": "pagas hoy",
+     "refId": "A"
+    },
+    {
+     "expr": "tormenta_ai_paid_budget_daily",
+     "legendFormat": "tope",
+     "refId": "B"
+    }
+   ]
+  },
+  {
+   "type": "row",
+   "title": "💳 Suscripciones (por código)",
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 58
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Códigos provisionados (con key propia)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 0,
+    "y": 59
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "max(tormenta_ai_sub_provisioned)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Códigos válidos (env + provisionados)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 6,
+    "y": 59
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "max(tormenta_ai_sub_codes)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Gasto REAL total de subs (US$)",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 12,
+    "y": 59
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD"
+    }
+   },
+   "targets": [
+    {
+     "expr": "sum(tormenta_ai_sub_real_cost_usd)",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Chats premium (sub) /min",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 18,
+    "y": 59
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "sum(rate(tormenta_ai_chat_total{outcome=\"ai_sub\"}[5m])) * 60",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "bargauge",
+   "title": "GASTO REAL por código (US$, de OpenRouter)",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 64
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD"
+    }
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "gradient"
+   },
+   "targets": [
+    {
+     "expr": "tormenta_ai_sub_real_cost_usd",
+     "legendFormat": "{{code}}",
+     "instant": true,
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "bargauge",
+   "title": "Tope (budget) por código (US$)",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 64
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD"
+    }
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "lcd"
+   },
+   "targets": [
+    {
+     "expr": "tormenta_ai_sub_limit_usd",
+     "legendFormat": "{{code}}",
+     "instant": true,
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Gasto ESTIMADO por código (US$) — por modelo×tokens",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 72
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD"
+    }
+   },
+   "targets": [
+    {
+     "expr": "tormenta_ai_sub_cost_usd",
+     "legendFormat": "{{code}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Chats por código (1h)",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 72
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "targets": [
+    {
+     "expr": "sum by (code) (increase(tormenta_ai_sub_usage_total[1h]))",
+     "legendFormat": "{{code}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "piechart",
+   "title": "Con qué PERSONA hablan (24h)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 80
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "values": [
+      "value"
+     ]
+    },
+    "pieType": "donut"
+   },
+   "targets": [
+    {
+     "expr": "sum by (persona) (increase(tormenta_ai_chat_total{persona!=\"-\"}[24h]))",
+     "legendFormat": "{{persona}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "barchart",
+   "title": "% fallback por PERSONA (24h) — a quién le falla la IA",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 80
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     }
+    }
+   },
+   "options": {
+    "orientation": "horizontal"
+   },
+   "targets": [
+    {
+     "expr": "100 * sum by (persona) (increase(tormenta_ai_chat_total{outcome=~\"timeout|error\", persona!=\"-\"}[24h])) / clamp_min(sum by (persona) (increase(tormenta_ai_chat_total{persona!=\"-\"}[24h])), 1)",
+     "legendFormat": "{{persona}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Bancos del ecosistema: items",
+   "gridPos": {
+    "h": 8,
+    "w": 4,
+    "x": 16,
+    "y": 80
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "tormenta_eco_bank_items",
+     "legendFormat": "{{bank}}",
+     "refId": "A"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Bancos: frescura (horas desde el último update)",
+   "gridPos": {
+    "h": 8,
+    "w": 4,
+    "x": 20,
+    "y": 80
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "h",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 20,
+      "lineWidth": 2
+     }
+    }
+   },
+   "targets": [
+    {
+     "expr": "clamp_min(tormenta_eco_bank_age_seconds, 0) / 3600",
+     "legendFormat": "{{bank}}",
+     "refId": "A"
+    }
+   ]
+  }
+ ]
 }

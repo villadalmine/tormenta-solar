@@ -15,7 +15,7 @@ const Lavalle = (() => {
     for (let x = 0; x < W; x++) { map[0][x] = 1; map[1][x] = 1; map[2][x] = 1; map[3][x] = 1; }   // arriba: avenida+corte (más lejos) = pared → se ve EL OBELISCO grande
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W - 1] = 1; }
     const pal = { floor: '#222227', floor2: '#27272d', lane: '#c9c08a' };
-    const player = { x: 9 * CS, y: (H - 2.5) * CS, r: 11, dir: -1, walk: 0 };
+    const player = { x: (opts.spawn ? opts.spawn.x : 9) * CS, y: (opts.spawn ? opts.spawn.y : H - 2.5) * CS, r: 11, dir: -1, walk: 0 };
     let exitArmed = false;   // la salida (caminar hacia abajo) se ARMA recién cuando entraste al piquete (subiste) → así entrar con 's' apretada NO te saca al toque
 
     // --- el corte (barricada) abajo del todo del fondo, así arriba se ve la avenida + el Obelisco ---
@@ -339,6 +339,12 @@ const Lavalle = (() => {
       // barra superior + mensajes
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 26);
       ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'left'; ctx.fillText('✊ ' + T('g.lavalle.title'), 10, 18);
+      // TRACKER de los 5 mini-juegos (pedido del dueño): ganado = prendido · falta = apagado
+      { const GK = [['corte', '✊'], ['soga', '🚔'], ['bombo', '🥁'], ['olla', '🍲'], ['pancarta', '🎨']];
+        const won = opts.won || {}; let gx = 150; let nWon = 0;
+        ctx.font = '13px monospace'; ctx.textAlign = 'left';
+        for (const [k, em] of GK) { const w = !!won[k]; if (w) nWon++; ctx.globalAlpha = w ? 1 : 0.25; ctx.fillText(em, gx, 19); gx += 20; }
+        ctx.globalAlpha = 1; ctx.font = 'bold 11px monospace'; ctx.fillStyle = nWon >= 5 ? '#7CFC00' : '#ffd54f'; ctx.fillText(nWon + '/5', gx + 2, 18); }
       // MULTIJUGADOR: cuántos estamos en el piquete AHORA (vos + peers). Feedback directo del online.
       { const nPeers = (typeof Salon !== 'undefined' && Salon.getPeers && Salon.inBodegon && Salon.inBodegon()) ? Salon.getPeers().size : 0;
         ctx.textAlign = 'center'; ctx.fillStyle = nPeers ? '#9be8a0' : '#6a6a72'; ctx.font = 'bold 11px monospace';
