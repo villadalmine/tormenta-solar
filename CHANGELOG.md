@@ -13,20 +13,14 @@ El juego es 100% estático; se publica en
 
 ## 🔭 Próximamente — Roadmap (SDDs draft, sin implementar)
 
-- ⭐ **ESTADO DEL JUGADOR: NaN + respawn peronista** (`specs/estado-jugador.md`, marcado 2026-07-02): DIAGNÓSTICO
-  hecho del bug de NaN (comparaciones con undefined no frenan compras → `coins -= undefined` → NaN que se propaga y
-  PERSISTE en el save; fuente probable: ítems malformados del `ts_shopCache_v1`/bancos IA) → fix en 3 capas
-  (`sanePlayer()` + `num()` fail-closed en compras + higiene del cache) con **evento `nan` por campo al dashboard**.
-  Y **respawn peronista**: morir SIN búnker → despertás en el piquete ("¡Flaco! te teletransportaste como un RAYO
-  SOLAR") con hp 50 + chori, sin perder el save.
-- ⭐ **Tracker juegos del piquete** (`specs/lavalle-multijugador.md §7`): ocultable con [H], se borra solo cuando el
-  grafo dice que el juramento pasó, estado del grafo, juegos siempre rejugables (multiplayer).
-
-- ⭐ **MAPA DEL JUEGO** (`specs/mapa-juego.md`, marcado 2026-07-02): automap estilo DOOM con **TAB** — el CORTE de la
-  manzana (calle horizontal, edificios por pisos arriba, subsuelos abajo, sub-modos colgados), "estás acá" con piso
-  resaltado, hover/cursor con info, zoom por edificio, y MARCADORES del grafo (quests ✓/⭐/🔒 vía Historia×HintEngine,
-  NPCs IA 💬, juegos 🕹️, tiendas, gente online por sala). 100% data-driven (sale del modelo v2 + wiring + x reales).
-  Fases F1-F4.
+- ~~**ESTADO DEL JUGADOR: NaN + respawn peronista**~~: ✅ **HECHO (v288·infra-60)** — `sanePlayer()` + `num()`
+  fail-closed + higiene del `ts_shopCache_v1` + evento `nan` por campo al dashboard; morir sin búnker → despertás
+  en el piquete con la muchachada. `specs/estado-jugador.md`.
+- ~~**Tracker juegos del piquete**~~: ✅ **HECHO (v288)** — ocultable [H], persiste, se limpia solo con el
+  juramento del grafo. `specs/lavalle-multijugador.md §7`.
+- ~~**MAPA DEL JUEGO**~~: ✅ **HECHO (v289, F1-F3+fog)** — automap DOOM con TAB, corte de la manzana 100%
+  data-driven (51/51 salas del wiring v2), "estás acá", zoom [Z], marcadores del grafo, fog of war.
+  `specs/mapa-juego.md`. Falta menor: cursor por teclado, minimapa HUD, online por sala.
 
 - **AUTOPLAY QA** (`specs/autoplay-qa.md`): ✅ **F1+F3a HECHOS (2026-07-02, `tests/autoplay/`)** — suites
   01-boot/05-multi/06-ia/08-apis + runner (`node tests/autoplay/run.mjs`) que junta veredictos JSON → `reporte.md`
