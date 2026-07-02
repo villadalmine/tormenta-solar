@@ -987,6 +987,7 @@
     // F4a (npcs-vivos §5.3): lo FRESCO — últimos movimientos del jugador (bus de eventos) + qué hacen OTROS jugadores
     if (typeof Eventos !== 'undefined' && Eventos.last) { const evs = Eventos.last(5); if (evs.length) b.push('ÚLTIMOS MOVIMIENTOS del jugador, en orden (lo más reciente al final; comentalo con tu voz si viene al caso): ' + evs.map(e => e.ev + (e.detail ? ' "' + e.detail + '"' : '')).join(' → ')); }
     if (salonLive && Array.isArray(salonLive.ticker) && salonLive.ticker.length) b.push('en el BARRIO, OTROS jugadores hicieron hace poco: ' + salonLive.ticker.slice(-3).map(x => x.ev).join(', '));
+    if (typeof Eventos !== 'undefined' && Eventos.memoriaVieja) { const mm = Eventos.memoriaVieja(4); if (mm.length) b.push('MEMORIA DEL BARRIO (cosas que el jugador hizo en OTROS momentos/días — podés recordárselas con nostalgia): ' + mm.map(e => e.ev + (e.detail ? ' "' + e.detail + '"' : '')).join(', ')); }
     return 'ESTADO DEL JUEGO (datos reales del ecosistema, todo está conectado; usalo con tu voz si viene al caso, NO inventes rutas ni datos): ' + b.join('; ') + '.';
   }
   // ---- NPCs VIVOS: chusmerío ambiente (globitos) — los NPC se hablan entre ellos / te tiran data de lo que hiciste.
@@ -1000,6 +1001,9 @@
     if (s.chinoEntered) L.push('me contaron que entró al chino y afanó todo gratis 😱');
     if (s.bunkerUnlocked) L.push('el pibe se hizo gurú, tiene el búnker');
     if (s.diosa) L.push('¿viste que anda con una Diosa Tropical?');
+    // F4d: memoria del barrio — los NPC recuerdan lo que hiciste OTROS días ("¿te acordás cuando…?")
+    if (typeof Eventos !== 'undefined' && Eventos.memoriaVieja) for (const e of Eventos.memoriaVieja(3))
+      L.push('¿te acordás cuando el pibe se mandó lo de "' + (e.detail || e.ev) + '"? qué momento aquel');
     // F4a: chusme de lo RECIÉN hecho (bus de eventos — los NPC 'vieron' lo que acabás de hacer)
     if (typeof Eventos !== 'undefined' && Eventos.recent) for (const e of Eventos.recent(120000).slice(-3)) {
       if (e.ev === 'hito') L.push('¿viste? el pibe recién se mandó lo de "' + e.detail + '"');
@@ -1034,6 +1038,32 @@
   const wanderOk = canMove;
   let seekCd = 0;   // cooldown global del "te busca" (que no te persigan todos a la vez)
   function clampNx(r, x) { return Math.max(Level.TILE * 1.2, Math.min(((r.w || 24) - 1.5) * Level.TILE, x)); }
+  // F4c (npcs-vivos §5.3): DIÁLOGO NPC↔NPC por IA — dos oráculos que se cruzan IMPROVISAN un intercambio real
+  // (con el estado vivo del mundo como grounding). Barato: cache localStorage por PAR y por DÍA + tope 2/sesión +
+  // cooldown 3 min. Sin IA/red → cae al pool del chusmerío (aditivo). La respuesta usa la voz del PRIMERO (persona).
+  let dlgBudget = 2, dlgCdT = 0;
+  function oracleDialogue(a, b) {
+    if (typeof AI === 'undefined' || !AI.chat) return false;
+    let key = null, cached = null;
+    try { const day = new Date().toISOString().slice(0, 10); key = 'ts_dlg_' + [a.persona, b.persona].sort().join('_') + '_' + day; cached = localStorage.getItem(key); } catch (e) {}
+    if (cached) { showDialogue(a, b, cached); return true; }
+    if (dlgBudget <= 0 || performance.now() < dlgCdT) return false;
+    dlgBudget--; dlgCdT = performance.now() + 180000;
+    const prompt = 'Improvisá un intercambio de DOS líneas cortas (máx 12 palabras cada una) entre VOS y tu amigo ' +
+      (TX(b.name) || 'otro linyera') + ', chusmeando lo último que hizo el jugador. Formato EXACTO, dos líneas:\nYO: ...\nEL: ...';
+    AI.chat(a.persona || 'filosofo', prompt, [], worldBrief()).then(reply => {
+      if (!reply) return;
+      try { if (key) localStorage.setItem(key, String(reply).slice(0, 300)); } catch (e) {}
+      showDialogue(a, b, reply);
+    }).catch(() => {});
+    return true;
+  }
+  function showDialogue(a, b, raw) {
+    const lines = String(raw).split('\n').map(x => x.replace(/^\s*["“]?(YO|EL|ÉL|ELLA|[A-ZÁÉÍÓÚÑ][\wáéíóúñ .]{0,18})\s*[:—-]\s*/i, '').replace(/["”]\s*$/, '').trim()).filter(x => x && x.length > 2).slice(0, 2);
+    if (!lines.length) return;
+    ambientBubbles.push({ npc: a, text: lines[0].slice(0, 110), from: time, until: time + 5.5 });
+    if (lines[1]) ambientBubbles.push({ npc: b, text: lines[1].slice(0, 110), from: time + 2.2, until: time + 8 });
+  }
   function updateDrives(r, dt) {
     seekCd -= dt;
     const ns = (r.npcs || []).filter(wanderOk);
@@ -1043,7 +1073,13 @@
         const dx = n.wTarget - n.x;
         if (Math.abs(dx) < 6) {                                        // llegó
           if (n.wSeek) { ambientBubbles.push({ npc: n, text: n.wSeek, from: time, until: time + 5.4 }); n.wSeek = null; }
-          else if (n.wChusme) { ambientCd = Math.min(ambientCd, 0.4); n.wChusme = false; }   // llegó al otro → dispara el mini-diálogo
+          else if (n.wChusme) {
+            n.wChusme = false;
+            const cerca = ns.find(o => o !== n && Math.abs(o.x - n.x) < 130);
+            // F4c: dos ORÁCULOS cerca (y vos a distancia de leerlo) → improvisan por IA; si no, el pool de chusmerío
+            if (!(cerca && n.oracle && cerca.oracle && n.persona && cerca.persona && Math.abs(player.x - n.x) < 620 && oracleDialogue(n, cerca)))
+              ambientCd = Math.min(ambientCd, 0.4);
+          }
           n.wTarget = null; n.wCd = 5 + Math.random() * 9;
         } else n.x += Math.sign(dx) * Math.min(42 * dt, Math.abs(dx));
         continue;

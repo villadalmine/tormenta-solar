@@ -84,6 +84,5 @@ F1-F3 (globitos + relay con fuente + **grafo social `social.knows/rival` como DA
   `mov:false` (colas/músico/porteros) · `mov:{tras:'flag'}` (se libera al pasar el quest — borrachines tras
   `borrachosHappy`) · `mov:{hasta:'flag'}` (vecinos hasta `stormed`, después quedan de guardia). `canMove()` evalúa
   contra `historiaState()` → EL GRAFO decide quién se mueve. Todos vuelven SIEMPRE a su `homeX`.
-- **F4c — DIÁLOGO NPC↔NPC por IA (Mensajero):** cuando dos ORÁCULOS quedan cerca, un intercambio de 2 líneas
-  generado (barato, cacheado) en vez del pool — conversación emergente real.
-- **F4d — memoria social persistente:** lo chusmeado evoluciona (agent.memory por NPC, v2).
+- ✅ **F4c — DIÁLOGO NPC↔NPC por IA: HECHO (v277).** Dos oráculos que se cruzan (vía drives) improvisan 2 líneas por IA (`oracleDialogue`: AI.chat con worldBrief como grounding; cache localStorage por par+día, tope 2/sesión, cooldown 3 min, fallback pool). Se muestra como globitos encadenados si el jugador está cerca.
+- ✅ **F4d — MEMORIA DEL BARRIO: HECHO (v277).** `Eventos.remember` persiste lo notable (`ts_barrio_mem_v1`, ring 30); `memoriaVieja` (>6h) alimenta el chusmerío ('¿te acordás cuando…?') y el worldBrief ('MEMORIA DEL BARRIO') → los oráculos recuerdan tu historia entre sesiones. (La memoria por-NPC individual con evolución queda como refinamiento v2.)
