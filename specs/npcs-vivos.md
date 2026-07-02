@@ -41,7 +41,7 @@ hablan de cosas del juego y de tu progreso ("che, me dijo el borrachín que no l
   level.js→gen-level→schema→mundo→engine. El relay **fluye por aristas**: un NPC prioriza relayear rumores de quien
   **CONOCE** (`social.knows`); y habla mal de su **`rival`** (`g.rivalGossip`). Tagueados: los oráculos conocen todo el
   chusme del barrio; el guarda es rival del tahúr. La **máquina de niveles** podrá autorar estas relaciones.
-  **Pendiente:** transcreación EN de los rumores (hoy es-flavor) + que la fuente sea una entidad puntual (no solo rol).
+  **✅ transcreación EN de los rumores/derivadas: HECHA (v287, 24 claves `g.viva.*`/`g.rumor.*`).** Queda: el banco CHUSMERIO del server bilingüe (cambio del cron gen-chusmerio) + que la fuente sea una entidad puntual (no solo rol).
 - **Memoria por NPC:** lo que chusmean persiste/evoluciona (agent.memory). 
 - Todo esto encaja con el modelo v2 (entidades+componentes+grafo+memoria); F1 es el placeholder v1 a migrar.
 

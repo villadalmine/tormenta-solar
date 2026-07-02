@@ -1026,26 +1026,26 @@
     // BASE = banco vivo del proxy (gen-chusmerio.mjs, IA → API, no hardcode). Fallback estático en js/chusmerio.js.
     const L = ((typeof window !== 'undefined' && window.CHUSMERIO) || []).slice();
     // + líneas DERIVADAS del estado vivo (computadas del ecosistema/worldSnapshot, no contenido fijo):
-    if (!s.borrachosHappy) L.push('che, ¿el pibe le dio lo que pide al borrachín o no?');
-    if (s.trucoEverWon) L.push('dicen que le ganó al tahúr al truco, mirá vos');
-    if (s.chinoEntered) L.push('me contaron que entró al chino y afanó todo gratis 😱');
-    if (s.bunkerUnlocked) L.push('el pibe se hizo gurú, tiene el búnker');
-    if (s.diosa) L.push('¿viste que anda con una Diosa Tropical?');
+    if (!s.borrachosHappy) L.push(T('g.viva.borra'));
+    if (s.trucoEverWon) L.push(T('g.viva.truco'));
+    if (s.chinoEntered) L.push(T('g.viva.chino'));
+    if (s.bunkerUnlocked) L.push(T('g.viva.guru'));
+    if (s.diosa) L.push(T('g.viva.diosa'));
     // F4d: memoria del barrio — los NPC recuerdan lo que hiciste OTROS días ("¿te acordás cuando…?")
     if (typeof Eventos !== 'undefined' && Eventos.memoriaVieja) for (const e of Eventos.memoriaVieja(3))
-      L.push('¿te acordás cuando el pibe se mandó lo de "' + (e.detail || e.ev) + '"? qué momento aquel');
+      L.push(T('g.viva.memoria', { d: e.detail || e.ev }));
     // F4a: chusme de lo RECIÉN hecho (bus de eventos — los NPC 'vieron' lo que acabás de hacer)
     if (typeof Eventos !== 'undefined' && Eventos.recent) for (const e of Eventos.recent(120000).slice(-3)) {
-      if (e.ev === 'hito') L.push('¿viste? el pibe recién se mandó lo de "' + e.detail + '"');
-      else if (e.ev === 'minijuego') L.push('recién ganó en el piquete, ¡qué aguante tiene!');
-      else if (e.ev === 'charla') L.push('recién lo vi chamuyando con ' + e.detail + ', ¿de qué hablarán?');
-      else if (e.ev === 'muerte') L.push('al pibe lo bajaron recién… mala leche');
+      if (e.ev === 'hito') L.push(T('g.viva.hito', { d: e.detail }));
+      else if (e.ev === 'minijuego') L.push(T('g.viva.mini'));
+      else if (e.ev === 'charla') L.push(T('g.viva.charla', { d: e.detail }));
+      else if (e.ev === 'muerte') L.push(T('g.viva.muerte'));
     }
-    L.push(s.stormed ? 'desde la tormenta esto es un quilombo, loco' : 'algo raro tiene el sol hoy, ¿no sentís?');
-    if (s.carteles && s.carteles.length) L.push('probate el ' + s.carteles[0].brand + ', dicen que está bárbaro');
-    if (s.cine && s.cine.mundialTabla) L.push('andá al cine que pasan el Mundial');
-    if (s.quests.mundial && !s.quests.mundial.shown) L.push('hay un hincha que se muere por saber cómo salió ' + s.quests.mundial.equipo);
-    return L.length ? L : ['¿no tenés un puchito, maestro?'];   // el flavor sale del banco/estático; esto es red de seguridad
+    L.push(T(s.stormed ? 'g.viva.storm' : 'g.viva.calm'));
+    if (s.carteles && s.carteles.length) L.push(T('g.viva.cartel', { b: s.carteles[0].brand }));
+    if (s.cine && s.cine.mundialTabla) L.push(T('g.viva.cine'));
+    if (s.quests.mundial && !s.quests.mundial.shown) L.push(T('g.viva.hincha', { eq: s.quests.mundial.equipo }));
+    return L.length ? L : [T('g.viva.pucho')];   // el flavor sale del banco/estático; esto es red de seguridad
   }
   // ── NPCs VIVOS F4b (npcs-vivos §5.3): DRIVES — deambulan, van a chusmear con otro, y a veces TE BUSCAN si hiciste
   // algo notable (sienten la necesidad). Solo decorativos/oráculos: NUNCA los de quest/tienda/want/follow.
@@ -1120,7 +1120,7 @@
       if (fresh && n.oracle && seekCd <= 0 && Math.abs(player.x - n.x) < 900) {
         // TE BUSCA: pasó algo notable hace poco → el oráculo camina hacia vos y te lo comenta (globito)
         seekCd = 45; n.wTarget = clampNx(r, player.x + (Math.random() < 0.5 ? -46 : 46));
-        n.wSeek = '¡che pibe! me enteré de lo tuyo' + (fresh.detail ? ': "' + fresh.detail + '"' : '') + ' 👀';
+        n.wSeek = T('g.viva.seek', { d: fresh.detail || fresh.ev });
       } else if (roll < 0.3) {
         // va a CHUSMEAR: camina hasta otro NPC elegible cercano; al llegar arranca el mini-diálogo del chusmerío
         const others = ns.filter(o => o !== n && Math.abs(o.x - n.x) < 600);
@@ -1139,14 +1139,14 @@
   const ROLE_NAMES = { borracho:'el borrachín', tahur:'el tahúr', chino:'el chino', linyeras:'los linyeras', gondola:'el de la góndola', vendedor:'el vendedor de armas', guarda:'el guarda del cine', vecina:'la vecina' };
   function rumorPool(s) {
     const R = [], add = (key, txt, cond) => { if (cond) R.push({ key, src: ROLE_NAMES[key] || key, txt }); };
-    add('borracho', 'que no le diste lo que te pidió', !s.borrachosHappy);
-    add('tahur', 'que le ganaste al truco y quedó caliente', s.trucoEverWon);
-    add('chino', 'que le entraste al súper y te llevaste todo', s.chinoEntered);
-    add('linyeras', 'que te hiciste gurú y tenés el búnker', s.bunkerUnlocked);
-    add('gondola', 'que andás con una Diosa Tropical', s.diosa);
-    add('vendedor', 'que te vendió un fierro criollo', s.armado);
-    add('guarda', 'que le sacaste el resultado del Mundial', s.quests.mundial && s.quests.mundial.shown);
-    add('vecina', 'que pruebes el ' + (s.carteles && s.carteles[0] && s.carteles[0].brand), s.carteles && s.carteles.length);
+    add('borracho', T('g.rumor.borracho'), !s.borrachosHappy);
+    add('tahur', T('g.rumor.tahur'), s.trucoEverWon);
+    add('chino', T('g.rumor.chino'), s.chinoEntered);
+    add('linyeras', T('g.rumor.linyeras'), s.bunkerUnlocked);
+    add('gondola', T('g.rumor.gondola'), s.diosa);
+    add('vendedor', T('g.rumor.vendedor'), s.armado);
+    add('guarda', T('g.rumor.guarda'), s.quests.mundial && s.quests.mundial.shown);
+    add('vecina', T('g.rumor.vecina', { b: (s.carteles && s.carteles[0] && s.carteles[0].brand) || '' }), s.carteles && s.carteles.length);
     return R;
   }
   function spawnAmbient() {
