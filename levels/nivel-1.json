@@ -7358,8 +7358,8 @@
           "render": {
             "sprite": "recepcionista"
           },
-          "x": 8,
-          "name": "La sala de situación",
+          "x": 6.3,
+          "name": "Mapamundi",
           "interact": {
             "action": "globo"
           },
@@ -7373,8 +7373,8 @@
           "render": {
             "sprite": "recepcionista"
           },
-          "x": 15,
-          "name": "El plano del búnker",
+          "x": 15.4,
+          "name": "El plano",
           "interact": {
             "action": "plano"
           },

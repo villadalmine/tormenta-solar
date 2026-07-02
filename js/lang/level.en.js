@@ -176,10 +176,10 @@ const LEVEL_EN = {
   // ---- búnker ----
   '“Bienvenido al búnker, gurú. Acá nadie labura. Tirate en el catre cuando quieras pasar el día. 🛖”': '"Welcome to the bunker, guru. Nobody works here. Flop on the cot whenever you want to pass the day. 🛖"',
   // mapas estratégicos del búnker (specs/mapas-satelites-bunkers.md)
-  'La sala de situación': 'The situation room',
+  'Mapamundi': 'World map',
   '“Mirá el mundo, gurú: los satélites rebeldes que desataron la tormenta y las bases del pueblo. [E] para abrir el mapa. 🛰️🌎”':
     '"Look at the world, guru: the rebel satellites that unleashed the storm and the people\'s bases. [E] to open the map. 🛰️🌎"',
-  'El plano del búnker': 'The bunker blueprint',
+  'El plano': 'The blueprint',
   '“Acá está el PLANO, gurú: tu búnker se construye desde la entrada de tu base. Poné pasillos, catres, huerta… y defensas, que arriba en el radar la superficie está brava. [E] para abrir el plano. 📐🛖”':
     '"Here\'s the BLUEPRINT, guru: your bunker builds out from your base\'s entrance. Lay corridors, cots, a garden… and defenses — the radar up top says the surface is rough. [E] to open the blueprint. 📐🛖"',
   '“Si querés salir de verdad, andá al portal de la Casa de Cambio. Si no, quedate en el loop.” 🔁': '"If you really want out, go to the Exchange House portal. Otherwise, stay in the loop." 🔁',
