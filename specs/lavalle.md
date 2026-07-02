@@ -106,8 +106,10 @@ agregando la entrada al **mapa ES→EN** de `js/lang/level.en.js` (`levelTx`). P
   olla, pibes, cumbia sonando) → la barricada corta al fondo → volver a la calle (la cumbia se corta).
 
 ## 5. Roadmap — etapas siguientes (NO en E1, "luego agregamos más cosas")
-- **E2 — pasar el piquete / llegar al Obelisco:** cómo se destraba el corte (¿sumarte?, ¿una changa?, ¿un trato con el
-  que corta?) → más Lavalle hacia el Obelisco; el Obelisco como set-piece jugable.
+- ✅ **E2 — pasar el piquete / llegar al Obelisco: HECHO (v278).** El corte se destraba GANANDO LOS 5 MINI-JUEGOS del
+  piquete (v269: hueco + juramento al peronista + fiesta) → la colisión se abre, "el que corta" se corre, subís por el
+  hueco → **`js/obelisco.js`**: Plaza de la República de noche, Obelisco gigante con pintada, la Marcha de fondo, el
+  SATÉLITE REBELDE con ojo rojo cruzando el cielo, y el CUIDADOR ([E], 4 líneas, gancho de E3).
 - **E3 — qué pasa con la tormenta acá:** si Lavalle se "glitchea" como la calle (enemigos, peligros) o queda como
   refugio festivo.
 - **E4 — interacciones/quests:** la olla popular (dar/recibir comida), los pibes (un picadito), los del corte (un

@@ -121,6 +121,7 @@
   // truco6 = {seatToPid, pidToSeat} (host) o {host} (guest). El lobby lo hace el SERVER (no más invitaciones P2P).
   let truco6Game = null, truco6 = null, tableWait = null;
   let globoGame = null;     // MAPA A: el globo del mundo (satélites + bases) — sala de situación del búnker
+  let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
   let piqueteGame = null;   // Fase 2 Lavalle: mini-juego co-op "Aguantar el corte" (mesa 'corte')
   let sogaGame = null;      // Lavalle: mini-juego co-op "La soga" (mesa 'soga')
@@ -359,7 +360,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -573,6 +574,15 @@
   function enterGlobo() {
     if (typeof Globo === 'undefined' || !Globo.create) return false;
     globoGame = Globo.create(); state = 'globo';
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // LAVALLE E2 (specs/lavalle.md): pasaste el corte → la plaza del Obelisco. Al salir volvés al piquete.
+  function enterObelisco() {
+    if (typeof Obelisco === 'undefined' || !Obelisco.create) return false;
+    obeliscoGame = Obelisco.create(); state = 'obelisco';
+    evlog('hito', 'llegó al Obelisco');   // momento memorable (memoria del barrio)
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -3315,6 +3325,9 @@
     } else if (state === 'globo' && globoGame) {                      // MAPA A: el globo del mundo (sala de situación)
       globoGame.update(dt); globoGame.draw(ctx, W, H);
       if (globoGame.done) { globoGame = null; state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+    } else if (state === 'obelisco' && obeliscoGame) {                // Lavalle E2: la plaza del Obelisco
+      obeliscoGame.update(dt); obeliscoGame.draw(ctx, W, H);
+      if (obeliscoGame.done) { obeliscoGame = null; if (!enterLavalle()) { state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); } }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
       const lc = lavalleGame.openChatNpc;                             // [E] sobre el linyera peronista → chat IA (vuelve a Lavalle)
@@ -3331,6 +3344,7 @@
         if (tableWait) leaveTableWait();                              // si salís de Lavalle mientras esperabas → cancelá la mesa
         if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave();   // salir del espacio 'lavalle'
         if (typeof Input !== 'undefined' && Input.clear) Input.clear();   // soltar teclas al volver a la calle (evita seguir caminando/re-trigger)
+        if (lavalleGame.exitTo === 'obelisco') { lavalleGame = null; if (enterObelisco()) return; }   // E2: cruzaste el corte
         lavalleGame = null; state = 'playing'; transCd = 0.6;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         current = 0; const ps = rooms[0]; player.x = 5 * Level.TILE; player.y = ps.gTop * Level.TILE - player.h; player.vx = player.vy = 0;   // de vuelta en Florida, despejado del trigger izq

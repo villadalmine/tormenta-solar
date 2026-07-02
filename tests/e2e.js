@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -322,6 +322,20 @@ if (require.main === module) {
     if (poor.placeAt(2, 3, 0)) throw new Error('bunkermapa: sin plata debería fallar');
     if (!bmp.removeAt(1, 3)) throw new Error('bunkermapa: remove debería andar');
     ok.push('bunkermapa:ok');
+    // LAVALLE E2 — el Obelisco: entrar, armar la salida (subir) y salir por abajo → exitTo 'lavalle'
+    if (Input.clear) Input.clear();
+    const obx = Obelisco.create();
+    for (let i = 0; i < 40; i++) { obx.update(0.05); obx.draw(C, 960, 540); }
+    Input.keys['arrowup'] = true; for (let i = 0; i < 30; i++) obx.update(0.05); Input.keys['arrowup'] = false;
+    Input.keys['arrowdown'] = true; for (let i = 0; i < 60 && !obx.done; i++) obx.update(0.05); Input.keys['arrowdown'] = false;
+    if (!obx.done || obx.exitTo !== 'lavalle') throw new Error('obelisco no vuelve al piquete: ' + obx.exitTo);
+    // y el paso del corte: Lavalle con allWon + fiesta → subir por el hueco → exitTo 'obelisco'
+    const lvx = Lavalle.create({ allWon: true });
+    Input.keys['w'] = true; for (let i = 0; i < 40; i++) lvx.update(0.05); Input.keys['w'] = false;   // subir al hueco
+    Input.keys['e'] = true; lvx.update(0.05); Input.keys['e'] = false;                                 // juramento (abre la colisión)
+    Input.keys['w'] = true; for (let i = 0; i < 220 && !lvx.done; i++) lvx.update(0.05); Input.keys['w'] = false;
+    if (!lvx.done || lvx.exitTo !== 'obelisco') throw new Error('lavalle no cruza al obelisco: ' + lvx.exitTo + ' done=' + lvx.done);
+    ok.push('obelisco:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

@@ -32,7 +32,8 @@ const Lavalle = (() => {
     const olla = { x: 4, y: 7.4 };
 
     const folks = [
-      { x: 9, y: 4.0, col: '#5a2a2a', bandana: '#c0241f', holds: 'stick', name: T('g.lavalle.npc.corta'), line: T('g.lavalle.line.corta') },
+      // "el que corta" custodia el hueco; si ganaste los 5 juegos, SE CORRE a un costado (te abre el paso)
+      { x: allWon ? 6.4 : 9, y: 4.0, col: '#5a2a2a', bandana: '#c0241f', holds: 'stick', name: T('g.lavalle.npc.corta'), line: T(allWon ? 'g.lavalle.line.cortaOpen' : 'g.lavalle.line.corta') },
       // ABANDERADOS en cada PUNTA (bandera argentina)
       { x: 2.4, y: 6.6, col: '#3a4a6a', holds: 'flag', flagK: 'arg', name: T('g.lavalle.npc.bandera'), line: T('g.lavalle.line.bandera') },
       { x: 15.6, y: 6.7, col: '#4a3a2a', holds: 'flag', flagK: 'arg', name: T('g.lavalle.npc.bandera'), line: T('g.lavalle.line.bandera') },
@@ -65,6 +66,7 @@ const Lavalle = (() => {
       if (fiesta) return; fiesta = true; fiestaT = 0;
       setMsg(T('g.lavalle.oath'), 9);
       if (typeof Sfx !== 'undefined') { if (Sfx.setCumbia) Sfx.setCumbia(false); if (Sfx.setMarcha) Sfx.setMarcha(true); }
+      for (let y = 0; y <= 3; y++) for (let x = 8; x <= 10; x++) map[y][x] = 0;   // E2: el HUECO se abre DE VERDAD (colisión) → podés subir al Obelisco
     }
 
     function update(dt) {
@@ -85,6 +87,7 @@ const Lavalle = (() => {
         if (pm) for (const p of pm.values()) { if (p.rx == null) p.rx = (p.x != null ? p.x : 9); if (p.ry == null) p.ry = (p.y != null ? p.y : 8);
           p.rx += ((p.x != null ? p.x : p.rx) - p.rx) * k; p.ry += ((p.y != null ? p.y : p.ry) - p.ry) * k; }
       }
+      if (fiesta && player.y < 0.9 * CS) { done = true; exitTo = 'obelisco'; return; }   // E2: cruzaste el corte → el OBELISCO (la Marcha sigue)
       if (player.y < (H - 4) * CS) exitArmed = true;                       // subiste al piquete → ya se puede salir por abajo
       if (exitArmed && player.y > (H - 0.6) * CS) { leave(); return; }      // salir caminando hacia abajo (solo si ya entraste)
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); return; } } else escHeld = false;
@@ -102,6 +105,8 @@ const Lavalle = (() => {
       } else if (near && near.chat) {
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; chatReq = { name: near.name, persona: near.persona, kind: 'linyera' }; } } else eHeld = false;
         prompt = T('g.lavalle.chatHint', { n: near.name });
+      } else if (fiesta && player.y < 6 * CS && Math.abs(player.x / CS - 9) < 2.2 && !near) {
+        eHeld = false; prompt = T('g.lavalle.obeliscoHint');
       } else if (allWon && !fiesta && player.y < 5 * CS && Math.abs(player.x / CS - 9) < 2 && !near) {
         // ganaste los 5 → el HUECO del corte: pasás y el peronista te toma juramento (fiesta)
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; startFiesta(); } } else eHeld = false;
