@@ -17,6 +17,7 @@ const Eventos = (() => {
   function remember(ev, detail) {
     try { const m = loadMem(); m.push({ ev: String(ev).slice(0, 24), detail: String(detail == null ? '' : detail).slice(0, 48), t: Date.now() });
       while (m.length > 30) m.shift(); localStorage.setItem(MEMKEY, JSON.stringify(m)); } catch (e) {}
+    schedulePost();   // sync cross-device (debounced)
   }
   function memoria(n) { return loadMem().slice(-(n || 8)); }
   // lo VIEJO (más de 6h): material de "¿te acordás cuando…?" — no pisa lo fresco del ring
@@ -29,7 +30,28 @@ const Eventos = (() => {
     for (let i = ring.length - 1; i >= 0; i--) { const e = ring[i]; if (e.t < cut) break; if (e.ev !== 'sala') return e; }
     return null;
   }
-  return { push, recent, last, fresh, remember, memoria, memoriaVieja };
+  // ── SYNC CROSS-DEVICE (npcs-vivos F4d+): la memoria viaja con tu NICK — el linyera te recuerda en el celu
+  // lo que hiciste en la laptop. GET al entrar (merge) + POST debounced tras cada evento notable. ADITIVO.
+  const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';
+  let syncNick = null, postT = null;
+  function sync(nick) {
+    if (typeof fetch !== 'function' || !nick) return;
+    syncNick = nick;
+    fetch(PROXY + '/barrio-mem?nick=' + encodeURIComponent(nick)).then(r => (r.ok ? r.json() : null)).then(d => {
+      if (!d || !Array.isArray(d.mem) || !d.mem.length) return;
+      const cur = loadMem(), seen = new Set(cur.map(e => e.ev + '|' + e.t));
+      let added = 0;
+      for (const e of d.mem) if (e && e.ev && !seen.has(e.ev + '|' + (+e.t || 0))) { cur.push({ ev: String(e.ev).slice(0, 24), detail: String(e.detail || '').slice(0, 48), t: +e.t || Date.now() }); added++; }
+      if (added) { cur.sort((a, b) => a.t - b.t); try { localStorage.setItem(MEMKEY, JSON.stringify(cur.slice(-30))); } catch (x) {} }
+    }).catch(() => {});
+  }
+  function schedulePost() {
+    if (!syncNick || typeof fetch !== 'function' || postT) return;
+    postT = setTimeout(() => { postT = null;
+      try { fetch(PROXY + '/barrio-mem', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nick: syncNick, mem: loadMem() }), keepalive: true }).catch(() => {}); } catch (e) {}
+    }, 25000);   // debounce > el gap anti-spam del server (20s)
+  }
+  return { push, recent, last, fresh, remember, memoria, memoriaVieja, sync };
 })();
 if (typeof window !== 'undefined') window.Eventos = Eventos;
 if (typeof module !== 'undefined') module.exports = Eventos;

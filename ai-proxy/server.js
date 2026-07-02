@@ -331,6 +331,31 @@ function subCharge(code, model, usage) {       // acumula gasto + tokens del có
   SUB_TOK[k] = (SUB_TOK[k] || 0) + ((usage && usage.total_tokens) || 0);
 }
 
+// --- MEMORIA DEL BARRIO cross-device (npcs-vivos F4d+): lo notable que hizo un jugador, POR NICK ------
+// GET /barrio-mem?nick=X → {mem:[{ev,detail,t}]} · POST /barrio-mem {nick, mem:[...]} (merge, cap 30/nick).
+// El nick ya es público en el salón (peers) → misma postura de privacidad. PVC + LRU de 4000 nicks. ADITIVO.
+const BARRIOMEM_STORE = process.env.BARRIOMEM_STORE || '/data/barriomem.json';
+let BARRIOMEM = {};                                        // nick -> { mem:[...], up:ts }
+const BM_POST_GAP = {};                                    // anti-spam: 1 POST cada 20s por nick
+function loadBarrioMem() { try { BARRIOMEM = JSON.parse(fs.readFileSync(BARRIOMEM_STORE, 'utf8')) || {}; } catch (e) { BARRIOMEM = {}; } }
+function saveBarrioMem() { try { fs.mkdirSync(BARRIOMEM_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(BARRIOMEM_STORE, JSON.stringify(BARRIOMEM)); } catch (e) { console.error('barriomem save:', e.message); } }
+loadBarrioMem();
+const bmNick = n => String(n == null ? '' : n).replace(/[^\wáéíóúñÁÉÍÓÚÑ·.-]/g, '').slice(0, 24);
+function bmMerge(nick, incoming) {
+  const cur = (BARRIOMEM[nick] && BARRIOMEM[nick].mem) || [];
+  const seen = new Set(cur.map(e => e.ev + '|' + e.t));
+  for (const e of (Array.isArray(incoming) ? incoming : []).slice(0, 30)) {
+    if (!e || !e.ev) continue;
+    const clean = { ev: String(e.ev).slice(0, 24), detail: String(e.detail == null ? '' : e.detail).slice(0, 48), t: +e.t || Date.now() };
+    if (!seen.has(clean.ev + '|' + clean.t)) { cur.push(clean); seen.add(clean.ev + '|' + clean.t); }
+  }
+  cur.sort((a, b) => a.t - b.t);
+  BARRIOMEM[nick] = { mem: cur.slice(-30), up: Date.now() };
+  const nicks = Object.keys(BARRIOMEM);                    // LRU: si nos pasamos de 4000 nicks, vuelan los más viejos
+  if (nicks.length > 4000) { nicks.sort((a, b) => (BARRIOMEM[a].up || 0) - (BARRIOMEM[b].up || 0)); for (const n of nicks.slice(0, nicks.length - 4000)) delete BARRIOMEM[n]; }
+  saveBarrioMem();
+}
+
 // --- F3: key-por-código (OpenRouter provisioning) + store JSON-en-PVC (suscripcion.md §9.6) ----------
 // El proxy crea una key de OpenRouter POR código (con budget) y la guarda en un archivo JSON (PVC). Un sub con
 // key provisionada va DIRECTO a OpenRouter con SU key → gasto y tope reales por usuario. Sin DB ni deps (Node20).
@@ -591,6 +616,22 @@ http.createServer((req, res) => {
   // ===== SALÓN F2b — BODEGÓN real-time (specs/multijugador.md §3.2). Relay SSE SIN autoridad: el server solo
   // retransmite posiciones/emotes/frases entre los de la MISMA sala-instancia (cap 6). In-memory, efímero (se pierde
   // al reiniciar = ok, social). Sin chat libre → emotes + frases PRESET (índice), sin moderación. =====
+  if (req.method === 'GET' && req.url.startsWith('/barrio-mem')) {                  // memoria cross-device: leer por nick
+    const nick = bmNick(new URL(req.url, 'http://x').searchParams.get('nick'));
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ mem: (nick && BARRIOMEM[nick] && BARRIOMEM[nick].mem) || [] }));
+  }
+  if (req.method === 'POST' && req.url === '/barrio-mem') {                          // memoria cross-device: sync (merge)
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 8000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const nick = bmNick(d.nick);
+      if (!nick) { res.writeHead(400); return res.end('no nick'); }
+      const now = Date.now(); if (now - (BM_POST_GAP[nick] || 0) < 20000) { res.writeHead(429); return res.end('slow down'); }
+      BM_POST_GAP[nick] = now; bmMerge(nick, d.mem);
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, n: BARRIOMEM[nick].mem.length }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
   if (req.url === '/salon/join' && req.method === 'POST') {
     let pb = ''; req.on('data', c => { pb += c; if (pb.length > 1000) req.destroy(); });
     req.on('end', () => { try {

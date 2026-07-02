@@ -3492,6 +3492,7 @@
     requestAnimationFrame(loop);
   }
   function start() {
+    if (typeof Eventos !== 'undefined' && Eventos.sync) Eventos.sync(playerNick());   // memoria del barrio cross-device (F4d+)
     reset();
     sessStart = (typeof performance !== 'undefined' ? performance.now() : Date.now()); sessChats = 0; sessTrucoW = 0; sessTrucoL = 0;
     tel('session', { engine: engineUsed, lang: (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es' });   // ¿cuántos en v1 vs v2?
