@@ -23,7 +23,7 @@ const Piquete = (() => {
     const speedMul = 1 + (nH - 1) * 0.3;          // más jugadores → todo MÁS RÁPIDO (más desafío + más manos)
 
     const player = { x: 9 * CS, y: 11 * CS, r: 11, dir: 1, walk: 0 };
-    let hp = HP_MAX, wave = 0, waveGap = 1.6, phase = 'intro', done = false, exitTo = null, t = 0;
+    let hp = HP_MAX, wave = 0, waveGap = 1.6, waveT = 0, phase = 'intro', done = false, exitTo = null, t = 0;
     let enemies = [], boss = null, rayCd = 0, rayFx = 0, eHeld = false;
     let sendT = 0, msg = '', msgT = 0, escHeld = false, result = null;
     let rhp = HP_MAX, rwave = 0, rboss = null;
@@ -37,7 +37,7 @@ const Piquete = (() => {
       return pts;
     }
     function spawnWave() {
-      wave++; const n = 3 + wave * nH;
+      wave++; waveT = 0; const n = 3 + wave * nH;
       for (let i = 0; i < n; i++) enemies.push({ x: 1.5 + rng() * (W - 3), y: 0.2 + rng() * 0.9, spd: (0.9 + rng() * 0.6) * speedMul, stun: 0 });
       setMsg(T('g.piquete.wave', { n: wave, of: WAVES }), 2);
     }
@@ -77,10 +77,13 @@ const Piquete = (() => {
       if (phase === 'intro') { if (msgT <= 0) { phase = 'play'; spawnWave(); } broadcast(); return; }
       if (phase === 'play') {
         const pts = playerPts();
+        waveT += dt; if (waveT > 45) for (const e of enemies) e.flee = true;   // failsafe: la ola nunca se cuelga
         for (const e of enemies) {
+          if (e.flee) { e.y -= 3 * dt; continue; }                             // CORRIDO: huye para arriba y sale
           if (e.stun > 0) { e.stun -= dt; e.y -= 1.2 * dt; continue; }
           e.y += e.spd * dt;
-          for (const p of pts) if (Math.hypot(p.x - e.x, p.y - e.y) < 0.9) { e.stun = 1.1; e.y -= 0.5; break; }
+          // el choque CUENTA: 1er empujón lo stunea; al 2º el tipo SE CORRE (si no, quedaba oscilando infinito contra vos)
+          for (const p of pts) if (Math.hypot(p.x - e.x, p.y - e.y) < 0.9) { e.stun = 1.1; e.y -= 0.5; e.hits = (e.hits || 0) + 1; if (e.hits >= 2) e.flee = true; break; }
           if (e.y >= BARR_Y) { hp = Math.max(0, hp - DMG); e.dead = true; }
         }
         enemies = enemies.filter(e => !e.dead && e.y > -1);
@@ -129,7 +132,8 @@ const Piquete = (() => {
         ctx.fillStyle = e.stun > 0 ? '#5a6a8a' : '#26324a'; ctx.fillRect(ex - 6, ey - 6, 12, 15);
         ctx.fillStyle = '#11151f'; ctx.fillRect(ex - 7, ey - 4, 14, 4);
         ctx.fillStyle = '#0e1218'; ctx.beginPath(); ctx.arc(ex, ey - 9, 5, 0, Math.PI * 2); ctx.fill();
-        if (e.stun > 0) { ctx.fillStyle = '#ffd54a'; ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillText('✦', ex, ey - 14); } }
+        if (e.flee) { ctx.font = '10px monospace'; ctx.textAlign = 'center'; ctx.fillText('💨', ex, ey + 14); }
+        else if (e.stun > 0) { ctx.fillStyle = '#ffd54a'; ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillText('✦', ex, ey - 14); } }
       // ROBOCOP (jefe)
       const bs = isHost ? boss : rboss;
       if (bs) { const bx = TX(bs.x), byy = TY(bs.y);
