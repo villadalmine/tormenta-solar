@@ -52,7 +52,9 @@ compartido, o local por jugador para el MVP.
   el módulo 📡 identifica las señales con nombre+cantidad). El búnker PRODUCE al dormir el loop (huerta→🍬,
   depósito/catre/defensa→🪙, mensaje de cosecha). El globo muestra la barra del DATACENTER global junto al satélite
   rebelde (+ satélite humeando si `ts_sat_down`).
-- **F4 — (ambición) redondo-rotable + zoom** para el búnker, si la grilla cuadrada quedó corta.
+- ✅ **F4 — redondo-rotable + zoom: HECHO (v282).** El plano arranca en el DISCO de la ciudad (8 zonas en torta,
+  ⭐ Florida = tu base): girás (drag/←→), [E]/click → zoom animado → la grilla de ESA zona. Un búnker por zona
+  (`ts_bunker_z_<id>` + índice; el viejo migra a Florida), todas producen al dormir. Esc: zona→disco→salir.
 
 ## 5. Deuda / preguntas abiertas
 - ¿Es single-player (tu búnker, tu mapa) o COLABORATIVO/global (todos ven el mismo mundo, tipo datacenter)? Cambia el

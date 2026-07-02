@@ -1558,7 +1558,12 @@
   }
   // F3 (specs/mapas-satelites-bunkers.md): lo que construiste en EL PLANO produce al dormir el loop.
   function bunkerHarvest() {
-    let mods = []; try { mods = JSON.parse(localStorage.getItem('ts_bunker_v1') || '[]') || []; } catch (e) {}
+    // F4: los búnkers de TODAS las zonas producen (índice ts_bunker_zones + compat con el viejo ts_bunker_v1)
+    let mods = []; try {
+      const zonas = JSON.parse(localStorage.getItem('ts_bunker_zones') || '[]') || [];
+      for (const z of zonas) mods = mods.concat(JSON.parse(localStorage.getItem('ts_bunker_z_' + z) || '[]') || []);
+      if (!zonas.includes('florida')) mods = mods.concat(JSON.parse(localStorage.getItem('ts_bunker_v1') || '[]') || []);
+    } catch (e) {}
     const c = k => mods.filter(m => m && m.id === k).length;
     const car = c('huerta') * 2, mon = c('deposito') * 3, extra = c('catre') * 5 + c('defensa') * 5;
     if (!car && !mon && !extra) return '';
