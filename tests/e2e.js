@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -312,6 +312,16 @@ if (require.main === module) {
     const pcg = Pancarta.create({ role: 'guest', seats: ['h', 'me'], myPid: 'me' });
     pcg.applyState({ t: 'lv5-state', g: '2'.repeat(24 * 7), pr: 1, tl: 5, p: 'play' }); pcg.draw(C, 960, 540);
     ok.push('pancarta:ok');
+    // MAPA B — el plano del búnker: colocar conectado OK, desconectado falla, sin plata falla, remove devuelve mitad
+    if (Input.clear) Input.clear();   // teclas trabadas de tests anteriores (keydown sin keyup) ensucian el update
+    const bmp = BunkerMapa.create({ player: { coins: 100 } });
+    if (!bmp.placeAt(1, 3, 0)) throw new Error('bunkermapa: colocar pegado a la entrada debería andar');
+    for (let i = 0; i < 60; i++) { bmp.update(0.016); bmp.draw(C, 960, 540); }
+    if (bmp.placeAt(6, 6, 0)) throw new Error('bunkermapa: colocar DESCONECTADO debería fallar');
+    const poor = BunkerMapa.create({ player: { coins: 1 } });   // (comparte el localStorage del sandbox: (1,3) ya está)
+    if (poor.placeAt(2, 3, 0)) throw new Error('bunkermapa: sin plata debería fallar');
+    if (!bmp.removeAt(1, 3)) throw new Error('bunkermapa: remove debería andar');
+    ok.push('bunkermapa:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

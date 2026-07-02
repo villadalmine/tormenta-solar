@@ -44,11 +44,10 @@ compartido, o local por jugador para el MVP.
 - O un ítem/consola en el búnker (como la compu de los carteles/datacenter).
 
 ## 4. Fases sugeridas (para no morir en el intento)
-- **F1 — Globo que gira (visual):** sub-modo `js/globo.js`: esfera de puntos rotando + bases/satélites (data estática)
+- ✅ **F1 — Globo que gira: HECHO (v273, `js/globo.js`).** Sub-modo: esfera de puntos rotando + bases/satélites (data estática)
   + arrastrar para girar + click-selección con tooltip. Sin gameplay todavía (postal interactiva). *Entregable chico
   y vistoso; valida la idea.*
-- **F2 — Mapa B búnker (grilla + construir):** colocar módulos en una grilla, entrada fija desde tu base, guardar en
-  localStorage. Radar de enemigos arriba (estático primero).
+- ✅ **F2 — Mapa B búnker (grilla + construir): HECHO (v274, `js/bunkermapa.js`).** Grilla 13×7, entrada fija 🚪 desde tu base (conectividad obligatoria), 6 módulos DATA con costo en monedas, X devuelve la mitad, persiste en localStorage; radar ambiental arriba (blips + barrido). NPC "El plano del búnker" en el búnker.
 - **F3 — Conexión:** el progreso del datacenter/satélite se refleja en el globo; el búnker da bonus/defensa; enemigos
   reales en el radar.
 - **F4 — (ambición) redondo-rotable + zoom** para el búnker, si la grilla cuadrada quedó corta.

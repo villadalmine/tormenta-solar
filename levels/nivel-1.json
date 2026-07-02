@@ -7331,6 +7331,21 @@
           "id": "el-bunker-de-los-linyeras/npc3",
           "tipo": "npc",
           "render": {
+            "sprite": "recepcionista"
+          },
+          "x": 15,
+          "name": "El plano del búnker",
+          "interact": {
+            "action": "plano"
+          },
+          "dialogue": {
+            "text": "“Acá está el PLANO, gurú: tu búnker se construye desde la entrada de tu base. Poné pasillos, catres, huerta… y defensas, que arriba en el radar la superficie está brava. [E] para abrir el plano. 📐🛖”"
+          }
+        },
+        {
+          "id": "el-bunker-de-los-linyeras/npc4",
+          "tipo": "npc",
+          "render": {
             "sprite": "linyera"
           },
           "x": 13,
@@ -7343,7 +7358,7 @@
           }
         },
         {
-          "id": "el-bunker-de-los-linyeras/npc4",
+          "id": "el-bunker-de-los-linyeras/npc5",
           "tipo": "npc",
           "render": {
             "sprite": "linyera"
@@ -7355,7 +7370,7 @@
           }
         },
         {
-          "id": "el-bunker-de-los-linyeras/decor5",
+          "id": "el-bunker-de-los-linyeras/decor6",
           "tipo": "decor",
           "render": {
             "type": "catre"
@@ -7363,7 +7378,7 @@
           "x": 10
         },
         {
-          "id": "el-bunker-de-los-linyeras/decor6",
+          "id": "el-bunker-de-los-linyeras/decor7",
           "tipo": "decor",
           "render": {
             "type": "barril"
@@ -7371,7 +7386,7 @@
           "x": 4
         },
         {
-          "id": "el-bunker-de-los-linyeras/decor7",
+          "id": "el-bunker-de-los-linyeras/decor8",
           "tipo": "decor",
           "render": {
             "type": "maletin"
@@ -7379,7 +7394,7 @@
           "x": 13.5
         },
         {
-          "id": "el-bunker-de-los-linyeras/decor8",
+          "id": "el-bunker-de-los-linyeras/decor9",
           "tipo": "decor",
           "render": {
             "type": "parlante"
@@ -7387,7 +7402,7 @@
           "x": 18
         },
         {
-          "id": "el-bunker-de-los-linyeras/pickup9",
+          "id": "el-bunker-de-los-linyeras/pickup10",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -7395,7 +7410,7 @@
           "x": 12
         },
         {
-          "id": "el-bunker-de-los-linyeras/pickup10",
+          "id": "el-bunker-de-los-linyeras/pickup11",
           "tipo": "pickup",
           "give": {
             "item": "coins",

@@ -522,6 +522,8 @@ const Level = (() => {
         { name:'Linyera', sprite:'linyera', x:5,  dialog:'“Bienvenido al búnker, gurú. Acá nadie labura. Tirate en el catre cuando quieras pasar el día. 🛖”' },
         // SALA DE SITUACIÓN: un globo/monitor para ver los satélites rebeldes y las bases (Mapa A, specs/mapas-satelites-bunkers.md)
         { name:'La sala de situación', sprite:'recepcionista', x:8, action:'globo', dialog:'“Mirá el mundo, gurú: los satélites rebeldes que desataron la tormenta y las bases del pueblo. [E] para abrir el mapa. 🛰️🌎”' },
+        // EL PLANO DEL BÚNKER: construir tu búnker desde la entrada de tu base (Mapa B, specs/mapas-satelites-bunkers.md)
+        { name:'El plano del búnker', sprite:'recepcionista', x:15, action:'plano', dialog:'“Acá está el PLANO, gurú: tu búnker se construye desde la entrada de tu base. Poné pasillos, catres, huerta… y defensas, que arriba en el radar la superficie está brava. [E] para abrir el plano. 📐🛖”' },
         // el linyera MAYOR te entrega el TESORO de los linyeras (premio del edificio: solo para el gurú)
         { name:'Linyera mayor', sprite:'linyera', x:13, action:'tesoro',
           dialog:'“Vos sos el gurú... a vos sí te lo damos. Guardamos un maletín toda la vida para alguien que entienda. Tomá: la guita y un secreto para que escupas como Dios manda.” 🐵💼' },
