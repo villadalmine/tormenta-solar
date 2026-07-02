@@ -13,6 +13,12 @@ El juego es 100% estático; se publica en
 
 ## 🔭 Próximamente — Roadmap (SDDs draft, sin implementar)
 
+- ⭐ **MAPA DEL JUEGO** (`specs/mapa-juego.md`, marcado 2026-07-02): automap estilo DOOM con **TAB** — el CORTE de la
+  manzana (calle horizontal, edificios por pisos arriba, subsuelos abajo, sub-modos colgados), "estás acá" con piso
+  resaltado, hover/cursor con info, zoom por edificio, y MARCADORES del grafo (quests ✓/⭐/🔒 vía Historia×HintEngine,
+  NPCs IA 💬, juegos 🕹️, tiendas, gente online por sala). 100% data-driven (sale del modelo v2 + wiring + x reales).
+  Fases F1-F4.
+
 - ⭐ **AUTOPLAY QA** (`specs/autoplay-qa.md`, marcado 2026-07-02): un bot Playwright que JUEGA el juego por PARTES
   (8 suites: boot/calle/historia/lavalle/multi/ia/mapas/apis) como DAG de **Argo CronWorkflow** → veredicto JSON por
   suite ("hilar fino qué anda y qué no") → `reporte.md` en PVC → y si falla, **genera el PROMPT de auto-fix** (F3a:
