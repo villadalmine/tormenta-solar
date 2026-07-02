@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -123,6 +123,15 @@ if (require.main === module) {
   document.getElementById('startBtn').dispatch('click', {});
   step(120); // ~2s de juego en la calle
   console.log('✓ start() + 120 frames en la calle sin crash');
+
+  // ---- EL MAPA [TAB] (specs/mapa-juego.md): abre (build sobre las 51 salas reales) + dibuja + zoom + cierra ----
+  key('Tab'); step(30);
+  const mapModel = vm.runInContext('Mapa.model && JSON.stringify({ n: Mapa.model.nodes.length, anclas: Mapa.model.nodes.filter(x => x.anchor != null).length })', sandbox);
+  const mp = JSON.parse(mapModel || 'null');
+  if (!mp || mp.n < 40 || mp.anclas !== mp.n) { console.error('❌ MAPA: build incompleto', mapModel); process.exit(1); }
+  key('z'); step(10);   // zoom al edificio
+  key('Tab'); step(5);  // cerrar
+  console.log('✓ EL MAPA [TAB]: build (' + mp.n + ' salas, todas ancladas) + draw + zoom sin crash');
 
   // ---- guardado: round-trip serialize/restore (el seam que usa js/save.js) ----
   const save = vm.runInContext(`(() => {

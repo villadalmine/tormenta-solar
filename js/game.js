@@ -123,6 +123,10 @@
   let globoGame = null;     // MAPA A: el globo del mundo (satélites + bases) — sala de situación del búnker
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
+  // EL MAPA (specs/mapa-juego.md): [TAB] automap; fog of war por salas visitadas (persistido)
+  let mapaZoom = null, mapaFrontier = null, visitedRooms = new Set([0]);
+  try { const a = JSON.parse(localStorage.getItem('ts_visited') || '[]'); visitedRooms = new Set([0].concat(a.filter(n => Number.isInteger(n)))); } catch (e) {}
+  function saveVisited() { try { localStorage.setItem('ts_visited', JSON.stringify([...visitedRooms])); } catch (e) {} }
   let lavalleSpawn = null;  // al volver de un mini-juego, re-spawn EN su punto (no en la entrada)
   let piqueteGame = null;   // Fase 2 Lavalle: mini-juego co-op "Aguantar el corte" (mesa 'corte')
   let sogaGame = null;      // Lavalle: mini-juego co-op "La soga" (mesa 'soga')
@@ -2039,6 +2043,7 @@
   }
   function transition(d) {
     evlog('sala', (rooms[d.to] || {}).name || d.to);
+    if (typeof d.to === 'number') { visitedRooms.add(d.to); saveVisited(); }   // fog of war del mapa
     if (d.to == null || !rooms[d.to]) { setMsg(T('g.trans.locked'), '#ffd54f', 3000); return; }   // puerta sin destino → NO romper (defensa)
     current = d.to;
     player.x = d.at.x - player.w/2; player.y = d.at.y - player.h;
@@ -3250,6 +3255,21 @@
     elEndText.innerHTML = T('g.die.text'); renderStats(false);
     showEnd();
   }
+  function toggleMapa() {
+    if (typeof Mapa === 'undefined' || !Mapa.build) return;
+    if (state === 'mapa') {   // cerrar: restaurar el HUD
+      state = 'playing';
+      elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+      if (elChipBanner && chipped) elChipBanner.classList.remove('hidden');
+      return;
+    }
+    if (!Mapa.model) Mapa.build(rooms);
+    visitedRooms.add(current); mapaZoom = null;
+    mapaFrontier = (typeof HintEngine !== 'undefined') ? new Set(HintEngine.frontier(historiaState()).map(e => e.id)) : new Set();
+    elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elPrompt.classList.add('hidden');
+    if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    state = 'mapa';
+  }
   function respawnPiquete() {
     player.hp = 50; player.alive = true; decayAcc = 0;                   // te levantan, no te curan entero
     addItem('chori');                                                     // te convidan un chori 🌭
@@ -3387,6 +3407,14 @@
     } else if (state === 'globo' && globoGame) {                      // MAPA A: el globo del mundo (sala de situación)
       globoGame.update(dt); globoGame.draw(ctx, W, H);
       if (globoGame.done) { globoGame = null; state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+    } else if (state === 'mapa') {                                    // EL MAPA [TAB]: automap DOOM (mundo pausado)
+      const r0 = room();
+      Mapa.draw(ctx, W, H, { current, t: time, px01: r0 ? (player.x + player.w / 2) / (r0.w * Level.TILE) : 0.5,
+        visited: visitedRooms, edges: (typeof Historia !== 'undefined' && Historia.edges) || [], flags: historiaState(),
+        frontier: mapaFrontier, stormed, mx: Input.mouse.x, my: Input.mouse.y,
+        online: (salonLive && salonLive.count) || 0, zoom: mapaZoom, sub: null });
+      if (trucoTap('z')) mapaZoom = mapaZoom == null ? Mapa.groupAt(current) : null;   // Z = zoom al edificio actual
+      if (trucoTap('escape')) toggleMapa();
     } else if (state === 'obelisco' && obeliscoGame) {                // Lavalle E2: la plaza del Obelisco
       obeliscoGame.update(dt); obeliscoGame.draw(ctx, W, H);
       if (obeliscoGame.done) {
@@ -3567,6 +3595,7 @@
     const dcm = document.getElementById('dcmenu');
     if (e.key === 'Escape' && dcm && !dcm.classList.contains('hidden')) { e.preventDefault(); closeDatacenter(); return; }
     if (e.key === 'Escape' && spinoffLevel && state === 'playing') { e.preventDefault(); endSpinoffLevel('flee'); return; }   // salir del nivel-AI
+    if (e.key === 'Tab' && (state === 'playing' || state === 'mapa')) { e.preventDefault(); toggleMapa(); return; }   // EL MAPA (specs/mapa-juego.md)
     if (e.target && /^(input|textarea)$/i.test(e.target.tagName)) return;   // escribiendo (chat) → no gatillar
     const k = e.key.toLowerCase();
     if (k === 'e') { if (dismissMsg()) return; interact(); }   // E salta el cartel narrativo si hay uno; si no, interactúa

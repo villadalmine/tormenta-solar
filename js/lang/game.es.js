@@ -297,6 +297,11 @@
     'g.globo.title': 'Mapa del mundo — sala de situación',
     'g.globo.hint': 'arrastrá / ←→ girar · click seleccionar · Esc salir',
     // NPCs VIVOS: chusmerío derivado del estado (antes hardcodeado ES; ahora con paridad EN)
+    'g.mapa.title': 'Mapa — Florida y Lavalle',
+    'g.mapa.zoomTitle': 'Mapa — el edificio (Z para volver)',
+    'g.mapa.hint': '[TAB] cerrar · [Z] zoom edificio · mouse = info',
+    'g.mapa.aca': 'ACÁ',
+    'g.mapa.piso': 'Piso {n}', 'g.mapa.sub': 'Subsuelo {n}',
     'g.morir.piquete': '✊ La muchachada peronista te levanta del asfalto: «¡FLACO! ¿Qué te pasó? Te TELETRANSPORTASTE acá como un RAYO SOLAR…» Te convidan un chori 🌭 y un vaso de vino. En el piquete no se muere nadie, compañero.',
     'g.viva.borra': 'che, ¿el pibe le dio lo que pide al borrachín o no?',
     'g.viva.truco': 'dicen que le ganó al tahúr al truco, mirá vos',
