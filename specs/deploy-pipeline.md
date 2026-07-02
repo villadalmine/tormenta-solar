@@ -2,8 +2,9 @@
 
 - **Estado:** **F1 + F2 (script) IMPLEMENTADOS** (`deploy/deploy.sh`, 2026-06-25). Resuelve el dolor real: ~16
   `helm upgrade` a mano esta sesión, con bugs recurrentes (gotcha de `--reuse-values`/genToken vacío → 403, typo de
-  `schedules`, olvidar un `--set`, confundir release/ns). **F3 (Argo Events on-push) pendiente.**
-- **Última actualización:** 2026-06-27 (added §5: storage en PVC + auto-borrado, regla del dueño).
+  `schedules`, olvidar un `--set`, confundir release/ns). **F3 (deploy como Argo Workflow) RE-MARCADO por el dueño
+  2026-07-02 — es EL bloqueante para que algo que no sea la laptop pueda deployar (auto-fix, hermes, Telegram): §3.1.**
+- **Última actualización:** 2026-07-02 (§3.1: el bloqueante del deploy.sh local + diseño concreto de F3).
 - **Relacionado:** `deploy/deploy.sh` (el script), `ai-proxy/kaniko-build.yaml` (build Argo), `proxy-ia-deploy.md`,
   `web/kaniko-build.yaml`, [[proxy-helm-gentoken]] (el gotcha que esto mata), repo `infra`
   (`infra/diskpressure-rk1-nvme-2026-06-27.md`, el incidente de disco que motivó §5).
@@ -48,9 +49,38 @@ WorkflowTemplate "tormenta-deploy" (params: component=proxy|web, tag)
    - **`DRY_RUN=1`** valida el helm (`--dry-run`) sin buildear ni aplicar (probado proxy+web 2026-06-25).
    - *(El `argo` CLI no está instalado → el build sigue por `kubectl create -f kaniko-build.yaml`, que el script hace.)*
    - **Pre-requisito:** el código tiene que estar **pusheado a `main`** antes (el build clona main).
-3. **F3 (pendiente)** WorkflowTemplate `tormenta-deploy` in-cluster + **Argo Events** (webhook GitHub) → deploy
-   **automático on-push** (build solo del componente que cambió). El script (F2) ya da el 80% del valor manual;
-   F3 es el CI/CD real para cuando haya ritmo de cambios.
+3. **F3 (pendiente — RE-MARCADO por el dueño 2026-07-02, ver §3.1)** WorkflowTemplate `tormenta-deploy`
+   in-cluster + **Argo Events** (webhook GitHub) → deploy **automático on-push** (build solo del componente que
+   cambió). El script (F2) ya da el 80% del valor manual; F3 es el CI/CD real.
+
+## 3.1 EL BLOQUEANTE (dueño, 2026-07-02): "se usa deploy.sh en vez de Argo Workflow"
+
+**El punto:** hoy TODO deploy pasa por `deploy.sh proxy <tag>` corrido en **la máquina del dev** (necesita el repo,
+`kubectl`, `helm` y las credenciales locales). El build YA es un Workflow de Argo (kaniko), pero el **helm upgrade +
+rollout + smoke NO** — y eso es exactamente lo que **bloquea que nada dentro del cluster pueda deployar**:
+
+| Qué se destraba con F3 (deploy = WorkflowTemplate in-cluster) |
+|---|
+| **Autoplay QA F3b cierra el loop entero**: reporte → prompt → hermes-agent arregla → PR → **deploy SOLO** (hoy el auto-fix muere en "esperá que el dueño corra deploy.sh") |
+| **hermes-agent / bot de Telegram** pueden shipear una versión ("deployá proxy 0.1.84") sin la laptop |
+| **Deploy on-push real** (Argo Events + webhook GitHub): pusheás a main → build+deploy del componente que cambió |
+| **Rollback de UNA línea**: `argo submit … -p tag=0.1.82` desde cualquier lado |
+| El dueño puede deployar **desde el celu** (kubectl remoto/UI de Argo), sin entorno de dev |
+
+**Diseño concreto (aterrizado sobre lo que ya hay):**
+- `deploy/workflowtemplate-deploy.yaml`: WorkflowTemplate `tormenta-deploy` (ns `ai`), params `component=proxy|web`
+  + `tag`. Pasos = LOS MISMOS del script: (1) build kaniko (ya existe como spec — se inlinea como template o se
+  dispara el workflow de `kaniko-build.yaml`), (2) `helm upgrade -f values-prod.yaml --set image.tag={{tag}}`
+  (imagen `dtzar/helm-kubectl`), (3) `kubectl rollout status` + smoke `/health`.
+- **genToken sin humano:** en vez del truco del script (re-leer del release), el paso deploy corre IN-CLUSTER →
+  puede leer el Secret o hacer el mismo `helm get values` con su ServiceAccount. Cero tipeo, mismo resultado.
+- **RBAC mínimo:** ServiceAccount `tormenta-deployer` (ns `ai`): get/list/patch de deployments/configmaps/secrets/
+  services + create de workflows en ns `kaniko`. Nada de cluster-admin.
+- **Storage:** hereda las reglas de §5 (PVC longhorn-nvme + GC total).
+- `deploy.sh` NO muere: queda como wrapper (`argo submit`/`kubectl create` del template + follow de logs) y como
+  fallback si Argo está caído.
+- **Regla de seguridad:** quién puede disparar el template = quién tiene RBAC para crear Workflows en ns `ai`
+  (hermes-agent sí; el webhook de GitHub firma con secret). El deploy sigue saliendo SOLO de `main` pusheado.
 
 ## 5. Storage en PVC + auto-borrado (regla del dueño, 2026-06-27) ✅ HECHO
 

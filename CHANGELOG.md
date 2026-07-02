@@ -34,11 +34,14 @@ El juego es 100% estático; se publica en
   verdes; 06-ia cuida la billetera: 1 chat free + premium solo con `QA_SUB_CODE`). El CronWorkflow de Argo quedó
   listo en `tests/autoplay/argo-cronworkflow.yaml` — **NO aplicado** (esperando OK del dueño). Falta F4 (suites
   02-calle/03-historia/04-lavalle/07-mapas) + F3b (hermes lo toma solo).
-- ⭐ **CHAT LINYERA UX: ideas que quedan picando + iconos de espera** (`specs/chat-linyera-ux.md`, marcado
-  2026-07-02): (1) si el linyera te tira una idea (ej. "andá al cine") NO tenés que contestarle ya — la idea queda
-  REGISTRADA (bus de eventos + memoria del barrio) y si le venís con eso después, SE ACUERDA ("¿y? ¿fuiste al cine
-  como te dije?"); (2) mientras esperás la respuesta de la IA, el chat muestra iconos animados del mundo
-  (☀️⛈️🍷🥩💾🤖) para que se sepa que está pensando.
+- ~~**CHAT LINYERA UX**~~: ✅ **HECHO (v290·infra-61)** — ideas que quedan picando + iconos de espera + FIX
+  respuestas cortadas. Ver la entrada v290 abajo y `specs/chat-linyera-ux.md`.
+- ⭐ **DEPLOY DE VERSIONES como Argo Workflow** (`specs/deploy-pipeline.md §3.1`, re-marcado 2026-07-02): hoy
+  todo deploy pasa por `deploy.sh proxy <tag>` EN LA LAPTOP — eso bloquea que algo in-cluster pueda deployar.
+  F3 = WorkflowTemplate `tormenta-deploy` (build kaniko + helm upgrade + rollout + smoke, params component/tag,
+  RBAC mínimo, genToken in-cluster) → destraba: el auto-fix del Autoplay QA cierra el loop SOLO, hermes/Telegram
+  shipean versiones, deploy on-push (Argo Events), rollback de una línea, deploy desde el celu. `deploy.sh` queda
+  de wrapper/fallback.
 
 - **Rotación en LiteLLM** (`specs/pruebas-modelos.md §2.7`): `gemma2:2b` en la GPU como primario
   (+ `keep_alive`) con **fallback a `gemma4-free`** (OpenRouter) si la GPU se apaga. El usuario lo itera aparte.
