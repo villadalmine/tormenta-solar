@@ -312,7 +312,8 @@
   // Apagado por defecto (sin endpoint = no-op). Tag con el motor para distinguir fallas de v2 vs v1.
   function tel(name, labels) { try { if (typeof Telemetry !== 'undefined') Telemetry.event(name, labels); } catch (e) {} }
   // BUS DE EVENTOS en tiempo real (npcs-vivos §5.3 F4a): lo FRESCO que hiciste, para que el mundo reaccione.
-  function evlog(ev, detail) { try { if (typeof Eventos !== 'undefined') Eventos.push(ev, detail); } catch (e) {} }
+  // + las IDEAS que te tiraron los linyeras se marcan HECHAS acá (chat-linyera-ux §1: "el pibe me hizo caso").
+  function evlog(ev, detail) { try { if (typeof Eventos !== 'undefined') Eventos.push(ev, detail); if (typeof Ideas !== 'undefined') Ideas.check(ev, detail); } catch (e) {} }
   // ANTI-NaN (specs/estado-jugador.md §1): num() = guard fail-closed en inputs; sanePlayer() = saneador central.
   const num = (v, def) => (Number.isFinite(+v) ? +v : def);
   const PLAYER_NUMS = { hp: 50, coins: 0, caramelos: 0, ammo: 0, falopa: 0, diosa: 0, carne: 0, fiambre: 0, birras: 0, forros: 0, flores: 0, spitDmg: 14 };
@@ -898,6 +899,15 @@
     elChatLog.appendChild(div); elChatLog.scrollTop = elChatLog.scrollHeight;
     return div;
   }
+  // Mientras la IA piensa (2-11s, latencia-chat.md) la línea de espera CICLA iconos del mundo — así se ve
+  // que está esperando y no colgado (chat-linyera-ux §2). DATA: solo iconos, sin i18n.
+  const THINK_ICONS = ['☀️', '⛈️', '🍷', '🥩', '💾', '🤖'];
+  function chatThinking() {
+    const div = chatLine('sys', THINK_ICONS[0] + ' ·');
+    let i = 0;
+    const iv = setInterval(() => { i++; div.textContent = THINK_ICONS[i % THINK_ICONS.length] + ' ' + '·'.repeat(1 + (i % 3)); }, 400);
+    return { remove() { clearInterval(iv); div.remove(); } };
+  }
   // --- pistas del linyera oráculo (capa aditiva; ver specs/nivel-1/historia-grafo.md) ---
   // Fase 1: SOLO LEEMOS los flags que ya maneja game.js para saber dónde está parado el jugador.
   // === FASE 2 del grafo: el GRAFO maneja los flags ===
@@ -1473,7 +1483,7 @@
     if (isHincha(chatNpc)) { const r = Quests.report('hincha', msg); if (r) { chatLine('npc', r.line); return; } }
     chatHistory.push({ role: 'user', content: msg });
     chatBusy = true;
-    const thinking = chatLine('sys', '...');
+    const thinking = chatThinking();   // iconos animados mientras espera la IA (chat-linyera-ux §2)
     // linyera oráculo: cada repregunta sube el spoiler (0→3); la pista se le pasa como GROUNDING a la IA
     // (la dice con su voz, no inventa ruta). Si la respuesta sale LOCAL, la mostramos explícita (garantía).
     const ground = isOraculo(chatNpc) ? getHint(Math.min(++hintAsks, 3)) : null;
@@ -1481,6 +1491,10 @@
     // ECOSISTEMA: el oráculo "sabe" el estado vivo del mundo (datos, no hardcode) → grounding extra.
     // CHIPEADO: en la habitación del telo, el linyera SOLO te boludea con el chip/la IA/el sol — nada del cine ni el Mundial.
     if (isOraculo(chatNpc)) groundTxt = [groundTxt, chipped ? T('g.chip.chatGround') : worldBrief()].filter(Boolean).join(' · ');
+    // IDEAS que quedaron picando con ESTE NPC (chat-linyera-ux §1): "vos le sugeriste el cine y no te contestó /
+    // te hizo caso" — el NPC se acuerda aunque hayas cerrado el chat sin responderle.
+    const mk = memKey(chatNpc);
+    if (!chipped && typeof Ideas !== 'undefined') { const ig = Ideas.groundFor(mk); if (ig) groundTxt = [groundTxt, ig].filter(Boolean).join(' · '); }
     let reply;
     try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory, groundTxt); }
     catch (e) { reply = T('g.chat.error'); }
@@ -1491,7 +1505,8 @@
     // métrica: ¿el chat dio IA real o cayó al pool? + con qué MOTOR (para ver tu "v1 chat no anda")
     tel('chat', { engine: engineUsed, result: (typeof AI !== 'undefined' && AI.lastFallback && AI.lastFallback()) ? 'fallback' : (typeof AI !== 'undefined' && AI.lastSource ? AI.lastSource() : 'ai') });
     evlog('charla', chatNpc && (chatNpc.persona || chatNpc.name));
-    const mk = memKey(chatNpc); if (mk) oracleMem[mk] = chatHistory.slice(-12);   // guardá su memoria (cap 12 turnos)
+    if (mk) oracleMem[mk] = chatHistory.slice(-12);   // guardá su memoria (cap 12 turnos)
+    if (mk && typeof Ideas !== 'undefined') Ideas.scan(mk, reply);   // ¿te tiró una idea? queda PICANDO (§1)
     if (ground && typeof AI !== 'undefined' && AI.lastSource() === 'local') chatLine('npc', '💡 ' + ground.text);
     // SATURACIÓN del free (la línea en personaje ya la dio el pool): cada tanto, avisá que es por el plan free
     // (upsell suave; sin spamear: 1ª vez de la sesión y luego cada 4).

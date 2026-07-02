@@ -279,6 +279,18 @@ const AI = (() => {
     ? '\n\nGAME HINT — weave THIS into your reply in your own voice, briefly; do NOT invent other routes or facts: ' + g
     : '\n\nPISTA DEL JUEGO — meté ESTO en tu respuesta con tus palabras, breve; NO inventes otros caminos ni datos: ' + g);
 
+  // BYOK: si el modelo se pasó de max_tokens, OpenRouter corta a mitad de frase → recortar a la última frase
+  // COMPLETA (espejo del tidyReply del proxy; chat-linyera-ux.md §3).
+  function tidyReply(text, finish) {
+    let t = String(text).trim();
+    if (finish !== 'length') return t;
+    let cut = -1;
+    for (const ch of ['.', '!', '?', '…']) cut = Math.max(cut, t.lastIndexOf(ch));
+    if (cut >= 0 && /["”»)]/.test(t[cut + 1] || '')) cut++;
+    if (cut >= Math.floor(t.length * 0.4)) return t.slice(0, cut + 1);
+    return t + '…';
+  }
+
   function buildMessages(npc, message, history, grounding) {
     const system = (PERSONAS[npc] || DEFAULT_PERSONA) + (LANG_DIRECTIVE[curLang()] || '') + groundDirective(grounding);
     const hist = (Array.isArray(history) ? history : [])
@@ -331,7 +343,7 @@ const AI = (() => {
         if (r.status === 404) { lastStatus = r.status; if (model === _good) _good = null; continue; }
         if (!r.ok) { lastStatus = r.status; console.warn('[ai] OpenRouter', r.status, (await r.text().catch(() => '')).slice(0, 160)); break; }
         const d = await r.json(); const reply = d.choices?.[0]?.message?.content;
-        if (reply) { _good = model; return reply.trim().slice(0, 1200); }   // recordamos el que anduvo (cap amplio: no cortar a la mitad)
+        if (reply) { _good = model; return tidyReply(reply, d.choices?.[0]?.finish_reason).slice(0, 1200); }   // recordamos el que anduvo (cap amplio + sin corte a mitad de frase)
       } catch (e) { clearTimeout(t); if (e.name === 'AbortError') lastTimedOut = true; console.warn('[ai] fetch falló (' + model + '):', e.message); }
     }
     console.warn('[ai] sin respuesta (status ' + lastStatus + '). El free está saturado: probá de nuevo en unos segundos.');

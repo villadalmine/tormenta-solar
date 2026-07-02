@@ -40,6 +40,13 @@
 - **Oráculos de la Matrix:** los linyeras chatean por IA (`js/ai.js` + proxy `ai-proxy/`), **recuerdan** lo que
   hablaste (`oracleMem`, agent.memory) y **saben del mundo** (grounding: `worldSnapshot`/`worldBrief` les pasa tu
   progreso + carteles + Mundial → contestan con contexto real).
+- **Ideas que quedan PICANDO (v290):** si un linyera te sugiere algo ("andate al cine") no hace falta contestarle:
+  la idea queda registrada y en la próxima charla **se acuerda** — y si el bus de eventos dice que la hiciste, te lo
+  festeja ("¿viste que me hiciste caso?"). Mientras la IA piensa, el chat **cicla iconos del mundo** ☀️⛈️🍷🥩💾🤖
+  (y las respuestas nunca más se cortan a mitad de frase: `tidyReply`). Ver `specs/chat-linyera-ux.md`.
+- **EL MAPA [TAB] (v289):** automap estilo DOOM del **corte de la manzana** — calle, edificios por pisos, subsuelos
+  y sub-modos, TODO derivado del modelo v2 (wiring + x reales); "estás acá", zoom por edificio, **fog of war** por
+  salas visitadas y marcadores del grafo (quests ✅/⭐/🔒, 💬 IA, 🕹️ juegos, 🛒). Ver `specs/mapa-juego.md`.
 - **NPCs vivos:** chusmerío ambiente con **globitos** templados por el estado del juego + **grafo social**
   (`entity.social` knows/rival) → relayean rumores ("me dijo X que vos…"). Ver `specs/npcs-vivos.md`.
 - **Banks vivos (todo-API):** noticias del cine (Google News + ESPN Mundial), propaganda de marcas, chusmerío —

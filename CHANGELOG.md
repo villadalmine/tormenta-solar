@@ -83,6 +83,33 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v290 · infra-61] — 2026-07-02 — 💬 Chat linyera UX: ideas que quedan PICANDO + iconos de espera + FIX respuestas cortadas
+
+Dos pedidos del dueño + un reporte ("responden muy largo y se corta — yo los acorto"). SDD `specs/chat-linyera-ux.md`.
+- **Ideas que quedan picando** (`js/ideas.js`, aditivo): si el linyera te sugiere algo ("andate al cine") NO hace
+  falta contestarle — la idea queda registrada (`ts_ideas_v1` + memoria del barrio) y en la próxima charla el
+  grounding se lo recuerda ("fue idea TUYA, seguila"); cuando el bus de eventos dice que la HICISTE, te lo festeja
+  ("¿viste que el pibe me hizo caso?"). Catálogo DATA de 9 ideas (cine/truco/piquete/obelisco/datacenter/carteles/
+  arcade/búnker/chino), colgado de `evlog`. i18n `g.idea.*` ES/EN + test e2e (`ideas:ok`, 40 scripts).
+- **Iconos de espera**: mientras la IA piensa (2-11s) la línea `...` ahora CICLA los iconos del mundo
+  ☀️⛈️🍷🥩💾🤖 con puntitos (`chatThinking()`/`THINK_ICONS`) — se ve que está esperando, no colgado.
+- **FIX "se corta"** (causa raíz: `max_tokens: 120` cortaba a mitad de frase cuando el modelo escribía largo):
+  ahora 220 tokens de aire + `tidyReply()` — si igual el finish fue por length, recorta a la última frase COMPLETA
+  (o cierra con "…"); espejado en el proxy (0.1.83) y en el camino BYOK del cliente (`js/ai.js`).
+
+## [v288-v289 · infra-60] — 2026-07-02 — 🛡️✊🗺️ Anti-NaN + respawn peronista + tracker [H] + EL MAPA del juego (TAB)
+
+*(Entradas retroactivas — los commits salieron sin su renglón acá.)*
+- **v288 · infra-60**: anti-NaN de `specs/estado-jugador.md` (`sanePlayer()` central en restore/loop/pre-save +
+  `num()` fail-closed en TODAS las compras + higiene del `ts_shopCache_v1` + evento/métrica `nan` por campo al
+  dashboard); **respawn peronista** (morir SIN búnker → despertás en el piquete: "te teletransportaste como un RAYO
+  SOLAR", hp 50 + chori, el save NO se borra); **tracker del piquete** ocultable con [H] + se limpia solo cuando el
+  grafo dice juramento hecho. Proxy 0.1.82 (whitelist `nan`/`arcade`/`playtime`).
+- **v289**: **EL MAPA (TAB)** — `js/mapa.js`, automap estilo DOOM del corte de la manzana: calle + edificios por
+  pisos + subsuelos + sub-modos colgados, TODO del modelo v2 (x reales de las puertas + BFS del wiring); "ESTÁS
+  ACÁ" parpadeante, hover con hint nivel-0, zoom por edificio [Z], fog of war por salas visitadas, marcadores del
+  grafo (quests ✅/⭐/🔒, 💬 NPCs IA, 🕹️ juegos, 🛒 tiendas). 51/51 salas ancladas en e2e.
+
 ## [infra-48] — 2026-07-01 — 🎛️ Tiers de IA claros (Free/Premium/BYOK) + FIX anónimo no llegaba al pago + /provision con código propio
 
 Ordenar y documentar el ruteo del chat (el dueño pidió dejarlo claro por escrito). Proxy 0.1.70.

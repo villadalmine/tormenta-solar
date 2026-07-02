@@ -474,6 +474,19 @@ async function read429(r) {
   } catch (e) { return { account: false, perDay: false, resetMs: 0 }; }
 }
 
+// El modelo a veces escribe MÁS que max_tokens y OpenRouter lo corta A MITAD DE FRASE ("responden largo y se
+// corta", reporte del dueño 2026-07-02). Si el finish fue por length → recortamos a la última frase COMPLETA
+// (nunca mostrar el tajo); si no hay dónde cortar prolijo, puntos suspensivos honestos. Solo chat (no gen/JSON).
+function tidyReply(text, finish) {
+  let t = String(text).trim();
+  if (finish !== 'length') return t;
+  let cut = -1;
+  for (const ch of ['.', '!', '?', '…']) cut = Math.max(cut, t.lastIndexOf(ch));
+  if (cut >= 0 && /["”»)]/.test(t[cut + 1] || '')) cut++;          // el signo cierra comillas → llevalas
+  if (cut >= Math.floor(t.length * 0.4)) return t.slice(0, cut + 1);
+  return t + '…';
+}
+
 async function ask(messages, opts = {}) {
   const deadline = Date.now() + (opts.gen ? GEN_TIMEOUT : UPSTREAM_TIMEOUT);   // gen no es tiempo real → más holgado
   let timedOut = false;
@@ -498,7 +511,8 @@ async function ask(messages, opts = {}) {
       const r = await fetch(base + '/chat/completions', {
         method: 'POST', signal: ctrl.signal,
         headers: { 'Authorization': 'Bearer ' + authKey, 'Content-Type': 'application/json', ...(direct ? { 'X-Title': 'Tormenta Solar' } : {}) },
-        body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: opts.maxTokens || 120, ...(opts.user ? { user: opts.user } : {}) }),
+        // 220 tokens de aire (antes 120: cortaba seguido a mitad de frase); las personas ya piden frases CORTAS
+        body: JSON.stringify({ model, messages, temperature: 0.9, max_tokens: opts.maxTokens || 220, ...(opts.user ? { user: opts.user } : {}) }),
       });
       clearTimeout(to);
       if (r.status === 429) {
@@ -510,7 +524,8 @@ async function ask(messages, opts = {}) {
       if (r.status === 404) { incAttempt(model, 'http_404'); continue; }   // no existe → próximo
       if (!r.ok) { incAttempt(model, 'http_other'); throw new Error('OpenRouter ' + r.status); }
       const d = await r.json();
-      const reply = d.choices?.[0]?.message?.content;
+      let reply = d.choices?.[0]?.message?.content;
+      if (reply && !opts.gen) reply = tidyReply(reply, d.choices?.[0]?.finish_reason);   // chat: nunca mostrar el corte a mitad de frase
       if (reply) { incAttempt(model, 'ok'); if (!opts.sub && !direct && PAID_MODELS.has(model)) paidHit(); return { reply: reply.trim(), model, usage: d.usage }; }   // ← qué modelo ganó (+ tokens para el gasto por código)
       incAttempt(model, 'empty');                            // 200 pero sin texto → próximo modelo
     } catch (e) {

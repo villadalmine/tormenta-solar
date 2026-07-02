@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
-const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
+const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
   'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
@@ -321,6 +321,15 @@ if (require.main === module) {
     const pcg = Pancarta.create({ role: 'guest', seats: ['h', 'me'], myPid: 'me' });
     pcg.applyState({ t: 'lv5-state', g: '2'.repeat(24 * 7), pr: 1, tl: 5, p: 'play' }); pcg.draw(C, 960, 540);
     ok.push('pancarta:ok');
+    // IDEAS QUE QUEDAN PICANDO (chat-linyera-ux §1): scan detecta la sugerencia, check la marca hecha, groundFor la cuenta
+    Ideas.scan('filosofo', 'Andate al CINE, pibe, que están pasando una de Favio.');
+    let ig = Ideas.groundFor('filosofo');
+    if (!ig || !/g\.idea\.pend:cine/.test(ig)) throw new Error('ideas: el cine debería quedar picando: ' + ig);
+    Ideas.check('sala', 'Cine — piso 1');
+    ig = Ideas.groundFor('filosofo');
+    if (!ig || !/g\.idea\.done:cine/.test(ig)) throw new Error('ideas: debería estar HECHA: ' + ig);
+    if (Ideas.groundFor('peronista')) throw new Error('ideas: otro NPC no debería tener grounding');
+    ok.push('ideas:ok');
     // MAPA B — el plano del búnker: colocar conectado OK, desconectado falla, sin plata falla, remove devuelve mitad
     if (Input.clear) Input.clear();   // teclas trabadas de tests anteriores (keydown sin keyup) ensucian el update
     const bmp = BunkerMapa.create({ player: { coins: 100 } });

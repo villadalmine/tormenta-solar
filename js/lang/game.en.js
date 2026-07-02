@@ -472,6 +472,8 @@
     'g.chat.offline': '(no AI connected — canned replies. Drop your API key in ⚙ Options.)',
     'g.chat.online': '(chatting with AI — {mode})',
     'g.chat.remembers': '💭 (he remembers you)',
+    'g.idea.pend': 'YOUR MEMORY: {min} min ago YOU pitched him the idea of «{idea}» and he never answered — if he brings it up, remember it was YOUR idea and roll with it.',
+    'g.idea.done': 'YOUR MEMORY: you suggested «{idea}» and the kid TOOK YOUR ADVICE (already did it) — congratulate him or tease him about it.',
     'g.chat.stormTimeout': '⚡ The solar storm fried the model\'s circuits: it hung, so I cut it. Try again in a few seconds, kid.',
     'g.chat.error': '"...a wire crossed in my head, kid. Say it again."',
     'g.chat.freeUpsell': '⚡ (Brain glitched for a sec: the storm jammed even the paid model. Hit me again and I\'ll retry.) 😅',
