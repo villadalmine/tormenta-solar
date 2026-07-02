@@ -107,3 +107,18 @@ mensaje del jugador ni ids. Permite consultas tipo "qué modelos se usaron ayer 
    backend piechart, latencia media, usos por modelo, outcome apilado, p95 por modelo, fallback). ✅ HECHO.
 4. **F4 — (opcional)** log JSON por evento → Loki.
 5. Cruzar con `litellm_*` para costo/proveedor real.
+
+
+## 9. REVIEW COMPLETO + dashboards por AUDIENCIA (2026-07-02, v285·infra-58)
+
+Review de todo lo emitido (35 métricas) + reorganización de dashboards por PREGUNTA que responden:
+| Dashboard (uid) | Pregunta | Paneles clave |
+|---|---|---|
+| **tormenta-jugadores** (NUEVO) | ¿CÓMO juega la gente? | online en el tiempo, sesiones/h por idioma, funnel (%tormenta/%win), **minutos jugados + duración media de sesión** (evento `playtime`, 1 tick=5min), dónde están EN EL TIEMPO (by_sala apilado), camino de quests, mini-juegos, **arcade por juego** (evento `arcade`), con qué PERSONA hablan |
+| **tormenta-gpu-modelos** (NUEVO) | ¿Cómo usamos GPU/modelos? | **DCGM real** (util/mem/temp/power), **LiteLLM** (req/min, p95, in-flight, tokens in/out, spend US$), ruteo del proxy (attempts por modelo/result, p95 por modelo, presupuesto pago, precios OR) |
+| **tormenta-linyera** (extendido) | ¿Qué hace la IA? | todo lo anterior + **con qué persona hablan** + **% fallback por persona** + bancos del ecosistema (items/frescura) |
+| tormenta-juego | debug motor v1/v2 | engine/errores/freezes (sin cambios) |
+| tormenta-online | multijugador en vivo | presencia/espacios/lobbies (sin cambios) |
+- **Métrica nueva:** `tormenta_ai_chat_total{...,persona}` (cardinalidad acotada: ~10 personas).
+- **Eventos nuevos** (whitelist): `arcade` (result=juego) + `playtime` (tick de 5 min).
+- Los 5 dashboards viajan en el chart (`ai-proxy/chart/dashboards/*.json`, ConfigMap auto-importado).
