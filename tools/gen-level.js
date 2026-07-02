@@ -75,6 +75,7 @@ function entities(r, ri) {
     if (Object.keys(it).length) e.interact = it;
     if (m.ambient != null) e.ambient = m.ambient;   // NPCs vivos: componente declarativo (chusmerío)
     if (m.social != null) e.social = m.social;       // grafo social (conoce/rival) — aristas autorables
+    if (m.mov != null) e.mov = m.mov;                // estado de movimiento declarativo (npcs-vivos F4b)
     if (m.persona && !m.action) e.chat = { persona: m.persona };
     if (m.persona) { e.fiche = m.persona; if (ficheTormenta[m.persona]) e.comportamiento = { tormenta: ficheTormenta[m.persona] }; }   // §6.3-3: entidad → ficha (alma/comportamiento)
     if (m.dialog) e.dialogue = { text: m.dialog };

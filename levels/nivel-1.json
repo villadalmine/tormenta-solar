@@ -326,6 +326,9 @@
               "interior": 1
             }
           },
+          "mov": {
+            "hasta": "stormed"
+          },
           "dialogue": {
             "text": "“Ese edificio... yo de noche escucho cosas, pibe. Cuando se corte la luz vas a ver.” 🏢"
           }
@@ -345,6 +348,9 @@
               "interior": 4
             }
           },
+          "mov": {
+            "hasta": "stormed"
+          },
           "dialogue": {
             "text": "“El arcade ese tiene historia, eh. Pero callate, que las paredes oyen.” 🕹️"
           }
@@ -363,6 +369,9 @@
               "edificio": "choris",
               "interior": 5
             }
+          },
+          "mov": {
+            "hasta": "stormed"
           },
           "dialogue": {
             "text": "“Treinta años cuidando esta cuadra. Lo que vi en ese local no se lo cuento a cualquiera.” 🌭"
@@ -491,6 +500,7 @@
           },
           "x": 24,
           "name": "Músico",
+          "mov": false,
           "dialogue": {
             "text": "“Una moneda y te toco una cumbia, maestro.” 🎶"
           }
@@ -539,6 +549,7 @@
           },
           "x": 63,
           "name": "Jubilado",
+          "mov": false,
           "dialogue": {
             "text": "“Jaque, querido. Vas perdiendo... pagás el café.” ♟️"
           }
@@ -551,6 +562,7 @@
           },
           "x": 65,
           "name": "Jubilado",
+          "mov": false,
           "dialogue": {
             "text": "“Callate y movés vos, tramposo de mierda.” ♟️"
           }
@@ -563,6 +575,7 @@
           },
           "x": 76,
           "name": "Viejo",
+          "mov": false,
           "dialogue": {
             "text": "“Hace dos horas que espero, pibe... y no avanza.” 👴"
           }
@@ -575,6 +588,7 @@
           },
           "x": 77.4,
           "name": "Turista",
+          "mov": false,
           "dialogue": {
             "text": "“Is this the line for dollars? ¿Acá cambian, sí?” 📸"
           }
@@ -587,6 +601,7 @@
           },
           "x": 78.8,
           "name": "Gordo",
+          "mov": false,
           "dialogue": {
             "text": "“Tengo un hambre... ¿cuánto falta para la cueva?” 🍔"
           }
@@ -599,6 +614,7 @@
           },
           "x": 80.2,
           "name": "Señora",
+          "mov": false,
           "dialogue": {
             "text": "“Yo vengo todos los días, ¿eh? No me corran.” 💅"
           }
@@ -611,6 +627,7 @@
           },
           "x": 81.6,
           "name": "Pibe",
+          "mov": false,
           "dialogue": {
             "text": "“Aguante, ya casi llego al arbolito.” 🧢"
           }
@@ -623,6 +640,7 @@
           },
           "x": 83,
           "name": "Oficinista",
+          "mov": false,
           "dialogue": {
             "text": "“Estoy en horario laboral, no le digas a nadie.” 💼"
           }
@@ -635,6 +653,7 @@
           },
           "x": 84.4,
           "name": "Papá",
+          "mov": false,
           "dialogue": {
             "text": "“Quedate quieto, nene, ya falta poco.” 👨‍👦"
           }
@@ -647,6 +666,7 @@
           },
           "x": 85.8,
           "name": "Nene",
+          "mov": false,
           "dialogue": {
             "text": "“¿Faaalta muuucho, paaa?” 🍭"
           }
@@ -659,6 +679,7 @@
           },
           "x": 87.2,
           "name": "Don",
+          "mov": false,
           "dialogue": {
             "text": "“En mis tiempos el dólar valía dos mangos.” ☕"
           }
@@ -671,6 +692,7 @@
           },
           "x": 88.6,
           "name": "Señora 2",
+          "mov": false,
           "dialogue": {
             "text": "“No empujes que me sacan de la fila, atorrante.” 😤"
           }
@@ -693,6 +715,9 @@
               "Te encaja un botón que se le cayó. “El obelisco lo construí yo, no me creen.” 🏛️"
             ],
             "hint": "“Uff... lo que me arreglaría un SÁNDWICH DE FIAMBRE ahora, pibe... un saladito, mortadela, lo que sea. Compralo en el super chino, dale.” 🥓"
+          },
+          "mov": {
+            "tras": "borrachosHappy"
           }
         },
         {
@@ -713,6 +738,9 @@
               "Te pasa una servilleta escrita. “Mañana arranco la dieta. Mañana, eh.”"
             ],
             "hint": "“Cerveza tengo, lo que quiero es una DIOSA TROPICAL, hermano... el vinito dulce de fruta. Conseguila en el super chino (góndola DIOSAS).” 🍹"
+          },
+          "mov": {
+            "tras": "borrachosHappy"
           }
         },
         {
@@ -733,6 +761,9 @@
               "Te alcanza una galletita aplastada. “Este edificio antes era un banco. Ahora soy yo el banco. De nada.” 🏦"
             ],
             "hint": "“Loco... tengo un BAJÓN bárbaro. Me morfaría un CACHO DE CARNE, te juro. Conseguime carne en el super, dale.” 🥩"
+          },
+          "mov": {
+            "tras": "borrachosHappy"
           }
         },
         {
@@ -2637,6 +2668,7 @@
           },
           "x": 20,
           "name": "Jugador",
+          "mov": false,
           "dialogue": {
             "text": "“Al fondo te esperan.”"
           }
@@ -3182,6 +3214,7 @@
           },
           "x": 11,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Saqué número a las siete de la mañana, ¿eh? No me corran.” 🎫"
           }
@@ -3194,6 +3227,7 @@
           },
           "x": 12,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“¿Cómo que cerró la caja? ¡Si recién abrieron!” 😤"
           }
@@ -3206,6 +3240,7 @@
           },
           "x": 13,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“En mis tiempos esto se hacía en la vereda, más rápido.” 👴"
           }
@@ -3218,6 +3253,7 @@
           },
           "x": 14,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Is this the official rate? ...¿el oficial? ¡Pero si es la mitad!” 📸"
           }
@@ -3230,6 +3266,7 @@
           },
           "x": 15,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Hace dos horas que no avanza un paso, hermano.” 🧢"
           }
@@ -3242,6 +3279,7 @@
           },
           "x": 16,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Aguantá, nene, ya casi... no, mentira, falta un montón.” 👨‍👦"
           }
@@ -3254,6 +3292,7 @@
           },
           "x": 17,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Pedí el día en el laburo para esto. Para ESTO.” 💼"
           }
@@ -3266,6 +3305,7 @@
           },
           "x": 18,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Está hasta las pelotas, no entra un alfiler más.” 😮‍💨"
           }
@@ -7455,6 +7495,7 @@
           },
           "x": 6,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Todo legal, ¿eh? Es para mi hijo, para cuando sea grande.” 👶"
           }
@@ -7467,6 +7508,7 @@
           },
           "x": 9,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Si no ahorro en dólares, este país se va a la mierda, pibe.” 🇦🇷"
           }
@@ -7479,6 +7521,7 @@
           },
           "x": 11.5,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Yo en el peso no confío ni loca. Verde o nada.” 💵"
           }
@@ -7575,6 +7618,7 @@
           },
           "x": 6,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Vengo todos los meses. Es mi cajita de ahorro, qué querés.” 🏦"
           }
@@ -7587,6 +7631,7 @@
           },
           "x": 9,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Shhh, acá no se habla de cuánto traés, pibe.” 🤫"
           }
@@ -7599,6 +7644,7 @@
           },
           "x": 11.5,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Es para el futuro del nene. Dólar, siempre dólar.” 👨‍👦"
           }
@@ -7694,6 +7740,7 @@
           },
           "x": 6,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Acá sí te cambian. El tipo es de confianza, eh.” 💵"
           }
@@ -7706,6 +7753,7 @@
           },
           "x": 9,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Es para mi hijo, todo legal. Bueno, legal-legal no, pero me entendés.” 👶"
           }
@@ -7718,6 +7766,7 @@
           },
           "x": 11.5,
           "name": "En la cola",
+          "mov": false,
           "dialogue": {
             "text": "“Apurate que se hace cola. Si no ahorro verde, ¿qué le dejo a los pibes?” 🇦🇷"
           }

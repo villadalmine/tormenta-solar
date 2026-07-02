@@ -80,6 +80,10 @@ F1-F3 (globitos + relay con fuente + **grafo social `social.knows/rival` como DA
   mini-diálogo del chusmerío al llegar), y **buscarte** (si hubo evento notable fresco, un oráculo camina hacia vos
   y te tira un globito sobre eso — generaliza el precedente `mundialApproach`). Personalidad = data que ya existe
   (`persona` + `social` + `ambient`); `drives` se declara opt-out/opt-in en el schema (3 patas: level.js→gen-level→mundo).
+- ✅ **F4b.1 — ESTADO DE MOVIMIENTO declarativo (v276):** componente **`mov`** por NPC (3 patas del schema):
+  `mov:false` (colas/músico/porteros) · `mov:{tras:'flag'}` (se libera al pasar el quest — borrachines tras
+  `borrachosHappy`) · `mov:{hasta:'flag'}` (vecinos hasta `stormed`, después quedan de guardia). `canMove()` evalúa
+  contra `historiaState()` → EL GRAFO decide quién se mueve. Todos vuelven SIEMPRE a su `homeX`.
 - **F4c — DIÁLOGO NPC↔NPC por IA (Mensajero):** cuando dos ORÁCULOS quedan cerca, un intercambio de 2 líneas
   generado (barato, cacheado) en vez del pool — conversación emergente real.
 - **F4d — memoria social persistente:** lo chusmeado evoluciona (agent.memory por NPC, v2).

@@ -1015,8 +1015,23 @@
   }
   // ── NPCs VIVOS F4b (npcs-vivos §5.3): DRIVES — deambulan, van a chusmear con otro, y a veces TE BUSCAN si hiciste
   // algo notable (sienten la necesidad). Solo decorativos/oráculos: NUNCA los de quest/tienda/want/follow.
-  const wanderOk = n => n && !n.invisible && !n.follow && n.ambient !== false && !n.want && !n.sells && !n.arsenal &&
-    !n.tienda && !n.vecino && (!n.action || n.action === 'chat');
+  // ESTADO DE MOVIMIENTO por NPC (pedido del dueño): `mov` es un componente DECLARATIVO (data, 3 patas del schema).
+  //   mov:false           → NUNCA se mueve (colas, músico, porteros de tiendas/cueva)
+  //   mov:{tras:'flag'}   → se LIBERA cuando el quest pasó (ej. borrachines tras borrachosHappy = quest hecho)
+  //   mov:{hasta:'flag'}  → se mueve HASTA que el flag se prende (ej. vecinos: tras la tormenta quedan de guardia)
+  //   sin mov             → heurística: decorativos/oráculos sí; quest/tienda/want no. SIEMPRE vuelven a su lugar (homeX).
+  function canMove(n) {
+    if (!n || n.invisible || n.follow || n.sells || n.arsenal || n.tienda || n.jubilado) return false;   // estructurales
+    if (n.mov !== undefined && n.mov !== null) {
+      if (n.mov === false || n.mov === 'nunca') return false;
+      if (typeof n.mov === 'object') { const fl = historiaState();
+        if (n.mov.tras && !fl[n.mov.tras]) return false;
+        if (n.mov.hasta && fl[n.mov.hasta]) return false; }
+      return true;
+    }
+    return n.ambient !== false && !n.want && !n.vecino && (!n.action || n.action === 'chat');
+  }
+  const wanderOk = canMove;
   let seekCd = 0;   // cooldown global del "te busca" (que no te persigan todos a la vez)
   function clampNx(r, x) { return Math.max(Level.TILE * 1.2, Math.min(((r.w || 24) - 1.5) * Level.TILE, x)); }
   function updateDrives(r, dt) {
@@ -1045,7 +1060,8 @@
         const others = ns.filter(o => o !== n && Math.abs(o.x - n.x) < 600);
         if (others.length) { const o = others[(Math.random() * others.length) | 0]; n.wTarget = clampNx(r, o.x + (o.x > n.x ? -52 : 52)); n.wChusme = true; }
         else n.wCd = 4;
-      } else if (roll < 0.85) n.wTarget = clampNx(r, n.homeX + (Math.random() * 140 - 70));   // deambula cerca de su lugar
+      } else if (Math.abs(n.x - n.homeX) > 95) n.wTarget = n.homeX;   // quedó lejos → SIEMPRE vuelve a su lugar
+      else if (roll < 0.85) n.wTarget = clampNx(r, n.homeX + (Math.random() * 140 - 70));   // deambula cerca de su lugar
       else n.wCd = 3 + Math.random() * 5;                              // se queda pancho
     }
   }
