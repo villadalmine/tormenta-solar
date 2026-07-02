@@ -309,6 +309,16 @@
   function tel(name, labels) { try { if (typeof Telemetry !== 'undefined') Telemetry.event(name, labels); } catch (e) {} }
   // BUS DE EVENTOS en tiempo real (npcs-vivos §5.3 F4a): lo FRESCO que hiciste, para que el mundo reaccione.
   function evlog(ev, detail) { try { if (typeof Eventos !== 'undefined') Eventos.push(ev, detail); } catch (e) {} }
+  // ANTI-NaN (specs/estado-jugador.md §1): num() = guard fail-closed en inputs; sanePlayer() = saneador central.
+  const num = (v, def) => (Number.isFinite(+v) ? +v : def);
+  const PLAYER_NUMS = { hp: 50, coins: 0, caramelos: 0, ammo: 0, falopa: 0, diosa: 0, carne: 0, fiambre: 0, birras: 0, forros: 0, flores: 0, spitDmg: 14 };
+  function sanePlayer() {
+    if (!player) return;
+    for (const k in PLAYER_NUMS) if (player[k] !== undefined && !Number.isFinite(player[k])) {
+      player[k] = PLAYER_NUMS[k];
+      tel('nan', { result: k }); evlog('nan', k);   // al dashboard: QUÉ campo se rompió (para cazar la fuente con datos)
+    }
+  }
   function telOnce(key, name, labels) { try { if (typeof Telemetry !== 'undefined') Telemetry.once(key, name, labels); } catch (e) {} }
   function reportClientError(msg, err) {
     try {
@@ -404,6 +414,7 @@
     reset();                                              // mundo fresco + defaults
     current = Math.max(0, Math.min(rooms.length - 1, snap.current));
     Object.assign(player, snap.player || {});
+    sanePlayer();   // anti-NaN: un save contaminado (NaN→null en JSON) no revive el bug
     if (!Array.isArray(player.inventory) || !player.inventory.length) player.inventory = ['escupitajo'];   // saneo inventario
     if (!WEAPONS[player.weapon]) player.weapon = 'escupitajo';
     player.x = snap.px; player.y = snap.py; player.vx = player.vy = 0; player.alive = true;
@@ -644,7 +655,7 @@
   // LAVALLE (specs/lavalle.md E1.5): el piquete se ve TOP-DOWN (sub-modo); sin el módulo → cae al side-scroller (sala 52).
   function enterLavalle(intro) {
     if (typeof Lavalle === 'undefined' || !Lavalle.create) return false;
-    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon(), stormed, won: loadPiqueteWon(), spawn: lavalleSpawn }); lavalleSpawn = null; state = 'lavalle';
+    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon(), stormed, won: loadPiqueteWon(), juramento: lsFlag('ts_juramento'), spawn: lavalleSpawn }); lavalleSpawn = null; state = 'lavalle';
     // MULTIJUGADOR (specs/lavalle-multijugador.md F1): Lavalle es un ESPACIO aparte del bodegón; te ves con los otros
     // que están en el piquete. Aditivo: sin red, queda la postal single-player.
     if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join(playerNick(), 'carpo', () => {}, 'lavalle');
@@ -1737,14 +1748,15 @@
     const cur = T('g.cur.' + (sh.pay === 'caramelos' ? 'caramelos' : sh.pay === 'forros' ? 'forros' : 'monedas'));
     const have = sh.pay === 'caramelos' ? player.caramelos : sh.pay === 'forros' ? player.forros : player.coins;
     if (sh.stock <= 0) { setMsg(T('g.shop.empty'), '#ffd54f', 2500); return; }
-    if (have < sh.cost) { setMsg(T('g.shop.noFunds', { cost: sh.cost, cur, have }), '#ff5252', 3000); Sfx.empty(); return; }
-    if (sh.pay === 'caramelos') player.caramelos -= sh.cost; else if (sh.pay === 'forros') player.forros -= sh.cost; else player.coins -= sh.cost;
+    const cost = num(sh.cost, Infinity), amount = num(sh.amount, 0);   // anti-NaN: ítem malformado = INCOMPRABLE (no rompe la economía)
+    if (have < cost) { setMsg(T('g.shop.noFunds', { cost, cur, have }), '#ff5252', 3000); Sfx.empty(); return; }
+    if (sh.pay === 'caramelos') player.caramelos -= cost; else if (sh.pay === 'forros') player.forros -= cost; else player.coins -= cost;
     sh.stock--;
     let txt;
-    if (sh.kind === 'ammo') { player.ammo += sh.amount; txt = T('g.shop.ammo', { n: sh.amount }); }
-    else if (sh.kind === 'health') { player.hp = Math.min(MAXHP, player.hp + sh.amount); txt = T('g.shop.health', { n: sh.amount }); }
+    if (sh.kind === 'ammo') { player.ammo += amount; txt = T('g.shop.ammo', { n: amount }); }
+    else if (sh.kind === 'health') { player.hp = Math.min(MAXHP, player.hp + amount); txt = T('g.shop.health', { n: amount }); }
     else { player.ammo += 30; player.hp = Math.min(MAXHP, player.hp + 25); txt = T('g.shop.amuleto'); }
-    setMsg(T('g.shop.bought', { txt, cost: sh.cost, cur }), '#7CFC00', 3500); Sfx.pickup();
+    setMsg(T('g.shop.bought', { txt, cost, cur }), '#7CFC00', 3500); Sfx.pickup();
   }
   function machinePrice(m) { return 3 + (m.plays || 0) * 3; }
   function handleMachine(m) {
@@ -2619,7 +2631,7 @@
   function closeGuarda() { const ov = document.getElementById('guardamenu'); if (ov) ov.classList.add('hidden'); }
   function pickGuardaDay(day) {
     const dias = ((typeof window !== 'undefined' && window.NOTI_DIAS) || []).slice().sort(), today = dias[dias.length - 1];
-    const cost = guardaFreeUsed ? guardaAskOf(day, today) : 0;
+    const cost = guardaFreeUsed ? num(guardaAskOf(day, today), Infinity) : 0;   // anti-NaN fail-closed
     if ((player.caramelos || 0) < cost) { setMsg(T('g.cine.guardaPoor', { n: cost }), '#ff5252', 3500); return; }
     player.caramelos -= cost; guardaFreeUsed = true; closeGuarda();
     setMsg(T('g.cine.guardaWait'), '#9fd3ff', 1500);
@@ -3227,6 +3239,9 @@
   }
   function die() {
     if (state === 'dead') return;
+    // ✊ RESPAWN PERONISTA (estado-jugador.md §2): sin el búnker descubierto NO hay game over — la muchachada del
+    // piquete te levanta ("te teletransportaste como un RAYO SOLAR"). El save NO se borra.
+    if (!bunkerUnlocked && typeof Lavalle !== 'undefined' && Lavalle.create) { respawnPiquete(); return; }
     state = 'dead'; running = false; Sfx.stopHum(); Sfx.stopAmbient();
     tel('death', { engine: engineUsed });
     evlog('muerte', '');
@@ -3235,18 +3250,25 @@
     elEndText.innerHTML = T('g.die.text'); renderStats(false);
     showEnd();
   }
+  function respawnPiquete() {
+    player.hp = 50; player.alive = true; decayAcc = 0;                   // te levantan, no te curan entero
+    addItem('chori');                                                     // te convidan un chori 🌭
+    tel('death', { result: 'piquete' }); evlog('hito', 'lo levantó la muchachada del piquete');
+    if (!enterLavalle(T('g.morir.piquete'))) { state = 'playing'; transCd = 0.5; }   // sin módulo → sigue donde estaba
+  }
   function showEnd() {
     elEnd.classList.remove('hidden'); elHud.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden');
     elPrompt.classList.add('hidden'); elFloor.classList.add('hidden');
   }
 
   // ---- loop ----
-  let lastBeat = 0, freezeReported = false;
+  let lastBeat = 0, freezeReported = false, saneT = 0;
   function loop(t) {
     if (!running) return;
     lastBeat = (typeof performance !== 'undefined' ? performance.now() : Date.now());   // latido para el watchdog de freeze
     if (freezeReported) freezeReported = false;                                          // se recuperó del freeze
     const dt = Math.min(0.04, (t - lastT)/1000) || 0; lastT = t;
+    if (t > saneT) { saneT = t + 1000; sanePlayer(); }   // anti-NaN: autocura 1×/seg (y avisa al dashboard)
     autosave(t);
     // MULTIJUGADOR F1: latido de presencia cada ~5s mientras jugás (dónde estás) → "Cine EN VIVO" + métrica online.
     // Late en CUALQUIER estado de juego (intro cerrada), no solo 'playing' → así en sub-modos (Lavalle/bodegón/arcade)

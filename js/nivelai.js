@@ -241,7 +241,11 @@ const NivelAI = (() => {
   // estático. La IA SUGIERE precio/potencia (cost/amount); generateShop CLAMPA a rango sano por kind. Ver tiendas-generadas.md
   const SHOP_CACHE_KEY = 'ts_shopCache_v1';
   function loadShopCache() {   // memoria del cliente: el surtido autorado sobrevive recargas (REGLA #0: dato/memoria)
-    try { if (typeof localStorage === 'undefined') return {}; const d = JSON.parse(localStorage.getItem(SHOP_CACHE_KEY) || '{}'); return (d && typeof d === 'object') ? d : {}; } catch (e) { return {}; }
+    try { if (typeof localStorage === 'undefined') return {}; const d = JSON.parse(localStorage.getItem(SHOP_CACHE_KEY) || '{}');
+      if (!d || typeof d !== 'object') return {};
+      // HIGIENE anti-NaN (estado-jugador.md §1.3): ítems cacheados sin cost/amount FINITOS se descartan (se regeneran solos)
+      for (const k in d) { const sh = d[k]; if (sh && Array.isArray(sh.products)) sh.products = sh.products.filter(p => p && Number.isFinite(+p.cost) && Number.isFinite(+p.amount)); }
+      return d; } catch (e) { return {}; }
   }
   const shopCacheBox = loadShopCache();
   function saveShopCache() { try { if (typeof localStorage !== 'undefined') localStorage.setItem(SHOP_CACHE_KEY, JSON.stringify(shopCacheBox)); } catch (e) {} }

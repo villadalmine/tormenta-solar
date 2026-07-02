@@ -52,7 +52,8 @@ const Lavalle = (() => {
     CROWD_ROWS.forEach((r, ri) => { for (let i = 0; i < 15; i++) crowd.push({ x: 1.9 + i * 1.0, y: r.y + (i % 2) * 0.1, col: ccol[(i + ri) % ccol.length], ph: i * 1.3 + ri * 0.7, sc: r.sc, a: r.a }); });
     // el LIENZO largo "VIVA PERÓN ×N" cruza la hilera de atrás, colgado ALTO (no tapa a nadie)
     const banner = { y: 3.7 };
-    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null, peerReq = null, corteReq = false, sogaReq = false, bomboReq = false, ollaReq = false, pancaReq = false;
+    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null, peerReq = null, corteReq = false, sogaReq = false, bomboReq = false, ollaReq = false, pancaReq = false, hHeld = false;
+    let trackerOn = true; try { trackerOn = localStorage.getItem('ts_ui_tracker') !== '0'; } catch (e) {}
     setMsg(opts.intro || (opts.stormed ? T('g.lavalle.stormIntro') : allWon ? T('g.lavalle.introOpen') : T('g.lavalle.intro')), opts.intro ? 7 : 6);
     if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(true);
 
@@ -92,6 +93,7 @@ const Lavalle = (() => {
       if (player.y < (H - 4) * CS) exitArmed = true;                       // subiste al piquete → ya se puede salir por abajo
       if (exitArmed && player.y > (H - 0.6) * CS) { leave(); return; }      // salir caminando hacia abajo (solo si ya entraste)
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); return; } } else escHeld = false;
+      if (Input.keys['h']) { if (!hHeld) { hHeld = true; trackerOn = !trackerOn; try { localStorage.setItem('ts_ui_tracker', trackerOn ? '1' : '0'); } catch (e) {} } } else hHeld = false;
       // ¿hay un JUGADOR ONLINE cerca? (para chat privado por whisper, como en el bodegón)
       let nearPeer = null;
       if (typeof Salon !== 'undefined' && Salon.getPeers && Salon.inBodegon && Salon.inBodegon()) {
@@ -339,12 +341,15 @@ const Lavalle = (() => {
       // barra superior + mensajes
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 26);
       ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'left'; ctx.fillText('✊ ' + T('g.lavalle.title'), 10, 18);
-      // TRACKER de los 5 mini-juegos (pedido del dueño): ganado = prendido · falta = apagado
-      { const GK = [['corte', '✊'], ['soga', '🚔'], ['bombo', '🥁'], ['olla', '🍲'], ['pancarta', '🎨']];
+      // TRACKER de los 5 mini-juegos (lavalle-multijugador.md §7): [H] lo oculta; si el JURAMENTO ya pasó (el grafo
+      // sabe) se borra solo y queda un ✓ chiquito. Los juegos siguen siempre rejugables (multiplayer).
+      if (opts.juramento) { ctx.font = 'bold 12px monospace'; ctx.textAlign = 'left'; ctx.fillStyle = '#7CFC00'; ctx.fillText('✊✓', 150, 18); }
+      else if (trackerOn) { const GK = [['corte', '✊'], ['soga', '🚔'], ['bombo', '🥁'], ['olla', '🍲'], ['pancarta', '🎨']];
         const won = opts.won || {}; let gx = 150; let nWon = 0;
         ctx.font = '13px monospace'; ctx.textAlign = 'left';
         for (const [k, em] of GK) { const w = !!won[k]; if (w) nWon++; ctx.globalAlpha = w ? 1 : 0.25; ctx.fillText(em, gx, 19); gx += 20; }
-        ctx.globalAlpha = 1; ctx.font = 'bold 11px monospace'; ctx.fillStyle = nWon >= 5 ? '#7CFC00' : '#ffd54f'; ctx.fillText(nWon + '/5', gx + 2, 18); }
+        ctx.globalAlpha = 1; ctx.font = 'bold 11px monospace'; ctx.fillStyle = nWon >= 5 ? '#7CFC00' : '#ffd54f'; ctx.fillText(nWon + '/5 [H]', gx + 2, 18); }
+      else { ctx.font = '9px monospace'; ctx.textAlign = 'left'; ctx.fillStyle = '#6a6a72'; ctx.fillText('[H]', 150, 18); }
       // MULTIJUGADOR: cuántos estamos en el piquete AHORA (vos + peers). Feedback directo del online.
       { const nPeers = (typeof Salon !== 'undefined' && Salon.getPeers && Salon.inBodegon && Salon.inBodegon()) ? Salon.getPeers().size : 0;
         ctx.textAlign = 'center'; ctx.fillStyle = nPeers ? '#9be8a0' : '#6a6a72'; ctx.font = 'bold 11px monospace';

@@ -293,6 +293,7 @@
     'g.obelisco.back': 'back',
     'g.globo.title': 'World map — situation room',
     'g.globo.hint': 'drag / ←→ spin · click to select · Esc to exit',
+    'g.morir.piquete': '✊ The Peronist crew lifts you off the asphalt: "KID! What happened to you? You TELEPORTED here like a SOLAR RAY…" They hand you a chori 🌭 and a glass of wine. Nobody dies at the picket, compañero.',
     'g.viva.borra': "hey, did the kid give the drunk what he wants or not?",
     'g.viva.truco': 'they say he beat the card sharp at truco, imagine that',
     'g.viva.chino': 'I heard he walked into the super and grabbed it all for free 😱',
