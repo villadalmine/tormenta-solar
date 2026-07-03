@@ -35,6 +35,9 @@ try {
   s.check('el CHINO está en la manzana y el skyline', piezas.chinoOv && piezas.chinoSky, JSON.stringify(piezas));
   s.check('la compuerta ⛏️ SUBSUELOS está en ambas vistas', piezas.gwOv && piezas.gwSky, JSON.stringify(piezas));
   s.check('las pestañas responden al hitTest', ov.tab);
+  const subteTab = await p.evaluate(() => { const cv = document.getElementById('screen');
+    return (Mapa.hitTest(cv.width, cv.height, { zoom: null, mx: 360, my: 40, visited: new Set() }) || {}).tab === 'subte'; });
+  s.check('la pestaña SUBTE 🚇 existe (preview)', subteTab);
   await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-vista-general.png' });
   // [1] LA CUADRA (skyline): siluetas por edificio con altura = pisos
   await p.keyboard.down('1'); await p.waitForTimeout(150); await p.keyboard.up('1'); await p.waitForTimeout(300);

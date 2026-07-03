@@ -47,6 +47,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v306] — 2026-07-03 — 🚇 EL SUBTE (preview): las líneas REALES bajo Florida y Lavalle, pestaña [4] del mapa
+
+Pedido del dueño: "buscá las líneas de metro sobre Lavalle y Florida y armá un mapa subte en una tab — solo las
+que tienen ≥2 estaciones cerca; lo dejamos de preview porque quiero meter el subte". SDD nuevo `specs/subte.md`.
+- **Research (subte porteño real):** las 3 líneas que cumplen: **C** (estaciones Lavalle + San Martín + Diagonal
+  Norte), **B** bajo Corrientes (Florida + L.N. Alem + C. Pellegrini) y **D** (Catedral + 9 de Julio). Afuera A/E/H.
+- **Pestaña [4] SUBTE 🚇**: plano esquemático estilo mapa de subte — líneas gruesas con su color real (C azul
+  vertical, B roja horizontal, D verde diagonal), estaciones con punto blanco (las CERCA en grande y dorado),
+  el trasbordo del Obelisco, **⭐ FLORIDA Y LAVALLE — el juego** señalado entre las 3, leyenda y sello
+  **PREVIEW — "próximamente: viajar en subte"**. Todo catálogo DATA (`SUBTE` en mapa.js).
+- Futuro en el SDD: F2 estación Lavalle como sala real (S5, lo más profundo) → F3 fast-travel y puertas a
+  niveles nuevos → F4 vida subterránea. El bot chequea que la pestaña exista.
+
 ## [v304] — 2026-07-03 — 🗺️ Playtest del dueño: el CHINO cajón de primera clase + compuerta ⛏️ + 💤 SUEÑOS + FÁCIL que se nota
 
 4 reportes ("la galería quedó abajo suelta, el chino no está, no hay mención a los niveles auto-creados, no veo

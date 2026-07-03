@@ -3521,10 +3521,11 @@
       if (trucoTap('1')) mapaZoom = 'sky';                                             // [1] la cuadra (skyline, v301)
       if (trucoTap('2')) mapaZoom = null;                                              // [2] la manzana (cajones)
       if (trucoTap('3')) mapaZoom = 'ss';                                              // [3] los subsuelos
+      if (trucoTap('4')) mapaZoom = 'subte';                                           // [4] el subte (preview, v306)
       // CLICK: pestaña de vista / edificio = zoom / con zoom de edificio abierto = volver (v293/v298)
       if (Input.mouse.down && !mapaClickHeld) { mapaClickHeld = true;
         const hit = Mapa.hitTest && Mapa.hitTest(W, H, { zoom: mapaZoom, mx: Input.mouse.x, my: Input.mouse.y, visited: visitedRooms });
-        if (hit && hit.tab) mapaZoom = hit.tab === 'ss' ? 'ss' : hit.tab === 'sky' ? 'sky' : null;
+        if (hit && hit.tab) mapaZoom = hit.tab === 'ss' ? 'ss' : hit.tab === 'sky' ? 'sky' : hit.tab === 'subte' ? 'subte' : null;
         else if (typeof mapaZoom === 'number') mapaZoom = null;
         else if (hit && hit.anchor != null) mapaZoom = hit.anchor;
       } else if (!Input.mouse.down) mapaClickHeld = false;

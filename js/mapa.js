@@ -10,6 +10,20 @@ const Mapa = (() => {
   const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   let model = null;
 
+  // EL SUBTE (specs/subte.md, preview v306): líneas REALES con ≥2 estaciones cerca de Florida y Lavalle.
+  // DATA pura: cada línea = { id, color real, estaciones en orden, cuáles están CERCA de la zona del juego }.
+  const SUBTE = [
+    { id: 'C', color: '#1f6cb5', name: 'Línea C · Retiro–Constitución',
+      ests: ['Retiro', 'San Martín', 'Lavalle', 'Diagonal Norte', 'Av. de Mayo', 'Moreno', 'Independencia', 'San Juan', 'Constitución'],
+      cerca: ['San Martín', 'Lavalle', 'Diagonal Norte'] },
+    { id: 'B', color: '#e2231a', name: 'Línea B · bajo Av. Corrientes',
+      ests: ['L. N. Alem', 'Florida', 'C. Pellegrini', 'Uruguay', 'Callao'],
+      cerca: ['L. N. Alem', 'Florida', 'C. Pellegrini'] },
+    { id: 'D', color: '#00a54f', name: 'Línea D · Catedral–Congreso de Tucumán',
+      ests: ['Catedral', '9 de Julio', 'Tribunales', 'Callao', 'Facultad de Medicina'],
+      cerca: ['Catedral', '9 de Julio'] },
+  ];
+
   // sub-modos = nodos DATA colgados de su punto de origen ('at' = a qué lugar del grafo responden)
   const SUBMODES = [
     { id: 'lavalle',  name: 'Lavalle — el piquete', anchor: 'left',    level: 0, at: 'lavalle' },
@@ -254,6 +268,7 @@ const Mapa = (() => {
       if (st.mx >= 10 && st.mx <= 106) return { tab: 'sky' };
       if (st.mx >= 112 && st.mx <= 208) return { tab: 'manzana' };
       if (st.mx >= 214 && st.mx <= 310) return { tab: 'ss' };
+      if (st.mx >= 316 && st.mx <= 412) return { tab: 'subte' };
     }
     if (st.zoom === 'sky') {                                                 // siluetas del skyline
       const sk = skyBoxes(VW, VH);
@@ -277,6 +292,61 @@ const Mapa = (() => {
       if (st.mx >= g.x && st.mx <= g.x + g.w && st.my >= g.y && st.my <= g.y + g.h) return { anchor: Math.round(n.anchor), node: n.i };
     }
     return null;
+  }
+
+  // dibuja EL SUBTE (preview): plano esquemático estilo mapa de subte con las líneas reales de la zona
+  function drawSubte(ctx, VW, VH, st) {
+    const cx = VW * 0.52, top = 84, bot = VH - 56;
+    // Línea C: vertical (Retiro arriba → Constitución abajo)
+    const C = SUBTE[0], stepC = (bot - top) / (C.ests.length - 1);
+    // Línea B: horizontal bajo Corrientes (Alem al este=derecha) — cruza a la altura de Lavalle(C)
+    const B = SUBTE[1], yB = top + stepC * 2 + 24, xB0 = VW * 0.82, stepB = (VW * 0.62) / (B.ests.length - 1);
+    // Línea D: diagonal (Catedral abajo-derecha → Facultad arriba-izquierda), nace cerca de C
+    const D = SUBTE[2], xD0 = cx + 60, yD0 = top + stepC * 3.4, stepD = 86;
+    const pt = { C: i => ({ x: cx, y: top + i * stepC }), B: i => ({ x: xB0 - i * stepB, y: yB }), D: i => ({ x: xD0 - i * stepD * 0.86, y: yD0 - i * stepD * 0.52 }) };
+    // trazos
+    for (const [L, p] of [[C, pt.C], [B, pt.B], [D, pt.D]]) {
+      ctx.strokeStyle = L.color; ctx.lineWidth = 7; ctx.lineCap = 'round';
+      ctx.beginPath(); const a = p(0); ctx.moveTo(a.x, a.y); const z = p(L.ests.length - 1); ctx.lineTo(z.x, z.y); ctx.stroke();
+      // cartel de línea en la cabecera
+      const h0 = p(0);
+      ctx.fillStyle = L.color; ctx.beginPath(); ctx.arc(h0.x, h0.y - 0.1, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillText(L.id, h0.x, h0.y + 4);
+    }
+    // estaciones (las CERCA: punto grande + nombre brillante; el resto tenue)
+    ctx.lineCap = 'butt';
+    for (const [L, p] of [[C, pt.C], [B, pt.B], [D, pt.D]]) {
+      L.ests.forEach((e, i) => {
+        const q = p(i), near = L.cerca.includes(e);
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(q.x, q.y, near ? 5 : 3, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = L.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, near ? 5 : 3, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = near ? '#ffe9b0' : 'rgba(160,180,205,0.55)'; ctx.font = (near ? 'bold ' : '') + '9px monospace';
+        if (L === C) { ctx.textAlign = 'left'; ctx.fillText(e, q.x + 10, q.y + 3); }
+        else if (L === D) {   // el nudo del trasbordo: Catedral abajo, el resto a la IZQUIERDA del punto
+          if (i === 0) { ctx.textAlign = 'center'; ctx.fillText(e, q.x, q.y + 18); }
+          else { ctx.textAlign = 'right'; ctx.fillText(e, q.x - 10, q.y + 3); }
+        }
+        else { ctx.textAlign = 'center'; ctx.fillText(e, q.x, q.y - 9); }
+      });
+    }
+    // ⭐ FLORIDA Y LAVALLE (el juego): entre Lavalle(C), Florida(B) y Catedral(D)
+    const gx = cx + 74, gy = pt.C(2).y - 26;
+    ctx.fillStyle = 'rgba(255,213,79,' + (0.7 + 0.3 * Math.sin((st.t || 0) * 5)) + ')';
+    ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+    ctx.fillText('⭐ ' + T('g.mapa.subteAca'), gx, gy);
+    ctx.strokeStyle = 'rgba(255,213,79,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(gx - 4, gy - 3); ctx.lineTo(pt.C(2).x + 4, pt.C(2).y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gx - 4, gy - 3); ctx.lineTo(pt.B(1).x, pt.B(1).y + 4); ctx.stroke(); ctx.setLineDash([]);
+    // leyenda + PREVIEW
+    ctx.fillStyle = 'rgba(200,215,235,0.75)'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
+    SUBTE.forEach((L, k) => { ctx.fillStyle = L.color; ctx.fillRect(14, VH - 92 + k * 14, 18, 5);
+      ctx.fillStyle = 'rgba(200,215,235,0.8)'; ctx.fillText(L.name, 38, VH - 86 + k * 14); });
+    ctx.fillStyle = 'rgba(150,170,200,0.5)'; ctx.fillText(T('g.mapa.subteOtras'), 14, VH - 92 + 3 * 14);
+    ctx.save(); ctx.translate(VW - 96, 106); ctx.rotate(-0.18);
+    ctx.strokeStyle = 'rgba(255,213,79,0.7)'; ctx.lineWidth = 2; ctx.strokeRect(-64, -16, 128, 30);
+    ctx.fillStyle = 'rgba(255,213,79,0.85)'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('PREVIEW', 0, -1); ctx.font = '8px monospace'; ctx.fillText(T('g.mapa.subtePronto'), 0, 10);
+    ctx.restore();
   }
 
   // dibuja el SKYLINE ("la cuadra"): siluetas en perspectiva, hover = etiqueta flotante
@@ -430,16 +500,16 @@ const Mapa = (() => {
     // header + PESTAÑAS de vista (v298: [1] manzana / [2] subsuelos — pedido del dueño: "elegir qué ver")
     ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 30);
     ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'left';
-    ctx.fillText('🗺️ ' + (typeof st.zoom === 'number' ? T('g.mapa.zoomTitle') : st.zoom === 'ss' ? T('g.mapa.ssTitle') : st.zoom === 'sky' ? T('g.mapa.skyTitle') : T('g.mapa.title')), 10, 20);
+    ctx.fillText('🗺️ ' + (typeof st.zoom === 'number' ? T('g.mapa.zoomTitle') : st.zoom === 'ss' ? T('g.mapa.ssTitle') : st.zoom === 'sky' ? T('g.mapa.skyTitle') : st.zoom === 'subte' ? T('g.mapa.subteTitle') : T('g.mapa.title')), 10, 20);
     ctx.textAlign = 'right'; ctx.fillStyle = '#9be8a0'; ctx.font = '10px monospace';
     ctx.fillText((st.online ? '👥 ' + st.online + ' · ' : '') + T('g.mapa.hint'), VW - 10, 19);
     if (typeof st.zoom !== 'number') {
-      const tabs = [[10, T('g.mapa.tabSky'), st.zoom === 'sky'], [112, T('g.mapa.tabManzana'), st.zoom == null], [214, T('g.mapa.tabSS'), st.zoom === 'ss']];
+      const tabs = [[10, T('g.mapa.tabSky'), st.zoom === 'sky'], [112, T('g.mapa.tabManzana'), st.zoom == null], [214, T('g.mapa.tabSS'), st.zoom === 'ss'], [316, T('g.mapa.tabSubte'), st.zoom === 'subte']];
       if (st.facil) {   // chip 🎚️ FÁCIL al lado de las pestañas (que se NOTE el modo)
-        ctx.fillStyle = 'rgba(155,232,160,0.12)'; ctx.fillRect(318, 31, 150, 16);
-        ctx.strokeStyle = '#6aa870'; ctx.strokeRect(318.5, 31.5, 150, 16);
+        ctx.fillStyle = 'rgba(155,232,160,0.12)'; ctx.fillRect(420, 31, 150, 16);
+        ctx.strokeStyle = '#6aa870'; ctx.strokeRect(420.5, 31.5, 150, 16);
         ctx.fillStyle = '#9be8a0'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
-        ctx.fillText('🎚️ ' + T('g.mapa.facilOn').slice(0, 26), 393, 42); ctx.textAlign = 'left';
+        ctx.fillText('🎚️ ' + T('g.mapa.facilOn').slice(0, 26), 495, 42); ctx.textAlign = 'left';
       }
       for (const [tx, label2, act] of tabs) {
         ctx.fillStyle = act ? 'rgba(255,213,79,0.15)' : 'rgba(90,140,200,0.08)'; ctx.fillRect(tx, 31, 96, 16);
@@ -452,6 +522,7 @@ const Mapa = (() => {
     let hoverBox = null;
     if (st.zoom == null) hoverBox = drawOverview(ctx, VW, VH, st, qAt, visited);
     if (st.zoom === 'sky') drawSky(ctx, VW, VH, st, qAt, visited);
+    if (st.zoom === 'subte') drawSubte(ctx, VW, VH, st);
     // conexiones (puertas) — solo entre visitados (fog), solo en las vistas de detalle
     if (st.zoom === 'ss' || typeof st.zoom === 'number') {
     ctx.strokeStyle = 'rgba(90,140,200,0.25)'; ctx.lineWidth = 1;
