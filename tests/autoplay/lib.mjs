@@ -30,13 +30,16 @@ export function suite(name) {
 }
 
 // navegador con el juego ADENTRO (patrón probado: contexts separados = jugadores distintos)
+// opts.seed = { 'clave-localStorage': valor } plantado ANTES de cargar (seams: saves/flags, autoplay-qa.md §3)
+// opts.continuar = true → clickea CONTINUAR (retomar el save plantado) en vez de EMPEZAR
 export async function enterGame(browser, s, opts = {}) {
   const ctx = await browser.newContext({ viewport: { width: 900, height: 560 } });
   const page = await ctx.newPage();
   page.on('pageerror', e => s.pageErrors.push(e.message.slice(0, 200)));
+  if (opts.seed) await page.addInitScript(seed => { for (const k in seed) localStorage.setItem(k, typeof seed[k] === 'string' ? seed[k] : JSON.stringify(seed[k])); }, opts.seed);
   await page.goto(TARGET, { waitUntil: 'networkidle', timeout: 45000 });
   await page.waitForTimeout(500);
-  const btn = await page.$('#startBtn'); if (btn) await btn.click();
+  const btn = await page.$(opts.continuar ? '#continueBtn' : '#startBtn'); if (btn) await btn.click();
   await page.waitForTimeout(700);
   const cv = await page.$('#screen'); if (cv) await cv.click();
   if (opts.toLavalle) { await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(2700); await page.keyboard.up('ArrowLeft'); }

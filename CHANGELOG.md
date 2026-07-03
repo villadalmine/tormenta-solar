@@ -80,6 +80,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [tests · 2026-07-03] — 🤖 Autoplay QA F4: el bot ya juega el JUEGO ENTERO (8/8 suites) + SDD guardar partida
+
+- **F4**: 4 suites nuevas — **02-calle** (camina, hints [E], entra/sale por puertas REALES leídas del modelo),
+  **03-historia** (planta un save post-tormenta → CONTINUAR → verifica flags del grafo + economía + que la
+  frontera del HintEngine avanza + autosave), **04-lavalle** (arco completo: 5 juegos ganados → juramento →
+  fiesta → Obelisco → vuelta, con los módulos reales de prod), **07-mapas** (TAB con 51/51 salas ancladas +
+  plano del búnker + globo). **8/8 verdes contra PROD**; la nocturna las corre sola desde esta noche.
+- ⭐ **SDD nuevo `specs/guardar-partida.md`** (pedido del dueño: "el juego se puso muy difícil"): guardar partida
+  YA existe (autosave + Continuar) — el problema es que **morir post-búnker BORRA el save**. Evaluación completa:
+  multiplayer NO complica (es efímero), el grafo tampoco (ya se serializa entero). **Recomendación: checkpoints
+  automáticos POR HITO del grafo** (cada `applyEdge` → snapshot; morir → "⏪ volver al último hito" en vez de
+  perder todo; "empezar de nuevo" queda). Barato (~40 líneas, reusa serialize/restore). Fases F1-F3.
+
 ## [infra-64] — 2026-07-03 — 🤖⏰ Autoplay QA F2: el bot juega TODAS las noches en Argo y avisa por Telegram si el juego se rompió
 
 Cierra el pedido original completo ("que corra en Argo Workflow… y que si falla sirva de input para un prompt").

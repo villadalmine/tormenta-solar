@@ -6,8 +6,11 @@
   por **`POST /qa/reporte`** al proxy (el PVC RWO no se comparte entre pods — decisión: reporte por POST, no por
   volumen) → banco `/data/qa.json` + `GET /qa/reporte` (veredicto + md + prompt SIN kubectl) + gauge
   `tormenta_qa_failed` → **alerta `TormentaAutoplayFailed` → Telegram**. Doble red: si el workflow muere,
-  `ArgoWorkflowsFallados` avisa igual. Falta: F4 (02/03/04/07) + F3b (hermes) — **F3b DESBLOQUEADO** por el deploy
-  in-cluster (infra-62): un agente ya puede arreglar Y shipear solo.
+  `ArgoWorkflowsFallados` avisa igual. **F4 HECHO (2026-07-03): las 8 suites completas** — 02-calle (moverse, hints [E], puertas determinísticas por
+  el modelo, volver), 03-historia (planta save post-tormenta → CONTINUAR → flags/economía/frontera del grafo/
+  autosave), 04-lavalle (entrada real + arco allWon→juramento→fiesta→Obelisco→vuelta con los módulos de prod),
+  07-mapas (TAB real 51/51 ancladas + plano búnker + globo). 8/8 verdes contra PROD; el cron nocturno las corre
+  solas (clona main). Falta: F3b (hermes toma el prompt solo — DESBLOQUEADO por el deploy in-cluster, infra-62).
 - **La idea (dueño, textual):** *"auto play game para probar si anda todo, y que corra en Argo Workflow, bien
   dividido cada pipeline para que pruebe cada parte del juego — así hilar fino qué parte anda y qué no — y generar
   reporte; si falla algo, que sirva de input para un prompt y que se auto-arregle."*
