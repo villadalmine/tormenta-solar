@@ -1,41 +1,9 @@
-# Observabilidad del deploy + workflows (deploy-pipeline.md §3.1): "si falla algo me entero SIN mirar".
+# Alertas del deploy + workflows (deploy-pipeline.md §3.1): "si falla algo me entero SIN mirar".
 # La ruta de Alertmanager ya manda severity warning|critical → Telegram (receiver telegram-openclaw existente).
 #
-# 1) Service + ServiceMonitor: scrapear las métricas del workflow-controller de Argo (v4: HTTPS self-signed en :9090)
-apiVersion: v1
-kind: Service
-metadata:
-  name: argo-workflows-controller-metrics
-  namespace: argo
-  labels:
-    app.kubernetes.io/name: argo-workflows-workflow-controller
-spec:
-  selector:
-    app.kubernetes.io/name: argo-workflows-workflow-controller
-  ports:
-    - name: metrics
-      port: 9090
-      targetPort: 9090
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: argo-workflows-controller
-  namespace: argo
-  labels:
-    release: kube-prometheus-stack        # lo que exige el serviceMonitorSelector del stack
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: argo-workflows-workflow-controller
-  endpoints:
-    - port: metrics
-      scheme: https
-      interval: 60s
-      tlsConfig:
-        insecureSkipVerify: true          # cert self-signed del controller (métricas, sin secretos)
----
-# 2) Las ALERTAS → Telegram (vía la ruta severity warning ya configurada)
+# NOTA de límites (regla del dueño 2026-07-03): acá vive SOLO lo del ns ai (dominio del juego). El Service +
+# ServiceMonitor del workflow-controller (ns argo = infra del cluster) se movió al repo infra:
+# infra/roles/install-argo-workflows/files/controller-metrics.yaml (aplicado a mano 2026-07-03; el role lo gestiona).
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:

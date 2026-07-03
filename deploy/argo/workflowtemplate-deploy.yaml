@@ -23,14 +23,15 @@ spec:
         value: ""                      # vacío = usa el tag actual del kaniko-build.yaml (re-deploy)
       - name: smokePath
         value: ""                      # override SOLO para testear el camino de falla (default: /health o /)
-  # regla del dueño (§5): PVC longhorn-nvme, nada de disco local del nodo; y borrar TODO al terminar
+  # regla del dueño (§5): PVC longhorn-nvme, nada de disco local del nodo; y borrar TODO al terminar.
+  # podGC OnWorkflowSuccess = si FALLA, los pods (logs) quedan para depurar; el TTL de abajo los limpia a las 6h.
   podGC:
-    strategy: OnWorkflowCompletion
+    strategy: OnWorkflowSuccess
   volumeClaimGC:
-    strategy: OnWorkflowCompletion
+    strategy: OnWorkflowCompletion     # el PVC se borra SIEMPRE (éxito o falla)
   ttlStrategy:
     secondsAfterSuccess: 3600
-    secondsAfterFailure: 172800        # los fallados quedan 48h (para inspección + la alerta de wf fallados)
+    secondsAfterFailure: 21600         # fallados: 6h para inspección + que la alerta dispare → después TODO afuera
   volumeClaimTemplates:
     - metadata:
         name: work

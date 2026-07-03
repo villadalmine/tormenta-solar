@@ -21,6 +21,18 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # helm --wait / rollback: verifica readiness mirando replicasets y pods (lección del estreno 2026-07-03)
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  # el HOOK post-upgrade del chart (ensure-listener) corre un Job en ns ai (no sale en `helm get manifest`,
+  # solo en `helm get hooks` — por eso faltaba)
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   # el chart trae un Role/RoleBinding (pool) — helm hace GET/patch sobre ellos
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["roles", "rolebindings"]
@@ -64,6 +76,14 @@ rules:
   - apiGroups: ["cert-manager.io"]
     resources: ["certificates"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # el HOOK post-upgrade (ensure-listener) crea/borra acá su Role+RoleBinding y necesita gateways get/patch;
+  # la anti-escalada de k8s exige que el deployer TENGA gateways get/patch para poder otorgarlo (estreno 2026-07-03)
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways"]
+    verbs: ["get", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
