@@ -90,6 +90,10 @@
   **serie** del billete: **buena = legal** (los robots no te ven unos segundos) / **trucha = te siguen disparando**;
   burbuja con "origen detectado" (valija de Kristina, estafa de la AFA, drogas del cartel, Monopoly…). Contenido en
   `rules.dollars` (DATA). Ver `specs/nivel-1/personajes/protagonista.md`.
+- **Morir NO borra la partida — checkpoints por HITO del grafo (v291):** cada logro de la historia guarda un
+  snapshot solo; al morir: **"⏪ volver al último hito"** (perdés solo lo suelto) o empezar de nuevo. Modo
+  HARDCORE 💀 opcional para puristas, y el checkpoint **viaja con tu nick** entre dispositivos (en el celu
+  aparece CONTINUAR solo). El grafo de la historia ES el sistema de guardado. Ver `specs/guardar-partida.md`.
 - **Inventario + la viola que dispara risas:** las armas son **DATA** (registro `WEAPONS`); tenés un **inventario** y
   equipás una con **[I]** (el HUD muestra cuál). El **tesoro del búnker** (cuando sos gurú) te da la **🎸 viola de Les
   Luthiers que dispara RISAS** — apacigua a **cualquiera**, hasta los voladores, muertos de risa 😂 (no los mata). El

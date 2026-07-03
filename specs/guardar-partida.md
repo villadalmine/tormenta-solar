@@ -1,6 +1,8 @@
 # SDD — GUARDAR PARTIDA: checkpoints por HITOS del grafo (el juego se puso difícil)
 
-- **Estado:** **Diseño con RECOMENDACIÓN (marcado por el dueño, 2026-07-03).** Sin implementar.
+- **Estado:** **F1+F2+F3 IMPLEMENTADAS (v291·infra-65, 2026-07-03).** Checkpoint por hito en `applyEdge` →
+  `ts_checkpoint_v1`; botón «⏪ VOLVER AL ÚLTIMO HITO» en la pantalla de muerte (`#hitoBtn`); HARDCORE 💀 en ⚙;
+  cross-device `GET/POST /checkpoint` por nick (proxy 0.1.87). e2e `Game.__chk`. Falta validación del dueño.
 - **La pregunta (dueño, textual):** *"el juego se está haciendo muy difícil, quiero poner guardar partida — ¿se
   puede o se complica por el multiplayer y el grafo de estado de NPC? ¿vale la pena? ¿o que te guarde hasta cierto
   punto solo y tengas botón de empezar de nuevo? ¿cuál ves mejor, basado en cómo funciona el grafo por hitos?"*
