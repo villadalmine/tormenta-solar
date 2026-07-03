@@ -46,6 +46,7 @@ const LANG_ES = {
   'opt.subInvalid': '✗ Código inválido o no habilitado todavía.',
   'opt.subChecking': 'Validando código…',
   'opt.subCleared': 'Código borrado — volvés al chat gratis.',
+  'opt.nickSyncHint': 'Para retomar tu partida en OTRO dispositivo, escribí ahí tu nick COMPLETO (con el ·XYZ).',
   'opt.hardcore': 'Modo HARDCORE 💀',
   'opt.hardcoreNote': 'ON = morir borra TODO (sin checkpoints, como antes). OFF = al morir podés volver al último hito de la historia.',
   'opt.reset': 'Restablecer',

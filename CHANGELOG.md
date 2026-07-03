@@ -80,6 +80,13 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v292] — 2026-07-03 — 🪪 FIX cross-device: el sufijo ·XYZ es parte del NICK (tipealo completo en el otro dispositivo)
+
+Agujero cazado por el dueño: el sufijo anti-colisión (`ts_nick_sfx`) era random POR NAVEGADOR → en el celu eras
+OTRA identidad y el server nunca encontraba tu checkpoint/memoria. Fix: si en ⚙ tipeás tu nick COMPLETO
+("Carpo·A3F", también vale "Carpo#A3F"), se ADOPTA ese sufijo → misma identidad en ambos lados; la anti-colisión
+entre personas distintas se mantiene (sin sufijo = random como siempre). Preview con hint ES/EN + maxlength 16.
+
 ## [v291 · infra-65] — 2026-07-03 — 💾✊ GUARDAR PARTIDA: checkpoints por HITO del grafo (F1+F2+F3)
 
 "El juego se puso muy difícil" → morir ya no borra la partida. `specs/guardar-partida.md`. Proxy 0.1.87.

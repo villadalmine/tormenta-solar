@@ -47,6 +47,7 @@ const LANG_EN = {
   'opt.subInvalid': '✗ Invalid code or not enabled yet.',
   'opt.subChecking': 'Checking code…',
   'opt.subCleared': 'Code cleared — back to free chat.',
+  'opt.nickSyncHint': 'To pick up your game on ANOTHER device, type your FULL nick there (with the ·XYZ).',
   'opt.hardcore': 'HARDCORE mode 💀',
   'opt.hardcoreNote': 'ON = dying wipes EVERYTHING (no checkpoints, classic). OFF = on death you can return to the last story milestone.',
   'opt.reset': 'Reset',

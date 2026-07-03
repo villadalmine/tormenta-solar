@@ -2261,7 +2261,17 @@
     catch (e) { const id = (typeof Salon !== 'undefined' && Salon.pid) ? Salon.pid : 'xxx'; return String(id).slice(-3).toUpperCase(); }
   }
   function nickBase() { try { return (localStorage.getItem('ts_nick') || '').trim() || 'Carpo'; } catch (e) { return 'Carpo'; } }
-  function setNickBase(v) { const clean = String(v || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12); try { localStorage.setItem('ts_nick', clean); } catch (e) {} return clean || 'Carpo'; }
+  function setNickBase(v) {
+    let raw = String(v || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
+    // CROSS-DEVICE (guardar-partida.md F3 / barrio-mem): el sufijo ·XYZ es PARTE de tu identidad. Si tipeás tu
+    // nick COMPLETO ("Carpo·A3F", también vale "Carpo#A3F"), adoptamos ese sufijo en vez de sortear uno nuevo →
+    // en el celu sos EL MISMO y el server te encuentra el checkpoint y la memoria. (Sin sufijo = como siempre.)
+    const m = raw.match(/^(.+?)[·#]\s*([a-z0-9]{3})$/i);
+    if (m && m[1].trim()) { raw = m[1].trim(); try { localStorage.setItem('ts_nick_sfx', m[2].toUpperCase()); } catch (e) {} }
+    const clean = raw.slice(0, 12);
+    try { localStorage.setItem('ts_nick', clean); } catch (e) {}
+    return clean || 'Carpo';
+  }
   function playerNick() { return nickBase() + '·' + nickSuffix(); }
   // el peer MÁS CERCANO (dentro de ~1.3 tiles) para abrir chat privado con E
   function nearestPeer() {
@@ -3702,7 +3712,7 @@
   (function () {
     const inp = typeof document !== 'undefined' && document.getElementById ? document.getElementById('opt-nick') : null;
     const prev = document.getElementById('opt-nick-preview'); if (!inp) return;
-    const showPrev = () => { if (prev) prev.textContent = (typeof T === 'function' ? T('opt.nickIs') : 'Tu nick:') + ' ' + playerNick(); };
+    const showPrev = () => { if (prev) prev.textContent = (typeof T === 'function' ? T('opt.nickIs') : 'Tu nick:') + ' ' + playerNick() + ' — ' + (typeof T === 'function' ? T('opt.nickSyncHint') : ''); };
     try { inp.value = nickBase(); } catch (e) {}
     showPrev();
     inp.addEventListener('input', () => { setNickBase(inp.value); showPrev(); });
