@@ -296,53 +296,58 @@ const Mapa = (() => {
 
   // dibuja EL SUBTE (preview): plano esquemático estilo mapa de subte con las líneas reales de la zona
   function drawSubte(ctx, VW, VH, st) {
-    const cx = VW * 0.52, top = 84, bot = VH - 56;
-    // Línea C: vertical (Retiro arriba → Constitución abajo)
-    const C = SUBTE[0], stepC = (bot - top) / (C.ests.length - 1);
-    // Línea B: horizontal bajo Corrientes (Alem al este=derecha) — cruza a la altura de Lavalle(C)
-    const B = SUBTE[1], yB = top + stepC * 2 + 24, xB0 = VW * 0.82, stepB = (VW * 0.62) / (B.ests.length - 1);
-    // Línea D: diagonal (Catedral abajo-derecha → Facultad arriba-izquierda), nace cerca de C
-    const D = SUBTE[2], xD0 = cx + 60, yD0 = top + stepC * 3.4, stepD = 86;
+    const top = 108, bot = VH - 104, cx = VW * 0.46;
+    const C = SUBTE[0], B = SUBTE[1], D = SUBTE[2];
+    const stepC = (bot - top) / (C.ests.length - 1);
+    const yB = top + stepC * 2 + 24, xB0 = VW * 0.72, stepB = (VW * 0.5) / (B.ests.length - 1);
+    const nD = 4;                                                            // D recortada: no pisa las pestañas
+    const yD0 = top + stepC * 3.2, xD0 = cx + 56;
+    const stepD = Math.min(90, (yD0 - top - 6) / ((nD - 1) * 0.52));
     const pt = { C: i => ({ x: cx, y: top + i * stepC }), B: i => ({ x: xB0 - i * stepB, y: yB }), D: i => ({ x: xD0 - i * stepD * 0.86, y: yD0 - i * stepD * 0.52 }) };
-    // trazos
-    for (const [L, p] of [[C, pt.C], [B, pt.B], [D, pt.D]]) {
+    const JUEGO = { Florida: 'B', Lavalle: 'C', Catedral: 'D' };             // las 3 jugables (§2.5 del SDD)
+    for (const [L, p, n] of [[C, pt.C, C.ests.length], [B, pt.B, B.ests.length], [D, pt.D, nD]]) {
       ctx.strokeStyle = L.color; ctx.lineWidth = 7; ctx.lineCap = 'round';
-      ctx.beginPath(); const a = p(0); ctx.moveTo(a.x, a.y); const z = p(L.ests.length - 1); ctx.lineTo(z.x, z.y); ctx.stroke();
-      // cartel de línea en la cabecera
+      ctx.beginPath(); const a = p(0); ctx.moveTo(a.x, a.y); const z = p(n - 1); ctx.lineTo(z.x, z.y); ctx.stroke();
       const h0 = p(0);
-      ctx.fillStyle = L.color; ctx.beginPath(); ctx.arc(h0.x, h0.y - 0.1, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = L.color; ctx.beginPath(); ctx.arc(h0.x, h0.y, 11, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillText(L.id, h0.x, h0.y + 4);
     }
-    // estaciones (las CERCA: punto grande + nombre brillante; el resto tenue)
     ctx.lineCap = 'butt';
-    for (const [L, p] of [[C, pt.C], [B, pt.B], [D, pt.D]]) {
-      L.ests.forEach((e, i) => {
-        const q = p(i), near = L.cerca.includes(e);
+    for (const [L, p, n] of [[C, pt.C, C.ests.length], [B, pt.B, B.ests.length], [D, pt.D, nD]]) {
+      L.ests.slice(0, n).forEach((e, i) => {
+        const q = p(i), near = L.cerca.includes(e), game = JUEGO[e] === L.id;
+        if (game) { ctx.strokeStyle = 'rgba(255,213,79,' + (0.5 + 0.5 * Math.sin((st.t || 0) * 5)) + ')'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(q.x, q.y, 9, 0, Math.PI * 2); ctx.stroke(); }
         ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(q.x, q.y, near ? 5 : 3, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = L.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, near ? 5 : 3, 0, Math.PI * 2); ctx.stroke();
-        ctx.fillStyle = near ? '#ffe9b0' : 'rgba(160,180,205,0.55)'; ctx.font = (near ? 'bold ' : '') + '9px monospace';
-        if (L === C) { ctx.textAlign = 'left'; ctx.fillText(e, q.x + 10, q.y + 3); }
-        else if (L === D) {   // el nudo del trasbordo: Catedral abajo, el resto a la IZQUIERDA del punto
-          if (i === 0) { ctx.textAlign = 'center'; ctx.fillText(e, q.x, q.y + 18); }
-          else { ctx.textAlign = 'right'; ctx.fillText(e, q.x - 10, q.y + 3); }
-        }
-        else { ctx.textAlign = 'center'; ctx.fillText(e, q.x, q.y - 9); }
+        ctx.fillStyle = game ? '#ffd54f' : near ? '#ffe9b0' : 'rgba(160,180,205,0.55)'; ctx.font = ((near || game) ? 'bold ' : '') + '9px monospace';
+        const label2 = game ? '🚉 ' + e : e;
+        if (L === C) { ctx.textAlign = 'left'; ctx.fillText(label2, q.x + 12, q.y + 3); }
+        else if (L === D) { if (i === 0) { ctx.textAlign = 'left'; ctx.fillText(label2, q.x + 12, q.y + 14); } else { ctx.textAlign = 'right'; ctx.fillText(label2, q.x - 10, q.y + 3); } }
+        else { ctx.textAlign = 'center'; ctx.fillText(label2, q.x, q.y - 10); }
       });
     }
-    // ⭐ FLORIDA Y LAVALLE (el juego): entre Lavalle(C), Florida(B) y Catedral(D)
-    const gx = cx + 74, gy = pt.C(2).y - 26;
+    // ⭐ la esquina del juego
+    const gx = cx + 96, gy = pt.C(2).y - 30;
     ctx.fillStyle = 'rgba(255,213,79,' + (0.7 + 0.3 * Math.sin((st.t || 0) * 5)) + ')';
     ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
     ctx.fillText('⭐ ' + T('g.mapa.subteAca'), gx, gy);
-    ctx.strokeStyle = 'rgba(255,213,79,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
-    ctx.beginPath(); ctx.moveTo(gx - 4, gy - 3); ctx.lineTo(pt.C(2).x + 4, pt.C(2).y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(gx - 4, gy - 3); ctx.lineTo(pt.B(1).x, pt.B(1).y + 4); ctx.stroke(); ctx.setLineDash([]);
+    // PANEL de info: las 3 estaciones del juego (decisión §2.5)
+    const px2 = VW - 268, py2 = VH - 152, pw2 = 254, ph2 = 96;
+    ctx.fillStyle = 'rgba(6,12,20,0.92)'; ctx.fillRect(px2, py2, pw2, ph2);
+    ctx.strokeStyle = '#3a5a80'; ctx.strokeRect(px2 + 0.5, py2 + 0.5, pw2, ph2);
+    ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+    ctx.fillText(T('g.mapa.subteInfoT'), px2 + 8, py2 + 15);
+    ctx.font = '9px monospace';
+    [[T('g.mapa.subteInfo1'), '#e2231a'], [T('g.mapa.subteInfo2'), '#1f6cb5'], [T('g.mapa.subteInfo3'), '#00a54f'], [T('g.mapa.subteInfo4'), null]].forEach(([ln, col], k) => {
+      if (col) { ctx.fillStyle = col; ctx.fillRect(px2 + 8, py2 + 24 + k * 15, 10, 4); }
+      ctx.fillStyle = k === 3 ? '#9be8a0' : '#cfe0f0'; ctx.fillText(String(ln).slice(0, 38), px2 + (col ? 24 : 8), py2 + 29 + k * 15);
+    });
     // leyenda + PREVIEW
-    ctx.fillStyle = 'rgba(200,215,235,0.75)'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
-    SUBTE.forEach((L, k) => { ctx.fillStyle = L.color; ctx.fillRect(14, VH - 92 + k * 14, 18, 5);
-      ctx.fillStyle = 'rgba(200,215,235,0.8)'; ctx.fillText(L.name, 38, VH - 86 + k * 14); });
-    ctx.fillStyle = 'rgba(150,170,200,0.5)'; ctx.fillText(T('g.mapa.subteOtras'), 14, VH - 92 + 3 * 14);
-    ctx.save(); ctx.translate(VW - 96, 106); ctx.rotate(-0.18);
+    SUBTE.forEach((L, k) => { ctx.fillStyle = L.color; ctx.fillRect(14, VH - 86 + k * 13, 18, 5);
+      ctx.fillStyle = 'rgba(200,215,235,0.8)'; ctx.font = '9px monospace'; ctx.textAlign = 'left'; ctx.fillText(L.name, 38, VH - 80 + k * 13); });
+    ctx.fillStyle = 'rgba(150,170,200,0.5)'; ctx.fillText(T('g.mapa.subteOtras'), 14, VH - 86 + 3 * 13 + 4);
+    ctx.save(); ctx.translate(VW - 92, 104); ctx.rotate(-0.18);
     ctx.strokeStyle = 'rgba(255,213,79,0.7)'; ctx.lineWidth = 2; ctx.strokeRect(-64, -16, 128, 30);
     ctx.fillStyle = 'rgba(255,213,79,0.85)'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
     ctx.fillText('PREVIEW', 0, -1); ctx.font = '8px monospace'; ctx.fillText(T('g.mapa.subtePronto'), 0, 10);
@@ -599,13 +604,13 @@ const Mapa = (() => {
     // 💤 SUEÑOS / NIVELES IA (v304): dónde se sueñan + si estás soñando AHORA (los niveles generados son
     // bolsillos efímeros — no se mapean sala a sala, se representan como categoría)
     if (st.zoom == null) {
-      const dx2 = 8, dw2 = PADL(VW) - 20;
+      const dx2 = 6, dw2 = PADL(VW) - 10;
       ctx.fillStyle = '#c8a8e8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
       ctx.fillText(T('g.mapa.suenios'), dx2, 66);
       ctx.strokeStyle = st.dream ? '#ffd54f' : '#7a5a9a'; ctx.lineWidth = st.dream ? 2 : 1; ctx.setLineDash([3, 3]);
       ctx.strokeRect(dx2 + 0.5, 74.5, dw2, 58); ctx.setLineDash([]);
       ctx.fillStyle = '#b8a0d0'; ctx.font = '8px monospace';
-      [T('g.mapa.dream1'), T('g.mapa.dream2'), T('g.mapa.dream3')].forEach((ln, k) => ctx.fillText(ln.slice(0, Math.floor(dw2 / 4.8)), dx2 + 4, 87 + k * 11));
+      [T('g.mapa.dream1'), T('g.mapa.dream2'), T('g.mapa.dream3')].forEach((ln, k) => ctx.fillText(ln.slice(0, Math.floor((dw2 - 6) / 4.4)), dx2 + 4, 87 + k * 11));
       if (st.dream) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.font = 'bold 8px monospace';
         ctx.fillText(('💤 ' + T('g.mapa.suenioAhora', { n: st.dream })).slice(0, Math.floor(dw2 / 4.8)), dx2 + 4, 87 + 33); }
     }

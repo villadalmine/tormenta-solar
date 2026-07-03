@@ -1,6 +1,6 @@
 # SDD — EL SUBTE: las líneas reales bajo Florida y Lavalle (preview en el mapa → futuro medio de viaje)
 
-- **Estado:** **PREVIEW IMPLEMENTADO (v306, pestaña [4] SUBTE del mapa).** El resto = diseño futuro.
+- **Estado:** **PREVIEW IMPLEMENTADO (v306-307, pestaña [4]).** Decisión §2.5: 3 estaciones jugables (Florida B / Lavalle C / Catedral D→Plaza de Mayo) con viaje entre ellas — F2 pendiente.
 - **La idea (dueño, 2026-07-03):** *"buscá las líneas de metro que están sobre Lavalle y Florida, armá un mapa
   subte para el mapa en una tab con el diseño del subte, pero solo las líneas que tienen cerca al menos dos
   estaciones — y lo dejamos como preview porque quiero meter el subte."*
@@ -28,6 +28,15 @@ triple del Obelisco — cierra perfecto con el arco del Obelisco del juego.
   CERCA van más grandes y brillantes; el trasbordo del Obelisco marcado; **⭐ "FLORIDA Y LAVALLE — acá"**
   señalando la esquina del juego entre las 3 líneas.
 - **Watermark "PREVIEW — próximamente"**: es un teaser, no funcional. Hover/click no hacen nada todavía.
+
+## 2.5 DECISIÓN del dueño (2026-07-03): las 3 ESTACIONES JUGABLES
+
+- **Florida (Línea B)** — boca en la peatonal · **Lavalle (Línea C)** — boca en la zona del piquete ·
+  **Catedral (Línea D)** — que **te deja en PLAZA DE MAYO** (la estación está EN la plaza; sería OTRO MAPA futuro).
+  *(Precisión: en la Plaza también están «Plaza de Mayo» de la A y «Bolívar» de la E — la elegida es Catedral.)*
+- **Gameplay F2:** bajás por la BOCA del subte (puerta en la calle) → nivel de metro (andén) → **viajás entre
+  esas tres** — y Catedral es la puerta al futuro mapa Plaza de Mayo. El preview ya las destaca con 🚉 + panel
+  de info.
 
 ## 3. Futuro (F2+, a diseñar con el dueño): METER el subte al juego
 

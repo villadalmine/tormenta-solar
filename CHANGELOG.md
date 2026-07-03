@@ -47,6 +47,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v307] — 2026-07-03 — 🚇 Subte v2: las 3 ESTACIONES DEL JUEGO (decisión) + fixes visuales del playtest
+
+- **Decisión del dueño anotada (`subte.md §2.5`):** las 3 estaciones JUGABLES son **Florida (B)**, **Lavalle (C)**
+  y **Catedral (D) — que te deja en PLAZA DE MAYO** (la estación está EN la plaza; sería otro mapa futuro).
+  Gameplay F2: bajás por la boca del subte y **viajás entre las tres**. *(Corrección de research: a la Plaza
+  también llegan «Plaza de Mayo» de la A y «Bolívar» de la E — la de la ruta es Catedral.)*
+- **El plano da MÁS info:** las 3 estaciones del juego con **🚉 + anillo dorado latiendo** y un **panel de
+  info** (línea, dónde te deja, "bajás por la boca y viajás entre las 3").
+- **Fixes mirando en Playwright:** la línea D ya NO pisa las pestañas (recortada dinámica, arranca bajo el
+  header), etiquetas del nudo del trasbordo reubicadas, y el cuadro **💤 SUEÑOS ya no se corta** (más ancho).
+
 ## [v306] — 2026-07-03 — 🚇 EL SUBTE (preview): las líneas REALES bajo Florida y Lavalle, pestaña [4] del mapa
 
 Pedido del dueño: "buscá las líneas de metro sobre Lavalle y Florida y armá un mapa subte en una tab — solo las
