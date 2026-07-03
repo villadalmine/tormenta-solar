@@ -47,6 +47,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v298] — 2026-07-03 — 🗺️⛏️ Mapa en DOS VISTAS: [1] LA MANZANA / [2] SUBSUELOS (playtest del dueño, jugado y mirado)
+
+"Se solapan la casa de cambio, no veo el arcade, las cuevas de los cueveros no están bien — divídelo en dos o que
+elijas qué ver. Jugá vos y mirá el mapa." Jugado con Playwright a 1366×768 y arreglado mirando capturas:
+- **Pestañas [1] LA MANZANA / [2] SUBSUELOS** (clickeables + teclas): la superficie ya no carga los sótanos y el
+  subsuelo tiene su vista GRANDE (calle de referencia + S1 galería / S2 sótano / S3 LAS CUEVAS / S4 las 3 cuevas
+  del cuevero lado a lado, con quests nombradas por fila).
+- **Cuevas del cuevero ADOPTADAS**: se entra por invitación (sin puerta) → el BFS no las alcanzaba y caían
+  huérfanas duplicadas en un rincón. Ahora: huérfana con puerta de SALIDA a una sala anclada adopta su ancla y
+  queda un nivel más abajo. Las hermanas (misma fila) se reparten el lugar.
+- **Chau pisadas**: las barras que se solapaban (casa de cambio vs edificio, la tira de locales) ahora se
+  RECORTAN y quedan adyacentes como una vereda real (label con presupuesto; el hover nombra las angostas).
+
 ## [v297] — 2026-07-03 — 🗺️🔦 Backfill de visitadas: tus quests HECHAS prenden el camino recorrido
 
 Para las partidas anteriores al registro de visitas (v289): al abrir el mapa, cada quest HECHA del grafo marca

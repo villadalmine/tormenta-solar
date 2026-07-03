@@ -3515,12 +3515,16 @@
         frontier: mapaFrontier, stormed, mx: Input.mouse.x, my: Input.mouse.y,
         online: (salonLive && salonLive.count) || 0, zoom: mapaZoom, sub: null });
       if (trucoTap('z')) mapaZoom = mapaZoom == null ? Mapa.groupAt(current) : null;   // Z = zoom al edificio actual
-      // CLICK en un edificio = zoom a ESE edificio; click con zoom abierto = volver a la manzana (v293)
+      if (trucoTap('1')) mapaZoom = null;                                              // [1] la manzana (superficie)
+      if (trucoTap('2')) mapaZoom = 'ss';                                              // [2] los subsuelos (v298)
+      // CLICK: pestaña de vista / edificio = zoom / con zoom de edificio abierto = volver (v293/v298)
       if (Input.mouse.down && !mapaClickHeld) { mapaClickHeld = true;
-        if (mapaZoom != null) mapaZoom = null;
-        else { const hit = Mapa.hitTest && Mapa.hitTest(W, H, { zoom: mapaZoom, mx: Input.mouse.x, my: Input.mouse.y, visited: visitedRooms }); if (hit) mapaZoom = hit.anchor; }
+        const hit = Mapa.hitTest && Mapa.hitTest(W, H, { zoom: mapaZoom, mx: Input.mouse.x, my: Input.mouse.y, visited: visitedRooms });
+        if (hit && hit.tab) mapaZoom = hit.tab === 'ss' ? 'ss' : null;
+        else if (typeof mapaZoom === 'number') mapaZoom = null;
+        else if (hit && hit.anchor != null) mapaZoom = hit.anchor;
       } else if (!Input.mouse.down) mapaClickHeld = false;
-      if (trucoTap('escape')) { if (mapaZoom != null) mapaZoom = null; else toggleMapa(); }   // Esc: primero sale del zoom
+      if (trucoTap('escape')) { if (mapaZoom != null) mapaZoom = null; else toggleMapa(); }   // Esc: primero sale del zoom/vista
     } else if (state === 'obelisco' && obeliscoGame) {                // Lavalle E2: la plaza del Obelisco
       obeliscoGame.update(dt); obeliscoGame.draw(ctx, W, H);
       if (obeliscoGame.done) {
