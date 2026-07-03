@@ -296,6 +296,7 @@
     'g.mapa.tabManzana': 'THE BLOCK',
     'g.mapa.tabSS': 'UNDERGROUND ⛏️',
     'g.mapa.ssTitle': 'Underground — gallery, basement & caves',
+    'g.mapa.algoOculto': 'something hides here that has not unlocked yet…',
     'g.mapa.click': '(click = zoom)',
     'g.mapa.locked': 'unlocks later',
     'g.mapa.title': 'Map — Florida & Lavalle',

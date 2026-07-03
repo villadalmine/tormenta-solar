@@ -300,6 +300,7 @@
     'g.mapa.tabManzana': 'LA MANZANA',
     'g.mapa.tabSS': 'SUBSUELOS ⛏️',
     'g.mapa.ssTitle': 'Los subsuelos — galería, sótano y cuevas',
+    'g.mapa.algoOculto': 'acá se esconde algo que todavía no se destrabó…',
     'g.mapa.click': '(click = zoom)',
     'g.mapa.locked': 'se destraba más adelante',
     'g.mapa.title': 'Mapa — Florida y Lavalle',

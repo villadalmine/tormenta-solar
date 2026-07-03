@@ -47,6 +47,22 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v299] — 2026-07-03 — 🗺️🏙️ MAPA REDISEÑADO: de menor a mayor — cajones POR EDIFICIO → pisos → subsuelos
+
+Feedback del dueño: "no ves más allá, se tapan; hacelo por capas: una vista general que REPRESENTE cada cosa y
+el zoom para el detalle; el foco es qué descubriste, qué hitos hiciste, y un ?? donde puede haber algo; todo por
+el grafo, nada hardcodeado". Rediseño completo de la vista general:
+- **Un CAJÓN por edificio** (objeto derivado de los grupos del modelo: nombre = prefijo común de sus salas):
+  muestra `×pisos`, **🔦 descubierto v/N**, hitos agregados **✅n ⭐n** y **??** si el grafo esconde una quest
+  todavía bloqueada ahí. Borde dorado si hay ⭐, apagado si nunca entraste, punto pulsante donde estás.
+- **Flujo en filas parejas** → imposible que se pisen (chau solapados de casa de cambio/arcade/locales); cada
+  cajón tira una línea a SU puerta real en la calle. Los de bajo tierra (galería) van abajo de la calle y
+  clickearlos abre la vista SUBSUELOS.
+- **Jerarquía completa:** general (cajones) → click → PISOS del edificio (nombres + quests por piso) →
+  [2] SUBSUELOS (S1-S4). El tooltip del cajón lista sus ⭐ (hint nivel 0), ✅ (título) y el "?? acá se esconde
+  algo que todavía no se destrabó…".
+- Validado JUGANDO (Playwright 1366×768, capturas de las 3 vistas + click-zoom).
+
 ## [v298] — 2026-07-03 — 🗺️⛏️ Mapa en DOS VISTAS: [1] LA MANZANA / [2] SUBSUELOS (playtest del dueño, jugado y mirado)
 
 "Se solapan la casa de cambio, no veo el arcade, las cuevas de los cueveros no están bien — divídelo en dos o que

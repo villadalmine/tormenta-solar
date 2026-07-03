@@ -100,6 +100,18 @@ const Mapa = (() => {
       }
       return at;
     };
+    // EDIFICIOS (v299): un OBJETO por grupo para la vista general — nombre, salas, superficie o bajo tierra
+    model.buildings = [];
+    for (const k in groups) {
+      const idxs = groups[k].filter(i => i !== 0);
+      if (!idxs.length) continue;
+      const ns = idxs.map(i => nodes[i]);
+      const entr = ns.slice().sort((a, b) => Math.abs(a.level) - Math.abs(b.level))[0];
+      const bname = String(entr.name).split(/\s+[—-]\s+/)[0].trim() || String(entr.name);
+      model.buildings.push({ anchor: +k, rooms: idxs, up: ns.some(n => n.level >= 0), name: bname,
+        floors: idxs.length, entrance: entr.i });
+    }
+    model.buildings.sort((a, b) => a.anchor - b.anchor);
     return model;
   }
 
@@ -153,6 +165,33 @@ const Mapa = (() => {
   // título de la quest en el idioma del jugador (title_en viene del grafo, v295)
   const questTitle = e => ((typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en' && e.title_en) ? e.title_en : (e.title || e.id));
 
+  // VISTA GENERAL (v299): cajones POR EDIFICIO en flujo — reparto equitativo, imposible que se pisen.
+  // Devuelve [{b, x, y, w, h}] para dibujar y clickear con la MISMA geometría.
+  function overviewBoxes(VW, VH) {
+    const m = model; if (!m || !m.buildings) return [];
+    const padL = PADL(VW), padR = PADR;
+    const surf = m.buildings.filter(b => b.up), under = m.buildings.filter(b => !b.up);
+    const out = [];
+    const flow = (list, yBase, dir) => {
+      const avail = VW - padL - padR;
+      const perRow = Math.max(1, Math.floor(avail / 118));
+      const rows2 = Math.ceil(list.length / perRow);
+      const slot = avail / Math.min(list.length, perRow);
+      list.forEach((b, i) => {
+        const r = Math.floor(i / perRow), c = i % perRow;
+        const inRow = Math.min(list.length - r * perRow, perRow);
+        const rowSlot = avail / inRow;
+        out.push({ b, x: padL + c * rowSlot + 4, y: yBase + dir * r * 64, w: rowSlot - 8, h: 56 });
+      });
+      return rows2;
+    };
+    const streetY = Math.round(VH * 0.55);
+    const surfRows = Math.ceil(surf.length / Math.max(1, Math.floor((VW - padL - padR) / 118)));
+    flow(surf, streetY - 64 - (surfRows - 1) * 64, 1);
+    flow(under, streetY + 34, 1);
+    return { boxes: out, streetY };
+  }
+
   // qué hay bajo el mouse: pestaña de vista, o edificio/nodo (CLICK = zoom). Devuelve { tab } | { anchor } | null.
   function hitTest(VW, VH, st) {
     if (!model) return null;
@@ -160,13 +199,70 @@ const Mapa = (() => {
       if (st.mx >= 10 && st.mx <= 110) return { tab: 'manzana' };
       if (st.mx >= 118 && st.mx <= 228) return { tab: 'ss' };
     }
+    if (st.zoom == null) {                                                   // vista general: cajones por edificio
+      const ov = overviewBoxes(VW, VH);
+      for (const bx of (ov.boxes || [])) {
+        if (st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h)
+          return bx.b.up ? { anchor: bx.b.anchor } : { tab: 'ss' };
+      }
+      return null;
+    }
     for (const n of model.nodes) {
       const g = geom(n, VW, VH, st.zoom); if (!g) continue;
-      if (model._fixW && model._fixW[n.i] != null && st.zoom == null) g.w = model._fixW[n.i];
       if (n.secret && !(st.visited && st.visited.has(n.i))) continue;
       if (st.mx >= g.x && st.mx <= g.x + g.w && st.my >= g.y && st.my <= g.y + g.h) return { anchor: Math.round(n.anchor), node: n.i };
     }
     return null;
+  }
+
+  // dibuja la vista GENERAL y devuelve el cajón bajo el mouse (para el tooltip)
+  function drawOverview(ctx, VW, VH, st, qAt, visited) {
+    const ov = overviewBoxes(VW, VH); if (!ov.boxes) return null;
+    const padL = PADL(VW), padR = PADR;
+    const curB = model.nodes[st.current];
+    let hover = null;
+    // la CALLE: banda de referencia con sus quests + puertas
+    const sy = ov.streetY;
+    const isCurStreet = st.current === 0 && !st.sub;
+    ctx.strokeStyle = isCurStreet ? '#ffd54f' : '#7fd0ff'; ctx.lineWidth = isCurStreet ? 2 : 1;
+    ctx.strokeRect(padL + 0.5, sy + 0.5, VW - padL - padR, 24);
+    ctx.fillStyle = '#cfe0f0'; ctx.font = (isCurStreet ? 'bold ' : '') + '10px monospace'; ctx.textAlign = 'left';
+    ctx.fillText((typeof TX !== 'undefined' ? TX(model.nodes[0].name) : model.nodes[0].name), padL + 6, sy + 16);
+    const sq = (qAt[0] || []).map(e => questMark(e, st));
+    const sqTxt = (sq.filter(q => q === '✅').length ? '✅' + sq.filter(q => q === '✅').length + ' ' : '') +
+                  (sq.filter(q => q === '⭐').length ? '⭐' + sq.filter(q => q === '⭐').length + ' ' : '') +
+                  (sq.includes('🔒') ? '??' : '');
+    if (sqTxt) { ctx.textAlign = 'right'; ctx.fillText(sqTxt.trim(), VW - padR - 6, sy + 16); }
+    if (isCurStreet) { const bx = padL + (st.px01 || 0.5) * (VW - padL - padR);
+      ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx, sy + 12, 4, 0, Math.PI * 2); ctx.fill(); }
+    // cajones de EDIFICIOS
+    for (const bx of ov.boxes) {
+      const b = bx.b;
+      const v = b.rooms.filter(i => visited.has(i)).length;
+      const qs = []; for (const i of b.rooms) for (const e of (qAt[i] || [])) qs.push(questMark(e, st));
+      const nDone = qs.filter(q => q === '✅').length, nStar = qs.filter(q => q === '⭐').length, hasLock = qs.includes('🔒');
+      const iCur = curB && Math.round(curB.anchor) === b.anchor && st.current !== 0 && !st.sub;
+      const hov = st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h;
+      if (hov) hover = { bx, v, nDone, nStar, hasLock };
+      if (v || nStar) { ctx.fillStyle = 'rgba(80,140,220,' + (nStar ? 0.14 : 0.07) + ')'; ctx.fillRect(bx.x, bx.y, bx.w, bx.h); }
+      ctx.strokeStyle = iCur ? '#ffd54f' : nStar ? '#ffe27a' : v ? '#5a8cc8' : 'rgba(90,110,140,0.4)';
+      ctx.lineWidth = iCur || hov ? 2 : 1;
+      ctx.strokeRect(bx.x + 0.5, bx.y + 0.5, bx.w, bx.h);
+      // línea a su puerta en la calle (su x real)
+      const doorX = padL + Math.max(0, Math.min(1, b.anchor / model.streetW)) * (VW - padL - padR);
+      ctx.strokeStyle = 'rgba(90,140,200,0.25)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(bx.x + bx.w / 2, b.up ? bx.y + bx.h : bx.y); ctx.lineTo(doorX, b.up ? sy : sy + 24); ctx.stroke();
+      // contenido: nombre / pisos+descubierto / hitos
+      ctx.fillStyle = v ? '#cfe0f0' : 'rgba(140,160,190,0.6)'; ctx.font = (iCur ? 'bold ' : '') + '10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText(String(b.name).slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 14);
+      ctx.font = '9px monospace'; ctx.fillStyle = v ? '#8fa8c8' : 'rgba(120,140,170,0.55)';
+      ctx.fillText('×' + b.floors + '  🔦' + v + '/' + b.floors, bx.x + 4, bx.y + 28);
+      const marks = (nDone ? '✅' + nDone + ' ' : '') + (nStar ? '⭐' + nStar + ' ' : '') + (hasLock ? '?? ' : '');
+      const icons = [...new Set(b.rooms.filter(i => visited.has(i)).flatMap(i => iconsOf(model.nodes[i])))].slice(0, 3).join('');
+      if (marks || icons) { ctx.font = '10px monospace'; ctx.fillStyle = '#ffe27a'; ctx.fillText((marks + icons).trim().slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 44); }
+      if (iCur) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx.x + bx.w - 8, bx.y + 9, 3.5, 0, Math.PI * 2); ctx.fill(); }
+    }
+    return hover;
   }
 
   function draw(ctx, VW, VH, st) {
@@ -191,33 +287,24 @@ const Mapa = (() => {
         ctx.fillText(label2, tx + 50, 42);
       }
     }
-    // conexiones (puertas) — solo entre visitados (fog)
+    // VISTA GENERAL (v299): cajones por edificio — de menor a mayor detalle; el loop fino queda para zoom/subsuelos
+    let hoverBox = null;
+    if (st.zoom == null) hoverBox = drawOverview(ctx, VW, VH, st, qAt, visited);
+    // conexiones (puertas) — solo entre visitados (fog), solo en las vistas de detalle
+    if (st.zoom != null) {
     ctx.strokeStyle = 'rgba(90,140,200,0.25)'; ctx.lineWidth = 1;
     for (const n of model.nodes) { if (!visited.has(n.i)) continue; const g1 = geom(n, VW, VH, st.zoom); if (!g1) continue;
       for (const d of (n.room.doors || [])) { const to = d.to; if (typeof to !== 'number' || !model.nodes[to] || !visited.has(to)) continue;
         const g2 = geom(model.nodes[to], VW, VH, st.zoom); if (!g2) continue;
         ctx.beginPath(); ctx.moveTo(g1.x + g1.w / 2, g1.y + g1.h / 2); ctx.lineTo(g2.x + g2.w / 2, g2.y + g2.h / 2); ctx.stroke(); } }
-    // nodos — pase 1: geometrías + RECORTE anti-solape por fila (v298: los locales quedan adyacentes, no pisados)
-    let hoverNode = null;
-    const fixW = {};
-    if (st.zoom == null) {
-      const byRow = {};
-      for (const n of model.nodes) { if (n.i === 0) continue; const g0 = geom(n, VW, VH, null); if (!g0) continue;
-        const r = model.rowOf[n.level] || 0; (byRow[r] = byRow[r] || []).push({ i: n.i, g: g0 }); }
-      for (const r in byRow) {
-        const fila = byRow[r].sort((a, b) => a.g.x - b.g.x);
-        for (let k = 0; k + 1 < fila.length; k++) {
-          const a = fila[k], b2 = fila[k + 1];
-          const w = (fixW[a.i] != null ? fixW[a.i] : a.g.w);
-          if (a.g.x + w > b2.g.x - 2) fixW[a.i] = Math.max(12, b2.g.x - 2 - a.g.x);
-        }
-      }
     }
-    model._fixW = fixW;
+    let hoverNode = null;
     const drawList = [];
-    for (const n of model.nodes) { const g = geom(n, VW, VH, st.zoom); if (!g) continue; if (fixW[n.i] != null) g.w = fixW[n.i]; drawList.push({ n, g }); }
-    drawList.sort((a, b) => a.g.x - b.g.x || a.g.y - b.g.y);
-    const labelEnd = {};   // fila+offset → hasta dónde llegó la última etiqueta escrita
+    if (st.zoom != null) {
+      for (const n of model.nodes) { const g = geom(n, VW, VH, st.zoom); if (!g) continue; drawList.push({ n, g }); }
+      drawList.sort((a, b) => a.g.x - b.g.x || a.g.y - b.g.y);
+    }
+    const labelEnd = {};   // fila → hasta dónde llegó la última etiqueta escrita
     for (const { n, g } of drawList) {
       const seen = visited.has(n.i);
       if (n.secret && !seen) continue;                                     // los secretos no existen hasta descubrirlos
@@ -276,30 +363,26 @@ const Mapa = (() => {
         ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText(T('g.mapa.aca'), bx, g.y - 3); }
     }
     // PUERTAS de la calle sin sala (el súper): cajita colgada de la barra de la calle en su X real (v296)
-    if (st.zoom == null && model.puertas && model.puertas.length) {   // colgantes solo en MANZANA
+    if (st.zoom == null && model.puertas && model.puertas.length) {   // colgantes (el súper) bajo la calle, en su x real
       const TILE2 = (typeof Level !== 'undefined' && Level.TILE) || 32;
       const padL = PADL(VW), sx = (VW - padL - PADR) / model.streetW;
-      const rows = model.maxUp + model.maxDn + 1;
-      const rowH = Math.min(30, (VH - 130) / Math.max(6, rows));
-      const sy = 64 + model.maxUp * rowH;                                   // techo de la barra de la calle
+      const sy = Math.round(VH * 0.55) + 24;                          // borde inferior de la banda de la calle
       for (const pd of model.puertas) {
         const px = padL + (pd.x / TILE2) * sx;
         const qs = (qAt[0] || []).filter(e => /super|chino/i.test(String(e.at))).map(e => questMark(e, st)).filter(q => q !== '🔒');
         ctx.strokeStyle = '#4a7a5a'; ctx.setLineDash([2, 2]);
-        ctx.strokeRect(px - 9, sy + rowH - 3, 18, 12); ctx.setLineDash([]);
+        ctx.strokeRect(px - 10, sy + 2, 20, 13); ctx.setLineDash([]);
         ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#8fc8a0';
-        ctx.fillText(pd.emoji + (qs.length ? qs[0] : ''), px, sy + rowH + 7);
+        ctx.fillText(pd.emoji + (qs.length ? qs[0] : ''), px, sy + 12);
       }
     }
     // sub-modos como nodos colgados — en sus COLUMNAS reservadas (no pisan la calle ni los subsuelos)
     SUBMODES.forEach((sm) => {
       if (st.zoom != null) return;   // solo en MANZANA
       const padL = PADL(VW);
-      const rows = model.maxUp + model.maxDn + 1;
-      const rowH = Math.min(30, (VH - 130) / Math.max(6, rows));
-      const base = 64 + model.maxUp * rowH;
+      const base = Math.round(VH * 0.55);
       const x = sm.anchor === 'left' ? Math.max(8, padL - 116) : VW - PADR + 10;
-      const y = sm.anchor === 'left' ? base - sm.level * 26 : 40 + sm.level * 26;
+      const y = sm.anchor === 'left' ? base - sm.level * 26 : 56 + sm.level * 26;
       const g = { x, y, w: 104, h: 20 };
       const active = st.sub === sm.id;
       const qs = (qAt['sm:' + sm.id] || []).map(e => questMark(e, st)).filter(q => q !== '🔒');
@@ -310,7 +393,22 @@ const Mapa = (() => {
       if (qs.length) { ctx.font = '9px monospace'; ctx.textAlign = 'right'; ctx.fillText(qs.join(''), g.x + g.w - 2, g.y + 13); }
       if (active) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(g.x + g.w - 8, g.y + g.h / 2, 3.4, 0, Math.PI * 2); ctx.fill(); }
     });
-    // tooltip del hover (banda de abajo) — acá SÍ se ven las 🔒 con su nombre ("se destraba más adelante")
+    // tooltip del hover (banda de abajo) — acá SÍ se ven las 🔒 ("se destraba más adelante")
+    if (hoverBox) {
+      const b = hoverBox.bx.b;
+      const lines = [];
+      lines.push(b.name + '  ·  ×' + b.floors + '  ·  🔦 ' + hoverBox.v + '/' + b.floors + '  ·  ' + T('g.mapa.click'));
+      for (const i of b.rooms) for (const e of (qAt[i] || [])) {
+        const q = questMark(e, st);
+        if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[0]) || questTitle(e))); }
+        else if (q === '✅') lines.push('✅ ' + questTitle(e));
+      }
+      if (hoverBox.hasLock) lines.push('?? ' + T('g.mapa.algoOculto'));
+      const bh = 16 + lines.length * 14;
+      ctx.fillStyle = 'rgba(4,8,14,0.94)'; ctx.fillRect(0, VH - bh, VW, bh);
+      ctx.strokeStyle = '#2a4a6a'; ctx.strokeRect(0.5, VH - bh + 0.5, VW - 1, bh - 1);
+      ctx.textAlign = 'left'; lines.forEach((ln, i) => { ctx.fillStyle = i === 0 ? '#ffd54f' : '#cfe0f0'; ctx.font = (i === 0 ? 'bold ' : '') + '11px monospace'; ctx.fillText(String(ln).slice(0, 110), 10, VH - bh + 15 + i * 14); });
+    }
     if (hoverNode) {
       const { n } = hoverNode, seen = visited.has(n.i);
       const lines = [];
