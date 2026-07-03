@@ -107,6 +107,11 @@ se entere SOLO (sin mirar). `specs/deploy-pipeline.md §3.1`. Proxy 0.1.84.
   + ServiceMonitor del workflow-controller de Argo (v4, HTTPS) y alerta `ArgoWorkflowsFallados` (cualquier
   cron/build/deploy fallado tirado >30m — al aplicarla ya cazó 2 corridas colgadas del cron de carteles).
   Y si el deploy rompe el proxy entero, el `TargetDown` del stack alerta igual.
+- **PROBADO EN LOS 2 CAMINOS (2026-07-03):** estreno real proxy 0.1.85 → Succeeded 2m17s; simulacro de falla
+  (smoke a ruta inexistente) → 3 reintentos → **rollback automático** (prod intacto) → Failed → gauge 1 →
+  **TormentaDeployFailed FIRING → Alertmanager la ruteó a telegram-openclaw** (verificado por API) → deploy bueno
+  → resolved. El RBAC se completó con lo que el run real destapó (hooks de helm ocultos a `helm get manifest`,
+  replicasets para `--wait`, anti-escalada del hook): `deploy-pipeline.md §3.2`.
 
 ## [v290 · infra-61] — 2026-07-02 — 💬 Chat linyera UX: ideas que quedan PICANDO + iconos de espera + FIX respuestas cortadas
 

@@ -26,7 +26,8 @@ case "$COMP" in
 esac
 
 # tag: si no se pasó, leer el actual del kaniko-build.yaml
-[ -z "$TAG" ] && TAG=$(grep -oE "$IMG:[0-9.]+" "$BUILD" | head -1 | cut -d: -f2)
+# grep -m1 (NO `| head -1`): con pipefail, head cerrando antes mata a grep por SIGPIPE → exit 141 (visto 2026-07-03)
+if [ -z "$TAG" ]; then TAG=$(grep -m1 -oE "$IMG:[0-9.]+" "$BUILD" | cut -d: -f2 || true); fi
 [ -z "$TAG" ] && { echo "✗ no pude determinar el tag"; exit 1; }
 echo "▶ $COMP → tag $TAG   (release $RELEASE, ns $NS)${DRY:+   [DRY_RUN]}"
 

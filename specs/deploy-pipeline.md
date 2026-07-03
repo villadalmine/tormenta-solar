@@ -1,10 +1,11 @@
 # SDD — Pipeline de deploy con Argo Workflow (en vez de helm upgrade a mano)
 
-- **Estado:** **F1 + F2 (script) IMPLEMENTADOS** (`deploy/deploy.sh`, 2026-06-25). Resuelve el dolor real: ~16
-  `helm upgrade` a mano esta sesión, con bugs recurrentes (gotcha de `--reuse-values`/genToken vacío → 403, typo de
-  `schedules`, olvidar un `--set`, confundir release/ns). **F3 (deploy como Argo Workflow) RE-MARCADO por el dueño
-  2026-07-02 — es EL bloqueante para que algo que no sea la laptop pueda deployar (auto-fix, hermes, Telegram): §3.1.**
-- **Última actualización:** 2026-07-02 (§3.1: el bloqueante del deploy.sh local + diseño concreto de F3).
+- **Estado:** **F1 + F2 (script) + F3 (Argo Workflow) IMPLEMENTADOS.** F3 (2026-07-03, infra-62): WorkflowTemplate
+  `tormenta-deploy` (ns ai) + RBAC `tormenta-deployer` + alertas → Telegram; **estreno real OK** (proxy 0.1.85
+  deployado por el workflow, 2m17s — y de paso curó el cron de carteles, infra-63). `deploy.sh` queda de
+  wrapper/fallback local; el camino normal es `deploy/deploy-argo.sh <proxy|web> [tag]`. Ver §3.2 (lo que el
+  estreno destapó). Falta opcional: F3.5 deploy on-push (Argo Events/webhook).
+- **Última actualización:** 2026-07-03 (F3 hecho + §3.2 lecciones del estreno).
 - **Relacionado:** `deploy/deploy.sh` (el script), `ai-proxy/kaniko-build.yaml` (build Argo), `proxy-ia-deploy.md`,
   `web/kaniko-build.yaml`, [[proxy-helm-gentoken]] (el gotcha que esto mata), repo `infra`
   (`infra/diskpressure-rk1-nvme-2026-06-27.md`, el incidente de disco que motivó §5).
@@ -81,6 +82,32 @@ rollout + smoke NO** — y eso es exactamente lo que **bloquea que nada dentro d
   fallback si Argo está caído.
 - **Regla de seguridad:** quién puede disparar el template = quién tiene RBAC para crear Workflows en ns `ai`
   (hermes-agent sí; el webhook de GitHub firma con secret). El deploy sigue saliendo SOLO de `main` pusheado.
+
+## 3.2 IMPLEMENTADO (2026-07-03, infra-62/63) — y lo que el estreno destapó
+
+**Piezas:** `deploy/argo/workflowtemplate-deploy.yaml` (template, ns ai) + `deploy/argo/rbac.yaml` (SA
+`tormenta-deployer`) + `deploy/argo/monitoring.yaml` (PrometheusRule, ns ai) + `deploy/deploy-argo.sh` (wrapper)
++ proxy `POST/GET /deploy-log` (banco PVC) + gauge `tormenta_deploy_failed{component}`. El Service/ServiceMonitor
+del workflow-controller (ns argo = infra del cluster) vive en el repo **infra**
+(`roles/install-argo-workflows/files/controller-metrics.yaml`) — regla del dueño: lo de cluster va en infra.
+
+**Alertas → Telegram (ruta existente severity warning|critical):** `TormentaDeployFailed` (deploy falló, hubo
+rollback) + `ArgoWorkflowsFallados` (cualquier cron/build/deploy fallado tirado >30m). Con `send_resolved`.
+
+**Lo que el PRIMER run real destapó (por qué el dry-run no alcanza):**
+1. **Los hooks de helm no salen en `helm get manifest`** (solo en `helm get hooks`): el chart tiene un hook
+   post-upgrade `ensure-listener` (Job ns ai + Role/RoleBinding ns gateway + gateways get/patch) → RBAC ampliado;
+   la **anti-escalada** de k8s exige que el deployer TENGA gateways get/patch para poder otorgarlo.
+2. **`helm --wait`/rollback lista replicasets y pods** → get/list/watch en ns ai.
+3. El fallo se comportó EXACTO como se diseñó: prod intacto, exit-handler reportó `failed` a `/deploy-log`,
+   y el segundo intento salió verde.
+
+**Higiene (regla del dueño):** PVC longhorn-nvme (nunca disco del nodo), `volumeClaimGC` SIEMPRE, podGC
+`OnWorkflowSuccess` (los fallados conservan logs 6h para depurar y el TTL después borra todo).
+
+**La primera cacería de la alerta:** apenas scrapeado `argo_workflows_gauge`, `ArgoWorkflowsFallados` mostró que
+el **cron de carteles fallaba cada 6h desde v234**: `gen-carteles.mjs` nunca entró a la imagen (COPY enumerado a
+mano en el Dockerfile) → fix `COPY gen-*.mjs` + verificado en vivo (8 carteles IA → 200). infra-63.
 
 ## 5. Storage en PVC + auto-borrado (regla del dueño, 2026-06-27) ✅ HECHO
 

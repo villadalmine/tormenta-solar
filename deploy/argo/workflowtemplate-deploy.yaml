@@ -73,7 +73,8 @@ spec:
           echo "▶ clonando main (el deploy SIEMPRE sale de lo pusheado)..."
           git clone --depth 1 https://github.com/villadalmine/tormenta-solar.git /work/repo
           cd /work/repo
-          [ -z "$TAG" ] && TAG=$(grep -oE "$IMG:[0-9.]+" "$BUILD" | head -1 | cut -d: -f2)
+          # grep -m1 (NO `| head -1`): con pipefail, head cerrando antes mataba a grep por SIGPIPE → exit 141
+          if [ -z "$TAG" ]; then TAG=$(grep -m1 -oE "$IMG:[0-9.]+" "$BUILD" | cut -d: -f2 || true); fi
           [ -z "$TAG" ] && { echo "✗ no pude determinar el tag"; exit 1; }
           echo "▶ $COMP → tag $TAG (release $RELEASE, ns $NS)"
 

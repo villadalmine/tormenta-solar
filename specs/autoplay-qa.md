@@ -3,7 +3,7 @@
 - **Estado:** **F1+F3a IMPLEMENTADOS (2026-07-02, `tests/autoplay/`).** Suites 01-boot/05-multi/06-ia/08-apis +
   runner (`node tests/autoplay/run.mjs` → reporte.json/md + prompt-autofix.md si falla + exit 1). Validado contra
   PROD: 4/4 verdes. **F2:** manifest listo en `tests/autoplay/argo-cronworkflow.yaml` — **NO aplicado** (regla del
-  dueño: `kubectl apply -n ai -f …` cuando dé el OK). Falta: F4 (02/03/04/07) + F3b (hermes) + `GET /qa/reporte`.
+  dueño: `kubectl apply -n ai -f …` cuando dé el OK). Falta: F4 (02/03/04/07) + F3b (hermes) + `GET /qa/reporte`. **F3b quedó DESBLOQUEADO** por el deploy in-cluster (infra-62, `deploy-pipeline.md §3.2`): un agente ya puede arreglar Y shipear solo.
 - **La idea (dueño, textual):** *"auto play game para probar si anda todo, y que corra en Argo Workflow, bien
   dividido cada pipeline para que pruebe cada parte del juego — así hilar fino qué parte anda y qué no — y generar
   reporte; si falla algo, que sirva de input para un prompt y que se auto-arregle."*
