@@ -604,15 +604,17 @@ const Mapa = (() => {
     // 💤 SUEÑOS / NIVELES IA (v304): dónde se sueñan + si estás soñando AHORA (los niveles generados son
     // bolsillos efímeros — no se mapean sala a sala, se representan como categoría)
     if (st.zoom == null) {
-      const dx2 = 6, dw2 = PADL(VW) - 10;
+      const dy2 = Math.round(VH * 0.55) + 42, dx2 = 10, dw2 = Math.min(230, VW * 0.24);   // abajo-izquierda: hay lugar de sobra
+      // truncado por MEDICIÓN real (la fuente varía por browser; el slice por chars desbordaba el recuadro)
+      const fitTxt = (t, maxW) => { let str = String(t); while (str.length > 1 && ctx.measureText(str).width > maxW) str = str.slice(0, -1); return str; };
       ctx.fillStyle = '#c8a8e8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
-      ctx.fillText(T('g.mapa.suenios'), dx2, 66);
+      ctx.fillText(fitTxt(T('g.mapa.suenios'), dw2), dx2, dy2 - 6);
       ctx.strokeStyle = st.dream ? '#ffd54f' : '#7a5a9a'; ctx.lineWidth = st.dream ? 2 : 1; ctx.setLineDash([3, 3]);
-      ctx.strokeRect(dx2 + 0.5, 74.5, dw2, 58); ctx.setLineDash([]);
+      ctx.strokeRect(dx2 + 0.5, dy2 + 0.5, dw2, 58); ctx.setLineDash([]);
       ctx.fillStyle = '#b8a0d0'; ctx.font = '8px monospace';
-      [T('g.mapa.dream1'), T('g.mapa.dream2'), T('g.mapa.dream3')].forEach((ln, k) => ctx.fillText(ln.slice(0, Math.floor((dw2 - 6) / 4.4)), dx2 + 4, 87 + k * 11));
+      [T('g.mapa.dream1'), T('g.mapa.dream2'), T('g.mapa.dream3')].forEach((ln, k) => ctx.fillText(fitTxt(ln, dw2 - 8), dx2 + 5, dy2 + 13 + k * 11));
       if (st.dream) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.font = 'bold 8px monospace';
-        ctx.fillText(('💤 ' + T('g.mapa.suenioAhora', { n: st.dream })).slice(0, Math.floor(dw2 / 4.8)), dx2 + 4, 87 + 33); }
+        ctx.fillText(fitTxt('💤 ' + T('g.mapa.suenioAhora', { n: st.dream }), dw2 - 8), dx2 + 5, dy2 + 13 + 33); }
     }
     // 🎮 MULTIJUGADOR (v300): categoría propia con INFO real — qué juegos hay (DATA), tu progreso (piquete),
     // quests del grafo y gente ONLINE ahora (salonLive). Columna derecha, cajones tipo la vista general.

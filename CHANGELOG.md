@@ -47,6 +47,13 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v308] — 2026-07-03 — 🐛 FIX definitivo del cuadro 💤 SUEÑOS: reubicado abajo-izquierda + truncado por MEDICIÓN
+
+El recuadro seguía cortando el texto (el slice por caracteres asumía un ancho de fuente que varía por browser).
+Doble fix: **`measureText` real** para truncar (nunca desborda el borde) + el cuadro se mudó **abajo a la
+izquierda** (espacio libre de sobra) con ancho cómodo → las 3 líneas completas sin cortar palabras. Verificado
+en ES a 1100/1366/1920.
+
 ## [v307] — 2026-07-03 — 🚇 Subte v2: las 3 ESTACIONES DEL JUEGO (decisión) + fixes visuales del playtest
 
 - **Decisión del dueño anotada (`subte.md §2.5`):** las 3 estaciones JUGABLES son **Florida (B)**, **Lavalle (C)**
