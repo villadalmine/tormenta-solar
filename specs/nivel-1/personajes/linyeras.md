@@ -111,6 +111,7 @@ linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
   "id": "bunker",
   "title": "Ganarte el búnker (gurú de los linyeras)",
   "at": "edificio",
+  "sala": "piso 19",
   "pre": { "borrachosHappy": true },
   "sets": { "bunkerUnlocked": true },
   "hints": {
@@ -133,6 +134,7 @@ linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
 {
   "id": "loop",
   "title": "Dormir en el catre del búnker (pasar un día, reponer)",
+  "sala": "búnker",
   "at": "bunker",
   "pri": 24,
   "pre": { "bunkerUnlocked": true, "stormed": true },
@@ -149,6 +151,30 @@ linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
       "In the bunker there's a cot: sleeping there passes the day and restocks you a bit.",
       "Touch the bunker COT (E) to sleep: you pass a loop day, refill your life and the gear comes back.",
       "Go lie down on the bunker COT! You pass the day, get your life back and have stuff to keep going."
+    ]
+  }
+}
+```
+```hist
+{
+  "id": "tesoro",
+  "title": "El TESORO de los linyeras (premio del gurú)",
+  "at": "edificio",
+  "sala": "búnker",
+  "pre": { "bunkerUnlocked": true },
+  "sets": { "tesoroTaken": true },
+  "hints": {
+    "es": [
+      "Dicen que los linyeras le guardan un premio a su gurú, bien abajo de todo.",
+      "Cuando seas gurú, bajá al búnker: hay algo guardado que suena a madera y cuerdas.",
+      "En el búnker te espera el TESORO de los linyeras: plata, munición y una viola que da risa.",
+      "¡Sos gurú! Bajá al BÚNKER y reclamá el TESORO: monedas, balas y la VIOLA de Les Luthiers. 🎸"
+    ],
+    "en": [
+      "They say the bums keep a prize for their guru, way down below.",
+      "Once you're guru, go down to the bunker: something stashed there sounds like wood and strings.",
+      "The bums' TREASURE waits in the bunker: cash, ammo and a guitar that makes people laugh.",
+      "You're the guru! Go DOWN to the BUNKER and claim the TREASURE: coins, ammo and the Les Luthiers GUITAR. 🎸"
     ]
   }
 }

@@ -790,7 +790,7 @@
   function grabTesoro(n) {
     if (!bunkerUnlocked) { setMsg(T('g.tesoro.noGuru'), '#ffd54f', 5000); return; }   // (en el búnker ya sos gurú; red de seguridad)
     if (tesoroTaken) { setMsg(T('g.tesoro.empty'), '#aef0c0', 4000); return; }
-    tesoroTaken = true;
+    applyEdge('tesoro', 'tesoroTaken');   // por el GRAFO: hito → ticker + checkpoint + evlog (v294)
     player.coins += 150; player.ammo += 40; player.spitDmg = 24;   // escupís más fuerte (14→24), para todo el run
     addItem('viola');   // el gurú te da la VIOLA (a la mochila); NO la auto-equipa: por defecto seguís con los DÓLARES (specs/inventario-armas.md)
     Sfx.win();
@@ -965,6 +965,7 @@
     trucoWon:         v => trucoWon = v,
     fifaWon:          v => fifaWon = v,
     armado:           v => armado = v,
+    tesoroTaken:      v => tesoroTaken = v,
     chinoEntered:     v => chinoEntered = v,
     hasMegaDrive:     v => { if (player) player.hasMegaDrive = v; },
     hasCementoTicket: v => { if (player) player.hasCementoTicket = v; },
@@ -1008,7 +1009,7 @@
   }
   function historiaState() {
     return {
-      stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon, fifaWon, armado, chinoEntered,
+      stormed, borrachosHappy, bunkerUnlocked, chinoFrontOpen, trucoWon, fifaWon, armado, chinoEntered, tesoroTaken,
       hasMegaDrive: !!(player && player.hasMegaDrive),
       hasCementoTicket: !!(player && player.hasCementoTicket),
       cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing,

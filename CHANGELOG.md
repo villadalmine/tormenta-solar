@@ -47,6 +47,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v294] — 2026-07-03 — 🗺️📍 Mapa: TODAS las quests, en su PISO exacto al hacer zoom (+ la arista del TESORO que faltaba)
+
+Playtest del dueño: "no marca todos los quests — el piso 19 no está, el búnker tampoco, el tipo del tesoro".
+- **Anclaje FINO por `sala` (nuevo campo del grafo, data-driven):** las aristas ahora pueden declarar su SALA
+  exacta ("piso 19", "búnker") en las fichas ```hist → en el ZOOM cada quest aparece en SU piso: el tótem en el
+  P19, el catre y el tesoro en el búnker. En la vista mundo siguen agrupadas en la entrada (overview limpio).
+- **Arista NUEVA `tesoro`** (19 aristas): el TESORO de los linyeras no estaba en el grafo → ahora tiene quest con
+  hints 4 niveles ES/EN, `grabTesoro` pasa por `applyEdge` (ticker+checkpoint+bus gratis) y `tesoroTaken` entró a
+  `historiaState`/`FLAG_SETTERS` → el mapa lo marca ⭐/✅ y los linyeras lo pueden soplar.
+- **Normalización de acentos** en el match ("Súper"≈"super", "búnker"≈"bunker") + fallback: quests de sub-modos
+  sin sala propia (el súper) anclan a la CALLE (donde está su puerta). **19/19 aristas ancladas** (validado).
+
 ## [v293] — 2026-07-03 — 🗺️ Mapa TAB: fixes del playtest del dueño (candados, click-zoom, superposición, pisos marcados)
 
 4 reportes del dueño, 4 fixes en `js/mapa.js` (SDD `mapa-juego.md`):

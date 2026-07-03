@@ -59,17 +59,23 @@ const Mapa = (() => {
     model.groups = groups;
     // QUESTS → UN nodo cada una (v293): preferencia tag exacto; si no, match por nombre eligiendo la ENTRADA
     // (|level| más chico) del grupo — así "edificio" no pinta los 20 pisos. 'calle' → nodo 0; 'lavalle' → sub-modo.
-    model.questAt = edges => {
+    model.questAt = (edges, fino) => {
       const at = {};   // nodeIdx -> [edge,...]  ·  'sm:<id>' -> [edge,...]
+      const norm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');   // sin acentos: "Súper"≈"super", "búnker"≈"bunker"
       for (const e of (edges || [])) {
         const a = String(e.at || '');
         if (!a) continue;
+        // ZOOM (fino): si la arista declara su SALA ("piso 19", "búnker"), va a ESE piso exacto
+        if (fino && e.sala) {
+          const fn = nodes.find(n => n.i > 0 && norm(n.name).includes(norm(e.sala)));
+          if (fn) { (at[fn.i] = at[fn.i] || []).push(e); continue; }
+        }
         if (a === 'calle') { (at[0] = at[0] || []).push(e); continue; }
         const sm = SUBMODES.find(s => s.at === a);
         if (sm) { (at['sm:' + sm.id] = at['sm:' + sm.id] || []).push(e); continue; }
         let cands = nodes.filter(n => n.i > 0 && n.tags.includes(a));
-        if (!cands.length) cands = nodes.filter(n => n.i > 0 && String(n.name).toLowerCase().includes(a));
-        if (!cands.length) continue;
+        if (!cands.length) cands = nodes.filter(n => n.i > 0 && norm(n.name).includes(norm(a)));
+        if (!cands.length) { (at[0] = at[0] || []).push(e); continue; }   // sub-modos sin sala (el súper) → la CALLE (ahí está su puerta)
         cands.sort((x, y) => Math.abs(x.level) - Math.abs(y.level));
         (at[cands[0].i] = at[cands[0].i] || []).push(e);
       }
@@ -127,7 +133,7 @@ const Mapa = (() => {
     if (!model) return;
     st = st || {};
     const visited = st.visited || new Set([0]);
-    const qAt = model.questAt ? model.questAt(st.edges) : {};
+    const qAt = model.questAt ? model.questAt(st.edges, st.zoom != null) : {};
     ctx.fillStyle = '#05070c'; ctx.fillRect(0, 0, VW, VH);
     ctx.save(); ctx.globalAlpha = 0.05; ctx.fillStyle = '#4af'; for (let y = 0; y < VH; y += 4) ctx.fillRect(0, y, VW, 1); ctx.restore();   // scanlines
     // header
