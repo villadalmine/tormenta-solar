@@ -54,7 +54,7 @@ const Mapa = (() => {
       for (const n of nodes) { if (n.anchor != null) continue;
         for (const d of (rooms[n.i].doors || [])) { const to = d.to;
           if (typeof to === 'number' && nodes[to] && nodes[to].anchor != null) {
-            n.anchor = nodes[to].anchor; n.level = nodes[to].level - 1; n.parent = to; break; } } }
+            n.anchor = nodes[to].anchor; n.level = nodes[to].level - 1; n.parent = to; n.adopted = true; break; } } }
     }
     for (const n of nodes) { if (n.anchor == null) { n.anchor = 4; n.level = n.level == null ? -4 : n.level; } }   // huérfanos reales: esquina abajo-izq
     // hermanas (misma ancla + mismo nivel, ej. las 3 cuevas del dólar): se reparten el lugar
@@ -106,6 +106,7 @@ const Mapa = (() => {
       const idxs = groups[k].filter(i => i !== 0);
       if (!idxs.length) continue;
       const ns = idxs.map(i => nodes[i]);
+      if (ns.every(n => n.secret && n.adopted)) continue;   // bolsillo secreto por teleport (telohab) → no es un edificio
       const entr = ns.slice().sort((a, b) => Math.abs(a.level) - Math.abs(b.level))[0];
       const bname = String(entr.name).split(/\s+[—-]\s+/)[0].trim() || String(entr.name);
       model.buildings.push({ anchor: +k, rooms: idxs, up: ns.some(n => n.level >= 0), name: bname,
@@ -216,13 +217,18 @@ const Mapa = (() => {
     const maxF = Math.max(...surf.map(b => b.floors), 1);
     const hUnit = Math.max(6, Math.min(16, (streetY - 96) / maxF));
     const boxes = [];
-    for (const b of surf) {
+    // SOLVER 1D (v302): anchos capeados para que ENTREN TODOS + barrido L→R y R→L → cero solapes, orden real
+    const sorted = surf.slice().sort((a, b) => a.anchor - b.anchor);
+    const GAP = 6;
+    const maxW = Math.max(24, (avail - GAP * (sorted.length + 1)) / Math.max(1, sorted.length));
+    const sboxes = sorted.map(b => {
       const entr = m.nodes[b.entrance];
-      const w = Math.max(30, Math.min(120, (entr.w || 24) * (avail / m.streetW) * 0.85));
-      let x = padL + (b.anchor / m.streetW) * avail - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x));
-      const h = Math.max(18, b.floors * hUnit);
-      boxes.push({ b, x, y: streetY - h, w, h, up: true });
-    }
+      const w = Math.max(24, Math.min(maxW, (entr.w || 24) * (avail / m.streetW) * 0.85));
+      return { b, w, x: padL + (b.anchor / m.streetW) * avail - w / 2 };
+    });
+    for (let i = 0; i < sboxes.length; i++) { const p = sboxes[i - 1]; sboxes[i].x = Math.max(i ? p.x + p.w + GAP : padL, sboxes[i].x); }
+    for (let i = sboxes.length - 1; i >= 0; i--) { const nx = sboxes[i + 1]; const lim = (nx ? nx.x - GAP : VW - padR) - sboxes[i].w; sboxes[i].x = Math.min(sboxes[i].x, lim); sboxes[i].x = Math.max(padL, sboxes[i].x); }
+    for (const sb of sboxes) { const h = Math.max(18, sb.b.floors * hUnit); boxes.push({ b: sb.b, x: sb.x, y: streetY - h, w: sb.w, h, up: true }); }
     for (const b of under) {
       const w = Math.max(40, Math.min(140, avail * 0.14));
       let x = padL + (b.anchor / m.streetW) * avail - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x));

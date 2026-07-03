@@ -47,6 +47,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v302] — 2026-07-03 — 🏙️ Skyline: SOLVER anti-solape (entran todos) + fuera el bolsillo fantasma del telo
+
+Playtest del dueño ("los cuadrados se pisan, hacelos más chicos que entren todos; la habitación del telo nada
+que ver — ¿te estás basando en el grafo?"):
+- **Solver 1D**: anchos capeados a lo que ENTRA + doble barrido (izq→der, der→izq) → cero solapes garantizado,
+  orden oeste→este intacto. El bot lo verifica matemáticamente en cada nocturna (check pairwise en 07).
+- **Sí, todo sale del dato — y el dato explicó el bug**: "La habitación del telo" es `theme:'secret'` con una
+  sola puerta de SALIDA (se entra por teleport de la quest del chip) → la adopción de huérfanas la colgaba bajo
+  la calle. Regla nueva data-driven: **bolsillo secreto adoptado sin puerta de entrada ≠ edificio del mapa**
+  (como los spinoffs). Las cuevas del cuevero (no-secretas) siguen adoptadas bien en S4.
+
 ## [v301] — 2026-07-03 — 🏙️ Tercera vista: LA CUADRA — el skyline de Florida en perspectiva
 
 Pedido del dueño: "una visión más de arriba/de costado en perspectiva que entre todo con menos detalle; hover =

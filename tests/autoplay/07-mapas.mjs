@@ -31,8 +31,12 @@ try {
   await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-vista-general.png' });
   // [1] LA CUADRA (skyline): siluetas por edificio con altura = pisos
   await p.keyboard.down('1'); await p.waitForTimeout(150); await p.keyboard.up('1'); await p.waitForTimeout(300);
-  const sky = await p.evaluate(() => { const cv = document.getElementById('screen'); const k = Mapa.sky(cv.width, cv.height); return { n: (k.boxes || []).length }; });
-  s.check('skyline: siluetas por edificio (≥8)', sky.n >= 8, 'boxes=' + sky.n);
+  const sky = await p.evaluate(() => { const cv = document.getElementById('screen'); const k = Mapa.sky(cv.width, cv.height);
+    const bs = (k.boxes || []).filter(b => b.up); let sol = 0;
+    for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) { const a = bs[i], c = bs[j];
+      if (a.x < c.x + c.w - 1 && c.x < a.x + a.w - 1 && a.y < c.y + c.h - 1 && c.y < a.y + a.h - 1) sol++; }
+    return { n: (k.boxes || []).length, sol }; });
+  s.check('skyline: siluetas por edificio (≥8) SIN solapes', sky.n >= 8 && sky.sol === 0, JSON.stringify(sky));
   await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-skyline.png' });
   // [2] SUBSUELOS (tecla sostenida: un tap real dura >1 frame)
   await p.keyboard.down('3'); await p.waitForTimeout(150); await p.keyboard.up('3'); await p.waitForTimeout(300);
