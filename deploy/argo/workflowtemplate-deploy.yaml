@@ -1,0 +1,145 @@
+# WorkflowTemplate tormenta-deploy (deploy-pipeline.md §3.1): el deploy COMO WORKFLOW, in-cluster.
+# MISMA lógica que deploy/deploy.sh (que queda de fallback): clona main → build kaniko (con fallback al pod)
+# → helm upgrade -f values-prod (genToken re-leído del release, NUNCA impreso) → rollout → smoke →
+# si la verificación falla: ROLLBACK AUTOMÁTICO a la revisión anterior + el workflow queda Failed →
+# el exit-handler reporta a /deploy-log → métrica → PrometheusRule → Telegram. El dueño no mira nada.
+#
+# Uso:  deploy/deploy-argo.sh <proxy|web> [tag]        (wrapper)
+#   o:  kubectl create -n ai -f - <<EOF ... workflowTemplateRef: tormenta-deploy ... EOF
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: tormenta-deploy
+  namespace: ai
+spec:
+  serviceAccountName: tormenta-deployer
+  entrypoint: deploy
+  onExit: report
+  activeDeadlineSeconds: 1500          # tope duro: que nunca cuelgue (lección del cron de carteles)
+  arguments:
+    parameters:
+      - name: component                # proxy | web
+      - name: tag
+        value: ""                      # vacío = usa el tag actual del kaniko-build.yaml (re-deploy)
+      - name: smokePath
+        value: ""                      # override SOLO para testear el camino de falla (default: /health o /)
+  # regla del dueño (§5): PVC longhorn-nvme, nada de disco local del nodo; y borrar TODO al terminar
+  podGC:
+    strategy: OnWorkflowCompletion
+  volumeClaimGC:
+    strategy: OnWorkflowCompletion
+  ttlStrategy:
+    secondsAfterSuccess: 3600
+    secondsAfterFailure: 172800        # los fallados quedan 48h (para inspección + la alerta de wf fallados)
+  volumeClaimTemplates:
+    - metadata:
+        name: work
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: longhorn-nvme
+        resources:
+          requests:
+            storage: 1Gi
+  templates:
+    - name: deploy
+      script:
+        image: alpine/k8s:1.34.1       # kubectl+helm+git+jq+curl, multi-arch (cluster mixto arm64/amd64)
+        command: [bash]
+        volumeMounts:
+          - name: work
+            mountPath: /work
+        resources:
+          requests: { cpu: 100m, memory: 256Mi }
+          limits: { memory: 512Mi }
+        # OJO: sin `set -x` — el genToken viaja en variables y JAMÁS se imprime.
+        source: |
+          set -euo pipefail
+          COMP="{{workflow.parameters.component}}"
+          TAG="{{workflow.parameters.tag}}"
+          SMOKE_OVERRIDE="{{workflow.parameters.smokePath}}"
+          NS=ai
+          case "$COMP" in
+            proxy) RELEASE=tormenta-ai;  CHART=ai-proxy/chart; VALUES=ai-proxy/chart/values-prod.yaml
+                   BUILD=ai-proxy/kaniko-build.yaml; IMG=tormenta-ai-proxy;  DEPLOY=tormenta-ai-proxy
+                   SVC=tormenta-ai-proxy; SMOKE=/health; NEEDS_TOKEN=1 ;;
+            web)   RELEASE=tormenta-web; CHART=web/chart;      VALUES=web/chart/values-prod.yaml
+                   BUILD=web/kaniko-build.yaml;      IMG=tormenta-solar-web; DEPLOY=tormenta-web
+                   SVC=tormenta-web; SMOKE=/; NEEDS_TOKEN=0 ;;
+            *) echo "✗ componente inválido: '$COMP' (proxy|web)"; exit 1 ;;
+          esac
+          [ -n "$SMOKE_OVERRIDE" ] && SMOKE="$SMOKE_OVERRIDE"
+
+          echo "▶ clonando main (el deploy SIEMPRE sale de lo pusheado)..."
+          git clone --depth 1 https://github.com/villadalmine/tormenta-solar.git /work/repo
+          cd /work/repo
+          [ -z "$TAG" ] && TAG=$(grep -oE "$IMG:[0-9.]+" "$BUILD" | head -1 | cut -d: -f2)
+          [ -z "$TAG" ] && { echo "✗ no pude determinar el tag"; exit 1; }
+          echo "▶ $COMP → tag $TAG (release $RELEASE, ns $NS)"
+
+          # 1) BUILD (kaniko en ns kaniko) — mismo wait + fallback al pod que deploy.sh (incidente 2026-06-28)
+          sed -i -E "s|($IMG:)[0-9.]+|\1$TAG|g" "$BUILD"
+          WF=$(kubectl create -n kaniko -f "$BUILD" -o name | sed 's#.*/##')
+          echo "  · build $WF..."
+          if kubectl wait "workflow/$WF" -n kaniko --for=jsonpath='{.status.phase}'=Succeeded --timeout=420s 2>/dev/null; then
+            echo "  ✓ build OK"
+          else
+            echo "  ⚠ el workflow no marcó Succeeded a tiempo. Chequeo el POD del build..."
+            POD=$(kubectl -n kaniko get pods -l "workflows.argoproj.io/workflow=$WF" -o name 2>/dev/null | head -1)
+            PH=$(kubectl -n kaniko get "$POD" -o jsonpath='{.status.phase}' 2>/dev/null || true)
+            if [ "$PH" = "Succeeded" ]; then echo "  ✓ pod del build OK (estado del wf atrasado). Sigo."
+            else echo "  ✗ el build NO terminó OK (pod: ${PH:-desconocido}). Abortando SIN tocar el release."; exit 1; fi
+          fi
+
+          # 2) HELM (genToken re-leído del release, en variable, sin imprimir — mata el gotcha del 403)
+          PREV=$(helm status "$RELEASE" -n "$NS" -o json | jq -r '.version')
+          echo "  · revisión actual del release: $PREV (a esta se vuelve si algo falla)"
+          SETS=(--set "image.tag=$TAG")
+          if [ "$NEEDS_TOKEN" = 1 ]; then
+            TOK=$(helm get values "$RELEASE" -n "$NS" -o json | jq -r '(.linyeraPool.genToken // "")')
+            if [ -n "$TOK" ]; then SETS+=(--set "linyeraPool.genToken=$TOK"); echo "  ✓ genToken recuperado del release (len ${#TOK})"
+            else echo "  ⚠ sin genToken previo — sigo sin él (¿primer deploy?)"; fi
+          fi
+
+          # 3) upgrade + rollout + smoke — si CUALQUIERA falla → ROLLBACK automático
+          OK=0
+          if helm upgrade "$RELEASE" "$CHART" -n "$NS" -f "$VALUES" "${SETS[@]}" >/dev/null \
+             && kubectl rollout restart "deploy/$DEPLOY" -n "$NS" >/dev/null \
+             && kubectl rollout status "deploy/$DEPLOY" -n "$NS" --timeout=180s; then
+            echo "  · smoke http://$SVC.$NS.svc$SMOKE ..."
+            for i in 1 2 3; do
+              if curl -fsS --max-time 10 "http://$SVC.$NS.svc$SMOKE" >/dev/null; then OK=1; break; fi
+              echo "    intento $i falló, reintento en 5s..."; sleep 5
+            done
+          fi
+
+          if [ "$OK" != 1 ]; then
+            echo "✗ LA VERIFICACIÓN FALLÓ → ROLLBACK automático a la revisión $PREV"
+            helm rollback "$RELEASE" "$PREV" -n "$NS" --wait --timeout 3m || echo "  ⚠ rollback con error (revisar a mano)"
+            kubectl rollout status "deploy/$DEPLOY" -n "$NS" --timeout=180s || true
+            echo "✗ deploy $COMP $TAG FALLÓ (release restaurado). El workflow queda Failed → alerta."
+            exit 1
+          fi
+          echo "✓ $COMP $TAG desplegado y verificado"
+
+    # exit-handler: SIEMPRE corre (éxito o falla) → reporta a /deploy-log → métrica → alerta a Telegram.
+    - name: report
+      script:
+        image: alpine/k8s:1.34.1
+        command: [bash]
+        resources:
+          requests: { cpu: 50m, memory: 64Mi }
+          limits: { memory: 128Mi }
+        source: |
+          set -euo pipefail
+          COMP="{{workflow.parameters.component}}"
+          TAG="{{workflow.parameters.tag}}"
+          WFST="{{workflow.status}}"
+          S=failed; [ "$WFST" = "Succeeded" ] && S=ok
+          TOK=$(helm get values tormenta-ai -n ai -o json | jq -r '(.linyeraPool.genToken // "")')
+          BODY="{\"component\":\"$COMP\",\"tag\":\"$TAG\",\"status\":\"$S\",\"wf\":\"{{workflow.name}}\",\"detail\":\"$WFST\"}"
+          for i in 1 2 3; do
+            curl -fsS --max-time 10 -X POST http://tormenta-ai-proxy.ai.svc/deploy-log \
+              -H "X-Gen-Token: $TOK" -H 'Content-Type: application/json' -d "$BODY" && exit 0
+            sleep 5
+          done
+          echo "⚠ no pude reportar a /deploy-log (si el proxy está caído, TargetDown ya alerta igual)"

@@ -1,0 +1,108 @@
+# RBAC del deploy in-cluster (deploy-pipeline.md §3.1) — MÍNIMO NECESARIO, enumerado desde el contenido REAL
+# de los releases (helm get manifest tormenta-ai/tormenta-web): nada de cluster-admin.
+# El SA corre los pods del WorkflowTemplate tormenta-deploy (ns ai).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tormenta-deployer
+  namespace: ai
+---
+# ns ai: todo lo que helm necesita tocar de los releases + el executor de Argo + rollout.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tormenta-deployer
+  namespace: ai
+rules:
+  # helm: release storage (secrets sh.helm.release.v1.*) + genToken (helm get values)
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps", "services", "serviceaccounts", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # el chart trae un Role/RoleBinding (pool) — helm hace GET/patch sobre ellos
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["servicemonitors", "prometheusrules"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["argoproj.io"]
+    resources: ["cronworkflows"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # executor de Argo (los pods del workflow reportan su resultado)
+  - apiGroups: ["argoproj.io"]
+    resources: ["workflowtaskresults"]
+    verbs: ["create", "patch", "get"]
+  # el Role del chart otorga workflowtaskresults → el deployer debe TENERLO para poder crearlo/actualizarlo (anti-escalada de k8s)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tormenta-deployer
+  namespace: ai
+subjects:
+  - kind: ServiceAccount
+    name: tormenta-deployer
+    namespace: ai
+roleRef:
+  kind: Role
+  name: tormenta-deployer
+  apiGroup: rbac.authorization.k8s.io
+---
+# ns gateway: los releases ponen ahí sus Certificates (tormenta-ai-tls / tormenta-web-tls)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tormenta-deployer
+  namespace: gateway
+rules:
+  - apiGroups: ["cert-manager.io"]
+    resources: ["certificates"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tormenta-deployer
+  namespace: gateway
+subjects:
+  - kind: ServiceAccount
+    name: tormenta-deployer
+    namespace: ai
+roleRef:
+  kind: Role
+  name: tormenta-deployer
+  apiGroup: rbac.authorization.k8s.io
+---
+# ns kaniko: crear el workflow del BUILD + mirar su estado (con el fallback al pod, lección 2026-06-28)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tormenta-deployer
+  namespace: kaniko
+rules:
+  - apiGroups: ["argoproj.io"]
+    resources: ["workflows"]
+    verbs: ["create", "get", "list", "watch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tormenta-deployer
+  namespace: kaniko
+subjects:
+  - kind: ServiceAccount
+    name: tormenta-deployer
+    namespace: ai
+roleRef:
+  kind: Role
+  name: tormenta-deployer
+  apiGroup: rbac.authorization.k8s.io

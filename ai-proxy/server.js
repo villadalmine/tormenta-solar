@@ -100,6 +100,13 @@ loadCarteles(); cartelesPrune(); setInterval(cartelesPrune, 3600 * 1000).unref?.
 // llega a 100% (suma ponderada vs objetivo) se DESTRUYE la IA del satélite (endgame, D2). Persiste en PVC, PERMANENTE.
 // Catálogo de partes = DATA: {max} = cupo por parte, {w} = peso en el progreso (gpu pesa más). El cliente tiene los precios.
 const DC_PARTS = { cpu: { max: 60, w: 1 }, gpu: { max: 40, w: 3 }, disco: { max: 50, w: 1 }, red: { max: 30, w: 1 }, enfriamiento: { max: 20, w: 2 }, energia: { max: 20, w: 2 } };
+// ── DEPLOY LOG (deploy-pipeline.md §3.1): el Workflow de deploy reporta acá su resultado → métrica
+// tormenta_deploy_failed → PrometheusRule → Telegram. El dueño NO tiene que mirar: si falla, le llega.
+const DEPLOYLOG_STORE = process.env.DEPLOYLOG_STORE || '/data/deploylog.json';
+let DEPLOYLOG = { last: {}, hist: [] };            // last[component]={tag,status,wf,ts} · hist cap 100
+function loadDeployLog() { try { const d = JSON.parse(fs.readFileSync(DEPLOYLOG_STORE, 'utf8')); if (d && d.last) DEPLOYLOG = d; } catch (e) {} }
+function saveDeployLog() { try { fs.mkdirSync(DEPLOYLOG_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(DEPLOYLOG_STORE, JSON.stringify(DEPLOYLOG)); } catch (e) { console.error('deploylog save:', e.message); } }
+loadDeployLog();
 const DC_STORE = process.env.DATACENTER_STORE || '/data/datacenter.json';
 const DC_RATE_MS = 8000;                          // 1 aporte cada 8s por pid (que sea COLABORATIVO, no lo termina uno solo)
 const DC_SEASON_MULT = 0.25;                      // cada temporada (D2) sube los cupos un 25% → "se reinicia a una v2 más cara"
@@ -837,6 +844,26 @@ http.createServer((req, res) => {
     dcNewSeason();
     res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: true, ...dcState() }));
   }
+  // DEPLOY LOG (deploy-pipeline.md §3.1): el Workflow tormenta-deploy reporta ok/failed acá (GEN_TOKEN).
+  if (req.method === 'POST' && req.url === '/deploy-log') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 2000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}');
+      const comp = String(d.component || '').replace(/[^a-z0-9-]/g, '').slice(0, 16);
+      const status = d.status === 'ok' ? 'ok' : 'failed';
+      if (!comp) { res.writeHead(400); return res.end('bad'); }
+      const rec = { component: comp, tag: String(d.tag || '').slice(0, 24), status, wf: String(d.wf || '').slice(0, 64), detail: String(d.detail || '').slice(0, 200), ts: Date.now() };
+      DEPLOYLOG.last[comp] = rec; DEPLOYLOG.hist.push(rec); DEPLOYLOG.hist = DEPLOYLOG.hist.slice(-100); saveDeployLog();
+      console.log('[deploy-log]', comp, rec.tag, status, rec.wf);
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.method === 'GET' && req.url === '/deploy-log') {                          // historial (auditoría, sin token: no hay secretos)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(DEPLOYLOG));
+  }
   if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)
     const u = new URL(req.url, 'http://x'), dias = Object.keys(NOTI_DAYS).sort();
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
@@ -984,6 +1011,13 @@ http.createServer((req, res) => {
       `tormenta_minigame_starts_total{game="1v1"} ${MINIGAME_STARTS['1v1'] || 0}\n` +
       `tormenta_minigame_starts_total{game="6"} ${MINIGAME_STARTS['6'] || 0}\n` +
       `tormenta_minigame_starts_total{game="corte"} ${MINIGAME_STARTS.corte || 0}\n`;
+    // DEPLOYS (deploy-pipeline.md §3.1): 1 = el último deploy de ese componente FALLÓ → PrometheusRule → Telegram.
+    out += `# HELP tormenta_deploy_failed 1 si el último deploy del componente falló (0 = ok)\n# TYPE tormenta_deploy_failed gauge\n`;
+    const dlComps = Object.keys(DEPLOYLOG.last);
+    if (!dlComps.length) out += `tormenta_deploy_failed{component="none"} 0\n`;
+    for (const c of dlComps) out += `tormenta_deploy_failed{component="${c}"} ${DEPLOYLOG.last[c].status === 'failed' ? 1 : 0}\n`;
+    out += `# HELP tormenta_deploy_last_ts Epoch ms del último deploy reportado por componente\n# TYPE tormenta_deploy_last_ts gauge\n`;
+    for (const c of dlComps) out += `tormenta_deploy_last_ts{component="${c}"} ${DEPLOYLOG.last[c].ts}\n`;
     // BANCOS DEL ECOSISTEMA (observabilidad: ¿están poblados y frescos? → Grafana/alertas). age_seconds = frescura.
     const ageS = ts => ts ? Math.round((Date.now() - ts) / 1000) : -1;
     out +=

@@ -1,0 +1,65 @@
+# Observabilidad del deploy + workflows (deploy-pipeline.md §3.1): "si falla algo me entero SIN mirar".
+# La ruta de Alertmanager ya manda severity warning|critical → Telegram (receiver telegram-openclaw existente).
+#
+# 1) Service + ServiceMonitor: scrapear las métricas del workflow-controller de Argo (v4: HTTPS self-signed en :9090)
+apiVersion: v1
+kind: Service
+metadata:
+  name: argo-workflows-controller-metrics
+  namespace: argo
+  labels:
+    app.kubernetes.io/name: argo-workflows-workflow-controller
+spec:
+  selector:
+    app.kubernetes.io/name: argo-workflows-workflow-controller
+  ports:
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argo-workflows-controller
+  namespace: argo
+  labels:
+    release: kube-prometheus-stack        # lo que exige el serviceMonitorSelector del stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argo-workflows-workflow-controller
+  endpoints:
+    - port: metrics
+      scheme: https
+      interval: 60s
+      tlsConfig:
+        insecureSkipVerify: true          # cert self-signed del controller (métricas, sin secretos)
+---
+# 2) Las ALERTAS → Telegram (vía la ruta severity warning ya configurada)
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tormenta-deploy
+  namespace: ai
+  labels:
+    release: kube-prometheus-stack        # lo que exige el ruleSelector del stack
+spec:
+  groups:
+    - name: tormenta-deploy
+      rules:
+        - alert: TormentaDeployFailed
+          expr: max by (component) (tormenta_deploy_failed) == 1
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: '🚨 Deploy de TORMENTA «{{ $labels.component }}» FALLÓ (rollback automático hecho)'
+            description: 'El último deploy de {{ $labels.component }} falló la verificación y el workflow hizo rollback a la revisión anterior. Historial: https://llm-tormenta-solar.cybercirujas.club/deploy-log · Detalle: kubectl -n ai get wf | grep tormenta-deploy'
+        - alert: ArgoWorkflowsFallados
+          expr: sum(argo_workflows_gauge{phase=~"Failed|Error"}) > 0
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: '⚠️ Hay {{ $value }} workflow(s) de Argo FALLADOS en el cluster'
+            description: 'Crones/builds/deploys que fallaron y quedaron tirados (ej. el cron de carteles colgado). Ver: kubectl get wf -A | grep -iE "fail|error"'

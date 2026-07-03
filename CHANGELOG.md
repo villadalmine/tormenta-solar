@@ -80,6 +80,26 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-62] — 2026-07-03 — 🚀 Deploy como Argo Workflow (F3): in-cluster, con rollback automático y alerta a Telegram
+
+El dueño dio el OK con 4 condiciones: no romper nada, no exponer secrets, no cambiar la lógica, y que si falla
+se entere SOLO (sin mirar). `specs/deploy-pipeline.md §3.1`. Proxy 0.1.84.
+- **WorkflowTemplate `tormenta-deploy`** (`deploy/argo/workflowtemplate-deploy.yaml`, ns ai): params
+  `component=proxy|web` + `tag`; pasos = LOS MISMOS de deploy.sh (clona main → build kaniko con fallback al pod →
+  `helm -f values-prod` → rollout → smoke interno) + **ROLLBACK AUTOMÁTICO** a la revisión anterior si la
+  verificación falla. genToken re-leído del release EN el pod (variable, jamás impreso; sin `set -x`). Storage
+  según la regla §5 (PVC longhorn-nvme + GC total). Wrapper `deploy/deploy-argo.sh`; **deploy.sh queda intacto
+  como fallback**.
+- **RBAC mínimo** (`deploy/argo/rbac.yaml`): SA `tormenta-deployer` con Roles enumerados desde el contenido REAL
+  de los releases (ns ai + certificates en ns gateway + workflows en ns kaniko). Cero cluster-admin.
+- **"Me entero solo"** (`deploy/argo/monitoring.yaml`): el workflow reporta a **`POST /deploy-log`** (nuevo en el
+  proxy, GEN_TOKEN, banco PVC + `GET /deploy-log` auditable) → gauge **`tormenta_deploy_failed{component}`** en
+  `/metrics` → PrometheusRule `TormentaDeployFailed` (severity warning) → **la ruta existente de Alertmanager ya
+  manda warning|critical al Telegram del dueño** (receiver telegram-openclaw), con resolved al recuperarse.
+  + ServiceMonitor del workflow-controller de Argo (v4, HTTPS) y alerta `ArgoWorkflowsFallados` (cualquier
+  cron/build/deploy fallado tirado >30m — al aplicarla ya cazó 2 corridas colgadas del cron de carteles).
+  Y si el deploy rompe el proxy entero, el `TargetDown` del stack alerta igual.
+
 ## [v290 · infra-61] — 2026-07-02 — 💬 Chat linyera UX: ideas que quedan PICANDO + iconos de espera + FIX respuestas cortadas
 
 Dos pedidos del dueño + un reporte ("responden muy largo y se corta — yo los acorto"). SDD `specs/chat-linyera-ux.md`.
