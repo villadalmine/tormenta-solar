@@ -3345,11 +3345,31 @@
       return;
     }
     if (!Mapa.model) Mapa.build(rooms);
+    backfillVisited();   // v297: las quests HECHAS delatan dónde estuviste (partidas de antes del registro)
     visitedRooms.add(current); mapaZoom = null;
     mapaFrontier = (typeof HintEngine !== 'undefined') ? new Set(HintEngine.frontier(historiaState()).map(e => e.id)) : new Set();
     elHud.classList.add('hidden'); elFloor.classList.add('hidden'); elPrompt.classList.add('hidden');
     if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     state = 'mapa';
+  }
+  // BACKFILL de visitadas (guardar el camino, v297): cada quest HECHA del grafo marca su sala Y la cadena de
+  // salas que llevan hasta ahí (parent del BFS del mapa). Para las partidas anteriores al registro ts_visited.
+  function backfillVisited() {
+    try {
+      if (typeof Mapa === 'undefined' || !Mapa.model || typeof Historia === 'undefined') return;
+      const flags = historiaState();
+      const isDone = e => e.sets && Object.keys(e.sets).every(k => flags[k]);
+      let added = false;
+      for (const fino of [true, false]) {
+        const qs = Mapa.model.questAt(Historia.edges, fino);
+        for (const k in qs) {
+          if (k.startsWith('sm:') || !qs[k].some(isDone)) continue;
+          let i = +k;
+          while (Number.isInteger(i) && !visitedRooms.has(i)) { visitedRooms.add(i); added = true; i = Mapa.model.nodes[i] ? Mapa.model.nodes[i].parent : null; }
+        }
+      }
+      if (added) saveVisited();
+    } catch (e) {}
   }
   function respawnPiquete() {
     player.hp = 50; player.alive = true; decayAcc = 0;                   // te levantan, no te curan entero

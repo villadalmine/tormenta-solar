@@ -36,7 +36,7 @@ const Mapa = (() => {
     const TILE = (typeof Level !== 'undefined' && Level.TILE) || 32;   // los door.x del runtime están en PÍXELES
     const q = [];
     for (const d of (street.doors || [])) if (typeof d.to === 'number' && d.to > 0 && d.to < rooms.length) {
-      if (nodes[d.to].anchor == null) { nodes[d.to].anchor = d.x / TILE; nodes[d.to].level = levelOf(rooms[d.to].name, dirOf(d.label) < 0 ? -1 : 1); q.push(d.to); }
+      if (nodes[d.to].anchor == null) { nodes[d.to].anchor = d.x / TILE; nodes[d.to].level = levelOf(rooms[d.to].name, dirOf(d.label) < 0 ? -1 : 1); nodes[d.to].parent = 0; q.push(d.to); }
     }
     while (q.length) {
       const i = q.shift(), r = rooms[i];
@@ -44,6 +44,7 @@ const Mapa = (() => {
         if (typeof to !== 'number' || to <= 0 || to >= rooms.length || nodes[to].anchor != null) continue;
         nodes[to].anchor = nodes[i].anchor;
         nodes[to].level = levelOf(rooms[to].name, nodes[i].level + (dirOf(d.label) || 0));
+        nodes[to].parent = i;
         q.push(to);
       }
     }

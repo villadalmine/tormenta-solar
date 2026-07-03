@@ -47,6 +47,14 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v297] — 2026-07-03 — 🗺️🔦 Backfill de visitadas: tus quests HECHAS prenden el camino recorrido
+
+Para las partidas anteriores al registro de visitas (v289): al abrir el mapa, cada quest HECHA del grafo marca
+su sala Y **la cadena de salas que llevan hasta ahí** (parent-chain del BFS del layout) como visitadas → tu
+partida vieja arranca con el camino iluminado y los iconos 💬🕹️🛒 donde ya estuviste. Idempotente (corre en
+cada apertura, solo suma) y persiste en `ts_visited`. Si tomaste el tesoro, hasta el búnker secreto se revela
+(estuviste ahí). Validado con Playwright: 6 flags → 10 salas backfilleadas con el camino completo.
+
 ## [v296] — 2026-07-03 — 🗺️🌆 Mapa: se ve el BARRIO ENTERO (el fog tapaba todo) + la puerta del chino + sin pisadas
 
 Playtest del dueño: "no figura ni las cuevas, ni los arcades, ni el chino — ¿está hardcodeado?". No: TODO deriva
