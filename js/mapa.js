@@ -205,12 +205,46 @@ const Mapa = (() => {
     return { boxes: out, streetY };
   }
 
+  // SKYLINE (v301, "la cuadra en perspectiva"): silueta por edificio — x real, ALTURA = pisos. Menos detalle,
+  // hover = etiqueta flotante, click = zoom. Compartida por draw y hitTest.
+  function skyBoxes(VW, VH) {
+    const m = model; if (!m || !m.buildings) return { boxes: [] };
+    const padL = 60, padR = 60;
+    const streetY = Math.round(VH * 0.62);
+    const avail = VW - padL - padR;
+    const surf = m.buildings.filter(b => b.up), under = m.buildings.filter(b => !b.up);
+    const maxF = Math.max(...surf.map(b => b.floors), 1);
+    const hUnit = Math.max(6, Math.min(16, (streetY - 96) / maxF));
+    const boxes = [];
+    for (const b of surf) {
+      const entr = m.nodes[b.entrance];
+      const w = Math.max(30, Math.min(120, (entr.w || 24) * (avail / m.streetW) * 0.85));
+      let x = padL + (b.anchor / m.streetW) * avail - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x));
+      const h = Math.max(18, b.floors * hUnit);
+      boxes.push({ b, x, y: streetY - h, w, h, up: true });
+    }
+    for (const b of under) {
+      const w = Math.max(40, Math.min(140, avail * 0.14));
+      let x = padL + (b.anchor / m.streetW) * avail - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x));
+      const h = Math.max(20, b.floors * hUnit * 0.7);
+      boxes.push({ b, x, y: streetY + 14, w, h, up: false });
+    }
+    return { boxes, streetY, hUnit, padL, padR };
+  }
+
   // qué hay bajo el mouse: pestaña de vista, o edificio/nodo (CLICK = zoom). Devuelve { tab } | { anchor } | null.
   function hitTest(VW, VH, st) {
     if (!model) return null;
-    if (st.my >= 30 && st.my <= 48) {                                        // pestañas [MANZANA] [SUBSUELOS]
-      if (st.mx >= 10 && st.mx <= 110) return { tab: 'manzana' };
-      if (st.mx >= 118 && st.mx <= 228) return { tab: 'ss' };
+    if (st.my >= 30 && st.my <= 48) {                                        // pestañas [CUADRA] [MANZANA] [SUBSUELOS]
+      if (st.mx >= 10 && st.mx <= 106) return { tab: 'sky' };
+      if (st.mx >= 112 && st.mx <= 208) return { tab: 'manzana' };
+      if (st.mx >= 214 && st.mx <= 310) return { tab: 'ss' };
+    }
+    if (st.zoom === 'sky') {                                                 // siluetas del skyline
+      const sk = skyBoxes(VW, VH);
+      for (const bx of sk.boxes) if (st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h)
+        return bx.up ? { anchor: bx.b.anchor } : { tab: 'ss' };
+      return null;
     }
     if (st.zoom == null) {                                                   // vista general: cajones por edificio
       const ov = overviewBoxes(VW, VH);
@@ -226,6 +260,89 @@ const Mapa = (() => {
       if (st.mx >= g.x && st.mx <= g.x + g.w && st.my >= g.y && st.my <= g.y + g.h) return { anchor: Math.round(n.anchor), node: n.i };
     }
     return null;
+  }
+
+  // dibuja el SKYLINE ("la cuadra"): siluetas en perspectiva, hover = etiqueta flotante
+  function drawSky(ctx, VW, VH, st, qAt, visited) {
+    const sk = skyBoxes(VW, VH);
+    const sy = sk.streetY;
+    // la calle (ruta con línea punteada al medio)
+    ctx.fillStyle = '#101722'; ctx.fillRect(0, sy, VW, 14);
+    ctx.strokeStyle = 'rgba(255,213,79,0.5)'; ctx.setLineDash([10, 8]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, sy + 7); ctx.lineTo(VW, sy + 7); ctx.stroke(); ctx.setLineDash([]);
+    // Obelisco de fondo a la izquierda (el sub-modo, del catálogo)
+    ctx.strokeStyle = '#4a7a5a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(24, sy); ctx.lineTo(30, sy - 74); ctx.lineTo(36, sy); ctx.closePath(); ctx.stroke();
+    ctx.fillStyle = '#8fc8a0'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('✊', 30, sy - 80);
+    let hover = null;
+    const curB = model.nodes[st.current];
+    // torres ALTAS primero (quedan atrás), locales al frente — con cara lateral (perspectiva)
+    const orden = sk.boxes.slice().sort((a, b) => b.h - a.h);
+    for (const bx of orden) {
+      const b = bx.b;
+      const v = b.rooms.filter(i => visited.has(i)).length;
+      const qs = []; for (const i of b.rooms) for (const e of (qAt[i] || [])) qs.push(questMark(e, st));
+      const star = qs.includes('⭐'), lock = qs.includes('🔒');
+      const iCur = curB && Math.round(curB.anchor) === b.anchor && st.current !== 0 && !st.sub;
+      const hov = st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h;
+      if (hov) hover = { bx, v, qs };
+      const alpha = 0.14 + 0.4 * (v / Math.max(1, b.floors));
+      // cara lateral (extrusión: "de costado en perspectiva")
+      ctx.fillStyle = 'rgba(40,60,95,' + (alpha * 0.8) + ')';
+      ctx.beginPath(); ctx.moveTo(bx.x + bx.w, bx.y); ctx.lineTo(bx.x + bx.w + 7, bx.y - 5);
+      ctx.lineTo(bx.x + bx.w + 7, bx.y + bx.h - 5); ctx.lineTo(bx.x + bx.w, bx.y + bx.h); ctx.closePath(); ctx.fill();
+      // frente
+      ctx.fillStyle = 'rgba(70,110,170,' + alpha + ')'; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+      ctx.strokeStyle = iCur ? '#ffd54f' : star ? '#ffe27a' : hov ? '#9fc8ff' : 'rgba(110,150,200,0.55)';
+      ctx.lineWidth = iCur || hov ? 2 : 1; ctx.strokeRect(bx.x + 0.5, bx.y + 0.5, bx.w, bx.h);
+      // líneas de pisos (detalle mínimo)
+      if (bx.up && b.floors > 1) { ctx.strokeStyle = 'rgba(120,160,220,0.14)'; ctx.lineWidth = 1;
+        const step = bx.h / b.floors;
+        for (let k = 1; k < Math.min(b.floors, 24); k++) { ctx.beginPath(); ctx.moveTo(bx.x + 2, bx.y + k * step); ctx.lineTo(bx.x + bx.w - 2, bx.y + k * step); ctx.stroke(); } }
+      // señales mínimas: ⭐ latiendo arriba / ?? / dónde estás
+      if (star) { ctx.fillStyle = 'rgba(255,226,122,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 5)) + ')'; ctx.font = '11px monospace'; ctx.textAlign = 'center'; ctx.fillText('⭐', bx.x + bx.w / 2, bx.y - 4); }
+      else if (lock) { ctx.fillStyle = 'rgba(150,170,200,0.7)'; ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillText('??', bx.x + bx.w / 2, bx.y - 4); }
+      if (iCur) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx.x + bx.w / 2, bx.y + bx.h / 2, 4, 0, Math.PI * 2); ctx.fill(); }
+      bx._v = v;   // para el pase de nombres
+      // los de CINETOP (bodegón/telo) como cartelitos en la azotea del cine
+      if (bx.up && /cine/i.test(b.name)) {
+        SUBMODES.filter(x => x.anchor === 'cinetop').forEach((x2, k) => {
+          ctx.fillStyle = st.sub === x2.id ? '#ffe9b0' : '#8fc8a0'; ctx.font = '8px monospace'; ctx.textAlign = 'left';
+          ctx.fillText('· ' + x2.name.replace(/^El /, ''), bx.x + 2, bx.y - 14 - k * 10);
+        });
+      }
+    }
+    // nombres de BASE con presupuesto (ordenados por x; si no entra, no se escribe — el hover lo da)
+    {
+      let upEnd = -1, dnEnd = -1;
+      for (const bx of sk.boxes.slice().sort((a, b2) => a.x - b2.x)) {
+        const name = String(bx.b.name).slice(0, Math.max(4, Math.floor(bx.w / 5.5)));
+        const cx = bx.x + bx.w / 2, half = name.length * 2.6;
+        const end = bx.up ? upEnd : dnEnd;
+        if (cx - half < end + 4) continue;
+        ctx.fillStyle = (bx._v ? 'rgba(210,228,245,0.85)' : 'rgba(150,170,195,0.5)'); ctx.font = '8px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(name, cx, bx.y + bx.h - 4);
+        if (bx.up) upEnd = cx + half; else dnEnd = cx + half;
+      }
+    }
+    // estás en la CALLE: punto sobre la ruta
+    if (st.current === 0 && !st.sub) { const px = 60 + (st.px01 || 0.5) * (VW - 120);
+      ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(px, sy + 7, 4, 0, Math.PI * 2); ctx.fill(); }
+    // hover: etiqueta FLOTANTE al lado del mouse (poco más de info; el click abre el detalle)
+    if (hover) {
+      const b = hover.bx.b;
+      const done = hover.qs.filter(q => q === '✅').length, stars = hover.qs.filter(q => q === '⭐').length;
+      const txt = b.name.slice(0, 24) + '  ×' + b.floors + ' 🔦' + hover.v + '/' + b.floors +
+        (done ? ' ✅' + done : '') + (stars ? ' ⭐' + stars : '') + (hover.qs.includes('🔒') ? ' ??' : '');
+      const tw = txt.length * 6.2 + 12;
+      const tx2 = Math.min(VW - tw - 4, st.mx + 12), ty2 = Math.max(34, st.my - 26);
+      ctx.fillStyle = 'rgba(4,8,14,0.95)'; ctx.fillRect(tx2, ty2, tw, 18);
+      ctx.strokeStyle = '#2a4a6a'; ctx.strokeRect(tx2 + 0.5, ty2 + 0.5, tw, 18);
+      ctx.fillStyle = '#ffe9b0'; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText(txt, tx2 + 6, ty2 + 13);
+    }
+    return hover;
   }
 
   // dibuja la vista GENERAL y devuelve el cajón bajo el mouse (para el tooltip)
@@ -290,23 +407,24 @@ const Mapa = (() => {
     // header + PESTAÑAS de vista (v298: [1] manzana / [2] subsuelos — pedido del dueño: "elegir qué ver")
     ctx.fillStyle = '#0a0a0e'; ctx.fillRect(0, 0, VW, 30);
     ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'left';
-    ctx.fillText('🗺️ ' + (typeof st.zoom === 'number' ? T('g.mapa.zoomTitle') : st.zoom === 'ss' ? T('g.mapa.ssTitle') : T('g.mapa.title')), 10, 20);
+    ctx.fillText('🗺️ ' + (typeof st.zoom === 'number' ? T('g.mapa.zoomTitle') : st.zoom === 'ss' ? T('g.mapa.ssTitle') : st.zoom === 'sky' ? T('g.mapa.skyTitle') : T('g.mapa.title')), 10, 20);
     ctx.textAlign = 'right'; ctx.fillStyle = '#9be8a0'; ctx.font = '10px monospace';
     ctx.fillText((st.online ? '👥 ' + st.online + ' · ' : '') + T('g.mapa.hint'), VW - 10, 19);
     if (typeof st.zoom !== 'number') {
-      const tabs = [[10, T('g.mapa.tabManzana'), st.zoom == null], [118, T('g.mapa.tabSS'), st.zoom === 'ss']];
+      const tabs = [[10, T('g.mapa.tabSky'), st.zoom === 'sky'], [112, T('g.mapa.tabManzana'), st.zoom == null], [214, T('g.mapa.tabSS'), st.zoom === 'ss']];
       for (const [tx, label2, act] of tabs) {
-        ctx.fillStyle = act ? 'rgba(255,213,79,0.15)' : 'rgba(90,140,200,0.08)'; ctx.fillRect(tx, 31, 100, 16);
-        ctx.strokeStyle = act ? '#ffd54f' : '#3a5a80'; ctx.strokeRect(tx + 0.5, 31.5, 100, 16);
+        ctx.fillStyle = act ? 'rgba(255,213,79,0.15)' : 'rgba(90,140,200,0.08)'; ctx.fillRect(tx, 31, 96, 16);
+        ctx.strokeStyle = act ? '#ffd54f' : '#3a5a80'; ctx.strokeRect(tx + 0.5, 31.5, 96, 16);
         ctx.fillStyle = act ? '#ffe9b0' : '#7fa8c8'; ctx.font = (act ? 'bold ' : '') + '9px monospace'; ctx.textAlign = 'center';
-        ctx.fillText(label2, tx + 50, 42);
+        ctx.fillText(label2, tx + 48, 42);
       }
     }
-    // VISTA GENERAL (v299): cajones por edificio — de menor a mayor detalle; el loop fino queda para zoom/subsuelos
+    // VISTA GENERAL (v299): cajones por edificio; SKYLINE (v301): la cuadra en perspectiva
     let hoverBox = null;
     if (st.zoom == null) hoverBox = drawOverview(ctx, VW, VH, st, qAt, visited);
+    if (st.zoom === 'sky') drawSky(ctx, VW, VH, st, qAt, visited);
     // conexiones (puertas) — solo entre visitados (fog), solo en las vistas de detalle
-    if (st.zoom != null) {
+    if (st.zoom === 'ss' || typeof st.zoom === 'number') {
     ctx.strokeStyle = 'rgba(90,140,200,0.25)'; ctx.lineWidth = 1;
     for (const n of model.nodes) { if (!visited.has(n.i)) continue; const g1 = geom(n, VW, VH, st.zoom); if (!g1) continue;
       for (const d of (n.room.doors || [])) { const to = d.to; if (typeof to !== 'number' || !model.nodes[to] || !visited.has(to)) continue;
@@ -315,7 +433,7 @@ const Mapa = (() => {
     }
     let hoverNode = null;
     const drawList = [];
-    if (st.zoom != null) {
+    if (st.zoom === 'ss' || typeof st.zoom === 'number') {
       for (const n of model.nodes) { const g = geom(n, VW, VH, st.zoom); if (!g) continue; drawList.push({ n, g }); }
       drawList.sort((a, b) => a.g.x - b.g.x || a.g.y - b.g.y);
     }
@@ -455,7 +573,7 @@ const Mapa = (() => {
   }
 
   function groupAt(current) { const n = model && model.nodes[current]; return n ? Math.round(n.anchor) : null; }
-  return { build, draw, groupAt, hitTest, overview: overviewBoxes, get model() { return model; } };
+  return { build, draw, groupAt, hitTest, overview: overviewBoxes, sky: skyBoxes, get model() { return model; } };
 })();
 if (typeof window !== 'undefined') window.Mapa = Mapa;
 if (typeof module !== 'undefined') module.exports = Mapa;

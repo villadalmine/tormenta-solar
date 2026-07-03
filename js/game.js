@@ -3517,12 +3517,13 @@
         piquete: loadPiqueteWon(), zoom: mapaZoom, sub: null });
       // Z: dentro de un edificio = zoom a ESE edificio; en la calle no hace nada (el click manda, v300)
       if (trucoTap('z')) mapaZoom = (mapaZoom == null && current !== 0) ? Mapa.groupAt(current) : null;
-      if (trucoTap('1')) mapaZoom = null;                                              // [1] la manzana (superficie)
-      if (trucoTap('2')) mapaZoom = 'ss';                                              // [2] los subsuelos (v298)
+      if (trucoTap('1')) mapaZoom = 'sky';                                             // [1] la cuadra (skyline, v301)
+      if (trucoTap('2')) mapaZoom = null;                                              // [2] la manzana (cajones)
+      if (trucoTap('3')) mapaZoom = 'ss';                                              // [3] los subsuelos
       // CLICK: pestaña de vista / edificio = zoom / con zoom de edificio abierto = volver (v293/v298)
       if (Input.mouse.down && !mapaClickHeld) { mapaClickHeld = true;
         const hit = Mapa.hitTest && Mapa.hitTest(W, H, { zoom: mapaZoom, mx: Input.mouse.x, my: Input.mouse.y, visited: visitedRooms });
-        if (hit && hit.tab) mapaZoom = hit.tab === 'ss' ? 'ss' : null;
+        if (hit && hit.tab) mapaZoom = hit.tab === 'ss' ? 'ss' : hit.tab === 'sky' ? 'sky' : null;
         else if (typeof mapaZoom === 'number') mapaZoom = null;
         else if (hit && hit.anchor != null) mapaZoom = hit.anchor;
       } else if (!Input.mouse.down) mapaClickHeld = false;

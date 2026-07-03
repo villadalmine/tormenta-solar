@@ -47,6 +47,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v301] — 2026-07-03 — 🏙️ Tercera vista: LA CUADRA — el skyline de Florida en perspectiva
+
+Pedido del dueño: "una visión más de arriba/de costado en perspectiva que entre todo con menos detalle; hover =
+poco más; click = detalle; una pestaña más como manzana y subsuelos".
+- **[1] LA CUADRA:** siluetas de los edificios en su x REAL con **altura = pisos reales** (la torre de 21 del
+  abandonado domina el cielo, el cine al medio, los locales bajitos) + cara lateral extruida (perspectiva),
+  líneas de piso tenues, brillo por descubrimiento, ⭐ latiendo en la azotea si hay quest / ?? si se esconde
+  algo, el Obelisco de fondo, bodegón/telo como cartelitos en la azotea del cine, subsuelos como losas bajo la
+  ruta. Nombres de base con presupuesto (si no entra, el hover lo da).
+- **Hover = etiqueta FLOTANTE** al lado del mouse (nombre ×pisos 🔦descubierto ✅⭐??) · **click = zoom** al
+  detalle de pisos. Pestañas ahora: [1] cuadra · [2] manzana · [3] subsuelos.
+- El bot (autoplay 07) también mira el skyline: siluetas ≥8 + captura por corrida.
+
 ## [v300 🎉] — 2026-07-03 — 🗺️🧭 Mapa: ORIENTACIÓN espacial + categoría 🎮 MULTIJUGADOR + el bot mira las vistas
 
 Pulido sobre el rediseño (feedback del dueño: "tiene la data pero no orientación; multiplayer afuera; textos

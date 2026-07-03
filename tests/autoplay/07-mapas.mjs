@@ -29,10 +29,15 @@ try {
   s.check('vista general: cajones por edificio (≥8) SIN solapes', ov.n >= 8 && ov.solapes === 0, JSON.stringify(ov));
   s.check('las pestañas responden al hitTest', ov.tab);
   await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-vista-general.png' });
-  // [2] SUBSUELOS (tecla sostenida: un tap real dura >1 frame)
-  await p.keyboard.down('2'); await p.waitForTimeout(150); await p.keyboard.up('2'); await p.waitForTimeout(300);
-  await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-subsuelos.png' });
+  // [1] LA CUADRA (skyline): siluetas por edificio con altura = pisos
   await p.keyboard.down('1'); await p.waitForTimeout(150); await p.keyboard.up('1'); await p.waitForTimeout(300);
+  const sky = await p.evaluate(() => { const cv = document.getElementById('screen'); const k = Mapa.sky(cv.width, cv.height); return { n: (k.boxes || []).length }; });
+  s.check('skyline: siluetas por edificio (≥8)', sky.n >= 8, 'boxes=' + sky.n);
+  await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-skyline.png' });
+  // [2] SUBSUELOS (tecla sostenida: un tap real dura >1 frame)
+  await p.keyboard.down('3'); await p.waitForTimeout(150); await p.keyboard.up('3'); await p.waitForTimeout(300);
+  await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-subsuelos.png' });
+  await p.keyboard.down('2'); await p.waitForTimeout(150); await p.keyboard.up('2'); await p.waitForTimeout(300);
   await p.keyboard.press('Tab'); await p.waitForTimeout(400);
   s.check('[TAB] cierra el automap (HUD vuelve)', await p.evaluate(() => !document.getElementById('hud').classList.contains('hidden')));
   // el PLANO del búnker (módulo real): conectado OK, desconectado falla, quitar devuelve

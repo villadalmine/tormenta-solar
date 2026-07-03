@@ -297,6 +297,8 @@
     'g.globo.title': 'Mapa del mundo — sala de situación',
     'g.globo.hint': 'arrastrá / ←→ girar · click seleccionar · Esc salir',
     // NPCs VIVOS: chusmerío derivado del estado (antes hardcodeado ES; ahora con paridad EN)
+    'g.mapa.tabSky': 'LA CUADRA 🏙️',
+    'g.mapa.skyTitle': 'La cuadra — Florida de costado',
     'g.mapa.tabManzana': 'LA MANZANA',
     'g.mapa.tabSS': 'SUBSUELOS ⛏️',
     'g.mapa.ssTitle': 'Los subsuelos — galería, sótano y cuevas',
@@ -306,7 +308,7 @@
     'g.mapa.locked': 'se destraba más adelante',
     'g.mapa.title': 'Mapa — Florida y Lavalle',
     'g.mapa.zoomTitle': 'Mapa — el edificio (Z para volver)',
-    'g.mapa.hint': 'click = zoom · [1] manzana · [2] subsuelos · [TAB] cerrar',
+    'g.mapa.hint': 'click = zoom · [1] cuadra · [2] manzana · [3] subsuelos · [TAB] cerrar',
     'g.mapa.aca': 'ACÁ',
     'g.mapa.piso': 'Piso {n}', 'g.mapa.sub': 'Subsuelo {n}',
     'g.morir.piquete': '✊ La muchachada peronista te levanta del asfalto: «¡FLACO! ¿Qué te pasó? Te TELETRANSPORTASTE acá como un RAYO SOLAR…» Te convidan un chori 🌭 y un vaso de vino. En el piquete no se muere nadie, compañero.',
