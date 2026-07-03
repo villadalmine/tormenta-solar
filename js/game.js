@@ -470,6 +470,47 @@
     lastSave = t;
     const snap = serialize(); if (snap) SaveStore.write(snap);
   }
+  // ── CHECKPOINTS POR HITO (specs/guardar-partida.md): cada arista del grafo guarda un snapshot aparte del
+  // autosave; morir post-búnker ofrece "⏪ volver al último hito" en vez de perder la partida entera.
+  // Modo HARDCORE (⚙ Opciones, ts_hardcore) = permadeath clásico. F3: viaja con tu nick (patrón barrio-mem).
+  const CHK_KEY = 'ts_checkpoint_v1';
+  const isHardcore = () => { try { return localStorage.getItem('ts_hardcore') === '1'; } catch (e) { return false; } };
+  function loadCheckpoint() { try { const c = JSON.parse(localStorage.getItem(CHK_KEY) || 'null'); return (c && c.snap && c.snap.v) ? c : null; } catch (e) { return null; } }
+  let chkPostT = 0;
+  function saveCheckpoint(edgeId) {
+    try {
+      // en sub-modos (ej. el juramento pasa DENTRO de Lavalle) serialize() da null → usamos el último autosave
+      // (≤5s viejo; los flags que viven en localStorage —juramento, piqueteWon— quedan afuera del snap igual)
+      const snap = serialize() || (typeof SaveStore !== 'undefined' && SaveStore.read ? SaveStore.read() : null);
+      if (!snap) return;
+      const edges = (typeof Historia !== 'undefined' && Historia.edges) || [];
+      const e = edges.find(x => x.id === edgeId);
+      const chk = { edge: edgeId, title: (e && e.title) || edgeId, ts: Date.now(), snap };
+      localStorage.setItem(CHK_KEY, JSON.stringify(chk));
+      // F3: cross-device por nick (fire-and-forget, debounced 30s — patrón Eventos.sync)
+      const now = Date.now();
+      if (now - chkPostT > 30000) { chkPostT = now;
+        try { fetch(CHK_PROXY + '/checkpoint', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nick: playerNick(), chk }), keepalive: true }).catch(() => {}); } catch (e2) {}
+      }
+    } catch (e) {}
+  }
+  const CHK_PROXY = 'https://llm-tormenta-solar.cybercirujas.club';
+  // F3 (arranque): si el server tiene un checkpoint MÁS NUEVO con tu nick → bajarlo; y si no hay autosave
+  // local pero sí checkpoint (dispositivo nuevo) → el checkpoint SE VUELVE el save (aparece CONTINUAR solo).
+  function syncCheckpoint() {
+    try {
+      fetch(CHK_PROXY + '/checkpoint?nick=' + encodeURIComponent(playerNick())).then(r => (r.ok ? r.json() : null)).then(d => {
+        if (!d || !d.chk || !d.chk.snap) return;
+        const loc = loadCheckpoint();
+        if (!loc || (d.chk.ts || 0) > (loc.ts || 0)) localStorage.setItem(CHK_KEY, JSON.stringify(d.chk));
+        const cur = loadCheckpoint();
+        if (cur && typeof SaveStore !== 'undefined' && !SaveStore.has() && SaveStore.write) {
+          SaveStore.write(cur.snap);
+          const b = document.getElementById('continueBtn'); if (b) b.classList.remove('hidden');
+        }
+      }).catch(() => {});
+    } catch (e) {}
+  }
 
   function setMsg(t, c, ms = 3000) {
     elMsg.textContent = t; elMsg.style.color = c || '#ff5252'; elMsg.style.opacity = '1';
@@ -961,8 +1002,8 @@
     if (typeof Salon !== 'undefined' && Salon.enabled) Salon.beat(currentAt(), id);   // MULTIJUGADOR F1: hito anónimo al ticker del "Cine EN VIVO"
     tel('quest', { result: id });   // métrica: qué quest/arista de la historia se completó (dashboard)
     evlog('hito', id);   // al bus de eventos (los NPC comentan lo fresco)
-    if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); return true; }
-    if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) FLAG_SETTERS[fallbackFlag](true);   // grafo ausente → red de seguridad
+    if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); saveCheckpoint(id); return true; }
+    if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) { FLAG_SETTERS[fallbackFlag](true); saveCheckpoint(id); }   // grafo ausente → red de seguridad
     return false;
   }
   function historiaState() {
@@ -3268,6 +3309,14 @@
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // moriste de verdad: guardado a la basura
     elEndTitle.textContent = T('g.die.title'); elEndTitle.style.color = '#ff5252';
     elEndText.innerHTML = T('g.die.text'); renderStats(false);
+    // guardar-partida.md: si hay CHECKPOINT (y no jugás hardcore) → "⏪ volver al último hito".
+    // OJO: el checkpoint NO se re-escribe al morir (no hay farmeo de muerte).
+    const hitoBtn = document.getElementById('hitoBtn');
+    if (hitoBtn) {
+      const chk = !isHardcore() && loadCheckpoint();
+      hitoBtn.classList.toggle('hidden', !chk);
+      if (chk) hitoBtn.textContent = T('g.chk.btn', { t: chk.title });
+    }
     showEnd();
   }
   function toggleMapa() {
@@ -3672,6 +3721,25 @@
       refresh();
     });
   })();
+  // "⏪ VOLVER AL ÚLTIMO HITO" en la pantalla de muerte (guardar-partida.md F1) + toggle HARDCORE (F2).
+  (function () {
+    if (typeof document === 'undefined' || !document.getElementById) return;
+    const hb = document.getElementById('hitoBtn');
+    if (hb) hb.addEventListener('click', () => {
+      const chk = loadCheckpoint(); if (!chk) return;
+      tel('death', { result: 'hito_return' });   // métrica: cuánta gente usa el checkpoint (Grafana)
+      hb.classList.add('hidden');
+      continueGame(chk.snap);
+      setMsg(T('g.chk.loaded', { t: chk.title }), '#7CFC00', 6000);
+    });
+    const hc = document.getElementById('opt-hardcore');
+    if (hc) {
+      const refresh = () => { hc.textContent = isHardcore() ? 'ON 💀' : 'OFF'; };
+      refresh();
+      hc.addEventListener('click', () => { try { localStorage.setItem('ts_hardcore', isHardcore() ? '' : '1'); } catch (e) {} refresh(); });
+    }
+    syncCheckpoint();   // F3: en la INTRO — dispositivo nuevo con tu nick → baja el checkpoint y aparece CONTINUAR
+  })();
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos
   // el snapshot y el "continuar". Sin esta capa, el juego anda igual (nadie llama a esto).
@@ -3679,6 +3747,8 @@
     // superficie de prueba (e2e) del nivel-AI en el motor real (rooms-swap): lanzar / consultar / salir
     __nivelai: { launch: launchNivelAI, end: endSpinoffLevel, active: () => spinoffLevel, room: () => rooms[current], player: () => player },
     // superficie de prueba (e2e) del GATE del cuevero (specs/cuevero-gate-truco.md): ruta A (Guido) y ruta B (vos)
+    // superficie de prueba (e2e) de los CHECKPOINTS por hito (guardar-partida.md)
+    __chk: { save: saveCheckpoint, load: loadCheckpoint },
     __gate: {
       flags: () => ({ cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing, bought, stormed }),
       cuevero: () => handleCuevero({ outcome: 'real', dialog: 'test' }),   // hablar al cuevero que cambia

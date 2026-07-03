@@ -483,6 +483,8 @@
     // --- chat ---
     'g.chat.offline': '(sin IA conectada — respuestas predefinidas. Pegá tu API key en ⚙ Opciones.)',
     'g.chat.online': '(charlando con IA — {mode})',
+    'g.chk.btn': '⏪ VOLVER AL ÚLTIMO HITO: «{t}»',
+    'g.chk.loaded': 'La historia te recuerda, pibe: volviste al hito «{t}». En el barrio no se empieza de cero. 💾✊',
     'g.chat.remembers': '💭 (se acuerda de vos)',
     'g.idea.pend': 'MEMORIA TUYA: hace {min} min VOS le tiraste la idea de «{idea}» y no te contestó — si te viene con eso, acordate de que fue idea TUYA y seguile la corriente.',
     'g.idea.done': 'MEMORIA TUYA: vos le sugeriste «{idea}» y el pibe TE HIZO CASO (ya lo hizo) — felicitalo o chicanealo con eso.',

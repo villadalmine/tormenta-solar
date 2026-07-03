@@ -107,6 +107,14 @@ let DEPLOYLOG = { last: {}, hist: [] };            // last[component]={tag,statu
 function loadDeployLog() { try { const d = JSON.parse(fs.readFileSync(DEPLOYLOG_STORE, 'utf8')); if (d && d.last) DEPLOYLOG = d; } catch (e) {} }
 function saveDeployLog() { try { fs.mkdirSync(DEPLOYLOG_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(DEPLOYLOG_STORE, JSON.stringify(DEPLOYLOG)); } catch (e) { console.error('deploylog save:', e.message); } }
 loadDeployLog();
+// ── CHECKPOINTS por nick (guardar-partida.md F3): el último hito de tu partida viaja entre dispositivos.
+// Mismo patrón que barrio-mem: banco PVC + LRU + anti-spam. Cap 32KB por snapshot, 500 nicks (~16MB máx).
+const CHECKPOINT_STORE = process.env.CHECKPOINT_STORE || '/data/checkpoints.json';
+let CHECKPOINTS = {};                                      // nick -> { chk:{edge,title,ts,snap}, up:ts }
+const CHK_POST_GAP = {};                                   // anti-spam: 1 POST cada 25s por nick
+function loadCheckpoints() { try { CHECKPOINTS = JSON.parse(fs.readFileSync(CHECKPOINT_STORE, 'utf8')) || {}; } catch (e) { CHECKPOINTS = {}; } }
+function saveCheckpoints() { try { fs.mkdirSync(CHECKPOINT_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(CHECKPOINT_STORE, JSON.stringify(CHECKPOINTS)); } catch (e) { console.error('checkpoints save:', e.message); } }
+loadCheckpoints();
 // ── QA REPORTE (autoplay-qa.md §2.2/F2): el CronWorkflow tormenta-autoplay publica acá su veredicto →
 // métrica tormenta_qa_failed → PrometheusRule → Telegram + el prompt de auto-fix queda legible sin kubectl.
 const QA_STORE = process.env.QA_STORE || '/data/qa.json';
@@ -870,6 +878,29 @@ http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/deploy-log') {                          // historial (auditoría, sin token: no hay secretos)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify(DEPLOYLOG));
+  }
+  // CHECKPOINTS por nick (guardar-partida.md F3): leer / subir el último hito de tu partida.
+  if (req.method === 'GET' && req.url.startsWith('/checkpoint')) {
+    const nick = bmNick(new URL(req.url, 'http://x').searchParams.get('nick'));
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ chk: (nick && CHECKPOINTS[nick] && CHECKPOINTS[nick].chk) || null }));
+  }
+  if (req.method === 'POST' && req.url === '/checkpoint') {
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 32000) req.destroy(); });   // cap 32KB (snapshot típico: 3-15KB)
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const nick = bmNick(d.nick);
+      const chk = d.chk;
+      if (!nick || !chk || !chk.snap || !chk.snap.v) { res.writeHead(400); return res.end('bad'); }
+      const now = Date.now();
+      if (CHK_POST_GAP[nick] && now - CHK_POST_GAP[nick] < 25000) { res.writeHead(429); return res.end('slow'); }
+      CHK_POST_GAP[nick] = now;
+      CHECKPOINTS[nick] = { chk: { edge: String(chk.edge || '').slice(0, 48), title: String(chk.title || '').slice(0, 80), ts: +chk.ts || now, snap: chk.snap }, up: now };
+      const nicks = Object.keys(CHECKPOINTS);              // LRU 500 nicks (~16MB máx en PVC)
+      if (nicks.length > 500) nicks.sort((a, b) => (CHECKPOINTS[a].up || 0) - (CHECKPOINTS[b].up || 0)).slice(0, nicks.length - 500).forEach(k => delete CHECKPOINTS[k]);
+      saveCheckpoints();
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
   }
   // QA REPORTE (autoplay-qa.md F2): el cron nocturno publica el veredicto de las suites (GEN_TOKEN).
   if (req.method === 'POST' && req.url === '/qa/reporte') {

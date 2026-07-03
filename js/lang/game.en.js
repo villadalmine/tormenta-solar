@@ -471,6 +471,8 @@
 
     'g.chat.offline': '(no AI connected — canned replies. Drop your API key in ⚙ Options.)',
     'g.chat.online': '(chatting with AI — {mode})',
+    'g.chk.btn': '⏪ BACK TO LAST MILESTONE: «{t}»',
+    'g.chk.loaded': 'The story remembers you, kid: back at the «{t}» milestone. Nobody starts from scratch in this barrio. 💾✊',
     'g.chat.remembers': '💭 (he remembers you)',
     'g.idea.pend': 'YOUR MEMORY: {min} min ago YOU pitched him the idea of «{idea}» and he never answered — if he brings it up, remember it was YOUR idea and roll with it.',
     'g.idea.done': 'YOUR MEMORY: you suggested «{idea}» and the kid TOOK YOUR ADVICE (already did it) — congratulate him or tease him about it.',

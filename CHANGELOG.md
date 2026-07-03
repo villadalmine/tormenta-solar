@@ -80,6 +80,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v291 · infra-65] — 2026-07-03 — 💾✊ GUARDAR PARTIDA: checkpoints por HITO del grafo (F1+F2+F3)
+
+"El juego se puso muy difícil" → morir ya no borra la partida. `specs/guardar-partida.md`. Proxy 0.1.87.
+- **F1 — checkpoint automático por hito:** cada arista del grafo (`applyEdge`) guarda un snapshot aparte
+  (`ts_checkpoint_v1`, con el TÍTULO del hito); al **morir post-búnker** la pantalla de muerte ofrece
+  **"⏪ VOLVER AL ÚLTIMO HITO: «…»"** (retomás tu último logro; perdés solo lo suelto desde entonces) además de
+  REINTENTAR. El checkpoint NO se re-escribe al morir (sin farmeo). En sub-modos usa el último autosave (≤5s).
+- **F2 — pulido:** botón con el nombre del hito, **modo HARDCORE 💀** en ⚙ Opciones (permadeath clásico, para
+  puristas), métrica `tel('death',{result:'hito_return'})` → Grafana (cuánta gente lo usa).
+- **F3 — cross-device por nick:** el checkpoint viaja al proxy (`GET/POST /checkpoint`, patrón barrio-mem: PVC +
+  LRU 500 nicks + cap 32KB + anti-spam 25s) → en un dispositivo nuevo con tu nick, **CONTINUAR aparece solo**
+  (el checkpoint se vuelve el save). i18n ES/EN completo; e2e `Game.__chk` (guardar→cargar→re-entrar).
+
 ## [tests · 2026-07-03] — 🤖 Autoplay QA F4: el bot ya juega el JUEGO ENTERO (8/8 suites) + SDD guardar partida
 
 - **F4**: 4 suites nuevas — **02-calle** (camina, hints [E], entra/sale por puertas REALES leídas del modelo),

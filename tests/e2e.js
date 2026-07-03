@@ -155,6 +155,14 @@ if (require.main === module) {
       out.push('FAIL gate del cuevero no round-trippeó: ' + JSON.stringify(back && back.flags));
     // un snapshot inválido NO debe romper (continueGame cae a start())
     if (Game.serialize() == null) out.push('FAIL quedó fuera de juego tras restore');
+    // CHECKPOINTS por hito (guardar-partida.md F1): guardar durante el juego → cargar coherente + re-entrar
+    if (!Game.__chk) out.push('FAIL no expone Game.__chk');
+    else {
+      Game.__chk.save('e2e_hito');
+      const chk = Game.__chk.load();
+      if (!chk || chk.edge !== 'e2e_hito' || !chk.snap || chk.snap.v !== 2) out.push('FAIL checkpoint no guardó: ' + JSON.stringify(chk && { e: chk.edge, v: chk.snap && chk.snap.v }));
+      else { Game.continueGame(chk.snap); if (Game.serialize() == null) out.push('FAIL no volvió al juego desde el checkpoint'); }
+    }
     return JSON.stringify(out);
   })()`, sandbox);
   const sb = JSON.parse(save);
