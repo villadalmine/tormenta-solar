@@ -14,6 +14,25 @@ try {
   s.check('[TAB] abre el automap (HUD se esconde)', abierto.hudOculto);
   s.check('el mapa ancla TODAS las salas (51+)', abierto.nodos >= 51 && abierto.anclados === abierto.nodos, abierto.anclados + '/' + abierto.nodos);
   await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-mapa-tab.png' });
+  // la VISTA GENERAL (v300): cajones por edificio, SIN solapes (el bot mira lo que el dueño mira)
+  const ov = await p.evaluate(() => {
+    const cv = document.getElementById('screen');
+    const o = Mapa.overview(cv.width, cv.height);
+    const bs = o.boxes.map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h, name: b.b.name }));
+    let solapes = 0;
+    for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) {
+      const a = bs[i], c = bs[j];
+      if (a.x < c.x + c.w && c.x < a.x + a.w && a.y < c.y + c.h && c.y < a.y + a.h) solapes++;
+    }
+    return { n: bs.length, solapes, tab: !!(Mapa.hitTest(cv.width, cv.height, { zoom: null, mx: 150, my: 40, visited: new Set() }) || {}).tab };
+  });
+  s.check('vista general: cajones por edificio (≥8) SIN solapes', ov.n >= 8 && ov.solapes === 0, JSON.stringify(ov));
+  s.check('las pestañas responden al hitTest', ov.tab);
+  await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-vista-general.png' });
+  // [2] SUBSUELOS (tecla sostenida: un tap real dura >1 frame)
+  await p.keyboard.down('2'); await p.waitForTimeout(150); await p.keyboard.up('2'); await p.waitForTimeout(300);
+  await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-subsuelos.png' });
+  await p.keyboard.down('1'); await p.waitForTimeout(150); await p.keyboard.up('1'); await p.waitForTimeout(300);
   await p.keyboard.press('Tab'); await p.waitForTimeout(400);
   s.check('[TAB] cierra el automap (HUD vuelve)', await p.evaluate(() => !document.getElementById('hud').classList.contains('hidden')));
   // el PLANO del búnker (módulo real): conectado OK, desconectado falla, quitar devuelve

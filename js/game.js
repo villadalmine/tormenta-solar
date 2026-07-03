@@ -3513,8 +3513,10 @@
       Mapa.draw(ctx, W, H, { current, t: time, px01: r0 ? (player.x + player.w / 2) / (r0.w * Level.TILE) : 0.5,
         visited: visitedRooms, edges: (typeof Historia !== 'undefined' && Historia.edges) || [], flags: historiaState(),
         frontier: mapaFrontier, stormed, mx: Input.mouse.x, my: Input.mouse.y,
-        online: (salonLive && salonLive.count) || 0, zoom: mapaZoom, sub: null });
-      if (trucoTap('z')) mapaZoom = mapaZoom == null ? Mapa.groupAt(current) : null;   // Z = zoom al edificio actual
+        online: (salonLive && salonLive.count) || 0, live: (salonLive && salonLive.byRoom) || {},
+        piquete: loadPiqueteWon(), zoom: mapaZoom, sub: null });
+      // Z: dentro de un edificio = zoom a ESE edificio; en la calle no hace nada (el click manda, v300)
+      if (trucoTap('z')) mapaZoom = (mapaZoom == null && current !== 0) ? Mapa.groupAt(current) : null;
       if (trucoTap('1')) mapaZoom = null;                                              // [1] la manzana (superficie)
       if (trucoTap('2')) mapaZoom = 'ss';                                              // [2] los subsuelos (v298)
       // CLICK: pestaña de vista / edificio = zoom / con zoom de edificio abierto = volver (v293/v298)

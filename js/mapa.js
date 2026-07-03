@@ -139,7 +139,7 @@ const Mapa = (() => {
     const y0 = 64 + m.maxUp * rowH;                                          // fila de la calle
     const row = m.rowOf[n.level] || 0;
     let w, x;
-    if (typeof zoomAnchor === 'number') { w = VW * 0.5; x = (VW - w) / 2; }
+    if (typeof zoomAnchor === 'number') { w = VW * 0.44; x = Math.max(70, (VW - w) / 2 - VW * 0.06); }
     else if (n.i === 0) { w = VW - padL - padR; x = padL; }
     else {
       const sx = (VW - padL - padR) / m.streetW; w = Math.max(34, Math.min(120, n.w * sx * 0.9)); x = padL + n.anchor * sx - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x));
@@ -172,22 +172,35 @@ const Mapa = (() => {
     const padL = PADL(VW), padR = PADR;
     const surf = m.buildings.filter(b => b.up), under = m.buildings.filter(b => !b.up);
     const out = [];
-    const flow = (list, yBase, dir) => {
+    // slot por POSICIÓN REAL en la calle (orientación espacial: oeste→este se conserva);
+    // si el slot ideal está tomado, prueba el más cercano libre en la fila y después la otra fila
+    const flow = (list, yBase, rowStep) => {
       const avail = VW - padL - padR;
-      const perRow = Math.max(1, Math.floor(avail / 118));
-      const rows2 = Math.ceil(list.length / perRow);
-      const slot = avail / Math.min(list.length, perRow);
-      list.forEach((b, i) => {
-        const r = Math.floor(i / perRow), c = i % perRow;
-        const inRow = Math.min(list.length - r * perRow, perRow);
-        const rowSlot = avail / inRow;
-        out.push({ b, x: padL + c * rowSlot + 4, y: yBase + dir * r * 64, w: rowSlot - 8, h: 56 });
-      });
-      return rows2;
+      const perRow = Math.max(2, Math.floor(avail / 118));
+      const slotW = avail / perRow;
+      const taken = {};   // 'fila:slot' → true
+      let maxRow = 0;
+      for (const b of list) {
+        const ideal = Math.max(0, Math.min(perRow - 1, Math.round((b.anchor / m.streetW) * (perRow - 1))));
+        // la COLUMNA es la posición real en la calle: primero al lado (±1) en la fila baja, después APILA
+        // en la misma columna (orientación espacial: lo del este queda al este aunque suba de fila)
+        const cands = [];
+        for (let r = 0; r < 5; r++) { cands.push([r, ideal]); if (r === 0) { if (ideal + 1 < perRow) cands.push([0, ideal + 1]); if (ideal - 1 >= 0) cands.push([0, ideal - 1]); } }
+        let placed = null;
+        for (const [r, c] of cands) if (!taken[r + ':' + c]) { placed = { r, c }; break; }
+        if (!placed) placed = { r: 0, c: ideal };
+        taken[placed.r + ':' + placed.c] = true; maxRow = Math.max(maxRow, placed.r);
+        out.push({ b, x: padL + placed.c * slotW + 4, y: yBase + placed.r * 64 * rowStep, w: slotW - 8, h: 56, row: placed.r });
+      }
+      return maxRow + 1;
     };
     const streetY = Math.round(VH * 0.55);
-    const surfRows = Math.ceil(surf.length / Math.max(1, Math.floor((VW - padL - padR) / 118)));
-    flow(surf, streetY - 64 - (surfRows - 1) * 64, 1);
+    // superficie: las filas crecen hacia ARRIBA desde la calle (fila 0 pegada a la calle = orientación)
+    const surfBoxes = [];
+    {
+      const availRows = flow(surf, 0, 1);   // asigna filas 0..n
+      for (const bx of out) bx.y = streetY - 70 - bx.row * 64;
+    }
     flow(under, streetY + 34, 1);
     return { boxes: out, streetY };
   }
@@ -248,10 +261,12 @@ const Mapa = (() => {
       ctx.strokeStyle = iCur ? '#ffd54f' : nStar ? '#ffe27a' : v ? '#5a8cc8' : 'rgba(90,110,140,0.4)';
       ctx.lineWidth = iCur || hov ? 2 : 1;
       ctx.strokeRect(bx.x + 0.5, bx.y + 0.5, bx.w, bx.h);
-      // línea a su puerta en la calle (su x real)
+      // su PUERTA en la calle: tick ▾ siempre (orientación); la línea completa solo al hover (sin telaraña)
       const doorX = padL + Math.max(0, Math.min(1, b.anchor / model.streetW)) * (VW - padL - padR);
-      ctx.strokeStyle = 'rgba(90,140,200,0.25)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(bx.x + bx.w / 2, b.up ? bx.y + bx.h : bx.y); ctx.lineTo(doorX, b.up ? sy : sy + 24); ctx.stroke();
+      ctx.strokeStyle = hov ? 'rgba(255,213,79,0.7)' : 'rgba(90,140,200,0.55)'; ctx.lineWidth = hov ? 2 : 1;
+      ctx.beginPath(); ctx.moveTo(doorX, b.up ? sy - 4 : sy + 24); ctx.lineTo(doorX, b.up ? sy : sy + 28); ctx.stroke();
+      if (hov) { ctx.strokeStyle = 'rgba(255,213,79,0.45)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(bx.x + bx.w / 2, b.up ? bx.y + bx.h : bx.y); ctx.lineTo(doorX, b.up ? sy : sy + 24); ctx.stroke(); }
       // contenido: nombre / pisos+descubierto / hitos
       ctx.fillStyle = v ? '#cfe0f0' : 'rgba(140,160,190,0.6)'; ctx.font = (iCur ? 'bold ' : '') + '10px monospace'; ctx.textAlign = 'left';
       ctx.fillText(String(b.name).slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 14);
@@ -344,8 +359,8 @@ const Mapa = (() => {
             ctx.font = (x.q === '⭐' ? 'bold ' : '') + '10px monospace'; ctx.textAlign = 'left';
             ctx.fillStyle = x.q === '⭐' ? '#ffe27a' : '#9be8a0';
             const extra = (k === maxQ - 1 && qe.length > maxQ) ? '  +' + (qe.length - maxQ) : '';
-            const espacio = (VW - rx - 8) / 6 - extra.length;
-            ctx.fillText(x.q + ' ' + String(questTitle(x.e)).slice(0, Math.max(12, Math.floor(espacio))) + extra, rx, g.y + 11 + k * 13);
+            const espacio = Math.floor((VW - rx - 14) / 6.3) - extra.length;   // presupuesto en px reales
+            ctx.fillText((x.q + ' ' + String(questTitle(x.e))).slice(0, Math.max(10, espacio)) + extra, rx, g.y + 11 + k * 13);
           });
         }
       } else {
@@ -376,23 +391,30 @@ const Mapa = (() => {
         ctx.fillText(pd.emoji + (qs.length ? qs[0] : ''), px, sy + 12);
       }
     }
-    // sub-modos como nodos colgados — en sus COLUMNAS reservadas (no pisan la calle ni los subsuelos)
-    SUBMODES.forEach((sm) => {
-      if (st.zoom != null) return;   // solo en MANZANA
-      const padL = PADL(VW);
-      const base = Math.round(VH * 0.55);
-      const x = sm.anchor === 'left' ? Math.max(8, padL - 116) : VW - PADR + 10;
-      const y = sm.anchor === 'left' ? base - sm.level * 26 : 56 + sm.level * 26;
-      const g = { x, y, w: 104, h: 20 };
-      const active = st.sub === sm.id;
-      const qs = (qAt['sm:' + sm.id] || []).map(e => questMark(e, st)).filter(q => q !== '🔒');
-      ctx.strokeStyle = active ? '#ffd54f' : qs.includes('⭐') ? '#ffe27a' : '#4a7a5a'; ctx.lineWidth = active ? 2 : 1; ctx.setLineDash([3, 3]);
-      ctx.strokeRect(g.x, g.y, g.w, g.h); ctx.setLineDash([]);
-      ctx.fillStyle = active ? '#ffe9b0' : '#8fc8a0'; ctx.font = '8px monospace'; ctx.textAlign = 'left';
-      ctx.fillText(sm.name.slice(0, 16), g.x + 3, g.y + 13);
-      if (qs.length) { ctx.font = '9px monospace'; ctx.textAlign = 'right'; ctx.fillText(qs.join(''), g.x + g.w - 2, g.y + 13); }
-      if (active) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(g.x + g.w - 8, g.y + g.h / 2, 3.4, 0, Math.PI * 2); ctx.fill(); }
-    });
+    // 🎮 MULTIJUGADOR (v300): categoría propia con INFO real — qué juegos hay (DATA), tu progreso (piquete),
+    // quests del grafo y gente ONLINE ahora (salonLive). Columna derecha, cajones tipo la vista general.
+    if (st.zoom == null) {
+      const colX = VW - PADR + 6, colW = PADR - 14;
+      ctx.fillStyle = '#9be8a0'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText(T('g.mapa.multi'), colX, 66);
+      const won = st.piquete || {};
+      const nWon = ['corte', 'soga', 'bombo', 'olla', 'pancarta'].filter(k => won[k]).length;
+      const liveOf = id => { let n = 0; for (const k in (st.live || {})) if (k === id || k.startsWith(id)) n += st.live[k]; return n; };
+      const INFO = { lavalle: '✊' + nWon + '/5 🃏', obelisco: '🛰️', bodegon: '🃏1v1·6 💬', telo: '🤖' };
+      SUBMODES.forEach((sm, k) => {
+        const g = { x: colX, y: 74 + k * 46, w: colW, h: 40 };
+        const active = st.sub === sm.id;
+        const qs = (qAt['sm:' + sm.id] || []).map(e => questMark(e, st)).filter(q => q !== '🔒');
+        const onl = liveOf(sm.id);
+        ctx.strokeStyle = active ? '#ffd54f' : qs.includes('⭐') ? '#ffe27a' : '#4a7a5a'; ctx.lineWidth = active ? 2 : 1; ctx.setLineDash([3, 3]);
+        ctx.strokeRect(g.x + 0.5, g.y + 0.5, g.w, g.h); ctx.setLineDash([]);
+        ctx.fillStyle = active ? '#ffe9b0' : '#8fc8a0'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
+        ctx.fillText(sm.name.slice(0, Math.floor((g.w - 6) / 5.5)), g.x + 4, g.y + 13);
+        ctx.fillStyle = '#7fa8c8'; ctx.font = '9px monospace';
+        ctx.fillText(((INFO[sm.id] || '') + (onl ? ' 👥' + onl : '') + (qs.length ? ' ' + qs.join('') : '')).slice(0, Math.floor((g.w - 6) / 5.5)), g.x + 4, g.y + 28);
+        if (active) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(g.x + g.w - 8, g.y + 8, 3.4, 0, Math.PI * 2); ctx.fill(); }
+      });
+    }
     // tooltip del hover (banda de abajo) — acá SÍ se ven las 🔒 ("se destraba más adelante")
     if (hoverBox) {
       const b = hoverBox.bx.b;
@@ -433,7 +455,7 @@ const Mapa = (() => {
   }
 
   function groupAt(current) { const n = model && model.nodes[current]; return n ? Math.round(n.anchor) : null; }
-  return { build, draw, groupAt, hitTest, get model() { return model; } };
+  return { build, draw, groupAt, hitTest, overview: overviewBoxes, get model() { return model; } };
 })();
 if (typeof window !== 'undefined') window.Mapa = Mapa;
 if (typeof module !== 'undefined') module.exports = Mapa;

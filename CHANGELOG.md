@@ -47,6 +47,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v300 🎉] — 2026-07-03 — 🗺️🧭 Mapa: ORIENTACIÓN espacial + categoría 🎮 MULTIJUGADOR + el bot mira las vistas
+
+Pulido sobre el rediseño (feedback del dueño: "tiene la data pero no orientación; multiplayer afuera; textos
+cortados; el zoom Z no hace nada; que el playbook itere mirando"):
+- **Orientación:** la COLUMNA de cada cajón es su posición REAL en la calle (oeste→este SIEMPRE; colisión =
+  apila en la misma columna) + tick ▾ en la calle marcando cada puerta + línea completa al hover (sin telaraña).
+- **🎮 MULTIJUGADOR:** columna propia con INFO real: el piquete muestra **✊n/5 juegos ganados**, el bodegón
+  **🃏1v1·6**, gente **👥 online** por espacio (salonLive), quests del grafo (⭐✅) y dónde estás.
+- **Textos cortados:** presupuesto en píxeles reales para las quests del zoom (nunca tocan el borde) + barra del
+  zoom corrida a la izquierda.
+- **[Z] coherente:** dentro de un edificio zoomea ESE edificio; en la calle no hace nada (el click manda). Hint
+  del header actualizado (click = zoom · [1] manzana · [2] subsuelos).
+- **El bot MIRA el mapa (autoplay 07):** cajones ≥8 SIN solapes (chequeo pairwise), pestañas con hitTest, y saca
+  capturas de la vista general y los subsuelos en cada corrida nocturna.
+
 ## [v299] — 2026-07-03 — 🗺️🏙️ MAPA REDISEÑADO: de menor a mayor — cajones POR EDIFICIO → pisos → subsuelos
 
 Feedback del dueño: "no ves más allá, se tapan; hacelo por capas: una vista general que REPRESENTE cada cosa y
