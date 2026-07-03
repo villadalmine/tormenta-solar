@@ -112,6 +112,10 @@ const Mapa = (() => {
       model.buildings.push({ anchor: +k, rooms: idxs, up: ns.some(n => n.level >= 0), name: bname,
         floors: idxs.length, entrance: entr.i });
     }
+    for (const pd of (model.puertas || [])) model.buildings.push({
+      anchor: pd.x / TILE, rooms: [], floors: 0, entrance: -1, up: true, puerta: true, doorId: pd.id, emoji: pd.emoji,
+      name: (pd.emoji + ' ' + String(pd.label || pd.id).replace(/^(entrar|bajar)\s+(a|al|a la)\s+/i, '')).trim(),
+    });
     model.buildings.sort((a, b) => a.anchor - b.anchor);
     return model;
   }
@@ -202,7 +206,12 @@ const Mapa = (() => {
       const availRows = flow(surf, 0, 1);   // asigna filas 0..n
       for (const bx of out) bx.y = streetY - 70 - bx.row * 64;
     }
-    flow(under, streetY + 34, 1);
+    if (under.length) {   // compuerta ÚNICA a los subsuelos (el detalle vive en su pestaña)
+      const a = under[0].anchor;
+      const gx = Math.max(padL, Math.min(VW - padR - 170, padL + (a / m.streetW) * (VW - padL - padR) - 85));
+      out.push({ gateway: true, x: gx, y: streetY + 34, w: 170, h: 46,
+        b: { anchor: a, rooms: under.flatMap(u => u.rooms), floors: under.reduce((t, u) => t + u.floors, 0), name: '', up: false } });
+    }
     return { boxes: out, streetY };
   }
 
@@ -229,11 +238,11 @@ const Mapa = (() => {
     for (let i = 0; i < sboxes.length; i++) { const p = sboxes[i - 1]; sboxes[i].x = Math.max(i ? p.x + p.w + GAP : padL, sboxes[i].x); }
     for (let i = sboxes.length - 1; i >= 0; i--) { const nx = sboxes[i + 1]; const lim = (nx ? nx.x - GAP : VW - padR) - sboxes[i].w; sboxes[i].x = Math.min(sboxes[i].x, lim); sboxes[i].x = Math.max(padL, sboxes[i].x); }
     for (const sb of sboxes) { const h = Math.max(18, sb.b.floors * hUnit); boxes.push({ b: sb.b, x: sb.x, y: streetY - h, w: sb.w, h, up: true }); }
-    for (const b of under) {
-      const w = Math.max(40, Math.min(140, avail * 0.14));
-      let x = padL + (b.anchor / m.streetW) * avail - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x));
-      const h = Math.max(20, b.floors * hUnit * 0.7);
-      boxes.push({ b, x, y: streetY + 14, w, h, up: false });
+    if (under.length) {   // compuerta única ⛏️ a los subsuelos (como en la manzana)
+      const a = under[0].anchor, w = 150;
+      let x = padL + (a / m.streetW) * avail - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x));
+      boxes.push({ gateway: true, x, y: streetY + 16, w, h: 34,
+        b: { anchor: a, rooms: under.flatMap(u => u.rooms), floors: under.reduce((t, u) => t + u.floors, 0), name: '', up: false } });
     }
     return { boxes, streetY, hUnit, padL, padR };
   }
@@ -255,8 +264,10 @@ const Mapa = (() => {
     if (st.zoom == null) {                                                   // vista general: cajones por edificio
       const ov = overviewBoxes(VW, VH);
       for (const bx of (ov.boxes || [])) {
-        if (st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h)
+        if (st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h) {
+          if (bx.b.puerta) return null;                                      // la puerta del chino: sub-modo, sin zoom
           return bx.b.up ? { anchor: bx.b.anchor } : { tab: 'ss' };
+        }
       }
       return null;
     }
@@ -289,6 +300,7 @@ const Mapa = (() => {
       const b = bx.b;
       const v = b.rooms.filter(i => visited.has(i)).length;
       const qs = []; for (const i of b.rooms) for (const e of (qAt[i] || [])) qs.push(questMark(e, st));
+      if (b.puerta) for (const e of (qAt[0] || [])) if (String(e.at) === b.doorId) qs.push(questMark(e, st));
       const star = qs.includes('⭐'), lock = qs.includes('🔒');
       const iCur = curB && Math.round(curB.anchor) === b.anchor && st.current !== 0 && !st.sub;
       const hov = st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h;
@@ -323,7 +335,7 @@ const Mapa = (() => {
     {
       let upEnd = -1, dnEnd = -1;
       for (const bx of sk.boxes.slice().sort((a, b2) => a.x - b2.x)) {
-        const name = String(bx.b.name).slice(0, Math.max(4, Math.floor(bx.w / 5.5)));
+        const name = (bx.gateway ? T('g.mapa.tabSS') : String(bx.b.name)).slice(0, Math.max(4, Math.floor(bx.w / 5.5)));
         const cx = bx.x + bx.w / 2, half = name.length * 2.6;
         const end = bx.up ? upEnd : dnEnd;
         if (cx - half < end + 4) continue;
@@ -377,6 +389,7 @@ const Mapa = (() => {
       const b = bx.b;
       const v = b.rooms.filter(i => visited.has(i)).length;
       const qs = []; for (const i of b.rooms) for (const e of (qAt[i] || [])) qs.push(questMark(e, st));
+      if (b.puerta) for (const e of (qAt[0] || [])) if (String(e.at) === b.doorId) qs.push(questMark(e, st));   // las quests del sub-modo (megadrive→súper)
       const nDone = qs.filter(q => q === '✅').length, nStar = qs.filter(q => q === '⭐').length, hasLock = qs.includes('🔒');
       const iCur = curB && Math.round(curB.anchor) === b.anchor && st.current !== 0 && !st.sub;
       const hov = st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h;
@@ -391,11 +404,13 @@ const Mapa = (() => {
       ctx.beginPath(); ctx.moveTo(doorX, b.up ? sy - 4 : sy + 24); ctx.lineTo(doorX, b.up ? sy : sy + 28); ctx.stroke();
       if (hov) { ctx.strokeStyle = 'rgba(255,213,79,0.45)'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(bx.x + bx.w / 2, b.up ? bx.y + bx.h : bx.y); ctx.lineTo(doorX, b.up ? sy : sy + 24); ctx.stroke(); }
-      // contenido: nombre / pisos+descubierto / hitos
-      ctx.fillStyle = v ? '#cfe0f0' : 'rgba(140,160,190,0.6)'; ctx.font = (iCur ? 'bold ' : '') + '10px monospace'; ctx.textAlign = 'left';
-      ctx.fillText(String(b.name).slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 14);
+      // contenido: nombre / pisos+descubierto / hitos (las PUERTAS y la COMPUERTA tienen su formato)
+      const title2 = bx.gateway ? T('g.mapa.tabSS') : String(b.name);
+      ctx.fillStyle = bx.gateway ? '#9be8a0' : v ? '#cfe0f0' : 'rgba(140,160,190,0.6)'; ctx.font = (iCur || bx.gateway ? 'bold ' : '') + '10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText(title2.slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 14);
       ctx.font = '9px monospace'; ctx.fillStyle = v ? '#8fa8c8' : 'rgba(120,140,170,0.55)';
-      ctx.fillText('×' + b.floors + '  🔦' + v + '/' + b.floors, bx.x + 4, bx.y + 28);
+      if (!b.puerta) ctx.fillText('×' + b.floors + '  🔦' + v + '/' + b.floors, bx.x + 4, bx.y + 28);
+      else ctx.fillText(T('g.mapa.enLaCalle'), bx.x + 4, bx.y + 28);
       const nLock = qs.filter(q => q === '🔒').length;
       const marks = (nDone ? '✅' + nDone + ' ' : '') + (nStar ? '⭐' + nStar + ' ' : '') + (hasLock ? (st.facil ? '🔒' + nLock + ' ' : '?? ') : '');
       const icons = [...new Set(b.rooms.filter(i => visited.has(i)).flatMap(i => iconsOf(model.nodes[i])))].slice(0, 3).join('');
@@ -420,6 +435,12 @@ const Mapa = (() => {
     ctx.fillText((st.online ? '👥 ' + st.online + ' · ' : '') + T('g.mapa.hint'), VW - 10, 19);
     if (typeof st.zoom !== 'number') {
       const tabs = [[10, T('g.mapa.tabSky'), st.zoom === 'sky'], [112, T('g.mapa.tabManzana'), st.zoom == null], [214, T('g.mapa.tabSS'), st.zoom === 'ss']];
+      if (st.facil) {   // chip 🎚️ FÁCIL al lado de las pestañas (que se NOTE el modo)
+        ctx.fillStyle = 'rgba(155,232,160,0.12)'; ctx.fillRect(318, 31, 150, 16);
+        ctx.strokeStyle = '#6aa870'; ctx.strokeRect(318.5, 31.5, 150, 16);
+        ctx.fillStyle = '#9be8a0'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('🎚️ ' + T('g.mapa.facilOn').slice(0, 26), 393, 42); ctx.textAlign = 'left';
+      }
       for (const [tx, label2, act] of tabs) {
         ctx.fillStyle = act ? 'rgba(255,213,79,0.15)' : 'rgba(90,140,200,0.08)'; ctx.fillRect(tx, 31, 96, 16);
         ctx.strokeStyle = act ? '#ffd54f' : '#3a5a80'; ctx.strokeRect(tx + 0.5, 31.5, 96, 16);
@@ -504,18 +525,18 @@ const Mapa = (() => {
         ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText(T('g.mapa.aca'), bx, g.y - 3); }
     }
     // PUERTAS de la calle sin sala (el súper): cajita colgada de la barra de la calle en su X real (v296)
-    if (st.zoom == null && model.puertas && model.puertas.length) {   // colgantes (el súper) bajo la calle, en su x real
-      const TILE2 = (typeof Level !== 'undefined' && Level.TILE) || 32;
-      const padL = PADL(VW), sx = (VW - padL - PADR) / model.streetW;
-      const sy = Math.round(VH * 0.55) + 24;                          // borde inferior de la banda de la calle
-      for (const pd of model.puertas) {
-        const px = padL + (pd.x / TILE2) * sx;
-        const qs = (qAt[0] || []).filter(e => /super|chino/i.test(String(e.at))).map(e => questMark(e, st)).filter(q => q !== '🔒');
-        ctx.strokeStyle = '#4a7a5a'; ctx.setLineDash([2, 2]);
-        ctx.strokeRect(px - 10, sy + 2, 20, 13); ctx.setLineDash([]);
-        ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#8fc8a0';
-        ctx.fillText(pd.emoji + (qs.length ? qs[0] : ''), px, sy + 12);
-      }
+    // 💤 SUEÑOS / NIVELES IA (v304): dónde se sueñan + si estás soñando AHORA (los niveles generados son
+    // bolsillos efímeros — no se mapean sala a sala, se representan como categoría)
+    if (st.zoom == null) {
+      const dx2 = 8, dw2 = PADL(VW) - 20;
+      ctx.fillStyle = '#c8a8e8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText(T('g.mapa.suenios'), dx2, 66);
+      ctx.strokeStyle = st.dream ? '#ffd54f' : '#7a5a9a'; ctx.lineWidth = st.dream ? 2 : 1; ctx.setLineDash([3, 3]);
+      ctx.strokeRect(dx2 + 0.5, 74.5, dw2, 58); ctx.setLineDash([]);
+      ctx.fillStyle = '#b8a0d0'; ctx.font = '8px monospace';
+      [T('g.mapa.dream1'), T('g.mapa.dream2'), T('g.mapa.dream3')].forEach((ln, k) => ctx.fillText(ln.slice(0, Math.floor(dw2 / 4.8)), dx2 + 4, 87 + k * 11));
+      if (st.dream) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.font = 'bold 8px monospace';
+        ctx.fillText(('💤 ' + T('g.mapa.suenioAhora', { n: st.dream })).slice(0, Math.floor(dw2 / 4.8)), dx2 + 4, 87 + 33); }
     }
     // 🎮 MULTIJUGADOR (v300): categoría propia con INFO real — qué juegos hay (DATA), tu progreso (piquete),
     // quests del grafo y gente ONLINE ahora (salonLive). Columna derecha, cajones tipo la vista general.
@@ -548,7 +569,7 @@ const Mapa = (() => {
       lines.push(b.name + '  ·  ×' + b.floors + '  ·  🔦 ' + hoverBox.v + '/' + b.floors + '  ·  ' + T('g.mapa.click'));
       for (const i of b.rooms) for (const e of (qAt[i] || [])) {
         const q = questMark(e, st);
-        if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[0]) || questTitle(e))); }
+        if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[st.facil ? 2 : 0]) || questTitle(e))); }
         else if (q === '✅') lines.push('✅ ' + questTitle(e));
         else if (st.facil) lines.push('🔒 ' + questTitle(e) + ' — ' + T('g.mapa.locked'));   // FÁCIL: te marca TODO
       }
@@ -565,7 +586,7 @@ const Mapa = (() => {
       if (seen) { const mk = iconsOf(n); if (mk.length) lines.push(mk.join(' ')); }
       for (const e of (qAt[n.i] || [])) {
         const q = questMark(e, st);
-        if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[0]) || questTitle(e))); }
+        if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[st.facil ? 2 : 0]) || questTitle(e))); }
         else lines.push(q + ' ' + questTitle(e) + (q === '🔒' ? ' — ' + T('g.mapa.locked') : ''));
       }
       // puerta de la calle bajo el mouse (el súper): mostrala

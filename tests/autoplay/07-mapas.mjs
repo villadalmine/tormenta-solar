@@ -27,6 +27,13 @@ try {
     return { n: bs.length, solapes, tab: !!(Mapa.hitTest(cv.width, cv.height, { zoom: null, mx: 150, my: 40, visited: new Set() }) || {}).tab };
   });
   s.check('vista general: cajones por edificio (≥8) SIN solapes', ov.n >= 8 && ov.solapes === 0, JSON.stringify(ov));
+  const piezas = await p.evaluate(() => { const cv = document.getElementById('screen');
+    const o = Mapa.overview(cv.width, cv.height).boxes, k = Mapa.sky(cv.width, cv.height).boxes;
+    const has = (list, rx) => list.some(b => rx.test((b.b && b.b.name) || '') || b.gateway);
+    return { chinoOv: o.some(b => /chino|s[úu]per/i.test((b.b && b.b.name) || '')), chinoSky: k.some(b => /chino|s[úu]per/i.test((b.b && b.b.name) || '')),
+      gwOv: o.some(b => b.gateway), gwSky: k.some(b => b.gateway) }; });
+  s.check('el CHINO está en la manzana y el skyline', piezas.chinoOv && piezas.chinoSky, JSON.stringify(piezas));
+  s.check('la compuerta ⛏️ SUBSUELOS está en ambas vistas', piezas.gwOv && piezas.gwSky, JSON.stringify(piezas));
   s.check('las pestañas responden al hitTest', ov.tab);
   await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-vista-general.png' });
   // [1] LA CUADRA (skyline): siluetas por edificio con altura = pisos

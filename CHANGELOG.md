@@ -47,6 +47,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v304] — 2026-07-03 — 🗺️ Playtest del dueño: el CHINO cajón de primera clase + compuerta ⛏️ + 💤 SUEÑOS + FÁCIL que se nota
+
+4 reportes ("la galería quedó abajo suelta, el chino no está, no hay mención a los niveles auto-creados, no veo
+la diferencia del fácil") + el bot ahora los vigila:
+- **El chino (y toda puerta de calle sin sala) es un CAJÓN/SILUETA de primera clase** en manzana y skyline, con
+  sus quests (la Mega Drive ⭐ aparece ahí) y nota "puerta en la calle". El tick diminuto tapado, muerto.
+- **La galería suelta → compuerta única "⛏️ SUBSUELOS"** bajo la calle (agregado de todo lo de abajo: ×6 🔦2/6
+  ✅⭐) → click = pestaña [3]. El detalle vive donde corresponde.
+- **💤 SUEÑOS (niveles IA)**: categoría propia (columna izquierda) con las 3 entradas del catálogo (trastienda /
+  vecino / oráculo) y estado "SOÑANDO: {nombre}" latiendo si estás dentro de un nivel generado.
+- **FÁCIL que se NOTA**: chip verde "🎚️ AYUDA FÁCIL" junto a las pestañas + 🔒N contados en cajones/skyline +
+  pistas nivel 2 (directas) en tooltips + 🔒 con nombre en pisos.
+- **El bot vigila esto**: suite 07 chequea que el chino esté en AMBAS vistas y la compuerta también (además de
+  los anti-solapes). Lo que el playtest cazó, la nocturna no lo deja volver.
+
 ## [v303] — 2026-07-03 — 🗺️🎚️ AYUDA DEL MAPA en ⚙: DIFÍCIL (?? misterioso) / FÁCIL (todo marcado)
 
 Idea del dueño: "marcar todos los quests con el grafo es una ayuda terrible — poné fácil/difícil en settings y
