@@ -6,8 +6,10 @@ WORKDIR /app
 # espeak-ng: TTS del lado servidor (GET /tts) para navegadores sin voz (Chromium/Linux). Audio WAV → el juego lo
 # reproduce por WebAudio. Es un binario chico (~2MB), sin deps de Node.
 RUN apk add --no-cache espeak-ng
-# sólo los archivos del proxy (no hay node_modules: cero deps) + el generador del pool (lo usa el CronJob)
-COPY package.json server.js personas.js gen-pool.mjs gen-prices.mjs gen-noticias.mjs gen-propaganda.mjs gen-chusmerio.mjs gen-historias.mjs ./
+# sólo los archivos del proxy (no hay node_modules: cero deps) + TODOS los generadores de los crones.
+# gen-*.mjs con WILDCARD: la lista a mano dejó gen-carteles.mjs AFUERA y su cron falló en silencio durante días
+# (exit 1 cada 6h, descubierto por la alerta ArgoWorkflowsFallados, 2026-07-03). Nunca más enumerar a mano.
+COPY package.json server.js personas.js gen-*.mjs ./
 ENV PORT=8788
 EXPOSE 8788
 # usuario no-root (el nodo 'node' ya existe en la imagen oficial)

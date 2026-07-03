@@ -80,6 +80,14 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-63] — 2026-07-03 — 🐛 FIX cron de carteles: gen-carteles.mjs NUNCA estuvo en la imagen (primera caza de la alerta nueva)
+
+La alerta `ArgoWorkflowsFallados` (infra-62) se disparó apenas aplicada: el cron `tormenta-ai-proxy-carteles`
+venía fallando **cada 6h desde C2 (v234)** con exit 1 silencioso — el `COPY` del Dockerfile enumeraba los
+generadores A MANO y `gen-carteles.mjs` quedó afuera ("Cannot find module"). Fix: **`COPY gen-*.mjs` con
+wildcard** (nunca más enumerar). Proxy 0.1.85 — deployado con el **workflow nuevo `tormenta-deploy`** (su
+estreno con un cambio real).
+
 ## [infra-62] — 2026-07-03 — 🚀 Deploy como Argo Workflow (F3): in-cluster, con rollback automático y alerta a Telegram
 
 El dueño dio el OK con 4 condiciones: no romper nada, no exponer secrets, no cambiar la lógica, y que si falla
