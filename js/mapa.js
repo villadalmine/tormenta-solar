@@ -231,8 +231,8 @@ const Mapa = (() => {
     const GAP = 6;
     const maxW = Math.max(24, (avail - GAP * (sorted.length + 1)) / Math.max(1, sorted.length));
     const sboxes = sorted.map(b => {
-      const entr = m.nodes[b.entrance];
-      const w = Math.max(24, Math.min(maxW, (entr.w || 24) * (avail / m.streetW) * 0.85));
+      const entr = m.nodes[b.entrance];   // las PUERTAS sin sala (el chino) no tienen entrance → ancho chico fijo
+      const w = Math.max(24, Math.min(maxW, ((entr && entr.w) || 16) * (avail / m.streetW) * 0.85));
       return { b, w, x: padL + (b.anchor / m.streetW) * avail - w / 2 };
     });
     for (let i = 0; i < sboxes.length; i++) { const p = sboxes[i - 1]; sboxes[i].x = Math.max(i ? p.x + p.w + GAP : padL, sboxes[i].x); }
