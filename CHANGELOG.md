@@ -47,6 +47,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v296] — 2026-07-03 — 🗺️🌆 Mapa: se ve el BARRIO ENTERO (el fog tapaba todo) + la puerta del chino + sin pisadas
+
+Playtest del dueño: "no figura ni las cuevas, ni los arcades, ni el chino — ¿está hardcodeado?". No: TODO deriva
+del modelo/grafo — pero el fog of war tapaba con '???' lo no-visitado, y el registro de visitas arrancó de cero
+en v289 (todo lo explorado ANTES figuraba sin visitar). Fixes:
+- **El barrio se CONOCE:** los nombres se ven SIEMPRE (atenuados si no fuiste); '???' muere. Solo las salas
+  SECRETAS (búnker, trastienda) siguen ocultas hasta descubrirlas.
+- **Las quests ⭐ se ven aunque no hayas ido** — te GUÍAN al lugar (para eso están); los iconos de contenido
+  (💬🕹️🛒) siguen apareciendo al visitar (incentivo de exploración).
+- **El chino en el mapa:** las puertas de la calle SIN sala destino (sub-modos como el súper) se derivan del
+  DATO de la calle → cajita colgante 🛒 en su X real + su label en el tooltip. Cero hardcode.
+- **Sin pisadas:** zig-zag anti-solapado en filas apretadas (los locales a nivel calle) + presupuesto de
+  etiquetas por fila (si no entra, la barra queda y el hover la nombra) + dibujo ordenado por x.
+
 ## [v295] — 2026-07-03 — 🗺️🏷️ Zoom del mapa con quests NOMBRADAS (y el grafo bilingüe: title_en en las 19 aristas)
 
 - **Cada quest con su NOMBRE en el zoom:** al lado del piso aparece "⭐ Ganarte el búnker (gurú…)" / "✅ …"

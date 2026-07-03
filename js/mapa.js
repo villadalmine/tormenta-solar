@@ -57,6 +57,9 @@ const Mapa = (() => {
     // grupos por edificio (para el zoom): ancla → lista
     const groups = {}; nodes.forEach(n => { const k = Math.round(n.anchor); (groups[k] = groups[k] || []).push(n.i); });
     model.groups = groups;
+    // puertas de la calle SIN sala destino (sub-modos como el SÚPER): del DATO de la calle, nada hardcodeado
+    model.puertas = (street.doors || []).filter(d => !(typeof d.to === 'number' && d.to > 0))
+      .map(d => ({ x: d.x, label: d.label || d.id || '', id: d.id || '', emoji: /super|chino/i.test(String(d.id) + String(d.art)) ? '🛒' : '🚪' }));
     // QUESTS → UN nodo cada una (v293): preferencia tag exacto; si no, match por nombre eligiendo la ENTRADA
     // (|level| más chico) del grupo — así "edificio" no pinta los 20 pisos. 'calle' → nodo 0; 'lavalle' → sub-modo.
     model.questAt = (edges, fino) => {
@@ -99,7 +102,7 @@ const Mapa = (() => {
     let w, x;
     if (zoomAnchor != null) { w = VW * 0.5; x = (VW - w) / 2; }
     else if (n.i === 0) { w = VW - padL - padR; x = padL; }
-    else { const sx = (VW - padL - padR) / m.streetW; w = Math.max(40, Math.min(120, n.w * sx * 0.9)); x = padL + n.anchor * sx - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x)); }
+    else { const sx = (VW - padL - padR) / m.streetW; w = Math.max(34, Math.min(120, n.w * sx * 0.9)); x = padL + n.anchor * sx - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x)); }
     const zRowH = zoomAnchor != null ? Math.min(44, (VH - 140) / Math.max(4, rows)) : rowH;
     const zy0 = zoomAnchor != null ? 70 + m.maxUp * zRowH : y0;
     return { x, y: zy0 - row * zRowH, w, h: (zoomAnchor != null ? zRowH : rowH) - 5 };
@@ -125,6 +128,7 @@ const Mapa = (() => {
     if (!model) return null;
     for (const n of model.nodes) {
       const g = geom(n, VW, VH, st.zoom); if (!g) continue;
+      if (model._dy && model._dy[n.i]) g.y += model._dy[n.i];
       if (n.secret && !(st.visited && st.visited.has(n.i))) continue;
       if (st.mx >= g.x && st.mx <= g.x + g.w && st.my >= g.y && st.my <= g.y + g.h) return { anchor: Math.round(n.anchor), node: n.i };
     }
@@ -150,18 +154,37 @@ const Mapa = (() => {
       for (const d of (n.room.doors || [])) { const to = d.to; if (typeof to !== 'number' || !model.nodes[to] || !visited.has(to)) continue;
         const g2 = geom(model.nodes[to], VW, VH, st.zoom); if (!g2) continue;
         ctx.beginPath(); ctx.moveTo(g1.x + g1.w / 2, g1.y + g1.h / 2); ctx.lineTo(g2.x + g2.w / 2, g2.y + g2.h / 2); ctx.stroke(); } }
-    // nodos
+    // nodos — pase 1: geometrías + ZIG-ZAG anti-solapado por fila (v296: los locales de la calle se pisaban)
     let hoverNode = null;
-    for (const n of model.nodes) {
-      const g = geom(n, VW, VH, st.zoom); if (!g) continue;
+    const dys = {};
+    if (st.zoom == null) {
+      const byRow = {};
+      for (const n of model.nodes) { if (n.i === 0) continue; const g0 = geom(n, VW, VH, null); if (!g0) continue;
+        const r = model.rowOf[n.level] || 0; (byRow[r] = byRow[r] || []).push({ i: n.i, g: g0 }); }
+      for (const r in byRow) {
+        const fila = byRow[r].sort((a, b) => a.g.x - b.g.x);
+        let lastEnd = -1, flip = false;
+        for (const it of fila) {
+          if (it.g.x < lastEnd - 2) { flip = !flip; if (flip) dys[it.i] = Math.floor(it.g.h * 0.6); }
+          else flip = false;
+          lastEnd = Math.max(lastEnd, it.g.x + it.g.w);
+        }
+      }
+    }
+    model._dy = dys;
+    const drawList = [];
+    for (const n of model.nodes) { const g = geom(n, VW, VH, st.zoom); if (!g) continue; if (dys[n.i]) g.y += dys[n.i]; drawList.push({ n, g }); }
+    drawList.sort((a, b) => a.g.x - b.g.x || a.g.y - b.g.y);
+    const labelEnd = {};   // fila+offset → hasta dónde llegó la última etiqueta escrita
+    for (const { n, g } of drawList) {
       const seen = visited.has(n.i);
       if (n.secret && !seen) continue;                                     // los secretos no existen hasta descubrirlos
       const isCur = st.current === n.i && !st.sub;
       const hov = st.mx >= g.x && st.mx <= g.x + g.w && st.my >= g.y && st.my <= g.y + g.h;
       if (hov) hoverNode = { n, g };
-      // marcadores del nodo: iconos del modelo + quests ancladas ACÁ (✅/⭐ visibles; 🔒 solo al hover)
+      // marcadores del nodo: iconos del modelo (si visitaste) + quests ancladas ACÁ (SIEMPRE — te guían; 🔒 solo al hover)
       const mk = seen ? iconsOf(n) : [];
-      const qs = seen ? (qAt[n.i] || []).map(e => questMark(e, st)) : [];
+      const qs = (qAt[n.i] || []).map(e => questMark(e, st));
       const vis = mk.concat(qs.filter(q => q !== '🔒'));
       const hasStar = qs.includes('⭐');
       // pisos con contenido: fondo tenue (en zoom, más notorio) — "los pisos importantes SE VEN"
@@ -170,8 +193,8 @@ const Mapa = (() => {
       ctx.strokeStyle = col; ctx.lineWidth = isCur || hov ? 2 : 1;
       ctx.strokeRect(g.x + 0.5, g.y + 0.5, g.w, g.h);
       if (st.stormed && n.room.collapsesOnStorm) { ctx.fillStyle = 'rgba(180,40,40,0.18)'; ctx.fillRect(g.x, g.y, g.w, g.h); }
-      ctx.fillStyle = seen ? '#cfe0f0' : 'rgba(140,160,190,0.5)'; ctx.font = (isCur ? 'bold ' : '') + '9px monospace'; ctx.textAlign = 'left';
-      const label = seen ? (typeof TX !== 'undefined' ? TX(n.name) : n.name) : '???';
+      ctx.fillStyle = seen ? '#cfe0f0' : 'rgba(140,160,190,0.55)'; ctx.font = (isCur ? 'bold ' : '') + '9px monospace'; ctx.textAlign = 'left';
+      const label = (typeof TX !== 'undefined' ? TX(n.name) : n.name);   // el barrio se CONOCE: fog = atenuado, no '???' (v296)
       // en ZOOM: etiqueta de PISO a la izquierda de la barra + nombre + marcadores GRANDES a la derecha, afuera
       if (st.zoom != null) {
         ctx.fillStyle = '#8fa8c8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'right';
@@ -195,13 +218,34 @@ const Mapa = (() => {
           });
         }
       } else {
-        ctx.fillText(String(label).slice(0, Math.floor(g.w / 5.6)), g.x + 3, g.y + g.h / 2 + 3);
+        const rkey = (model.rowOf[n.level] || 0) + ':' + (dys[n.i] || 0);
+        const txt = String(label).slice(0, Math.floor(g.w / 5.6));
+        if (n.i === 0 || g.x + 3 >= (labelEnd[rkey] || -1)) {   // sin lugar = sin etiqueta (el hover la nombra)
+          ctx.fillText(txt, g.x + 3, g.y + g.h / 2 + 3);
+          labelEnd[rkey] = g.x + 3 + txt.length * 5.5 + 6;
+        }
         if (vis.length) { ctx.font = '9px monospace'; ctx.textAlign = 'right'; ctx.fillText(vis.slice(0, 4).join(''), g.x + g.w - 2, g.y + g.h - 2); }
       }
       // ESTÁS ACÁ: punto que late, en tu x real dentro de la barra
       if (isCur) { const bx = g.x + (st.px01 || 0.5) * g.w, by = g.y + g.h / 2;
         ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx, by, 4, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText(T('g.mapa.aca'), bx, g.y - 3); }
+    }
+    // PUERTAS de la calle sin sala (el súper): cajita colgada de la barra de la calle en su X real (v296)
+    if (st.zoom == null && model.puertas && model.puertas.length) {
+      const TILE2 = (typeof Level !== 'undefined' && Level.TILE) || 32;
+      const padL = PADL(VW), sx = (VW - padL - PADR) / model.streetW;
+      const rows = model.maxUp + model.maxDn + 1;
+      const rowH = Math.min(30, (VH - 130) / Math.max(6, rows));
+      const sy = 64 + model.maxUp * rowH;                                   // techo de la barra de la calle
+      for (const pd of model.puertas) {
+        const px = padL + (pd.x / TILE2) * sx;
+        const qs = (qAt[0] || []).filter(e => /super|chino/i.test(String(e.at))).map(e => questMark(e, st)).filter(q => q !== '🔒');
+        ctx.strokeStyle = '#4a7a5a'; ctx.setLineDash([2, 2]);
+        ctx.strokeRect(px - 9, sy + rowH - 3, 18, 12); ctx.setLineDash([]);
+        ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#8fc8a0';
+        ctx.fillText(pd.emoji + (qs.length ? qs[0] : ''), px, sy + rowH + 7);
+      }
     }
     // sub-modos como nodos colgados — en sus COLUMNAS reservadas (no pisan la calle ni los subsuelos)
     SUBMODES.forEach((sm) => {
@@ -226,14 +270,18 @@ const Mapa = (() => {
     if (hoverNode) {
       const { n } = hoverNode, seen = visited.has(n.i);
       const lines = [];
-      lines.push((seen ? (typeof TX !== 'undefined' ? TX(n.name) : n.name) : '???') + (n.level ? '  ·  ' + (n.level > 0 ? T('g.mapa.piso', { n: n.level }) : T('g.mapa.sub', { n: -n.level })) : '') + '  ·  ' + T('g.mapa.click'));
-      if (seen) {
-        const mk = iconsOf(n); if (mk.length) lines.push(mk.join(' '));
-        for (const e of (qAt[n.i] || [])) {
-          const q = questMark(e, st);
-          if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[0]) || e.title || e.id)); }
-          else lines.push(q + ' ' + questTitle(e) + (q === '🔒' ? ' — ' + T('g.mapa.locked') : ''));
-        }
+      lines.push((typeof TX !== 'undefined' ? TX(n.name) : n.name) + (n.level ? '  ·  ' + (n.level > 0 ? T('g.mapa.piso', { n: n.level }) : T('g.mapa.sub', { n: -n.level })) : '') + '  ·  ' + T('g.mapa.click'));
+      if (seen) { const mk = iconsOf(n); if (mk.length) lines.push(mk.join(' ')); }
+      for (const e of (qAt[n.i] || [])) {
+        const q = questMark(e, st);
+        if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[0]) || questTitle(e))); }
+        else lines.push(q + ' ' + questTitle(e) + (q === '🔒' ? ' — ' + T('g.mapa.locked') : ''));
+      }
+      // puerta de la calle bajo el mouse (el súper): mostrala
+      if (n.i === 0 && model.puertas) {
+        const TILE2 = (typeof Level !== 'undefined' && Level.TILE) || 32;
+        const padL = PADL(VW), sx = (VW - padL - PADR) / model.streetW;
+        for (const pd of model.puertas) { const px = padL + (pd.x / TILE2) * sx; if (Math.abs(st.mx - px) < 14) { lines.push(pd.emoji + ' ' + pd.label); break; } }
       }
       const bh = 16 + lines.length * 14;
       ctx.fillStyle = 'rgba(4,8,14,0.94)'; ctx.fillRect(0, VH - bh, VW, bh);
