@@ -297,6 +297,8 @@
     'g.globo.title': 'Mapa del mundo — sala de situación',
     'g.globo.hint': 'arrastrá / ←→ girar · click seleccionar · Esc salir',
     // NPCs VIVOS: chusmerío derivado del estado (antes hardcodeado ES; ahora con paridad EN)
+    'g.mapa.click': '(click = zoom)',
+    'g.mapa.locked': 'se destraba más adelante',
     'g.mapa.title': 'Mapa — Florida y Lavalle',
     'g.mapa.zoomTitle': 'Mapa — el edificio (Z para volver)',
     'g.mapa.hint': '[TAB] cerrar · [Z] zoom edificio · mouse = info',

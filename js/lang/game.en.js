@@ -293,6 +293,8 @@
     'g.obelisco.back': 'back',
     'g.globo.title': 'World map — situation room',
     'g.globo.hint': 'drag / ←→ spin · click to select · Esc to exit',
+    'g.mapa.click': '(click = zoom)',
+    'g.mapa.locked': 'unlocks later',
     'g.mapa.title': 'Map — Florida & Lavalle',
     'g.mapa.zoomTitle': 'Map — the building (Z to go back)',
     'g.mapa.hint': '[TAB] close · [Z] building zoom · mouse = info',

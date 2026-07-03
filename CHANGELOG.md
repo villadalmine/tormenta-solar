@@ -47,6 +47,20 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v293] — 2026-07-03 — 🗺️ Mapa TAB: fixes del playtest del dueño (candados, click-zoom, superposición, pisos marcados)
+
+4 reportes del dueño, 4 fixes en `js/mapa.js` (SDD `mapa-juego.md`):
+- **"Todo con candado":** cada quest ahora se ancla a UN SOLO nodo (la ENTRADA del edificio que matchea, no los
+  20 pisos) y las **🔒 salen de las barras** — solo se ven ✅ (hecha) y ⭐ (disponible); las futuras aparecen en
+  el tooltip al hover con "se destraba más adelante". Los edificios con ⭐ se resaltan en dorado.
+- **"Hover sin acción":** **CLICK en un edificio = ZOOM a ese edificio** (nuevo `Mapa.hitTest`); click de nuevo o
+  Esc = volver a la manzana (Esc ahora sale del zoom antes de cerrar el mapa). El tooltip avisa "(click = zoom)".
+- **"Se superponen abajo":** columnas RESERVADAS para los sub-modos — Lavalle/Obelisco a la izquierda de la calle,
+  bodegón/telo arriba a la derecha; las barras del mundo viven entre ambas → nada se pisa. Las cajas de sub-modo
+  ahora muestran sus quests (juramento/obelisco ⭐✅).
+- **"Marcar los pisos importantes en el zoom":** cada piso lleva su etiqueta (P7/S2) a la izquierda, nombre
+  grande, **marcadores 💬🕹️🛒⭐ afuera a la derecha** y fondo resaltado si el piso tiene contenido.
+
 ## [v292] — 2026-07-03 — 🪪 FIX cross-device: el sufijo ·XYZ es parte del NICK (tipealo completo en el otro dispositivo)
 
 Agujero cazado por el dueño: el sufijo anti-colisión (`ts_nick_sfx`) era random POR NAVEGADOR → en el celu eras

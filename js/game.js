@@ -124,7 +124,7 @@
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
   // EL MAPA (specs/mapa-juego.md): [TAB] automap; fog of war por salas visitadas (persistido)
-  let mapaZoom = null, mapaFrontier = null, visitedRooms = new Set([0]);
+  let mapaZoom = null, mapaFrontier = null, mapaClickHeld = false, visitedRooms = new Set([0]);
   try { const a = JSON.parse(localStorage.getItem('ts_visited') || '[]'); visitedRooms = new Set([0].concat(a.filter(n => Number.isInteger(n)))); } catch (e) {}
   function saveVisited() { try { localStorage.setItem('ts_visited', JSON.stringify([...visitedRooms])); } catch (e) {} }
   let lavalleSpawn = null;  // al volver de un mini-juego, re-spawn EN su punto (no en la entrada)
@@ -3488,7 +3488,12 @@
         frontier: mapaFrontier, stormed, mx: Input.mouse.x, my: Input.mouse.y,
         online: (salonLive && salonLive.count) || 0, zoom: mapaZoom, sub: null });
       if (trucoTap('z')) mapaZoom = mapaZoom == null ? Mapa.groupAt(current) : null;   // Z = zoom al edificio actual
-      if (trucoTap('escape')) toggleMapa();
+      // CLICK en un edificio = zoom a ESE edificio; click con zoom abierto = volver a la manzana (v293)
+      if (Input.mouse.down && !mapaClickHeld) { mapaClickHeld = true;
+        if (mapaZoom != null) mapaZoom = null;
+        else { const hit = Mapa.hitTest && Mapa.hitTest(W, H, { zoom: mapaZoom, mx: Input.mouse.x, my: Input.mouse.y, visited: visitedRooms }); if (hit) mapaZoom = hit.anchor; }
+      } else if (!Input.mouse.down) mapaClickHeld = false;
+      if (trucoTap('escape')) { if (mapaZoom != null) mapaZoom = null; else toggleMapa(); }   // Esc: primero sale del zoom
     } else if (state === 'obelisco' && obeliscoGame) {                // Lavalle E2: la plaza del Obelisco
       obeliscoGame.update(dt); obeliscoGame.draw(ctx, W, H);
       if (obeliscoGame.done) {

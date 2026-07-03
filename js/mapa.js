@@ -4,14 +4,16 @@
 // BFS del wiring de puertas + regex de piso/subsuelo en los nombres; los MARCADORES salen del grafo (Historia ×
 // historiaState × HintEngine.frontier), de los NPCs del modelo (persona/oracle/sells) y de los tags.
 // Fog of war suave: lo no visitado = silueta "???"; las salas secret no aparecen hasta descubrirlas.
+// v293 (playtest del dueño): cada quest se ancla a UN solo nodo (la entrada del edificio, no todos los pisos),
+// las 🔒 salen de las barras (solo tooltip), CLICK en un edificio = zoom, y el zoom marca los pisos con contenido.
 const Mapa = (() => {
   const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   let model = null;
 
-  // sub-modos = nodos DATA colgados de su punto de origen
+  // sub-modos = nodos DATA colgados de su punto de origen ('at' = a qué lugar del grafo responden)
   const SUBMODES = [
-    { id: 'lavalle',  name: 'Lavalle — el piquete', anchor: 'left',    level: 0 },
-    { id: 'obelisco', name: 'El Obelisco',          anchor: 'left',    level: 1 },
+    { id: 'lavalle',  name: 'Lavalle — el piquete', anchor: 'left',    level: 0, at: 'lavalle' },
+    { id: 'obelisco', name: 'El Obelisco',          anchor: 'left',    level: 1, at: 'lavalle' },
     { id: 'bodegon',  name: 'El Bodegón',           anchor: 'cinetop', level: 0 },
     { id: 'telo',     name: 'El telo',              anchor: 'cinetop', level: 1 },
   ];
@@ -55,48 +57,77 @@ const Mapa = (() => {
     // grupos por edificio (para el zoom): ancla → lista
     const groups = {}; nodes.forEach(n => { const k = Math.round(n.anchor); (groups[k] = groups[k] || []).push(n.i); });
     model.groups = groups;
+    // QUESTS → UN nodo cada una (v293): preferencia tag exacto; si no, match por nombre eligiendo la ENTRADA
+    // (|level| más chico) del grupo — así "edificio" no pinta los 20 pisos. 'calle' → nodo 0; 'lavalle' → sub-modo.
+    model.questAt = edges => {
+      const at = {};   // nodeIdx -> [edge,...]  ·  'sm:<id>' -> [edge,...]
+      for (const e of (edges || [])) {
+        const a = String(e.at || '');
+        if (!a) continue;
+        if (a === 'calle') { (at[0] = at[0] || []).push(e); continue; }
+        const sm = SUBMODES.find(s => s.at === a);
+        if (sm) { (at['sm:' + sm.id] = at['sm:' + sm.id] || []).push(e); continue; }
+        let cands = nodes.filter(n => n.i > 0 && n.tags.includes(a));
+        if (!cands.length) cands = nodes.filter(n => n.i > 0 && String(n.name).toLowerCase().includes(a));
+        if (!cands.length) continue;
+        cands.sort((x, y) => Math.abs(x.level) - Math.abs(y.level));
+        (at[cands[0].i] = at[cands[0].i] || []).push(e);
+      }
+      return at;
+    };
     return model;
   }
 
+  // márgenes reservados: columna IZQUIERDA (Lavalle/Obelisco) y DERECHA (bodegón/telo) para que nada se pise
+  const PADL = VW => Math.min(150, Math.max(120, VW * 0.14));
+  const PADR = 130;
+
   // geometría en pantalla de un nodo (vista mundo o zoom)
   function geom(n, VW, VH, zoomAnchor) {
-    const m = model, pad = 26;
+    const m = model, padL = PADL(VW), padR = PADR;
     if (zoomAnchor != null && Math.round(n.anchor) !== zoomAnchor) return null;
     const rows = m.maxUp + m.maxDn + 1;
     const rowH = Math.min(30, (VH - 130) / Math.max(6, rows));
     const y0 = 64 + m.maxUp * rowH;                                          // fila de la calle
     const row = m.rowOf[n.level] || 0;
     let w, x;
-    if (zoomAnchor != null) { w = VW * 0.55; x = (VW - w) / 2; }
-    else if (n.i === 0) { w = VW - pad * 2; x = pad; }
-    else { const sx = (VW - pad * 2) / m.streetW; w = Math.max(40, Math.min(120, n.w * sx * 0.9)); x = pad + n.anchor * sx - w / 2; x = Math.max(pad, Math.min(VW - pad - w, x)); }
+    if (zoomAnchor != null) { w = VW * 0.5; x = (VW - w) / 2; }
+    else if (n.i === 0) { w = VW - padL - padR; x = padL; }
+    else { const sx = (VW - padL - padR) / m.streetW; w = Math.max(40, Math.min(120, n.w * sx * 0.9)); x = padL + n.anchor * sx - w / 2; x = Math.max(padL, Math.min(VW - padR - w, x)); }
     const zRowH = zoomAnchor != null ? Math.min(44, (VH - 140) / Math.max(4, rows)) : rowH;
     const zy0 = zoomAnchor != null ? 70 + m.maxUp * zRowH : y0;
     return { x, y: zy0 - row * zRowH, w, h: (zoomAnchor != null ? zRowH : rowH) - 5 };
   }
 
-  // MARCADORES del grafo/modelo (specs/mapa-juego.md §3)
-  function markersOf(n, st) {
+  // MARCADORES del modelo (specs/mapa-juego.md §3). Las quests van aparte (questAt) para no repetir por piso.
+  function iconsOf(n) {
     const out = [];
     const r = n.room;
     if ((r.npcs || []).some(x => x && (x.persona || x.oracle))) out.push('💬');
     if (n.tags.includes('arcade') || n.tags.includes('truco')) out.push('🕹️');
     if ((r.npcs || []).some(x => x && (x.sells || x.tienda || x.arsenal)) || /chino|s[úu]per/i.test(n.name)) out.push('🛒');
-    // quests del grafo ancladas a este nodo (edge.at → sala por tag/nombre)
-    for (const e of (st.edges || [])) {
-      const at = e.at || '';
-      const match = (at === 'calle' && n.i === 0) || n.tags.includes(at) || (at && n.name && n.name.toLowerCase().includes(at));
-      if (!match) continue;
-      const done = e.sets && Object.keys(e.sets).every(k => st.flags && st.flags[k]);
-      out.push(done ? '✅' : (st.frontier && st.frontier.has(e.id) ? '⭐' : '🔒'));
+    return out;
+  }
+  // estado de una quest: '✅' hecha · '⭐' disponible AHORA · '🔒' futura (solo tooltip, no ensucia las barras)
+  const questMark = (e, st) => (e.sets && Object.keys(e.sets).every(k => st.flags && st.flags[k])) ? '✅'
+    : (st.frontier && st.frontier.has(e.id) ? '⭐' : '🔒');
+
+  // qué edificio/nodo hay bajo el mouse (para CLICK = zoom). Devuelve { anchor } o null.
+  function hitTest(VW, VH, st) {
+    if (!model) return null;
+    for (const n of model.nodes) {
+      const g = geom(n, VW, VH, st.zoom); if (!g) continue;
+      if (n.secret && !(st.visited && st.visited.has(n.i))) continue;
+      if (st.mx >= g.x && st.mx <= g.x + g.w && st.my >= g.y && st.my <= g.y + g.h) return { anchor: Math.round(n.anchor), node: n.i };
     }
-    return [...new Set(out)].slice(0, 5);
+    return null;
   }
 
   function draw(ctx, VW, VH, st) {
     if (!model) return;
     st = st || {};
     const visited = st.visited || new Set([0]);
+    const qAt = model.questAt ? model.questAt(st.edges) : {};
     ctx.fillStyle = '#05070c'; ctx.fillRect(0, 0, VW, VH);
     ctx.save(); ctx.globalAlpha = 0.05; ctx.fillStyle = '#4af'; for (let y = 0; y < VH; y += 4) ctx.fillRect(0, y, VW, 1); ctx.restore();   // scanlines
     // header
@@ -120,43 +151,68 @@ const Mapa = (() => {
       const isCur = st.current === n.i && !st.sub;
       const hov = st.mx >= g.x && st.mx <= g.x + g.w && st.my >= g.y && st.my <= g.y + g.h;
       if (hov) hoverNode = { n, g };
-      const col = isCur ? '#ffd54f' : seen ? (n.i === 0 ? '#7fd0ff' : '#5a8cc8') : 'rgba(90,110,140,0.35)';
+      // marcadores del nodo: iconos del modelo + quests ancladas ACÁ (✅/⭐ visibles; 🔒 solo al hover)
+      const mk = seen ? iconsOf(n) : [];
+      const qs = seen ? (qAt[n.i] || []).map(e => questMark(e, st)) : [];
+      const vis = mk.concat(qs.filter(q => q !== '🔒'));
+      const hasStar = qs.includes('⭐');
+      // pisos con contenido: fondo tenue (en zoom, más notorio) — "los pisos importantes SE VEN"
+      if (seen && (vis.length || hasStar)) { ctx.fillStyle = st.zoom != null ? 'rgba(80,140,220,0.12)' : 'rgba(80,140,220,0.07)'; ctx.fillRect(g.x, g.y, g.w, g.h); }
+      const col = isCur ? '#ffd54f' : hasStar ? '#ffe27a' : seen ? (n.i === 0 ? '#7fd0ff' : '#5a8cc8') : 'rgba(90,110,140,0.35)';
       ctx.strokeStyle = col; ctx.lineWidth = isCur || hov ? 2 : 1;
       ctx.strokeRect(g.x + 0.5, g.y + 0.5, g.w, g.h);
       if (st.stormed && n.room.collapsesOnStorm) { ctx.fillStyle = 'rgba(180,40,40,0.18)'; ctx.fillRect(g.x, g.y, g.w, g.h); }
       ctx.fillStyle = seen ? '#cfe0f0' : 'rgba(140,160,190,0.5)'; ctx.font = (isCur ? 'bold ' : '') + '9px monospace'; ctx.textAlign = 'left';
       const label = seen ? (typeof TX !== 'undefined' ? TX(n.name) : n.name) : '???';
-      ctx.fillText(String(label).slice(0, Math.floor(g.w / 5.6)), g.x + 3, g.y + g.h / 2 + 3);
-      if (seen) { const mk = markersOf(n, st); if (mk.length) { ctx.font = '9px monospace'; ctx.textAlign = 'right'; ctx.fillText(mk.join(''), g.x + g.w - 2, g.y + g.h - 2); } }
+      // en ZOOM: etiqueta de PISO a la izquierda de la barra + nombre + marcadores GRANDES a la derecha, afuera
+      if (st.zoom != null) {
+        ctx.fillStyle = '#8fa8c8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'right';
+        const lv = n.level || 0;
+        ctx.fillText(lv === 0 ? '—' : (lv > 0 ? 'P' + lv : 'S' + (-lv)), g.x - 8, g.y + g.h / 2 + 3);
+        ctx.fillStyle = seen ? '#cfe0f0' : 'rgba(140,160,190,0.5)'; ctx.font = (isCur ? 'bold ' : '') + '11px monospace'; ctx.textAlign = 'left';
+        ctx.fillText(String(label).slice(0, Math.floor(g.w / 7)), g.x + 5, g.y + g.h / 2 + 4);
+        if (vis.length) { ctx.font = '13px monospace'; ctx.fillText(vis.slice(0, 5).join(' '), g.x + g.w + 8, g.y + g.h / 2 + 5); }
+      } else {
+        ctx.fillText(String(label).slice(0, Math.floor(g.w / 5.6)), g.x + 3, g.y + g.h / 2 + 3);
+        if (vis.length) { ctx.font = '9px monospace'; ctx.textAlign = 'right'; ctx.fillText(vis.slice(0, 4).join(''), g.x + g.w - 2, g.y + g.h - 2); }
+      }
       // ESTÁS ACÁ: punto que late, en tu x real dentro de la barra
       if (isCur) { const bx = g.x + (st.px01 || 0.5) * g.w, by = g.y + g.h / 2;
         ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx, by, 4, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText(T('g.mapa.aca'), bx, g.y - 3); }
     }
-    // sub-modos como nodos colgados
-    const cineAnchor = (() => { const c = model.nodes.find(n => /cine/i.test(n.name)); return c ? c : null; })();
-    SUBMODES.forEach((sm, k) => {
+    // sub-modos como nodos colgados — en sus COLUMNAS reservadas (no pisan la calle ni los subsuelos)
+    SUBMODES.forEach((sm) => {
       if (st.zoom != null) return;
-      const x = sm.anchor === 'left' ? 8 : VW - 118, base = 64 + model.maxUp * Math.min(30, (VH - 130) / Math.max(6, model.maxUp + model.maxDn + 1));
-      const y = sm.anchor === 'left' ? base - 30 - sm.level * 26 : 40 + sm.level * 26;
-      const g = { x, y, w: 106, h: 20 };
+      const padL = PADL(VW);
+      const rows = model.maxUp + model.maxDn + 1;
+      const rowH = Math.min(30, (VH - 130) / Math.max(6, rows));
+      const base = 64 + model.maxUp * rowH;
+      const x = sm.anchor === 'left' ? Math.max(8, padL - 116) : VW - PADR + 10;
+      const y = sm.anchor === 'left' ? base - sm.level * 26 : 40 + sm.level * 26;
+      const g = { x, y, w: 104, h: 20 };
       const active = st.sub === sm.id;
-      ctx.strokeStyle = active ? '#ffd54f' : '#4a7a5a'; ctx.lineWidth = active ? 2 : 1; ctx.setLineDash([3, 3]);
+      const qs = (qAt['sm:' + sm.id] || []).map(e => questMark(e, st)).filter(q => q !== '🔒');
+      ctx.strokeStyle = active ? '#ffd54f' : qs.includes('⭐') ? '#ffe27a' : '#4a7a5a'; ctx.lineWidth = active ? 2 : 1; ctx.setLineDash([3, 3]);
       ctx.strokeRect(g.x, g.y, g.w, g.h); ctx.setLineDash([]);
       ctx.fillStyle = active ? '#ffe9b0' : '#8fc8a0'; ctx.font = '8px monospace'; ctx.textAlign = 'left';
-      ctx.fillText(sm.name.slice(0, 18), g.x + 3, g.y + 13);
+      ctx.fillText(sm.name.slice(0, 16), g.x + 3, g.y + 13);
+      if (qs.length) { ctx.font = '9px monospace'; ctx.textAlign = 'right'; ctx.fillText(qs.join(''), g.x + g.w - 2, g.y + 13); }
       if (active) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(g.x + g.w - 8, g.y + g.h / 2, 3.4, 0, Math.PI * 2); ctx.fill(); }
     });
-    // tooltip del hover (abajo)
+    // tooltip del hover (banda de abajo) — acá SÍ se ven las 🔒 con su nombre ("se destraba más adelante")
     if (hoverNode) {
       const { n } = hoverNode, seen = visited.has(n.i);
       const lines = [];
-      lines.push((seen ? (typeof TX !== 'undefined' ? TX(n.name) : n.name) : '???') + (n.level ? '  ·  ' + (n.level > 0 ? T('g.mapa.piso', { n: n.level }) : T('g.mapa.sub', { n: -n.level })) : ''));
-      if (seen) { const mk = markersOf(n, st); if (mk.length) lines.push(mk.join(' '));
-        // hint críptico (nivel 0) de la quest DISPONIBLE acá
-        for (const e of (st.edges || [])) if (st.frontier && st.frontier.has(e.id)) {
-          const at = e.at || ''; if ((at === 'calle' && n.i === 0) || n.tags.includes(at) || (at && n.name.toLowerCase().includes(at))) {
-            const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; if (h && h[0]) lines.push('⭐ ' + h[0]); break; } } }
+      lines.push((seen ? (typeof TX !== 'undefined' ? TX(n.name) : n.name) : '???') + (n.level ? '  ·  ' + (n.level > 0 ? T('g.mapa.piso', { n: n.level }) : T('g.mapa.sub', { n: -n.level })) : '') + '  ·  ' + T('g.mapa.click'));
+      if (seen) {
+        const mk = iconsOf(n); if (mk.length) lines.push(mk.join(' '));
+        for (const e of (qAt[n.i] || [])) {
+          const q = questMark(e, st);
+          if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[0]) || e.title || e.id)); }
+          else lines.push(q + ' ' + (e.title || e.id) + (q === '🔒' ? ' — ' + T('g.mapa.locked') : ''));
+        }
+      }
       const bh = 16 + lines.length * 14;
       ctx.fillStyle = 'rgba(4,8,14,0.94)'; ctx.fillRect(0, VH - bh, VW, bh);
       ctx.strokeStyle = '#2a4a6a'; ctx.strokeRect(0.5, VH - bh + 0.5, VW - 1, bh - 1);
@@ -165,7 +221,7 @@ const Mapa = (() => {
   }
 
   function groupAt(current) { const n = model && model.nodes[current]; return n ? Math.round(n.anchor) : null; }
-  return { build, draw, groupAt, get model() { return model; } };
+  return { build, draw, groupAt, hitTest, get model() { return model; } };
 })();
 if (typeof window !== 'undefined') window.Mapa = Mapa;
 if (typeof module !== 'undefined') module.exports = Mapa;
