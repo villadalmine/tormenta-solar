@@ -1,6 +1,6 @@
 # SDD — ESTADO DEL JUGADOR: el bug del NaN (vida/monedas/caramelos/items/loop/munición) + respawn peronista
 
-- **Estado:** **Diseño con DIAGNÓSTICO hecho (marcado por el dueño, 2026-07-02).** Sin implementar.
+- **Estado:** ✅ **IMPLEMENTADO COMPLETO (v288·infra-60, 2026-07-02).** Anti-NaN (`sanePlayer()` en restore/loop/pre-save + `num()` fail-closed en compras + higiene `ts_shopCache_v1` + evento/métrica `nan` por campo) y respawn peronista (morir sin búnker → piquete, hp 50 + chori, save intacto).
 - **Reporte del dueño:** *"vida/monedas/caramelos/items/loop/mun se queda a veces en NaN, no sé por qué, y es algo
   que los hace fallar a través de todo el juego. Y si me quedo sin vida SIN haber descubierto el búnker → me
   despierto en el piquete con la muchachada peronista: 'flaco, ¿qué te pasó? te teletransportaste como un rayo

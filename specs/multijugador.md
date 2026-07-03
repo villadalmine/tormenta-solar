@@ -1,6 +1,6 @@
 # SDD — Zona MULTIJUGADOR: el CINE en vivo + el BODEGÓN donde te encontrás con otro
 
-- **Estado:** **DISEÑO (2026-06-27).** Idea del dueño aterrizada a arquitectura. Sin implementar — listo para prototipar F1.
+- **Estado:** ✅ **IMPLEMENTADO (F1 v205 → mesas server-side v245·infra-43).** Cine EN VIVO (F1), bodegón real-time SSE (F2b, v212-213), top-down + telo (v217-220), truco PvP 1v1 (F3 v240) y 3v3 con IA-fill (v241), chat privado + menú de peer (T2b v243), matchmaking por MESAS EN EL SERVER (v245: `/salon/table`, table-start, peers caminando, chat auto-abre), ESPACIOS bodegon|lavalle (v252). Deuda: host malicioso (relay sin autoridad).
 - **Nivel:** transversal (2 pisos nuevos del edificio del CINE; capa social online, NO vuelve todo el juego multiplayer).
 - **Relacionado:** `presence.js` (heartbeat "jugando ahora", ya existe), repo **`online-game`** (SSE/tiempo real +
   presencia en el edge HAProxy/Cilium — REUSAR, no reinventar; ver su `sdd-haproxy-edge-sse.md`),

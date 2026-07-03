@@ -11,72 +11,39 @@ El juego es 100% estático; se publica en
 
 ---
 
-## 🔭 Próximamente — Roadmap (SDDs draft, sin implementar)
+## 🔭 QUÉ FALTA — tracker (actualizado 2026-07-03; lo hecho vive en las entradas de abajo)
 
-- ~~**ESTADO DEL JUGADOR: NaN + respawn peronista**~~: ✅ **HECHO (v288·infra-60)** — `sanePlayer()` + `num()`
-  fail-closed + higiene del `ts_shopCache_v1` + evento `nan` por campo al dashboard; morir sin búnker → despertás
-  en el piquete con la muchachada. `specs/estado-jugador.md`.
-- ~~**Tracker juegos del piquete**~~: ✅ **HECHO (v288)** — ocultable [H], persiste, se limpia solo con el
-  juramento del grafo. `specs/lavalle-multijugador.md §7`.
-- ~~**MAPA DEL JUEGO**~~: ✅ **HECHO (v289, F1-F3+fog)** — automap DOOM con TAB, corte de la manzana 100%
-  data-driven (51/51 salas del wiring v2), "estás acá", zoom [Z], marcadores del grafo, fog of war.
-  `specs/mapa-juego.md`. Falta menor: cursor por teclado, minimapa HUD, online por sala.
+### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
+- **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
+  o **MercadoPago/dLocal** (AR) → webhook → `/provision`. El entitlement por código YA anda.
+- **Seguridad 2º lote** (`specs/seguridad.md`): acotar CORS `*`→orígenes propios, trivy/gitleaks en CI, mTLS —
+  toca el proxy que anda → necesita OK explícito.
+- **Rotación en LiteLLM / más GPU** (`pruebas-modelos.md §2.7`, `hami-gpu-plan.md`, [[keda-gpu-scaler]]): dominio
+  del dueño (config LiteLLM). `gemma3:4b` necesita más GPU.
 
-- **AUTOPLAY QA** (`specs/autoplay-qa.md`): ✅ **F1+F3a HECHOS (2026-07-02, `tests/autoplay/`)** — suites
-  01-boot/05-multi/06-ia/08-apis + runner (`node tests/autoplay/run.mjs`) que junta veredictos JSON → `reporte.md`
-  y, si algo falla, **genera el PROMPT de auto-fix** (`prompt-autofix.md`) + exit 1. Validado contra PROD (4/4
-  verdes; 06-ia cuida la billetera: 1 chat free + premium solo con `QA_SUB_CODE`). El CronWorkflow de Argo quedó
-  listo en `tests/autoplay/argo-cronworkflow.yaml` — **NO aplicado** (esperando OK del dueño). Falta F4 (suites
-  02-calle/03-historia/04-lavalle/07-mapas) + F3b (hermes lo toma solo).
-- ~~**CHAT LINYERA UX**~~: ✅ **HECHO (v290·infra-61)** — ideas que quedan picando + iconos de espera + FIX
-  respuestas cortadas. Ver la entrada v290 abajo y `specs/chat-linyera-ux.md`.
-- ⭐ **DEPLOY DE VERSIONES como Argo Workflow** (`specs/deploy-pipeline.md §3.1`, re-marcado 2026-07-02): hoy
-  todo deploy pasa por `deploy.sh proxy <tag>` EN LA LAPTOP — eso bloquea que algo in-cluster pueda deployar.
-  F3 = WorkflowTemplate `tormenta-deploy` (build kaniko + helm upgrade + rollout + smoke, params component/tag,
-  RBAC mínimo, genToken in-cluster) → destraba: el auto-fix del Autoplay QA cierra el loop SOLO, hermes/Telegram
-  shipean versiones, deploy on-push (Argo Events), rollback de una línea, deploy desde el celu. `deploy.sh` queda
-  de wrapper/fallback.
+### 🧪 Validaciones de PLAYTEST pendientes (del dueño, features ya shipeadas)
+- **Guardar partida (v291-292)**: morir post-búnker → botón "⏪ volver al último hito"; HARDCORE en ⚙; retomar
+  en el celu tipeando el nick completo (`Carpo·XYZ`).
+- **Chat UX (v290)**: iconos de espera ☀️⛈️🍷🥩💾🤖, el linyera se acuerda de la idea que te tiró, respuestas
+  sin cortar.
+- **Corte de escena a Garbarino (v230)** y **regla de la casa del truco 3v3 (v241)**: nunca validados.
 
-- **Rotación en LiteLLM** (`specs/pruebas-modelos.md §2.7`): `gemma2:2b` en la GPU como primario
-  (+ `keep_alive`) con **fallback a `gemma4-free`** (OpenRouter) si la GPU se apaga. El usuario lo itera aparte.
-- **Pago de la suscripción** (research hecho en `specs/pasarela-pago.md`): falta enganchar una pasarela
-  (**Mollie** NL/EU · Mercado Pago/dLocal AR) → webhook → `/provision`. El entitlement por código YA está (ver
-  infra-2..6). *(Métricas reales y suscripción por código: HECHO, ver entradas de abajo.)*
-- **Deuda fina de las features YA implementadas** (pulido, no bloqueante — las features andan):
-  - ~~**Grafo `historia.js`**~~: ✅ **HECHO (v195)** — aristas `cuevero_gate` (gatea `tormenta` con `cueveroUnlocked`)
-    y `vecino` (post-tormenta, `vecinoSeen`); el HintEngine ya guía ambos flujos. *(La cadena Guido en sí sigue por
-    flags, no es sub-grafo — menor.)*
-  - ~~**Banco VIVO de historias del vecino**~~: ✅ **HECHO (v196 / infra-27)** — la IA ahora autora también el TEXTO
-    (gancho + relato, ES/EN) por edificio (cron `gen-historias.mjs` → `POST /historias` → PVC → `GET /historias` →
-    `window.HISTORIAS_VECINO`), con fallback al banco estático. `edificios-clausurados-historias.md §8`.
-  - ~~**IA autora la ECONOMÍA de las tiendas**~~: ✅ **HECHO (v197 / infra-28)** — la IA **sugiere** `cost`/`amount`
-    por producto y el cliente **clampa** a rango sano por kind (la moneda y el tipo de ítem quedan del molde); +
-    `shopCache` **persistido en localStorage** (`ts_shopCache_v1`). `tiendas-generadas.md`.
-  - ~~**Linyera-guía / Guido "follow" cross-room**~~: ✅ **HECHO (v200 Fase 1 + v201 Fase 2)** — sistema de
-    *companions* (NPC real que viaja con vos entre salas, derivado de flags). El linyera te escolta hasta Guido y
-    Guido hasta el tahúr; y el **truco "de a 6"** (reclutás 2 que te siguen, 3v3 por skill). **Toda la deuda fina A
-    queda CERRADA.**
-  - ~~**Persistir la historia activa del vecino**~~: ✅ **HECHO (v198)** — `vecinoState[edif]` (told/storyCount/activeStory)
-    se serializa/restaura; el NPC se hidrata desde el estado guardado → reabrir el chusmerío es coherente tras recargar.
-- **Bot de Telegram → Hermes** para manejar el juego desde el chat (`specs/telegram-hermes.md`).
-- **Zona multijugador** (`specs/multijugador.md`): ✏️ **DISEÑO aterrizado (2026-06-27)** — 2 pisos nuevos del CINE:
-  **(1) Cine EN VIVO** (la pantalla muestra el mundo vivo: cuántos juegan, dónde, ticker de hitos del `tel()`; reusa
-  `presence.js`, F1 barato) y **(2) Bodegón porteño** (salas-instancia chicas por SSE: te cruzás en tiempo real con
-  otro, mesas/comida, **truco PvP humano** reusando el motor, emotes+frases preset sin chat libre = sin moderación).
-  Server relay SSE (no autoridad), peers = entidades efímeras, degradación total sin backend. Fases F1→F4. Sin implementar.
-- **Spinoff STARGATE** (`specs/spinoff-stargate.md`, idea 2026-06-26): SG-1 + Atlantis, fiel al canon (razas,
-  planetas, galaxias, naves, militar Tau'ri, personajes por raza). El stargate = puerta entre niveles/galaxias.
-  Diseño temprano, NO implementado.
-- ~~**Cine: news EN VIVO horario + Villa Dálmine**~~ ✅ **HECHO** (`specs/cine-noticias.md §7.1`): 2º cron horario
-  `tormenta-ai-proxy-noticias-live` en modo `NEWS_LIVE_ONLY` (Mundial/fútbol/crypto, sin Google) + `POST /noticias`
-  con **merge por topic** (`if (d.merge)` actualiza solo esos, conserva el resto del día) + **Villa Dálmine por
-  EQUIPO** (`NEWS_SPORTS="...primera-b:team:137785"` en values-prod → `eventslast.php?id=137785`). Verificado en vivo
-  (el banco trae "Villa Dálmine 2-1 Sportivo Italiano").
-- **Seguridad** (`specs/seguridad.md`): fase transversal — sin CVEs (todas las versiones), flujo cifrado,
-  anti-DoS web/API/tokens (incl. "denial of wallet"), buenas prácticas de datos, anti-escalada. Con checklist
-  de herramientas (trivy, ZAP, k6, kube-bench, Hubble, gitleaks) y prioridades.
-- *(Opcional)* más GPU para correr `gemma3:4b` (mejor calidad, hoy 65s por el slice de 4GB); `tormenta-free`
-  (cadena exacta del código) en LiteLLM.
+### 💻 Listo para codear cuando el dueño diga "dale"
+- **Autoplay QA F3b** (`autoplay-qa.md`): hermes-agent toma el `prompt-autofix` SOLO → arregla → PR → deploya con
+  `tormenta-deploy`. (Desbloqueado por infra-62; falta el loop del agente.)
+- **Deploy on-push** (`deploy-pipeline.md` F3.5): Argo Events + webhook GitHub → push a main = deploy automático.
+- **Mapa TAB — pulido** (`mapa-juego.md`): cursor por teclado, minimapa HUD, online por sala.
+- **Truco**: contraflor en el 3v3; F4 tabla de skill (opcional).
+- **Deuda fina menor**: chusmerío del banco server bilingüe (cron), memoria por-NPC individual (npcs-vivos v2),
+  inventario F2 (ítems no-arma con "usar"), host malicioso del truco (relay sin autoridad).
+
+### 💡 Ideas grandes en draft (sin arrancar)
+- **Bot de Telegram → Hermes** (`telegram-hermes.md`): manejar el juego desde el chat. Pega fuerte combinado con
+  el deploy in-cluster.
+- **Spinoff STARGATE** (`spinoff-stargate.md`): SG-1 + Atlantis; el stargate = puerta entre niveles.
+- **Propaganda PAGA** con link clickeable que paga al dueño (`carteles-ia.md §9`).
+- **Quest mundo-AI** (`quest-mundo-ai.md`) · **Landing /info + /tech** (`landing-info.md`, fuente:
+  `features-showcase.md`) · **Memoria de chat persistente** (`memoria-chat.md`, "para analizar").
 
 ---
 

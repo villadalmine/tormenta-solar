@@ -1,6 +1,6 @@
 # SDD — Lavalle MULTIJUGADOR: "Aguantar el corte" (co-op de piquete)
 
-- **Estado:** **Fase 1 + Fase 2 HECHAS y en prod (v252→v262).** Verse+juntarse (F1), chat privado con el peer, y el
+- **Estado:** ✅ **COMPLETO y en prod (v252→v288).** F1 verse+chat, F2 "Aguantar el corte", y los **5 mini-juegos co-op** (corte v259 · soga v263 · bombo v264 · olla v265 · pancarta v266, reworks del playtest v267) + tracker §7 ocultable [H] que se limpia con el juramento (v288). Verse+juntarse (F1), chat privado con el peer, y el
   mini-juego co-op **"Aguantar el corte"** (F2, `js/piquete.js`). Próximo: MÁS mini-juegos (§6).
 - **Última actualización:** 2026-07-01
 - **⚠️ GOTCHA que rompía TODO el multijugador (v262):** en `index.html`, `salon.js` DEBE cargar **ANTES** de

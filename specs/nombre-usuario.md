@@ -12,6 +12,9 @@ El jugador **elige un nombre** (en ⚙ Opciones). El juego le **agrega siempre u
 otros: **peers del bodegón**, **autor de los carteles**, (a futuro) aportes del datacenter.
 
 ## 2. Diseño (mínimo, client-side)
+- **CROSS-DEVICE (v292, 2026-07-03):** el sufijo `·XYZ` es PARTE de la identidad — si en ⚙ tipeás el nick
+  COMPLETO (`Carpo·A3F`, también vale `Carpo#A3F`), `setNickBase` ADOPTA ese sufijo en vez de sortear uno nuevo →
+  misma identidad en otro dispositivo (checkpoint + memoria del barrio te encuentran). Hint en la preview.
 - **Estado (localStorage, persiste cross-sesión):**
   - `ts_nick` = el nombre BASE que escribió el usuario (sin sufijo). Default `'Carpo'` si está vacío.
   - `ts_nick_sfx` = los 3 chars random, **generados UNA vez** y guardados (así tu identidad es estable entre sesiones;

@@ -1,6 +1,6 @@
 # SDD — Mapas estratégicos: SATÉLITES/BASES (el mundo) + BÚNKERES (tu refugio)
 
-- **Estado:** **Diseño / brainstorm del dueño (2026-07-01).** Nada construido aún. Este doc captura la idea (que "no se
+- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v273-v282, 2026-07-01/02).** F1 globo que gira (satélites+bases, sala de situación) · F2 plano del búnker (grilla+radar) · F3 conexiones vivas (radar=enemigos reales, búnker PRODUCE al dormir, globo↔datacenter, satélite herido) · F4 disco rotable de 8 zonas con zoom (`ts_bunker_z_<id>`). MAPAS COMPLETOS. Este doc captura la idea (que "no se
   veía" en ningún lado) y propone cómo hacerla, por fases.
 - **Lore (ya existe):** la tormenta solar la desataron **SATÉLITES REBELDES gobernados por IA**; el endgame es
   **destruir la IA del satélite** (ver datacenter D2 / `construccion-colaborativa.md`). El **búnker** ya existe en el

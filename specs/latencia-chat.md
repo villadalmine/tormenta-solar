@@ -1,6 +1,6 @@
 # SDD — Latencia del chat del linyera: tope de 10s + flujo de espera + métricas
 
-- **Estado:** **Implementado (cliente v=93) + proxy (rebuild pendiente)**
+- **Estado:** ✅ **Implementado y LIVE (cliente + proxy).** §1 documenta el modo de falla NORMAL (saturación de hora pico → fallback temático ≤10s — NO tocar, regla del dueño). Desde 0.1.83: `max_tokens` 220 + `tidyReply` (nunca cortar a mitad de frase).
 - **Última actualización:** 2026-06-24
 - **Regla dura:** el linyera **no puede tardar más de 10s** en dar una respuesta. Si el modelo no contesta a
   tiempo, se sirve una **línea temática** ("la tormenta solar saturó el modelo") y el juego sigue fluido.

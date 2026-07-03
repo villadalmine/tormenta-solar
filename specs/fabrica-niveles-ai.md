@@ -1,6 +1,6 @@
 # SDD — La "máquina de hacer chorizos": contás una historia → la IA arma el juego (NORTE)
 
-- **Estado:** **PRIMER CORTE JUGABLE (v162):** el generador se DISPARA in-game. Te colás a la **trastienda del
+- **Estado:** ✅ **COMPLETO — A0 CERRADO (v207-209) + A0-DEEP CERRADO (v236-242):** cache-first, look propio por motif, enemigos por vibe, props ANCLA, salas=BEATS del relato (hand-authored + IA), beats en el spinoff top-down. Único futuro: mejores beats de la IA (depende del modelo). *(histórico v162:)* el generador se DISPARA in-game. Te colás a la **trastienda del
   chino durante el RAID** (mientras el chino corre en pánico hablando por globito) → se **genera un nivel surreal
   temático** y lo corre el sub-modo `Spinoff`. Generador `js/nivelai.js` (molde = `THEMES` data) + escena
   `js/spinoff.js` + endpoint proxy `POST /nivel-ai` (la IA autora nombre/intro/frases, con **fallback estático**).
