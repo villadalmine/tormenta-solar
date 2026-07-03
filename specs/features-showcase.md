@@ -142,6 +142,10 @@
   vs **suscripción paga** (BYOK / código), ruteo por hardware (cloud/GPU/NPU). Helm + Argo CronWorkflows + kaniko.
 - **Métricas Prometheus → Grafana:** uso real del chat (modelo/backend/outcome + latencia), banks (`eco_bank`),
   métricas del juego. `deploy/deploy.sh` reproducible (maneja el `genToken`).
+- **Deploy como Argo Workflow (infra-62):** `tormenta-deploy` corre EN el cluster (build kaniko → helm → rollout →
+  smoke) con **rollback automático** si la verificación falla y **alerta a Telegram** vía Alertmanager
+  (`TormentaDeployFailed` + `ArgoWorkflowsFallados`) — nadie tiene que mirar: si algo se rompe, avisa solo y
+  restaura solo. Se puede deployar desde cualquier lado (`deploy-argo.sh`, kubectl, el agente del cluster).
 - **Tests + CI:** `tests/e2e.js` (lógica + auditoría de assets + sub-modos), `tests/levels.mjs` (schema),
   `tests/parity.mjs` (v1≡v2), **`tests/playable.mjs`** (jugabilidad), `tests/web-smoke.mjs` (Chromium real).
   i18n ES/EN completo. Cache-busting `?v=N`.
