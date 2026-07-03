@@ -3515,7 +3515,9 @@
         frontier: mapaFrontier, stormed, mx: Input.mouse.x, my: Input.mouse.y,
         online: (salonLive && salonLive.count) || 0, live: (salonLive && salonLive.byRoom) || {},
         piquete: loadPiqueteWon(), facil: lsFlag('ts_ayuda_facil'),
-        dream: spinoffLevel ? ((r0 && TX(r0.name)) || '💤') : null, zoom: mapaZoom, sub: null });
+        dream: spinoffLevel ? ((r0 && TX(r0.name)) || '💤') : null,
+        subteStats: (() => { try { return JSON.parse(localStorage.getItem('ts_subte_stats') || '{}'); } catch (e) { return {}; } })(),
+        zoom: mapaZoom, sub: null });
       // Z: dentro de un edificio = zoom a ESE edificio; en la calle no hace nada (el click manda, v300)
       if (trucoTap('z')) mapaZoom = (mapaZoom == null && current !== 0) ? Mapa.groupAt(current) : null;
       if (trucoTap('1')) mapaZoom = 'sky';                                             // [1] la cuadra (skyline, v301)

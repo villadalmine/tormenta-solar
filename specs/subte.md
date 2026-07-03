@@ -38,6 +38,18 @@ triple del Obelisco — cierra perfecto con el arco del Obelisco del juego.
   esas tres** — y Catedral es la puerta al futuro mapa Plaza de Mayo. El preview ya las destaca con 🚉 + panel
   de info.
 
+## 2.6 v309 — HOVER con datos + el TÓTEM SUBE del chino (la semilla de la quest)
+
+- **Hover por estación** (tarjeta flotante): año real de inauguración (`EST_ANIO`: Florida 1930, Lavalle 1936,
+  Catedral 1937…), línea + año, recorrido en km y pasajeros/día (`SUBTE_DATA`: B 11,8km ~330k · C 4,4km ~200k ·
+  D 10,4km ~310k) — y en las 3 jugables, **tus stats**: viajes y plata gastada (`ts_subte_stats` en localStorage,
+  contadores LISTOS para cuando el viaje exista en F2; hoy 0).
+- **TÓTEM «RECARGA SUBE» en el chino** (`js/super.js`, celeste, entre la SALIDA y la CAJA, sin pisar nada):
+  [E] → querés comprar la tarjeta → **“✖ SIN TARJETAS”** — el chino grita que se le acabaron y que consigas una
+  por ahí. Deja `ts_sube_seen=1` → **semilla de la QUEST «buscar la tarjeta SUBE»** (a diseñar: ¿quién tiene una
+  SUBE dando vueltas? ¿un linyera? ¿el telo? ¿premio de un mini-juego?). La quest se agregará al grafo como
+  arista con `sala` cuando se diseñe.
+
 ## 3. Futuro (F2+, a diseñar con el dueño): METER el subte al juego
 
 - **F2 — la estación como LUGAR**: sala real "Estación Lavalle (C)" colgada de los subsuelos (S4/S5: más abajo

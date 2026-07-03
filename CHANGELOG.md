@@ -47,6 +47,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v309] — 2026-07-03 — 🚇💳 Estaciones con DATOS al hover + el TÓTEM SUBE del chino (semilla de quest)
+
+- **Hover por estación** en la pestaña SUBTE: tarjeta con **año real de inauguración** (Florida 1930, Lavalle
+  1936, Catedral 1937), línea, **recorrido en km** y **pasajeros/día** — y en las 3 estaciones del juego, TUS
+  stats: **viajes hechos y plata gastada** (contadores `ts_subte_stats` listos para el F2; arrancan en 0).
+- **TÓTEM «RECARGA SUBE» en el chino**: kiosco celeste entre la salida y la caja (sin pisar nada). [E] para
+  comprar la tarjeta → **✖ SIN TARJETAS** — "¡se me acabaron las SUBE, pibe! Conseguite una por ahí y acá te la
+  cargo" → **semilla de la quest «buscar la tarjeta SUBE»** (`ts_sube_seen`). SDD `subte.md §2.6`.
+- FIX: el click en la vista subte ya no pega en nodos invisibles de otras vistas.
+
 ## [v308] — 2026-07-03 — 🐛 FIX definitivo del cuadro 💤 SUEÑOS: reubicado abajo-izquierda + truncado por MEDICIÓN
 
 El recuadro seguía cortando el texto (el slice por caracteres asumía un ancho de fuente que varía por browser).

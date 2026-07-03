@@ -12,6 +12,13 @@ const Mapa = (() => {
 
   // EL SUBTE (specs/subte.md, preview v306): líneas REALES con ≥2 estaciones cerca de Florida y Lavalle.
   // DATA pura: cada línea = { id, color real, estaciones en orden, cuáles están CERCA de la zona del juego }.
+  // Datos REALES por línea (año de inauguración, recorrido, pasajeros/día aprox) + año de las estaciones clave.
+  const SUBTE_DATA = {
+    B: { anio: 1930, km: '11,8', pax: '~330.000' },
+    C: { anio: 1934, km: '4,4', pax: '~200.000' },
+    D: { anio: 1937, km: '10,4', pax: '~310.000' },
+  };
+  const EST_ANIO = { Florida: 1930, Lavalle: 1936, 'San Martín': 1936, Retiro: 1936, Catedral: 1937, '9 de Julio': 1937 };
   const SUBTE = [
     { id: 'C', color: '#1f6cb5', name: 'Línea C · Retiro–Constitución',
       ests: ['Retiro', 'San Martín', 'Lavalle', 'Diagonal Norte', 'Av. de Mayo', 'Moreno', 'Independencia', 'San Juan', 'Constitución'],
@@ -270,6 +277,7 @@ const Mapa = (() => {
       if (st.mx >= 214 && st.mx <= 310) return { tab: 'ss' };
       if (st.mx >= 316 && st.mx <= 412) return { tab: 'subte' };
     }
+    if (st.zoom === 'subte') return null;                                    // subte: solo pestañas (hover en el draw)
     if (st.zoom === 'sky') {                                                 // siluetas del skyline
       const sk = skyBoxes(VW, VH);
       for (const bx of sk.boxes) if (st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h)
@@ -313,9 +321,11 @@ const Mapa = (() => {
       ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillText(L.id, h0.x, h0.y + 4);
     }
     ctx.lineCap = 'butt';
+    const puntos = [];   // para el hover con DATOS de la estación
     for (const [L, p, n] of [[C, pt.C, C.ests.length], [B, pt.B, B.ests.length], [D, pt.D, nD]]) {
       L.ests.slice(0, n).forEach((e, i) => {
         const q = p(i), near = L.cerca.includes(e), game = JUEGO[e] === L.id;
+        puntos.push({ e, L, q, game });
         if (game) { ctx.strokeStyle = 'rgba(255,213,79,' + (0.5 + 0.5 * Math.sin((st.t || 0) * 5)) + ')'; ctx.lineWidth = 2;
           ctx.beginPath(); ctx.arc(q.x, q.y, 9, 0, Math.PI * 2); ctx.stroke(); }
         ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(q.x, q.y, near ? 5 : 3, 0, Math.PI * 2); ctx.fill();
@@ -326,6 +336,27 @@ const Mapa = (() => {
         else if (L === D) { if (i === 0) { ctx.textAlign = 'left'; ctx.fillText(label2, q.x + 12, q.y + 14); } else { ctx.textAlign = 'right'; ctx.fillText(label2, q.x - 10, q.y + 3); } }
         else { ctx.textAlign = 'center'; ctx.fillText(label2, q.x, q.y - 10); }
       });
+    }
+    // HOVER de estación: tarjeta con datos reales (año, línea, recorrido, pax/día) + tus stats si es jugable
+    let hovEst = null, hd = 14;
+    for (const c2 of puntos) { const d2 = Math.hypot(st.mx - c2.q.x, st.my - c2.q.y); if (d2 < hd) { hd = d2; hovEst = c2; } }
+    if (hovEst) {
+      const dat = SUBTE_DATA[hovEst.L.id] || {};
+      const anio = EST_ANIO[hovEst.e] || dat.anio;
+      const lines = [
+        '🚉 ' + hovEst.e + ' — ' + T('g.mapa.estLinea', { l: hovEst.L.id, a: anio }),
+        T('g.mapa.estRecorrido', { km: dat.km }) + ' · ' + T('g.mapa.estPax', { p: dat.pax }),
+      ];
+      if (hovEst.game) {
+        const sst = (st.subteStats && st.subteStats[hovEst.e]) || { usos: 0, gasto: 0 };
+        lines.push(T('g.mapa.estTuyo', { n: sst.usos || 0, g: sst.gasto || 0 }));
+      }
+      const tw = Math.max(...lines.map(l => l.length)) * 6.2 + 14;
+      const tx2 = Math.min(VW - tw - 6, st.mx + 14), ty2 = Math.max(56, st.my - 14 - lines.length * 13);
+      ctx.fillStyle = 'rgba(4,8,14,0.95)'; ctx.fillRect(tx2, ty2, tw, 10 + lines.length * 13);
+      ctx.strokeStyle = hovEst.L.color; ctx.lineWidth = 1.5; ctx.strokeRect(tx2 + 0.5, ty2 + 0.5, tw, 10 + lines.length * 13);
+      ctx.textAlign = 'left';
+      lines.forEach((ln, k) => { ctx.fillStyle = k === 0 ? '#ffe9b0' : '#cfe0f0'; ctx.font = (k === 0 ? 'bold ' : '') + '10px monospace'; ctx.fillText(ln, tx2 + 7, ty2 + 15 + k * 13); });
     }
     // ⭐ la esquina del juego
     const gx = cx + 96, gy = pt.C(2).y - 30;

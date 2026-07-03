@@ -65,6 +65,7 @@ const Super = (() => {
       gond.push({ c0, r0, cat: c, cx: c0+1, cy: r0 });
     }
     const exitC = { x: 2, y: 12 }, secret = { x: 24, y: 1, open: !!ctx.gaveBeers || stormed }, caja = { x: 13, y: 12 };
+    const sube = { x: 8, y: 12 };   // tótem RECARGA SUBE (specs/subte.md): sin stock → siembra la quest de la tarjeta
     const family = { x: 22, y: 1 };   // puerta OSCURA: vive la familia del chino, no se entra (de ahí salen los ninjas)
     const player = { x: 6.5*CS, y: 12.5*CS, r: 11 };
     // changuito (inventario virtual): lo que AGARRÁS queda acá SIN pagar hasta que pasás por la CAJA
@@ -229,6 +230,11 @@ const Super = (() => {
       const g = adjGondolaObj();
       if (g) { grab(g.cat); return; }
       if (near(caja)) { openCheckout(); return; }
+      if (near(sube)) {   // tótem SUBE: querés comprar la tarjeta → SIN STOCK (semilla de la quest, subte.md §2.5)
+        setMsg(T('sup.sube.sinStock'), 7);
+        try { localStorage.setItem('ts_sube_seen', '1'); } catch (e) {}
+        return;
+      }
       // PUERTA PRIVADA del chino: normalmente no entrás; pero en el RAID (pánico) te colás → dispara el NIVEL-AI
       if (near(family)) { if (raid) { setMsg(T('sup.family.raid'), 4); finish('nivelai'); } else setMsg(T('sup.family')); return; }
       if (secret.open && near(secret)) { tryLeave('cueva'); return; }
@@ -274,6 +280,7 @@ const Super = (() => {
         const g = adjGondolaObj();
         if (g) prompt = (g.cat === 'CARNES' || g.cat === 'FIAMBRES' ? T('sup.prompt.garca', { cat: catName(g.cat) }) : T('sup.prompt.gondola', { cat: catName(g.cat) }));
         else if (near(caja)) prompt = T('sup.prompt.caja', { total: cart.length * PRICE });
+        else if (near(sube)) prompt = T('sup.prompt.sube');
         else if (near(family)) prompt = raid ? T('sup.prompt.family.raid') : T('sup.prompt.family');
         else if (secret.open && near(secret)) prompt = T('sup.prompt.secret');
         else if (near(exitC)) prompt = T('sup.prompt.exit');
@@ -304,6 +311,14 @@ const Super = (() => {
         ctx.fillStyle = '#b71c1c'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.fillText(T('sup.till'), kx, ky+4);
         ctx.fillStyle = '#e0b088'; ctx.beginPath(); ctx.arc(kx, ky-22, 8, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#222'; ctx.fillRect(kx-7, ky-34, 14, 6);
+        // TÓTEM RECARGA SUBE (celeste, con la tarjetita) — al lado del spawn, sin pisar nada
+        const ux = ox + (sube.x+0.5)*CS, uy = oy + (sube.y+0.5)*CS;
+        ctx.fillStyle = '#0aa7c4'; ctx.fillRect(ux-12, uy-30, 24, 40);
+        ctx.strokeStyle = '#063e4a'; ctx.strokeRect(ux-12, uy-30, 24, 40);
+        ctx.fillStyle = '#063e4a'; ctx.fillRect(ux-8, uy-24, 16, 10);   // pantallita
+        ctx.fillStyle = '#7ff3ff'; ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center'; ctx.fillText('SUBE', ux, uy-16.5);
+        ctx.fillStyle = '#e8f8ff'; ctx.fillRect(ux-7, uy-8, 14, 9);     // ranura de tarjeta
+        ctx.fillStyle = '#0aa7c4'; ctx.font = '8px monospace'; ctx.fillText('💳', ux, uy);
         // salida
         const ex = ox + (exitC.x+0.5)*CS, ey = oy + (exitC.y+0.5)*CS;
         ctx.fillStyle = '#2e7d32'; ctx.fillRect(ex-CS/2, ey-CS/2, CS, CS); ctx.fillStyle = '#eaffea'; ctx.font = 'bold 8px monospace'; ctx.fillText(T('sup.exitLabel'), ex, ey+3);
