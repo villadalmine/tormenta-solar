@@ -1,9 +1,13 @@
 # SDD — AUTOPLAY QA: un bot que JUEGA el juego por partes, en Argo, con reporte → prompt → auto-fix
 
-- **Estado:** **F1+F3a IMPLEMENTADOS (2026-07-02, `tests/autoplay/`).** Suites 01-boot/05-multi/06-ia/08-apis +
-  runner (`node tests/autoplay/run.mjs` → reporte.json/md + prompt-autofix.md si falla + exit 1). Validado contra
-  PROD: 4/4 verdes. **F2:** manifest listo en `tests/autoplay/argo-cronworkflow.yaml` — **NO aplicado** (regla del
-  dueño: `kubectl apply -n ai -f …` cuando dé el OK). Falta: F4 (02/03/04/07) + F3b (hermes) + `GET /qa/reporte`. **F3b quedó DESBLOQUEADO** por el deploy in-cluster (infra-62, `deploy-pipeline.md §3.2`): un agente ya puede arreglar Y shipear solo.
+- **Estado:** **F1+F2+F3a IMPLEMENTADOS.** F1 (2026-07-02): suites 01-boot/05-multi/06-ia/08-apis + runner →
+  reporte + prompt-autofix + exit 1; 4/4 verdes contra PROD. **F2 (2026-07-03, infra-64): APLICADO** — CronWorkflow
+  `tormenta-autoplay` (05:00 AR) con higiene completa (PVC longhorn-nvme, GC, TTL, deadline); el veredicto viaja
+  por **`POST /qa/reporte`** al proxy (el PVC RWO no se comparte entre pods — decisión: reporte por POST, no por
+  volumen) → banco `/data/qa.json` + `GET /qa/reporte` (veredicto + md + prompt SIN kubectl) + gauge
+  `tormenta_qa_failed` → **alerta `TormentaAutoplayFailed` → Telegram**. Doble red: si el workflow muere,
+  `ArgoWorkflowsFallados` avisa igual. Falta: F4 (02/03/04/07) + F3b (hermes) — **F3b DESBLOQUEADO** por el deploy
+  in-cluster (infra-62): un agente ya puede arreglar Y shipear solo.
 - **La idea (dueño, textual):** *"auto play game para probar si anda todo, y que corra en Argo Workflow, bien
   dividido cada pipeline para que pruebe cada parte del juego — así hilar fino qué parte anda y qué no — y generar
   reporte; si falla algo, que sirva de input para un prompt y que se auto-arregle."*
