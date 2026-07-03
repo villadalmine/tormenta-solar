@@ -23,6 +23,14 @@ spec:
           annotations:
             summary: '🚨 Deploy de TORMENTA «{{ $labels.component }}» FALLÓ (rollback automático hecho)'
             description: 'El último deploy de {{ $labels.component }} falló la verificación y el workflow hizo rollback a la revisión anterior. Historial: https://llm-tormenta-solar.cybercirujas.club/deploy-log · Detalle: kubectl -n ai get wf | grep tormenta-deploy'
+        - alert: TormentaAutoplayFailed
+          expr: tormenta_qa_failed == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: '🤖🚨 El Autoplay QA encontró el juego ROTO en prod'
+            description: 'La corrida nocturna del bot falló. Veredicto + PROMPT DE AUTO-FIX listo: https://llm-tormenta-solar.cybercirujas.club/qa/reporte'
         - alert: ArgoWorkflowsFallados
           expr: sum(argo_workflows_gauge{phase=~"Failed|Error"}) > 0
           for: 30m

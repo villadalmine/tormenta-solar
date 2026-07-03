@@ -2,7 +2,7 @@
 // escribe reporte.json + reporte.md y — si algo falló — GENERA EL PROMPT DE AUTO-FIX (F3a: listo para pegar
 // en Claude Code / que hermes lo tome). Local: node tests/autoplay/run.mjs [suite...]
 import { spawnSync } from 'child_process';
-import { writeFileSync, readdirSync } from 'fs';
+import { writeFileSync, readFileSync, readdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -45,4 +45,18 @@ if (fails.length) {
   writeFileSync(path.join(OUT, 'prompt-autofix.md'), p);
   console.log('\n❌ ' + fails.length + ' suite(s) fallaron → prompt de auto-fix en ' + path.join(OUT, 'prompt-autofix.md'));
 } else console.log('\n✅ TODO VERDE (' + results.length + ' suites) — reporte en ' + path.join(OUT, 'reporte.md'));
+
+// En Argo (F2): publicar el reporte al proxy (banco PVC + métrica → alerta a Telegram si falló).
+// El PVC del workflow es RWO y efímero → el reporte viaja por POST, no por volumen compartido.
+if (process.env.QA_POST_URL && process.env.QA_GEN_TOKEN) {
+  const prompt = fails.length ? readFileSync(path.join(OUT, 'prompt-autofix.md'), 'utf8') : '';
+  const body = JSON.stringify({ ok: !fails.length, meta, results, md, prompt });
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await fetch(process.env.QA_POST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Gen-Token': process.env.QA_GEN_TOKEN }, body, signal: AbortSignal.timeout(10000) });
+      console.log('reporte publicado →', process.env.QA_POST_URL, r.status); if (r.ok) break;
+    } catch (e) { console.log('publicar reporte falló (intento ' + (i + 1) + '):', e.message); }
+    await new Promise(res => setTimeout(res, 5000));
+  }
+}
 process.exit(fails.length ? 1 : 0);

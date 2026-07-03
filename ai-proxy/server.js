@@ -107,6 +107,13 @@ let DEPLOYLOG = { last: {}, hist: [] };            // last[component]={tag,statu
 function loadDeployLog() { try { const d = JSON.parse(fs.readFileSync(DEPLOYLOG_STORE, 'utf8')); if (d && d.last) DEPLOYLOG = d; } catch (e) {} }
 function saveDeployLog() { try { fs.mkdirSync(DEPLOYLOG_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(DEPLOYLOG_STORE, JSON.stringify(DEPLOYLOG)); } catch (e) { console.error('deploylog save:', e.message); } }
 loadDeployLog();
+// ── QA REPORTE (autoplay-qa.md §2.2/F2): el CronWorkflow tormenta-autoplay publica acá su veredicto →
+// métrica tormenta_qa_failed → PrometheusRule → Telegram + el prompt de auto-fix queda legible sin kubectl.
+const QA_STORE = process.env.QA_STORE || '/data/qa.json';
+let QA = null;                                     // { ok, meta, results, md, prompt, ts }
+function loadQa() { try { QA = JSON.parse(fs.readFileSync(QA_STORE, 'utf8')); } catch (e) {} }
+function saveQa() { try { fs.mkdirSync(QA_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(QA_STORE, JSON.stringify(QA)); } catch (e) { console.error('qa store save:', e.message); } }
+loadQa();
 const DC_STORE = process.env.DATACENTER_STORE || '/data/datacenter.json';
 const DC_RATE_MS = 8000;                          // 1 aporte cada 8s por pid (que sea COLABORATIVO, no lo termina uno solo)
 const DC_SEASON_MULT = 0.25;                      // cada temporada (D2) sube los cupos un 25% → "se reinicia a una v2 más cara"
@@ -864,6 +871,24 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify(DEPLOYLOG));
   }
+  // QA REPORTE (autoplay-qa.md F2): el cron nocturno publica el veredicto de las suites (GEN_TOKEN).
+  if (req.method === 'POST' && req.url === '/qa/reporte') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}');
+      QA = { ok: !!d.ok, meta: d.meta || {}, results: Array.isArray(d.results) ? d.results : [],
+             md: String(d.md || '').slice(0, 20000), prompt: String(d.prompt || '').slice(0, 20000), ts: Date.now() };
+      saveQa();
+      console.log('[qa/reporte]', QA.ok ? 'VERDE' : 'FALLÓ', QA.results.length + ' suites');
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.method === 'GET' && req.url === '/qa/reporte') {                          // legible sin kubectl (sin secretos)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(QA || { ok: null, msg: 'sin corridas todavía' }));
+  }
   if (req.method === 'GET' && req.url.startsWith('/noticias')) {                    // banco de noticias del CINE (+ archivo de 7 días)
     const u = new URL(req.url, 'http://x'), dias = Object.keys(NOTI_DAYS).sort();
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
@@ -1018,6 +1043,9 @@ http.createServer((req, res) => {
     for (const c of dlComps) out += `tormenta_deploy_failed{component="${c}"} ${DEPLOYLOG.last[c].status === 'failed' ? 1 : 0}\n`;
     out += `# HELP tormenta_deploy_last_ts Epoch ms del último deploy reportado por componente\n# TYPE tormenta_deploy_last_ts gauge\n`;
     for (const c of dlComps) out += `tormenta_deploy_last_ts{component="${c}"} ${DEPLOYLOG.last[c].ts}\n`;
+    // AUTOPLAY QA (autoplay-qa.md F2): 1 = la última corrida nocturna del bot falló → alerta a Telegram
+    out += `# HELP tormenta_qa_failed 1 si la última corrida del Autoplay QA falló (0 = verde, -1 = sin corridas)\n# TYPE tormenta_qa_failed gauge\ntormenta_qa_failed ${QA ? (QA.ok ? 0 : 1) : -1}\n`;
+    if (QA) out += `# HELP tormenta_qa_last_ts Epoch ms de la última corrida del Autoplay QA\n# TYPE tormenta_qa_last_ts gauge\ntormenta_qa_last_ts ${QA.ts}\n`;
     // BANCOS DEL ECOSISTEMA (observabilidad: ¿están poblados y frescos? → Grafana/alertas). age_seconds = frescura.
     const ageS = ts => ts ? Math.round((Date.now() - ts) / 1000) : -1;
     out +=

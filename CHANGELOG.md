@@ -80,6 +80,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [infra-64] — 2026-07-03 — 🤖⏰ Autoplay QA F2: el bot juega TODAS las noches en Argo y avisa por Telegram si el juego se rompió
+
+Cierra el pedido original completo ("que corra en Argo Workflow… y que si falla sirva de input para un prompt").
+Proxy 0.1.86 — **deployado con el workflow `tormenta-deploy` (dogfooding)**.
+- **CronWorkflow `tormenta-autoplay`** (ns ai, 05:00 AR): imagen Playwright multi-arch → clona main → corre las
+  4 suites contra PROD → `run.mjs` **publica el veredicto al proxy** (`POST /qa/reporte`, GEN_TOKEN vía Secret
+  `tormenta-qa-token` — el PVC RWO no se comparte entre pods, el reporte viaja por POST). Higiene completa:
+  PVC longhorn-nvme, GC total, TTLs, `activeDeadlineSeconds`.
+- **Proxy**: `POST/GET /qa/reporte` (banco PVC `/data/qa.json` con veredicto + tabla md + **prompt de auto-fix**
+  legible sin kubectl) + gauge **`tormenta_qa_failed`** (-1 sin corridas / 0 verde / 1 falló).
+- **Alerta `TormentaAutoplayFailed`** (severity warning → Telegram): "el bot encontró el juego roto — el prompt
+  de auto-fix está en /qa/reporte". Si el workflow mismo muere, `ArgoWorkflowsFallados` lo agarra igual (doble red).
+
 ## [infra-63] — 2026-07-03 — 🐛 FIX cron de carteles: gen-carteles.mjs NUNCA estuvo en la imagen (primera caza de la alerta nueva)
 
 La alerta `ArgoWorkflowsFallados` (infra-62) se disparó apenas aplicada: el cron `tormenta-ai-proxy-carteles`

@@ -1,45 +1,65 @@
-# Autoplay QA — CronWorkflow para Argo (specs/autoplay-qa.md §4 / F2)
-# ⚠️ NO APLICADO al cluster (regla del dueño: no tocar infra sin OK). Para activarlo:
-#     kubectl apply -n ai -f tests/autoplay/argo-cronworkflow.yaml
-#     (y para un run manual: argo submit --from cronwf/tormenta-autoplay -n ai)
-# Notas antes de aplicar:
-#  - La imagen de Playwright es multi-arch (amd64/arm64) — en el cluster mixto puede caer en un rk1 (arm64): OK.
-#  - QA_SUB_CODE (premium) es OPCIONAL: si se quiere probar el tier pago, crear un secret y descomentar el env.
-#  - El reporte queda en el PVC qa (montar el mismo en el ai-proxy si después se quiere servir GET /qa/reporte).
+# Autoplay QA — CronWorkflow (specs/autoplay-qa.md F2): el bot juega el juego contra PROD cada noche.
+# Si algo falla: workflow Failed + reporte con PROMPT DE AUTO-FIX publicado al proxy (GET /qa/reporte)
+# + métrica tormenta_qa_failed → PrometheusRule → Telegram. El dueño no mira nada: le llega.
+# Higiene (regla del dueño): PVC longhorn-nvme (nada de disco del nodo), GC total, TTLs, deadline duro.
+#
+#   aplicar:    kubectl apply -n ai -f tests/autoplay/argo-cronworkflow.yaml   (+ el Secret tormenta-qa-token, ver abajo)
+#   run manual: kubectl -n ai get cwf tormenta-autoplay -o json | python3 -c "import json,sys;c=json.load(sys.stdin);print(json.dumps({'apiVersion':'argoproj.io/v1alpha1','kind':'Workflow','metadata':{'generateName':'tormenta-autoplay-manual-','namespace':'ai'},'spec':c['spec']['workflowSpec']}))" | kubectl create -f -
 apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
   name: tormenta-autoplay
   namespace: ai
 spec:
-  schedule: "0 8 * * *"          # 05:00 AR (UTC-3)
+  schedules:
+    - "0 8 * * *"                     # 05:00 AR (UTC-3), 1 corrida/día (cuota IA: 1 chat free)
+  timezone: "UTC"
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 300
   workflowSpec:
-    activeDeadlineSeconds: 900   # que no cuelgue (lección del cron de carteles)
+    serviceAccountName: tormenta-ai-proxy-pool   # solo necesita el executor (workflowtaskresults); el reporte viaja por POST
+    activeDeadlineSeconds: 1200                  # tope duro: que no cuelgue (lección del cron de carteles)
+    podGC:
+      strategy: OnWorkflowSuccess                # si FALLA quedan los logs para depurar; el TTL limpia después
+    volumeClaimGC:
+      strategy: OnWorkflowCompletion             # el PVC se borra SIEMPRE
+    ttlStrategy:
+      secondsAfterSuccess: 3600
+      secondsAfterFailure: 21600                 # 6h: alcanza para la alerta + inspección → después TODO afuera
     entrypoint: qa
     volumeClaimTemplates:
-      - metadata: { name: work }
-        spec: { accessModes: [ReadWriteOnce], resources: { requests: { storage: 1Gi } } }
+      - metadata:
+          name: work
+        spec:
+          accessModes: [ReadWriteOnce]
+          storageClassName: longhorn-nvme        # regla §5 deploy-pipeline: nunca disco local del nodo
+          resources:
+            requests:
+              storage: 2Gi
     templates:
       - name: qa
         container:
-          image: mcr.microsoft.com/playwright:v1.49.0-jammy
+          image: mcr.microsoft.com/playwright:v1.49.0-jammy   # node+chromium listos, multi-arch (arm64 ok)
           workingDir: /work
           command: [bash, -lc]
           args:
             - |
-              set -e
+              set -euo pipefail
               git clone --depth 1 https://github.com/villadalmine/tormenta-solar.git repo
-              cd repo && npm i playwright@1.49.0 --no-save 2>/dev/null || true
-              QA_OUT=/work node tests/autoplay/run.mjs || true
-              echo "── reporte ──"; cat /work/reporte.md
-              # si falló, el prompt de auto-fix queda en /work/prompt-autofix.md (F3a: el dueño lo pega en Claude Code)
-              if [ -f /work/prompt-autofix.md ]; then echo "── PROMPT AUTO-FIX ──"; cat /work/prompt-autofix.md; exit 1; fi
+              cd repo
+              npm i playwright@1.49.0 --no-save --no-audit --no-fund
+              # el veredicto lo publica run.mjs al proxy (QA_POST_URL); el exit 1 deja el workflow Failed → alerta
+              QA_OUT=/work node tests/autoplay/run.mjs
           env:
             - { name: TARGET_URL, value: "https://tormenta-solar.cybercirujas.club/" }
             - { name: PROXY_URL, value: "https://llm-tormenta-solar.cybercirujas.club" }
-            # - name: QA_SUB_CODE                       # opcional: probar tier premium (1 chat por corrida)
+            - { name: QA_POST_URL, value: "http://tormenta-ai-proxy/qa/reporte" }
+            - name: QA_GEN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: tormenta-qa-token        # secret creado aparte (mismo genToken del release; nunca en el repo)
+                  key: genToken
+            # - name: QA_SUB_CODE                # opcional: probar tier premium (1 chat/corrida) con un secret propio
             #   valueFrom: { secretKeyRef: { name: qa-sub-code, key: code } }
           volumeMounts:
             - { name: work, mountPath: /work }
