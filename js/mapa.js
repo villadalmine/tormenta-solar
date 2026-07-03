@@ -308,7 +308,7 @@ const Mapa = (() => {
         for (let k = 1; k < Math.min(b.floors, 24); k++) { ctx.beginPath(); ctx.moveTo(bx.x + 2, bx.y + k * step); ctx.lineTo(bx.x + bx.w - 2, bx.y + k * step); ctx.stroke(); } }
       // señales mínimas: ⭐ latiendo arriba / ?? / dónde estás
       if (star) { ctx.fillStyle = 'rgba(255,226,122,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 5)) + ')'; ctx.font = '11px monospace'; ctx.textAlign = 'center'; ctx.fillText('⭐', bx.x + bx.w / 2, bx.y - 4); }
-      else if (lock) { ctx.fillStyle = 'rgba(150,170,200,0.7)'; ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillText('??', bx.x + bx.w / 2, bx.y - 4); }
+      else if (lock) { ctx.fillStyle = 'rgba(150,170,200,0.7)'; ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.fillText(st.facil ? '🔒' : '??', bx.x + bx.w / 2, bx.y - 4); }
       if (iCur) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx.x + bx.w / 2, bx.y + bx.h / 2, 4, 0, Math.PI * 2); ctx.fill(); }
       bx._v = v;   // para el pase de nombres
       // los de CINETOP (bodegón/telo) como cartelitos en la azotea del cine
@@ -339,8 +339,9 @@ const Mapa = (() => {
     if (hover) {
       const b = hover.bx.b;
       const done = hover.qs.filter(q => q === '✅').length, stars = hover.qs.filter(q => q === '⭐').length;
+      const locks = hover.qs.filter(q => q === '🔒').length;
       const txt = b.name.slice(0, 24) + '  ×' + b.floors + ' 🔦' + hover.v + '/' + b.floors +
-        (done ? ' ✅' + done : '') + (stars ? ' ⭐' + stars : '') + (hover.qs.includes('🔒') ? ' ??' : '');
+        (done ? ' ✅' + done : '') + (stars ? ' ⭐' + stars : '') + (locks ? (st.facil ? ' 🔒' + locks : ' ??') : '');
       const tw = txt.length * 6.2 + 12;
       const tx2 = Math.min(VW - tw - 4, st.mx + 12), ty2 = Math.max(34, st.my - 26);
       ctx.fillStyle = 'rgba(4,8,14,0.95)'; ctx.fillRect(tx2, ty2, tw, 18);
@@ -395,7 +396,8 @@ const Mapa = (() => {
       ctx.fillText(String(b.name).slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 14);
       ctx.font = '9px monospace'; ctx.fillStyle = v ? '#8fa8c8' : 'rgba(120,140,170,0.55)';
       ctx.fillText('×' + b.floors + '  🔦' + v + '/' + b.floors, bx.x + 4, bx.y + 28);
-      const marks = (nDone ? '✅' + nDone + ' ' : '') + (nStar ? '⭐' + nStar + ' ' : '') + (hasLock ? '?? ' : '');
+      const nLock = qs.filter(q => q === '🔒').length;
+      const marks = (nDone ? '✅' + nDone + ' ' : '') + (nStar ? '⭐' + nStar + ' ' : '') + (hasLock ? (st.facil ? '🔒' + nLock + ' ' : '?? ') : '');
       const icons = [...new Set(b.rooms.filter(i => visited.has(i)).flatMap(i => iconsOf(model.nodes[i])))].slice(0, 3).join('');
       if (marks || icons) { ctx.font = '10px monospace'; ctx.fillStyle = '#ffe27a'; ctx.fillText((marks + icons).trim().slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 44); }
       if (iCur) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx.x + bx.w - 8, bx.y + 9, 3.5, 0, Math.PI * 2); ctx.fill(); }
@@ -476,12 +478,12 @@ const Mapa = (() => {
         let rx = g.x + g.w + 8;
         if (seen && mk.length) { ctx.font = '13px monospace'; ctx.textAlign = 'left'; ctx.fillText(mk.join(' '), rx, g.y + g.h / 2 + 5); rx += mk.length * 20 + 4; }
         if (seen) {
-          const qe = (qAt[n.i] || []).map(e => ({ e, q: questMark(e, st) })).filter(x => x.q !== '🔒');
+          const qe = (qAt[n.i] || []).map(e => ({ e, q: questMark(e, st) })).filter(x => x.q !== '🔒' || st.facil);
           const maxQ = Math.max(1, Math.floor((g.h - 4) / 13));
           qe.sort((a, b) => (a.q === '⭐' ? -1 : 1) - (b.q === '⭐' ? -1 : 1));   // las ⭐ primero
           qe.slice(0, maxQ).forEach((x, k) => {
             ctx.font = (x.q === '⭐' ? 'bold ' : '') + '10px monospace'; ctx.textAlign = 'left';
-            ctx.fillStyle = x.q === '⭐' ? '#ffe27a' : '#9be8a0';
+            ctx.fillStyle = x.q === '⭐' ? '#ffe27a' : x.q === '🔒' ? 'rgba(150,170,200,0.75)' : '#9be8a0';
             const extra = (k === maxQ - 1 && qe.length > maxQ) ? '  +' + (qe.length - maxQ) : '';
             const espacio = Math.floor((VW - rx - 14) / 6.3) - extra.length;   // presupuesto en px reales
             ctx.fillText((x.q + ' ' + String(questTitle(x.e))).slice(0, Math.max(10, espacio)) + extra, rx, g.y + 11 + k * 13);
@@ -548,8 +550,9 @@ const Mapa = (() => {
         const q = questMark(e, st);
         if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[0]) || questTitle(e))); }
         else if (q === '✅') lines.push('✅ ' + questTitle(e));
+        else if (st.facil) lines.push('🔒 ' + questTitle(e) + ' — ' + T('g.mapa.locked'));   // FÁCIL: te marca TODO
       }
-      if (hoverBox.hasLock) lines.push('?? ' + T('g.mapa.algoOculto'));
+      if (hoverBox.hasLock && !st.facil) lines.push('?? ' + T('g.mapa.algoOculto'));
       const bh = 16 + lines.length * 14;
       ctx.fillStyle = 'rgba(4,8,14,0.94)'; ctx.fillRect(0, VH - bh, VW, bh);
       ctx.strokeStyle = '#2a4a6a'; ctx.strokeRect(0.5, VH - bh + 0.5, VW - 1, bh - 1);

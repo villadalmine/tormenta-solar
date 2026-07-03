@@ -47,6 +47,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v303] — 2026-07-03 — 🗺️🎚️ AYUDA DEL MAPA en ⚙: DIFÍCIL (?? misterioso) / FÁCIL (todo marcado)
+
+Idea del dueño: "marcar todos los quests con el grafo es una ayuda terrible — poné fácil/difícil en settings y
+que el mapa lo lea". Toggle **"Ayuda del mapa 🗺️"** en ⚙ (`ts_ayuda_facil`):
+- **DIFÍCIL (default, como hasta ahora):** las quests bloqueadas son un "??" misterioso — sabés que ahí HAY algo,
+  no cuál. Las ⭐ te dan el hint críptico nivel 0.
+- **FÁCIL (todo marcado):** el mapa muestra TODO con nombre — cajones y skyline con 🔒N contado, tooltips con
+  cada quest bloqueada ("🔒 El TESORO de los linyeras — se destraba más adelante") y el zoom de pisos muestra
+  también las 🔒 en gris en su piso exacto. La ayuda terrible, opt-in.
+- Cómo se marca (para el registro): ✅ = flags de la arista ya en tu estado · ⭐ = frontera del HintEngine
+  (requisitos cumplidos, no hecha) · ??/🔒 = el resto del grafo anclado a ese lugar.
+
 ## [v302] — 2026-07-03 — 🏙️ Skyline: SOLVER anti-solape (entran todos) + fuera el bolsillo fantasma del telo
 
 Playtest del dueño ("los cuadrados se pisan, hacelos más chicos que entren todos; la habitación del telo nada

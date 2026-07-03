@@ -3514,7 +3514,7 @@
         visited: visitedRooms, edges: (typeof Historia !== 'undefined' && Historia.edges) || [], flags: historiaState(),
         frontier: mapaFrontier, stormed, mx: Input.mouse.x, my: Input.mouse.y,
         online: (salonLive && salonLive.count) || 0, live: (salonLive && salonLive.byRoom) || {},
-        piquete: loadPiqueteWon(), zoom: mapaZoom, sub: null });
+        piquete: loadPiqueteWon(), facil: lsFlag('ts_ayuda_facil'), zoom: mapaZoom, sub: null });
       // Z: dentro de un edificio = zoom a ESE edificio; en la calle no hace nada (el click manda, v300)
       if (trucoTap('z')) mapaZoom = (mapaZoom == null && current !== 0) ? Mapa.groupAt(current) : null;
       if (trucoTap('1')) mapaZoom = 'sky';                                             // [1] la cuadra (skyline, v301)
@@ -3781,6 +3781,13 @@
       continueGame(chk.snap);
       setMsg(T('g.chk.loaded', { t: chkTitle(chk) }), '#7CFC00', 6000);
     });
+    const ay = document.getElementById('opt-ayuda');
+    if (ay) {
+      const facil = () => { try { return localStorage.getItem('ts_ayuda_facil') === '1'; } catch (e) { return false; } };
+      const refresh = () => { ay.textContent = facil() ? (typeof T === 'function' ? T('opt.ayudaFacil') : 'FÁCIL 🡒 todo marcado') : (typeof T === 'function' ? T('opt.ayudaDificil') : 'DIFÍCIL'); };
+      refresh();
+      ay.addEventListener('click', () => { try { localStorage.setItem('ts_ayuda_facil', facil() ? '' : '1'); } catch (e) {} refresh(); });
+    }
     const hc = document.getElementById('opt-hardcore');
     if (hc) {
       const refresh = () => { hc.textContent = isHardcore() ? 'ON 💀' : 'OFF'; };
