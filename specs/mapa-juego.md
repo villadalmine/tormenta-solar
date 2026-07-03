@@ -1,6 +1,6 @@
 # SDD — EL MAPA DEL JUEGO (automap estilo DOOM): dónde estás, qué hay, qué falta — todo desde el GRAFO
 
-- **Estado:** **F1+F2+F3(zoom)+fog IMPLEMENTADOS (v289, `js/mapa.js`).** Falta: cursor por teclado, minimapa HUD, `map` component override, contador online POR sala (hoy total en header).
+- **Estado:** **F1-F3+fog (v289) + FIXES del playtest (v293):** quests ancladas a UN nodo (la entrada del edificio; sin spam de 🔒 — las futuras solo en tooltip), **CLICK = zoom al edificio** (`Mapa.hitTest`; Esc sale del zoom primero), columnas reservadas para sub-modos (sin superposición), zoom con etiqueta de piso (P7/S2) + marcadores grandes + fila resaltada si hay contenido. Falta: cursor por teclado, minimapa HUD, `map` component override, online POR sala.
 - **La idea (dueño):** apretás **TAB** en cualquier parte (decisión 2026-07-02: M queda para la música, confirmado por el dueño) y se abre un MAPA que muestra
   **dónde estás**. Como los niveles son 2D side-scroller, la mejor representación es un automap simple estilo DOOM.
   Hover del mouse (o moverte con el cursor) → info. Si estás en un edificio de varios pisos, marca TU piso y permite
