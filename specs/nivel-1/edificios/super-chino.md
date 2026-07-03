@@ -47,6 +47,7 @@ chino --bloquea--> salida_sin_pagar [ninjas samurái]
 {
   "id": "megadrive",
   "title": "Comprar una Mega Drive (para el torneo de FIFA)",
+  "title_en": "Buy a Mega Drive (for the FIFA tournament)",
   "at": "super",
   "pri": 20,
   "pre": {},
@@ -74,6 +75,7 @@ y la **puerta trasera** desde la cueva (entrada de servicio, no necesita a nadie
 {
   "id": "chino_back",
   "title": "Entrar al chino por la puerta trasera (desde la cueva)",
+  "title_en": "Enter the chino through the back door (from the cave)",
   "at": "cueva",
   "pre": { "stormed": true, "chinoFrontOpen": false },
   "sets": { "chinoEntered": true },

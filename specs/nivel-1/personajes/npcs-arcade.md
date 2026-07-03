@@ -47,6 +47,7 @@ mega_drive --se_consigue_en--> super_chino
 {
   "id": "fifa",
   "title": "Ganar el torneo de FIFA 98 (con la Mega Drive)",
+  "title_en": "Win the FIFA 98 tournament (with the Mega Drive)",
   "at": "arcade",
   "pri": 21,
   "pre": { "hasMegaDrive": true },

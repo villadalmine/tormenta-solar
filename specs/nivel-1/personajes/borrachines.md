@@ -68,6 +68,7 @@ borrachines --da--> pista_super_cueva [al hacerte VIP]
 {
   "id": "edificio",
   "title": "Abrir el edificio abandonado",
+  "title_en": "Open the abandoned building",
   "at": "calle",
   "pre": {},
   "sets": { "borrachosHappy": true },

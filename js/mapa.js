@@ -117,6 +117,8 @@ const Mapa = (() => {
   // estado de una quest: '✅' hecha · '⭐' disponible AHORA · '🔒' futura (solo tooltip, no ensucia las barras)
   const questMark = (e, st) => (e.sets && Object.keys(e.sets).every(k => st.flags && st.flags[k])) ? '✅'
     : (st.frontier && st.frontier.has(e.id) ? '⭐' : '🔒');
+  // título de la quest en el idioma del jugador (title_en viene del grafo, v295)
+  const questTitle = e => ((typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en' && e.title_en) ? e.title_en : (e.title || e.id));
 
   // qué edificio/nodo hay bajo el mouse (para CLICK = zoom). Devuelve { anchor } o null.
   function hitTest(VW, VH, st) {
@@ -177,7 +179,21 @@ const Mapa = (() => {
         ctx.fillText(lv === 0 ? '—' : (lv > 0 ? 'P' + lv : 'S' + (-lv)), g.x - 8, g.y + g.h / 2 + 3);
         ctx.fillStyle = seen ? '#cfe0f0' : 'rgba(140,160,190,0.5)'; ctx.font = (isCur ? 'bold ' : '') + '11px monospace'; ctx.textAlign = 'left';
         ctx.fillText(String(label).slice(0, Math.floor(g.w / 7)), g.x + 5, g.y + g.h / 2 + 4);
-        if (vis.length) { ctx.font = '13px monospace'; ctx.fillText(vis.slice(0, 5).join(' '), g.x + g.w + 8, g.y + g.h / 2 + 5); }
+        // a la derecha del piso: iconos del modelo + cada QUEST con su NOMBRE (⭐ dorada · ✅ verde), apiladas
+        let rx = g.x + g.w + 8;
+        if (seen && mk.length) { ctx.font = '13px monospace'; ctx.textAlign = 'left'; ctx.fillText(mk.join(' '), rx, g.y + g.h / 2 + 5); rx += mk.length * 20 + 4; }
+        if (seen) {
+          const qe = (qAt[n.i] || []).map(e => ({ e, q: questMark(e, st) })).filter(x => x.q !== '🔒');
+          const maxQ = Math.max(1, Math.floor((g.h - 4) / 13));
+          qe.sort((a, b) => (a.q === '⭐' ? -1 : 1) - (b.q === '⭐' ? -1 : 1));   // las ⭐ primero
+          qe.slice(0, maxQ).forEach((x, k) => {
+            ctx.font = (x.q === '⭐' ? 'bold ' : '') + '10px monospace'; ctx.textAlign = 'left';
+            ctx.fillStyle = x.q === '⭐' ? '#ffe27a' : '#9be8a0';
+            const extra = (k === maxQ - 1 && qe.length > maxQ) ? '  +' + (qe.length - maxQ) : '';
+            const espacio = (VW - rx - 8) / 6 - extra.length;
+            ctx.fillText(x.q + ' ' + String(questTitle(x.e)).slice(0, Math.max(12, Math.floor(espacio))) + extra, rx, g.y + 11 + k * 13);
+          });
+        }
       } else {
         ctx.fillText(String(label).slice(0, Math.floor(g.w / 5.6)), g.x + 3, g.y + g.h / 2 + 3);
         if (vis.length) { ctx.font = '9px monospace'; ctx.textAlign = 'right'; ctx.fillText(vis.slice(0, 4).join(''), g.x + g.w - 2, g.y + g.h - 2); }
@@ -216,7 +232,7 @@ const Mapa = (() => {
         for (const e of (qAt[n.i] || [])) {
           const q = questMark(e, st);
           if (q === '⭐') { const h = e.hints && e.hints[(typeof I18n !== 'undefined' && I18n.short && I18n.short()) || 'es']; lines.push('⭐ ' + ((h && h[0]) || e.title || e.id)); }
-          else lines.push(q + ' ' + (e.title || e.id) + (q === '🔒' ? ' — ' + T('g.mapa.locked') : ''));
+          else lines.push(q + ' ' + questTitle(e) + (q === '🔒' ? ' — ' + T('g.mapa.locked') : ''));
         }
       }
       const bh = 16 + lines.length * 14;

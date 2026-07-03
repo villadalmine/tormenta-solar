@@ -12,6 +12,7 @@ volver con la TORMENTA activa y herir al SATÉLITE REBELDE con el rayo solar. Lo
 {
   "id": "piquete_juegos",
   "title": "Ganar los 5 mini-juegos del piquete",
+  "title_en": "Win the 5 picket mini-games",
   "at": "calle",
   "pre": {},
   "sets": { "piqueteCampeon": true },
@@ -36,6 +37,7 @@ volver con la TORMENTA activa y herir al SATÉLITE REBELDE con el rayo solar. Lo
 {
   "id": "piquete_juramento",
   "title": "El juramento al General (se abre la barricada)",
+  "title_en": "The oath to the General (the barricade opens)",
   "at": "lavalle",
   "pre": { "piqueteCampeon": true },
   "sets": { "juramento": true },
@@ -60,6 +62,7 @@ volver con la TORMENTA activa y herir al SATÉLITE REBELDE con el rayo solar. Lo
 {
   "id": "obelisco_llegada",
   "title": "Cruzar el corte: la Plaza de la República",
+  "title_en": "Cross the picket line: Plaza de la República",
   "at": "lavalle",
   "pre": { "juramento": true },
   "sets": { "obeliscoLlegado": true },
@@ -84,6 +87,7 @@ volver con la TORMENTA activa y herir al SATÉLITE REBELDE con el rayo solar. Lo
 {
   "id": "satelite_herido",
   "title": "Herir al satélite rebelde (el rayo solar)",
+  "title_en": "Wound the rogue satellite (the solar ray)",
   "at": "lavalle",
   "pre": { "obeliscoLlegado": true, "stormed": true },
   "sets": { "sateliteHerido": true },

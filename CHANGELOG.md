@@ -47,6 +47,13 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v295] — 2026-07-03 — 🗺️🏷️ Zoom del mapa con quests NOMBRADAS (y el grafo bilingüe: title_en en las 19 aristas)
+
+- **Cada quest con su NOMBRE en el zoom:** al lado del piso aparece "⭐ Ganarte el búnker (gurú…)" / "✅ …"
+  (las ⭐ primero, en dorado y negrita; si no entran todas, "+N"). Ya no hay que adivinar qué significa la estrella.
+- **El grafo habla inglés:** `title_en` agregado a las 19 aristas en las fichas ```hist → el mapa, el tooltip y el
+  botón "⏪ VOLVER AL ÚLTIMO HITO" muestran el título en el idioma del jugador (`chkTitle`/`questTitle`).
+
 ## [v294] — 2026-07-03 — 🗺️📍 Mapa: TODAS las quests, en su PISO exacto al hacer zoom (+ la arista del TESORO que faltaba)
 
 Playtest del dueño: "no marca todos los quests — el piso 19 no está, el búnker tampoco, el tipo del tesoro".

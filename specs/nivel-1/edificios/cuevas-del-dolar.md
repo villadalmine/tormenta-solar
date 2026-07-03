@@ -39,6 +39,7 @@ super_chino --da--> moneyRecovered [+60 al volver por la cueva]
 {
   "id": "cemento_ticket",
   "title": "Conseguir la entrada a Cemento (en la disquería)",
+  "title_en": "Get the Cemento ticket (at the record store)",
   "at": "cueva",
   "pri": 22,
   "pre": {},

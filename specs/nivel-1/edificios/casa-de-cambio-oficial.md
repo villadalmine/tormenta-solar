@@ -28,6 +28,7 @@ casa_cambio --contiene--> elenco_cola_cambio
 {
   "id": "portal",
   "title": "Escapar por el portal (fin del nivel)",
+  "title_en": "Escape through the portal (end of level)",
   "at": "cambio",
   "pre": { "stormed": true },
   "sets": { "won": true },

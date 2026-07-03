@@ -50,6 +50,7 @@ vendedor_armas --vende--> fierro_criollo [rebenque/boleadoras/facón/FAL → +mu
 {
   "id": "armas",
   "title": "Comprar fierro criollo (con la tormenta, las eléctricas no andan)",
+  "title_en": "Buy criollo steel (with the storm, electric guns don't work)",
   "at": "galeria",
   "pri": 23,
   "pre": { "stormed": true },

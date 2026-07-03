@@ -65,6 +65,7 @@ te vende y **estalla la tormenta**. Por eso la tormenta ahora tiene `pre: { cuev
 {
   "id": "cuevero_gate",
   "title": "Destrabar al cuevero (desbaratar al tahúr)",
+  "title_en": "Unblock the money changer (bust the card sharp)",
   "at": "cueva",
   "pre": {},
   "sets": { "cueveroUnlocked": true },
@@ -89,6 +90,7 @@ te vende y **estalla la tormenta**. Por eso la tormenta ahora tiene `pre: { cuev
 {
   "id": "tormenta",
   "title": "Disparar la tormenta solar",
+  "title_en": "Trigger the solar storm",
   "at": "cueva",
   "pre": { "cueveroUnlocked": true },
   "sets": { "stormed": true },

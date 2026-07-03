@@ -13,6 +13,7 @@ entrado a ningún edificio (`vecinoSeen` = entraste al menos a uno); una vez que
 {
   "id": "vecino",
   "title": "Pasar a un edificio clausurado (el vecino)",
+  "title_en": "Get into a condemned building (the neighbor)",
   "at": "calle",
   "pri": 30,
   "pre": { "stormed": true },

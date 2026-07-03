@@ -110,6 +110,7 @@ linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
 {
   "id": "bunker",
   "title": "Ganarte el búnker (gurú de los linyeras)",
+  "title_en": "Earn the bunker (the bums' guru)",
   "at": "edificio",
   "sala": "piso 19",
   "pre": { "borrachosHappy": true },
@@ -134,6 +135,7 @@ linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
 {
   "id": "loop",
   "title": "Dormir en el catre del búnker (pasar un día, reponer)",
+  "title_en": "Sleep on the bunker cot (pass a day, recover)",
   "sala": "búnker",
   "at": "bunker",
   "pri": 24,
@@ -159,6 +161,7 @@ linyera --cuenta--> lore_millonario [historia + llanto, en el loop]
 {
   "id": "tesoro",
   "title": "El TESORO de los linyeras (premio del gurú)",
+  "title_en": "The bums' TREASURE (the guru's prize)",
   "at": "edificio",
   "sala": "búnker",
   "pre": { "bunkerUnlocked": true },

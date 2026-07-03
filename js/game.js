@@ -476,6 +476,12 @@
   const CHK_KEY = 'ts_checkpoint_v1';
   const isHardcore = () => { try { return localStorage.getItem('ts_hardcore') === '1'; } catch (e) { return false; } };
   function loadCheckpoint() { try { const c = JSON.parse(localStorage.getItem(CHK_KEY) || 'null'); return (c && c.snap && c.snap.v) ? c : null; } catch (e) { return null; } }
+  // título del hito en el idioma del jugador (busca la arista viva; fallback al título guardado)
+  function chkTitle(chk) {
+    const e = ((typeof Historia !== 'undefined' && Historia.edges) || []).find(x => x.id === (chk && chk.edge));
+    const en = typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en';
+    return (e && ((en && e.title_en) || e.title)) || (chk && chk.title) || '';
+  }
   let chkPostT = 0;
   function saveCheckpoint(edgeId) {
     try {
@@ -3326,7 +3332,7 @@
     if (hitoBtn) {
       const chk = !isHardcore() && loadCheckpoint();
       hitoBtn.classList.toggle('hidden', !chk);
-      if (chk) hitoBtn.textContent = T('g.chk.btn', { t: chk.title });
+      if (chk) hitoBtn.textContent = T('g.chk.btn', { t: chkTitle(chk) });
     }
     showEnd();
   }
@@ -3746,7 +3752,7 @@
       tel('death', { result: 'hito_return' });   // métrica: cuánta gente usa el checkpoint (Grafana)
       hb.classList.add('hidden');
       continueGame(chk.snap);
-      setMsg(T('g.chk.loaded', { t: chk.title }), '#7CFC00', 6000);
+      setMsg(T('g.chk.loaded', { t: chkTitle(chk) }), '#7CFC00', 6000);
     });
     const hc = document.getElementById('opt-hardcore');
     if (hc) {

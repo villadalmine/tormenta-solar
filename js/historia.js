@@ -6,6 +6,7 @@ const Historia = {
     {
       "id": "edificio",
       "title": "Abrir el edificio abandonado",
+      "title_en": "Open the abandoned building",
       "at": "calle",
       "pre": {},
       "sets": {
@@ -30,6 +31,7 @@ const Historia = {
     {
       "id": "cuevero_gate",
       "title": "Destrabar al cuevero (desbaratar al tahúr)",
+      "title_en": "Unblock the money changer (bust the card sharp)",
       "at": "cueva",
       "pre": {},
       "sets": {
@@ -54,6 +56,7 @@ const Historia = {
     {
       "id": "tormenta",
       "title": "Disparar la tormenta solar",
+      "title_en": "Trigger the solar storm",
       "at": "cueva",
       "pre": {
         "cueveroUnlocked": true
@@ -80,6 +83,7 @@ const Historia = {
     {
       "id": "chino_iorio",
       "title": "Abrir el frente del chino con Iorio",
+      "title_en": "Open the chino's front with Iorio",
       "at": "cemento",
       "pre": {
         "stormed": true
@@ -106,6 +110,7 @@ const Historia = {
     {
       "id": "bunker",
       "title": "Ganarte el búnker (gurú de los linyeras)",
+      "title_en": "Earn the bunker (the bums' guru)",
       "at": "edificio",
       "sala": "piso 19",
       "pre": {
@@ -133,6 +138,7 @@ const Historia = {
     {
       "id": "loop",
       "title": "Dormir en el catre del búnker (pasar un día, reponer)",
+      "title_en": "Sleep on the bunker cot (pass a day, recover)",
       "sala": "búnker",
       "at": "bunker",
       "pri": 24,
@@ -162,6 +168,7 @@ const Historia = {
     {
       "id": "tesoro",
       "title": "El TESORO de los linyeras (premio del gurú)",
+      "title_en": "The bums' TREASURE (the guru's prize)",
       "at": "edificio",
       "sala": "búnker",
       "pre": {
@@ -189,6 +196,7 @@ const Historia = {
     {
       "id": "fifa",
       "title": "Ganar el torneo de FIFA 98 (con la Mega Drive)",
+      "title_en": "Win the FIFA 98 tournament (with the Mega Drive)",
       "at": "arcade",
       "pri": 21,
       "pre": {
@@ -216,6 +224,7 @@ const Historia = {
     {
       "id": "truco",
       "title": "Ganarle al tahúr (puerta al chino)",
+      "title_en": "Beat the card sharp (door to the chino)",
       "at": "arcade",
       "pre": {},
       "sets": {
@@ -240,6 +249,7 @@ const Historia = {
     {
       "id": "vecino",
       "title": "Pasar a un edificio clausurado (el vecino)",
+      "title_en": "Get into a condemned building (the neighbor)",
       "at": "calle",
       "pri": 30,
       "pre": {
@@ -268,6 +278,7 @@ const Historia = {
     {
       "id": "armas",
       "title": "Comprar fierro criollo (con la tormenta, las eléctricas no andan)",
+      "title_en": "Buy criollo steel (with the storm, electric guns don't work)",
       "at": "galeria",
       "pri": 23,
       "pre": {
@@ -295,6 +306,7 @@ const Historia = {
     {
       "id": "portal",
       "title": "Escapar por el portal (fin del nivel)",
+      "title_en": "Escape through the portal (end of level)",
       "at": "cambio",
       "pre": {
         "stormed": true
@@ -322,6 +334,7 @@ const Historia = {
     {
       "id": "cemento_ticket",
       "title": "Conseguir la entrada a Cemento (en la disquería)",
+      "title_en": "Get the Cemento ticket (at the record store)",
       "at": "cueva",
       "pri": 22,
       "pre": {},
@@ -347,6 +360,7 @@ const Historia = {
     {
       "id": "megadrive",
       "title": "Comprar una Mega Drive (para el torneo de FIFA)",
+      "title_en": "Buy a Mega Drive (for the FIFA tournament)",
       "at": "super",
       "pri": 20,
       "pre": {},
@@ -372,6 +386,7 @@ const Historia = {
     {
       "id": "chino_back",
       "title": "Entrar al chino por la puerta trasera (desde la cueva)",
+      "title_en": "Enter the chino through the back door (from the cave)",
       "at": "cueva",
       "pre": {
         "stormed": true,
@@ -399,6 +414,7 @@ const Historia = {
     {
       "id": "piquete_juegos",
       "title": "Ganar los 5 mini-juegos del piquete",
+      "title_en": "Win the 5 picket mini-games",
       "at": "calle",
       "pre": {},
       "sets": {
@@ -423,6 +439,7 @@ const Historia = {
     {
       "id": "piquete_juramento",
       "title": "El juramento al General (se abre la barricada)",
+      "title_en": "The oath to the General (the barricade opens)",
       "at": "lavalle",
       "pre": {
         "piqueteCampeon": true
@@ -449,6 +466,7 @@ const Historia = {
     {
       "id": "obelisco_llegada",
       "title": "Cruzar el corte: la Plaza de la República",
+      "title_en": "Cross the picket line: Plaza de la República",
       "at": "lavalle",
       "pre": {
         "juramento": true
@@ -475,6 +493,7 @@ const Historia = {
     {
       "id": "satelite_herido",
       "title": "Herir al satélite rebelde (el rayo solar)",
+      "title_en": "Wound the rogue satellite (the solar ray)",
       "at": "lavalle",
       "pre": {
         "obeliscoLlegado": true,

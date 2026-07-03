@@ -56,6 +56,7 @@ falopa --se_consigue_en--> muebles_lujo [pisos impares, post-colapso]
 {
   "id": "chino_iorio",
   "title": "Abrir el frente del chino con Iorio",
+  "title_en": "Open the chino's front with Iorio",
   "at": "cemento",
   "pre": { "stormed": true },
   "sets": { "chinoFrontOpen": true },

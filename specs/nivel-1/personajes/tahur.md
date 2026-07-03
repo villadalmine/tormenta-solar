@@ -44,6 +44,7 @@ chinotruco --conecta_con--> super_chino
 {
   "id": "truco",
   "title": "Ganarle al tahúr (puerta al chino)",
+  "title_en": "Beat the card sharp (door to the chino)",
   "at": "arcade",
   "pre": {},
   "sets": { "trucoWon": true },
