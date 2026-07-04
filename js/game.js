@@ -786,10 +786,11 @@
     boleadoras: { id: 'boleadoras', emoji: '🔗', label: 'g.wpn.boleadoras', ctx: 'dream', effectiveVs: ['dron', 'galaga'],  dmgMul: 3, baseDmg: 14 },
     facon:      { id: 'facon',      emoji: '🔪', label: 'g.wpn.facon',      ctx: 'dream', effectiveVs: ['peaton'],          dmgMul: 3, baseDmg: 16 },
     fal:        { id: 'fal',        emoji: '🔫', label: 'g.wpn.fal',        ctx: 'dream', effectiveVs: ['cuevero'],         dmgMul: 3, baseDmg: 18 },
-    // CONSOLA (quest del chip): no es arma, es ÍTEM USABLE → "usar" hackea el chip (useConsola). specs/telo-chip-quest.md
-    consola:    { id: 'consola',    emoji: '🎮', label: 'g.wpn.consola', noEquip: true, use: 'useConsola' },
-    // ITEMS DE PIQUETE (premios de los mini-juegos co-op de Lavalle): coleccionables del inventario (por ahora flavor).
-    chori:      { id: 'chori',      emoji: '🌭', label: 'g.wpn.chori',   noEquip: true },
+    // CONSOLA (quest del chip): no es arma, es ÍTEM USABLE → "usar" hackea el chip. F2: el use es DATA (kind:'fn').
+    consola:    { id: 'consola',    emoji: '🎮', label: 'g.wpn.consola', use: { kind: 'fn', fn: 'useConsola' } },
+    // ITEMS DE PIQUETE (premios de los mini-juegos co-op de Lavalle). F2 (specs/inventario-armas.md §F2): el CHORIPÁN
+    // es COMIDA → "usar" desde [I] te cura (efecto DATA-driven kind:'heal') y se CONSUME. Los demás quedan de flavor.
+    chori:      { id: 'chori',      emoji: '🌭', label: 'g.wpn.chori',   use: { kind: 'heal', amount: 30 } },
     palo:       { id: 'palo',       emoji: '🏏', label: 'g.wpn.palo',    noEquip: true },
     mortero:    { id: 'mortero',    emoji: '🎆', label: 'g.wpn.mortero', noEquip: true },
     molotov:    { id: 'molotov',    emoji: '🧨', label: 'g.wpn.molotov', noEquip: true },
@@ -800,7 +801,27 @@
   function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
   function wpnLabel(id) { const w = WEAPONS[id]; if (!w) return ''; return T((stormed && w.stormLabel) ? w.stormLabel : w.label); }
   function addItem(id) { if (!player.inventory) player.inventory = ['escupitajo']; if (!player.inventory.includes(id)) player.inventory.push(id); }
-  function equipWeapon(id) { const w = WEAPONS[id]; if (w && !w.noEquip && player.inventory && player.inventory.includes(id)) { player.weapon = id; return true; } return false; }
+  function equipWeapon(id) { const w = WEAPONS[id]; if (w && !w.noEquip && !w.use && player.inventory && player.inventory.includes(id)) { player.weapon = id; return true; } return false; }
+  function consumeItem(id) { if (player.inventory) player.inventory = player.inventory.filter(x => x !== id); if (player.weapon === id) player.weapon = 'escupitajo'; syncHud(); }
+  // F2 (specs/inventario-armas.md §F2): USAR un ítem no-arma. El efecto es DATA (`w.use = {kind,...}`): 'heal' (comida →
+  // +vida, se consume), 'ammo' (+munición, se consume), 'fn' (llama una función nombrada, ej. la consola del chip).
+  // Aditivo: cualquier ítem futuro es puro dato — no toca esta función.
+  function useItem(id) {
+    const w = WEAPONS[id]; if (!w || !w.use || !player.inventory || !player.inventory.includes(id)) return;
+    const u = (typeof w.use === 'string') ? { kind: 'fn', fn: w.use } : w.use;   // compat con el formato viejo (string)
+    if (u.kind === 'fn') { const fn = { useConsola }[u.fn]; if (fn) fn(); return; }
+    if (u.kind === 'heal') {
+      if (player.hp >= MAXHP) { setMsg(T('g.inv.full'), '#FFD54F', 3500); return; }   // no lo malgastás si ya estás al full
+      const before = player.hp; player.hp = Math.min(MAXHP, player.hp + (u.amount || 20));
+      consumeItem(id); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); closeInv();
+      setMsg(T('g.inv.ate', { item: wpnLabel(id), n: player.hp - before }), '#7CFC00', 4000); return;
+    }
+    if (u.kind === 'ammo') {
+      player.ammo = (player.ammo || 0) + (u.amount || 20); consumeItem(id);
+      if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); closeInv();
+      setMsg(T('g.inv.usedAmmo', { item: wpnLabel(id), n: u.amount || 20 }), '#7CFC00', 4000); return;
+    }
+  }
   function openInv() {
     const ov = document.getElementById('invmenu'), body = document.getElementById('invBody');
     if (!ov || !body) return;   // headless / sin overlay → no traba
@@ -821,7 +842,7 @@
     const btns = body.querySelectorAll ? body.querySelectorAll('.inv-opt') : null;
     if (btns && btns.forEach) btns.forEach(b => b.addEventListener('click', () => {
       const id = b.getAttribute('data-id'), w = WEAPONS[id];
-      if (w && w.use) { const fn = { useConsola }[w.use]; if (fn) fn(); return; }              // ÍTEM usable (consola → hackea el chip)
+      if (w && w.use) { useItem(id); return; }              // F2: ÍTEM usable (comida cura / consola hackea / etc.) — efecto DATA
       if (w && w.ctx === 'dream') {   // ARMA CRIOLLA: solo se usa en los SUEÑOS (niveles generados); en la calle real, el Carpo se niega.
         if (isDream()) { player.weapon = id; Sfx.pickup(); setMsg(T('g.wpn.dreamOk', { arma: wpnLabel(id) }), '#7CFC00', 6000); openInv(); syncHud(); }
         else { closeInv(); setMsg(T('g.wpn.dreamOnly'), '#9be8a0', 8000); }
