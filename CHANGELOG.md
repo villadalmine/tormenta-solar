@@ -56,6 +56,22 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v328] — 2026-07-04 — 🧯 FIX CRÍTICO "SE CUELGA": el loop nunca más se congela + Inventario F2 (ítems usables)
+
+**El bug que frustró al dueño (no llegaba a Plaza de Mayo, "se cuelga"):** el game-loop tenía el
+`requestAnimationFrame(loop)` al FINAL, pero las transiciones que hacen `enterX(); return;` (subte→Plaza,
+piquete→Obelisco, win2→cinemática…) **saltaban ese `return`** y con él el rAF → **el loop MORÍA = pantalla
+congelada**. (El watchdog solo lo reportaba, no lo recuperaba.) Fix: TODO el cuerpo del loop va en **try/finally**,
+con el `requestAnimationFrame` en el `finally` → **se re-agenda SIEMPRE** (salvo game-over), pase lo que pase
+(return o excepción). Reproducido y confirmado en Chromium: **Florida → subte → viajar a Plaza de Mayo → LLEGA**
+(antes colgaba). Cubre también el cruce del piquete→Obelisco y la cinemática del Nivel 2 (mismo patrón de `return`).
+Además ahora una excepción en cualquier sub-modo **se loguea y el juego sigue** (no se cuelga).
+
+**Inventario F2** (`inventario-armas.md §F2`): ítems no-arma USABLES desde [I], con efecto **DATA-driven**
+(`w.use = {kind:'heal'|'ammo'|'fn'}`). `useItem()` aplica el efecto y **consume** el ítem; la consola migró a
+`{kind:'fn'}`. El **choripán** (premio del piquete) se come desde el inventario → **+30 de vida** (no lo malgastás
+si estás al full). i18n ES/EN.
+
 ## [v327] — 2026-07-04 — 🗺️ Mapa: CURSOR POR TECLADO + MINIMAPA en el HUD + online por sala más visible
 
 Pulido del mapa (pedido del dueño):

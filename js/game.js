@@ -3484,6 +3484,9 @@
   let lastBeat = 0, freezeReported = false, saneT = 0;
   function loop(t) {
     if (!running) return;
+    // TODO el cuerpo va en try/finally: los `return` de las transiciones (subte→Plaza, finale, etc.) y CUALQUIER
+    // excepción NO deben saltarse el `requestAnimationFrame` → así el loop NUNCA se cuelga ("se cuelga" del dueño).
+    try {
     lastBeat = (typeof performance !== 'undefined' ? performance.now() : Date.now());   // latido para el watchdog de freeze
     if (freezeReported) freezeReported = false;                                          // se recuperó del freeze
     const dt = Math.min(0.04, (t - lastT)/1000) || 0; lastT = t;
@@ -3813,7 +3816,12 @@
     } else {
       update(dt); render();
     }
-    requestAnimationFrame(loop);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.error) console.error('[ts] loop error (' + state + '):', e);
+      try { tel('error', { where: 'loop:' + state, msg: String((e && e.message) || e).slice(0, 200) }); } catch (_) {}
+    } finally {
+      if (running) requestAnimationFrame(loop);   // SIEMPRE re-agenda (salvo game-over que pone running=false)
+    }
   }
   function start() {
     if (typeof Eventos !== 'undefined' && Eventos.sync) Eventos.sync(playerNick());   // memoria del barrio cross-device (F4d+)
