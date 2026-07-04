@@ -1,6 +1,8 @@
 # SDD — EL SUBTE: las líneas reales bajo Florida y Lavalle (preview en el mapa → futuro medio de viaje)
 
-- **Estado:** **PREVIEW (v306-307) + QUEST DE LA TARJETA COMPLETA (v310).** Pestaña [4] con las 3 líneas reales; datos por estación al hover; **tótem SUBE en el chino** con la quest data-driven (grafo, 2 aristas). El VIAJE en sí (F2) queda pendiente.
+- **Estado:** **PREVIEW (v306-307) + QUEST DE LA TARJETA (v310) HECHOS.** F2+ (la estación real, viajar, post-piquete)
+  = **DISEÑO en §3-§8** (2026-07-04), esperando OK del dueño para construir. Ver §3 (dónde va la boca en el mapa) y
+  §7 (el subte como puente piquete → Plaza de Mayo / Nivel 2).
 - **La idea (dueño, 2026-07-03):** *"buscá las líneas de metro que están sobre Lavalle y Florida, armá un mapa
   subte para el mapa en una tab con el diseño del subte, pero solo las líneas que tienen cerca al menos dos
   estaciones — y lo dejamos como preview porque quiero meter el subte."*
@@ -56,19 +58,89 @@ triple del Obelisco — cierra perfecto con el arco del Obelisco del juego.
     mapa marca ambas (⭐/🔒/✅ vía `historiaState`), fire de checkpoint + ticker. `ts_sube_charged` deja la
     tarjeta lista para el VIAJE de F2.
 
-## 3. Futuro (F2+, a diseñar con el dueño): METER el subte al juego
+## 3. LA BOCA DEL SUBTE en el mapa principal (decisión técnica, 2026-07-04)
 
-- **F2 — la estación como LUGAR**: sala real "Estación Lavalle (C)" colgada de los subsuelos (S4/S5: más abajo
-  que las cuevas — el subte es lo más profundo del corte). Molinetes, andén, linyeras del subte (persona nueva),
-  puestito de socorro. Entrada por la calle (boca de subte = puerta nueva en el modelo).
-- **F3 — VIAJAR**: el subte como fast-travel del juego: Lavalle (C) → San Martín (C) para aparecer en la otra
-  punta de Florida; y a futuro **las estaciones = puertas a NIVELES NUEVOS** (Nivel 2 = otra zona de la ciudad,
-  el subte es el conector natural). Combinación en el Obelisco (D/C/B) engancha con el arco del satélite.
-- **F4 — vida**: el subte post-tormenta (¿anda sin electricidad? dressing de refugio), buskers, el chusmerío
-  viaja en subte (rumores por línea).
+**Pregunta del dueño:** *"¿dónde pongo la boca del subte en el mapa principal sin pisar lo demás?"*
 
-## 4. Notas
-- La pestaña es DATA + render puro: cuando exista la sala real (F2), el mismo catálogo gana `roomTag` por
-  estación y los puntos se vuelven clickeables (mismo patrón que los cajones).
+- **En el MUNDO del juego (modelo):** la boca es una **puerta NUEVA en la calle** (escalera que BAJA, como
+  "bajar a la galería" pero más profundo). Va en un HUECO libre de la fila de puertas — hoy la calle tiene puertas
+  en x = 10/28/46/52/58/61/74/90/101/112. **Hueco elegido: x ≈ 82** (entre la galería x74 y la casa de cambio
+  x90). Es la boca de **Florida (Línea B)**. Id de puerta: `subteB`, tag de sala `subte`.
+- **En el MAPA (las 3 vistas), sin pisar nada:**
+  - **LA CUADRA (skyline):** un **🚇 en la vereda** a la altura x=82 (marquita chica sobre la ruta; hay lugar,
+    no hay silueta ahí).
+  - **LA MANZANA (cajones):** la boca **no es un edificio** → va como **marcador 🚇 colgando bajo la calle** en su
+    x (la banda de subsuelo bajo la calle está casi vacía: solo la compuerta ⛏️ —centrada en las cuevas, otra x— y
+    la caja de SUEÑOS —lejos a la izq—; no se pisan). Click en el 🚇 → abre la **pestaña SUBTE**.
+  - **SUBSUELOS:** la estación aparece como la fila **MÁS PROFUNDA (S5)**, debajo de las cuevas (el subte es lo
+    más hondo del corte). Es la sala real (F2).
+  - **SUBTE (plano):** el 🚉 de Florida ya existe; al tener la estación real, su punto se vuelve **clickeable**
+    (mismo patrón que los cajones — el catálogo `SUBTE` gana `roomTag` por estación).
+- Regla: **una sola boca nueva por ahora** (Florida/B). Lavalle (C) y Catedral (D) se suman en F3 (Lavalle desde
+  la zona del piquete; Catedral desde Plaza de Mayo, ver §7).
+
+## 4. F2 — LA ESTACIÓN como nivel (sub-modo top-down, patrón `tienda`/`bodegon`)
+
+- **Sala real** `estacion-florida` (tag `subte`, theme nuevo `subte`), colgada de la boca (puerta `subteB`).
+  Nivel top-down (se camina), NO side-scroller — el andén se lee mejor de arriba (como el bodegón).
+- **Layout (de arriba hacia abajo):** ESCALERA (spawn, vuelta a la calle) → **hall con MOLINETES** (pasás la
+  SUBE 💳: si `subeReady` → *bip* verde y pasás; si no → *bip rojo*, te manda a cargarla → engancha con la quest
+  v310) → **ANDÉN** con el borde amarillo, cartel de la línea, mapa de la línea en la pared → **VÍAS** (el
+  formación llega/sale). Puestito de diarios/kiosco opcional.
+- **Decoración (art.js, DATA):** baldosas gastadas, tira LED del destino, banco de andén, cartel «FLORIDA — Línea
+  B», tacho, afiches (reusan `Ads`/`Mensajero`), luz parpadeante (post-tormenta = medio a oscuras, dressing de
+  refugio §F5). Todo props del theme `subte` (mismo patrón que `lavalle`/`telo`).
+
+## 5. NPCs y VIDA del subte (data-driven, personas nuevas)
+
+- **El del molinete / boletero** — persona `boletero`: gruñón simpático, te reta si querés pasar sin cargar la
+  SUBE, sabe los horarios y "el de arriba" (rumores). NO IA obligatoria (línea scripteada + chat opcional).
+- **Linyera del subte** — el subte es refugio de linyeras; una persona nueva `subterraneo` (vive abajo, filosofía
+  del subsuelo, conoce todas las líneas y a dónde llevan) — 1er oráculo del subte, chateable.
+- **Busker / músico** — toca en el andén por unas monedas (reusa el patrón del `musico` de la calle).
+- **Pasajeros ambiente** — siluetas que esperan el subte, suben/bajan cuando llega la formación (peers si hay
+  multiplayer; si no, NPCs canned). El chusmerío viaja por línea (F5).
+
+## 6. F3 — VIAJAR (el fast-travel) + las 3 bocas
+
+- **Mecánica:** en el andén, [E] sobre el cartel/tren → menú de DESTINOS (las estaciones de esa línea que tengan
+  boca en el juego). Elegís → *cortina* → aparecés en la OTRA estación (spawn en su escalera). Cuesta saldo SUBE
+  (baja `ts_subte_stats[est].gasto`, sube `usos` → los contadores del hover del §2.6 empiezan a moverse); si te
+  quedás sin saldo → volvés al tótem del chino a recargar.
+- **Las 3 estaciones jugables** (decisión §2.5): **Florida (B)** boca en la peatonal · **Lavalle (C)** boca en la
+  zona del piquete · **Catedral (D) → PLAZA DE MAYO** (§7). Al principio conectan sólo estas tres.
+- **Regla data:** cada estación es una sala `subte` con `linea` + `roomTag`; el menú de viaje se arma leyendo el
+  catálogo `SUBTE` × qué estaciones tienen sala. Agregar una estación = agregar el dato (cero hardcode).
+
+## 7. DÓNDE VAS LUEGO DEL PIQUETE — el subte como puente a PLAZA DE MAYO (propuesta)
+
+Hoy el arco del piquete termina en `satelite_herido` (Obelisco). **Propuesta de continuación:** después de herir
+al satélite, la muchachada te manda **a la Casa Rosada / Plaza de Mayo** a rematar la cosa → y la **única forma
+de llegar es el SUBTE** (Línea D desde Catedral, o el trasbordo del Obelisco D/C/B). Así:
+
+- La **quest de la tarjeta SUBE (v310) se vuelve el GATE narrativo a la Plaza** (necesitás la 💳 cargada para
+  viajar) — el side-quest del chino pasa a ser parte de la ruta principal. Cierra redondo.
+- **Plaza de Mayo = comienzo del NIVEL 2** (otro mapa: Casa Rosada, pirámide, las Madres, palomas, la Catedral).
+  El subte es el conector natural entre Nivel 1 (microcentro) y Nivel 2 (Plaza).
+- Arista nueva del grafo (cuando se construya): `plaza_llegada` (at `subte`/`obelisco`, pre `sateliteHerido` +
+  `subeReady`, sets `enPlaza`) → engancha piquete → subte → Nivel 2.
+
+## 8. Fases
+- **F1 — PREVIEW** ✅ (v306-307): pestaña [4] + datos + tótem.
+- **F1.5 — QUEST DE LA TARJETA** ✅ (v310): buscar (linyera) + cargar (tótem), por el grafo.
+- **F2 — LA ESTACIÓN (Florida):** boca en la calle (§3) + sala `subte` top-down + molinetes que leen la SUBE +
+  andén + 1 NPC (boletero) + decoración. Sin viaje todavía (una estación sola). *(Chico-medio; el sub-modo reusa
+  el patrón `bodegon`/`tienda`.)*
+- **F3 — VIAJAR + las 3 bocas:** menú de destinos, cortina, spawn cruzado, gasto de saldo; bocas de Lavalle (C) y
+  Catedral (D). Los contadores del hover cobran vida.
+- **F4 — POST-PIQUETE → PLAZA DE MAYO:** arista `plaza_llegada`, Catedral abre a Nivel 2 (aunque sea un teaser
+  de Plaza al principio).
+- **F5 — VIDA:** linyera del subte (oráculo), busker, pasajeros, chusmerío por línea, dressing post-tormenta.
+
+## 9. Notas
+- La pestaña es DATA + render puro: cuando existan las salas reales (F2), el catálogo `SUBTE` gana `roomTag` por
+  estación y los puntos del plano se vuelven clickeables (mismo patrón que los cajones).
 - Precisión geográfica: el plano es esquemático (estilo mapa de subte, no GPS) — lo importante es que las
   líneas/estaciones son las REALES de la zona.
+- **3 patas** al sumar la sala `subte` con NPCs custom: `level.js makeRoom` + `tools/gen-level.js` + `mundo.js`
+  (regla reincidente del proyecto). Tras tocar level.js: `node tools/gen-level.js` + bump del count en e2e.
