@@ -52,6 +52,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v314] — 2026-07-04 — 🚇 Boca de Lavalle en el piquete + FIX debug (bajar directo) + panel legible
+
+Playtest del dueño: "el debug me festeja pero no me pasa al subte; el panel debug es genial pero se ve horrible todo
+cruzado".
+- **Boca del subte de Lavalle** (`js/lavalle.js`): tras herir al satélite (`ts_sat_down`) aparece un 🚇 (logo C
+  azul) en el piquete (abajo-centro) → [E] → **Estación Lavalle (Línea C)**. Re-accesible sin re-pelear el
+  Obelisco. Se marca en el mapa vía el sub-modo.
+- **FIX debug**: nuevo botón **"🚇 Bajar al subte YA"** que baja DIRECTO a la estación Lavalle (carga la SUBE +
+  cierra Opciones + entra). El de "Satélite herido" ahora aclara que la boca queda en el piquete.
+- **FIX visual del panel debug**: los botones usaban `.opt-btn` (un cuadradito de 26px → texto cruzado). Clase
+  propia **`.dbg-btn`** (ancho auto, grid 2 columnas, wide para los largos). Ahora se lee prolijo.
+
 ## [v313] — 2026-07-04 — 🐛 TAB DEBUG en ⚙ (oculto): saltar a cualquier estado sin jugar todo
 
 Para playtest/iteración (pedido del dueño). Pestaña **🐛 DEBUG** en ⚙ Opciones, **oculta** salvo `?debug=1` o el

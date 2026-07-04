@@ -730,7 +730,7 @@
   // LAVALLE (specs/lavalle.md E1.5): el piquete se ve TOP-DOWN (sub-modo); sin el módulo → cae al side-scroller (sala 52).
   function enterLavalle(intro) {
     if (typeof Lavalle === 'undefined' || !Lavalle.create) return false;
-    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon(), stormed, won: loadPiqueteWon(), juramento: lsFlag('ts_juramento'), spawn: lavalleSpawn }); lavalleSpawn = null; state = 'lavalle';
+    lavalleGame = Lavalle.create({ intro, allWon: piqueteAllWon(), stormed, won: loadPiqueteWon(), juramento: lsFlag('ts_juramento'), subteUnlocked: lsFlag('ts_sat_down'), spawn: lavalleSpawn }); lavalleSpawn = null; state = 'lavalle';
     // MULTIJUGADOR (specs/lavalle-multijugador.md F1): Lavalle es un ESPACIO aparte del bodegón; te ves con los otros
     // que están en el piquete. Aditivo: sin red, queda la postal single-player.
     if (typeof Salon !== 'undefined' && Salon.enabled && Salon.join) Salon.join(playerNick(), 'carpo', () => {}, 'lavalle');
@@ -3596,6 +3596,10 @@
       const lp = lavalleGame.openPeerChat;                            // [E] sobre un jugador ONLINE → chat privado (whisper), vuelve a Lavalle
       if (lp && lp.pid) { chatReturnTo = 'lavalle'; openPeerChat({ pid: lp.pid, nick: lp.nick || peerNickOf(lp.pid) }, 'lavalle'); }
       if (lavalleGame.juramentoDone && !lsFlag('ts_juramento')) applyEdge('piquete_juramento', 'juramento');   // GRAFO (E4)
+      if (lavalleGame.joinSubte) {   // [E] en la boca del subte de Lavalle → bajás a la ESTACIÓN LAVALLE (Línea C)
+        if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave();
+        lavalleGame = null; enterSubte('lavalle', 'street'); return;
+      }
       if (lavalleGame.joinCorte) sitAtTable('corte');                 // [E] en la barricada → armar "Aguantar el corte" (server parea)
       if (lavalleGame.joinSoga) sitAtTable('soga');                   // [E] abajo-izq → "La soga"
       if (lavalleGame.joinBombo) sitAtTable('bombo');                 // [E] abajo-der → "Bombo & cumbia"
@@ -3855,7 +3859,8 @@
       const DEBUG_ACTIONS = {
         piquete:     () => { try { localStorage.setItem('ts_piqueteWon', JSON.stringify({ corte: 1, soga: 1, bombo: 1, olla: 1, pancarta: 1 })); localStorage.setItem('ts_piq_campeon', '1'); } catch (e) {} return 'Piquete: 5/5 juegos ganados'; },
         juramento:   () => { lsOn('ts_juramento'); return 'Juramento hecho (barricada abierta)'; },
-        satelite:    () => { lsOn('ts_juramento'); lsOn('ts_obelisco_visto'); lsOn('ts_sat_down'); return 'Satélite herido → entrá al Obelisco y salís a la estación Lavalle'; },
+        satelite:    () => { lsOn('ts_juramento'); lsOn('ts_obelisco_visto'); lsOn('ts_sat_down'); return 'Satélite herido — la boca del subte ya está en el piquete (o usá "Bajar al subte YA")'; },
+        subteYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sube_seen'); lsOn('ts_sube_got'); lsOn('ts_sube_charged'); addItem('sube'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterSubte('lavalle', 'street'); return 'Bajaste a la estación Lavalle 🚇'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

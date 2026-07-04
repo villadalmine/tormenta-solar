@@ -211,6 +211,7 @@
     'g.lavalle.title': 'Calle Lavalle — el piquete',
     'g.lavalle.intro': 'Doblaste a la izquierda y caíste en el piquete: tachos al fuego, olla popular, cumbia al palo y el Obelisco al fondo. Caminá (WASD). Para volver a Florida, seguí para ABAJO. ✊🎶',
     'g.lavalle.exitHint': '↓ seguí para abajo y volvés a Florida',
+    'g.lavalle.subteHint': '[E] 🚇 bajar al subte (Estación Lavalle · Línea C)',
     'g.lavalle.back': 'Volviste a la esquina de Florida y Lavalle.',
     'g.lavalle.npc.pibe': 'Pibe', 'g.lavalle.line.pibe': '¡pasámela que estamos 3 a 2! ⚽',
     'g.lavalle.npc.pibita': 'Pibita', 'g.lavalle.line.pibita': '¡gol, aguante el barrio! 🥅',

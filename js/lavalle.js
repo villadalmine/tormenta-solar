@@ -52,7 +52,9 @@ const Lavalle = (() => {
     CROWD_ROWS.forEach((r, ri) => { for (let i = 0; i < 15; i++) crowd.push({ x: 1.9 + i * 1.0, y: r.y + (i % 2) * 0.1, col: ccol[(i + ri) % ccol.length], ph: i * 1.3 + ri * 0.7, sc: r.sc, a: r.a }); });
     // el LIENZO largo "VIVA PERÓN ×N" cruza la hilera de atrás, colgado ALTO (no tapa a nadie)
     const banner = { y: 3.7 };
-    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null, peerReq = null, corteReq = false, sogaReq = false, bomboReq = false, ollaReq = false, pancaReq = false, hHeld = false;
+    const subteUnlocked = !!opts.subteUnlocked;   // heriste al satélite → aparece la BOCA DEL SUBTE de Lavalle (Línea C)
+    const subteBoca = { x: 8, y: 9.1 };           // subte.md §7: la boca en el piquete (abajo-centro, zona libre)
+    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, near = null, eHeld = false, chatReq = null, peerReq = null, corteReq = false, sogaReq = false, bomboReq = false, ollaReq = false, pancaReq = false, subteReq = false, hHeld = false;
     let trackerOn = true; try { trackerOn = localStorage.getItem('ts_ui_tracker') !== '0'; } catch (e) {}
     setMsg(opts.intro || (opts.stormed ? T('g.lavalle.stormIntro') : allWon ? T('g.lavalle.introOpen') : T('g.lavalle.intro')), opts.intro ? 7 : 6);
     if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(true);
@@ -108,6 +110,10 @@ const Lavalle = (() => {
       } else if (near && near.chat) {
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; chatReq = { name: near.name, persona: near.persona, kind: 'linyera' }; } } else eHeld = false;
         prompt = T('g.lavalle.chatHint', { n: near.name });
+      } else if (subteUnlocked && Math.hypot(player.x / CS - subteBoca.x, player.y / CS - subteBoca.y) < 1.5 && !near) {
+        // BOCA DEL SUBTE de Lavalle (Línea C) — apareció tras herir al satélite (subte.md §7)
+        if (Input.keys['e']) { if (!eHeld) { eHeld = true; subteReq = true; } } else eHeld = false;
+        prompt = T('g.lavalle.subteHint');
       } else if (fiesta && player.y < 6 * CS && Math.abs(player.x / CS - 9) < 2.2 && !near) {
         eHeld = false; prompt = T('g.lavalle.obeliscoHint');
       } else if (allWon && !fiesta && player.y < 5 * CS && Math.abs(player.x / CS - 9) < 2 && !near) {
@@ -329,6 +335,16 @@ const Lavalle = (() => {
           if (e.peer.emote && Date.now() - (e.peer.emoteT || 0) < 2200) { ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillText(['', '🍻', '🤝', '💃', '🎸'][e.peer.emote] || '', px, py - 32); } }
         else piquetero(ctx, TX2(e.f.x + 0.5), TY2(e.f.y + 0.5), e.f, near === e.f ? e.f.line : '', near === e.f);
       }
+      // BOCA DEL SUBTE de Lavalle (Línea C) — aparece tras herir al satélite (subte.md §7)
+      if (subteUnlocked) {
+        const bx = TX2(subteBoca.x + 0.5), by = TY2(subteBoca.y + 0.5), hov = near == null && Math.hypot(player.x / CS - subteBoca.x, player.y / CS - subteBoca.y) < 1.5;
+        ctx.fillStyle = '#141821'; ctx.fillRect(bx - 22, by - 6, 44, 26);
+        ctx.fillStyle = '#0a0d13'; ctx.fillRect(bx - 16, by, 32, 18);
+        for (let i = 0; i < 4; i++) { ctx.fillStyle = i % 2 ? '#161b24' : '#1e2530'; ctx.fillRect(bx - 16, by + 2 + i * 4, 32, 3); }
+        ctx.fillStyle = '#1f6cb5'; ctx.beginPath(); ctx.arc(bx - 12, by - 14, 8, 0, Math.PI * 2); ctx.fill();   // logo C (azul)
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center'; ctx.fillText('C', bx - 12, by - 10.5);
+        ctx.fillStyle = hov ? '#7ff3ff' : '#8fd4e0'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚇 SUBTE', bx + 8, by - 11);
+      }
       // FIESTA PERONISTA: choripanes que bailan sobre la gente + confeti + banner "VIVA PERÓN"
       if (fiesta) {
         for (let i = 0; i < 10; i++) { const px = TX2(2 + i * 1.5 + Math.sin(t * 2 + i) * 0.2 + 0.5), py = TY2(5.2 + (i % 3) * 0.7) - Math.abs(Math.sin(t * 4 + i)) * 8; ctx.font = '15px monospace'; ctx.textAlign = 'center'; ctx.fillText('🌭', px, py); }
@@ -369,6 +385,7 @@ const Lavalle = (() => {
       get done() { return done; }, get exitTo() { return exitTo; }, update, draw,
       get openChatNpc() { const r = chatReq; chatReq = null; return r; },   // one-shot: game.js abre el chat IA y vuelve a Lavalle
       get openPeerChat() { const r = peerReq; peerReq = null; return r; },   // one-shot: game.js abre el chat privado con el jugador online
+      get joinSubte() { const r = subteReq; subteReq = false; return r; },   // one-shot: [E] en la boca → bajar al subte (Línea C)
       get joinCorte() { const r = corteReq; corteReq = false; return r; },   // one-shot: [E] en la barricada → armar "Aguantar el corte"
       get joinSoga() { const r = sogaReq; sogaReq = false; return r; },       // one-shot: [E] abajo-izq → "La soga"
       get joinBombo() { const r = bomboReq; bomboReq = false; return r; },     // one-shot: [E] abajo-der → "Bombo & cumbia"

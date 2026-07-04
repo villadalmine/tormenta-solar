@@ -208,6 +208,7 @@
     'g.lavalle.title': 'Lavalle St. — the picket',
     'g.lavalle.intro': 'You turned left and landed in the picket: burning barrels, soup kitchen, cumbia blasting and the Obelisco in the back. Walk (WASD). To go back to Florida, head DOWN. ✊🎶',
     'g.lavalle.exitHint': '↓ head down to go back to Florida',
+    'g.lavalle.subteHint': '[E] 🚇 go down to the subte (Lavalle Station · Line C)',
     'g.lavalle.back': "You're back at the corner of Florida & Lavalle.",
     'g.lavalle.npc.pibe': 'Kid', 'g.lavalle.line.pibe': "pass it, it's 3 to 2! ⚽",
     'g.lavalle.npc.pibita': 'Kid', 'g.lavalle.line.pibita': 'goal, long live the barrio! 🥅',
