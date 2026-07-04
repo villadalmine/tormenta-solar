@@ -1,9 +1,9 @@
 # SDD — EL SUBTE: las líneas reales bajo Florida y Lavalle (preview en el mapa → futuro medio de viaje)
 
-- **Estado:** **PREVIEW + QUEST + F2a (boca) + F2 (ESTACIÓN Florida) + Lavalle post-Obelisco HECHOS.** v312:
-  `js/subte.js` (andén top-down, molinetes que leen la SUBE, boletero, tren). Bajás por la boca de Florida →
-  estación B. Herís al satélite en el Obelisco → aparecés en la ESTACIÓN DE LAVALLE (C). El VIAJE (F3) y Plaza de
-  Mayo (F4) siguen pendientes. **Confirmado subte→Plaza de Mayo** por el dueño.
+- **Estado:** **F1-F3 HECHOS (v306-v317).** Preview + quest de la tarjeta + boca Florida + estaciones Florida(B)/
+  Lavalle(C) (`js/subte.js`, andén top-down + molinetes + boletero + tren) + **VIAJE entre estaciones (F3, menú de
+  destinos, cuenta el pasaje)**. Boca de Lavalle en el piquete tras herir al satélite. Mapa: marcador 🚇 SUBTE en la
+  calle + estaciones ✓/🔒 en el plano. **FALTA F4: Plaza de Mayo (Catedral) → Nivel 2** — diseño en §10.
 - **La idea (dueño, 2026-07-03):** *"buscá las líneas de metro que están sobre Lavalle y Florida, armá un mapa
   subte para el mapa en una tab con el diseño del subte, pero solo las líneas que tienen cerca al menos dos
   estaciones — y lo dejamos como preview porque quiero meter el subte."*
@@ -128,11 +128,8 @@ de llegar es el SUBTE** (Línea D desde Catedral, o el trasbordo del Obelisco D/
 ## 8. Fases
 - **F1 — PREVIEW** ✅ (v306-307): pestaña [4] + datos + tótem.
 - **F1.5 — QUEST DE LA TARJETA** ✅ (v310): buscar (linyera) + cargar (tótem), por el grafo.
-- **F2 — LA ESTACIÓN (Florida):** boca en la calle (§3) + sala `subte` top-down + molinetes que leen la SUBE +
-  andén + 1 NPC (boletero) + decoración. Sin viaje todavía (una estación sola). *(Chico-medio; el sub-modo reusa
-  el patrón `bodegon`/`tienda`.)*
-- **F3 — VIAJAR + las 3 bocas:** menú de destinos, cortina, spawn cruzado, gasto de saldo; bocas de Lavalle (C) y
-  Catedral (D). Los contadores del hover cobran vida.
+- **F2 — LA ESTACIÓN** ✅ (v312): estaciones Florida(B) + Lavalle(C), andén top-down + molinetes + boletero + tren.
+- **F3 — VIAJAR** ✅ (v317): menú de destinos en el andén (Florida↔Lavalle), cuenta el pasaje (`ts_subte_stats`).
 - **F4 — POST-PIQUETE → PLAZA DE MAYO:** arista `plaza_llegada`, Catedral abre a Nivel 2 (aunque sea un teaser
   de Plaza al principio).
 - **F5 — VIDA:** linyera del subte (oráculo), busker, pasajeros, chusmerío por línea, dressing post-tormenta.
@@ -144,3 +141,25 @@ de llegar es el SUBTE** (Línea D desde Catedral, o el trasbordo del Obelisco D/
   líneas/estaciones son las REALES de la zona.
 - **3 patas** al sumar la sala `subte` con NPCs custom: `level.js makeRoom` + `tools/gen-level.js` + `mundo.js`
   (regla reincidente del proyecto). Tras tocar level.js: `node tools/gen-level.js` + bump del count en e2e.
+
+## 10. F4 — PLAZA DE MAYO (Catedral/Línea D) → arranque del NIVEL 2 [DISEÑO, pedido dueño 2026-07-04]
+
+**La idea (dueño):** *"creá un ejemplo de Plaza de Mayo — la Catedral, la Casa de Gobierno, el Cabildo — quizás
+una vista de arriba EN CÍRCULO, la parte donde las Madres de Plaza de Mayo dan vueltas. Es más rico en círculo
+que en línea recta."*
+
+- **Research (Plaza de Mayo real, microcentro CABA):** plaza histórica; en el CENTRO la **Pirámide de Mayo**
+  (primer monumento patrio) — alrededor de ella las **Madres de Plaza de Mayo marchan en círculo** (ronda de los
+  jueves, pañuelos blancos en la cabeza). Alrededor de la plaza: la **Casa Rosada / Casa de Gobierno** (rosa, al
+  ESTE, sobre la Plaza Colón), la **Catedral Metropolitana** (al NORTE, sobre Rivadavia — tumba de San Martín +
+  llama votiva), el **Cabildo** (colonial, blanco con arcos y recova, al OESTE), el **Banco Nación**, palomas,
+  las fuentes. La estación **Catedral (Línea D)** tiene su boca EN la plaza.
+- **Diseño CIRCULAR (mejor que la línea recta):** sub-modo top-down `js/plaza.js` con la plaza vista de arriba,
+  la **Pirámide en el centro**, las **Madres girando alrededor** (círculo de siluetas con pañuelo blanco), y los
+  3 landmarks anclados en su orientación real: **Casa Rosada** (E, rosa), **Catedral** (N, con columnas), **Cabildo**
+  (O, arcos blancos). La boca del subte (Catedral) por donde llegás. Palomas, fuentes, adoquines en anillo.
+- **Cómo se llega:** viajás en subte a **Catedral** (destino nuevo, se habilita tras `sateliteHerido`) → aparecés
+  en Plaza de Mayo. Es el **arranque del NIVEL 2** (otra zona de la ciudad; el subte es el conector — subte.md §7).
+- **F4 fases:** F4a = la POSTAL circular (caminás, ves los landmarks + las Madres, chateás con una Madre/persona
+  nueva) · F4b = Catedral como destino de viaje (unlock por `sateliteHerido`) · F4c = engancharlo al grafo
+  (`plaza_llegada`) y abrir el contenido del Nivel 2.
