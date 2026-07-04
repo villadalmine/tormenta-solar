@@ -130,6 +130,16 @@
   (precio + potencia, **clampados** a rango sano: la IA *sugiere*, el cliente *clampa*, la moneda queda del molde).
   El surtido autorado se **cachea por rubro y persiste** (localStorage), con fallback estático. Ver
   `specs/tiendas-generadas.md`.
+- **El SUBTE y el Nivel 2 en PLAZA DE MAYO — la liberación sanmartiniana:** ganás el piquete → herís al satélite →
+  aparece la **boca del subte** en la calle. Con la tarjeta **SUBE** pasás el molinete, viajás entre estaciones
+  reales (Florida B, Lavalle C) y salís en **Catedral (Línea D) → PLAZA DE MAYO**: vista **de arriba en círculo**,
+  la **Pirámide de Mayo** en el centro, las **Madres girando** con sus pañuelos, la **Casa Rosada** (E), el
+  **Cabildo** (O). Ahí arranca el **Nivel 2**, con un objetivo bien argentino: entrás a la **TUMBA DE SAN MARTÍN**
+  (dentro de la Catedral — sarcófago velado por la bandera, **3 granaderos**, la llama votiva) y tomás el **CHIP AI
+  DEL LIBERTADOR**; lo llevás a la **Pirámide de Mayo**, que es un **dispositivo anti-IA**, lo armás y un **haz** sube
+  a los **satélites manejados por la IA** → arranca el **"proceso sanmartiniano de liberación mundial"**: San Martín
+  nos libera del yugo de la IA. Sub-modo aislado `js/plaza.js`; el subte es el conector Nivel 1 → Nivel 2. Ver
+  `specs/subte.md §10`.
 
 ## 4.b RESILIENCIA: si la GPU se cae, NO se para nada → modo estático
 - **Premisa (dueño):** *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático de
