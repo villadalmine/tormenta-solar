@@ -398,6 +398,20 @@ const Mapa = (() => {
     ctx.fillStyle = 'rgba(255,213,79,0.85)'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
     ctx.fillText('PREVIEW', 0, -1); ctx.font = '8px monospace'; ctx.fillText(T('g.mapa.subtePronto'), 0, 10);
     ctx.restore();
+    // OBJETIVO DEL NIVEL 2 (arco sanmartiniano) — DERIVADO DEL GRAFO (st.flags = historiaState): el mapa "sabe"
+    // en qué paso estás (satélite → subte → Plaza → chip de San Martín → armar la Pirámide → liberación).
+    { const f = st.flags || {}; let paso, col;
+      if (f.nivel2Win) { paso = T('g.mapa.n2Win'); col = '#7CFC00'; }
+      else if (f.sanmartinChip) { paso = T('g.mapa.n2Arm'); col = '#ffd54f'; }
+      else if (f.enPlaza) { paso = T('g.mapa.n2Chip'); col = '#ffd54f'; }
+      else if (f.sateliteHerido) { paso = T('g.mapa.n2Subte'); col = '#8fd4e0'; }
+      else { paso = T('g.mapa.n2Lock'); col = 'rgba(160,180,205,0.75)'; }
+      const bx = 14, by = 54, bw = 316;
+      ctx.fillStyle = 'rgba(6,12,20,0.93)'; ctx.fillRect(bx, by, bw, 40);
+      ctx.strokeStyle = f.nivel2Win ? '#4faf5a' : '#3a5a80'; ctx.lineWidth = 1; ctx.strokeRect(bx + 0.5, by + 0.5, bw, 40);
+      ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left'; ctx.fillText('🇦🇷 ' + T('g.mapa.n2Title'), bx + 8, by + 15);
+      ctx.fillStyle = col; ctx.font = '9px monospace'; ctx.fillText(String(paso).slice(0, 48), bx + 8, by + 31);
+    }
   }
 
   // dibuja el SKYLINE ("la cuadra"): siluetas en perspectiva, hover = etiqueta flotante

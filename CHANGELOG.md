@@ -52,6 +52,22 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v326] — 2026-07-04 — 🕸️ El NIVEL 2 al GRAFO: hitos en el mapa + los oráculos SABEN (data-driven, como debe ser)
+
+El dueño marcó que el arco del Nivel 2 estaba suelto (flags + sub-modos) en vez de **grafo + mapa + grounding**
+(REGLA #0: todo es dato/API/grafo, los oráculos saben de todo). Integrado:
+- **GRAFO (+2 aristas → 24):** `sanmartin_chip` (pre `enPlaza` → sets `sanmartinChip`) y `nivel2_liberacion`
+  (pre `sanmartinChip` → sets `nivel2Win`), en `specs/nivel-1/lugares/lavalle-quest.md` → `gen-historia.mjs`.
+  `plaza_llegada` dejó de ser terminal (ahora encadena). Fase 2: `applyEdge('sanmartin_chip')` al tomar el chip
+  (getter `chipEdge` en plaza.js) + `applyEdge('nivel2_liberacion')` al armar la Pirámide → **checkpoint + ticker +
+  hint engine + grounding**, no más flags sueltos. `FLAG_SETTERS`/`historiaState` con `sanmartinChip`/`nivel2Win`.
+- **GROUNDING (los NPC IA "saben"):** `worldSnapshot`/`worldBrief` ahora cuentan dónde está el jugador en el arco
+  (satélite herido → subte → Plaza → chip de San Martín → armar la Pirámide → liberación) → los linyeras-oráculo
+  guían/comentan el Nivel 2 con contexto real.
+- **MAPA:** la pestaña SUBTE muestra un panel **"🇦🇷 NIVEL 2 · Plaza de Mayo"** con el OBJETIVO ACTUAL derivado del
+  grafo (`st.flags`): 🔒 herí el satélite → 🎯 subte → 🎯 chip → 🎯 armá la Pirámide → ✅ liberación. Data-driven.
+- i18n ES/EN, e2e (24 aristas + `allDone` con los flags nuevos), validado en Chromium (panel en el subte tab).
+
 ## [v325] — 2026-07-04 — 🐛 PLAYTEST del dueño: el cruce del piquete FOOLPROOF + subte sin-trampa + subte del mapa sin solaparse
 
 Tres bugs que el dueño reportó (el cruce lo trababa hace 5+ releases):

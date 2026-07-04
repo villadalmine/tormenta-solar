@@ -584,7 +584,6 @@ const Historia = {
       "sets": {
         "enPlaza": true
       },
-      "terminal": true,
       "hints": {
         "es": [
           "Con el satélite herido, la muchachada te manda a la Casa Rosada… ¿cómo llegás?",
@@ -597,6 +596,61 @@ const Historia = {
           "A subte entrance appeared in the picket: go down and travel.",
           "There's a SUBTE ENTRANCE in the picket (Line C). Go down, ride to CATEDRAL and come up at Plaza de Mayo.",
           "Take the SUBTE at the picket, ride to CATEDRAL (Line D) and you arrive at PLAZA DE MAYO — Level 2!"
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "sanmartin_chip",
+      "title": "Conseguir el CHIP del Libertador (tumba de San Martín)",
+      "title_en": "Get the Liberator's CHIP (San Martín's tomb)",
+      "at": "plaza",
+      "pre": {
+        "enPlaza": true
+      },
+      "sets": {
+        "sanmartinChip": true
+      },
+      "hints": {
+        "es": [
+          "En Plaza de Mayo, la IA tomó el satélite. ¿Con qué la volteás?",
+          "Una Madre te dijo: solo el CHIP DE SAN MARTÍN puede activar la Pirámide.",
+          "Entrá a la CATEDRAL (norte de la plaza): adentro está la TUMBA DE SAN MARTÍN.",
+          "En la tumba de San Martín, caminá hasta el sarcófago y [E]: tomá el CHIP AI DEL LIBERTADOR."
+        ],
+        "en": [
+          "At Plaza de Mayo, the AI seized the satellite. What can take it down?",
+          "A Mother told you: only SAN MARTÍN'S CHIP can power the Pyramid.",
+          "Enter the CATHEDRAL (north of the plaza): San Martín's TOMB is inside.",
+          "In San Martín's tomb, walk up to the sarcophagus and [E]: take the LIBERATOR'S AI CHIP."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "nivel2_liberacion",
+      "title": "Armar la Pirámide → liberación sanmartiniana (ganar el Nivel 2)",
+      "title_en": "Arm the Pyramid → San Martín liberation (win Level 2)",
+      "at": "plaza",
+      "pre": {
+        "sanmartinChip": true
+      },
+      "sets": {
+        "nivel2Win": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Tenés el chip del Libertador. ¿Dónde se arma el dispositivo anti-IA?",
+          "La PIRÁMIDE DE MAYO (centro de la plaza) es el dispositivo. Llevá el chip ahí.",
+          "Parate en la Pirámide y SOSTENÉ [E]: la señal de San Martín tiene que vencer a la IA.",
+          "¡Sostené [E] en la Pirámide hasta que el haz suba a los satélites — proceso sanmartiniano de liberación mundial!"
+        ],
+        "en": [
+          "You have the Liberator's chip. Where do you arm the anti-AI device?",
+          "The PIRÁMIDE DE MAYO (center of the plaza) is the device. Bring the chip there.",
+          "Stand at the Pyramid and HOLD [E]: San Martín's signal must overpower the AI.",
+          "Hold [E] at the Pyramid until the beam rises to the satellites — San Martín process of worldwide liberation!"
         ]
       },
       "from": "specs/nivel-1/lugares/lavalle-quest.md"

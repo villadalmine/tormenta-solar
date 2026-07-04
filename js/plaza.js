@@ -19,6 +19,7 @@ const Plaza = (() => {
     let inside = null, ip = { x: 0, y: 130, dir: 1, walk: 0 }, iNear = null, termIdx = -1, bellT = 0;
     const alreadyWon = !!opts.won2;
     let hasChip = alreadyWon;         // ¿tenés el CHIP AI DEL LIBERTADOR? (de la tumba). Requisito para armar la Pirámide.
+    let chipJustGot = false;          // one-shot: game.js lee chipEdge → applyEdge('sanmartin_chip') (grafo/mapa/grounding)
     let armed = false, armT = 0, signalFx = 0, chipFx = 0;   // dispositivo de la Pirámide: armado → señal → victoria
     let arming = false, charge = 0;                          // FORCEJEO: sostenés [E] → la señal sanmartiniana vence a la IA
     // landmarks (dir en grados desde el centro; el render los ancla a los bordes de la plaza)
@@ -170,7 +171,7 @@ const Plaza = (() => {
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; inside = null; near = null; } } else escHeld = false;
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true;
         if (iNear === 'salir') { inside = null; near = null; }
-        else if (iNear === 'chip') { hasChip = true; chipFx = 1; setMsg(T('g.plaza.gotChip'), 10); if (typeof Sfx !== 'undefined' && Sfx.pick) Sfx.pick(); try { localStorage.setItem('ts_sanmartin_chip', '1'); } catch (e) {} }
+        else if (iNear === 'chip') { hasChip = true; chipJustGot = true; chipFx = 1; setMsg(T('g.plaza.gotChip'), 10); if (typeof Sfx !== 'undefined' && Sfx.pick) Sfx.pick(); try { localStorage.setItem('ts_sanmartin_chip', '1'); } catch (e) {} }
         else if (iNear === 'sarco') { setMsg(T(hasChip ? 'g.plaza.sarcoGot' : 'g.plaza.sarco'), 8); }
         else if (iNear === 'term') { termIdx = (termIdx + 1) % 3; setMsg(T('g.plaza.term' + (termIdx + 1)), 8); }
         else if (iNear === 'campana') { bellT = 1.2; setMsg(T('g.plaza.cabildoBell'), 8); if (typeof Sfx !== 'undefined' && Sfx.blip) Sfx.blip(); }
@@ -409,6 +410,7 @@ const Plaza = (() => {
 
     return {
       update, draw, get done() { return done; }, get exitTo() { return exitTo; },
+      get chipEdge() { const r = chipJustGot; chipJustGot = false; return r; },   // one-shot: tomaste el chip → grafo
       // superficies de test: tomar el chip en la tumba, armar la pirámide, salir
       get _dbg() { return { inside, hasChip, armed, iNear, near: near && near.kind, pz: { x: player.x, y: player.y }, ip: { x: ip.x, y: ip.y } }; },
       __enter: (w) => { inside = w; ip = { x: 0, y: 60, dir: 1, walk: 0 }; iNear = null; return inside; },

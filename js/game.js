@@ -1028,6 +1028,9 @@
     subeGot:          v => { try { localStorage.setItem('ts_sube_got', v ? '1' : ''); } catch (e) {} },
     subeReady:        v => { try { localStorage.setItem('ts_sube_charged', v ? '1' : ''); } catch (e) {} },
     enPlaza:          v => { try { localStorage.setItem('ts_en_plaza', v ? '1' : ''); } catch (e) {} },
+    // NIVEL 2 (arco sanmartiniano, specs/subte.md §10.1): el CHIP del Libertador y la LIBERACIÓN están EN EL GRAFO
+    sanmartinChip:    v => { try { localStorage.setItem('ts_sanmartin_chip', v ? '1' : ''); } catch (e) {} },
+    nivel2Win:        v => { try { localStorage.setItem('ts_nivel2_win', v ? '1' : ''); } catch (e) {} },
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1075,6 +1078,8 @@
       subeGot: lsFlag('ts_sube_got'),
       subeReady: lsFlag('ts_sube_charged'),
       enPlaza: lsFlag('ts_en_plaza'),
+      sanmartinChip: lsFlag('ts_sanmartin_chip'),   // Nivel 2: tenés el chip del Libertador (grafo)
+      nivel2Win: lsFlag('ts_nivel2_win'),           // Nivel 2: ganaste (liberación sanmartiniana)
       sleptOnce: loopCount > 0,
     };
   }
@@ -1105,6 +1110,9 @@
     return {
       stormed, borrachosHappy, bunkerUnlocked, trucoEverWon, chinoEntered, loopCount,
       diosa: !!(player && player.diosa), armado,
+      // NIVEL 2 (arco sanmartiniano): el subte, la Plaza, el chip del Libertador, la liberación — los oráculos LO SABEN
+      sateliteHerido: lsFlag('ts_sat_down'), subeReady: lsFlag('ts_sube_charged'),
+      enPlaza: lsFlag('ts_en_plaza'), sanmartinChip: lsFlag('ts_sanmartin_chip'), nivel2Win: lsFlag('ts_nivel2_win'),
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -1137,6 +1145,11 @@
     if (s.chinoEntered) b.push('ya entró al super chino tras la tormenta');
     if (s.bunkerUnlocked) b.push('ya es gurú (búnker abierto)');
     if (s.loopCount > 0) b.push('lleva ' + s.loopCount + ' día(s) en el loop de supervivencia');
+    // NIVEL 2 (arco sanmartiniano) — los oráculos SABEN dónde está parado el jugador y lo pueden guiar/comentar
+    if (s.nivel2Win) b.push('EL JUGADOR YA GANÓ EL NIVEL 2: armó la Pirámide de Mayo con el CHIP DE SAN MARTÍN y arrancó el "proceso sanmartiniano de liberación mundial" — San Martín nos liberó del yugo de la IA');
+    else if (s.sanmartinChip) b.push('el jugador TIENE EL CHIP DEL LIBERTADOR (de la tumba de San Martín, en la Catedral): le falta armarlo en la PIRÁMIDE DE MAYO (centro de la plaza, sostené [E]) para liberar al mundo');
+    else if (s.enPlaza) b.push('el jugador llegó a PLAZA DE MAYO (Nivel 2): la IA tomó el satélite. Solo el CHIP DE SAN MARTÍN —en su TUMBA, dentro de la CATEDRAL— puede activar la Pirámide de Mayo y liberarnos. Guialo hacia la tumba');
+    else if (s.sateliteHerido) b.push('el jugador hirió al satélite: apareció una BOCA DE SUBTE en el piquete de Lavalle → baja, viaja a CATEDRAL y llega a PLAZA DE MAYO (el Nivel 2)');
     // F4a (npcs-vivos §5.3): lo FRESCO — últimos movimientos del jugador (bus de eventos) + qué hacen OTROS jugadores
     if (typeof Eventos !== 'undefined' && Eventos.last) { const evs = Eventos.last(5); if (evs.length) b.push('ÚLTIMOS MOVIMIENTOS del jugador, en orden (lo más reciente al final; comentalo con tu voz si viene al caso): ' + evs.map(e => e.ev + (e.detail ? ' "' + e.detail + '"' : '')).join(' → ')); }
     if (salonLive && Array.isArray(salonLive.ticker) && salonLive.ticker.length) b.push('en el BARRIO, OTROS jugadores hicieron hace poco: ' + salonLive.ticker.slice(-3).map(x => x.ev).join(', '));
@@ -3624,10 +3637,11 @@
       }
     } else if (state === 'plaza' && plazaGame) {                      // F4: PLAZA DE MAYO (Nivel 2, circular)
       plazaGame.update(dt); plazaGame.draw(ctx, W, H);
+      if (plazaGame.chipEdge) applyEdge('sanmartin_chip', 'sanmartinChip');   // GRAFO (one-shot): tomaste el chip del Libertador → mapa/ticker/checkpoint/grounding
       if (plazaGame.done) {
         const ex = plazaGame.exitTo; plazaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'win2') {   // NIVEL 2: chip del Libertador → Pirámide → señal a los satélites → LIBERACIÓN SANMARTINIANA
-          try { localStorage.setItem('ts_nivel2_win', '1'); } catch (e) {}
+          applyEdge('nivel2_liberacion', 'nivel2Win');   // GRAFO: armaste la Pirámide → liberación (mapa/ticker/checkpoint/grounding)
           tel('win', { result: 'nivel2' }); evlog('hito', 'armó el dispositivo anti-IA con el chip de San Martín (Nivel 2)');
           if (typeof Finale !== 'undefined' && Finale.create) { finaleGame = Finale.create(); state = 'finale'; elMsg.textContent = ''; return; }   // cinemática de cierre → luego showEnd
           showWin2End(); return;
