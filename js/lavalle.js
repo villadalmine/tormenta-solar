@@ -66,15 +66,22 @@ const Lavalle = (() => {
     function leave() { if (typeof Sfx !== 'undefined' && Sfx.setCumbia) Sfx.setCumbia(false); if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(false); done = true; exitTo = 'street'; }
     // FIESTA PERONISTA: pasaste el corte → el peronista te toma juramento, arranca la Marcha y todos bailan y morfan chori
     let juraReq = false;
+    // el corte se abre DE PUNTA A PUNTA (toda la fila de arriba): cruzás caminando para arriba por DONDE QUIERAS,
+    // sin tener que alinearte a un hueco angosto. (Antes: hueco x6-11 → si no te alineabas, te trababa la barricada.)
+    function carveTop() { for (let y = 0; y <= 3; y++) for (let x = 1; x < W - 1; x++) map[y][x] = 0; }
     function startFiesta() {
-      if (fiesta) return; fiesta = true; fiestaT = 0; juraReq = true;
+      if (fiesta) return; fiesta = true; fiestaT = 0; if (!opts.juramento) juraReq = true;
       setMsg(T('g.lavalle.oath'), 9);
       if (typeof Sfx !== 'undefined') { if (Sfx.setCumbia) Sfx.setCumbia(false); if (Sfx.setMarcha) Sfx.setMarcha(true); }
-      for (let y = 0; y <= 3; y++) for (let x = 6; x <= 11; x++) map[y][x] = 0;   // E2: el HUECO se abre DE VERDAD (colisión) → podés subir al Obelisco
+      carveTop();
     }
-    // si YA juraste (flag persistido / debug): arrancás EN FIESTA con el hueco YA abierto → subís directo al
-    // Obelisco sin re-jurar. (Antes: juramento seteado pero fiesta=false → el hueco no se abría y no pasabas.)
-    if (opts.juramento) { fiesta = true; fiestaT = 3; for (let y = 0; y <= 3; y++) for (let x = 6; x <= 11; x++) map[y][x] = 0; if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(true); }
+    // El corte arranca ABIERTO si GANASTE LOS 5 JUEGOS (allWon) o si YA JURASTE (juramento): carvamos de una y
+    // arranca la Marcha, así NUNCA quedás trabado contra una barricada cerrada. Subís para arriba y cruzás al Obelisco.
+    if (allWon || opts.juramento) {
+      fiesta = true; fiestaT = opts.juramento ? 3 : 0; carveTop();
+      if (!opts.juramento) juraReq = true;   // ganaste los 5 → el corte te reconoce y jurás al cruzar (grafo)
+      if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(true);
+    }
 
     function update(dt) {
       t += dt; msgT -= dt; if (fiesta) fiestaT += dt;
@@ -94,7 +101,7 @@ const Lavalle = (() => {
         if (pm) for (const p of pm.values()) { if (p.rx == null) p.rx = (p.x != null ? p.x : 9); if (p.ry == null) p.ry = (p.y != null ? p.y : 8);
           p.rx += ((p.x != null ? p.x : p.rx) - p.rx) * k; p.ry += ((p.y != null ? p.y : p.ry) - p.ry) * k; }
       }
-      if (fiesta && player.y < 0.9 * CS) { done = true; exitTo = 'obelisco'; return; }   // E2: cruzaste el corte → el OBELISCO (la Marcha sigue)
+      if (fiesta && player.y < 1.7 * CS) { done = true; exitTo = 'obelisco'; return; }   // E2: cruzaste el corte (zona generosa arriba) → el OBELISCO
       if (player.y < (H - 4) * CS) exitArmed = true;                       // subiste al piquete → ya se puede salir por abajo
       if (exitArmed && player.y > (H - 0.6) * CS) { leave(); return; }      // salir caminando hacia abajo (solo si ya entraste)
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); return; } } else escHeld = false;
@@ -117,7 +124,7 @@ const Lavalle = (() => {
         // BOCA DEL SUBTE de Lavalle (Línea C) — apareció tras herir al satélite (subte.md §7)
         if (Input.keys['e']) { if (!eHeld) { eHeld = true; subteReq = true; } } else eHeld = false;
         prompt = T('g.lavalle.subteHint');
-      } else if (fiesta && player.y < 6 * CS && Math.abs(player.x / CS - 9) < 2.2 && !near) {
+      } else if (fiesta && player.y < 6.5 * CS && !near) {
         eHeld = false; prompt = T('g.lavalle.obeliscoHint');
       } else if (allWon && !fiesta && player.y < 5 * CS && Math.abs(player.x / CS - 9) < 2 && !near) {
         // ganaste los 5 → el HUECO del corte: pasás y el peronista te toma juramento (fiesta)
@@ -294,17 +301,20 @@ const Lavalle = (() => {
         if (img) { const sc = 1.4; ctx.drawImage(img, VW / 2 - img.width * sc / 2, oy + 48 - img.height * sc, img.width * sc, img.height * sc); } }
       // colectivos / autos chicos PASADA la reja (tránsito parado del otro lado)
       for (const v of vehs) if (v.y < 3.6) vehicle(ctx, TX2(v.x + 0.5), TY2(v.y + 0.5), v.kind, v.col, v.sc);
-      // LA REJA cruzando + AUTOS ROTOS + CUBIERTAS + BANDERAS (el corte). Si ganaste los 5 → HUECO en el medio (pasás).
-      const inGap = x => allWon && x > 5.3 && x < 11.7;
+      // LA REJA cruzando + AUTOS ROTOS + CUBIERTAS + BANDERAS (el corte). Si está ABIERTO (fiesta) → se corre TODA
+      // la barricada (cruzás por donde quieras, de punta a punta); si no, la reja cierra el paso.
+      const inGap = x => fiesta;   // corte abierto → TODO es paso
       ctx.strokeStyle = '#6a6a72'; ctx.lineWidth = 3;
-      if (allWon) { ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(7.3), TY2(3.0)); ctx.moveTo(TX2(10.7), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke(); }
-      else { ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke(); }
-      ctx.lineWidth = 2; for (let x = 1; x < W; x += 0.6) { if (inGap(x)) continue; ctx.beginPath(); ctx.moveTo(TX2(x), TY2(2.4)); ctx.lineTo(TX2(x), TY2(3.5)); ctx.stroke(); }
-      if (allWon) {   // resplandor del hueco + flecha "pasá"
-        const gx = TX2(9), gy = TY2(3.0); ctx.save(); ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 4); const gr = ctx.createRadialGradient(gx, gy, 4, gx, gy, 60); gr.addColorStop(0, 'rgba(255,224,74,0.6)'); gr.addColorStop(1, 'rgba(255,224,74,0)'); ctx.fillStyle = gr; ctx.fillRect(gx - 60, gy - 40, 120, 80); ctx.restore();
-        if (!fiesta) { ctx.fillStyle = '#ffe14a'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.fillText('↑ ' + T('g.lavalle.pass'), gx, gy - 4); }
+      if (!fiesta) { ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke();
+        ctx.lineWidth = 2; for (let x = 1; x < W; x += 0.6) { ctx.beginPath(); ctx.moveTo(TX2(x), TY2(2.4)); ctx.lineTo(TX2(x), TY2(3.5)); ctx.stroke(); } }
+      if (fiesta) {   // el corte ABIERTO: BANDA luminosa a lo ancho + flecha grande "↑ AL OBELISCO ↑" (imposible no verlo)
+        ctx.save(); ctx.globalAlpha = 0.30 + 0.14 * Math.sin(t * 4);
+        const gr = ctx.createLinearGradient(0, TY2(2.0), 0, TY2(4.4)); gr.addColorStop(0, 'rgba(255,224,74,0)'); gr.addColorStop(0.5, 'rgba(255,224,74,0.55)'); gr.addColorStop(1, 'rgba(255,224,74,0)');
+        ctx.fillStyle = gr; ctx.fillRect(TX2(1), TY2(2.0), TX2(W - 1) - TX2(1), TY2(4.4) - TY2(2.0)); ctx.restore();
+        ctx.fillStyle = '#fff4b0'; ctx.font = 'bold 15px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('↑↑   ' + T('g.lavalle.pass') + '   ↑↑', TX2(9), TY2(3.4));
       }
-      for (const c of cars) { brokenCar(ctx, TX2(c.x), TY2(c.y), c.col, c.tilt); smoke(ctx, TX2(c.x) + 14 * (c.tilt < 0 ? -1 : 1), TY2(c.y) - 12, c.x, 3, 0.14); }   // humito del motor
+      for (const c of cars) { const cx = fiesta ? (c.x < 8 ? c.x - 1.4 : c.x + 1.4) : c.x; brokenCar(ctx, TX2(cx), TY2(c.y), c.col, c.tilt); smoke(ctx, TX2(cx) + 14 * (c.tilt < 0 ? -1 : 1), TY2(c.y) - 12, c.x, 3, 0.14); }   // fiesta: los autos se corren a los costados
       for (const tr of tires) { if (inGap(tr.x)) continue; tireStack(ctx, TX2(tr.x), TY2(tr.y), tr.n); }
       for (const f of flags) drawFlag(ctx, TX2(f.x), TY2(f.y), f.k);
       // el LIENZO largo "VIVA PERÓN" cruza ALTO la hilera de atrás (antes que la multitud, colgado sobre sus cabezas)

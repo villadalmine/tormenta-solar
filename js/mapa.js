@@ -413,13 +413,6 @@ const Mapa = (() => {
     ctx.beginPath(); ctx.moveTo(24, sy); ctx.lineTo(30, sy - 74); ctx.lineTo(36, sy); ctx.closePath(); ctx.stroke();
     ctx.fillStyle = '#8fc8a0'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
     ctx.fillText('✊', 30, sy - 80);
-    // BOCA DE SUBTE 🚇 en la vereda (subte.md §3): en su x real, sobre la ruta
-    const padLsk = 60, padRsk = 60;
-    for (const bo of (model.bocas || [])) {
-      const bxk = padLsk + Math.max(0, Math.min(1, (bo.x / ((typeof Level !== 'undefined' && Level.TILE) || 32)) / model.streetW)) * (VW - padLsk - padRsk);
-      ctx.fillStyle = '#7ff3ff'; ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillText('🚇', bxk, sy - 3);
-      ctx.fillStyle = 'rgba(127,243,255,0.6)'; ctx.font = '7px monospace'; ctx.fillText('SUBTE', bxk, sy - 16);
-    }
     let hover = null;
     const curB = model.nodes[st.current];
     // torres ALTAS primero (quedan atrás), locales al frente — con cara lateral (perspectiva)
@@ -472,6 +465,16 @@ const Mapa = (() => {
         if (bx.up) upEnd = cx + half; else dnEnd = cx + half;
       }
     }
+    // BOCA DE SUBTE 🚇: badge DENTRO de la franja de la ruta (abajo de los edificios) → NO se solapa con nada
+    // (antes se dibujaba sobre la vereda, en la x de la boca, y pisaba el edificio de al lado — reporte del dueño).
+    { const TILEsk = (typeof Level !== 'undefined' && Level.TILE) || 32, padLsk = 60, padRsk = 60, bw = 60;
+      for (const bo of (model.bocas || [])) {
+        const raw = padLsk + Math.max(0, Math.min(1, (bo.x / TILEsk) / model.streetW)) * (VW - padLsk - padRsk);
+        const bxk = Math.max(bw / 2 + 4, Math.min(VW - bw / 2 - 4, raw));
+        ctx.fillStyle = 'rgba(8,42,55,0.97)'; ctx.fillRect(bxk - bw / 2, sy + 1, bw, 12);
+        ctx.strokeStyle = '#3fbdd6'; ctx.lineWidth = 1; ctx.strokeRect(bxk - bw / 2 + 0.5, sy + 1.5, bw, 12);
+        ctx.fillStyle = '#a6ecf6'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center'; ctx.fillText('🚇 SUBTE', bxk, sy + 10.5);
+      } }
     // estás en la CALLE: punto sobre la ruta
     if (st.current === 0 && !st.sub) { const px = 60 + (st.px01 || 0.5) * (VW - 120);
       ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(px, sy + 7, 4, 0, Math.PI * 2); ctx.fill(); }

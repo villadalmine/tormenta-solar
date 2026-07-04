@@ -52,6 +52,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v325] — 2026-07-04 — 🐛 PLAYTEST del dueño: el cruce del piquete FOOLPROOF + subte sin-trampa + subte del mapa sin solaparse
+
+Tres bugs que el dueño reportó (el cruce lo trababa hace 5+ releases):
+- **CRUCE DEL PIQUETE a prueba de tontos:** cuando ganás los 5 juegos (o ya juraste), el corte arranca **ABIERTO
+  DE PUNTA A PUNTA** (se carva TODA la fila de arriba, no un hueco angosto x6-11) → cruzás caminando para arriba
+  **por donde quieras**, sin alinearte. Trigger más generoso (`y<1.7·CS`). Visual nuevo: **banda luminosa a lo
+  ancho + "↑↑ AL OBELISCO ↑↑"** (imposible no verlo) + los autos se corren a los costados. Mensajes cristalinos.
+  Validado: cruza desde x=3/6/9/12/15 y con juramento. (Causa vieja: hueco angosto → si no te alineabas, la
+  barricada cerrada te trababa.)
+- **SUBTE Línea C sin SUBE ya no "se traba":** si entrás sin la SUBE cargada, un mensaje claro te avisa que NO
+  pasás el molinete y **cómo salir** (escalera / Esc). (`g.subte.enterNoSube` + `noCard` reescrito.)
+- **Subte en el mapa (vista LA CUADRA) ya NO se solapa:** el badge "🚇 SUBTE" se movió de sobre la vereda (pisaba
+  el edificio de al lado) a la **franja de la calle**, abajo de los edificios. Validado en Chromium.
+- Landing `/info` actualizada (Nivel 2 San Martín + multijugador). i18n ES/EN 69/69.
+
 ## [v324] — 2026-07-04 — 🎬🇦🇷 CIERRE del Nivel 2: cinemática "proceso sanmartiniano de liberación mundial"
 
 Ganar el Nivel 2 (armar la Pirámide con el chip) ya no corta seco a la pantalla de fin → juega una **CINEMÁTICA de

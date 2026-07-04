@@ -28,7 +28,9 @@ const Subte = (() => {
     const andenY = 7;                                       // el borde del andén (línea amarilla) y las vías abajo
     const player = { x: 8 * CS, y: 10 * CS, r: 10, dir: -1, walk: 0 };
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, passed = subeReady, tren = 0, boletIdx = -1, menuOpen = false, numHeld = {};
-    setMsg(T('g.subte.enter', { e: est.nombre, l: est.linea }), 6);
+    // si NO tenés la SUBE cargada: aviso claro de que NO vas a pasar el molinete y de CÓMO SALIR (escalera / Esc),
+    // así no te sentís trabado. La SUBE se carga en el tótem del chino.
+    setMsg(subeReady ? T('g.subte.enter', { e: est.nombre, l: est.linea }) : T('g.subte.enterNoSube', { e: est.nombre, l: est.linea }), subeReady ? 6 : 8);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
     function leave() { done = true; exitTo = 'back'; }
