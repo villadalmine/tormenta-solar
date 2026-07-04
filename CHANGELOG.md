@@ -52,6 +52,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v320] — 2026-07-04 — 🏛️ NIVEL 2: la CASA ROSADA enterable (el Salón tomado + la terminal del satélite)
+
+La Plaza dejó de ser solo postal → tiene OBJETIVO. Al llegar, una Madre te avisa: la Casa Rosada está TOMADA por
+la IA del satélite. [E] sobre la Casa Rosada (E) → **entrás al Salón Blanco** (interior top-down en `plaza.js`):
+alfombra roja, columnas, y al fondo la **TERMINAL DEL SATÉLITE** parpadeando en rojo, custodiada por 2 chips. [E]
+en la terminal → la lore del Nivel 2 (el satélite herido figura ahí; para voltearlo del todo hay que TERMINAR EL
+DATACENTER colaborativo → engancha el endgame comunitario). El COMBATE (apagar el control) queda de teaser —
+"se está construyendo". El arco satélite → subte → Plaza → Casa Rosada quedó cerrado como arranque del Nivel 2.
+
 ## [v319] — 2026-07-04 — 🏛️ Plaza de Mayo al GRAFO (F4c) + botón debug directo
 
 - **Arista `plaza_llegada`** (grafo, 22 aristas): pre `sateliteHerido`, sets `enPlaza`, terminal. Al llegar a la

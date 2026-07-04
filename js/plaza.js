@@ -11,6 +11,7 @@ const Plaza = (() => {
     // el jugador camina en coordenadas de plaza (unidades ~ "metros"), la cámara es fija centrada
     const player = { x: 0, y: 150, r: 9, dir: 1, walk: 0 };   // aparece por la boca de la Catedral (norte-abajo)
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, near = null, madreIdx = -1;
+    let inside = false, ip = { x: 0, y: 120 }, iNear = null, termIdx = -1;   // NIVEL 2: interior de la Casa Rosada (Salón + terminal de la IA)
     // landmarks (dir en grados desde el centro; el render los ancla a los bordes de la plaza)
     const CENTER = { x: 0, y: 0 };                 // Pirámide de Mayo
     const LANDMARKS = [
@@ -29,7 +30,9 @@ const Plaza = (() => {
     function nearMadre() { return Math.hypot(player.x, player.y) < MADRE_R + 18 && Math.hypot(player.x, player.y) > MADRE_R - 24; }
 
     function update(dt) {
-      t += dt; msgT -= dt; player.walk = 0;
+      t += dt; msgT -= dt;
+      if (inside) return updateInside(dt);
+      player.walk = 0;
       const sp = 92 * dt; let mvx = 0, mvy = 0;
       if (Input.keys['arrowleft'] || Input.keys['a']) mvx = -1;
       if (Input.keys['arrowright'] || Input.keys['d']) mvx = 1;
@@ -60,8 +63,35 @@ const Plaza = (() => {
     function interact() {
       if (near && near.kind === 'boca') { leave(); return; }              // volvés al subte (Catedral)
       if (near && near.kind === 'madre') { madreIdx = (madreIdx + 1) % 3; setMsg(T('g.plaza.madre' + (madreIdx + 1)), 7); return; }
-      if (near && near.kind === 'landmark') { setMsg(T('g.plaza.info.' + near.L.id), 7); return; }
+      if (near && near.kind === 'landmark') {
+        if (near.L.id === 'rosada') { inside = true; ip = { x: 0, y: 130 }; setMsg(T('g.plaza.rosadaEnter'), 7); return; }   // NIVEL 2: entrás a la Casa Rosada
+        setMsg(T('g.plaza.info.' + near.L.id), 7); return;
+      }
       setMsg(T('g.plaza.hint'), 3);
+    }
+    // INTERIOR de la Casa Rosada (Nivel 2, F1): el Salón + la TERMINAL DEL SATÉLITE (control de la IA rebelde),
+    // custodiada — el enfrentamiento del Nivel 2 arranca acá (por ahora teaser: no la podés voltear todavía).
+    const term = { x: 0, y: -90 };   // terminal al fondo (norte)
+    function updateInside(dt) {
+      ip.walk = 0;
+      const sp = 92 * dt; let mvx = 0, mvy = 0;
+      if (Input.keys['arrowleft'] || Input.keys['a']) mvx = -1;
+      if (Input.keys['arrowright'] || Input.keys['d']) mvx = 1;
+      if (Input.keys['arrowup'] || Input.keys['w']) mvy = -1;
+      if (Input.keys['arrowdown'] || Input.keys['s']) mvy = 1;
+      if (mvx) ip.dir = mvx;
+      const nx = ip.x + mvx * sp, ny = ip.y + mvy * sp;
+      if (Math.abs(nx) < 150) ip.x = nx; if (ny > -70 && ny < 150) ip.y = ny; if (mvx || mvy) ip.walk = 1;
+      iNear = null;
+      if (Math.hypot(ip.x - term.x, ip.y - term.y) < 40) iNear = 'term';
+      else if (ip.y > 138) iNear = 'salir';
+      if (Input.keys['escape']) { if (!escHeld) { escHeld = true; inside = false; } } else escHeld = false;
+      if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true;
+        if (iNear === 'salir') inside = false;
+        else if (iNear === 'term') { termIdx = (termIdx + 1) % 3; setMsg(T('g.plaza.term' + (termIdx + 1)), 8); }
+        else setMsg(T('g.plaza.rosadaHint'), 4);
+      } } else eHeld = false;
+      prompt = iNear === 'term' ? T('g.plaza.promptTerm') : iNear === 'salir' ? T('g.plaza.promptSalir') : '';
     }
     // posición "mundo" de un landmark (en el anillo exterior, según su lado)
     function landmarkPos(L, scale) {
@@ -71,6 +101,7 @@ const Plaza = (() => {
     }
 
     function draw(g, VW, VH) {
+      if (inside) return drawInside(g, VW, VH);
       const cx = VW / 2, cy = VH / 2 + 10, SC = Math.min(VW, VH) / 440;   // escala plaza→pantalla
       const W2S = (wx, wy) => ({ x: cx + wx * SC, y: cy + wy * SC });     // mundo→pantalla (y+ = abajo)
       // fondo: cielo/asfalto alrededor + la PLAZA circular de adoquines
@@ -117,6 +148,46 @@ const Plaza = (() => {
       g.fillStyle = '#0a0a0e'; g.fillRect(0, 0, VW, 26);
       g.fillStyle = '#ffd54f'; g.font = 'bold 12px monospace'; g.textAlign = 'left'; g.fillText('🏛️ ' + T('g.plaza.title'), 10, 18);
       g.textAlign = 'right'; g.fillStyle = '#9be8a0'; g.font = '10px monospace'; g.fillText('WASD · [E] · Esc ' + T('g.plaza.back'), VW - 10, 18);
+      let bottom = VH;
+      if (msgT > 0 && msg) { g.font = '12px monospace'; g.textAlign = 'center';
+        const words = msg.split(' '), lines = []; let cur = '';
+        for (const wd of words) { const cand = cur ? cur + ' ' + wd : wd; if (((g.measureText(cand) || {}).width || 0) > VW - 44 && cur) { lines.push(cur); cur = wd; } else cur = cand; }
+        if (cur) lines.push(cur); const lh = 15, boxH = lines.length * lh + 8;
+        g.fillStyle = 'rgba(0,0,0,0.85)'; g.fillRect(0, VH - boxH, VW, boxH); g.fillStyle = '#ffe2c0'; lines.forEach((ln, k) => g.fillText(ln, VW / 2, VH - boxH + 14 + k * lh)); bottom = VH - boxH; }
+      if (prompt) { g.font = 'bold 12px monospace'; g.textAlign = 'center'; g.fillStyle = 'rgba(0,0,0,0.78)'; g.fillRect(0, bottom - 22, VW, 22); g.fillStyle = '#ffd54f'; g.fillText(prompt, VW / 2, bottom - 7); }
+    }
+    // INTERIOR de la Casa Rosada (Salón Blanco tomado por la IA): terminal del satélite al fondo + guardias
+    function drawInside(g, VW, VH) {
+      const cx = VW / 2, cy = VH / 2 + 20, SC = Math.min(VW, VH) / 380;
+      const W2S = (wx, wy) => ({ x: cx + wx * SC, y: cy + wy * SC });
+      g.fillStyle = '#12111a'; g.fillRect(0, 0, VW, VH);
+      // el Salón (piso de mármol rosado tenue, alfombra)
+      g.fillStyle = '#241b22'; g.fillRect(cx - 170 * SC, cy - 130 * SC, 340 * SC, 300 * SC);
+      g.fillStyle = '#3a2430'; g.fillRect(cx - 40 * SC, cy - 130 * SC, 80 * SC, 300 * SC);   // alfombra roja al centro
+      for (let i = -3; i <= 3; i++) { g.strokeStyle = 'rgba(255,255,255,0.05)'; g.beginPath(); g.moveTo(cx + i * 40 * SC, cy - 130 * SC); g.lineTo(cx + i * 40 * SC, cy + 170 * SC); g.stroke(); }
+      // columnas
+      for (const cxk of [-140, 140]) for (let k = -2; k <= 2; k++) { const s = W2S(cxk, k * 55); g.fillStyle = '#4a3a44'; g.fillRect(s.x - 6, s.y - 18, 12, 36); }
+      // la TERMINAL DEL SATÉLITE (control de la IA) al fondo — pantallas rojas glitcheadas
+      { const s = W2S(term.x, term.y), hov = iNear === 'term';
+        g.fillStyle = '#0a0d16'; g.fillRect(s.x - 46, s.y - 30, 92, 44);
+        for (let i = 0; i < 3; i++) { g.fillStyle = Math.sin(t * 5 + i) > 0 ? '#ff3040' : '#801822'; g.fillRect(s.x - 40 + i * 30, s.y - 24, 24, 20); }
+        g.fillStyle = '#3a4a6a'; g.fillRect(s.x - 46, s.y + 14, 92, 8);
+        // el satélite herido, replicado en la pantalla central (el que voltear)
+        g.fillStyle = '#8b93a0'; g.fillRect(s.x - 4, s.y - 16, 8, 4); g.fillStyle = '#ff3b3b'; if (Math.sin(t * 6) > 0) { g.beginPath(); g.arc(s.x, s.y - 14, 2, 0, Math.PI * 2); g.fill(); }
+        g.strokeStyle = hov ? '#ffd54f' : 'rgba(255,60,80,0.5)'; g.lineWidth = hov ? 2 : 1; g.strokeRect(s.x - 46, s.y - 30, 92, 52);
+        g.fillStyle = '#ff8a8a'; g.font = 'bold 9px monospace'; g.textAlign = 'center'; g.fillText('⚡ CONTROL SATÉLITE', s.x, s.y - 36); }
+      // 2 guardias (chips) flanqueando la terminal
+      for (const gx of [-70, 70]) { const s = W2S(gx, term.y + 10); g.fillStyle = '#2a3446'; g.fillRect(s.x - 5, s.y - 2, 10, 14); g.fillStyle = '#8fa8c8'; g.beginPath(); g.arc(s.x, s.y - 5, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = '#ff3040'; g.fillRect(s.x - 2, s.y - 7, 4, 2); }
+      // la puerta de SALIDA (abajo, a la plaza)
+      { const s = W2S(0, 150); g.fillStyle = '#3a2a22'; g.fillRect(s.x - 20, s.y - 4, 40, 16); g.fillStyle = iNear === 'salir' ? '#ffd54f' : '#c8a86a'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText('▼ ' + T('g.plaza.aLaPlaza'), s.x, s.y + 22); }
+      // VOS
+      { const s = W2S(ip.x, ip.y), sw = Math.sin((ip.walk || 0) * 6) * 2;
+        g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(s.x, s.y + 9, 8, 3, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#3a3340'; g.fillRect(s.x - 4, s.y + 2, 3, 9 + sw); g.fillRect(s.x + 1, s.y + 2, 3, 9 - sw);
+        g.fillStyle = '#4a3b2a'; g.fillRect(s.x - 7, s.y - 6, 14, 12); g.fillStyle = '#2a2018'; g.beginPath(); g.arc(s.x, s.y - 10, 6, 0, Math.PI * 2); g.fill(); }
+      // header + prompt + msg (reusa el formato de la plaza)
+      g.fillStyle = '#0a0a0e'; g.fillRect(0, 0, VW, 26); g.fillStyle = '#ffd54f'; g.font = 'bold 12px monospace'; g.textAlign = 'left'; g.fillText('🏛️ ' + T('g.plaza.rosadaTitle'), 10, 18);
+      g.textAlign = 'right'; g.fillStyle = '#9be8a0'; g.font = '10px monospace'; g.fillText('WASD · [E] · Esc', VW - 10, 18);
       let bottom = VH;
       if (msgT > 0 && msg) { g.font = '12px monospace'; g.textAlign = 'center';
         const words = msg.split(' '), lines = []; let cur = '';

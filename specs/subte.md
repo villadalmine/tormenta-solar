@@ -160,6 +160,7 @@ que en línea recta."*
   (O, arcos blancos). La boca del subte (Catedral) por donde llegás. Palomas, fuentes, adoquines en anillo.
 - **Cómo se llega:** viajás en subte a **Catedral** (destino nuevo, se habilita tras `sateliteHerido`) → aparecés
   en Plaza de Mayo. Es el **arranque del NIVEL 2** (otra zona de la ciudad; el subte es el conector — subte.md §7).
-- **F4 fases:** F4a = la POSTAL circular (caminás, ves los landmarks + las Madres, chateás con una Madre/persona
-  nueva) · F4b = Catedral como destino de viaje (unlock por `sateliteHerido`) · F4c = engancharlo al grafo
-  (`plaza_llegada`) ✅ (v319: arista en el grafo, hito reconocido, botón debug) y abrir el CONTENIDO del Nivel 2 (pendiente).
+- **F4 fases:** F4a ✅ POSTAL circular · F4b ✅ Catedral destino · F4c ✅ grafo (`plaza_llegada`, v319) · **F4d ✅
+  (v320): la CASA ROSADA enterable** — Salón Blanco tomado por la IA, la TERMINAL DEL SATÉLITE al fondo (custodiada),
+  el objetivo del Nivel 2 planteado (recuperar la Casa Rosada / apagar el control; gate = terminar el DATACENTER
+  colaborativo). El COMBATE del Nivel 2 (voltear el control) queda pendiente — se está construyendo.
