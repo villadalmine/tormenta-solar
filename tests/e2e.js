@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -373,6 +373,15 @@ if (require.main === module) {
     const obd = Obelisco.create({ stormed: true, satDown: true });
     for (let i = 0; i < 60; i++) { obd.update(0.05); obd.draw(C, 960, 540); }
     ok.push('satelite:ok');
+    // SUBTE (subte.md §4): la estación — sin SUBE no pasa el molinete; con SUBE pasa; sale por la escalera
+    if (typeof Subte === 'undefined' || !Subte.create) throw new Error('Subte no cargó');
+    const sNo = Subte.create({ station: 'florida', subeReady: false });
+    for (let i = 0; i < 20; i++) { sNo.update(0.05); sNo.draw(C, 960, 540); }
+    if (sNo.__pass()) throw new Error('subte: sin SUBE NO debería pasar el molinete');
+    const sYes = Subte.create({ station: 'lavalle', subeReady: true });
+    if (!sYes.__pass()) throw new Error('subte: con SUBE debería pasar el molinete');
+    if (!sYes.__leave() || sYes.exitTo !== 'back') throw new Error('subte: la escalera debería salir: ' + sYes.exitTo);
+    ok.push('subte:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

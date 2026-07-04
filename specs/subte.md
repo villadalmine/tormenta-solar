@@ -1,9 +1,9 @@
 # SDD — EL SUBTE: las líneas reales bajo Florida y Lavalle (preview en el mapa → futuro medio de viaje)
 
-- **Estado:** **PREVIEW + QUEST + F2a (LA BOCA) HECHOS.** v311: la boca de Florida en la calle (x82, art propio) +
-  marcadores 🚇 en el mapa (badge en la barra de la calle · vereda en la cuadra · click → pestaña SUBTE). La
-  ESTACIÓN real (F2), el VIAJE (F3) y el puente a Plaza de Mayo (F4) = diseño §4-§8, **confirmado subte→Plaza de
-  Mayo** por el dueño (2026-07-04).
+- **Estado:** **PREVIEW + QUEST + F2a (boca) + F2 (ESTACIÓN Florida) + Lavalle post-Obelisco HECHOS.** v312:
+  `js/subte.js` (andén top-down, molinetes que leen la SUBE, boletero, tren). Bajás por la boca de Florida →
+  estación B. Herís al satélite en el Obelisco → aparecés en la ESTACIÓN DE LAVALLE (C). El VIAJE (F3) y Plaza de
+  Mayo (F4) siguen pendientes. **Confirmado subte→Plaza de Mayo** por el dueño.
 - **La idea (dueño, 2026-07-03):** *"buscá las líneas de metro que están sobre Lavalle y Florida, armá un mapa
   subte para el mapa en una tab con el diseño del subte, pero solo las líneas que tienen cerca al menos dos
   estaciones — y lo dejamos como preview porque quiero meter el subte."*

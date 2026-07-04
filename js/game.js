@@ -132,6 +132,7 @@
   let truco6Game = null, truco6 = null, tableWait = null;
   let globoGame = null;     // MAPA A: el globo del mundo (satélites + bases) — sala de situación del búnker
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
+  let subteGame = null, subteReturn = 'street';   // subte.md §4: la estación (sub-modo top-down); dónde volvés al salir
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
   // EL MAPA (specs/mapa-juego.md): [TAB] automap; fog of war por salas visitadas (persistido)
   let mapaZoom = null, mapaFrontier = null, mapaClickHeld = false, visitedRooms = new Set([0]);
@@ -386,7 +387,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -593,8 +594,8 @@
   // REGISTRO de puertas con HANDLER propio (lanzan sub-modo o bloquean con condición). El handler devuelve true si
   // manejó la puerta (lanzó/bloqueó) o false para caer a la transición normal. La puerta DECLARA su id (data).
   const DOOR_HANDLERS = {
-    // BOCA DEL SUBTE (subte.md §3, F2a): por ahora es solo la boca (preview) — la estación llega en F2.
-    subteB: () => { setMsg(T('g.subte.boca'), '#7ff3ff', 6000); return true; },
+    // BOCA DEL SUBTE (subte.md §3-4): bajás a la ESTACIÓN de Florida (Línea B).
+    subteb: () => { enterSubte('florida'); return true; },
     super: () => { if (!stormed) enterSuper(); else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(true); } else setMsg(T('g.super.barricada'), '#ff5252', 6500); return true; },
     chinoback: () => { enterSuper(); return true; },   // entrada de servicio desde el refugio
     chinotruco: () => { if (trucoWon) { trucoWon = false; enterSuper(); } else setMsg(T('g.truco.doorLocked'), '#ffd54f', 5200); return true; },
@@ -661,6 +662,16 @@
     obeliscoGame = Obelisco.create({ stormed, satDown: satDown() }); state = 'obelisco';
     if (!lsFlag('ts_obelisco_visto')) applyEdge('obelisco_llegada', 'obeliscoLlegado');   // GRAFO (E4)
     evlog('hito', 'llegó al Obelisco');   // momento memorable (memoria del barrio)
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // LA ESTACIÓN DE SUBTE (subte.md §4): bajás por una boca → andén top-down. returnTo = dónde volvés al salir.
+  function enterSubte(station, returnTo) {
+    if (typeof Subte === 'undefined' || !Subte.create) return false;
+    subteReturn = returnTo || 'street';
+    subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged') }); state = 'subte';
+    evlog('hito', 'bajó al subte (' + station + ')');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -3558,13 +3569,25 @@
       obeliscoGame.update(dt); obeliscoGame.draw(ctx, W, H);
       if (obeliscoGame.done) {
         const res = obeliscoGame.result; obeliscoGame = null;
-        let m = null;
         if (res === 'satwin') {   // E3: LO HERISTE → hito histórico + premio + gancho al datacenter
           applyEdge('satelite_herido', 'sateliteHerido');   // GRAFO (E4): setea ts_sat_down + evlog hito + Mensajero
           player.flores = (player.flores || 0) + 10; player.caramelos = (player.caramelos || 0) + 10;
-          m = T('g.obelisco.satWin');
-        } else if (res === 'satlose') m = T('g.obelisco.satLose');
-        if (!enterLavalle(m)) { if (m) setMsg(m, res === 'satwin' ? '#7CFC00' : '#ff8f8f', 8000); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+          // subte.md §7: tras herir al satélite te MANDAN al subte → aparecés en la ESTACIÓN DE LAVALLE (Línea C).
+          if (typeof Salon !== 'undefined' && Salon.leave) Salon.leave();
+          if (enterSubte('lavalle', 'street')) { setMsg(T('g.obelisco.satWin'), '#7CFC00', 8000); return; }
+        }
+        const m = res === 'satlose' ? T('g.obelisco.satLose') : null;
+        if (!enterLavalle(m)) { if (m) setMsg(m, '#ff8f8f', 8000); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
+      }
+    } else if (state === 'subte' && subteGame) {                      // subte.md §4: la estación (andén top-down)
+      subteGame.update(dt); subteGame.draw(ctx, W, H);
+      if (subteGame.done) {
+        subteGame = null; state = 'playing'; transCd = 0.4;
+        if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+        current = 0; const ps = rooms[0]; player.x = 5 * Level.TILE; player.y = ps.gTop * Level.TILE - player.h; player.vx = player.vy = 0;
+        updateCam(); elFloor.textContent = TX(rooms[0].name); Sfx.setAmbient(ambientFor(rooms[0]));
+        setMsg(T('g.subte.back'), '#7ff3ff', 3000);
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);

@@ -47,6 +47,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v312] — 2026-07-04 — 🚇 F2: LA ESTACIÓN de subte (Florida) + Lavalle aparece tras el Obelisco
+
+- **`js/subte.js`** — sub-modo de la estación (top-down, patrón telo/bodegón): escalera (salida) → **molinetes que
+  leen tu tarjeta SUBE** (cargada = *bip* verde y pasás; sin saldo = *bip* rojo → te manda a cargarla, engancha
+  con la quest v310) → **andén** con cartel de la línea + **vías** con el tren pasando (color real de la línea) +
+  **boletero** que cicla data. Parametrizado por estación (`ESTACIONES`: Florida/B, Lavalle/C).
+- **Florida:** bajás por la boca de la calle (x82) → **Estación Florida (Línea B)**.
+- **Lavalle:** al **herir al satélite en el Obelisco** aparecés en la **Estación Lavalle (Línea C)** — el subte es
+  el puente post-piquete (subte.md §7, camino a Plaza de Mayo/Nivel 2). "La parte del mapa con la boca" que el
+  dueño puede expandir después.
+- El VIAJE (elegir destino y moverte) es F3 — por ahora el andén dice "próximamente: viajar". e2e valida el
+  molinete (sin SUBE no pasa, con SUBE sí) + salida por la escalera.
+
 ## [v311] — 2026-07-04 — 🚇 F2a: LA BOCA del subte (Florida) en la calle + marcadores del mapa + SDD F2-F5
 
 Confirmado con el dueño: **el subte conecta el piquete → Plaza de Mayo (Nivel 2)** y la tarjeta SUBE cargada es el
