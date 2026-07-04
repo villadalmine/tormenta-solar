@@ -70,9 +70,8 @@ triple del Obelisco — cierra perfecto con el arco del Obelisco del juego.
 - **En el MAPA (las 3 vistas), sin pisar nada:**
   - **LA CUADRA (skyline):** un **🚇 en la vereda** a la altura x=82 (marquita chica sobre la ruta; hay lugar,
     no hay silueta ahí).
-  - **LA MANZANA (cajones):** la boca **no es un edificio** → va como **marcador 🚇 colgando bajo la calle** en su
-    x (la banda de subsuelo bajo la calle está casi vacía: solo la compuerta ⛏️ —centrada en las cuevas, otra x— y
-    la caja de SUEÑOS —lejos a la izq—; no se pisan). Click en el 🚇 → abre la **pestaña SUBTE**.
+  - **LA MANZANA (cajones):** la boca **no es un edificio** → **marcador «🚇 SUBTE» etiquetado que sobresale hacia
+    arriba de la barra de la calle** en su x (v315, bien visible; no pisa la banda de subsuelos). Click → pestaña SUBTE.
   - **SUBSUELOS:** la estación aparece como la fila **MÁS PROFUNDA (S5)**, debajo de las cuevas (el subte es lo
     más hondo del corte). Es la sala real (F2).
   - **SUBTE (plano):** el 🚉 de Florida ya existe; al tener la estación real, su punto se vuelve **clickeable**

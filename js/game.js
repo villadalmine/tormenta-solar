@@ -3550,6 +3550,7 @@
         piquete: loadPiqueteWon(), facil: lsFlag('ts_ayuda_facil'),
         dream: spinoffLevel ? ((r0 && TX(r0.name)) || '💤') : null,
         subteStats: (() => { try { return JSON.parse(localStorage.getItem('ts_subte_stats') || '{}'); } catch (e) { return {}; } })(),
+        subteReach: { Florida: true, Lavalle: lsFlag('ts_sat_down') },   // estaciones accesibles (Florida siempre; Lavalle tras el satélite)
         zoom: mapaZoom, sub: null });
       // Z: dentro de un edificio = zoom a ESE edificio; en la calle no hace nada (el click manda, v300)
       if (trucoTap('z')) mapaZoom = (mapaZoom == null && current !== 0) ? Mapa.groupAt(current) : null;

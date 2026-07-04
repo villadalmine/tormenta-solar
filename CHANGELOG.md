@@ -52,6 +52,14 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v315] — 2026-07-04 — 🚇 La estación de Florida BIEN VISIBLE en el mapa (marcador etiquetado + estaciones ✓/🔒)
+
+Playtest: "no veo en el mapa de Florida y Lavalle la estación Florida". El badge era muy chico.
+- **Marcador «🚇 SUBTE»** que SOBRESALE de la barra de la calle (etiqueta cyan de 78px conectada con una línea) —
+  imposible no verlo, y no pisa nada. Click → pestaña SUBTE.
+- **En el plano SUBTE**, las estaciones del juego marcan si están **accesibles ✓** (Florida siempre; Lavalle
+  tras herir al satélite) o **🔒** todavía. (`st.subteReach` desde game.js.)
+
 ## [v314] — 2026-07-04 — 🚇 Boca de Lavalle en el piquete + FIX debug (bajar directo) + panel legible
 
 Playtest del dueño: "el debug me festeja pero no me pasa al subte; el panel debug es genial pero se ve horrible todo
