@@ -386,6 +386,18 @@ if (require.main === module) {
     const ex = sTrav.__travel();
     if (ex !== 'travel:florida') throw new Error('subte: viajar debería ir a Florida: ' + ex);
     ok.push('subte:ok');
+    // PLAZA DE MAYO (Nivel 2, arco sanmartiniano): chip del Libertador (tumba) → Pirámide → señal → win2
+    if (typeof Plaza === 'undefined' || !Plaza.create) throw new Error('Plaza no cargó');
+    const pz = Plaza.create({});
+    for (let i = 0; i < 30; i++) { pz.update(0.05); pz.draw(C, 960, 540); }
+    if (!pz.__chip()) throw new Error('plaza: __chip debería dar el chip del Libertador');
+    if (!pz.__arm()) throw new Error('plaza: con el chip, __arm debería armar el dispositivo anti-IA');
+    let won2 = false; for (let i = 0; i < 130; i++) { pz.update(0.05); pz.draw(C, 960, 540); if (pz.done) { won2 = pz.exitTo === 'win2'; break; } }
+    if (!won2) throw new Error('plaza: armar el dispositivo con el chip debería ganar el Nivel 2 (exitTo win2): ' + pz.exitTo);
+    // la boca de la Catedral vuelve al subte
+    const pz2 = Plaza.create({});
+    if (!pz2.__leave() || pz2.exitTo !== 'subte') throw new Error('plaza: la boca debería volver al subte: ' + pz2.exitTo);
+    ok.push('plaza:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

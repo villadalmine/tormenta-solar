@@ -70,11 +70,11 @@ const Lavalle = (() => {
       if (fiesta) return; fiesta = true; fiestaT = 0; juraReq = true;
       setMsg(T('g.lavalle.oath'), 9);
       if (typeof Sfx !== 'undefined') { if (Sfx.setCumbia) Sfx.setCumbia(false); if (Sfx.setMarcha) Sfx.setMarcha(true); }
-      for (let y = 0; y <= 3; y++) for (let x = 8; x <= 10; x++) map[y][x] = 0;   // E2: el HUECO se abre DE VERDAD (colisión) → podés subir al Obelisco
+      for (let y = 0; y <= 3; y++) for (let x = 6; x <= 11; x++) map[y][x] = 0;   // E2: el HUECO se abre DE VERDAD (colisión) → podés subir al Obelisco
     }
     // si YA juraste (flag persistido / debug): arrancás EN FIESTA con el hueco YA abierto → subís directo al
     // Obelisco sin re-jurar. (Antes: juramento seteado pero fiesta=false → el hueco no se abría y no pasabas.)
-    if (opts.juramento) { fiesta = true; fiestaT = 3; for (let y = 0; y <= 3; y++) for (let x = 8; x <= 10; x++) map[y][x] = 0; if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(true); }
+    if (opts.juramento) { fiesta = true; fiestaT = 3; for (let y = 0; y <= 3; y++) for (let x = 6; x <= 11; x++) map[y][x] = 0; if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(true); }
 
     function update(dt) {
       t += dt; msgT -= dt; if (fiesta) fiestaT += dt;
@@ -295,7 +295,7 @@ const Lavalle = (() => {
       // colectivos / autos chicos PASADA la reja (tránsito parado del otro lado)
       for (const v of vehs) if (v.y < 3.6) vehicle(ctx, TX2(v.x + 0.5), TY2(v.y + 0.5), v.kind, v.col, v.sc);
       // LA REJA cruzando + AUTOS ROTOS + CUBIERTAS + BANDERAS (el corte). Si ganaste los 5 → HUECO en el medio (pasás).
-      const inGap = x => allWon && x > 7.3 && x < 10.7;
+      const inGap = x => allWon && x > 5.3 && x < 11.7;
       ctx.strokeStyle = '#6a6a72'; ctx.lineWidth = 3;
       if (allWon) { ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(7.3), TY2(3.0)); ctx.moveTo(TX2(10.7), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke(); }
       else { ctx.beginPath(); ctx.moveTo(TX2(1), TY2(3.0)); ctx.lineTo(TX2(W - 1), TY2(3.0)); ctx.stroke(); }

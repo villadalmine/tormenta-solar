@@ -682,7 +682,9 @@
   // PLAZA DE MAYO (subte.md §10 / F4): salís del subte en Catedral → la plaza circular (arranque del Nivel 2).
   function enterPlaza() {
     if (typeof Plaza === 'undefined' || !Plaza.create) return false;
-    plazaGame = Plaza.create({}); state = 'plaza';
+    // Nivel 2 (arco sanmartiniano): el requisito de la victoria es el CHIP DEL LIBERTADOR (tumba de San Martín),
+    // no el datacenter comunitario. Solo pasamos si ya ganaste antes (para el estado "ya liberado").
+    plazaGame = Plaza.create({ won2: lsFlag('ts_nivel2_win') }); state = 'plaza';
     applyEdge('plaza_llegada', 'enPlaza');   // GRAFO F4c: hito reconocido → map + checkpoint + ticker
     evlog('hito', 'llegó a Plaza de Mayo');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -3615,7 +3617,15 @@
     } else if (state === 'plaza' && plazaGame) {                      // F4: PLAZA DE MAYO (Nivel 2, circular)
       plazaGame.update(dt); plazaGame.draw(ctx, W, H);
       if (plazaGame.done) {
-        plazaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        const ex = plazaGame.exitTo; plazaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'win2') {   // NIVEL 2: chip del Libertador → Pirámide → señal a los satélites → LIBERACIÓN SANMARTINIANA
+          try { localStorage.setItem('ts_nivel2_win', '1'); } catch (e) {}
+          tel('win', { result: 'nivel2' }); evlog('hito', 'armó el dispositivo anti-IA con el chip de San Martín (Nivel 2)');
+          elEndTitle.textContent = T('g.win2.title'); elEndTitle.style.color = '#7CFC00';
+          elEndText.innerHTML = T('g.win2.text'); renderStats(true);
+          const hitoBtn = document.getElementById('hitoBtn'); if (hitoBtn) hitoBtn.classList.add('hidden');
+          state = 'dead'; running = false; showEnd(); return;
+        }
         enterSubte('catedral', 'street');   // volvés a la boca (Catedral) → estación → superficie
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down

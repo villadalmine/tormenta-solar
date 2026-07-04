@@ -52,6 +52,25 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v321] — 2026-07-04 — ⚔️🇦🇷 NIVEL 2 = OBJETIVO SANMARTINIANO: el CHIP del Libertador → la Pirámide → liberación mundial
+
+El Nivel 2 dejó de ser teaser y **tiene victoria de verdad**, con el arco que pidió el dueño: **San Martín nos
+libera del yugo de la IA**. En la Plaza de Mayo (`plaza.js`):
+- **Objetivo (tracker arriba):** conseguir el **CHIP AI DEL LIBERTADOR** → llevarlo a la **PIRÁMIDE DE MAYO**.
+- **Catedral (N) → [E] → la TUMBA DE SAN MARTÍN** (interior nuevo, cripta): sarcófago velado por la bandera
+  celeste-blanca, **3 granaderos** de guardia, la **llama votiva**, y el **chip verde** latiendo sobre la cabecera.
+  Caminás hasta él → **[E] lo tomás** (los granaderos asienten). Lo llevás encima (pixel verde en la cabeza).
+- **Pirámide de Mayo (centro) = el DISPOSITIVO ANTI-IA:** con el chip, **[E] → armás el dispositivo**. Un **haz
+  celeste** sube de la Pirámide a los **satélites manejados por la IA** → arranca el **"proceso sanmartiniano de
+  liberación mundial"** → **VICTORIA del Nivel 2** (pantalla de fin nueva, tema San Martín).
+- La **Casa Rosada** queda como el **enemigo/lore** (el control del satélite tomado); ya no se apaga a mano: la
+  señal de la Pirámide es lo que lo voltea. **Se DESACOPLÓ del datacenter comunitario** — el requisito ahora es el
+  chip (personal), así el jugador siempre puede ganar el Nivel 2.
+- **FIX piquete "se cuelga al cruzar":** el hueco de la barricada se **ensanchó** (x6-11, antes x8-10) → cruzar al
+  Obelisco ya no depende de alinearte al pixel.
+- i18n ES/EN (40/40 claves `g.plaza.*`+`g.win2.*`), test e2e nuevo `plaza:ok` (chip→armar→win2 + boca→subte),
+  validado en Chromium (plaza, tumba, chip, haz de la señal). SDD `specs/subte.md §10`.
+
 ## [v320] — 2026-07-04 — 🏛️ NIVEL 2: la CASA ROSADA enterable (el Salón tomado + la terminal del satélite)
 
 La Plaza dejó de ser solo postal → tiene OBJETIVO. Al llegar, una Madre te avisa: la Casa Rosada está TOMADA por

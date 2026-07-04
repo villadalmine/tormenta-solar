@@ -160,7 +160,35 @@ que en línea recta."*
   (O, arcos blancos). La boca del subte (Catedral) por donde llegás. Palomas, fuentes, adoquines en anillo.
 - **Cómo se llega:** viajás en subte a **Catedral** (destino nuevo, se habilita tras `sateliteHerido`) → aparecés
   en Plaza de Mayo. Es el **arranque del NIVEL 2** (otra zona de la ciudad; el subte es el conector — subte.md §7).
-- **F4 fases:** F4a ✅ POSTAL circular · F4b ✅ Catedral destino · F4c ✅ grafo (`plaza_llegada`, v319) · **F4d ✅
-  (v320): la CASA ROSADA enterable** — Salón Blanco tomado por la IA, la TERMINAL DEL SATÉLITE al fondo (custodiada),
-  el objetivo del Nivel 2 planteado (recuperar la Casa Rosada / apagar el control; gate = terminar el DATACENTER
-  colaborativo). El COMBATE del Nivel 2 (voltear el control) queda pendiente — se está construyendo.
+- **F4 fases:** F4a ✅ POSTAL circular · F4b ✅ Catedral destino · F4c ✅ grafo (`plaza_llegada`, v319) · F4d ✅
+  (v320): la CASA ROSADA enterable (Salón Blanco tomado + terminal del satélite) · **F4e ✅ (v321): el OBJETIVO
+  SANMARTINIANO — el Nivel 2 se GANA.**
+
+### 10.1 F4e — OBJETIVO DEL NIVEL 2: el proceso sanmartiniano de liberación mundial [v321, pedido dueño 2026-07-04]
+
+**La idea (dueño):** *"desde la Plaza de Mayo, en la Pirámide de Mayo tenés que armar un dispositivo anti-IA, pero
+para eso tenés que entrar en la tumba de San Martín y buscar el chip AI del Libertador para que desde la Pirámide
+envíe una señal a los satélites manejados por la IA e inicie el proceso sanmartiniano de liberación mundial. San
+Martín nos libera del yugo de la IA."*
+
+**Implementación (`js/plaza.js`, todo aislado del juego principal):**
+1. **Tracker de objetivo** (arriba, siempre visible): `objChip` → conseguí el chip · `objArm` → llevalo a la
+   Pirámide · `objDone` → liberación en marcha. Una Madre lo anticipa en `g.plaza.enter`.
+2. **Tumba de San Martín** (interior `inside='tumba'`, entrás por la Catedral N): cripta de piedra, **sarcófago
+   velado por la bandera** (celeste-blanca-celeste + sol), **3 granaderos** (casaca azul, morrión con penacho
+   rojo, fusil), **llama votiva** flameante, y el **CHIP AI DEL LIBERTADOR** (cuadrado verde con pins + aura que
+   late) flotando sobre la cabecera. Caminás hasta él → **[E] lo tomás** (`hasChip`, flag `ts_sanmartin_chip`); lo
+   llevás encima (pixel verde en la cabeza del jugador).
+3. **Pirámide de Mayo = dispositivo anti-IA** (centro): con `hasChip`, **[E] → armás** (`armed`). Sale un **haz
+   celeste** de la Pirámide hacia los satélites (arriba) durante ~4.4s → `exitTo='win2'` → **pantalla de VICTORIA
+   del Nivel 2** (`ts_nivel2_win`, tel `win/nivel2`, tema San Martín). Sin el chip: `needChip` (te manda a la tumba).
+4. **Casa Rosada** (interior `inside='rosada'`): pasa a ser **enemigo/lore** — el CONTROL DEL SATÉLITE tomado. Ya
+   NO se apaga a mano; la lore (`term1-3`) apunta al chip del Libertador y la señal de la Pirámide.
+5. **Desacople del datacenter:** el requisito de la victoria es el CHIP (personal), **no** el datacenter comunitario
+   global — así el jugador siempre puede cerrar el Nivel 2 (el datacenter D1 sigue siendo su feature aparte).
+
+**Test/validación:** e2e `plaza:ok` (chip→armar→win2 + boca→subte); Chromium (plaza circular, tumba con granaderos
+y chip, haz de la señal). Superficies de test en `plaza.js`: `__chip`, `__arm`, `__leave`, getter `_dbg`.
+
+**FIX de paso (v321):** el hueco de la barricada del piquete se ensanchó (x6-11) → cruzar al Obelisco ya no exige
+alinearte al pixel (era la causa del "se cuelga al pasar la valla").
