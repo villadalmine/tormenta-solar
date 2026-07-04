@@ -52,6 +52,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v327] — 2026-07-04 — 🗺️ Mapa: CURSOR POR TECLADO + MINIMAPA en el HUD + online por sala más visible
+
+Pulido del mapa (pedido del dueño):
+- **CURSOR POR TECLADO:** en el mapa (TAB), las **flechas** (o WASD) mueven un cursor **caja-a-caja** (al target más
+  cercano en esa dirección) y **Enter** activa (zoom al edificio / cambiar de vista) — antes solo mouse. `Mapa.targets`
+  (mismo mapeo que `hitTest`, como lista de centros) + corchetes animados en el cursor; el mouse lo desactiva y
+  viceversa. Reusa el hover/hitTest existentes (el cursor alimenta `mx/my`).
+- **MINIMAPA en el HUD:** durante el juego, un strip compacto abajo-izquierda (`Mapa.drawMini`) con los edificios de
+  la manzana (ticks), **el actual resaltado**, tu posición y la gente online — orientación sin abrir el mapa. Aditivo,
+  no aparece en niveles-sueño.
+- **ONLINE POR SALA más visible:** total 👥 en el encabezado de la columna MULTIJUGADOR (verde) + en el minimapa (ya
+  estaba el 👥N por submodo). i18n ES/EN 43/43. Validado en Chromium (cursor + minimapa + online).
+
 ## [v326] — 2026-07-04 — 🕸️ El NIVEL 2 al GRAFO: hitos en el mapa + los oráculos SABEN (data-driven, como debe ser)
 
 El dueño marcó que el arco del Nivel 2 estaba suelto (flags + sub-modos) en vez de **grafo + mapa + grounding**

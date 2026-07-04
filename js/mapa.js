@@ -704,6 +704,7 @@ const Mapa = (() => {
       const colX = VW - PADR + 6, colW = PADR - 14;
       ctx.fillStyle = '#9be8a0'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
       ctx.fillText(T('g.mapa.multi'), colX, 66);
+      if (st.online) { ctx.fillStyle = '#7CFC00'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'right'; ctx.fillText('👥 ' + st.online, colX + colW, 66); ctx.textAlign = 'left'; }
       const won = st.piquete || {};
       const nWon = ['corte', 'soga', 'bombo', 'olla', 'pancarta'].filter(k => won[k]).length;
       const liveOf = id => { let n = 0; for (const k in (st.live || {})) if (k === id || k.startsWith(id)) n += st.live[k]; return n; };
@@ -766,10 +767,53 @@ const Mapa = (() => {
       ctx.strokeStyle = '#2a4a6a'; ctx.strokeRect(0.5, VH - bh + 0.5, VW - 1, bh - 1);
       ctx.textAlign = 'left'; lines.forEach((ln, i) => { ctx.fillStyle = i === 0 ? '#ffd54f' : '#cfe0f0'; ctx.font = (i === 0 ? 'bold ' : '') + '11px monospace'; ctx.fillText(String(ln).slice(0, 110), 10, VH - bh + 15 + i * 14); });
     }
+    // CURSOR DE TECLADO (v327): corchetes animados en la posición del cursor (st.mx/my) cuando navegás con flechas
+    if (st.kb) { const cx = st.mx, cy = st.my, r = 15 + Math.sin((st.t || 0) * 6) * 1.5;
+      ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 2;
+      for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        ctx.beginPath(); ctx.moveTo(cx + sx * r, cy + sy * r - sy * 7); ctx.lineTo(cx + sx * r, cy + sy * r); ctx.lineTo(cx + sx * r - sx * 7, cy + sy * r); ctx.stroke();
+      } }
   }
 
   function groupAt(current) { const n = model && model.nodes[current]; return n ? Math.round(n.anchor) : null; }
-  return { build, draw, groupAt, hitTest, overview: overviewBoxes, sky: skyBoxes, get model() { return model; } };
+  // MINIMAPA del HUD (v327): strip compacto de la manzana con los edificios (ticks), el actual resaltado, tu posición
+  // y la gente online. Aditivo: se dibuja sobre el juego durante 'playing' para orientarte sin abrir el mapa (TAB).
+  function drawMini(ctx, x, y, w, h, st) {
+    if (!model) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(6,10,18,0.66)'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = 'rgba(90,140,200,0.35)'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+    ctx.fillStyle = 'rgba(255,213,79,0.75)'; ctx.font = '7px monospace'; ctx.textAlign = 'left'; ctx.fillText('🗺 ' + T('g.mapa.mini'), x + 4, y + 9);
+    if (st.online) { ctx.fillStyle = '#7CFC00'; ctx.font = '7px monospace'; ctx.textAlign = 'right'; ctx.fillText('👥' + st.online, x + w - 4, y + 9); }
+    const sy = y + h - 9, x0 = x + 8, x1 = x + w - 8, streetW = model.streetW || 120;
+    ctx.strokeStyle = 'rgba(180,190,205,0.45)'; ctx.beginPath(); ctx.moveTo(x0, sy); ctx.lineTo(x1, sy); ctx.stroke();
+    const curA = model.nodes[st.current] ? Math.round(model.nodes[st.current].anchor) : null, seen = new Set();
+    for (const n of model.nodes) { if (n.i === 0 || n.anchor == null || n.level == null || n.level <= 0) continue; const a = Math.round(n.anchor); if (seen.has(a)) continue; seen.add(a);
+      const tx = x0 + Math.max(0, Math.min(1, a / streetW)) * (x1 - x0), isCur = a === curA;
+      ctx.fillStyle = isCur ? '#ffd54f' : 'rgba(120,160,220,0.55)'; ctx.fillRect(tx - 1, sy - (isCur ? 8 : 6), 2, isCur ? 8 : 6); }
+    const px = st.current === 0 ? x0 + Math.max(0, Math.min(1, st.px01 || 0.5)) * (x1 - x0) : x0 + Math.max(0, Math.min(1, (curA || 0) / streetW)) * (x1 - x0);
+    ctx.fillStyle = 'rgba(255,213,79,' + (0.55 + 0.45 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(px, sy, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  // TARGETS navegables por TECLADO: mismos elementos que hitTest, pero como lista de CENTROS (para moverse caja-a-caja
+  // con las flechas). Cada uno lleva su `hit` (lo que devolvería hitTest) → Enter lo aplica igual que un click.
+  function targets(VW, VH, st) {
+    if (!model) return [];
+    const out = [];
+    [['sky', 58], ['manzana', 160], ['ss', 262], ['subte', 364]].forEach(([t, x]) => out.push({ x, y: 39, hit: { tab: t }, tab: true }));
+    if (st.zoom === 'subte') { /* solo pestañas */ }
+    else if (st.zoom === 'sky') { const sk = skyBoxes(VW, VH); for (const bx of sk.boxes) out.push({ x: bx.x + bx.w / 2, y: bx.y + bx.h / 2, hit: bx.up ? { anchor: bx.b.anchor } : { tab: 'ss' } }); }
+    else if (st.zoom == null) {
+      const ov = overviewBoxes(VW, VH), padL = PADL(VW);
+      for (const bo of (model.bocas || [])) { const bx2 = padL + Math.max(0, Math.min(1, (bo.x / ((typeof Level !== 'undefined' && Level.TILE) || 32)) / model.streetW)) * (VW - padL - PADR); const bw = 84, bx0 = Math.max(padL + 130, Math.min(VW - PADR - 60, bx2 - bw / 2)); out.push({ x: bx0 + bw / 2, y: ov.streetY + 12, hit: { tab: 'subte' } }); }
+      for (const bx of (ov.boxes || [])) { if (bx.b.puerta) continue; out.push({ x: bx.x + bx.w / 2, y: bx.y + bx.h / 2, hit: bx.b.up ? { anchor: bx.b.anchor } : { tab: 'ss' } }); }
+    } else {   // zoom numérico (dentro de un edificio) o 'ss'
+      for (const n of model.nodes) { if (n.secret && !(st.visited && st.visited.has(n.i))) continue; const g = geom(n, VW, VH, st.zoom); if (g) out.push({ x: g.x + g.w / 2, y: g.y + g.h / 2, hit: { anchor: Math.round(n.anchor), node: n.i } }); }
+    }
+    return out;
+  }
+
+  return { build, draw, groupAt, hitTest, targets, drawMini, overview: overviewBoxes, sky: skyBoxes, get model() { return model; } };
 })();
 if (typeof window !== 'undefined') window.Mapa = Mapa;
 if (typeof module !== 'undefined') module.exports = Mapa;

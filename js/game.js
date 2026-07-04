@@ -138,6 +138,7 @@
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
   // EL MAPA (specs/mapa-juego.md): [TAB] automap; fog of war por salas visitadas (persistido)
   let mapaZoom = null, mapaFrontier = null, mapaClickHeld = false, visitedRooms = new Set([0]);
+  let mapaCursor = null, mapaKb = false, mapaMouse = { x: -1, y: -1 };   // cursor de teclado en el mapa (flechas + Enter)
   try { const a = JSON.parse(localStorage.getItem('ts_visited') || '[]'); visitedRooms = new Set([0].concat(a.filter(n => Number.isInteger(n)))); } catch (e) {}
   function saveVisited() { try { localStorage.setItem('ts_visited', JSON.stringify([...visitedRooms])); } catch (e) {} }
   let lavalleSpawn = null;  // al volver de un mini-juego, re-spawn EN su punto (no en la entrada)
@@ -3216,6 +3217,12 @@
     drawPost();
     if (r.theme === 'secret' || r.theme === 'cemento') drawSmoke();
     updatePrompt();
+    // MINIMAPA del HUD (v327): strip compacto de la manzana (orientación sin abrir el mapa). Aditivo + guardado.
+    if (typeof Mapa !== 'undefined' && Mapa.drawMini && state === 'playing' && !spinoffLevel) {
+      if (!Mapa.model && Mapa.build && rooms) Mapa.build(rooms);
+      if (Mapa.model) { const rc = rooms[current]; Mapa.drawMini(ctx, 8, H - 42, 150, 34, { current, t: time,
+        px01: rc ? (player.x + player.w / 2) / (rc.w * Level.TILE) : 0.5, online: (salonLive && salonLive.count) || 0 }); }
+    }
 
     if (performance.now() < shakeUntil) canvas.style.transform = `translate(${(Math.random()-.5)*8}px,${(Math.random()-.5)*8}px)`;
     else if (canvas.style.transform) canvas.style.transform = '';
@@ -3581,15 +3588,36 @@
       if (globoGame.done) { globoGame = null; state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
     } else if (state === 'mapa') {                                    // EL MAPA [TAB]: automap DOOM (mundo pausado)
       const r0 = room();
-      Mapa.draw(ctx, W, H, { current, t: time, px01: r0 ? (player.x + player.w / 2) / (r0.w * Level.TILE) : 0.5,
+      // el mouse desactiva el cursor de teclado (y viceversa): mientras movés el mouse, manda el mouse
+      if (Input.mouse.x !== mapaMouse.x || Input.mouse.y !== mapaMouse.y) { mapaMouse = { x: Input.mouse.x, y: Input.mouse.y }; mapaKb = false; }
+      const mmx = mapaKb && mapaCursor ? mapaCursor.x : Input.mouse.x, mmy = mapaKb && mapaCursor ? mapaCursor.y : Input.mouse.y;
+      const mapaSt = { current, t: time, px01: r0 ? (player.x + player.w / 2) / (r0.w * Level.TILE) : 0.5,
         visited: visitedRooms, edges: (typeof Historia !== 'undefined' && Historia.edges) || [], flags: historiaState(),
-        frontier: mapaFrontier, stormed, mx: Input.mouse.x, my: Input.mouse.y,
+        frontier: mapaFrontier, stormed, mx: mmx, my: mmy, kb: mapaKb,
         online: (salonLive && salonLive.count) || 0, live: (salonLive && salonLive.byRoom) || {},
         piquete: loadPiqueteWon(), facil: lsFlag('ts_ayuda_facil'),
         dream: spinoffLevel ? ((r0 && TX(r0.name)) || '💤') : null,
         subteStats: (() => { try { return JSON.parse(localStorage.getItem('ts_subte_stats') || '{}'); } catch (e) { return {}; } })(),
         subteReach: { Florida: true, Lavalle: lsFlag('ts_sat_down') },   // estaciones accesibles (Florida siempre; Lavalle tras el satélite)
-        zoom: mapaZoom, sub: null });
+        zoom: mapaZoom, sub: null };
+      Mapa.draw(ctx, W, H, mapaSt);
+      // CURSOR POR TECLADO (v327): las flechas mueven caja-a-caja (target más cercano en esa dirección); Enter = activar
+      const applyHit = hit => { if (hit && hit.tab) mapaZoom = hit.tab === 'ss' ? 'ss' : hit.tab === 'sky' ? 'sky' : hit.tab === 'subte' ? 'subte' : null;
+        else if (typeof mapaZoom === 'number') mapaZoom = null; else if (hit && hit.anchor != null) mapaZoom = hit.anchor; };
+      const navDir = dir => { mapaKb = true; const list = (Mapa.targets && Mapa.targets(W, H, mapaSt)) || [];
+        if (!list.length) return; if (!mapaCursor) { mapaCursor = { x: list[0].x, y: list[0].y }; return; }
+        let best = null, bd = Infinity;
+        for (const tg of list) { const dx = tg.x - mapaCursor.x, dy = tg.y - mapaCursor.y;
+          let ok, prim, cross;
+          if (dir === 'left') { ok = dx < -3; prim = -dx; cross = Math.abs(dy); } else if (dir === 'right') { ok = dx > 3; prim = dx; cross = Math.abs(dy); }
+          else if (dir === 'up') { ok = dy < -3; prim = -dy; cross = Math.abs(dx); } else { ok = dy > 3; prim = dy; cross = Math.abs(dx); }
+          if (!ok) continue; const score = prim + cross * 2.2; if (score < bd) { bd = score; best = tg; } }
+        if (best) mapaCursor = { x: best.x, y: best.y }; };
+      if (trucoTap('arrowleft') || trucoTap('a')) navDir('left');
+      if (trucoTap('arrowright') || trucoTap('d')) navDir('right');
+      if (trucoTap('arrowup') || trucoTap('w')) navDir('up');
+      if (trucoTap('arrowdown') || trucoTap('s')) navDir('down');
+      if (trucoTap('enter') && mapaKb && mapaCursor) applyHit(Mapa.hitTest(W, H, mapaSt));
       // Z: dentro de un edificio = zoom a ESE edificio; en la calle no hace nada (el click manda, v300)
       if (trucoTap('z')) mapaZoom = (mapaZoom == null && current !== 0) ? Mapa.groupAt(current) : null;
       if (trucoTap('1')) mapaZoom = 'sky';                                             // [1] la cuadra (skyline, v301)
@@ -3597,11 +3625,8 @@
       if (trucoTap('3')) mapaZoom = 'ss';                                              // [3] los subsuelos
       if (trucoTap('4')) mapaZoom = 'subte';                                           // [4] el subte (preview, v306)
       // CLICK: pestaña de vista / edificio = zoom / con zoom de edificio abierto = volver (v293/v298)
-      if (Input.mouse.down && !mapaClickHeld) { mapaClickHeld = true;
-        const hit = Mapa.hitTest && Mapa.hitTest(W, H, { zoom: mapaZoom, mx: Input.mouse.x, my: Input.mouse.y, visited: visitedRooms });
-        if (hit && hit.tab) mapaZoom = hit.tab === 'ss' ? 'ss' : hit.tab === 'sky' ? 'sky' : hit.tab === 'subte' ? 'subte' : null;
-        else if (typeof mapaZoom === 'number') mapaZoom = null;
-        else if (hit && hit.anchor != null) mapaZoom = hit.anchor;
+      if (Input.mouse.down && !mapaClickHeld) { mapaClickHeld = true; mapaKb = false;
+        applyHit(Mapa.hitTest && Mapa.hitTest(W, H, { zoom: mapaZoom, mx: Input.mouse.x, my: Input.mouse.y, visited: visitedRooms }));
       } else if (!Input.mouse.down) mapaClickHeld = false;
       if (trucoTap('escape')) { if (mapaZoom != null) mapaZoom = null; else toggleMapa(); }   // Esc: primero sale del zoom/vista
     } else if (state === 'obelisco' && obeliscoGame) {                // Lavalle E2: la plaza del Obelisco

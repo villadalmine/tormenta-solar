@@ -398,6 +398,7 @@
     'g.mapa.subteAca': 'FLORIDA & LAVALLE — the game',
     'g.mapa.subteOtras': 'other lines (far): A · E · H',
     'g.mapa.subtePronto': 'coming soon: ride the subte',
+    'g.mapa.mini': 'the block',
     'g.mapa.n2Title': 'LEVEL 2 · Plaza de Mayo',
     'g.mapa.n2Lock': '🔒 wound the satellite first (Obelisk, after the picket)',
     'g.mapa.n2Subte': '🎯 take the SUBTE at the picket → Catedral → Plaza',

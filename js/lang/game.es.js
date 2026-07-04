@@ -402,6 +402,7 @@
     'g.mapa.subteAca': 'FLORIDA Y LAVALLE — el juego',
     'g.mapa.subteOtras': 'otras líneas (lejos): A · E · H',
     'g.mapa.subtePronto': 'próximamente: viajar en subte',
+    'g.mapa.mini': 'la manzana',
     'g.mapa.n2Title': 'NIVEL 2 · Plaza de Mayo',
     'g.mapa.n2Lock': '🔒 herí primero al satélite (Obelisco, tras el piquete)',
     'g.mapa.n2Subte': '🎯 bajá al SUBTE del piquete → Catedral → Plaza',
