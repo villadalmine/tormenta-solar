@@ -47,6 +47,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v310] — 2026-07-04 — 🎫 QUEST «La tarjeta SUBE» completa (por el grafo, 21 aristas)
+
+Continuación de la semilla del tótem (v309): la quest de buscar y cargar la tarjeta SUBE, toda data-driven.
+- **2 aristas nuevas** en el grafo (`super-chino.md` → 21 aristas): `sube_tarjeta` (un LINYERA te regala su SUBE
+  —"yo viajo de arriba o camino"— vía `QUEST_DEFS.sube`/`subeGive` al chatear, pre `subeSeen`) y `sube_carga`
+  (cargás $10 en el tótem del chino, terminal). Flags en localStorage (`ts_sube_seen/got/charged`) + item `sube`
+  💳 al inventario.
+- **Tótem con 3 estados** (`js/super.js`): sin tarjeta → SIN STOCK · con tarjeta + $10 → recarga (cobra $10) ·
+  cargada → "lista". Verificado headless (cobra bien, sin plata no carga).
+- **El mapa la marca sola**: `sube_tarjeta` ⭐ en la calle (linyeras), `sube_carga` en el cajón del chino (fix:
+  las quests de puertas sin sala se enrutan a `door:<id>`, no a la calle). Checkpoint + ticker al completar.
+- La tarjeta queda **lista para el VIAJE en subte (F2)**. `subte.md §2.6`.
+
 ## [v309] — 2026-07-03 — 🚇💳 Estaciones con DATOS al hover + el TÓTEM SUBE del chino (semilla de quest)
 
 - **Hover por estación** en la pestaña SUBTE: tarjeta con **año real de inauguración** (Florida 1930, Lavalle

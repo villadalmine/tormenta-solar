@@ -33,6 +33,12 @@
   },
   "quests": [
     {
+      "id": "sube",
+      "scope": "game",
+      "giver": "oraculo",
+      "onGive": "subeGive"
+    },
+    {
       "id": "news",
       "scope": "run",
       "giver": "oraculo",

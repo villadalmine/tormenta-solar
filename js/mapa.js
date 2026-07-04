@@ -115,7 +115,11 @@ const Mapa = (() => {
         if (sm) { (at['sm:' + sm.id] = at['sm:' + sm.id] || []).push(e); continue; }
         let cands = nodes.filter(n => n.i > 0 && n.tags.includes(a));
         if (!cands.length) cands = nodes.filter(n => n.i > 0 && norm(n.name).includes(norm(a)));
-        if (!cands.length) { (at[0] = at[0] || []).push(e); continue; }   // sub-modos sin sala (el súper) → la CALLE (ahí está su puerta)
+        if (!cands.length) {   // sub-modos sin sala: si matchea una PUERTA de calle (el súper) → su cajón; si no, la calle
+          if ((model.puertas || []).some(pd => pd.id === a)) { (at['door:' + a] = at['door:' + a] || []).push(e); }
+          else { (at[0] = at[0] || []).push(e); }
+          continue;
+        }
         cands.sort((x, y) => Math.abs(x.level) - Math.abs(y.level));
         (at[cands[0].i] = at[cands[0].i] || []).push(e);
       }
@@ -406,7 +410,7 @@ const Mapa = (() => {
       const b = bx.b;
       const v = b.rooms.filter(i => visited.has(i)).length;
       const qs = []; for (const i of b.rooms) for (const e of (qAt[i] || [])) qs.push(questMark(e, st));
-      if (b.puerta) for (const e of (qAt[0] || [])) if (String(e.at) === b.doorId) qs.push(questMark(e, st));
+      if (b.puerta) for (const e of (qAt['door:' + b.doorId] || [])) qs.push(questMark(e, st));   // quests del sub-modo (megadrive/sube→súper)
       const star = qs.includes('⭐'), lock = qs.includes('🔒');
       const iCur = curB && Math.round(curB.anchor) === b.anchor && st.current !== 0 && !st.sub;
       const hov = st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h;
@@ -495,7 +499,7 @@ const Mapa = (() => {
       const b = bx.b;
       const v = b.rooms.filter(i => visited.has(i)).length;
       const qs = []; for (const i of b.rooms) for (const e of (qAt[i] || [])) qs.push(questMark(e, st));
-      if (b.puerta) for (const e of (qAt[0] || [])) if (String(e.at) === b.doorId) qs.push(questMark(e, st));   // las quests del sub-modo (megadrive→súper)
+      if (b.puerta) for (const e of (qAt['door:' + b.doorId] || [])) qs.push(questMark(e, st));   // las quests del sub-modo (megadrive→súper)
       const nDone = qs.filter(q => q === '✅').length, nStar = qs.filter(q => q === '⭐').length, hasLock = qs.includes('🔒');
       const iCur = curB && Math.round(curB.anchor) === b.anchor && st.current !== 0 && !st.sub;
       const hov = st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h;

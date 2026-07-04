@@ -69,7 +69,7 @@ const Super = (() => {
     const family = { x: 22, y: 1 };   // puerta OSCURA: vive la familia del chino, no se entra (de ahí salen los ninjas)
     const player = { x: 6.5*CS, y: 12.5*CS, r: 11 };
     // changuito (inventario virtual): lo que AGARRÁS queda acá SIN pagar hasta que pasás por la CAJA
-    let cart = [], eject = 0, ninjaX = 0;
+    let cart = [], eject = 0, ninjaX = 0, subeCharged = false;   // subeCharged: cargaste la SUBE en el tótem esta visita
     // CHECKOUT (caja): mini-juego de pago. null = comprando; objeto = estás en la caja del chino.
     let checkout = null;
     const held = {};
@@ -230,7 +230,15 @@ const Super = (() => {
       const g = adjGondolaObj();
       if (g) { grab(g.cat); return; }
       if (near(caja)) { openCheckout(); return; }
-      if (near(sube)) {   // tótem SUBE: querés comprar la tarjeta → SIN STOCK (semilla de la quest, subte.md §2.5)
+      if (near(sube)) {   // tótem SUBE (subte.md §2.6): sin stock → semilla · con tarjeta → recarga $10 · cargada → listo
+        const ls = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
+        const hasCard = P.inventory && P.inventory.includes('sube');
+        if (ls('ts_sube_charged')) { setMsg(T('sup.sube.cargada'), 5); return; }
+        if (hasCard) {
+          if ((P.coins || 0) >= 10) { P.coins -= 10; try { localStorage.setItem('ts_sube_charged', '1'); } catch (e) {} subeCharged = true; if (typeof Sfx !== 'undefined' && Sfx.win) Sfx.win(); setMsg(T('sup.sube.recargada'), 7); }
+          else setMsg(T('sup.sube.sinPlata'), 6);
+          return;
+        }
         setMsg(T('sup.sube.sinStock'), 7);
         try { localStorage.setItem('ts_sube_seen', '1'); } catch (e) {}
         return;
@@ -243,7 +251,9 @@ const Super = (() => {
 
     return {
       get done() { return done; }, get exitTo() { return exitTo; },
+      get subeCharged() { return subeCharged; },   // one-shot: game.js aplica la arista sube_carga al salir
       // ---- superficie de prueba (headless e2e); no afecta el juego ----
+      __sube: () => { const g = adjGondolaObj(); void g; player.x = (sube.x + 0.5) * CS; player.y = (sube.y + 0.5) * CS; interact(); return subeCharged; },
       __cart: () => cart.slice(), __grab: (c) => grab(c), __pay: () => payAtCaja(), __leave: (to) => tryLeave(to),
       __openCaja: () => openCheckout(), __checkout: () => checkout && { phase: checkout.phase, tender: checkout.tender, total: cartTotal(), infla: checkout.infla },
       __removeSel: () => { if (checkout) { cart.splice(checkout.sel, 1); checkout.sel = Math.max(0, Math.min(checkout.sel, cart.length - 1)); } },

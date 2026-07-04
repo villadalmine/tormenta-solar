@@ -57,6 +57,7 @@
   // Así la "máquina de niveles" (fabrica-niveles-ai.md) puede AUTORAR quests por nivel; las primitivas (QUEST_PRIMS) son código.
   const _qlvl = (typeof window !== 'undefined' && window.LEVEL1 && window.LEVEL1.quests) || null;
   const QUEST_DEFS = Array.isArray(_qlvl) ? Object.fromEntries(_qlvl.map(q => [q.id, q])) : (_qlvl || {
+    sube:    { id:'sube',    scope:'game', giver:'oraculo', onGive:'subeGive' },
     news:    { id:'news',    scope:'run', giver:'oraculo', chance:0.35, reward:{ caramelos:3 }, penalty:{ coins:10 }, ask:'g.cine.questAsk', ok:'g.cine.questOk', lie:'g.cine.questLie', remind:'g.cine.questRemind', onGive:'newsGive', onReport:'newsReport', onHint:'newsHint' },
     mundial: { id:'mundial', scope:'run', giver:'hincha',  reward:{ caramelos:5 }, ask:'g.mundial.pregunta', back:'g.mundial.gracias', remind:'g.mundial.recorda', onGreet:'mundialGreet', onReport:'mundialReport' },
   });
@@ -81,6 +82,15 @@
     },
     // si ya tenés el dato del guarda, cualquier mensaje al hincha = te agradece + premio.
     mundialReport() { if (mundialQuest && mundialQuest.shown) { applyReward(QUEST_DEFS.mundial.reward); Sfx.pickup(); const line = T(QUEST_DEFS.mundial.back, { res: mundialQuest.resultado }); mundialQuest = null; return { line }; } return null; },
+    // TARJETA SUBE (subte.md §2.6): si viste el tótem sin stock y todavía no tenés la tarjeta, un linyera te
+    // REGALA la suya (ellos caminan / viajan de arriba) → arista del grafo (map + ticker + checkpoint).
+    subeGive() {
+      const st = historiaState();
+      if (!st.subeSeen || st.subeGot) return null;
+      addItem('sube'); Sfx.pickup();
+      applyEdge('sube_tarjeta', 'subeGot');
+      return { line: T('g.sube.linyeraGive') };
+    },
   };
   // RUNTIME genérico: el dispatch se decide por DATA (giver/chance/scope); las primitivas son código.
   const Quests = {
@@ -753,6 +763,8 @@
     palo:       { id: 'palo',       emoji: '🏏', label: 'g.wpn.palo',    noEquip: true },
     mortero:    { id: 'mortero',    emoji: '🎆', label: 'g.wpn.mortero', noEquip: true },
     molotov:    { id: 'molotov',    emoji: '🧨', label: 'g.wpn.molotov', noEquip: true },
+    // TARJETA SUBE (quest del subte, specs/subte.md §2.6): coleccionable; la cargás en el tótem del chino.
+    sube:       { id: 'sube',       emoji: '💳', label: 'g.wpn.sube',    noEquip: true },
   };
   const isDream = () => spinoffLevel;   // los niveles GENERADOS son "los sueños del Carpo": ahí SÍ usa el fierro criollo
   function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
@@ -983,6 +995,9 @@
     juramento:        v => { try { localStorage.setItem('ts_juramento', v ? '1' : ''); } catch (e) {} },
     obeliscoLlegado:  v => { try { localStorage.setItem('ts_obelisco_visto', v ? '1' : ''); } catch (e) {} },
     sateliteHerido:   v => { try { localStorage.setItem('ts_sat_down', v ? '1' : ''); } catch (e) {} },
+    // QUEST DE LA TARJETA SUBE (specs/subte.md §2.6): flags en localStorage (como el piquete, sobreviven loops)
+    subeGot:          v => { try { localStorage.setItem('ts_sube_got', v ? '1' : ''); } catch (e) {} },
+    subeReady:        v => { try { localStorage.setItem('ts_sube_charged', v ? '1' : ''); } catch (e) {} },
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1025,6 +1040,10 @@
       juramento: lsFlag('ts_juramento'),
       obeliscoLlegado: lsFlag('ts_obelisco_visto'),
       sateliteHerido: lsFlag('ts_sat_down'),
+      // quest de la tarjeta SUBE (subte.md §2.6): seed en el tótem → un linyera te la da → la cargás
+      subeSeen: lsFlag('ts_sube_seen'),
+      subeGot: lsFlag('ts_sube_got'),
+      subeReady: lsFlag('ts_sube_charged'),
       sleptOnce: loopCount > 0,
     };
   }
@@ -3456,7 +3475,8 @@
     } else if (state === 'super' && superGame) {
       superGame.update(dt); superGame.draw(ctx, W, H);
       if (superGame.done) {
-        const to = superGame.exitTo; superGame = null;
+        const to = superGame.exitTo, charged = superGame.subeCharged; superGame = null;
+        if (charged && !lsFlag('ts_sube_edge')) { try { localStorage.setItem('ts_sube_edge', '1'); } catch (e) {} applyEdge('sube_carga', 'subeReady'); }   // cargaste la SUBE → arista (map/ticker/checkpoint)
         if (to === 'nivelai') { launchNivelAI(); }   // te colaste a la trastienda → NIVEL-AI generado
         else {
           state = 'playing'; transCd = 0.35;

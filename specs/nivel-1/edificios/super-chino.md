@@ -95,3 +95,57 @@ y la **puerta trasera** desde la cueva (entrada de servicio, no necesita a nadie
   }
 }
 ```
+
+## Quest de la tarjeta SUBE (specs/subte.md §2.6)
+
+El **tótem RECARGA SUBE** del chino se quedó sin tarjetas → te manda a buscar una. Un **linyera** (que camina o
+viaja de arriba) te REGALA la suya; después la **cargás** en el tótem. Dos aristas:
+```hist
+{
+  "id": "sube_tarjeta",
+  "title": "Conseguir una tarjeta SUBE (un linyera tiene una)",
+  "title_en": "Get a SUBE card (a bum has one)",
+  "at": "calle",
+  "pre": { "subeSeen": true },
+  "sets": { "subeGot": true },
+  "hints": {
+    "es": [
+      "El tótem del chino se quedó sin tarjetas... alguien por acá seguro tiene una tirada.",
+      "Los linyeras viajan de arriba o caminan: alguno tendrá una SUBE que ya no usa.",
+      "Preguntale a un LINYERA por una tarjeta SUBE: te la regala, total ellos no la usan.",
+      "¡Chamuyá a un LINYERA y pedile la tarjeta SUBE! Te la da de una, dale."
+    ],
+    "en": [
+      "The chino's totem ran out of cards... someone around here surely has one lying around.",
+      "The bums ride for free or walk: one of them must have a SUBE they don't use.",
+      "Ask a BUM for a SUBE card: he'll give you his, they don't use it anyway.",
+      "Chat up a BUM and ask for the SUBE card! He hands it over, come on."
+    ]
+  }
+}
+```
+```hist
+{
+  "id": "sube_carga",
+  "title": "Cargar la SUBE en el tótem del chino",
+  "title_en": "Top up the SUBE at the chino's totem",
+  "at": "super",
+  "pre": { "subeGot": true },
+  "sets": { "subeReady": true },
+  "terminal": true,
+  "hints": {
+    "es": [
+      "Ya tenés la tarjeta... pero sin saldo no vas a ningún lado.",
+      "Volvé al TÓTEM del chino: ahora que tenés la SUBE, te la carga.",
+      "En el super chino, andá al TÓTEM RECARGA SUBE y cargale $10 a tu tarjeta.",
+      "¡Volvé al TÓTEM del chino y cargá la SUBE ($10)! Queda lista para el subte."
+    ],
+    "en": [
+      "You've got the card now... but with no balance you're going nowhere.",
+      "Back to the chino's TOTEM: now that you have the SUBE, it'll top it up.",
+      "At the Chinese supermarket, go to the SUBE RECHARGE TOTEM and load $10 onto your card.",
+      "Back to the chino's TOTEM and top up the SUBE ($10)! Ready for the subte."
+    ]
+  }
+}
+```

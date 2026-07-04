@@ -1,6 +1,6 @@
 # SDD — EL SUBTE: las líneas reales bajo Florida y Lavalle (preview en el mapa → futuro medio de viaje)
 
-- **Estado:** **PREVIEW IMPLEMENTADO (v306-307, pestaña [4]).** Decisión §2.5: 3 estaciones jugables (Florida B / Lavalle C / Catedral D→Plaza de Mayo) con viaje entre ellas — F2 pendiente.
+- **Estado:** **PREVIEW (v306-307) + QUEST DE LA TARJETA COMPLETA (v310).** Pestaña [4] con las 3 líneas reales; datos por estación al hover; **tótem SUBE en el chino** con la quest data-driven (grafo, 2 aristas). El VIAJE en sí (F2) queda pendiente.
 - **La idea (dueño, 2026-07-03):** *"buscá las líneas de metro que están sobre Lavalle y Florida, armá un mapa
   subte para el mapa en una tab con el diseño del subte, pero solo las líneas que tienen cerca al menos dos
   estaciones — y lo dejamos como preview porque quiero meter el subte."*
@@ -44,11 +44,17 @@ triple del Obelisco — cierra perfecto con el arco del Obelisco del juego.
   Catedral 1937…), línea + año, recorrido en km y pasajeros/día (`SUBTE_DATA`: B 11,8km ~330k · C 4,4km ~200k ·
   D 10,4km ~310k) — y en las 3 jugables, **tus stats**: viajes y plata gastada (`ts_subte_stats` en localStorage,
   contadores LISTOS para cuando el viaje exista en F2; hoy 0).
-- **TÓTEM «RECARGA SUBE» en el chino** (`js/super.js`, celeste, entre la SALIDA y la CAJA, sin pisar nada):
-  [E] → querés comprar la tarjeta → **“✖ SIN TARJETAS”** — el chino grita que se le acabaron y que consigas una
-  por ahí. Deja `ts_sube_seen=1` → **semilla de la QUEST «buscar la tarjeta SUBE»** (a diseñar: ¿quién tiene una
-  SUBE dando vueltas? ¿un linyera? ¿el telo? ¿premio de un mini-juego?). La quest se agregará al grafo como
-  arista con `sala` cuando se diseñe.
+- **TÓTEM «RECARGA SUBE» en el chino** (`js/super.js`, celeste, entre la SALIDA y la CAJA): 3 estados — sin la
+  tarjeta → **“✖ SIN TARJETAS”** (`ts_sube_seen`) · con la tarjeta → **cargar $10** (`ts_sube_charged`) · ya
+  cargada → “lista”.
+- **QUEST «La tarjeta SUBE» — COMPLETA y DATA-DRIVEN por el grafo (v310):** 2 aristas en las fichas (```hist en
+  `super-chino.md`) → 21 aristas totales:
+  - `sube_tarjeta` (at `calle`, pre `subeSeen`, sets `subeGot`): un **LINYERA te regala su tarjeta** (ellos
+    caminan / viajan de arriba). Se da vía `QUEST_DEFS.sube` (giver `oraculo`, primitiva `subeGive`) al chatear.
+  - `sube_carga` (at `super`, pre `subeGot`, sets `subeReady`, terminal): **cargás la SUBE** en el tótem ($10).
+  - Flags en localStorage (`ts_sube_seen/got/charged`, como el piquete) + item `sube` 💳 en el inventario. El
+    mapa marca ambas (⭐/🔒/✅ vía `historiaState`), fire de checkpoint + ticker. `ts_sube_charged` deja la
+    tarjeta lista para el VIAJE de F2.
 
 ## 3. Futuro (F2+, a diseñar con el dueño): METER el subte al juego
 
