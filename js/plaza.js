@@ -16,7 +16,7 @@ const Plaza = (() => {
     const player = { x: 0, y: 150, r: 9, dir: 1, walk: 0 };   // aparece por la boca de la Catedral (norte-abajo)
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, near = null, madreIdx = -1;
     // interiores: null | 'rosada' (control del satélite, lore/enemigo) | 'tumba' (San Martín → chip del Libertador)
-    let inside = null, ip = { x: 0, y: 130, dir: 1, walk: 0 }, iNear = null, termIdx = -1;
+    let inside = null, ip = { x: 0, y: 130, dir: 1, walk: 0 }, iNear = null, termIdx = -1, bellT = 0;
     const alreadyWon = !!opts.won2;
     let hasChip = alreadyWon;         // ¿tenés el CHIP AI DEL LIBERTADOR? (de la tumba). Requisito para armar la Pirámide.
     let armed = false, armT = 0, signalFx = 0, chipFx = 0;   // dispositivo de la Pirámide: armado → señal → victoria
@@ -31,6 +31,29 @@ const Plaza = (() => {
     const MADRE_R = 84;                            // radio de la ronda de las Madres alrededor de la Pirámide
     const madres = []; for (let i = 0; i < 12; i++) madres.push({ a: (i / 12) * Math.PI * 2, sp: 0.18 });
     const palomas = []; for (let i = 0; i < 16; i++) palomas.push({ x: (Math.random() - 0.5) * 380, y: (Math.random() - 0.5) * 320, ph: Math.random() * 6 });
+    // DRONES de la IA (chips voladores): patrullan la plaza. Si te tocan, te ATURDEN y empujan (NO letal — no perdés
+    // el chip). Al armar la Pirámide, la señal sanmartiniana los FRÍE. Las Madres son intocables (la IA no puede).
+    const drones = []; for (let i = 0; i < 3; i++) drones.push({ x: Math.cos(i * 2.1) * 150, y: Math.sin(i * 2.1) * 150, tx: 0, ty: 0, cd: 0, dead: false });
+    let stunT = 0;
+    function droneTarget(d) { const a = Math.random() * Math.PI * 2, r = 70 + Math.random() * 110; d.tx = Math.cos(a) * r; d.ty = Math.sin(a) * r; }
+    drones.forEach(droneTarget);
+    function updateDrones(dt) {
+      const rush = arming || armed || charge > 0.02;   // armando/armado → convergen a la Pirámide y se funden
+      for (const d of drones) {
+        if (d.dead) continue;
+        if (d.cd > 0) d.cd -= dt;
+        if (rush) { d.tx = 0; d.ty = 0; }
+        const dx = d.tx - d.x, dy = d.ty - d.y, dd = Math.hypot(dx, dy) || 1, spd = rush ? 72 : 34;
+        d.x += (dx / dd) * spd * dt; d.y += (dy / dd) * spd * dt;
+        if (rush) { if (Math.hypot(d.x, d.y) < 34) { d.dead = true; chipFx = 1; } continue; }   // la señal los fríe
+        if (dd < 8) droneTarget(d);
+        if (stunT <= 0 && d.cd <= 0 && Math.hypot(d.x - player.x, d.y - player.y) < 15) {   // te toca → stun + knockback
+          stunT = 0.7; d.cd = 2.4; setMsg(T('g.plaza.droneStun'), 3);
+          const kx = player.x - d.x, ky = player.y - d.y, kk = Math.hypot(kx, ky) || 1;
+          player.x += (kx / kk) * 30; player.y += (ky / kk) * 30; droneTarget(d);
+        }
+      }
+    }
     setMsg(T('g.plaza.enter'), 8);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
@@ -42,17 +65,21 @@ const Plaza = (() => {
       if (inside) return updateInside(dt);
       // SECUENCIA DE VICTORIA: armaste el dispositivo → la señal sube a los satélites → salís con la victoria
       if (armed) {
-        prompt = ''; signalFx = Math.min(1, signalFx + dt * 1.2); armT -= dt;
-        for (const m of madres) m.a += m.sp * dt;
+        prompt = ''; signalFx = Math.min(1, signalFx + dt * 1.2); armT -= dt; chipFx = Math.max(0, chipFx - dt * 3);
+        for (const m of madres) m.a += m.sp * dt; updateDrones(dt);
         if (armT <= 0) { exitTo = 'win2'; done = true; }
         return;
       }
+      chipFx = Math.max(0, chipFx - dt * 3);
       player.walk = 0;
+      if (stunT > 0) stunT -= dt;                       // aturdido por un dron → no te movés un toque
       const sp = 92 * dt; let mvx = 0, mvy = 0;
-      if (Input.keys['arrowleft'] || Input.keys['a']) mvx = -1;
-      if (Input.keys['arrowright'] || Input.keys['d']) mvx = 1;
-      if (Input.keys['arrowup'] || Input.keys['w']) mvy = -1;
-      if (Input.keys['arrowdown'] || Input.keys['s']) mvy = 1;
+      if (stunT <= 0) {
+        if (Input.keys['arrowleft'] || Input.keys['a']) mvx = -1;
+        if (Input.keys['arrowright'] || Input.keys['d']) mvx = 1;
+        if (Input.keys['arrowup'] || Input.keys['w']) mvy = -1;
+        if (Input.keys['arrowdown'] || Input.keys['s']) mvy = 1;
+      }
       if (mvx) player.dir = mvx;
       // no entrás a la Pirámide (centro) ni te vas de la plaza (radio máx)
       const nx = player.x + mvx * sp, ny = player.y + mvy * sp;
@@ -61,6 +88,7 @@ const Plaza = (() => {
       else if (rIn <= 30) { /* rebota en la Pirámide */ }
       else if (rIn >= 200) { player.x = nx * 0.99; player.y = ny * 0.99; }   // borde suave
       for (const m of madres) m.a += m.sp * dt;
+      updateDrones(dt);
       // ¿cerca de qué? (la Pirámide/dispositivo, la boca del subte, una Madre, un landmark)
       near = null;
       if (Math.hypot(player.x, player.y) < 44) near = { kind: 'piramide' };
@@ -104,6 +132,7 @@ const Plaza = (() => {
       if (near && near.kind === 'landmark') {
         if (near.L.id === 'catedral') { inside = 'tumba'; ip = { x: 0, y: 130, dir: 1, walk: 0 }; iNear = null; setMsg(T('g.plaza.tumbaEnter'), 8); return; }   // TUMBA DE SAN MARTÍN
         if (near.L.id === 'rosada') { inside = 'rosada'; ip = { x: 0, y: 130, dir: 1, walk: 0 }; iNear = null; setMsg(T('g.plaza.rosadaEnter'), 8); return; }  // control del satélite (lore)
+        if (near.L.id === 'cabildo') { inside = 'cabildo'; ip = { x: 0, y: 130, dir: 1, walk: 0 }; iNear = null; setMsg(T('g.plaza.cabildoEnter'), 8); return; }  // el Cabildo (1810, lore)
         setMsg(T('g.plaza.info.' + near.L.id), 7); return;
       }
       setMsg(T('g.plaza.hint'), 3);
@@ -112,6 +141,8 @@ const Plaza = (() => {
     const term = { x: 0, y: -90 };        // Casa Rosada: terminal del satélite al fondo
     const sarco = { x: 0, y: -8 };         // Tumba: el sarcófago de San Martín
     const chipPos = { x: 0, y: -44 };      // Tumba: el CHIP AI DEL LIBERTADOR (sobre el sarcófago, hacia la cabecera)
+    const bell = { x: 0, y: -78 };         // Cabildo: la campana de la torre
+    const balcon = { x: 0, y: 6 };         // Cabildo: el balcón de la Junta (25 de Mayo de 1810)
     function updateInside(dt) {
       chipFx = Math.max(0, chipFx - dt * 3);
       ip.walk = 0;
@@ -128,6 +159,10 @@ const Plaza = (() => {
         if (!hasChip && Math.hypot(ip.x - chipPos.x, ip.y - chipPos.y) < 34) iNear = 'chip';
         else if (Math.hypot(ip.x - sarco.x, ip.y - sarco.y) < 52) iNear = 'sarco';
         else if (ip.y > 138) iNear = 'salir';
+      } else if (inside === 'cabildo') {
+        if (Math.hypot(ip.x - bell.x, ip.y - bell.y) < 34) iNear = 'campana';
+        else if (Math.hypot(ip.x - balcon.x, ip.y - balcon.y) < 44) iNear = 'balcon';
+        else if (ip.y > 138) iNear = 'salir';
       } else {  // rosada
         if (Math.hypot(ip.x - term.x, ip.y - term.y) < 42) iNear = 'term';
         else if (ip.y > 138) iNear = 'salir';
@@ -138,9 +173,13 @@ const Plaza = (() => {
         else if (iNear === 'chip') { hasChip = true; chipFx = 1; setMsg(T('g.plaza.gotChip'), 10); if (typeof Sfx !== 'undefined' && Sfx.pick) Sfx.pick(); try { localStorage.setItem('ts_sanmartin_chip', '1'); } catch (e) {} }
         else if (iNear === 'sarco') { setMsg(T(hasChip ? 'g.plaza.sarcoGot' : 'g.plaza.sarco'), 8); }
         else if (iNear === 'term') { termIdx = (termIdx + 1) % 3; setMsg(T('g.plaza.term' + (termIdx + 1)), 8); }
-        else setMsg(T(inside === 'tumba' ? 'g.plaza.tumbaHint' : 'g.plaza.rosadaHint'), 4);
+        else if (iNear === 'campana') { bellT = 1.2; setMsg(T('g.plaza.cabildoBell'), 8); if (typeof Sfx !== 'undefined' && Sfx.blip) Sfx.blip(); }
+        else if (iNear === 'balcon') { setMsg(T('g.plaza.cabildoBalcon'), 8); }
+        else setMsg(T(inside === 'tumba' ? 'g.plaza.tumbaHint' : inside === 'cabildo' ? 'g.plaza.cabildoHint' : 'g.plaza.rosadaHint'), 4);
       } } else eHeld = false;
+      if (bellT > 0) bellT -= dt;
       if (inside === 'tumba') prompt = iNear === 'chip' ? T('g.plaza.promptChip') : iNear === 'sarco' ? T('g.plaza.promptSarco') : iNear === 'salir' ? T('g.plaza.promptSalir') : '';
+      else if (inside === 'cabildo') prompt = iNear === 'campana' ? T('g.plaza.promptCampana') : iNear === 'balcon' ? T('g.plaza.promptBalcon') : iNear === 'salir' ? T('g.plaza.promptSalir') : '';
       else prompt = iNear === 'term' ? T('g.plaza.promptTerm') : iNear === 'salir' ? T('g.plaza.promptSalir') : '';
     }
     // posición "mundo" de un landmark (en el anillo exterior, según su lado)
@@ -199,12 +238,20 @@ const Plaza = (() => {
         for (let i = 0; i < 3; i++) { g.fillStyle = i % 2 ? '#161b24' : '#1e2530'; g.fillRect(s.x - 10, s.y + 2 + i * 4, 20, 3); }
         g.fillStyle = '#00a54f'; g.beginPath(); g.arc(s.x - 9, s.y - 11, 7, 0, Math.PI * 2); g.fill(); g.fillStyle = '#fff'; g.font = 'bold 9px monospace'; g.textAlign = 'center'; g.fillText('D', s.x - 9, s.y - 8);
         g.fillStyle = hov ? '#7ff3ff' : '#8fd4e0'; g.font = 'bold 8px monospace'; g.fillText('🚇', s.x + 8, s.y - 8); }
+      // DRONES de la IA (chips voladores) — ojo rojo + hélices; convergen y se funden al armar
+      for (const d of drones) { if (d.dead) continue; const s = W2S(d.x, d.y);
+        g.fillStyle = 'rgba(0,0,0,0.22)'; g.beginPath(); g.ellipse(s.x, s.y + 7 * SC, 5 * SC, 2 * SC, 0, 0, Math.PI * 2); g.fill();
+        g.strokeStyle = 'rgba(180,190,200,0.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(s.x - 7 * SC, s.y - 4 * SC); g.lineTo(s.x + 7 * SC, s.y - 4 * SC); g.stroke();
+        g.fillStyle = 'rgba(200,210,220,0.3)'; for (const hx of [-7, 7]) { g.beginPath(); g.ellipse(s.x + hx * SC, s.y - 4 * SC, 3.6 * SC, 1.2 * SC, t * 20, 0, Math.PI * 2); g.fill(); }   // hélices
+        g.fillStyle = '#2a3140'; g.fillRect(s.x - 4 * SC, s.y - 3 * SC, 8 * SC, 7 * SC);   // cuerpo
+        g.fillStyle = Math.sin(t * 9 + d.x) > 0 ? '#ff3040' : '#a01820'; g.beginPath(); g.arc(s.x, s.y, 2 * SC, 0, Math.PI * 2); g.fill(); }   // ojo rojo
       // VOS
       { const s = W2S(player.x, player.y), sw = Math.sin(player.walk) * 2;
         g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(s.x, s.y + 9, 8, 3, 0, 0, Math.PI * 2); g.fill();
         g.fillStyle = '#3a3340'; g.fillRect(s.x - 4, s.y + 2, 3, 9 + sw); g.fillRect(s.x + 1, s.y + 2, 3, 9 - sw);
         g.fillStyle = '#4a3b2a'; g.fillRect(s.x - 7, s.y - 6, 14, 12); g.fillStyle = '#2a2018'; g.beginPath(); g.arc(s.x, s.y - 10, 6, 0, Math.PI * 2); g.fill();
         if (hasChip && !armed) { g.fillStyle = '#7CFC00'; g.fillRect(s.x - 2, s.y - 2, 4, 4); }   // llevás el chip encima
+        if (stunT > 0) { g.strokeStyle = 'rgba(255,80,80,' + (0.4 + Math.abs(Math.sin(t * 20)) * 0.4) + ')'; g.lineWidth = 2; g.beginPath(); g.arc(s.x, s.y - 4, 12, 0, Math.PI * 2); g.stroke(); }   // aturdido
         g.save(); g.translate(s.x + 5, s.y - 1); g.rotate(0.55); g.fillStyle = '#7a3b12'; g.fillRect(-3, -10, 6, 18); g.restore(); }   // la viola
       // header + prompt + msg
       g.fillStyle = '#0a0a0e'; g.fillRect(0, 0, VW, 26);
@@ -226,11 +273,12 @@ const Plaza = (() => {
       }
       drawFooter(g, VW, VH);
     }
-    // INTERIOR: 'tumba' (San Martín + chip) | 'rosada' (control del satélite, lore)
+    // INTERIOR: 'tumba' (San Martín + chip) | 'cabildo' (1810, lore) | 'rosada' (control del satélite, lore)
     function drawInside(g, VW, VH) {
       const cx = VW / 2, cy = VH / 2 + 20, SC = Math.min(VW, VH) / 380;
       const W2S = (wx, wy) => ({ x: cx + wx * SC, y: cy + wy * SC });
       if (inside === 'tumba') drawTumba(g, VW, VH, cx, cy, SC, W2S);
+      else if (inside === 'cabildo') drawCabildo(g, VW, VH, cx, cy, SC, W2S);
       else drawRosada(g, VW, VH, cx, cy, SC, W2S);
       // VOS (común a los dos interiores)
       { const s = W2S(ip.x, ip.y), sw = Math.sin((ip.walk || 0) * 6) * 2;
@@ -240,7 +288,7 @@ const Plaza = (() => {
         if (hasChip) { g.fillStyle = '#7CFC00'; g.fillRect(s.x - 2, s.y - 2, 4, 4); } }
       // header + footer
       g.fillStyle = '#0a0a0e'; g.fillRect(0, 0, VW, 26); g.fillStyle = '#ffd54f'; g.font = 'bold 12px monospace'; g.textAlign = 'left';
-      g.fillText((inside === 'tumba' ? '⚰️ ' : '🏛️ ') + T(inside === 'tumba' ? 'g.plaza.tumbaTitle' : 'g.plaza.rosadaTitle'), 10, 18);
+      g.fillText((inside === 'tumba' ? '⚰️ ' : inside === 'cabildo' ? '🔔 ' : '🏛️ ') + T(inside === 'tumba' ? 'g.plaza.tumbaTitle' : inside === 'cabildo' ? 'g.plaza.cabildoTitle' : 'g.plaza.rosadaTitle'), 10, 18);
       g.textAlign = 'right'; g.fillStyle = '#9be8a0'; g.font = '10px monospace'; g.fillText('WASD · [E] · Esc', VW - 10, 18);
       drawFooter(g, VW, VH);
     }
@@ -307,6 +355,33 @@ const Plaza = (() => {
       // puerta de SALIDA
       { const s = W2S(0, 150); g.fillStyle = '#3a2a22'; g.fillRect(s.x - 20, s.y - 4, 40, 16); g.fillStyle = iNear === 'salir' ? '#ffd54f' : '#c8a86a'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText('▼ ' + T('g.plaza.aLaPlaza'), s.x, s.y + 22); }
     }
+    // EL CABILDO (colonial): la recova de arcos, el balcón de la Junta y la campana de la torre — lore del 25 de Mayo de 1810
+    function drawCabildo(g, VW, VH, cx, cy, SC, W2S) {
+      g.fillStyle = '#14130f'; g.fillRect(0, 0, VW, VH);
+      g.fillStyle = '#2b2a22'; g.fillRect(cx - 165 * SC, cy - 130 * SC, 330 * SC, 300 * SC);   // patio de baldosas coloniales
+      for (let i = -3; i <= 3; i++) { g.strokeStyle = 'rgba(255,255,255,0.04)'; g.beginPath(); g.moveTo(cx + i * 42 * SC, cy - 130 * SC); g.lineTo(cx + i * 42 * SC, cy + 170 * SC); g.stroke(); }
+      // la RECOVA de arcos blancos al fondo (fila de arcos coloniales)
+      { const wy = -104; g.fillStyle = '#e7e2d4';
+        for (let i = -3; i <= 3; i++) { const s = W2S(i * 24, wy); g.fillRect(s.x - 9 * SC, s.y - 4 * SC, 18 * SC, 22 * SC);
+          g.fillStyle = '#2b2a22'; g.beginPath(); g.arc(s.x, s.y - 4 * SC, 7 * SC, Math.PI, 0); g.fill(); g.fillRect(s.x - 7 * SC, s.y - 4 * SC, 14 * SC, 18 * SC); g.fillStyle = '#e7e2d4'; } }
+      // la TORRE con la CAMPANA (arriba centro)
+      { const s = W2S(bell.x, bell.y), hov = iNear === 'campana', swing = Math.sin(t * 8) * (bellT > 0 ? 0.5 : 0.08);
+        g.fillStyle = '#d9d2bf'; g.fillRect(s.x - 12, s.y - 8, 24, 26);                          // el cuerpo de la torre
+        g.fillStyle = '#9a2f2a'; g.beginPath(); g.moveTo(s.x - 14, s.y - 8); g.lineTo(s.x, s.y - 20); g.lineTo(s.x + 14, s.y - 8); g.closePath(); g.fill();   // techo de teja
+        g.save(); g.translate(s.x, s.y + 2); g.rotate(swing);
+        g.fillStyle = hov ? '#ffe08a' : '#c8a53a'; g.beginPath(); g.moveTo(-6, 0); g.lineTo(6, 0); g.lineTo(4, 9); g.lineTo(-4, 9); g.closePath(); g.fill();   // la campana
+        g.fillStyle = '#7a5a20'; g.fillRect(-1, 8, 2, 3); g.restore();
+        if (bellT > 0) { g.strokeStyle = 'rgba(255,220,140,' + (bellT / 1.2 * 0.7) + ')'; g.lineWidth = 2; for (const rr of [16, 24]) { g.beginPath(); g.arc(s.x, s.y + 4, rr, 0, Math.PI * 2); g.stroke(); } }
+        if (hov) { g.strokeStyle = '#ffd54f'; g.lineWidth = 2; g.strokeRect(s.x - 15, s.y - 22, 30, 42); } }
+      // el BALCÓN de la Junta (centro) — donde se asomó el pueblo el 25 de Mayo
+      { const s = W2S(balcon.x, balcon.y), hov = iNear === 'balcon';
+        g.fillStyle = '#cec6b0'; g.fillRect(s.x - 26, s.y - 6, 52, 16);                          // base del balcón
+        g.fillStyle = '#8a7a52'; for (let i = -2; i <= 2; i++) g.fillRect(s.x + i * 10 - 1, s.y - 4, 2, 12);              // balaustres
+        g.fillStyle = '#74acdf'; g.fillRect(s.x - 20, s.y - 14, 40, 4); g.fillStyle = '#f4f4f4'; g.fillRect(s.x - 20, s.y - 10, 40, 3);   // escarapela/bandera colgada
+        g.strokeStyle = hov ? '#ffd54f' : 'rgba(0,0,0,0.35)'; g.lineWidth = hov ? 2 : 1; g.strokeRect(s.x - 26, s.y - 14, 52, 24); }
+      // puerta de SALIDA (abajo, a la plaza)
+      { const s = W2S(0, 150); g.fillStyle = '#3a3222'; g.fillRect(s.x - 20, s.y - 4, 40, 16); g.fillStyle = iNear === 'salir' ? '#ffd54f' : '#c8a86a'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText('▼ ' + T('g.plaza.aLaPlaza'), s.x, s.y + 22); }
+    }
     // caja de mensaje + prompt (compartida por plaza e interiores)
     function drawFooter(g, VW, VH) {
       let bottom = VH;
@@ -336,6 +411,7 @@ const Plaza = (() => {
       update, draw, get done() { return done; }, get exitTo() { return exitTo; },
       // superficies de test: tomar el chip en la tumba, armar la pirámide, salir
       get _dbg() { return { inside, hasChip, armed, iNear, near: near && near.kind, pz: { x: player.x, y: player.y }, ip: { x: ip.x, y: ip.y } }; },
+      __enter: (w) => { inside = w; ip = { x: 0, y: 60, dir: 1, walk: 0 }; iNear = null; return inside; },
       __chip: () => { inside = 'tumba'; ip = { x: chipPos.x, y: chipPos.y, dir: 1, walk: 0 }; iNear = 'chip'; hasChip = true; inside = null; return hasChip; },
       __arm: () => { hasChip = true; charge = 1; armed = true; armT = 3.6; return armed; },
       __leave: () => { player.x = bocaCatedral.x; player.y = bocaCatedral.y; near = { kind: 'boca' }; interact(); return done; },

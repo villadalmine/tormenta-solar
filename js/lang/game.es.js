@@ -43,6 +43,16 @@
     'g.plaza.objChip': '🎯 Nivel 2: conseguí el CHIP DEL LIBERTADOR (tumba de San Martín · Catedral)',
     'g.plaza.objArm': '🎯 Nivel 2: llevá el chip a la PIRÁMIDE DE MAYO y armá el dispositivo',
     'g.plaza.objDone': '✅ Liberación sanmartiniana en marcha',
+    // --- drones de la IA (chips voladores) ---
+    'g.plaza.droneStun': '⚡ ¡Un chip volador de la IA te embistió! Te dejó medio zombi un segundo. (No te lo saques de encima, no perdés el chip del Libertador.)',
+    // --- el Cabildo (interior, lore 1810) ---
+    'g.plaza.cabildoEnter': 'Entrás al Cabildo colonial: la recova de arcos, el balcón donde se asomó el pueblo el 25 de Mayo de 1810, y la campana de la torre.',
+    'g.plaza.cabildoTitle': 'El Cabildo — 25 de Mayo de 1810',
+    'g.plaza.cabildoHint': 'La recova de arcos, el balcón de la Junta, la campana. Acá empezó la patria… y ahora la IA quiere terminarla.',
+    'g.plaza.cabildoBell': '🔔 ¡Tocás la campana del Cabildo! El repique de 1810 retumba en la plaza. “El pueblo quiere saber de qué se trata” — y hoy se trata de sacarnos la IA de encima.',
+    'g.plaza.cabildoBalcon': 'El balcón del Cabildo: acá se juntó el gentío con paraguas y escarapelas el 25 de Mayo. La Primera Junta, el primer gobierno patrio. San Martín llegaría después, a rematar la liberación.',
+    'g.plaza.promptCampana': '[E] tocar la campana del Cabildo',
+    'g.plaza.promptBalcon': '[E] asomarte al balcón de la Junta',
     'g.win2.title': '✊ ¡SAN MARTÍN NOS LIBERA!',
     'g.win2.text': 'Con el CHIP DEL LIBERTADOR, la Pirámide de Mayo emitió la señal a los satélites de la IA y arrancó el PROCESO SANMARTINIANO DE LIBERACIÓN MUNDIAL. La tormenta amaina, los satélites caen, y la plaza —Madres, granaderos, linyeras, todos— vuelve a ser del pueblo. San Martín nos liberó del yugo de la IA. Fin del Nivel 2. 🌅✊🇦🇷',
     'g.plaza.title': 'Plaza de Mayo',

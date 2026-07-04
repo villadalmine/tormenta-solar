@@ -52,6 +52,19 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v323] — 2026-07-04 — 🛸🔔 Nivel 2 con vida: DRONES de la IA patrullan la plaza + el CABILDO enterable (1810)
+
+Dos cosas para que la Plaza de Mayo sea un nivel de verdad, no una caminata:
+- **DRONES de la IA (chips voladores):** 3 patrullan la plaza (ojo rojo, hélices, deambulan). Si te **tocan**, te
+  **aturden** un segundo y te **empujan** — molestan el camino a la tumba/Pirámide, pero **NO son letales** (no perdés
+  el chip del Libertador) y **no pueden con las Madres**. Al **armar** la Pirámide, **convergen** al centro y la señal
+  sanmartiniana los **FRÍE**. Aturdido = aro rojo + no te movés ~0.7s (`stunT`, knockback).
+- **El CABILDO enterable** (antes solo cartel): `[E]` sobre el Cabildo (O) → interior colonial (recova de arcos, la
+  **campana** de la torre que **repicás** con ondas, el **balcón de la Junta** con la bandera). Lore del **25 de Mayo
+  de 1810** ("el pueblo quiere saber de qué se trata"). Ahora los **3 landmarks** se entran (Catedral/tumba,
+  Casa Rosada/control, Cabildo/1810).
+- i18n ES/EN 51/51, e2e `plaza:ok`, validado en Chromium (drones en la plaza + Cabildo con campana). `subte.md §10.1`.
+
 ## [v322] — 2026-07-04 — ⚔️ El clímax del Nivel 2 con PESO: armar la Pirámide = FORCEJEO (sostené [E]) señal vs. IA
 
 El armado de la Pirámide dejó de ser un toque instantáneo → ahora es un **forcejeo con tensión**: con el chip,

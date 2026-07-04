@@ -186,6 +186,10 @@ Martín nos libera del yugo de la IA."*
    Nivel 2** (`ts_nivel2_win`, tel `win/nivel2`, tema San Martín). Sin el chip: `needChip` (te manda a la tumba).
 4. **Casa Rosada** (interior `inside='rosada'`): pasa a ser **enemigo/lore** — el CONTROL DEL SATÉLITE tomado. Ya
    NO se apaga a mano; la lore (`term1-3`) apunta al chip del Libertador y la señal de la Pirámide.
+   **Cabildo** (interior `inside='cabildo'`, v323): recova de arcos + **campana** repicable (`bellT`) + **balcón de
+   la Junta**, lore del 25 de Mayo de 1810. Los 3 landmarks ya son enterables (tumba/control/cabildo).
+   **DRONES de la IA** (v323): 3 chips voladores patrullan la plaza (`updateDrones`); te tocan → `stunT`+knockback (no
+   letal, no perdés el chip); al armar convergen al centro y la señal los funde (`dead`). Las Madres son intocables.
 5. **Desacople del datacenter:** el requisito de la victoria es el CHIP (personal), **no** el datacenter comunitario
    global — así el jugador siempre puede cerrar el Nivel 2 (el datacenter D1 sigue siendo su feature aparte).
 

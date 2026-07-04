@@ -42,6 +42,16 @@
     'g.plaza.objChip': '🎯 Level 2: get the LIBERATOR\'S CHIP (San Martín\'s tomb · Cathedral)',
     'g.plaza.objArm': '🎯 Level 2: take the chip to the PIRÁMIDE DE MAYO and arm the device',
     'g.plaza.objDone': '✅ San Martín liberation underway',
+    // --- AI drones (flying chips) ---
+    'g.plaza.droneStun': '⚡ An AI flying chip rammed you! Left you dazed for a second. (Shake it off — you don\'t lose the Liberator\'s chip.)',
+    // --- the Cabildo (interior, 1810 lore) ---
+    'g.plaza.cabildoEnter': 'You step into the colonial Cabildo: the arcade of arches, the balcony where the people gathered on May 25th 1810, and the tower bell.',
+    'g.plaza.cabildoTitle': 'The Cabildo — May 25th 1810',
+    'g.plaza.cabildoHint': 'The arcade of arches, the Junta\'s balcony, the bell. The nation began here… and now the AI wants to end it.',
+    'g.plaza.cabildoBell': '🔔 You ring the Cabildo bell! The 1810 peal echoes across the plaza. “The people want to know what this is about” — and today it\'s about shaking off the AI.',
+    'g.plaza.cabildoBalcon': 'The Cabildo balcony: this is where the crowd gathered with umbrellas and cockades on May 25th. The First Junta, the first patriot government. San Martín would come later, to finish the liberation.',
+    'g.plaza.promptCampana': '[E] ring the Cabildo bell',
+    'g.plaza.promptBalcon': '[E] step onto the Junta\'s balcony',
     'g.win2.title': '✊ SAN MARTÍN FREES US!',
     'g.win2.text': 'With the LIBERATOR\'S CHIP, the Pirámide de Mayo beamed the signal to the AI\'s satellites and launched the SAN MARTÍN PROCESS OF WORLDWIDE LIBERATION. The storm eases, the satellites fall, and the plaza —Mothers, grenadiers, bums, everyone— belongs to the people again. San Martín freed us from the yoke of the AI. End of Level 2. 🌅✊🇦🇷',
     'g.plaza.title': 'Plaza de Mayo',
