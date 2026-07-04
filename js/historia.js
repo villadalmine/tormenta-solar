@@ -572,6 +572,34 @@ const Historia = {
         ]
       },
       "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "plaza_llegada",
+      "title": "Llegar a Plaza de Mayo (el Nivel 2)",
+      "title_en": "Reach Plaza de Mayo (Level 2)",
+      "at": "lavalle",
+      "pre": {
+        "sateliteHerido": true
+      },
+      "sets": {
+        "enPlaza": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Con el satélite herido, la muchachada te manda a la Casa Rosada… ¿cómo llegás?",
+          "Apareció una boca de subte en el piquete: bajá y viajá.",
+          "En el piquete hay una BOCA DE SUBTE (Línea C). Bajá, viajá hasta CATEDRAL y salís en Plaza de Mayo.",
+          "¡Bajá al SUBTE en el piquete, viajá a CATEDRAL (Línea D) y aparecés en PLAZA DE MAYO — el Nivel 2!"
+        ],
+        "en": [
+          "With the satellite wounded, the crowd sends you to the Casa Rosada… how do you get there?",
+          "A subte entrance appeared in the picket: go down and travel.",
+          "There's a SUBTE ENTRANCE in the picket (Line C). Go down, ride to CATEDRAL and come up at Plaza de Mayo.",
+          "Take the SUBTE at the picket, ride to CATEDRAL (Line D) and you arrive at PLAZA DE MAYO — Level 2!"
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
     }
   ]
 };

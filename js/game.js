@@ -683,7 +683,7 @@
   function enterPlaza() {
     if (typeof Plaza === 'undefined' || !Plaza.create) return false;
     plazaGame = Plaza.create({}); state = 'plaza';
-    if (typeof applyEdge === 'function') { /* futuro: applyEdge('plaza_llegada') cuando exista la arista */ }
+    applyEdge('plaza_llegada', 'enPlaza');   // GRAFO F4c: hito reconocido → map + checkpoint + ticker
     evlog('hito', 'llegó a Plaza de Mayo');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
@@ -1024,6 +1024,7 @@
     // QUEST DE LA TARJETA SUBE (specs/subte.md §2.6): flags en localStorage (como el piquete, sobreviven loops)
     subeGot:          v => { try { localStorage.setItem('ts_sube_got', v ? '1' : ''); } catch (e) {} },
     subeReady:        v => { try { localStorage.setItem('ts_sube_charged', v ? '1' : ''); } catch (e) {} },
+    enPlaza:          v => { try { localStorage.setItem('ts_en_plaza', v ? '1' : ''); } catch (e) {} },
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1070,6 +1071,7 @@
       subeSeen: lsFlag('ts_sube_seen'),
       subeGot: lsFlag('ts_sube_got'),
       subeReady: lsFlag('ts_sube_charged'),
+      enPlaza: lsFlag('ts_en_plaza'),
       sleptOnce: loopCount > 0,
     };
   }
@@ -3888,6 +3890,7 @@
         juramento:   () => { lsOn('ts_juramento'); return 'Juramento hecho (barricada abierta)'; },
         satelite:    () => { lsOn('ts_juramento'); lsOn('ts_obelisco_visto'); lsOn('ts_sat_down'); return 'Satélite herido — la boca del subte ya está en el piquete (o usá "Bajar al subte YA")'; },
         subteYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sube_seen'); lsOn('ts_sube_got'); lsOn('ts_sube_charged'); addItem('sube'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterSubte('lavalle', 'street'); return 'Bajaste a la estación Lavalle 🚇'; },
+        plazaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterPlaza(); return 'Fuiste a PLAZA DE MAYO 🏛️'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

@@ -52,6 +52,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v319] — 2026-07-04 — 🏛️ Plaza de Mayo al GRAFO (F4c) + botón debug directo
+
+- **Arista `plaza_llegada`** (grafo, 22 aristas): pre `sateliteHerido`, sets `enPlaza`, terminal. Al llegar a la
+  Plaza (`enterPlaza`) se aplica → **hito reconocido**: lo marca el mapa, dispara checkpoint + ticker del cine, y
+  el HintEngine lo guía ("bajá al subte del piquete → Catedral → Plaza de Mayo"). `enPlaza` en localStorage
+  (`ts_en_plaza`), FLAG_SETTERS + historiaState + e2e allDone.
+- **Botón debug «🏛️ Ir a PLAZA DE MAYO YA»**: entra directo a la plaza (para el playtest). El subte quedó con
+  arco completo F1-F4 + reconocido por el grafo.
+
 ## [v318] — 2026-07-04 — 🏛️ PLAZA DE MAYO (F4, circular) + FIX boca (fuera de la cola) + marcador del mapa + Obelisco
 
 Arranque del NIVEL 2, con la idea del dueño (círculo > recta). SDD `subte.md §10`.

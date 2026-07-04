@@ -162,4 +162,4 @@ que en línea recta."*
   en Plaza de Mayo. Es el **arranque del NIVEL 2** (otra zona de la ciudad; el subte es el conector — subte.md §7).
 - **F4 fases:** F4a = la POSTAL circular (caminás, ves los landmarks + las Madres, chateás con una Madre/persona
   nueva) · F4b = Catedral como destino de viaje (unlock por `sateliteHerido`) · F4c = engancharlo al grafo
-  (`plaza_llegada`) y abrir el contenido del Nivel 2.
+  (`plaza_llegada`) ✅ (v319: arista en el grafo, hito reconocido, botón debug) y abrir el CONTENIDO del Nivel 2 (pendiente).
