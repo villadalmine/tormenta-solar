@@ -72,6 +72,9 @@ const Lavalle = (() => {
       if (typeof Sfx !== 'undefined') { if (Sfx.setCumbia) Sfx.setCumbia(false); if (Sfx.setMarcha) Sfx.setMarcha(true); }
       for (let y = 0; y <= 3; y++) for (let x = 8; x <= 10; x++) map[y][x] = 0;   // E2: el HUECO se abre DE VERDAD (colisión) → podés subir al Obelisco
     }
+    // si YA juraste (flag persistido / debug): arrancás EN FIESTA con el hueco YA abierto → subís directo al
+    // Obelisco sin re-jurar. (Antes: juramento seteado pero fiesta=false → el hueco no se abría y no pasabas.)
+    if (opts.juramento) { fiesta = true; fiestaT = 3; for (let y = 0; y <= 3; y++) for (let x = 8; x <= 10; x++) map[y][x] = 0; if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(true); }
 
     function update(dt) {
       t += dt; msgT -= dt; if (fiesta) fiestaT += dt;

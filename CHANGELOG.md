@@ -52,6 +52,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v316] — 2026-07-04 — 🐛 FIX: con el juramento hecho, el piquete arranca EN FIESTA (el corte abierto)
+
+Playtest (con el debug): "marco piquete ganado + juramento y no me deja pasar — ¿será porque no derribé el
+satélite?". No: el bloqueo era otro. `startFiesta()` abre el HUECO del corte en el mapa de colisión; con el flag
+`ts_juramento` seteado pero sin llamar a `startFiesta`, el hueco NO se abría → no podías subir. Fix: si ya
+juraste (`opts.juramento`), Lavalle arranca **en fiesta con el hueco abierto** → subís derecho al Obelisco sin
+re-jurar (`js/lavalle.js`). Confirmado con el debug (piquete+juramento → cruzás al toque). *(El satélite se pelea
+DESPUÉS, en el Obelisco — no bloquea el cruce.)*
+
 ## [v315] — 2026-07-04 — 🚇 La estación de Florida BIEN VISIBLE en el mapa (marcador etiquetado + estaciones ✓/🔒)
 
 Playtest: "no veo en el mapa de Florida y Lavalle la estación Florida". El badge era muy chico.
