@@ -459,7 +459,7 @@
     'g.globo.satAi': 'IA rebelde (desató la tormenta)',
     'g.piquete.reward': '🎁 sumaste {item} al inventario · 🌸 +2 flores',
     'g.piquete.allWon': '¡Ganaste los 5! Se abrió la barricada — subí al hueco del corte (arriba, centro) ✊',
-    'g.wpn.chori': 'Choripán', 'g.wpn.palo': 'Palo', 'g.wpn.mortero': 'Mortero', 'g.wpn.molotov': 'Molotov', 'g.wpn.sube': 'Tarjeta SUBE 💳',
+    'g.wpn.chori': 'Choripán', 'g.wpn.fernet': 'Fernet con Coca 🥤', 'g.wpn.palo': 'Palo', 'g.wpn.mortero': 'Mortero', 'g.wpn.molotov': 'Molotov', 'g.wpn.sube': 'Tarjeta SUBE 💳',
     'g.lavalle.introOpen': 'El corte te reconoce: ganaste todos los juegos y la barricada se ABRIÓ DE PUNTA A PUNTA. Caminá para ARRIBA (hacia el Obelisco) — cruzás por donde quieras. ✊',
     'g.lavalle.pass': 'AL OBELISCO',
     'g.lavalle.oathHint': '[E] pasar — jurarle lealtad al General ✊',

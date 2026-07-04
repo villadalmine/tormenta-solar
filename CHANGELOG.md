@@ -56,6 +56,21 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v329] — 2026-07-04 — 🔄 FIX "REINTENTAR no resetea" + más inventario (fernet/mortero) + landing /tech al día
+
+- **FIX del dueño: "REINTENTAR" (tras ganar el Nivel 2) no reseteaba** — heredaba los hitos/flags que había puesto
+  por debug. Causa: `reset()` limpiaba el estado en memoria pero NO los flags PERSISTIDOS en localStorage
+  (`ts_sat_down`, `ts_nivel2_win`, `ts_piqueteWon`, checkpoint `ts_checkpoint_v1`, etc.). Fix: `clearProgress()` en
+  `start()` (ENTRAR/REINTENTAR) borra TODO el progreso `ts_*` y **conserva settings** (idioma, nick, debug, HARDCORE,
+  **suscripción**, engine, tracker, ayuda). CONTINUAR / ⏪ volver-al-hito NO limpian (usan `restore`). Validado en
+  Chromium (progreso→null, settings intactos).
+- **Inventario F2 — más ítems usables (data):** **Fernet con Coca 🥤** (premio de "pintar la pancarta" → +25 vida) y
+  el **Mortero 🎆** (premio de "bombo" → `kind:'ammo'`, +25 munición al prenderlo). Ya son 3 consumibles usables
+  desde [I] (chori/fernet/mortero) + la consola, todos efecto DATA. La pancarta dejó de dar `palo` (duplicado).
+- **Landing `/tech`** (ES+EN): 2 capas nuevas — **Construcción colaborativa** (El Tablón + Datacenter, estado global,
+  PVC, consumo-en-lectura, cron+IA, temporadas) y **Truco criollo real** (motor puro testeado + PvP 1v1/3v3
+  server-side host-autoritativo). i18n ES/EN, e2e OK.
+
 ## [v328] — 2026-07-04 — 🧯 FIX CRÍTICO "SE CUELGA": el loop nunca más se congela + Inventario F2 (ítems usables)
 
 **El bug que frustró al dueño (no llegaba a Plaza de Mayo, "se cuelga"):** el game-loop tenía el

@@ -455,7 +455,7 @@
     'g.globo.satAi': 'rebel AI (unleashed the storm)',
     'g.piquete.reward': '🎁 got {item} for your inventory · 🌸 +2 flowers',
     'g.piquete.allWon': 'You won all 5! The blockade opened — go up to the gap (top center) ✊',
-    'g.wpn.chori': 'Choripán', 'g.wpn.palo': 'Stick', 'g.wpn.mortero': 'Mortar', 'g.wpn.molotov': 'Molotov', 'g.wpn.sube': 'SUBE card 💳',
+    'g.wpn.chori': 'Choripán', 'g.wpn.fernet': 'Fernet & Coke 🥤', 'g.wpn.palo': 'Stick', 'g.wpn.mortero': 'Mortar', 'g.wpn.molotov': 'Molotov', 'g.wpn.sube': 'SUBE card 💳',
     'g.lavalle.introOpen': 'The picket knows you: you won all the games and the blockade OPENED END TO END. Just walk UP (toward the Obelisk) — cross wherever you want. ✊',
     'g.lavalle.pass': 'TO THE OBELISK',
     'g.lavalle.oathHint': '[E] cross — swear loyalty to the General ✊',

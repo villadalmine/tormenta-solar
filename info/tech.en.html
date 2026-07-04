@@ -316,6 +316,34 @@
     </div>
 
     <div class="layer">
+      <div class="n">🧱</div>
+      <div class="body">
+        <h3>Collaborative building — the neighborhood builds together (global state)</h3>
+        <p>Two features where players <b>actually build something shared</b>, persisted on the server (PVC disk):
+        <b>The Board</b> — you leave a short note that lives on the server until <b>ANOTHER player reads it</b>, and then
+        it's gone (consume-on-read, à la <i>Death Stranding</i>); and the <b>community Datacenter</b> — a <b>single
+        GLOBAL state</b> everyone contributes parts to until it's complete, with <b>seasons</b> and an endgame cutscene.
+        Backend in the same proxy (on-disk bank, quotas + rate-limit + censoring) plus an <b>AI cron</b> that also
+        contributes content. All <b>additive</b>: with no network, the game runs the same.</p>
+        <div class="tagrow"><span>global state</span><span>PVC persistent</span><span>consume-on-read</span><span>cron + AI</span><span>seasons</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="n">🃏</div>
+      <div class="body">
+        <h3>Real criollo truco — a pure, tested engine, and human PvP</h3>
+        <p>Truco isn't just any mini-game: it's a <b>pure engine</b> (no global state, 100% functions) with envido,
+        flor, truco/retruco and the sung <b>calls</b>, covered by <b>tests</b> (hundreds of unbiased games). And it's
+        played <b>1v1 and 6-player (3v3) against other humans</b>: <b>matchmaking runs on the server</b> (real tables,
+        not fragile P2P), the match runs <b>host-authoritative</b> over the same lounge transport, and each player's
+        <b>views don't reveal</b> the opponent's hand. With the 3v3 <b>house rule</b> and AI bots filling any empty
+        seats.</p>
+        <div class="tagrow"><span>pure engine + tests</span><span>1v1 &amp; 3v3 human</span><span>server-side tables</span><span>host-authoritative</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
       <div class="n">🤖</div>
       <div class="body">
         <h3>Stories and quests as DATA — a graph, not a hardcoded script</h3>

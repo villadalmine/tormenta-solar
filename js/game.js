@@ -790,9 +790,10 @@
     consola:    { id: 'consola',    emoji: '🎮', label: 'g.wpn.consola', use: { kind: 'fn', fn: 'useConsola' } },
     // ITEMS DE PIQUETE (premios de los mini-juegos co-op de Lavalle). F2 (specs/inventario-armas.md §F2): el CHORIPÁN
     // es COMIDA → "usar" desde [I] te cura (efecto DATA-driven kind:'heal') y se CONSUME. Los demás quedan de flavor.
-    chori:      { id: 'chori',      emoji: '🌭', label: 'g.wpn.chori',   use: { kind: 'heal', amount: 30 } },
+    chori:      { id: 'chori',      emoji: '🌭', label: 'g.wpn.chori',   use: { kind: 'heal', amount: 30 } },   // olla → comida (+vida)
+    fernet:     { id: 'fernet',     emoji: '🥤', label: 'g.wpn.fernet',  use: { kind: 'heal', amount: 25 } },   // pancarta → Fernet con Coca (+vida)
+    mortero:    { id: 'mortero',    emoji: '🎆', label: 'g.wpn.mortero', use: { kind: 'ammo', amount: 25 } },    // bombo → prendés el mortero (+munición)
     palo:       { id: 'palo',       emoji: '🏏', label: 'g.wpn.palo',    noEquip: true },
-    mortero:    { id: 'mortero',    emoji: '🎆', label: 'g.wpn.mortero', noEquip: true },
     molotov:    { id: 'molotov',    emoji: '🧨', label: 'g.wpn.molotov', noEquip: true },
     // TARJETA SUBE (quest del subte, specs/subte.md §2.6): coleccionable; la cargás en el tótem del chino.
     sube:       { id: 'sube',       emoji: '💳', label: 'g.wpn.sube',    noEquip: true },
@@ -3782,7 +3783,7 @@
       if (pancaGame.done) {
         const res = pancaGame.result; pancaGame = null;
         lavalleSpawn = { x: 13.5, y: 9.6 };
-        const m = T(res === 'win' ? 'g.pancarta.won' : res === 'lose' ? 'g.pancarta.lost' : 'g.pancarta.left') + pReward(res, 'pancarta', 'palo');
+        const m = T(res === 'win' ? 'g.pancarta.won' : res === 'lose' ? 'g.pancarta.lost' : 'g.pancarta.left') + pReward(res, 'pancarta', 'fernet');
         if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'trucopvp6' && truco6Game) {
@@ -3823,8 +3824,18 @@
       if (running) requestAnimationFrame(loop);   // SIEMPRE re-agenda (salvo game-over que pone running=false)
     }
   }
+  // borra el PROGRESO persistido (flags de historia/quests, piquete, subte, Nivel 2, mapa visitado, búnker, checkpoints)
+  // para arrancar una partida NUEVA de cero. CONSERVA settings/prefs: idioma, nick, debug, hardcore, SUSCRIPCIÓN, engine,
+  // config, tracker, ayuda. Fix del dueño: "REINTENTAR" tras ganar el Nivel 2 no reseteaba (heredaba los hitos/flags de debug).
+  const KEEP_ON_RESET = new Set(['ts_config', 'ts_debug', 'ts_engine', 'ts_hardcore', 'ts_lang', 'ts_nick', 'ts_nick_sfx', 'ts_sid', 'ts_sub_code', 'ts_ui_tracker', 'ts_ayuda_facil']);
+  function clearProgress() {
+    try { for (const k of Object.keys(localStorage)) if (/^ts_/.test(k) && !KEEP_ON_RESET.has(k)) localStorage.removeItem(k); } catch (e) {}
+    try { if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear(); } catch (e) {}
+    visitedRooms = new Set([0]);
+  }
   function start() {
     if (typeof Eventos !== 'undefined' && Eventos.sync) Eventos.sync(playerNick());   // memoria del barrio cross-device (F4d+)
+    clearProgress();   // partida NUEVA de cero (ENTRAR / REINTENTAR): borra el progreso persistido, conserva settings
     reset();
     sessStart = (typeof performance !== 'undefined' ? performance.now() : Date.now()); sessChats = 0; sessTrucoW = 0; sessTrucoL = 0;
     tel('session', { engine: engineUsed, lang: (typeof I18n !== 'undefined' && I18n.short) ? I18n.short() : 'es' });   // ¿cuántos en v1 vs v2?
