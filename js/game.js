@@ -3844,6 +3844,39 @@
       hc.addEventListener('click', () => { try { localStorage.setItem('ts_hardcore', isHardcore() ? '' : '1'); } catch (e) {} refresh(); });
     }
     syncCheckpoint();   // F3: en la INTRO — dispositivo nuevo con tu nick → baja el checkpoint y aparece CONTINUAR
+    // 🐛 TAB DEBUG (specs/debug-tab.md): botones que setean flags para saltar a un estado sin jugar todo.
+    // Oculto salvo ts_debug (botón 🐛) o ?debug=1. Registro DATA: cada acción setea flags/player que el juego YA entiende.
+    (function () {
+      const wrap = document.getElementById('opt-debug-wrap'), toggle = document.getElementById('opt-debug-toggle'), dmsg = document.getElementById('opt-debug-msg');
+      if (!wrap || !wrap.querySelectorAll || !wrap.classList) return;   // headless/e2e: sin DOM real → no-op
+      const lsOn = k => { try { localStorage.setItem(k, '1'); } catch (e) {} };
+      const on = () => { try { return localStorage.getItem('ts_debug') === '1' || /[?&]debug=1/.test(location.search); } catch (e) { return false; } };
+      const say = t => { if (dmsg) dmsg.textContent = t; };
+      const DEBUG_ACTIONS = {
+        piquete:     () => { try { localStorage.setItem('ts_piqueteWon', JSON.stringify({ corte: 1, soga: 1, bombo: 1, olla: 1, pancarta: 1 })); localStorage.setItem('ts_piq_campeon', '1'); } catch (e) {} return 'Piquete: 5/5 juegos ganados'; },
+        juramento:   () => { lsOn('ts_juramento'); return 'Juramento hecho (barricada abierta)'; },
+        satelite:    () => { lsOn('ts_juramento'); lsOn('ts_obelisco_visto'); lsOn('ts_sat_down'); return 'Satélite herido → entrá al Obelisco y salís a la estación Lavalle'; },
+        tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
+        bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
+        chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },
+        subeSeen:    () => { lsOn('ts_sube_seen'); return 'Tótem SUBE visto (arrancó la quest de la tarjeta)'; },
+        subeGot:     () => { lsOn('ts_sube_got'); if (player) addItem('sube'); return 'Tenés la tarjeta SUBE 💳 (si estás en partida)'; },
+        subeCharged: () => { lsOn('ts_sube_got'); lsOn('ts_sube_charged'); if (player) addItem('sube'); return 'SUBE cargada (pasás los molinetes)'; },
+        rico:        () => { if (!player) return 'empezá una partida primero'; player.coins = (player.coins || 0) + 100; player.caramelos = (player.caramelos || 0) + 50; syncHud(); return '+100 🪙  +50 🍬'; },
+        vida:        () => { if (!player) return 'empezá una partida primero'; player.hp = MAXHP; player.alive = true; syncHud(); return 'Vida full'; },
+        viola:       () => { if (!player) return 'empezá una partida primero'; addItem('viola'); return 'Viola 🎸 al inventario'; },
+        mapa:        () => { if (!rooms) return 'empezá una partida primero'; for (let i = 0; i < rooms.length; i++) visitedRooms.add(i); saveVisited(); return 'Mapa: todas las salas marcadas visitadas'; },
+        wipe:        () => { try { if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear(); for (const k of Object.keys(localStorage)) if (/^ts_/.test(k) && k !== 'ts_debug' && k !== 'ts_nick' && k !== 'ts_nick_sfx' && k !== 'ts_lang') localStorage.removeItem(k); } catch (e) {} return 'Partida + flags borrados (recargá o Restablecer)'; },
+      };
+      const refreshVis = () => wrap.classList.toggle('hidden', !on());
+      refreshVis();
+      if (toggle) toggle.addEventListener('click', () => { try { localStorage.setItem('ts_debug', on() ? '' : '1'); } catch (e) {} refreshVis(); });
+      const btns = wrap.querySelectorAll('[data-dbg]');
+      if (btns && btns.forEach) btns.forEach(btn => btn.addEventListener('click', () => {
+        const fn = DEBUG_ACTIONS[btn.getAttribute('data-dbg')];
+        if (fn) { try { say('✓ ' + fn()); } catch (e) { say('✗ ' + e.message); } }
+      }));
+    })();
   })();
 
   // API mínima para la capa de guardado (js/save.js). El estado sigue privado: solo exponemos

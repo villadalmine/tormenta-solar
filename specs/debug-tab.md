@@ -1,6 +1,7 @@
 # SDD — TAB DEBUG en ⚙ Opciones (desbloquear acciones para probar sin jugar todo)
 
-- **Estado:** **Diseño (marcado por el dueño, 2026-07-04).** Sin implementar.
+- **Estado:** ✅ **IMPLEMENTADO (v313, 2026-07-04).** Pestaña 🐛 oculta en ⚙ (botón dev / `?debug=1`) con 14
+  botones que setean flags para saltar a un estado. `DEBUG_ACTIONS` en game.js (data-driven). Verificado.
 - **La idea (dueño):** *"¿puede haber un tab debug en el setting, solo por ahora, para que algunas acciones se
   desbloqueen — por ejemplo la del piquete? ¿y cuál más puede ser?"*
 - **Para qué:** llegar a un estado del juego SIN jugar los 20 minutos hasta ahí (playtest del dueño, y sirve al

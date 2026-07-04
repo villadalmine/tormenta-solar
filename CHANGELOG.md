@@ -52,6 +52,17 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v313] — 2026-07-04 — 🐛 TAB DEBUG en ⚙ (oculto): saltar a cualquier estado sin jugar todo
+
+Para playtest/iteración (pedido del dueño). Pestaña **🐛 DEBUG** en ⚙ Opciones, **oculta** salvo `?debug=1` o el
+botón 🐛 (queda en `ts_debug`) → no le aparece a un jugador normal. 14 botones (`DEBUG_ACTIONS`, data-driven):
+- **Historia:** piquete ganado · juramento · **satélite herido → estación Lavalle** · tormenta · búnker · chino.
+- **Subte:** ver tótem SUBE · tengo la tarjeta 💳 · SUBE cargada ✓ (pasás los molinetes).
+- **Recursos:** +100🪙+50🍬 · vida full · dar la viola 🎸.
+- **Utilidad:** marcar todo el mapa visitado · BORRAR partida + flags.
+Reusa los flags de localStorage/player que el juego YA entiende (aditivo, sin lógica nueva). Los que tocan
+`player`/`rooms` se guardan si no hay partida. `specs/debug-tab.md`.
+
 ## [v312] — 2026-07-04 — 🚇 F2: LA ESTACIÓN de subte (Florida) + Lavalle aparece tras el Obelisco
 
 - **`js/subte.js`** — sub-modo de la estación (top-down, patrón telo/bodegón): escalera (salida) → **molinetes que
