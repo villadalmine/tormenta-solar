@@ -13,11 +13,18 @@ El juego es 100% estático; se publica en
 
 ## 🔭 QUÉ FALTA — tracker (actualizado 2026-07-04; lo hecho vive en las entradas de abajo)
 
-> **Cerrado hace poco (v321-327):** el **NIVEL 2 completo** (subte → Plaza de Mayo → tumba de San Martín → chip →
+> **Cerrado hace poco (v321-329):** el **NIVEL 2 completo** (subte → Plaza de Mayo → tumba de San Martín → chip →
 > drones de la IA → forcejeo en la Pirámide → cinemática de liberación mundial), **integrado al GRAFO + mapa +
 > grounding** (los oráculos saben del Nivel 2); **fixes de playtest** (cruce del piquete foolproof, subte sin-trampa,
-> subte del mapa sin solaparse); **mapa pulido** (cursor por teclado + minimapa HUD + online por sala). Landing `/info`
-> con cards del Nivel 2 + multijugador (falta `/tech`).
+> subte del mapa sin solaparse); **mapa pulido** (cursor por teclado + minimapa HUD + online por sala); **`/info`+`/tech`
+> al día**; **Inventario F2** (ítems usables data-driven: chori/fernet/mortero). **🧯 DOS FIXES CRÍTICOS de "se cuelga":**
+> (v328) el game-loop no re-agendaba el `requestAnimationFrame` cuando una transición hacía `return` → ahora va en
+> **try/finally** (nunca más se congela); (v329) **REINTENTAR** ahora **resetea de verdad** (`clearProgress()` borra el
+> progreso `ts_*`, conserva settings/suscripción).
+>
+> **▶ RETOMAR MAÑANA:** el Nivel 2 ya se juega de punta a punta (validado en Chromium). Próximos self-contained (elegir):
+> **truco contraflor 3v3**, **más ítems de inventario** (llave/boleto con `kind` nuevos), **pulir `/info` intro** con el
+> Nivel 2. Playtest del dueño pendiente: recorrer el Nivel 2 completo + REINTENTAR limpio.
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -35,12 +42,15 @@ El juego es 100% estático; se publica en
 - **Corte de escena a Garbarino (v230)** y **regla de la casa del truco 3v3 (v241)**: nunca validados.
 
 ### 💻 Listo para codear cuando el dueño diga "dale" (self-contained, sin infra)
-- **Landing `/tech`** (`landing-info.md`, fuente `features-showcase.md`): la página "cómo funciona el stack" está
-  vieja — NO menciona subte/Nivel 2/multijugador/construcción colaborativa/seguridad/deploy Argo. `/info` (index) ya
-  tiene las cards nuevas (v321/v325); falta `tech.html`+`tech.en.html` (ES/EN). **Recomendado siguiente.**
-- **Inventario F2** (`inventario-armas.md §F2`): ítems NO-arma con acción "usar" (curar/comida/llave/boleto) como
-  DATOS (registro `ITEMS`), [I] equipar arma / usar ítem. Extiende un sistema que ya existe.
-- **Truco**: contraflor en el 3v3; F4 tabla de skill (opcional).
+- **Truco**: contraflor en el 3v3; F4 tabla de skill (opcional). **Recomendado siguiente** (cierra una regla del truco).
+- **Inventario F2 — más ítems** (`inventario-armas.md §F2`): el sistema `use:{kind}` ya anda (heal/ammo/fn); faltan
+  kinds nuevos con fuente: **llave** (abre una puerta gateada), **boleto** (viaje gratis), buffs temporales.
+- **`/info` intro** (`landing-info.md`): el "¿de qué va?" no menciona que ahora hay **Nivel 2** — sumar 1 línea;
+  `/tech` ya tiene las capas nuevas (v329).
+- **Deploy Argo en `/tech`**: la sección "build & deploy" no menciona el **Argo Workflow + rollback + alertas Telegram**
+  (infra-62/63) — actualizarla.
+- **Autoplay QA F3b** (`autoplay-qa.md`): hermes-agent toma el `prompt-autofix` SOLO → arregla → PR → deploya. (Infra.)
+- **Deploy on-push** (`deploy-pipeline.md` F3.5): Argo Events + webhook GitHub → push a main = deploy automático. (Infra.)
 - **Autoplay QA F3b** (`autoplay-qa.md`): hermes-agent toma el `prompt-autofix` SOLO → arregla → PR → deploya con
   `tormenta-deploy`. (Desbloqueado por infra-62; falta el loop del agente. Toca infra.)
 - **Deploy on-push** (`deploy-pipeline.md` F3.5): Argo Events + webhook GitHub → push a main = deploy automático. (Infra.)

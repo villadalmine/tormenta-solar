@@ -107,6 +107,15 @@ generado (ahí `noEquip` se ignora y aparece la línea "sí loco acá lo usamo")
 - Mensaje contextual: en sueño, al equipar → "sí loco, acá lo usamo" (`g.wpn.dreamOk`); en calle → `g.wpn.refuse`.
 - Atar con `fabrica-niveles-ai.md` (los niveles generados son el "sueño") y `modelo-de-entidades.md` §6.97 (capacidades).
 
-## 7. Deuda / futuro (F2+)
-- Items NO-arma en el inventario (curativos, llaves) → el array ya lo soporta; falta UI de "usar".
+## 7. F2 — ítems NO-arma USABLES ✅ (v328-329)
+Ítems que no son armas, con acción **"usar"** desde `[I]`, con efecto **DATA-driven**: `w.use = {kind, ...}` y una
+única `useItem(id)` que aplica el efecto y (por defecto) **consume** el ítem. Kinds soportados:
+- **`heal`** `{kind:'heal', amount:N}` → +vida (no lo malgastás si estás al full). Ej: **choripán** (premio de la olla,
+  +30), **fernet con coca** (premio de la pancarta, +25).
+- **`ammo`** `{kind:'ammo', amount:N}` → +munición. Ej: **mortero** (premio del bombo, +25).
+- **`fn`** `{kind:'fn', fn:'nombre'}` → llama una función nombrada (ej. la **consola** del chip → `useConsola`).
+`equipWeapon` ignora los ítems con `use` (no son equipables). Cualquier ítem futuro = **puro dato** (no toca `useItem`).
+
+### Deuda / futuro (F3+)
+- Kinds nuevos con fuente: **`key`** (abre una puerta gateada), **`ticket`** (viaje gratis), buffs temporales.
 - Slots / drop / peso → no hace falta para el alcance actual (YAGNI).
