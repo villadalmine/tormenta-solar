@@ -295,10 +295,10 @@ const Mapa = (() => {
     if (st.zoom == null) {                                                   // vista general: cajones por edificio
       const ov = overviewBoxes(VW, VH);
       const padL = PADL(VW);
-      for (const bo of (model.bocas || [])) {                                // boca de subte 🚇 (sobresale de la calle) → pestaña SUBTE
+      for (const bo of (model.bocas || [])) {                                // boca de subte 🚇 (badge en la calle) → pestaña SUBTE
         const bx2 = padL + Math.max(0, Math.min(1, (bo.x / ((typeof Level !== 'undefined' && Level.TILE) || 32)) / model.streetW)) * (VW - padL - PADR);
-        const bw = 78, bx0 = Math.max(padL, Math.min(VW - PADR - bw, bx2 - bw / 2));
-        if (st.mx >= bx0 && st.mx <= bx0 + bw && st.my >= ov.streetY - 24 && st.my <= ov.streetY + 4) return { tab: 'subte' };
+        const bw = 84, bx0 = Math.max(padL + 130, Math.min(VW - PADR - 60, bx2 - bw / 2));
+        if (st.mx >= bx0 && st.mx <= bx0 + bw && st.my >= ov.streetY + 1 && st.my <= ov.streetY + 23) return { tab: 'subte' };
       }
       for (const bx of (ov.boxes || [])) {
         if (st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h) {
@@ -545,18 +545,17 @@ const Mapa = (() => {
       if (marks || icons) { ctx.font = '10px monospace'; ctx.fillStyle = '#ffe27a'; ctx.fillText((marks + icons).trim().slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 44); }
       if (iCur) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx.x + bx.w - 8, bx.y + 9, 3.5, 0, Math.PI * 2); ctx.fill(); }
     }
-    // BOCAS DE SUBTE (subte.md §3): marcador ETIQUETADO que SOBRESALE hacia arriba de la barra de la calle,
-    // en su x real (la boca ESTÁ en la calle) → visible y no pisa la banda de subsuelos. Click = pestaña SUBTE.
+    // BOCAS DE SUBTE (subte.md §3): badge ancho DENTRO de la barra de la calle, en su x real (la boca ESTÁ en la
+    // calle) → ni sube a los edificios ni baja a la compuerta de subsuelos. Ubicado en el hueco libre del medio.
     for (const bo of (model.bocas || [])) {
       const bx2 = padL + Math.max(0, Math.min(1, (bo.x / ((typeof Level !== 'undefined' && Level.TILE) || 32)) / model.streetW)) * (VW - padL - padR);
-      const bw = 78, bx0 = Math.max(padL, Math.min(VW - padR - bw, bx2 - bw / 2)), byTop = sy - 24;
-      const hov = st.mx >= bx0 && st.mx <= bx0 + bw && st.my >= byTop && st.my <= sy + 4;
+      const bw = 84, bx0 = Math.max(padL + 130, Math.min(VW - padR - 60, bx2 - bw / 2));   // no pisa el nombre (izq) ni las quests (der)
+      const hov = st.mx >= bx0 && st.mx <= bx0 + bw && st.my >= sy + 1 && st.my <= sy + 23;
       if (hov) hover = { boca: bo };
-      ctx.strokeStyle = 'rgba(127,243,255,0.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx2, byTop + 20); ctx.lineTo(bx2, sy + 2); ctx.stroke();
-      ctx.fillStyle = hov ? 'rgba(20,70,85,0.95)' : 'rgba(12,45,55,0.95)'; ctx.fillRect(bx0, byTop, bw, 20);
-      ctx.strokeStyle = hov ? '#7ff3ff' : '#2aa0b8'; ctx.lineWidth = hov ? 2 : 1; ctx.strokeRect(bx0 + 0.5, byTop + 0.5, bw, 20);
-      ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left'; ctx.fillStyle = hov ? '#7ff3ff' : '#9fe4f0';
-      ctx.fillText('🚇 SUBTE', bx0 + 6, byTop + 14);
+      ctx.fillStyle = hov ? 'rgba(20,70,85,0.98)' : 'rgba(10,45,58,0.98)'; ctx.fillRect(bx0, sy + 2, bw, 20);
+      ctx.strokeStyle = hov ? '#7ff3ff' : '#3fbdd6'; ctx.lineWidth = hov ? 2 : 1; ctx.strokeRect(bx0 + 0.5, sy + 2.5, bw, 20);
+      ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = hov ? '#7ff3ff' : '#a6ecf6';
+      ctx.fillText('🚇 SUBTE', bx0 + bw / 2, sy + 16);
     }
     return hover;
   }

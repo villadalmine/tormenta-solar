@@ -52,6 +52,22 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v318] — 2026-07-04 — 🏛️ PLAZA DE MAYO (F4, circular) + FIX boca (fuera de la cola) + marcador del mapa + Obelisco
+
+Arranque del NIVEL 2, con la idea del dueño (círculo > recta). SDD `subte.md §10`.
+- **`js/plaza.js`** — sub-modo top-down CIRCULAR: **Pirámide de Mayo** al centro, las **Madres de Plaza de Mayo
+  girando en ronda** (pañuelos blancos), y los landmarks en su orientación real: **Casa Rosada** (E, rosa, balcones),
+  **Catedral** (N, columnas + llama votiva, la boca del subte D), **Cabildo** (O, arcos coloniales). Canteros,
+  palomas, la ronda marcada en el piso. Chateás con una Madre + info de cada landmark.
+- **Cómo se llega:** viajás en subte a **Catedral** (destino que se habilita tras herir al satélite) → Plaza de
+  Mayo. Es el arranque del Nivel 2 (el subte conecta Nivel 1 ↔ Nivel 2).
+- **FIX boca (playtest):** estaba en x82, sobre la COLA del cambio → movida a **x68** (hueco libre entre Cemento y
+  Galería, lejos de las colas).
+- **FIX marcador del mapa (playtest):** se solapaba con un edificio (sobresalía hacia arriba) → ahora es un badge
+  ancho **«🚇 SUBTE» DENTRO de la barra de la calle** (no toca los cajones ni la compuerta de subsuelos).
+- **FIX Obelisco (playtest):** "una vez que pasé todo no me avanza" — en la POSTAL la salida arrancaba
+  DESARMADA (había que ir arriba antes de poder bajar) → ahora arranca ARMADA: bajás y salís directo.
+
 ## [v317] — 2026-07-04 — 🚇 F3: VIAJAR entre estaciones de subte (menú de destinos)
 
 - En el **andén** (pasado el molinete con la SUBE) → [E] abre el **MENÚ DE DESTINOS**: las otras estaciones

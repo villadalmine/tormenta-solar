@@ -265,7 +265,7 @@
             "type": "door",
             "facade": "subte"
           },
-          "x": 82,
+          "x": 68,
           "label": "bajar al subte 🚇 (Estación Florida · Línea B)",
           "inward": -1
         },

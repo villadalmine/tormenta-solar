@@ -133,6 +133,7 @@
   let globoGame = null;     // MAPA A: el globo del mundo (satélites + bases) — sala de situación del búnker
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let subteGame = null, subteReturn = 'street';   // subte.md §4: la estación (sub-modo top-down); dónde volvés al salir
+  let plazaGame = null;   // subte.md §10 / F4: PLAZA DE MAYO (arranque del Nivel 2), llegás en subte a Catedral
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
   // EL MAPA (specs/mapa-juego.md): [TAB] automap; fog of war por salas visitadas (persistido)
   let mapaZoom = null, mapaFrontier = null, mapaClickHeld = false, visitedRooms = new Set([0]);
@@ -387,7 +388,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -670,10 +671,20 @@
   function enterSubte(station, returnTo) {
     if (typeof Subte === 'undefined' || !Subte.create) return false;
     if (returnTo) subteReturn = returnTo;   // en un VIAJE (travel:X) no lo pisamos: conservás dónde volvés a la superficie
-    const available = ['florida'];          // estaciones jugables que YA existen (Lavalle tras herir al satélite)
-    if (lsFlag('ts_sat_down')) available.push('lavalle');
+    const available = ['florida'];          // estaciones jugables que YA existen
+    if (lsFlag('ts_sat_down')) { available.push('lavalle'); available.push('catedral'); }   // tras herir al satélite: Lavalle + Catedral (→ Plaza de Mayo, Nivel 2)
     subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged'), available }); state = 'subte';
     evlog('hito', 'bajó al subte (' + station + ')');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // PLAZA DE MAYO (subte.md §10 / F4): salís del subte en Catedral → la plaza circular (arranque del Nivel 2).
+  function enterPlaza() {
+    if (typeof Plaza === 'undefined' || !Plaza.create) return false;
+    plazaGame = Plaza.create({}); state = 'plaza';
+    if (typeof applyEdge === 'function') { /* futuro: applyEdge('plaza_llegada') cuando exista la arista */ }
+    evlog('hito', 'llegó a Plaza de Mayo');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -3590,6 +3601,7 @@
         if (ex && ex.indexOf('travel:') === 0) {   // F3: VIAJASTE a otra estación → contás el pasaje y reaparecés allá
           const dest = ex.slice(7);
           try { const s = JSON.parse(localStorage.getItem('ts_subte_stats') || '{}'); const nm = dest === 'lavalle' ? 'Lavalle' : dest === 'florida' ? 'Florida' : 'Catedral'; s[nm] = s[nm] || { usos: 0, gasto: 0 }; s[nm].usos++; s[nm].gasto += 10; localStorage.setItem('ts_subte_stats', JSON.stringify(s)); } catch (e) {}
+          if (dest === 'catedral') { enterPlaza(); setMsg(T('g.subte.traveled'), '#7ff3ff', 4000); return; }   // F4: Catedral = PLAZA DE MAYO (Nivel 2)
           enterSubte(dest); setMsg(T('g.subte.traveled'), '#7ff3ff', 4000); return;
         }
         state = 'playing'; transCd = 0.4;
@@ -3597,6 +3609,12 @@
         current = 0; const ps = rooms[0]; player.x = 5 * Level.TILE; player.y = ps.gTop * Level.TILE - player.h; player.vx = player.vy = 0;
         updateCam(); elFloor.textContent = TX(rooms[0].name); Sfx.setAmbient(ambientFor(rooms[0]));
         setMsg(T('g.subte.back'), '#7ff3ff', 3000);
+      }
+    } else if (state === 'plaza' && plazaGame) {                      // F4: PLAZA DE MAYO (Nivel 2, circular)
+      plazaGame.update(dt); plazaGame.draw(ctx, W, H);
+      if (plazaGame.done) {
+        plazaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        enterSubte('catedral', 'street');   // volvés a la boca (Catedral) → estación → superficie
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);

@@ -14,7 +14,7 @@ const Obelisco = (() => {
     const boss = !!opts.stormed && !opts.satDown;          // E3: tormenta activa y todavía no lo heriste → PELEA
     const satDown = !!opts.satDown;                        // ya lo heriste alguna vez → queda humeando
     const player = { x: 9 * CS, y: (H - 2.5) * CS, r: 11, dir: -1, walk: 0 };
-    let done = false, exitTo = null, result = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, exitArmed = false, cuidaIdx = -1;
+    let done = false, exitTo = null, result = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, exitArmed = !boss, cuidaIdx = -1;   // en la POSTAL (no pelea) la salida arranca ARMADA → bajás y salís directo (antes: había que ir arriba primero → parecía trabado)
     let hp = 3, invuln = 0, rayCd = 0, rayFx = 0;
     const sat = { x: 9, hp: SAT_HP, phase: 'move', pt: 0, aimX: 9, downT: 0 };   // el jefe (tiles)
     const cuida = { x: 7.2, y: 9.2 };

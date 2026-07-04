@@ -7,8 +7,9 @@ const Subte = (() => {
   const CS = 30, W = 16, H = 12;
   // catálogo de estaciones jugables (DATA; espejo de specs/subte.md §2.5)
   const ESTACIONES = {
-    florida: { nombre: 'Estación Florida', linea: 'B', color: '#e2231a', destinos: ['L. N. Alem', 'C. Pellegrini'] },
-    lavalle: { nombre: 'Estación Lavalle', linea: 'C', color: '#1f6cb5', destinos: ['San Martín', 'Diagonal Norte'] },
+    florida:  { nombre: 'Estación Florida',  linea: 'B', color: '#e2231a', destinos: ['L. N. Alem', 'C. Pellegrini'] },
+    lavalle:  { nombre: 'Estación Lavalle',  linea: 'C', color: '#1f6cb5', destinos: ['San Martín', 'Diagonal Norte'] },
+    catedral: { nombre: 'Catedral · PLAZA DE MAYO', linea: 'D', color: '#00a54f', destinos: ['9 de Julio'] },
   };
 
   function create(opts) {
