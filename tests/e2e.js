@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -398,6 +398,14 @@ if (require.main === module) {
     const pz2 = Plaza.create({});
     if (!pz2.__leave() || pz2.exitTo !== 'subte') throw new Error('plaza: la boca debería volver al subte: ' + pz2.exitTo);
     ok.push('plaza:ok');
+    // FINALE (subte.md §10.1): la cinemática de cierre corre los 5 beats y termina en exitTo 'end'
+    if (typeof Finale === 'undefined' || !Finale.create) throw new Error('Finale no cargó');
+    const fin = Finale.create();
+    let finEnd = false; for (let i = 0; i < 700; i++) { fin.update(0.05); fin.draw(C, 960, 540); if (fin.done) { finEnd = fin.exitTo === 'end'; break; } }
+    if (!finEnd) throw new Error('finale: la cinemática debería terminar en end: ' + fin.exitTo);
+    const fin2 = Finale.create();   // Esc/skip corta al toque
+    if (!fin2.__skip() || fin2.exitTo !== 'end') throw new Error('finale: skip debería ir a end');
+    ok.push('finale:ok');
     return ok.join(',');
   })()`, sandbox);
   res.split(',').forEach(n => console.log('✓ modo ' + n + ' corre 60 frames sin crash'));

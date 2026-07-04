@@ -52,6 +52,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v324] — 2026-07-04 — 🎬🇦🇷 CIERRE del Nivel 2: cinemática "proceso sanmartiniano de liberación mundial"
+
+Ganar el Nivel 2 (armar la Pirámide con el chip) ya no corta seco a la pantalla de fin → juega una **CINEMÁTICA de
+cierre** dibujada (`js/finale.js`, sub-modo aislado y aditivo) con **5 beats**: (1) la **señal** sube de la Pirámide
+a los satélites, (2) los **satélites de la IA se apagan y caen** ("IA OFFLINE"), (3) **San Martín cruza los Andes**
+otra vez —ahora contra la IA— con la bandera en alto, (4) la **liberación MUNDIAL** (una ola celeste barre el globo,
+continente por continente), (5) **amanece sobre Buenos Aires** (el Obelisco, el sol naciente, el pueblo con banderitas
+copando las calles). Auto-avanza (~4.6s/beat) con fundidos + puntitos de progreso; **[E]/Espacio** adelanta, **Esc**
+saltea; al terminar → pantalla de fin `g.win2`. Guard aditivo: sin el módulo, va derecho a la pantalla de fin.
+i18n ES/EN 58/58 (`g.finale.*`), e2e `finale:ok` (5 beats → 'end' + skip), validado en Chromium (los 5 beats).
+`specs/subte.md §10.1`.
+
 ## [v323] — 2026-07-04 — 🛸🔔 Nivel 2 con vida: DRONES de la IA patrullan la plaza + el CABILDO enterable (1810)
 
 Dos cosas para que la Plaza de Mayo sea un nivel de verdad, no una caminata:

@@ -182,8 +182,13 @@ Martín nos libera del yugo de la IA."*
 3. **Pirámide de Mayo = dispositivo anti-IA** (centro): con `hasChip`, **SOSTENÉS [E]** → **FORCEJEO** (v322): la
    **señal de San Martín** (`charge`, barra celeste) gana terreno contra la **resistencia de la IA** (`resist =
    0.16 + charge·0.14`, más fuerte cerca del final); si **soltás**, `charge` decae (0.7/s) → la IA recupera. Al
-   llegar a 1 → `armed`: el **haz celeste** estalla hacia los satélites (~3.6s) → `exitTo='win2'` → **VICTORIA del
-   Nivel 2** (`ts_nivel2_win`, tel `win/nivel2`, tema San Martín). Sin el chip: `needChip` (te manda a la tumba).
+   llegar a 1 → `armed`: el **haz celeste** estalla hacia los satélites (~3.6s) → `exitTo='win2'`. Sin el chip:
+   `needChip` (te manda a la tumba).
+5b. **CINEMÁTICA DE CIERRE** (`js/finale.js`, v324): el `win2` NO va derecho a la pantalla de fin → juega 5 beats
+   dibujados (señal → satélites caen → San Martín cruza los Andes → liberación MUNDIAL/globo → amanece sobre BA con
+   el pueblo). Auto-avanza (`DUR=4.6`) + fundidos + progreso; `[E]`/Espacio adelanta, `Esc` saltea; al terminar
+   `exitTo='end'` → `showWin2End()` (pantalla `g.win2`). Aditivo: `if (typeof Finale !== 'undefined')` en game.js;
+   sin el módulo va derecho a `showWin2End()`. → **VICTORIA del Nivel 2** (`ts_nivel2_win`, tel `win/nivel2`).
 4. **Casa Rosada** (interior `inside='rosada'`): pasa a ser **enemigo/lore** — el CONTROL DEL SATÉLITE tomado. Ya
    NO se apaga a mano; la lore (`term1-3`) apunta al chip del Libertador y la señal de la Pirámide.
    **Cabildo** (interior `inside='cabildo'`, v323): recova de arcos + **campana** repicable (`bellT`) + **balcón de

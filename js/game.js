@@ -134,6 +134,7 @@
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let subteGame = null, subteReturn = 'street';   // subte.md §4: la estación (sub-modo top-down); dónde volvés al salir
   let plazaGame = null;   // subte.md §10 / F4: PLAZA DE MAYO (arranque del Nivel 2), llegás en subte a Catedral
+  let finaleGame = null;  // subte.md §10.1: cinemática de cierre del Nivel 2 (liberación sanmartiniana) → pantalla de fin
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
   // EL MAPA (specs/mapa-juego.md): [TAB] automap; fog of war por salas visitadas (persistido)
   let mapaZoom = null, mapaFrontier = null, mapaClickHeld = false, visitedRooms = new Set([0]);
@@ -388,7 +389,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -3426,6 +3427,13 @@
     tel('death', { result: 'piquete' }); evlog('hito', 'lo levantó la muchachada del piquete');
     if (!enterLavalle(T('g.morir.piquete'))) { state = 'playing'; transCd = 0.5; }   // sin módulo → sigue donde estaba
   }
+  // pantalla de fin del NIVEL 2 (tras la cinemática de cierre, o directo si no está el módulo)
+  function showWin2End() {
+    elEndTitle.textContent = T('g.win2.title'); elEndTitle.style.color = '#7CFC00';
+    elEndText.innerHTML = T('g.win2.text'); renderStats(true);
+    const hitoBtn = document.getElementById('hitoBtn'); if (hitoBtn) hitoBtn.classList.add('hidden');
+    state = 'dead'; running = false; showEnd();
+  }
   function showEnd() {
     elEnd.classList.remove('hidden'); elHud.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden');
     elPrompt.classList.add('hidden'); elFloor.classList.add('hidden');
@@ -3621,13 +3629,14 @@
         if (ex === 'win2') {   // NIVEL 2: chip del Libertador → Pirámide → señal a los satélites → LIBERACIÓN SANMARTINIANA
           try { localStorage.setItem('ts_nivel2_win', '1'); } catch (e) {}
           tel('win', { result: 'nivel2' }); evlog('hito', 'armó el dispositivo anti-IA con el chip de San Martín (Nivel 2)');
-          elEndTitle.textContent = T('g.win2.title'); elEndTitle.style.color = '#7CFC00';
-          elEndText.innerHTML = T('g.win2.text'); renderStats(true);
-          const hitoBtn = document.getElementById('hitoBtn'); if (hitoBtn) hitoBtn.classList.add('hidden');
-          state = 'dead'; running = false; showEnd(); return;
+          if (typeof Finale !== 'undefined' && Finale.create) { finaleGame = Finale.create(); state = 'finale'; elMsg.textContent = ''; return; }   // cinemática de cierre → luego showEnd
+          showWin2End(); return;
         }
         enterSubte('catedral', 'street');   // volvés a la boca (Catedral) → estación → superficie
       }
+    } else if (state === 'finale' && finaleGame) {                    // §10.1: cinemática de cierre del Nivel 2
+      finaleGame.update(dt); finaleGame.draw(ctx, W, H);
+      if (finaleGame.done) { finaleGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear(); showWin2End(); return; }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
       const lc = lavalleGame.openChatNpc;                             // [E] sobre el linyera peronista → chat IA (vuelve a Lavalle)
