@@ -669,8 +669,10 @@
   // LA ESTACIÓN DE SUBTE (subte.md §4): bajás por una boca → andén top-down. returnTo = dónde volvés al salir.
   function enterSubte(station, returnTo) {
     if (typeof Subte === 'undefined' || !Subte.create) return false;
-    subteReturn = returnTo || 'street';
-    subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged') }); state = 'subte';
+    if (returnTo) subteReturn = returnTo;   // en un VIAJE (travel:X) no lo pisamos: conservás dónde volvés a la superficie
+    const available = ['florida'];          // estaciones jugables que YA existen (Lavalle tras herir al satélite)
+    if (lsFlag('ts_sat_down')) available.push('lavalle');
+    subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged'), available }); state = 'subte';
     evlog('hito', 'bajó al subte (' + station + ')');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
@@ -3583,8 +3585,14 @@
     } else if (state === 'subte' && subteGame) {                      // subte.md §4: la estación (andén top-down)
       subteGame.update(dt); subteGame.draw(ctx, W, H);
       if (subteGame.done) {
-        subteGame = null; state = 'playing'; transCd = 0.4;
+        const ex = subteGame.exitTo; subteGame = null;
         if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex && ex.indexOf('travel:') === 0) {   // F3: VIAJASTE a otra estación → contás el pasaje y reaparecés allá
+          const dest = ex.slice(7);
+          try { const s = JSON.parse(localStorage.getItem('ts_subte_stats') || '{}'); const nm = dest === 'lavalle' ? 'Lavalle' : dest === 'florida' ? 'Florida' : 'Catedral'; s[nm] = s[nm] || { usos: 0, gasto: 0 }; s[nm].usos++; s[nm].gasto += 10; localStorage.setItem('ts_subte_stats', JSON.stringify(s)); } catch (e) {}
+          enterSubte(dest); setMsg(T('g.subte.traveled'), '#7ff3ff', 4000); return;
+        }
+        state = 'playing'; transCd = 0.4;
         elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
         current = 0; const ps = rooms[0]; player.x = 5 * Level.TILE; player.y = ps.gTop * Level.TILE - player.h; player.vx = player.vy = 0;
         updateCam(); elFloor.textContent = TX(rooms[0].name); Sfx.setAmbient(ambientFor(rooms[0]));

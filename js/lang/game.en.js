@@ -25,7 +25,11 @@
     'g.subte.promptNo': '[E] turnstile — top up your SUBE first 💳',
     'g.subte.promptSalir': '[E] go up to the street',
     'g.subte.promptBoletero': '[E] talk to the ticket guy',
-    'g.subte.promptViajar': '[E] wait for the train (travel)',
+    'g.subte.travelTo': 'Where to?',
+    'g.subte.travelEsc': '[Esc] cancel',
+    'g.subte.travelNone': 'No trains leave here for another station yet. Come back later.',
+    'g.subte.traveled': '🚇 *clack-clack* — the subte took you to the other station.',
+    'g.subte.promptViajar': '[E] see the trains (travel)',
     'g.subte.boca': '🚇 SUBWAY ENTRANCE — Florida Station (Line B). The turnstile is shut behind a grate… soon you\'ll be able to go down and RIDE the subte. (you need the SUBE card topped up)',
     'g.super.barricada': "The corner shop's FRONT is barricaded: burning drums, grenades and the ninjas on guard. No way in here. → Go in through the BACK DOOR (from the cueva) or get IORIO to play so they clear out. 🔥🥷",
     'g.cambio.cola': [

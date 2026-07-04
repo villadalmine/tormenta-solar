@@ -26,7 +26,11 @@
     'g.subte.promptNo': '[E] molinete — te falta cargar la SUBE 💳',
     'g.subte.promptSalir': '[E] subir a la calle',
     'g.subte.promptBoletero': '[E] hablar con el boletero',
-    'g.subte.promptViajar': '[E] esperar el tren (viajar)',
+    'g.subte.travelTo': '¿A dónde viajás?',
+    'g.subte.travelEsc': '[Esc] cancelar',
+    'g.subte.travelNone': 'Desde acá todavía no sale ningún tren a otra estación. Volvé más adelante.',
+    'g.subte.traveled': '🚇 *chaca-chaca* — el subte te llevó a la otra estación.',
+    'g.subte.promptViajar': '[E] ver los trenes (viajar)',
     'g.subte.boca': '🚇 BOCA DEL SUBTE — Estación Florida (Línea B). El molinete está cerrado con una reja… próximamente vas a poder bajar y VIAJAR en subte. (necesitás la tarjeta SUBE cargada)',
     'g.super.barricada': 'El FRENTE del chino está atrincherado: tachos con fuego, granadas y los ninjas de guardia. No entrás por acá. → Entrá por la PUERTA TRASERA (desde la cueva) o que IORIO toque para que se vayan. 🔥🥷',
     'g.cambio.cola': [

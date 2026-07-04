@@ -15,6 +15,8 @@ const Subte = (() => {
     opts = opts || {};
     const est = ESTACIONES[opts.station] || ESTACIONES.florida;
     const subeReady = !!opts.subeReady;   // ¿la SUBE está cargada? (game.js lo lee de ts_sube_charged)
+    // F3 VIAJAR: las OTRAS estaciones jugables a las que podés ir (game.js pasa las que ya existen)
+    const destinos = (opts.available || ['florida', 'lavalle']).filter(k => k !== opts.station && ESTACIONES[k]);
     const map = Array.from({ length: H }, () => new Array(W).fill(0));
     for (let x = 0; x < W; x++) { map[0][x] = 1; map[H - 1][x] = 1; }
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W - 1] = 1; }
@@ -24,7 +26,7 @@ const Subte = (() => {
     const escalera = { x: 8, y: 10 }, boletero = { x: 4.5, y: 5.2 }, cartel = { x: 8, y: 1.4 };
     const andenY = 7;                                       // el borde del andén (línea amarilla) y las vías abajo
     const player = { x: 8 * CS, y: 10 * CS, r: 10, dir: -1, walk: 0 };
-    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, passed = subeReady, tren = 0, boletIdx = -1;
+    let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, passed = subeReady, tren = 0, boletIdx = -1, menuOpen = false, numHeld = {};
     setMsg(T('g.subte.enter', { e: est.nombre, l: est.linea }), 6);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
@@ -43,9 +45,18 @@ const Subte = (() => {
       }
       if (near(boletero)) { boletIdx = (boletIdx + 1) % 3; setMsg(T('g.subte.bolet' + (boletIdx + 1)), 6); return; }   // el boletero cicla data (canned)
       if (near(escalera)) { leave(); return; }
-      // en el andén, con la SUBE pasada → el VIAJE (F3, próximamente)
-      if (passed && player.y < andenY * CS) { setMsg(T('g.subte.travelSoon', { d: est.destinos.join(' · ') }), 7); return; }
+      // en el andén, con la SUBE pasada → abrir el MENÚ DE DESTINOS (F3)
+      if (passed && player.y < andenY * CS) {
+        if (!destinos.length) { setMsg(T('g.subte.travelNone'), 5); return; }
+        menuOpen = !menuOpen; return;
+      }
       setMsg(T('g.subte.hint'), 3);
+    }
+    // viajar a otra estación (F3): descuenta un pasaje del saldo → los contadores del hover cobran vida
+    function travelTo(dest) {
+      menuOpen = false;
+      exitTo = 'travel:' + dest; done = true;
+      if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup();
     }
 
     function update(dt) {
@@ -59,8 +70,11 @@ const Subte = (() => {
       if (mvx) player.dir = mvx;
       if (mvx && freeAt(player.x + mvx * sp, player.y)) { player.x += mvx * sp; player.walk = 1; }
       if (mvy && freeAt(player.x, player.y + mvy * sp)) { player.y += mvy * sp; player.walk = 1; }
-      if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); } } else escHeld = false;
+      if (Input.keys['escape']) { if (!escHeld) { escHeld = true; if (menuOpen) menuOpen = false; else leave(); } } else escHeld = false;
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
+      // MENÚ DE DESTINOS abierto: teclas 1..N eligen a dónde viajar (F3)
+      if (menuOpen) for (let i = 0; i < destinos.length; i++) { const k = String(i + 1);
+        if (Input.keys[k]) { if (!numHeld[k]) { numHeld[k] = true; travelTo(destinos[i]); } } else numHeld[k] = false; }
       // prompt contextual
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (!passed && ty === GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = subeReady ? T('g.subte.promptPass') : T('g.subte.promptNo');
@@ -120,6 +134,18 @@ const Subte = (() => {
       g.fillStyle = '#111'; g.beginPath(); g.ellipse(px, py + 10, 10, 4, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = '#ffcf5b'; g.beginPath(); g.arc(px, py, player.r, 0, Math.PI * 2); g.fill();
       g.fillStyle = '#0a0a0a'; g.fillRect(px + player.dir * 3 - 1, py - 3, 2, 2);
+      // MENÚ DE DESTINOS (F3): panel con las otras estaciones, elegís con 1..N
+      if (menuOpen && destinos.length) {
+        const mw = 300, mh = 34 + destinos.length * 26, mx = (VW - mw) / 2, my = (VH - mh) / 2;
+        g.fillStyle = 'rgba(6,12,20,0.96)'; g.fillRect(mx, my, mw, mh);
+        g.strokeStyle = est.color; g.lineWidth = 2; g.strokeRect(mx + 0.5, my + 0.5, mw, mh);
+        g.fillStyle = '#ffe9b0'; g.font = 'bold 13px monospace'; g.textAlign = 'center'; g.fillText('🚇 ' + T('g.subte.travelTo'), mx + mw / 2, my + 22);
+        destinos.forEach((k, i) => { const de = ESTACIONES[k], ry = my + 40 + i * 26;
+          g.fillStyle = de.color; g.beginPath(); g.arc(mx + 24, ry, 9, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#fff'; g.font = 'bold 11px monospace'; g.fillText(de.linea, mx + 24, ry + 4);
+          g.fillStyle = '#e8f0ff'; g.textAlign = 'left'; g.font = '12px monospace'; g.fillText('[' + (i + 1) + ']  ' + de.nombre, mx + 42, ry + 4); g.textAlign = 'center'; });
+        g.fillStyle = '#8fa8c8'; g.font = '9px monospace'; g.fillText(T('g.subte.travelEsc'), mx + mw / 2, my + mh - 8);
+      }
       // prompt + msg
       if (prompt) { g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(0, VH - 54, VW, 22); g.fillStyle = '#7ff3ff'; g.font = 'bold 13px monospace'; g.textAlign = 'center'; g.fillText(prompt, VW / 2, VH - 38); }
       if (msgT > 0 && msg) { g.fillStyle = 'rgba(0,0,0,0.72)'; g.fillRect(0, VH - 30, VW, 26); g.fillStyle = '#e8f0ff'; g.font = '13px monospace'; g.textAlign = 'center'; g.fillText(msg, VW / 2, VH - 12); }
@@ -131,6 +157,7 @@ const Subte = (() => {
       // superficie de prueba (e2e)
       __pass: () => { player.x = (GATE_GAP + 0.5) * CS; player.y = (GATE_Y + 1.5) * CS; interact(); return passed; },
       __leave: () => { player.x = (escalera.x + 0.5) * CS; player.y = (escalera.y + 0.5) * CS; interact(); return done; },
+      __travel: () => { player.y = 2 * CS; interact(); const d = destinos[0]; if (d) travelTo(d); return exitTo; },   // e2e: abrir menú + viajar al 1er destino
     };
   }
   return { create, ESTACIONES };

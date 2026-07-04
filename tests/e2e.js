@@ -381,6 +381,10 @@ if (require.main === module) {
     const sYes = Subte.create({ station: 'lavalle', subeReady: true });
     if (!sYes.__pass()) throw new Error('subte: con SUBE debería pasar el molinete');
     if (!sYes.__leave() || sYes.exitTo !== 'back') throw new Error('subte: la escalera debería salir: ' + sYes.exitTo);
+    // F3 viajar: con la SUBE y 2 estaciones, el andén ofrece viajar a la otra → exitTo 'travel:florida'
+    const sTrav = Subte.create({ station: 'lavalle', subeReady: true, available: ['florida', 'lavalle'] });
+    const ex = sTrav.__travel();
+    if (ex !== 'travel:florida') throw new Error('subte: viajar debería ir a Florida: ' + ex);
     ok.push('subte:ok');
     return ok.join(',');
   })()`, sandbox);

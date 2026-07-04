@@ -52,6 +52,15 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v317] — 2026-07-04 — 🚇 F3: VIAJAR entre estaciones de subte (menú de destinos)
+
+- En el **andén** (pasado el molinete con la SUBE) → [E] abre el **MENÚ DE DESTINOS**: las otras estaciones
+  jugables que ya existen (Florida ↔ Lavalle), con el logo de su línea; elegís con [1]/[2] → *chaca-chaca* →
+  reaparecés en la otra estación (`exitTo 'travel:X'` → game.js re-entra la estación destino).
+- Cuenta el **pasaje**: `ts_subte_stats[est]` usos++ y gasto += $10 → los contadores del hover del plano (§2.6)
+  **cobran vida**. `available` = estaciones existentes (Lavalle se suma tras herir al satélite).
+- e2e valida el viaje (menú → `travel:florida`). Falta: Catedral → Plaza de Mayo (F4).
+
 ## [v316] — 2026-07-04 — 🐛 FIX: con el juramento hecho, el piquete arranca EN FIESTA (el corte abierto)
 
 Playtest (con el debug): "marco piquete ganado + juramento y no me deja pasar — ¿será porque no derribé el
