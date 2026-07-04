@@ -179,9 +179,11 @@ Martín nos libera del yugo de la IA."*
    rojo, fusil), **llama votiva** flameante, y el **CHIP AI DEL LIBERTADOR** (cuadrado verde con pins + aura que
    late) flotando sobre la cabecera. Caminás hasta él → **[E] lo tomás** (`hasChip`, flag `ts_sanmartin_chip`); lo
    llevás encima (pixel verde en la cabeza del jugador).
-3. **Pirámide de Mayo = dispositivo anti-IA** (centro): con `hasChip`, **[E] → armás** (`armed`). Sale un **haz
-   celeste** de la Pirámide hacia los satélites (arriba) durante ~4.4s → `exitTo='win2'` → **pantalla de VICTORIA
-   del Nivel 2** (`ts_nivel2_win`, tel `win/nivel2`, tema San Martín). Sin el chip: `needChip` (te manda a la tumba).
+3. **Pirámide de Mayo = dispositivo anti-IA** (centro): con `hasChip`, **SOSTENÉS [E]** → **FORCEJEO** (v322): la
+   **señal de San Martín** (`charge`, barra celeste) gana terreno contra la **resistencia de la IA** (`resist =
+   0.16 + charge·0.14`, más fuerte cerca del final); si **soltás**, `charge` decae (0.7/s) → la IA recupera. Al
+   llegar a 1 → `armed`: el **haz celeste** estalla hacia los satélites (~3.6s) → `exitTo='win2'` → **VICTORIA del
+   Nivel 2** (`ts_nivel2_win`, tel `win/nivel2`, tema San Martín). Sin el chip: `needChip` (te manda a la tumba).
 4. **Casa Rosada** (interior `inside='rosada'`): pasa a ser **enemigo/lore** — el CONTROL DEL SATÉLITE tomado. Ya
    NO se apaga a mano; la lore (`term1-3`) apunta al chip del Libertador y la señal de la Pirámide.
 5. **Desacople del datacenter:** el requisito de la victoria es el CHIP (personal), **no** el datacenter comunitario

@@ -20,6 +20,7 @@ const Plaza = (() => {
     const alreadyWon = !!opts.won2;
     let hasChip = alreadyWon;         // ¿tenés el CHIP AI DEL LIBERTADOR? (de la tumba). Requisito para armar la Pirámide.
     let armed = false, armT = 0, signalFx = 0, chipFx = 0;   // dispositivo de la Pirámide: armado → señal → victoria
+    let arming = false, charge = 0;                          // FORCEJEO: sostenés [E] → la señal sanmartiniana vence a la IA
     // landmarks (dir en grados desde el centro; el render los ancla a los bordes de la plaza)
     const LANDMARKS = [
       { id: 'rosada',   name: 'Casa Rosada',  side: 'E', col: '#e39aa8', roof: '#c26a7e', label: '🏛️ Casa de Gobierno' },
@@ -41,7 +42,7 @@ const Plaza = (() => {
       if (inside) return updateInside(dt);
       // SECUENCIA DE VICTORIA: armaste el dispositivo → la señal sube a los satélites → salís con la victoria
       if (armed) {
-        signalFx = Math.min(1, signalFx + dt * 1.2); armT -= dt;
+        prompt = ''; signalFx = Math.min(1, signalFx + dt * 1.2); armT -= dt;
         for (const m of madres) m.a += m.sp * dt;
         if (armT <= 0) { exitTo = 'win2'; done = true; }
         return;
@@ -68,6 +69,21 @@ const Plaza = (() => {
       else for (const L of LANDMARKS) { const p = landmarkPos(L, 1); if (Math.hypot(player.x - p.wx, player.y - p.wy) < 40) { near = { kind: 'landmark', L }; break; } }
 
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); } } else escHeld = false;
+      // ARMAR la Pirámide: con el chip, SOSTENÉS [E] → la señal de San Martín (celeste) gana terreno; la IA resiste
+      // (más fuerte cerca del final). Si soltás, la IA recupera. Un toque solo NO alcanza → clímax con peso.
+      if (near && near.kind === 'piramide' && hasChip && !armed && !alreadyWon) {
+        if (Input.keys['e'] || Input.keys['enter']) {
+          arming = true; eHeld = true;
+          const resist = 0.16 + charge * 0.14;
+          charge = Math.min(1, charge + (0.55 - resist) * dt);
+          signalFx = Math.max(signalFx, charge);
+          if (charge >= 1) { armed = true; armT = 3.6; try { localStorage.setItem('ts_nivel2_win', '1'); } catch (e) {} if (typeof Sfx !== 'undefined' && Sfx.win) Sfx.win(); setMsg(T('g.plaza.arming'), 10); }
+          prompt = T('g.plaza.arming2');
+          return;
+        }
+        arming = false;
+        if (charge > 0) charge = Math.max(0, charge - dt * 0.7);   // soltaste → la IA recupera terreno
+      }
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
 
       if (near && near.kind === 'piramide') prompt = alreadyWon ? '' : hasChip ? T('g.plaza.promptArm') : T('g.plaza.promptPiramide');
@@ -77,12 +93,10 @@ const Plaza = (() => {
       else prompt = '';
     }
     function interact() {
-      if (near && near.kind === 'piramide') {         // el DISPOSITIVO ANTI-IA
+      if (near && near.kind === 'piramide') {         // el DISPOSITIVO ANTI-IA (el armado real = sostener [E], en update)
         if (armed || alreadyWon) { setMsg(T('g.plaza.armedDone'), 6); return; }
         if (!hasChip) { setMsg(T('g.plaza.needChip'), 9); return; }
-        armed = true; armT = 4.4; signalFx = 0.01; setMsg(T('g.plaza.arming'), 10);   // ¡proceso sanmartiniano!
-        try { localStorage.setItem('ts_nivel2_win', '1'); } catch (e) {}
-        if (typeof Sfx !== 'undefined' && Sfx.win) Sfx.win();
+        setMsg(T('g.plaza.armStart'), 5);   // tenés el chip: te dice que SOSTENGAS [E]
         return;
       }
       if (near && near.kind === 'boca') { leave(); return; }              // volvés al subte (Catedral)
@@ -158,8 +172,8 @@ const Plaza = (() => {
         drawLandmark(g, s.x, s.y, L, hov, t); }
       // PIRÁMIDE DE MAYO (centro) = el DISPOSITIVO ANTI-IA
       { const s = W2S(0, 0), pw = 30 * SC, ph = 40 * SC, hov = near && near.kind === 'piramide';
-        // el HAZ de la señal sanmartiniana subiendo a los satélites (durante el armado)
-        if (armed) { const beamW = (10 + Math.sin(t * 22) * 4) * SC * (0.5 + signalFx);
+        // el HAZ de la señal sanmartiniana subiendo a los satélites (crece con la carga, estalla al armar)
+        if (armed || charge > 0.02) { const beamW = (10 + Math.sin(t * 22) * 4) * SC * (0.5 + signalFx);
           const grd = g.createLinearGradient(s.x, s.y - ph, s.x, 0);
           grd.addColorStop(0, 'rgba(116,172,223,' + (0.55 * signalFx) + ')'); grd.addColorStop(1, 'rgba(116,172,223,0)');
           g.fillStyle = grd; g.fillRect(s.x - beamW, 0, beamW * 2, s.y - ph / 2);
@@ -200,6 +214,16 @@ const Plaza = (() => {
       { const obj = armed || alreadyWon ? T('g.plaza.objDone') : hasChip ? T('g.plaza.objArm') : T('g.plaza.objChip');
         g.textAlign = 'center'; g.font = 'bold 10px monospace'; g.fillStyle = 'rgba(0,0,0,0.55)'; const ow = (g.measureText(obj).width || 0) + 16;
         g.fillRect(VW / 2 - ow / 2, 28, ow, 16); g.fillStyle = hasChip ? '#7CFC00' : '#ffd54f'; g.fillText(obj, VW / 2, 39); }
+      // FORCEJEO: la barra "señal sanmartiniana vs. IA" mientras cargás (o llena al armar)
+      if ((charge > 0.02 || armed) && !alreadyWon) {
+        const bw = Math.min(240, VW - 60), bx = VW / 2 - bw / 2, by = 52, fill = armed ? 1 : charge;
+        g.textAlign = 'center'; g.font = 'bold 9px monospace'; g.fillStyle = '#ffe9b0'; g.fillText(T('g.plaza.chargeLabel'), VW / 2, by - 3);
+        g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(bx - 2, by, bw + 4, 12);
+        g.fillStyle = '#5a1f1f'; g.fillRect(bx, by + 2, bw, 8);                                         // el yugo de la IA (rojo)
+        if (!armed && arming === false && charge > 0) { g.fillStyle = 'rgba(255,60,60,' + (0.3 + Math.abs(Math.sin(t * 8)) * 0.3) + ')'; g.fillRect(bx + bw * fill, by + 2, Math.min(10, bw * (1 - fill)), 8); }   // la IA reprime al soltar
+        g.fillStyle = '#74acdf'; g.fillRect(bx, by + 2, bw * fill, 8);                                  // la señal de San Martín (celeste)
+        g.strokeStyle = '#fff'; g.lineWidth = 1; g.strokeRect(bx, by + 2, bw, 8);
+      }
       drawFooter(g, VW, VH);
     }
     // INTERIOR: 'tumba' (San Martín + chip) | 'rosada' (control del satélite, lore)
@@ -313,7 +337,7 @@ const Plaza = (() => {
       // superficies de test: tomar el chip en la tumba, armar la pirámide, salir
       get _dbg() { return { inside, hasChip, armed, iNear, near: near && near.kind, pz: { x: player.x, y: player.y }, ip: { x: ip.x, y: ip.y } }; },
       __chip: () => { inside = 'tumba'; ip = { x: chipPos.x, y: chipPos.y, dir: 1, walk: 0 }; iNear = 'chip'; hasChip = true; inside = null; return hasChip; },
-      __arm: () => { hasChip = true; near = { kind: 'piramide' }; interact(); return armed; },
+      __arm: () => { hasChip = true; charge = 1; armed = true; armT = 3.6; return armed; },
       __leave: () => { player.x = bocaCatedral.x; player.y = bocaCatedral.y; near = { kind: 'boca' }; interact(); return done; },
     };
   }

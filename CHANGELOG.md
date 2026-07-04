@@ -52,6 +52,16 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v322] — 2026-07-04 — ⚔️ El clímax del Nivel 2 con PESO: armar la Pirámide = FORCEJEO (sostené [E]) señal vs. IA
+
+El armado de la Pirámide dejó de ser un toque instantáneo → ahora es un **forcejeo con tensión**: con el chip,
+**sostenés [E]** y la **señal de San Martín** (barra celeste) tiene que **vencer al yugo de la IA** (rojo), que
+**resiste más fuerte cerca del final**; si **soltás**, la IA **recupera terreno** (la barra baja). El **haz** de la
+Pirámide **crece con la carga** y **estalla** al romper el bloqueo → *"¡la señal ROMPE el bloqueo de la IA!"* →
+victoria. Barra "SEÑAL SANMARTINIANA vs. IA" arriba + prompt "¡No sueltes!". Reusa el patrón hold-[E]. i18n ES/EN
+43/43 (`armStart`/`arming2`/`chargeLabel`), e2e `plaza:ok` OK, validado en Chromium (barra a medio cargar + al
+romper). `specs/subte.md §10.1`.
+
 ## [v321] — 2026-07-04 — ⚔️🇦🇷 NIVEL 2 = OBJETIVO SANMARTINIANO: el CHIP del Libertador → la Pirámide → liberación mundial
 
 El Nivel 2 dejó de ser teaser y **tiene victoria de verdad**, con el arco que pidió el dueño: **San Martín nos
