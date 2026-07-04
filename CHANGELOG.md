@@ -29,6 +29,11 @@ El juego es 100% estático; se publica en
 - **Corte de escena a Garbarino (v230)** y **regla de la casa del truco 3v3 (v241)**: nunca validados.
 
 ### 💻 Listo para codear cuando el dueño diga "dale"
+- ⭐ **TAB DEBUG en ⚙** (`specs/debug-tab.md`, marcado 2026-07-04): pestaña oculta (tras `ts_debug`/`?debug=1`) con
+  botones que setean flags para saltar a un estado sin jugar todo (piquete ganado, juramento, satélite herido,
+  tormenta, búnker, SUBE cargada, +recursos, marcar mapa visitado, borrar partida). Reusa los flags de localStorage
+  que ya existen; DATA-driven (`DEBUG_ACTIONS`), aditivo. Sinergia con el Autoplay QA (mismos seams).
+
 - **Autoplay QA F3b** (`autoplay-qa.md`): hermes-agent toma el `prompt-autofix` SOLO → arregla → PR → deploya con
   `tormenta-deploy`. (Desbloqueado por infra-62; falta el loop del agente.)
 - **Deploy on-push** (`deploy-pipeline.md` F3.5): Argo Events + webhook GitHub → push a main = deploy automático.
