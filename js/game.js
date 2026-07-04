@@ -593,6 +593,8 @@
   // REGISTRO de puertas con HANDLER propio (lanzan sub-modo o bloquean con condición). El handler devuelve true si
   // manejó la puerta (lanzó/bloqueó) o false para caer a la transición normal. La puerta DECLARA su id (data).
   const DOOR_HANDLERS = {
+    // BOCA DEL SUBTE (subte.md §3, F2a): por ahora es solo la boca (preview) — la estación llega en F2.
+    subteB: () => { setMsg(T('g.subte.boca'), '#7ff3ff', 6000); return true; },
     super: () => { if (!stormed) enterSuper(); else if (chinoFrontOpen) { chinoFrontOpen = false; enterSuper(true); } else setMsg(T('g.super.barricada'), '#ff5252', 6500); return true; },
     chinoback: () => { enterSuper(); return true; },   // entrada de servicio desde el refugio
     chinotruco: () => { if (trucoWon) { trucoWon = false; enterSuper(); } else setMsg(T('g.truco.doorLocked'), '#ffd54f', 5200); return true; },

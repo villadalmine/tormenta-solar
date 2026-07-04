@@ -47,6 +47,18 @@ El juego es 100% estático; se publica en
 
 ---
 
+## [v311] — 2026-07-04 — 🚇 F2a: LA BOCA del subte (Florida) en la calle + marcadores del mapa + SDD F2-F5
+
+Confirmado con el dueño: **el subte conecta el piquete → Plaza de Mayo (Nivel 2)** y la tarjeta SUBE cargada es el
+gate. SDD `subte.md §3-§8` (boca, estación, NPCs, viaje, Plaza de Mayo). Arranque = **solo la boca + el mapa**:
+- **Boca de Florida (Línea B)** = puerta nueva en la calle (x82, hueco entre galería y casa de cambio), con art
+  propio (`drawSubteBoca`: baranda, escalera que baja, logo B rojo). Por ahora es preview: [E] → "el molinete
+  está cerrado con una reja… próximamente vas a poder bajar y VIAJAR" (la estación llega en F2).
+- **En el mapa, sin pisar nada:** badge **🚇 sobre la barra de la calle** en su x (la boca ESTÁ en la calle →
+  no toca la banda de subsuelos; el chino y la compuerta ⛏️ quedan aparte) · **🚇 en la vereda** del skyline ·
+  **click en el 🚇 → pestaña SUBTE**. Data-driven (`model.bocas`, separado de `model.puertas`).
+- El bot valida que la boca exista (autoplay 07).
+
 ## [v310] — 2026-07-04 — 🎫 QUEST «La tarjeta SUBE» completa (por el grafo, 21 aristas)
 
 Continuación de la semilla del tótem (v309): la quest de buscar y cargar la tarjeta SUBE, toda data-driven.

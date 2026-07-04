@@ -84,6 +84,7 @@ const Level = (() => {
           { id:'cemento', art:'cemento',     facade:'cemento',     label:'entrar a Cemento',     x:61, inward:-1, gate:{ item:'hasCementoTicket' } },
           { id:'galeria', art:'door',     facade:'galeria',     label:'bajar a la galería',   x:74, inward:-1 },
           { id:'cine',    art:'cine',       facade:'cine',        label:'entrar al CINE de noticias', x:52, inward:1 },
+          { id:'subteB',  art:'door',        facade:'subte',       label:'bajar al subte 🚇 (Estación Florida · Línea B)', x:82, inward:-1 },
           { id:'cambio',  art:'cambio',      facade:'cambio',      label:'entrar a la casa de cambio', x:90, inward:-1 },
           { id:'abandonado', art:'abandonado', facade:'abandonado', label:'entrar al edificio abandonado', x:101, inward:-1 },
           { id:'super',   art:'superchino',  facade:'superchino',  label:'entrar al super chino', x:112, inward:-1 },

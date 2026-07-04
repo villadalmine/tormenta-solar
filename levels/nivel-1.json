@@ -259,6 +259,17 @@
           }
         },
         {
+          "id": "florida-y-lavalle/door-subteb",
+          "tipo": "door",
+          "render": {
+            "type": "door",
+            "facade": "subte"
+          },
+          "x": 82,
+          "label": "bajar al subte 🚇 (Estación Florida · Línea B)",
+          "inward": -1
+        },
+        {
           "id": "florida-y-lavalle/door-cambio",
           "tipo": "door",
           "render": {

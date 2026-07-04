@@ -12,6 +12,7 @@
       'Derrumbado y clausurado: escombros hasta la puerta. 🚧',
       'Ya fue, está hecho pedazos. Probá los lugares que aguantaron (chino, cueva, el de los borrachines). 💥',
     ],
+    'g.subte.boca': '🚇 BOCA DEL SUBTE — Estación Florida (Línea B). El molinete está cerrado con una reja… próximamente vas a poder bajar y VIAJAR en subte. (necesitás la tarjeta SUBE cargada)',
     'g.super.barricada': 'El FRENTE del chino está atrincherado: tachos con fuego, granadas y los ninjas de guardia. No entrás por acá. → Entrá por la PUERTA TRASERA (desde la cueva) o que IORIO toque para que se vayan. 🔥🥷',
     'g.cambio.cola': [
       '“¡Ehh, loco, no te coles!”',

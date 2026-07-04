@@ -1148,6 +1148,7 @@ const Art = (() => {
     lavalle:     { w: 120, h: 150, c: '#241f18', c2: '#16120d', win: '#caa45a', sign: 'LAVALLE →', sc: '#ffd54f' },   // la esquina que dobla al piquete/Obelisco
   };
   function drawBuilding(g, sx, gy, style) {
+    if (style === 'subte') { drawSubteBoca(g, sx, gy); return; }   // boca de subte: estructura BAJA, escalera que baja
     const s = BUILDINGS[style] || BUILDINGS.galeria;
     const x = sx - s.w/2, y = gy - s.h;
     g.fillStyle = s.c; g.fillRect(x, y, s.w, s.h);
@@ -1161,6 +1162,21 @@ const Art = (() => {
     g.fillStyle = '#0a0c10'; g.fillRect(x + 10, y + 10, s.w - 20, 24);
     g.fillStyle = s.sc; g.font = 'bold 15px monospace'; g.textAlign = 'center';
     g.shadowColor = s.sc; g.shadowBlur = 8; g.fillText(s.sign, sx, y + 27); g.shadowBlur = 0;
+  }
+  // BOCA DEL SUBTE (subte.md §3): baranda baja + hueco oscuro con escalones que bajan + cartel de la línea B
+  function drawSubteBoca(g, sx, gy) {
+    const w = 96, h = 74, x = sx - w / 2, y = gy - h;
+    g.fillStyle = '#141821'; g.fillRect(x, y + 20, w, h - 20);                 // muro bajo
+    g.fillStyle = '#0a0d13'; g.fillRect(x + 12, y + 26, w - 24, h - 26);        // hueco (baja al subte)
+    g.strokeStyle = '#2a3342'; g.lineWidth = 2; g.strokeRect(x + 12, y + 26, w - 24, h - 26);
+    for (let i = 0; i < 5; i++) { g.fillStyle = i % 2 ? '#161b24' : '#1e2530'; g.fillRect(x + 12, y + 30 + i * 8, w - 24, 5); }   // escalones
+    // baranda + tótem de cartel
+    g.fillStyle = '#c9ccd2'; g.fillRect(x, y + 16, w, 5); g.fillRect(x, y + 16, 5, 12); g.fillRect(x + w - 5, y + 16, 5, 12);
+    g.fillStyle = '#0d1017'; g.fillRect(sx - 26, y - 22, 52, 30);
+    g.fillStyle = '#e2231a'; g.beginPath(); g.arc(sx - 14, y - 7, 9, 0, Math.PI * 2); g.fill();   // logo Línea B (rojo)
+    g.fillStyle = '#fff'; g.font = 'bold 12px monospace'; g.textAlign = 'center'; g.fillText('B', sx - 14, y - 3);
+    g.fillStyle = '#7ff3ff'; g.font = 'bold 10px monospace'; g.fillText('SUBTE', sx + 10, y - 4);
+    g.font = '11px monospace'; g.fillText('🚇', sx, y + 44);
   }
   function drawSecretBg(g, camX, W, H) {
     const bg = g.createLinearGradient(0, 0, 0, H);

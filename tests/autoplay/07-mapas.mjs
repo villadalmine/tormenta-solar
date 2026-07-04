@@ -38,6 +38,8 @@ try {
   const subteTab = await p.evaluate(() => { const cv = document.getElementById('screen');
     return (Mapa.hitTest(cv.width, cv.height, { zoom: null, mx: 360, my: 40, visited: new Set() }) || {}).tab === 'subte'; });
   s.check('la pestaña SUBTE 🚇 existe (preview)', subteTab);
+  const boca = await p.evaluate(() => (Mapa.model.bocas || []).length);
+  s.check('la boca del subte está en el mapa', boca >= 1, 'bocas=' + boca);
   await (await p.$('#screen'))?.screenshot({ path: SHOTS + '/07-vista-general.png' });
   // [1] LA CUADRA (skyline): siluetas por edificio con altura = pisos
   await p.keyboard.down('1'); await p.waitForTimeout(150); await p.keyboard.up('1'); await p.waitForTimeout(300);

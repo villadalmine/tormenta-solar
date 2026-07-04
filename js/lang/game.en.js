@@ -11,6 +11,7 @@
       'Collapsed and condemned: rubble all the way to the door. 🚧',
       "Forget it, it's in pieces. Try the spots that held up (corner shop, cueva, the drunks' place). 💥",
     ],
+    'g.subte.boca': '🚇 SUBWAY ENTRANCE — Florida Station (Line B). The turnstile is shut behind a grate… soon you\'ll be able to go down and RIDE the subte. (you need the SUBE card topped up)',
     'g.super.barricada': "The corner shop's FRONT is barricaded: burning drums, grenades and the ninjas on guard. No way in here. → Go in through the BACK DOOR (from the cueva) or get IORIO to play so they clear out. 🔥🥷",
     'g.cambio.cola': [
       '"Hey, pal, no cutting the line!"',

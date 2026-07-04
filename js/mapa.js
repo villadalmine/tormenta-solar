@@ -95,8 +95,12 @@ const Mapa = (() => {
     const groups = {}; nodes.forEach(n => { const k = Math.round(n.anchor); (groups[k] = groups[k] || []).push(n.i); });
     model.groups = groups;
     // puertas de la calle SIN sala destino (sub-modos como el SÚPER): del DATO de la calle, nada hardcodeado
-    model.puertas = (street.doors || []).filter(d => !(typeof d.to === 'number' && d.to > 0))
-      .map(d => ({ x: d.x, label: d.label || d.id || '', id: d.id || '', emoji: /super|chino/i.test(String(d.id) + String(d.art)) ? '🛒' : '🚪' }));
+    // 'down' = boca de subte (baja al subsuelo) → se dibuja como marcador 🚇 BAJO la calle, no como cajón (subte.md §3)
+    const allPuertas = (street.doors || []).filter(d => !(typeof d.to === 'number' && d.to > 0))
+      .map(d => { const isSubte = /subte/i.test(String(d.id) + String(d.facade)); return { x: d.x, label: d.label || d.id || '', id: d.id || '',
+        down: isSubte, emoji: isSubte ? '🚇' : /super|chino/i.test(String(d.id) + String(d.art)) ? '🛒' : '🚪' }; });
+    model.puertas = allPuertas.filter(p => !p.down);   // las de nivel calle (el súper) → cajones
+    model.bocas = allPuertas.filter(p => p.down);       // las que BAJAN (subte) → marcadores
     // QUESTS → UN nodo cada una (v293): preferencia tag exacto; si no, match por nombre eligiendo la ENTRADA
     // (|level| más chico) del grupo — así "edificio" no pinta los 20 pisos. 'calle' → nodo 0; 'lavalle' → sub-modo.
     model.questAt = (edges, fino) => {
@@ -290,6 +294,11 @@ const Mapa = (() => {
     }
     if (st.zoom == null) {                                                   // vista general: cajones por edificio
       const ov = overviewBoxes(VW, VH);
+      const padL = PADL(VW);
+      for (const bo of (model.bocas || [])) {                                // boca de subte 🚇 (sobre la calle) → pestaña SUBTE
+        const bx2 = padL + Math.max(0, Math.min(1, (bo.x / ((typeof Level !== 'undefined' && Level.TILE) || 32)) / model.streetW)) * (VW - padL - PADR);
+        if (st.mx >= bx2 - 13 && st.mx <= bx2 + 13 && st.my >= ov.streetY && st.my <= ov.streetY + 24) return { tab: 'subte' };
+      }
       for (const bx of (ov.boxes || [])) {
         if (st.mx >= bx.x && st.mx <= bx.x + bx.w && st.my >= bx.y && st.my <= bx.y + bx.h) {
           if (bx.b.puerta) return null;                                      // la puerta del chino: sub-modo, sin zoom
@@ -402,6 +411,13 @@ const Mapa = (() => {
     ctx.beginPath(); ctx.moveTo(24, sy); ctx.lineTo(30, sy - 74); ctx.lineTo(36, sy); ctx.closePath(); ctx.stroke();
     ctx.fillStyle = '#8fc8a0'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
     ctx.fillText('✊', 30, sy - 80);
+    // BOCA DE SUBTE 🚇 en la vereda (subte.md §3): en su x real, sobre la ruta
+    const padLsk = 60, padRsk = 60;
+    for (const bo of (model.bocas || [])) {
+      const bxk = padLsk + Math.max(0, Math.min(1, (bo.x / ((typeof Level !== 'undefined' && Level.TILE) || 32)) / model.streetW)) * (VW - padLsk - padRsk);
+      ctx.fillStyle = '#7ff3ff'; ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillText('🚇', bxk, sy - 3);
+      ctx.fillStyle = 'rgba(127,243,255,0.6)'; ctx.font = '7px monospace'; ctx.fillText('SUBTE', bxk, sy - 16);
+    }
     let hover = null;
     const curB = model.nodes[st.current];
     // torres ALTAS primero (quedan atrás), locales al frente — con cara lateral (perspectiva)
@@ -526,6 +542,18 @@ const Mapa = (() => {
       const icons = [...new Set(b.rooms.filter(i => visited.has(i)).flatMap(i => iconsOf(model.nodes[i])))].slice(0, 3).join('');
       if (marks || icons) { ctx.font = '10px monospace'; ctx.fillStyle = '#ffe27a'; ctx.fillText((marks + icons).trim().slice(0, Math.floor((bx.w - 8) / 6)), bx.x + 4, bx.y + 44); }
       if (iCur) { ctx.fillStyle = 'rgba(255,213,79,' + (0.6 + 0.4 * Math.sin((st.t || 0) * 6)) + ')'; ctx.beginPath(); ctx.arc(bx.x + bx.w - 8, bx.y + 9, 3.5, 0, Math.PI * 2); ctx.fill(); }
+    }
+    // BOCAS DE SUBTE (subte.md §3): badge 🚇 SOBRE la barra de la calle, en su x real (la boca ESTÁ en la
+    // calle) → no pisa la banda de subsuelos. Click = pestaña SUBTE.
+    for (const bo of (model.bocas || [])) {
+      const bx2 = padL + Math.max(0, Math.min(1, (bo.x / ((typeof Level !== 'undefined' && Level.TILE) || 32)) / model.streetW)) * (VW - padL - padR);
+      const cyM = sy + 12;
+      const hov = st.mx >= bx2 - 13 && st.mx <= bx2 + 13 && st.my >= sy && st.my <= sy + 24;
+      if (hov) hover = { boca: bo };
+      ctx.fillStyle = 'rgba(10,40,50,0.9)'; ctx.fillRect(bx2 - 13, sy + 2, 26, 20);
+      ctx.strokeStyle = hov ? '#7ff3ff' : '#2aa0b8'; ctx.lineWidth = hov ? 2 : 1; ctx.strokeRect(bx2 - 13, sy + 2, 26, 20);
+      ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = hov ? '#7ff3ff' : '#8fd4e0';
+      ctx.fillText('🚇', bx2, cyM + 5);
     }
     return hover;
   }
@@ -676,7 +704,13 @@ const Mapa = (() => {
       });
     }
     // tooltip del hover (banda de abajo) — acá SÍ se ven las 🔒 ("se destraba más adelante")
-    if (hoverBox) {
+    if (hoverBox && hoverBox.boca) {                                          // boca de subte
+      const bh = 30;
+      ctx.fillStyle = 'rgba(4,8,14,0.94)'; ctx.fillRect(0, VH - bh, VW, bh);
+      ctx.strokeStyle = '#2a4a6a'; ctx.strokeRect(0.5, VH - bh + 0.5, VW - 1, bh - 1);
+      ctx.textAlign = 'left'; ctx.fillStyle = '#7ff3ff'; ctx.font = 'bold 11px monospace';
+      ctx.fillText('🚇 ' + hoverBox.boca.label + '  ·  ' + T('g.mapa.click'), 10, VH - bh + 19);
+    } else if (hoverBox) {
       const b = hoverBox.bx.b;
       const lines = [];
       lines.push(b.name + '  ·  ×' + b.floors + '  ·  🔦 ' + hoverBox.v + '/' + b.floors + '  ·  ' + T('g.mapa.click'));
