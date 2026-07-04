@@ -11,7 +11,13 @@ El juego es 100% estático; se publica en
 
 ---
 
-## 🔭 QUÉ FALTA — tracker (actualizado 2026-07-03; lo hecho vive en las entradas de abajo)
+## 🔭 QUÉ FALTA — tracker (actualizado 2026-07-04; lo hecho vive en las entradas de abajo)
+
+> **Cerrado hace poco (v321-327):** el **NIVEL 2 completo** (subte → Plaza de Mayo → tumba de San Martín → chip →
+> drones de la IA → forcejeo en la Pirámide → cinemática de liberación mundial), **integrado al GRAFO + mapa +
+> grounding** (los oráculos saben del Nivel 2); **fixes de playtest** (cruce del piquete foolproof, subte sin-trampa,
+> subte del mapa sin solaparse); **mapa pulido** (cursor por teclado + minimapa HUD + online por sala). Landing `/info`
+> con cards del Nivel 2 + multijugador (falta `/tech`).
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -28,27 +34,25 @@ El juego es 100% estático; se publica en
   sin cortar.
 - **Corte de escena a Garbarino (v230)** y **regla de la casa del truco 3v3 (v241)**: nunca validados.
 
-### 💻 Listo para codear cuando el dueño diga "dale"
-- ⭐ **TAB DEBUG en ⚙** (`specs/debug-tab.md`, marcado 2026-07-04): pestaña oculta (tras `ts_debug`/`?debug=1`) con
-  botones que setean flags para saltar a un estado sin jugar todo (piquete ganado, juramento, satélite herido,
-  tormenta, búnker, SUBE cargada, +recursos, marcar mapa visitado, borrar partida). Reusa los flags de localStorage
-  que ya existen; DATA-driven (`DEBUG_ACTIONS`), aditivo. Sinergia con el Autoplay QA (mismos seams).
-
-- **Autoplay QA F3b** (`autoplay-qa.md`): hermes-agent toma el `prompt-autofix` SOLO → arregla → PR → deploya con
-  `tormenta-deploy`. (Desbloqueado por infra-62; falta el loop del agente.)
-- **Deploy on-push** (`deploy-pipeline.md` F3.5): Argo Events + webhook GitHub → push a main = deploy automático.
-- **Mapa TAB — pulido** (`mapa-juego.md`): cursor por teclado, minimapa HUD, online por sala.
+### 💻 Listo para codear cuando el dueño diga "dale" (self-contained, sin infra)
+- **Landing `/tech`** (`landing-info.md`, fuente `features-showcase.md`): la página "cómo funciona el stack" está
+  vieja — NO menciona subte/Nivel 2/multijugador/construcción colaborativa/seguridad/deploy Argo. `/info` (index) ya
+  tiene las cards nuevas (v321/v325); falta `tech.html`+`tech.en.html` (ES/EN). **Recomendado siguiente.**
+- **Inventario F2** (`inventario-armas.md §F2`): ítems NO-arma con acción "usar" (curar/comida/llave/boleto) como
+  DATOS (registro `ITEMS`), [I] equipar arma / usar ítem. Extiende un sistema que ya existe.
 - **Truco**: contraflor en el 3v3; F4 tabla de skill (opcional).
+- **Autoplay QA F3b** (`autoplay-qa.md`): hermes-agent toma el `prompt-autofix` SOLO → arregla → PR → deploya con
+  `tormenta-deploy`. (Desbloqueado por infra-62; falta el loop del agente. Toca infra.)
+- **Deploy on-push** (`deploy-pipeline.md` F3.5): Argo Events + webhook GitHub → push a main = deploy automático. (Infra.)
 - **Deuda fina menor**: chusmerío del banco server bilingüe (cron), memoria por-NPC individual (npcs-vivos v2),
-  inventario F2 (ítems no-arma con "usar"), host malicioso del truco (relay sin autoridad).
+  host malicioso del truco (relay sin autoridad).
 
 ### 💡 Ideas grandes en draft (sin arrancar)
 - **Bot de Telegram → Hermes** (`telegram-hermes.md`): manejar el juego desde el chat. Pega fuerte combinado con
   el deploy in-cluster.
 - **Spinoff STARGATE** (`spinoff-stargate.md`): SG-1 + Atlantis; el stargate = puerta entre niveles.
 - **Propaganda PAGA** con link clickeable que paga al dueño (`carteles-ia.md §9`).
-- **Quest mundo-AI** (`quest-mundo-ai.md`) · **Landing /info + /tech** (`landing-info.md`, fuente:
-  `features-showcase.md`) · **Memoria de chat persistente** (`memoria-chat.md`, "para analizar").
+- **Quest mundo-AI** (`quest-mundo-ai.md`) · **Memoria de chat persistente** (`memoria-chat.md`, "para analizar").
 
 ---
 
