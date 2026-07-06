@@ -22,9 +22,13 @@ El juego es 100% estático; se publica en
 > **try/finally** (nunca más se congela); (v329) **REINTENTAR** ahora **resetea de verdad** (`clearProgress()` borra el
 > progreso `ts_*`, conserva settings/suscripción).
 >
-> **▶ RETOMAR MAÑANA:** el Nivel 2 ya se juega de punta a punta (validado en Chromium). Próximos self-contained (elegir):
-> **truco contraflor 3v3**, **más ítems de inventario** (llave/boleto con `kind` nuevos), **pulir `/info` intro** con el
-> Nivel 2. Playtest del dueño pendiente: recorrer el Nivel 2 completo + REINTENTAR limpio.
+> **Último self-contained (v330):** **BOLETO de subte** 🎫 — el boletero te vende un boleto de un uso (kind `ticket`)
+> como alternativa a la SUBE para pasar el molinete (ataca la fricción "no sé cómo llegar a Plaza sin la SUBE").
+>
+> **▶ SIGUIENTES self-contained (elegir):** **truco contraflor 3v3** (recomendado, cierra una regla del truco),
+> **más ítems de inventario** (kind `key`: llave que abre una puerta gateada; buffs temporales), **pulir `/info` intro**
+> con el Nivel 2, **Deploy Argo en `/tech`**. Playtest del dueño pendiente: recorrer el Nivel 2 completo + REINTENTAR
+> limpio + probar el boleto (bajar al subte sin SUBE → comprar al boletero → pasar).
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -43,8 +47,9 @@ El juego es 100% estático; se publica en
 
 ### 💻 Listo para codear cuando el dueño diga "dale" (self-contained, sin infra)
 - **Truco**: contraflor en el 3v3; F4 tabla de skill (opcional). **Recomendado siguiente** (cierra una regla del truco).
-- **Inventario F2 — más ítems** (`inventario-armas.md §F2`): el sistema `use:{kind}` ya anda (heal/ammo/fn); faltan
-  kinds nuevos con fuente: **llave** (abre una puerta gateada), **boleto** (viaje gratis), buffs temporales.
+- **Inventario F3 — más ítems** (`inventario-armas.md §7`): el sistema `use:{kind}` anda (heal/ammo/fn/**ticket**);
+  **boleto ✅ v330** (kind `ticket`, lo vende el boletero); faltan: **llave** (kind `key`, abre una puerta gateada),
+  buffs temporales.
 - **`/info` intro** (`landing-info.md`): el "¿de qué va?" no menciona que ahora hay **Nivel 2** — sumar 1 línea;
   `/tech` ya tiene las capas nuevas (v329).
 - **Deploy Argo en `/tech`**: la sección "build & deploy" no menciona el **Argo Workflow + rollback + alertas Telegram**
@@ -65,6 +70,24 @@ El juego es 100% estático; se publica en
 - **Quest mundo-AI** (`quest-mundo-ai.md`) · **Memoria de chat persistente** (`memoria-chat.md`, "para analizar").
 
 ---
+
+## [v330] — 2026-07-06 — 🎫 BOLETO de subte: alternativa a la SUBE para pasar el molinete (Inventario F3, kind `ticket`)
+
+- **El BOLETERO te vende un BOLETO 🎫** (`js/subte.js`): alternativa de **un solo uso** a la tarjeta SUBE para pasar el
+  molinete. Ataca la fricción real de playtest ("no sé cómo llegar a Plaza de Mayo sin la SUBE") **sin romper la quest**
+  del chino: la SUBE sigue siendo mejor (permanente y gratis tras la quest); el boleto cuesta plata (DATA `boletoPrice`,
+  def. **20 🪙**) y es de un viaje. Si no tenés SUBE ni boleto y te alcanza → `[E]` sobre el boletero lo comprás; parado
+  en el molinete con el boleto → `[E]` pasás una vez y **se consume**. Si ya estás cubierto, el boletero cicla flavor.
+- **Data-driven / isolation (REGLA #0):** ítem `boleto` en `WEAPONS` (`noEquip`, `use:{kind:'ticket'}` → `[I]` informa
+  "se usa en el molinete", `g.inv.ticket`). El sub-modo `subte.js` **no toca** el inventario de game.js: expone getters
+  **one-shot** `purchase` (`{spent}` → game.js cobra `player.coins` + `addItem('boleto')`) y `boletoUsed` (→
+  `consumeItem('boleto')`). game.js pasa a `Subte.create` `{hasBoleto, coins, boletoPrice}`. Kind `ticket` nuevo en
+  `useItem()` (informativo, no consume desde `[I]`).
+- El mensaje de "bajaste sin SUBE" ahora avisa que **podés comprar el boleto al boletero** (además de cargar la SUBE).
+- i18n ES≡EN (`g.wpn.boleto`, `g.subte.{passBoleto,buyBoleto,noCoinsBoleto,promptPassBoleto,promptBuyBoleto}`,
+  `g.inv.ticket`). **Tests:** e2e `subte:ok` amplía (compra + afford-check + pasar-con-comprado + pasar-con-guardado +
+  one-shot getters); web-smoke OK; validado en **Chromium real** (subte renderiza sin errores de glue + contrato
+  one-shot correcto). SDD `inventario-armas.md §7.1` + `subte.md §5`.
 
 ## [v329] — 2026-07-04 — 🔄 FIX "REINTENTAR no resetea" + más inventario (fernet/mortero) + landing /tech al día
 

@@ -16,6 +16,12 @@ const Subte = (() => {
     opts = opts || {};
     const est = ESTACIONES[opts.station] || ESTACIONES.florida;
     const subeReady = !!opts.subeReady;   // ¿la SUBE está cargada? (game.js lo lee de ts_sube_charged)
+    // BOLETO (F3, specs/inventario-armas.md §7 kind:'ticket'): alternativa de UN uso a la SUBE. El BOLETERO te lo
+    // vende (si no tenés SUBE) y con él pasás el molinete una vez. game.js pasa si ya tenés uno + la plata + el precio,
+    // y lee de vuelta la compra (`purchase`) / el uso (`boletoUsed`) para tocar el inventario. La SUBE sigue siendo mejor
+    // (permanente y gratis tras la quest del chino); el boleto es el paraguas para el que no la hizo (o no quiere).
+    const boletoPrice = opts.boletoPrice || 20;
+    let hasBoleto = !!opts.hasBoleto, coinsLeft = opts.coins || 0, purchase = null, boletoUsedFlag = false;
     // F3 VIAJAR: las OTRAS estaciones jugables a las que podés ir (game.js pasa las que ya existen)
     const destinos = (opts.available || ['florida', 'lavalle']).filter(k => k !== opts.station && ESTACIONES[k]);
     const map = Array.from({ length: H }, () => new Array(W).fill(0));
@@ -43,10 +49,19 @@ const Subte = (() => {
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (!passed && ty === GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) {
         if (subeReady) { passed = true; setMsg(T('g.subte.pass'), 4); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
+        else if (hasBoleto) { passed = true; hasBoleto = false; boletoUsedFlag = true; setMsg(T('g.subte.passBoleto'), 5); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }   // metés el boleto → pasás y se consume
         else { setMsg(T('g.subte.noCard'), 6); if (typeof Sfx !== 'undefined' && Sfx.hit) Sfx.hit(); }
         return;
       }
-      if (near(boletero)) { boletIdx = (boletIdx + 1) % 3; setMsg(T('g.subte.bolet' + (boletIdx + 1)), 6); return; }   // el boletero cicla data (canned)
+      // BOLETERO: si NO tenés SUBE ni boleto → te VENDE uno (si te alcanza la plata); si ya estás cubierto, cicla flavor.
+      if (near(boletero)) {
+        if (!subeReady && !hasBoleto) {
+          if (coinsLeft >= boletoPrice) { hasBoleto = true; coinsLeft -= boletoPrice; purchase = { spent: boletoPrice }; setMsg(T('g.subte.buyBoleto', { p: boletoPrice }), 6); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
+          else { setMsg(T('g.subte.noCoinsBoleto', { p: boletoPrice }), 6); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
+          return;
+        }
+        boletIdx = (boletIdx + 1) % 3; setMsg(T('g.subte.bolet' + (boletIdx + 1)), 6); return;
+      }
       if (near(escalera)) { leave(); return; }
       // en el andén, con la SUBE pasada → abrir el MENÚ DE DESTINOS (F3)
       if (passed && player.y < andenY * CS) {
@@ -80,9 +95,9 @@ const Subte = (() => {
         if (Input.keys[k]) { if (!numHeld[k]) { numHeld[k] = true; travelTo(destinos[i]); } } else numHeld[k] = false; }
       // prompt contextual
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
-      if (!passed && ty === GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = subeReady ? T('g.subte.promptPass') : T('g.subte.promptNo');
+      if (!passed && ty === GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = subeReady ? T('g.subte.promptPass') : hasBoleto ? T('g.subte.promptPassBoleto') : T('g.subte.promptNo');
       else if (near(escalera)) prompt = T('g.subte.promptSalir');
-      else if (near(boletero)) prompt = T('g.subte.promptBoletero');
+      else if (near(boletero)) prompt = (!subeReady && !hasBoleto) ? T('g.subte.promptBuyBoleto', { p: boletoPrice }) : T('g.subte.promptBoletero');
       else if (passed && player.y < andenY * CS) prompt = T('g.subte.promptViajar');
       else prompt = '';
     }
@@ -156,11 +171,15 @@ const Subte = (() => {
 
     return {
       get done() { return done; }, get exitTo() { return exitTo; },
+      // BOLETO (one-shot, los lee game.js cada frame para tocar el inventario/plata): compra hecha en el boletero / uso en el molinete
+      get purchase() { const p = purchase; purchase = null; return p; },
+      get boletoUsed() { const b = boletoUsedFlag; boletoUsedFlag = false; return b; },
       update, draw,
       // superficie de prueba (e2e)
       __pass: () => { player.x = (GATE_GAP + 0.5) * CS; player.y = (GATE_Y + 1.5) * CS; interact(); return passed; },
       __leave: () => { player.x = (escalera.x + 0.5) * CS; player.y = (escalera.y + 0.5) * CS; interact(); return done; },
       __travel: () => { player.y = 2 * CS; interact(); const d = destinos[0]; if (d) travelTo(d); return exitTo; },   // e2e: abrir menú + viajar al 1er destino
+      __buyBoleto: () => { player.x = (boletero.x + 0.5) * CS; player.y = (boletero.y + 0.5) * CS; interact(); return hasBoleto; },   // e2e: comprar en el boletero
     };
   }
   return { create, ESTACIONES };

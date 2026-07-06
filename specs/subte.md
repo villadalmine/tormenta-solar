@@ -95,6 +95,11 @@ triple del Obelisco — cierra perfecto con el arco del Obelisco del juego.
 
 - **El del molinete / boletero** — persona `boletero`: gruñón simpático, te reta si querés pasar sin cargar la
   SUBE, sabe los horarios y "el de arriba" (rumores). NO IA obligatoria (línea scripteada + chat opcional).
+  **✅ v330 — te VENDE un BOLETO 🎫** (alternativa de un uso a la SUBE): si no tenés la SUBE cargada ni un boleto y te
+  alcanza la plata (precio DATA `boletoPrice`, def. 20 🪙), `[E]` sobre él → comprás; parado en el molinete con el
+  boleto → `[E]` pasás **una vez** y se consume. La SUBE sigue siendo mejor (permanente/gratis tras la quest del chino);
+  el boleto es el paraguas para el que no la hizo. Ítem `boleto` en `WEAPONS` (kind `ticket`, ver
+  `inventario-armas.md §7.1`); `subte.js` reporta a game.js vía getters one-shot `purchase`/`boletoUsed` (isolation).
 - **Linyera del subte** — el subte es refugio de linyeras; una persona nueva `subterraneo` (vive abajo, filosofía
   del subsuelo, conoce todas las líneas y a dónde llevan) — 1er oráculo del subte, chateable.
 - **Busker / músico** — toca en el andén por unas monedas (reusa el patrón del `musico` de la calle).

@@ -675,7 +675,8 @@
     if (returnTo) subteReturn = returnTo;   // en un VIAJE (travel:X) no lo pisamos: conservás dónde volvés a la superficie
     const available = ['florida'];          // estaciones jugables que YA existen
     if (lsFlag('ts_sat_down')) { available.push('lavalle'); available.push('catedral'); }   // tras herir al satélite: Lavalle + Catedral (→ Plaza de Mayo, Nivel 2)
-    subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged'), available }); state = 'subte';
+    subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged'), available,
+      hasBoleto: !!(player.inventory && player.inventory.includes('boleto')), coins: player.coins || 0, boletoPrice: 20 }); state = 'subte';
     evlog('hito', 'bajó al subte (' + station + ')');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
@@ -797,6 +798,9 @@
     molotov:    { id: 'molotov',    emoji: '🧨', label: 'g.wpn.molotov', noEquip: true },
     // TARJETA SUBE (quest del subte, specs/subte.md §2.6): coleccionable; la cargás en el tótem del chino.
     sube:       { id: 'sube',       emoji: '💳', label: 'g.wpn.sube',    noEquip: true },
+    // BOLETO de subte (F3, specs/inventario-armas.md §7 kind:'ticket'): lo VENDE el boletero; pasás el molinete UNA vez
+    // (se consume ahí, no se equipa). Alternativa de un uso a la SUBE. El kind 'ticket' de [I] es informativo (se usa en el molinete).
+    boleto:     { id: 'boleto',     emoji: '🎫', label: 'g.wpn.boleto',  noEquip: true, use: { kind: 'ticket' } },
   };
   const isDream = () => spinoffLevel;   // los niveles GENERADOS son "los sueños del Carpo": ahí SÍ usa el fierro criollo
   function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
@@ -821,6 +825,9 @@
       player.ammo = (player.ammo || 0) + (u.amount || 20); consumeItem(id);
       if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); closeInv();
       setMsg(T('g.inv.usedAmmo', { item: wpnLabel(id), n: u.amount || 20 }), '#7CFC00', 4000); return;
+    }
+    if (u.kind === 'ticket') {   // el boleto no se "usa" desde acá: se mete en el molinete del subte (y ahí se consume). Informativo.
+      closeInv(); setMsg(T('g.inv.ticket'), '#9be8a0', 5000); return;
     }
   }
   function openInv() {
@@ -3669,7 +3676,10 @@
         if (!enterLavalle(m)) { if (m) setMsg(m, '#ff8f8f', 8000); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'subte' && subteGame) {                      // subte.md §4: la estación (andén top-down)
-      subteGame.update(dt); subteGame.draw(ctx, W, H);
+      subteGame.update(dt);
+      const buy = subteGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem('boleto'); syncHud(); }   // BOLETO: le compraste al boletero → cobrás + al inventario
+      if (subteGame.boletoUsed) { consumeItem('boleto'); }             // BOLETO: lo metiste en el molinete → se consume
+      subteGame.draw(ctx, W, H);
       if (subteGame.done) {
         const ex = subteGame.exitTo; subteGame = null;
         if (typeof Input !== 'undefined' && Input.clear) Input.clear();

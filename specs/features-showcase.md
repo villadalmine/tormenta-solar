@@ -139,7 +139,8 @@
   DEL LIBERTADOR**; lo llevás a la **Pirámide de Mayo**, que es un **dispositivo anti-IA**, lo armás y un **haz** sube
   a los **satélites manejados por la IA** → arranca el **"proceso sanmartiniano de liberación mundial"**: San Martín
   nos libera del yugo de la IA. Sub-modo aislado `js/plaza.js`; el subte es el conector Nivel 1 → Nivel 2. Ver
-  `specs/subte.md §10`.
+  `specs/subte.md §10`. **¿No hiciste la quest de la SUBE?** El **boletero** te vende un **BOLETO 🎫** de un solo viaje
+  para pasar el molinete igual (la SUBE sigue siendo la posta: permanente y gratis).
 
 ## 4.b RESILIENCIA: si la GPU se cae, NO se para nada → modo estático
 - **Premisa (dueño):** *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático de

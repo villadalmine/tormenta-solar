@@ -114,8 +114,24 @@ generado (ahí `noEquip` se ignora y aparece la línea "sí loco acá lo usamo")
   +30), **fernet con coca** (premio de la pancarta, +25).
 - **`ammo`** `{kind:'ammo', amount:N}` → +munición. Ej: **mortero** (premio del bombo, +25).
 - **`fn`** `{kind:'fn', fn:'nombre'}` → llama una función nombrada (ej. la **consola** del chip → `useConsola`).
+- **`ticket`** `{kind:'ticket'}` → ítem que se usa en un GATE del mundo (no desde `[I]`); el `[I]` sólo informa. Ej: el
+  **boleto de subte** (`boleto` 🎫, v330). Ver §7.1.
 `equipWeapon` ignora los ítems con `use` (no son equipables). Cualquier ítem futuro = **puro dato** (no toca `useItem`).
 
+## 7.1 — BOLETO de subte (kind `ticket`) ✅ (v330)
+Alternativa de **un solo uso** a la tarjeta SUBE para pasar el molinete (specs/subte.md §5). Ataca la fricción real
+("no sé cómo llegar a Plaza de Mayo" sin la SUBE) sin romper la quest del chino (la SUBE sigue siendo mejor: permanente
+y gratis; el boleto cuesta plata y es de un viaje).
+- **Fuente:** el **BOLETERO** de la estación (`js/subte.js`) te lo **vende** (precio DATA `boletoPrice`, default 20 🪙)
+  cuando **no** tenés la SUBE cargada **ni** un boleto, y te alcanza la plata. Si ya estás cubierto, cicla flavor.
+- **Uso:** parado en el molinete sin SUBE pero con boleto → `[E]` pasás **una vez** y se **consume**.
+- **Data-driven / isolation:** el sub-modo `subte.js` no toca el inventario de game.js; expone getters **one-shot**
+  `purchase` (`{spent}` al comprar → game.js cobra `player.coins` + `addItem('boleto')`) y `boletoUsed` (al pasar →
+  `consumeItem('boleto')`). game.js pasa a `Subte.create` `{hasBoleto, coins, boletoPrice}`. Ítem `boleto` en `WEAPONS`
+  (`noEquip`, `use:{kind:'ticket'}` → `[I]` muestra "se usa en el molinete", `g.inv.ticket`).
+- i18n: `g.wpn.boleto`, `g.subte.{passBoleto,buyBoleto,noCoinsBoleto,promptPassBoleto,promptBuyBoleto}`, `g.inv.ticket`
+  (ES≡EN). e2e: compra + afford-check + pasar-con-comprado + pasar-con-guardado + one-shot getters (`subte:ok`).
+
 ### Deuda / futuro (F3+)
-- Kinds nuevos con fuente: **`key`** (abre una puerta gateada), **`ticket`** (viaje gratis), buffs temporales.
+- Kinds nuevos con fuente: **`key`** (abre una puerta gateada), buffs temporales.
 - Slots / drop / peso → no hace falta para el alcance actual (YAGNI).

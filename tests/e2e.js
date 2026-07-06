@@ -385,6 +385,20 @@ if (require.main === module) {
     const sTrav = Subte.create({ station: 'lavalle', subeReady: true, available: ['florida', 'lavalle'] });
     const ex = sTrav.__travel();
     if (ex !== 'travel:florida') throw new Error('subte: viajar debería ir a Florida: ' + ex);
+    // BOLETO F3 (inventario-armas §7 kind:'ticket'): sin SUBE pero con plata → el boletero te vende un boleto → pasás el molinete y se consume
+    const sBol = Subte.create({ station: 'florida', subeReady: false, hasBoleto: false, coins: 100, boletoPrice: 20 });
+    if (!sBol.__buyBoleto()) throw new Error('subte: con plata el boletero debería venderte un boleto');
+    const buy = sBol.purchase;   // one-shot: game.js lo lee para cobrar + addItem
+    if (!buy || buy.spent !== 20) throw new Error('subte: la compra debería reportar spent=20');
+    if (sBol.purchase !== null) throw new Error('subte: la compra es one-shot (2ª lectura null)');
+    if (!sBol.__pass()) throw new Error('subte: con el boleto comprado debería pasar el molinete');
+    if (!sBol.boletoUsed) throw new Error('subte: al pasar con boleto debería marcar boletoUsed (para consumirlo)');
+    const sPoor = Subte.create({ station: 'florida', subeReady: false, hasBoleto: false, coins: 5, boletoPrice: 20 });
+    if (sPoor.__buyBoleto()) throw new Error('subte: sin plata NO debería vender el boleto');
+    if (sPoor.__pass()) throw new Error('subte: sin SUBE ni boleto NO debería pasar el molinete');
+    const sHave = Subte.create({ station: 'florida', subeReady: false, hasBoleto: true, coins: 0 });
+    if (!sHave.__pass()) throw new Error('subte: con un boleto ya en la mochila debería pasar el molinete');
+    if (!sHave.boletoUsed) throw new Error('subte: al pasar con el boleto de la mochila debería marcar boletoUsed');
     ok.push('subte:ok');
     // PLAZA DE MAYO (Nivel 2, arco sanmartiniano): chip del Libertador (tumba) → Pirámide → señal → win2
     if (typeof Plaza === 'undefined' || !Plaza.create) throw new Error('Plaza no cargó');
