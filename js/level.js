@@ -249,6 +249,9 @@ const Level = (() => {
         doors: [
           { id:'up', art:'doorUp', label:'subir', x:3, inward:1 },
           { id:'down', art:'door', label:'bajar', x:39, inward:-1 },
+          // DEPÓSITO cerrado (llave 🔑 del gurú, specs/inventario-armas.md §7.2): visible pero trabado; con la llave lo
+          // saqueás una vez (handler `deposito`). Se oculta al saquearlo (gate not:depositoOpen).
+          { id:'deposito', art:'door', label:'g.door.deposito', x:33, inward:-1, gate:{ not:{ flag:'depositoOpen' } } },
         ],
         npcs: [
           { name:'Sex-shop “El Subte”', sprite:'erotica', x:14, action:'tienda', tienda:{ tipo:'sexshop' },

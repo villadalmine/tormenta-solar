@@ -70,7 +70,9 @@
   con los jugadores reales que se sumen y **bots de IA** que completan los asientos vacíos (jugable solo o con gente,
   escala a 6 humanos). Con la **regla de la casa**: la primera ronda la juegan todos (gana la carta más alta), la
   segunda es 1v1 contra el de enfrente, y al llegar a 10 puntos vuelve a jugar todos. Premio en flores al equipo
-  ganador; si alguien se va, lo reemplaza la IA y la partida sigue. Ver `specs/truco.md §14`.
+  ganador; si alguien se va, lo reemplaza la IA y la partida sigue. Y si a los dos equipos les toca **flor**, se juega
+  la **CONTRAFLOR** (flor → contraflor → contraflor al resto): cantás con [F], el otro quiere/se achica, y el pozo se lo
+  lleva la flor más alta. Ver `specs/truco.md §14`.
 - **El Tablón colaborativo (construcción asincrónica, à la Death Stranding):** 2 pisos del cine donde una **computadora**
   te deja **fijar un cartel corto** para el próximo jugador que pase. El cartel **vive en el server hasta que OTRO lo
   LEE** (te parás debajo, **[E]**) → te muestra el texto y **se borra** (consumo-en-lectura). Se dibujan **empaquetados**
@@ -97,7 +99,9 @@
 - **Inventario + la viola que dispara risas:** las armas son **DATA** (registro `WEAPONS`); tenés un **inventario** y
   equipás una con **[I]** (el HUD muestra cuál). El **tesoro del búnker** (cuando sos gurú) te da la **🎸 viola de Les
   Luthiers que dispara RISAS** — apacigua a **cualquiera**, hasta los voladores, muertos de risa 😂 (no los mata). El
-  inventario y el arma equipada **persisten en el guardado**. Ver `specs/inventario-armas.md`.
+  inventario y el arma equipada **persisten en el guardado**. Hay además **ítems que se usan** (comida que cura, mortero
+  que da munición) y **ítems-llave**: el **boleto de subte 🎫** (te lo vende el boletero, pasás el molinete sin la SUBE)
+  y la **llave 🔑** del gurú, que abre el **DEPÓSITO de la galería** (un botín de guita y balas). Ver `specs/inventario-armas.md`.
 - **El telo, el CHIP y el cambio de personaje:** la "rubia" del bodegón te lleva a un telo (sub-modo top-down) que es
   una **trampa de la IA**: salta un **robot** que te quiere clavar un **chip**. Si escapás, zafás; si te atrapa, caés
   **chipeado** a la habitación con **3 linyeras** (chat IA groundeado SOLO al chip) que te tiran la posta → **CORTE DE

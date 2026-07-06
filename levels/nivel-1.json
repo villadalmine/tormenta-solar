@@ -1882,6 +1882,21 @@
           }
         },
         {
+          "id": "galeria-subsuelo-1/door-deposito",
+          "tipo": "door",
+          "render": {
+            "type": "door"
+          },
+          "x": 33,
+          "gate": {
+            "not": {
+              "flag": "depositoOpen"
+            }
+          },
+          "label": "g.door.deposito",
+          "inward": -1
+        },
+        {
           "id": "galeria-subsuelo-1/npc0",
           "tipo": "npc",
           "render": {

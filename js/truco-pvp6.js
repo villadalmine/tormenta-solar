@@ -47,7 +47,12 @@ const TrucoPvp6 = (() => {
         if (view.done && !done) endFromView();
       }
     }
-    function cantarVoz(p) { const F = p.kind === 'envido' ? ['¡ENVIDO!', '¡REAL ENVIDO!', '¡FALTA ENVIDO!'][p.level - 1] : ['¡TRUCO!', '¡RETRUCO!', '¡VALE CUATRO!'][p.level - 1]; if (F) Mensajero.cantar(F); }
+    function cantarVoz(p) {
+      const F = p.kind === 'flor' ? ['¡FLOR!', '¡CONTRAFLOR!', '¡CONTRAFLOR AL RESTO!'][p.level - 1]
+        : p.kind === 'envido' ? ['¡ENVIDO!', '¡REAL ENVIDO!', '¡FALTA ENVIDO!'][p.level - 1]
+        : ['¡TRUCO!', '¡RETRUCO!', '¡VALE CUATRO!'][p.level - 1];
+      if (F) Mensajero.cantar(F);
+    }
     function endFromView() { done = true; result = view.win ? 'win' : 'lose'; floresDelta = view.floresDelta || 0; }
 
     function update(dt) {
@@ -62,6 +67,7 @@ const TrucoPvp6 = (() => {
         else if (tap('n')) localAct({ k: 'resp', r: 'no' });
         else if (tap('t') && view.pending.kind === 'truco' && view.pending.level < 3) localAct({ k: 'canto', c: ['retruco', 'vale4'][view.pending.level - 1] });
         else if (tap('v') && view.pending.kind === 'envido' && view.pending.level < 3) localAct({ k: 'canto', c: ['real', 'falta'][view.pending.level - 1] });
+        else if (tap('f') && view.pending.kind === 'flor' && view.pending.level < 3) localAct({ k: 'canto', c: view.pending.level === 1 ? 'contraflor' : 'contraflorresto' });
         else if (tap('v') && view.pending.kind === 'truco' && view.canEnvido) localAct({ k: 'canto', c: 'envido' });
         drain(); return;
       }

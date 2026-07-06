@@ -132,6 +132,19 @@ y gratis; el boleto cuesta plata y es de un viaje).
 - i18n: `g.wpn.boleto`, `g.subte.{passBoleto,buyBoleto,noCoinsBoleto,promptPassBoleto,promptBuyBoleto}`, `g.inv.ticket`
   (ES≡EN). e2e: compra + afford-check + pasar-con-comprado + pasar-con-guardado + one-shot getters (`subte:ok`).
 
+## 7.2 — LLAVE del depósito (kind `key`) ✅ (v331)
+El primer kind `key`: una **llave 🔑** que abre una **puerta GATEADA** del mundo (no desde `[I]`; el `[I]` sólo informa).
+- **Fuente:** el **gurú del búnker** te la da junto con el tesoro (`grabTesoro` → `addItem('llave')`, si no saqueaste ya el
+  depósito). El mensaje del tesoro te dice a dónde ("abrí el DEPÓSITO de la galería, hay guita guardada").
+- **Gate (data-driven, reusa el gating declarativo de puertas):** puerta `deposito` en la **galería (sala 6)**, VISIBLE
+  pero trabada, `gate:{ not:{ flag:'depositoOpen' } }` (se oculta al saquearla). Su `DOOR_HANDLER` (`deposito`): con la
+  llave → la **consume** + botín (**+120 🪙 +40 🔫 +15 🍬**) + setea `ts_deposito_open`; sin llave → "cerrada con llave".
+- **Nueva forma de gate:** `gateMet` ahora soporta **`{has:'item'}`** (chequea `player.inventory.includes(item)`), además
+  de `{item}` (campo booleano de `player`), `{flag}`, `{all}`/`{any}`/`{not}`. Es la manera data-driven de gatear por ítem.
+- Ítem `llave` en `WEAPONS` (`noEquip`, `use:{kind:'key'}` → `[I]` muestra `g.inv.key`). Debug: botón "🔑 Dar llave + ir al
+  depósito" (te da la llave y te deja al lado de la reja). i18n `g.wpn.llave`, `g.door.deposito`, `g.deposito.{open,locked}`
+  (ES≡EN). Validado en **Chromium real** (abre, +120🪙+40🔫, consume la llave, oculta la puerta).
+
 ### Deuda / futuro (F3+)
-- Kinds nuevos con fuente: **`key`** (abre una puerta gateada), buffs temporales.
+- Más gates de llave / más depósitos (el mecanismo `{has}` + handler ya es genérico); buffs temporales.
 - Slots / drop / peso → no hace falta para el alcance actual (YAGNI).

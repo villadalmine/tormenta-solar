@@ -250,8 +250,23 @@ Un jugador que cierra la pestaña deja de mandar `Salon.pos` → el relay lo pod
 El host lo detecta (`trucoPeerGone`) y: en **a6** lo reemplaza un **bot IA** (`dropToAI`, la partida sigue); en **1v1**
 cierra el match limpio. Reusa la presencia del salón (sin protocolo de ping nuevo). Cierra "reconexión dura por timeout".
 
-### 14.4 Deuda de a6 (v1 → futuro)
+### 14.4 CONTRAFLOR en 3v3 — ✅ IMPLEMENTADO (v331)
+Antes la flor se resolvía **automática al repartir** (+3 por flor, sin canto). Ahora, con flor en **AMBOS** equipos, se
+abre un **canto interactivo** (mismo mecanismo `pending` del envido), host-autoritativo:
+- **Una sola flor** (un equipo) → sigue **+3 automático** (mata el envido). Sin rival, no hay contra.
+- **Flor en los dos equipos** → `pending {kind:'flor', level, by, responder}` al repartir (el 1er florista de cada equipo
+  desde la mano). El responder puede **escalar** (`contraflor` L2 / `contraflor al resto` L3), **[Q]uiero** (se comparan
+  las flores: el equipo de **mayor flor** se lleva el pozo) o **[N]o** (se achica → el que cantó suma el "no").
+- **Valores** (regla de la casa, `florQ`/`florN` en `truco-net6.js`, a ajustar en playtest): flor **3** · contraflor **6**
+  · al resto = **falta** (`TARGET − scoreMax`). "No": L1 **3**, contraflor **4**, al resto **6**, al que cantó.
+- **IA**: responde por la fuerza de SU flor (no ve la rival) — escala con flor ≥32, quiere con ≥24, si no se achica.
+- **Motor** `truco-net6.js`: `resolveFlor`, `canto('contraflor'|'contraflorresto')`, `respond` flor, `aiAct` flor,
+  `noteFor` `florNo`. **Escena** `truco-pvp6.js`: tecla **[F]** escala la flor, voz "¡CONTRAFLOR!". i18n `g.truco6.respond.flor`
+  + `note.florNo{You,Opp}` (ES≡EN). e2e: los 3 caminos (quiero→6, no→3, al resto→falta) deterministas (seed 23) + las 20
+  partidas all-IA no se traban con la flor interactiva.
+
+### 14.5 Deuda de a6 (v1 → futuro)
 - **Host malicioso** podría trampear (relay sin autoridad) — fuera de alcance v1.
-- La **regla de la casa** es mi interpretación de lo que pidió el dueño; está toda en `bazaMode` para ajustar tras playtest.
-- **Contraflor** real en 3v3 (hoy cada flor = +3 a su equipo, auto al repartir, sin cadena). Envido por equipo simplificado.
-- Cantos: el ping-pong de respuesta es entre dos asientos adyacentes (uno por equipo), no "cualquiera del equipo rival".
+- La **regla de la casa** es mi interpretación de lo que pidió el dueño; está toda en `bazaMode`/`florQ`/`florN` para ajustar tras playtest.
+- Cantos: el ping-pong de respuesta es entre dos asientos representatives (uno por equipo), no "cualquiera del equipo rival".
+- **Playtest pendiente:** validar el contraflor con 2+ humanos reales (el motor está testeado headless; la escena PvP no).

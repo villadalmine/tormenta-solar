@@ -517,6 +517,24 @@ if (require.main === module) {
       if (vw.score.me < vw.score.opp) out.push('FAIL a6 motor seed '+s+' ganador con menos puntos');
     }
     if (!modes.global || !modes.pairs) out.push('FAIL a6 motor: no se ejercitaron ambos modos de baza ('+JSON.stringify(modes)+')');
+    // 1b) CONTRAFLOR (§14.1): seed 23 reparte flor en AMBOS equipos → canto interactivo (no auto +3). Verificar los 3 caminos.
+    (function(){
+      function fresh(){ const m = TrucoNet6.match({ seed:23, ai:[false,false,false,false,false,false] }); m.start(); return m; }
+      let m = fresh(); let v = m.viewFor(0);
+      if (!v.pending || v.pending.kind !== 'flor') { out.push('FAIL contraflor: seed 23 debía cantar flor (ambos equipos), pending='+JSON.stringify(v.pending)); return; }
+      // A) contraflor + quiero → 6 al equipo de mayor flor
+      const rs = v.turnSeat; m.act(rs, { k:'canto', c:'contraflor' }); const c1 = m.viewFor(0).turnSeat; m.act(c1, { k:'resp', r:'quiero' });
+      const a = m.viewFor(0), b = m.viewFor(1); const hi = Math.max(a.dealPts.me, b.dealPts.me);
+      if (hi !== 6) out.push('FAIL contraflor quiero: el ganador debía sumar 6, sumó '+hi);
+      // B) no a la flor L1 → el que cantó (byTeam) suma florN[1]=3
+      m = fresh(); v = m.viewFor(0); const caller = v.pending.byTeam; m.act(v.turnSeat, { k:'resp', r:'no' });
+      const na = m.viewFor(0), nb = m.viewFor(1); const win3 = caller === na.myTeam ? na.dealPts.me : nb.dealPts.me;
+      if (win3 !== 3) out.push('FAIL flor no: el que cantó debía sumar 3, sumó '+win3);
+      // C) contraflor al resto + quiero → falta (TARGET-scoreMax = 15 al inicio)
+      m = fresh(); v = m.viewFor(0); m.act(v.turnSeat, { k:'canto', c:'contraflorresto' }); const c3 = m.viewFor(0).turnSeat; m.act(c3, { k:'resp', r:'quiero' });
+      const ra = m.viewFor(0), rb = m.viewFor(1); const falta = Math.max(ra.dealPts.me, rb.dealPts.me);
+      if (falta !== 15) out.push('FAIL contraflor al resto: debía sumar la falta (15), sumó '+falta);
+    })();
     // 2) ESCENA host(seat0) + guest(seat1) humanos + 4 IA, por transporte en memoria → ambos terminan con resultados OPUESTOS
     function playScene(seed) {
       const inbox = { host: [], guest: [] };

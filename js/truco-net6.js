@@ -14,6 +14,9 @@ const TrucoNet6 = (() => {
   const E = (typeof Truco !== 'undefined') ? Truco : (typeof require === 'function' ? require('./truco.js') : null);
   const trucoQ = { 1: 2, 2: 3, 3: 4 }, trucoN = { 1: 1, 2: 2, 3: 3 };
   const envQ = { 1: 2, 2: 3, 3: 5 }, envN = { 1: 1, 2: 2, 3: 3 };
+  // FLOR / CONTRAFLOR (§14.1): 1=flor(3), 2=contraflor(6), 3=contraflor al resto(falta). florN = lo que gana el que
+  // cantó si el otro se achica (no quiere). Regla de la casa del dueño — a ajustar en playtest.
+  const florQ = { 1: 3, 2: 6 }, florN = { 1: 3, 2: 4, 3: 6 };
   const TARGET = 15, ENDGAME = 10, AI_DELAY = 0.6;
 
   const team = s => (s % 2 === 0 ? 'A' : 'B');
@@ -38,6 +41,7 @@ const TrucoNet6 = (() => {
     let bazaResults = [];                       // 'A'|'B'|null por baza
     let pts = { A: 0, B: 0 };
     let trucoLevel = 0, trucoStake = 1, envidoDone = false, florDone = false;
+    let florBest = { A: -1, B: -1 };                        // mejor flor de cada equipo en la mano (para resolver contraflor)
     let pending = null, heldTruco = null, revealT = 0, dealPause = 0, aiClock = AI_DELAY;
 
     const scoreMax = () => Math.max(score.A, score.B);
@@ -54,13 +58,25 @@ const TrucoNet6 = (() => {
       trucoLevel = 0; trucoStake = 1; envidoDone = false; florDone = false;
       pending = null; heldTruco = null; revealT = 0; dealPause = 0; aiClock = AI_DELAY;
       phase = 'play'; lastEvent = null;
-      // FLOR auto al repartir: cada flor → +3 a su equipo (sin contraflor). Flor mata envido.
-      let florTeam = null, florMax = -1;
+      // FLOR al repartir (§14.1). Una sola flor → +3 automático (mata envido). Flor en AMBOS equipos → CONTRAFLOR:
+      // canto interactivo (flor→contraflor→contraflor al resto), como el envido; el equipo de MAYOR flor se lleva el pozo.
+      const florSeats = { A: [], B: [] }; florBest = { A: -1, B: -1 };
       for (let s = 0; s < 6; s++) {
         const f = E && E.flor(hands[s].map(h => h.c));
-        if (f != null) { pts[team(s)] += 3; florDone = true; envidoDone = true; if (f > florMax) { florMax = f; florTeam = team(s); } }
+        if (f != null) { const t = team(s); florSeats[t].push(s); if (f > florBest[t]) florBest[t] = f; }
       }
-      if (florTeam) lastEvent = { kind: 'flor', winner: florTeam, p: { pts: 3 } };
+      const hasA = florSeats.A.length > 0, hasB = florSeats.B.length > 0;
+      if (hasA && hasB) {                                   // contraflor posible → canto (el 1er florista de cada equipo desde la mano)
+        envidoDone = true;                                  // la flor mata el envido
+        const ord = order();
+        const caller = ord.find(s => florSeats[team(s)].includes(s));
+        const rt = other(team(caller));
+        const resp = ord.find(s => team(s) === rt && florSeats[rt].includes(s));
+        pending = { kind: 'flor', level: 1, by: caller, responder: resp };
+      } else if (hasA || hasB) {                            // una sola flor → +3 automático
+        const t = hasA ? 'A' : 'B';
+        pts[t] += 3; florDone = true; envidoDone = true; lastEvent = { kind: 'flor', winner: t, p: { pts: 3 } };
+      }
       bump();
     }
 
@@ -80,6 +96,14 @@ const TrucoNet6 = (() => {
       afterEnvido();
     }
     function afterEnvido() { if (!heldTruco) { bump(); return; } const ht = heldTruco; heldTruco = null; pending = { kind: 'truco', level: ht.level, by: ht.by, responder: ht.responder }; bump(); }
+    function resolveFlor(level) {                            // aceptada (quiero): el equipo de MAYOR flor se lleva el pozo
+      const fa = florBest.A, fb = florBest.B;
+      const p = level === 3 ? Math.max(1, TARGET - scoreMax()) : (florQ[level] || 3);
+      const w = fa > fb ? 'A' : fb > fa ? 'B' : team(mano);  // empate → la mano
+      pts[w] += p; florDone = true; envidoDone = true; pending = null;
+      lastEvent = { kind: 'flor', winner: w, p: { pts: p } };
+      bump();
+    }
 
     // resuelve la baza según el modo. Devuelve 'A'|'B'|null (parda).
     function resolveBaza() {
@@ -124,6 +148,13 @@ const TrucoNet6 = (() => {
     // ---- acciones ----
     function canto(seat, c) {
       if (phase !== 'play') return;
+      if (c === 'contraflor' || c === 'contraflorresto') {   // §14.1: escalar la flor (solo el florista que responde)
+        const lvl = c === 'contraflor' ? 2 : 3;
+        if (pending && pending.kind === 'flor' && seat === pending.responder && lvl > pending.level) {
+          pending = { kind: 'flor', level: lvl, by: seat, responder: pending.by }; bump();
+        }
+        return;
+      }
       if (c === 'envido' || c === 'real' || c === 'falta') {
         const lvl = c === 'envido' ? 1 : c === 'real' ? 2 : 3;
         if (pending && pending.kind === 'truco' && bazaResults.length === 0 && !envidoDone && seat === pending.responder) {
@@ -151,11 +182,13 @@ const TrucoNet6 = (() => {
       if (phase !== 'play' || !pending || seat !== pending.responder) return;
       const lvl = pending.level, kind = pending.kind, byT = team(pending.by);
       if (r === 'quiero') {
-        if (kind === 'envido') resolveEnvido(lvl);
+        if (kind === 'flor') resolveFlor(lvl);
+        else if (kind === 'envido') resolveEnvido(lvl);
         else { trucoLevel = lvl; trucoStake = trucoQ[lvl]; pending = null; bump(); }
         return;
       }
-      if (kind === 'envido') { pts[byT] += (envN[lvl] || 1); envidoDone = true; pending = null; lastEvent = { kind: 'envNo', winner: byT, p: { pts: envN[lvl] || 1 } }; afterEnvido(); }
+      if (kind === 'flor') { pts[byT] += (florN[lvl] || 3); florDone = true; envidoDone = true; pending = null; lastEvent = { kind: 'florNo', winner: byT, p: { pts: florN[lvl] || 3 } }; bump(); }
+      else if (kind === 'envido') { pts[byT] += (envN[lvl] || 1); envidoDone = true; pending = null; lastEvent = { kind: 'envNo', winner: byT, p: { pts: envN[lvl] || 1 } }; afterEnvido(); }
       else { pts[byT] += (trucoN[lvl] || 1); pending = null; concludeDeal(byT, false); }
     }
     function playCard(seat, i) {
@@ -177,6 +210,11 @@ const TrucoNet6 = (() => {
     function bestOppCardOnTable(seat) { let best = null; for (let s = 0; s < 6; s++) if (team(s) !== team(seat) && table[s] && (!best || pw(table[s]) > pw(best))) best = table[s]; return best; }
     function aiAct(seat) {
       if (pending && seat === pending.responder) {
+        if (pending.kind === 'flor') {                       // §14.1: responde la flor por la fuerza de la SUYA (no ve la rival)
+          const mf = E.flor(hands[seat].map(h => h.c)) || 0;
+          if (pending.level < 3 && mf >= 32 && Math.random() < 0.35) { canto(seat, pending.level === 1 ? 'contraflor' : 'contraflorresto'); return; }
+          respond(seat, (mf >= 24 || Math.random() < 0.6) ? 'quiero' : 'no'); return;
+        }
         if (pending.kind === 'envido') { const ok = E.aiAcceptEnvido(E.envido(hands[seat].map(h => h.c)), 'bueno'); respond(seat, ok ? 'quiero' : 'no'); }
         else { const strong = hands[seat].some(h => !h.used && pw(h.c) >= 10); respond(seat, (strong || Math.random() < 0.5) ? 'quiero' : 'no'); }
         return;
@@ -213,6 +251,7 @@ const TrucoNet6 = (() => {
       const mine = t === 'A' ? 'ea' : 'eb', th = t === 'A' ? 'eb' : 'ea';
       switch (ev.kind) {
         case 'flor': return { k: ev.winner === t ? 'florYou' : 'florOpp', p: { pts: ev.p.pts } };
+        case 'florNo': return { k: ev.winner === t ? 'florNoYou' : 'florNoOpp', p: { pts: ev.p.pts } };
         case 'env': return { k: ev.winner === t ? 'envWon' : 'envLost', p: { mine: ev.p[mine], theirs: ev.p[th], pts: ev.p.pts } };
         case 'envNo': return { k: ev.winner === t ? 'envNoWon' : 'envNoLost', p: { pts: ev.p.pts } };
         case 'deal': return { k: ev.winner === t ? 'dealWon' : 'dealLost', p: { a: score.A, b: score.B } };

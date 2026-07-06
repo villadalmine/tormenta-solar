@@ -603,6 +603,18 @@
     chinoback: () => { enterSuper(); return true; },   // entrada de servicio desde el refugio
     chinotruco: () => { if (trucoWon) { trucoWon = false; enterSuper(); } else setMsg(T('g.truco.doorLocked'), '#ffd54f', 5200); return true; },
     vinilos: () => { enterVinilos(); return true; },
+    // DEPÓSITO de la galería (F3, llave 🔑 kind:'key'): puerta VISIBLE pero cerrada; con la llave (del gurú) la abrís
+    // UNA vez → botín (se consume la llave). Gateada por `{not:{flag:'depositoOpen'}}` → desaparece tras saquearla.
+    deposito: () => {
+      if (player.inventory && player.inventory.includes('llave')) {
+        consumeItem('llave'); try { localStorage.setItem('ts_deposito_open', '1'); } catch (e) {}
+        const coins = 120, ammo = 40, caramelos = 15;
+        player.coins = (player.coins || 0) + coins; player.ammo = (player.ammo || 0) + ammo; player.caramelos = (player.caramelos || 0) + caramelos;
+        if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); syncHud();
+        setMsg(T('g.deposito.open', { coins, ammo, caramelos }), '#7CFC00', 6500);
+      } else { setMsg(T('g.deposito.locked'), '#ff9800', 5000); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
+      return true;
+    },
     cambio: () => { if (!stormed) { setMsg(TL('g.cambio.cola'), '#ffd54f', 4500); return true; } return false; },          // pre-tormenta la cola no te deja; post → transición
     abandonado: () => { if (!borrachosHappy) { setMsg(TL('g.abandonado'), '#ffd54f', 4800); return true; } return false; },  // borrachines bloquean hasta el regalo
   };
@@ -801,6 +813,9 @@
     // BOLETO de subte (F3, specs/inventario-armas.md §7 kind:'ticket'): lo VENDE el boletero; pasás el molinete UNA vez
     // (se consume ahí, no se equipa). Alternativa de un uso a la SUBE. El kind 'ticket' de [I] es informativo (se usa en el molinete).
     boleto:     { id: 'boleto',     emoji: '🎫', label: 'g.wpn.boleto',  noEquip: true, use: { kind: 'ticket' } },
+    // LLAVE del depósito (F3, kind:'key'): te la da el gurú con el tesoro; abre la puerta gateada del DEPÓSITO en la
+    // galería (se consume al abrir). El kind 'key' de [I] es informativo (se usa en la puerta). specs/inventario-armas.md §7.2.
+    llave:      { id: 'llave',      emoji: '🔑', label: 'g.wpn.llave',   noEquip: true, use: { kind: 'key' } },
   };
   const isDream = () => spinoffLevel;   // los niveles GENERADOS son "los sueños del Carpo": ahí SÍ usa el fierro criollo
   function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
@@ -828,6 +843,9 @@
     }
     if (u.kind === 'ticket') {   // el boleto no se "usa" desde acá: se mete en el molinete del subte (y ahí se consume). Informativo.
       closeInv(); setMsg(T('g.inv.ticket'), '#9be8a0', 5000); return;
+    }
+    if (u.kind === 'key') {      // la llave se usa en la puerta gateada (ahí se consume). Informativo.
+      closeInv(); setMsg(T('g.inv.key'), '#9be8a0', 5000); return;
     }
   }
   function openInv() {
@@ -870,6 +888,7 @@
     applyEdge('tesoro', 'tesoroTaken');   // por el GRAFO: hito → ticker + checkpoint + evlog (v294)
     player.coins += 150; player.ammo += 40; player.spitDmg = 24;   // escupís más fuerte (14→24), para todo el run
     addItem('viola');   // el gurú te da la VIOLA (a la mochila); NO la auto-equipa: por defecto seguís con los DÓLARES (specs/inventario-armas.md)
+    if (!lsFlag('ts_deposito_open')) addItem('llave');   // + la LLAVE 🔑 del depósito de la galería (si no lo saqueaste ya)
     Sfx.win();
     setMsg(T('g.tesoro.viola'), '#7CFC00', 10000);
   }
@@ -1068,12 +1087,14 @@
     stormed: () => stormed, bunkerUnlocked: () => bunkerUnlocked, secretUnlocked: () => secretUnlocked,
     trucoWon: () => trucoWon, borrachosHappy: () => borrachosHappy, chinoFrontOpen: () => chinoFrontOpen,
     cueveroUnlocked: () => cueveroUnlocked, tahurDiscovered: () => tahurDiscovered,
+    depositoOpen: () => lsFlag('ts_deposito_open'),   // depósito de la galería ya saqueado (oculta la puerta)
   };
   // evalúa el componente `gate` de una puerta (cond declarativa: flag/item + all/any/not). Reemplaza los
   // ifs por-id de visibilidad (secret/cemento/bunker/chinoback). Versión acotada del evalCond del SDD §6.96.
   function gateMet(g) {
     if (!g) return true;
     if (g.item) return !!(player && player[g.item]);
+    if (g.has) return !!(player && player.inventory && player.inventory.includes(g.has));   // gate por ÍTEM del inventario (ej. llave 🔑)
     if (g.flag) { const get = FLAG_GETTERS[g.flag]; return get ? !!get() : false; }
     if (g.all) return g.all.every(gateMet);
     if (g.any) return g.any.some(gateMet);
@@ -4008,6 +4029,7 @@
         rico:        () => { if (!player) return 'empezá una partida primero'; player.coins = (player.coins || 0) + 100; player.caramelos = (player.caramelos || 0) + 50; syncHud(); return '+100 🪙  +50 🍬'; },
         vida:        () => { if (!player) return 'empezá una partida primero'; player.hp = MAXHP; player.alive = true; syncHud(); return 'Vida full'; },
         viola:       () => { if (!player) return 'empezá una partida primero'; addItem('viola'); return 'Viola 🎸 al inventario'; },
+        deposito:    () => { if (!rooms || !player) return 'empezá una partida primero'; try { localStorage.removeItem('ts_deposito_open'); } catch (e) {} addItem('llave'); const gi = rooms.findIndex(r => (r.tags || []).includes('galeria')); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); if (gi >= 0) spawnIn(gi, 33); return 'Te di la 🔑 llave + te dejé al lado del depósito 🔒 (apretá E)'; },
         mapa:        () => { if (!rooms) return 'empezá una partida primero'; for (let i = 0; i < rooms.length; i++) visitedRooms.add(i); saveVisited(); return 'Mapa: todas las salas marcadas visitadas'; },
         wipe:        () => { try { if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear(); for (const k of Object.keys(localStorage)) if (/^ts_/.test(k) && k !== 'ts_debug' && k !== 'ts_nick' && k !== 'ts_nick_sfx' && k !== 'ts_lang') localStorage.removeItem(k); } catch (e) {} return 'Partida + flags borrados (recargá o Restablecer)'; },
       };

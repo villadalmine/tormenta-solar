@@ -22,13 +22,13 @@ El juego es 100% estático; se publica en
 > **try/finally** (nunca más se congela); (v329) **REINTENTAR** ahora **resetea de verdad** (`clearProgress()` borra el
 > progreso `ts_*`, conserva settings/suscripción).
 >
-> **Último self-contained (v330):** **BOLETO de subte** 🎫 — el boletero te vende un boleto de un uso (kind `ticket`)
-> como alternativa a la SUBE para pasar el molinete (ataca la fricción "no sé cómo llegar a Plaza sin la SUBE").
+> **Últimos self-contained:** (v330) **BOLETO de subte** 🎫 (kind `ticket`, el boletero te lo vende, alternativa a la SUBE);
+> (v331) **CONTRAFLOR** en el truco 3v3 (flor→contraflor→al resto) + **LLAVE 🔑** del depósito (kind `key`, gate `{has}`).
 >
-> **▶ SIGUIENTES self-contained (elegir):** **truco contraflor 3v3** (recomendado, cierra una regla del truco),
-> **más ítems de inventario** (kind `key`: llave que abre una puerta gateada; buffs temporales), **pulir `/info` intro**
-> con el Nivel 2, **Deploy Argo en `/tech`**. Playtest del dueño pendiente: recorrer el Nivel 2 completo + REINTENTAR
-> limpio + probar el boleto (bajar al subte sin SUBE → comprar al boletero → pasar).
+> **▶ SIGUIENTES self-contained (elegir):** **pulir `/info` intro** con el Nivel 2, **Deploy Argo en `/tech`**, **buffs
+> temporales** de inventario (kind nuevo), o más gates de llave/depósitos. Playtest del dueño pendiente: recorrer el
+> Nivel 2 completo + REINTENTAR limpio + boleto (subte sin SUBE → boletero) + **contraflor con 2+ humanos** + **llave→
+> depósito** (botón debug "🔑 Dar llave + ir al depósito").
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -46,10 +46,10 @@ El juego es 100% estático; se publica en
 - **Corte de escena a Garbarino (v230)** y **regla de la casa del truco 3v3 (v241)**: nunca validados.
 
 ### 💻 Listo para codear cuando el dueño diga "dale" (self-contained, sin infra)
-- **Truco**: contraflor en el 3v3; F4 tabla de skill (opcional). **Recomendado siguiente** (cierra una regla del truco).
-- **Inventario F3 — más ítems** (`inventario-armas.md §7`): el sistema `use:{kind}` anda (heal/ammo/fn/**ticket**);
-  **boleto ✅ v330** (kind `ticket`, lo vende el boletero); faltan: **llave** (kind `key`, abre una puerta gateada),
-  buffs temporales.
+- **Truco**: contraflor 3v3 ✅ (v331); F4 tabla de skill (opcional).
+- **Inventario F3 — más ítems** (`inventario-armas.md §7`): el sistema `use:{kind}` anda (heal/ammo/fn/**ticket**/**key**);
+  **boleto ✅ v330** (kind `ticket`) + **llave ✅ v331** (kind `key`, gate `{has}` → depósito de la galería); falta:
+  **buffs temporales** (kind nuevo).
 - **`/info` intro** (`landing-info.md`): el "¿de qué va?" no menciona que ahora hay **Nivel 2** — sumar 1 línea;
   `/tech` ya tiene las capas nuevas (v329).
 - **Deploy Argo en `/tech`**: la sección "build & deploy" no menciona el **Argo Workflow + rollback + alertas Telegram**
@@ -70,6 +70,25 @@ El juego es 100% estático; se publica en
 - **Quest mundo-AI** (`quest-mundo-ai.md`) · **Memoria de chat persistente** (`memoria-chat.md`, "para analizar").
 
 ---
+
+## [v331] — 2026-07-06 — 🌸 CONTRAFLOR en el truco 3v3 + 🔑 LLAVE del depósito (Inventario F3, kind `key`)
+
+- **CONTRAFLOR en el truco de a 6 (3v3):** antes la flor se resolvía automática al repartir (+3, sin canto). Ahora, con
+  flor en **AMBOS** equipos, se abre un **canto interactivo** host-autoritativo (mismo `pending` del envido): **flor →
+  contraflor → contraflor al resto**. El que responde escala con **[F]**, acepta con **[Q]** (compara: gana la flor más
+  alta) o se achica con **[N]** (el que cantó suma el "no"). Valores (regla de la casa, `florQ`/`florN`, a ajustar en
+  playtest): flor **3** · contraflor **6** · al resto = **falta**. Una sola flor sigue siendo **+3 automático**. Motor
+  `truco-net6.js` (`resolveFlor`/`canto`/`respond`/`aiAct`/`noteFor` flor) + escena `truco-pvp6.js` (tecla [F], voz) +
+  i18n `g.truco6.respond.flor`/`note.florNo*` (ES≡EN). La IA responde por la fuerza de SU flor.
+- **LLAVE 🔑 del depósito (primer kind `key`):** el **gurú del búnker** te da una llave con el tesoro → abre la puerta
+  **DEPÓSITO** de la galería (sala 6), **VISIBLE pero trabada**, `gate:{ not:{ flag:'depositoOpen' } }` → botín **+120 🪙
+  +40 🔫 +15 🍬** y se **consume** la llave. Nueva forma de gate declarativo **`{has:'item'}`** en `gateMet` (chequea el
+  inventario) — la manera data-driven de gatear una puerta por ítem. Ítem `llave` en `WEAPONS` (`use:{kind:'key'}` → `[I]`
+  informa). Debug: botón "🔑 Dar llave + ir al depósito". i18n `g.wpn.llave`/`g.door.deposito`/`g.deposito.*` (ES≡EN).
+- **Tests:** e2e `truco de a 6` amplía con los 3 caminos del contraflor (deterministas, seed 23) + las 20 all-IA no se
+  traban; v1↔v2 parity con la nueva puerta; web-smoke OK. **Validado en Chromium real:** contraflor (canto/6/3/falta) +
+  llave→depósito (abre, +120🪙+40🔫, consume la llave, oculta la puerta), 0 errores. SDD `truco.md §14.4` +
+  `inventario-armas.md §7.2`.
 
 ## [v330] — 2026-07-06 — 🎫 BOLETO de subte: alternativa a la SUBE para pasar el molinete (Inventario F3, kind `ticket`)
 
