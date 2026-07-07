@@ -145,6 +145,22 @@ El primer kind `key`: una **llave 🔑** que abre una **puerta GATEADA** del mun
   depósito" (te da la llave y te deja al lado de la reja). i18n `g.wpn.llave`, `g.door.deposito`, `g.deposito.{open,locked}`
   (ES≡EN). Validado en **Chromium real** (abre, +120🪙+40🔫, consume la llave, oculta la puerta).
 
+## 7.3 — BUFFS temporales (kind `buff`) ✅ (v332)
+Ítems que dan **efectos con timer** (no instantáneos como `heal`/`ammo`). Data: `use:{kind:'buff', buffs:[...], secs:N}`.
+- **Ítem: BIRRA 🍺** — la birra del Carpo (lore: "birra en la mano"). `buffs:['speed','regen','shield'], secs:8` →
+  te **envalentonás** 8s: +40% velocidad 🏃, +6 vida/s 💚, y **aguantás los golpes** sin daño 🛡️.
+- **Sistema (game.js):** `player.buffs = [{b, t, t0}]` (t = seg restantes). `tickBuffs(dt)` (en el loop de 'playing',
+  antes de `player.update`) decrementa los timers, saca los vencidos y deriva los flags que leen otros: `player.speedMul`
+  (lo usa `player.js`: `sp = 210*speedMul`), `player.shielded` (lo usa `player.hurt`: ignora el golpe), y cura con
+  `regen` (`BUFF_REGEN`/s). **Sin reloj de pared** (decrementa por dt → se PAUSA en los sub-modos). No se persiste (transient).
+- **Aplicar** (`useItem` kind `buff`): pushea/refresca cada efecto (`t = max(t, secs)`) y **consume** el ítem. Cualquier
+  ítem-buff futuro = puro dato (no toca `tickBuffs`). Kinds de efecto soportados hoy: `speed`/`regen`/`shield` (`BUFF_META`).
+- **HUD:** strip arriba-izquierda del canvas (emoji + barra verde decreciente por buff activo).
+- **Fuente:** la **soga** del piquete (antes daba `palo`, inútil) + **2 birras en el botín del depósito**. Debug: el botón
+  "+100🪙 +50🍬" ahora también da 1 birra. i18n `g.wpn.birra`/`g.inv.buff` (ES≡EN). Validado en Chromium real (aplica los 3
+  efectos, se consume, el timer corre en el loop y **expira solo**). e2e: `Game.__buff` (give/use/tick/state).
+
 ### Deuda / futuro (F3+)
-- Más gates de llave / más depósitos (el mecanismo `{has}` + handler ya es genérico); buffs temporales.
+- Más ítems-buff (el sistema ya es genérico: sumás un ítem con `use:{kind:'buff',...}` y, si querés un efecto nuevo, una
+  entrada en `BUFF_META` + su hook). Más gates de llave / más depósitos (el `{has}` + handler ya es genérico).
 - Slots / drop / peso → no hace falta para el alcance actual (YAGNI).

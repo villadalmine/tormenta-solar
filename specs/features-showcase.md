@@ -100,8 +100,9 @@
   equipás una con **[I]** (el HUD muestra cuál). El **tesoro del búnker** (cuando sos gurú) te da la **🎸 viola de Les
   Luthiers que dispara RISAS** — apacigua a **cualquiera**, hasta los voladores, muertos de risa 😂 (no los mata). El
   inventario y el arma equipada **persisten en el guardado**. Hay además **ítems que se usan** (comida que cura, mortero
-  que da munición) y **ítems-llave**: el **boleto de subte 🎫** (te lo vende el boletero, pasás el molinete sin la SUBE)
-  y la **llave 🔑** del gurú, que abre el **DEPÓSITO de la galería** (un botín de guita y balas). Ver `specs/inventario-armas.md`.
+  que da munición), **ítems-llave** — el **boleto de subte 🎫** (te lo vende el boletero, pasás el molinete sin la SUBE) y
+  la **llave 🔑** del gurú, que abre el **DEPÓSITO de la galería** (botín de guita y balas) — y **buffs temporales**: la
+  **birra 🍺** te envalentona unos segundos (más rápido, te recuperás y aguantás los golpes). Ver `specs/inventario-armas.md`.
 - **El telo, el CHIP y el cambio de personaje:** la "rubia" del bodegón te lleva a un telo (sub-modo top-down) que es
   una **trampa de la IA**: salta un **robot** que te quiere clavar un **chip**. Si escapás, zafás; si te atrapa, caés
   **chipeado** a la habitación con **3 linyeras** (chat IA groundeado SOLO al chip) que te tiran la posta → **CORTE DE

@@ -610,6 +610,7 @@
         consumeItem('llave'); try { localStorage.setItem('ts_deposito_open', '1'); } catch (e) {}
         const coins = 120, ammo = 40, caramelos = 15;
         player.coins = (player.coins || 0) + coins; player.ammo = (player.ammo || 0) + ammo; player.caramelos = (player.caramelos || 0) + caramelos;
+        addItem('birra'); addItem('birra');   // + un par de BIRRAS 🍺 (buff temporal) en el botín
         if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); syncHud();
         setMsg(T('g.deposito.open', { coins, ammo, caramelos }), '#7CFC00', 6500);
       } else { setMsg(T('g.deposito.locked'), '#ff9800', 5000); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
@@ -816,7 +817,24 @@
     // LLAVE del depósito (F3, kind:'key'): te la da el gurú con el tesoro; abre la puerta gateada del DEPÓSITO en la
     // galería (se consume al abrir). El kind 'key' de [I] es informativo (se usa en la puerta). specs/inventario-armas.md §7.2.
     llave:      { id: 'llave',      emoji: '🔑', label: 'g.wpn.llave',   noEquip: true, use: { kind: 'key' } },
+    // BIRRA (F3, kind:'buff'): la birra del Carpo → te envalentonás por unos segundos (BUFF temporal con timer). Data:
+    // use.buffs = lista de efectos, use.secs = duración. Se consume. specs/inventario-armas.md §7.3.
+    birra:      { id: 'birra',      emoji: '🍺', label: 'g.wpn.birra',   noEquip: true, use: { kind: 'buff', buffs: ['speed', 'regen', 'shield'], secs: 8 } },
   };
+  // BUFFS temporales (Inventario F3, kind:'buff'). Efectos con timer en segundos (decrementan por dt, sin reloj de pared →
+  // se pausan en los sub-modos). `tickBuffs` deriva los flags que leen player.js (speedMul/shielded) + cura con 'regen'.
+  const BUFF_META = { speed: { emoji: '🏃' }, regen: { emoji: '💚' }, shield: { emoji: '🛡️' } };
+  const BUFF_REGEN = 6;   // vida/seg del buff 'regen'
+  function tickBuffs(dt) {
+    if (!player) return;
+    if (!player.buffs || !player.buffs.length) { player.speedMul = 1; player.shielded = false; return; }
+    for (const x of player.buffs) x.t -= dt;
+    player.buffs = player.buffs.filter(x => x.t > 0);
+    const has = b => player.buffs.some(x => x.b === b);
+    player.speedMul = has('speed') ? 1.4 : 1;
+    player.shielded = has('shield');
+    if (has('regen') && player.hp < MAXHP) player.hp = Math.min(MAXHP, player.hp + BUFF_REGEN * dt);
+  }
   const isDream = () => spinoffLevel;   // los niveles GENERADOS son "los sueños del Carpo": ahí SÍ usa el fierro criollo
   function wpnEmoji(id) { const w = WEAPONS[id]; if (!w) return '💦'; return (stormed && w.stormEmoji) ? w.stormEmoji : w.emoji; }
   function wpnLabel(id) { const w = WEAPONS[id]; if (!w) return ''; return T((stormed && w.stormLabel) ? w.stormLabel : w.label); }
@@ -846,6 +864,13 @@
     }
     if (u.kind === 'key') {      // la llave se usa en la puerta gateada (ahí se consume). Informativo.
       closeInv(); setMsg(T('g.inv.key'), '#9be8a0', 5000); return;
+    }
+    if (u.kind === 'buff') {     // BUFF temporal: aplica/refresca los efectos con timer y consume el ítem
+      const secs = u.secs || 10, list = u.buffs || (u.buff ? [u.buff] : []);
+      if (!player.buffs) player.buffs = [];
+      for (const b of list) { const ex = player.buffs.find(x => x.b === b); if (ex) { ex.t = Math.max(ex.t, secs); ex.t0 = Math.max(ex.t0 || secs, secs); } else player.buffs.push({ b, t: secs, t0: secs }); }
+      tickBuffs(0); consumeItem(id); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); closeInv();
+      setMsg(T('g.inv.buff', { item: wpnLabel(id), secs }), '#7CFC00', 4000); return;
     }
   }
   function openInv() {
@@ -2905,6 +2930,7 @@
     if (stunPending && !player.stunned) { stunPending = false; setMsg(T('g.truco.freed'), '#ffd54f', 5000); }   // el tahúr frena a las minas: "déjenlo al pibe"
     player.dollarMode = stormed;   // post-tormenta el Carpo escupe DÓLARES (apaciguan a la gente)
     player.canShoot = (stormed || spinoffLevel) && playingAs !== 'garbarino';   // PRE-tormenta no dispara; y el pibe de Garbarino tampoco (no es el Carpo)
+    tickBuffs(dt);   // BUFFS temporales (birra): decrementa timers + setea speedMul/shielded que lee player.update
     player.update(dt, r, cam);
     // las CÁMARAS ven cada dólar disparado → burbuja con la serie (real/trucha)
     if ((player.shots || 0) > shotsSeen) { shotsSeen = player.shots; if (player.lastShot && player.lastShot.kind === 'dollar') spawnDollarBubble(player.lastShot.x, player.lastShot.y); }
@@ -3274,6 +3300,18 @@
         px01: rc ? (player.x + player.w / 2) / (rc.w * Level.TILE) : 0.5, online: (salonLive && salonLive.count) || 0 }); }
     }
 
+    // BUFFS activos (birra): emoji + barra decreciente, arriba a la IZQUIERDA del canvas (lejos del ⚙ y del HUD)
+    if (state === 'playing' && player.buffs && player.buffs.length) {
+      let bx = 8;
+      for (const b of player.buffs) {
+        const meta = BUFF_META[b.b] || { emoji: '✨' }, frac = Math.max(0, Math.min(1, b.t / (b.t0 || b.t || 1)));
+        ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(bx, 6, 26, 30);
+        ctx.font = '16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#fff';
+        ctx.fillText(meta.emoji, bx + 13, 24);
+        ctx.fillStyle = '#7CFC00'; ctx.fillRect(bx + 2, 30, 22 * frac, 3);
+        bx += 30;
+      }
+    }
     if (performance.now() < shakeUntil) canvas.style.transform = `translate(${(Math.random()-.5)*8}px,${(Math.random()-.5)*8}px)`;
     else if (canvas.style.transform) canvas.style.transform = '';
   }
@@ -3790,7 +3828,7 @@
       if (sogaGame.done) {
         const res = sogaGame.result; sogaGame = null;
         lavalleSpawn = { x: 2.6, y: 11 };
-        const m = T(res === 'win' ? 'g.soga.won' : res === 'lose' ? 'g.soga.lost' : 'g.soga.left') + pReward(res, 'soga', 'palo');
+        const m = T(res === 'win' ? 'g.soga.won' : res === 'lose' ? 'g.soga.lost' : 'g.soga.left') + pReward(res, 'soga', 'birra');   // la soga da una BIRRA 🍺 (buff)
         if (enterLavalle(m)) { /* de vuelta al piquete (muestra el resultado) */ } else { setMsg(m, res === 'win' ? '#7CFC00' : '#ffcf6e', 6500); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); }
       }
     } else if (state === 'bombo' && bomboGame) {                         // Lavalle: "Bombo & cumbia" (ritmo co-op)
@@ -4026,7 +4064,7 @@
         subeSeen:    () => { lsOn('ts_sube_seen'); return 'Tótem SUBE visto (arrancó la quest de la tarjeta)'; },
         subeGot:     () => { lsOn('ts_sube_got'); if (player) addItem('sube'); return 'Tenés la tarjeta SUBE 💳 (si estás en partida)'; },
         subeCharged: () => { lsOn('ts_sube_got'); lsOn('ts_sube_charged'); if (player) addItem('sube'); return 'SUBE cargada (pasás los molinetes)'; },
-        rico:        () => { if (!player) return 'empezá una partida primero'; player.coins = (player.coins || 0) + 100; player.caramelos = (player.caramelos || 0) + 50; syncHud(); return '+100 🪙  +50 🍬'; },
+        rico:        () => { if (!player) return 'empezá una partida primero'; player.coins = (player.coins || 0) + 100; player.caramelos = (player.caramelos || 0) + 50; addItem('birra'); syncHud(); return '+100 🪙  +50 🍬  +1 🍺 (birra: buff en [I])'; },
         vida:        () => { if (!player) return 'empezá una partida primero'; player.hp = MAXHP; player.alive = true; syncHud(); return 'Vida full'; },
         viola:       () => { if (!player) return 'empezá una partida primero'; addItem('viola'); return 'Viola 🎸 al inventario'; },
         deposito:    () => { if (!rooms || !player) return 'empezá una partida primero'; try { localStorage.removeItem('ts_deposito_open'); } catch (e) {} addItem('llave'); const gi = rooms.findIndex(r => (r.tags || []).includes('galeria')); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); if (gi >= 0) spawnIn(gi, 33); return 'Te di la 🔑 llave + te dejé al lado del depósito 🔒 (apretá E)'; },
@@ -4052,6 +4090,9 @@
     // superficie de prueba (e2e) del GATE del cuevero (specs/cuevero-gate-truco.md): ruta A (Guido) y ruta B (vos)
     // superficie de prueba (e2e) de los CHECKPOINTS por hito (guardar-partida.md)
     __chk: { save: saveCheckpoint, load: loadCheckpoint },
+    // superficie de prueba (e2e) de los BUFFS temporales (Inventario F3 kind:'buff', specs/inventario-armas.md §7.3)
+    __buff: { give: id => addItem(id), use: id => useItem(id), tick: dt => tickBuffs(dt),
+      state: () => player && ({ buffs: (player.buffs || []).map(b => b.b), speedMul: player.speedMul, shielded: player.shielded, hp: player.hp, inv: (player.inventory || []).slice() }) },
     __gate: {
       flags: () => ({ cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing, bought, stormed }),
       cuevero: () => handleCuevero({ outcome: 'real', dialog: 'test' }),   // hablar al cuevero que cambia

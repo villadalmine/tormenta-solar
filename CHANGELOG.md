@@ -22,13 +22,15 @@ El juego es 100% estático; se publica en
 > **try/finally** (nunca más se congela); (v329) **REINTENTAR** ahora **resetea de verdad** (`clearProgress()` borra el
 > progreso `ts_*`, conserva settings/suscripción).
 >
-> **Últimos self-contained:** (v330) **BOLETO de subte** 🎫 (kind `ticket`, el boletero te lo vende, alternativa a la SUBE);
-> (v331) **CONTRAFLOR** en el truco 3v3 (flor→contraflor→al resto) + **LLAVE 🔑** del depósito (kind `key`, gate `{has}`).
+> **Últimos self-contained:** (v330) **BOLETO** 🎫 (kind `ticket`); (v331) **CONTRAFLOR** 3v3 + **LLAVE 🔑** del depósito
+> (kind `key`, gate `{has}`); (v332) **BUFFS** temporales — birra 🍺 (kind `buff`, speed/regen/shield) + **landing al día**
+> (`/info` Nivel 2 + `/tech` deploy Argo/rollback/Telegram).
 >
-> **▶ SIGUIENTES self-contained (elegir):** **pulir `/info` intro** con el Nivel 2, **Deploy Argo en `/tech`**, **buffs
-> temporales** de inventario (kind nuevo), o más gates de llave/depósitos. Playtest del dueño pendiente: recorrer el
-> Nivel 2 completo + REINTENTAR limpio + boleto (subte sin SUBE → boletero) + **contraflor con 2+ humanos** + **llave→
-> depósito** (botón debug "🔑 Dar llave + ir al depósito").
+> **▶ SIGUIENTES self-contained (chicos, elegir):** más ítems-buff (mate/pucho con otros efectos) o más gates de
+> llave/depósitos (mecanismos ya genéricos). Los grandes que quedan necesitan al dueño o infra (ver abajo). **Playtest
+> del dueño pendiente:** recorrer el Nivel 2 completo + REINTENTAR limpio + boleto (subte sin SUBE → boletero) +
+> **contraflor con 2+ humanos** + **llave→depósito** + **birra** (botones debug: "🔑 Dar llave + ir al depósito",
+> "+100🪙…" que ahora da una birra).
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -47,13 +49,9 @@ El juego es 100% estático; se publica en
 
 ### 💻 Listo para codear cuando el dueño diga "dale" (self-contained, sin infra)
 - **Truco**: contraflor 3v3 ✅ (v331); F4 tabla de skill (opcional).
-- **Inventario F3 — más ítems** (`inventario-armas.md §7`): el sistema `use:{kind}` anda (heal/ammo/fn/**ticket**/**key**);
-  **boleto ✅ v330** (kind `ticket`) + **llave ✅ v331** (kind `key`, gate `{has}` → depósito de la galería); falta:
-  **buffs temporales** (kind nuevo).
-- **`/info` intro** (`landing-info.md`): el "¿de qué va?" no menciona que ahora hay **Nivel 2** — sumar 1 línea;
-  `/tech` ya tiene las capas nuevas (v329).
-- **Deploy Argo en `/tech`**: la sección "build & deploy" no menciona el **Argo Workflow + rollback + alertas Telegram**
-  (infra-62/63) — actualizarla.
+- **Inventario F3 — más ítems** (`inventario-armas.md §7`): el sistema `use:{kind}` anda (heal/ammo/fn/**ticket**/**key**/
+  **buff**); **boleto ✅ v330** · **llave ✅ v331** · **birra/buffs ✅ v332**. Falta (opcional): más ítems-buff (mate/pucho).
+- **`/info` intro** ✅ v332 (menciona el Nivel 2) · **Deploy Argo en `/tech`** ✅ v332 (Workflow + rollback + Telegram).
 - **Autoplay QA F3b** (`autoplay-qa.md`): hermes-agent toma el `prompt-autofix` SOLO → arregla → PR → deploya. (Infra.)
 - **Deploy on-push** (`deploy-pipeline.md` F3.5): Argo Events + webhook GitHub → push a main = deploy automático. (Infra.)
 - **Autoplay QA F3b** (`autoplay-qa.md`): hermes-agent toma el `prompt-autofix` SOLO → arregla → PR → deploya con
@@ -70,6 +68,20 @@ El juego es 100% estático; se publica en
 - **Quest mundo-AI** (`quest-mundo-ai.md`) · **Memoria de chat persistente** (`memoria-chat.md`, "para analizar").
 
 ---
+
+## [v332] — 2026-07-07 — 🍺 BUFFS temporales (birra) + 📄 landing al día (/info Nivel 2 + /tech deploy Argo)
+
+- **BUFFS temporales (Inventario F3, kind `buff`):** la **BIRRA 🍺** te **envalentona 8s** — +40% velocidad 🏃, +6 vida/s
+  💚 y **aguantás los golpes sin daño** 🛡️. Sistema genérico en game.js: `player.buffs=[{b,t,t0}]` + `tickBuffs(dt)` (en el
+  loop de 'playing') decrementa timers y deriva `player.speedMul` (lo usa `player.js`), `player.shielded` (lo usa
+  `player.hurt`) y cura con `regen`. **Data-driven:** `use:{kind:'buff', buffs:[...], secs}`; sumar un ítem-buff es puro
+  dato. HUD: strip arriba-izq (emoji + barra que decrece). **Fuente:** la **soga** del piquete (antes daba `palo` inútil)
+  + 2 birras en el **botín del depósito**. i18n `g.wpn.birra`/`g.inv.buff` (ES≡EN). e2e `Game.__buff`; validado en Chromium
+  real (aplica los 3 efectos, se consume, el timer corre en el loop y expira solo). SDD `inventario-armas.md §7.3`.
+- **Landing al día:** `/info` (ES+EN) — el "¿de qué va?" ahora menciona el **Nivel 2** (subte → Plaza de Mayo → San Martín
+  vs. la IA). `/tech` (ES+EN) — la sección "Build & deploy" ahora cuenta que el **deploy es un Argo Workflow**
+  (`tormenta-deploy`): build → rollout → smoke test → **rollback automático** + **alerta a Telegram**, y el **autoplay QA
+  nocturno**.
 
 ## [v331] — 2026-07-06 — 🌸 CONTRAFLOR en el truco 3v3 + 🔑 LLAVE del depósito (Inventario F3, kind `key`)
 

@@ -163,6 +163,20 @@ if (require.main === module) {
       if (!chk || chk.edge !== 'e2e_hito' || !chk.snap || chk.snap.v !== 2) out.push('FAIL checkpoint no guardó: ' + JSON.stringify(chk && { e: chk.edge, v: chk.snap && chk.snap.v }));
       else { Game.continueGame(chk.snap); if (Game.serialize() == null) out.push('FAIL no volvió al juego desde el checkpoint'); }
     }
+    // BUFFS temporales (inventario-armas §7.3, kind:'buff'): dar birra → usar → efectos activos → consumo → expiran con el tiempo
+    if (!Game.__buff) out.push('FAIL no expone Game.__buff');
+    else {
+      Game.__buff.give('birra');
+      if (!Game.__buff.state().inv.includes('birra')) out.push('FAIL birra no entró al inventario');
+      Game.__buff.use('birra');
+      let st = Game.__buff.state();
+      if (st.speedMul !== 1.4 || !st.shielded) out.push('FAIL birra: buff no aplicó ' + JSON.stringify({ s: st.speedMul, sh: st.shielded }));
+      if (st.inv.includes('birra')) out.push('FAIL birra no se consumió al usarla');
+      if (st.buffs.length !== 3) out.push('FAIL birra: deberían activarse 3 buffs, hay ' + st.buffs.length);
+      Game.__buff.tick(9);   // pasan 9s (dura 8) → expiran
+      st = Game.__buff.state();
+      if (st.buffs.length !== 0 || st.speedMul !== 1 || st.shielded) out.push('FAIL birra: los buffs no expiraron: ' + JSON.stringify(st));
+    }
     return JSON.stringify(out);
   })()`, sandbox);
   const sb = JSON.parse(save);

@@ -247,7 +247,12 @@
         registry</b>. The deploy is a <b>Helm chart</b> that creates everything declarative: the HTTPRoute, the
         Certificate, and even an idempotent hook that adds the HTTPS listener to the shared gateway. Standing it
         up on another cluster is one command.</p>
-        <div class="tagrow"><span>Kaniko</span><span>Argo Workflows</span><span>internal registry</span><span>Helm</span></div>
+        <p>The <b>deploy is itself an Argo Workflow</b> (<code>tormenta-deploy</code>): it builds → rolls out →
+        runs a <b>smoke test</b> against the real URL and, if anything fails, does an <b>automatic rollback</b> to
+        the previous version and <b>pings you on Telegram</b>. That same alert once caught a broken signage cron.
+        And every night a <b>QA autoplay</b> plays the level by itself (headless) and reports if something broke —
+        all in-cluster, no humans in the loop.</p>
+        <div class="tagrow"><span>Kaniko</span><span>Argo Workflows</span><span>internal registry</span><span>Helm</span><span>rollback + Telegram alerts</span><span>nightly QA autoplay</span></div>
       </div>
     </div>
 

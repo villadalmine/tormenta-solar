@@ -246,7 +246,12 @@
         un <b>registry interno</b>. El deploy es un <b>Helm chart</b> que crea todo lo declarativo: el HTTPRoute,
         el Certificate, y hasta un hook idempotente que suma el listener HTTPS al gateway compartido. Volver a
         levantarlo en otro cluster es correr un comando.</p>
-        <div class="tagrow"><span>Kaniko</span><span>Argo Workflows</span><span>registry interno</span><span>Helm</span></div>
+        <p>El <b>deploy también es un Argo Workflow</b> (<code>tormenta-deploy</code>): buildea → hace el rollout →
+        corre un <b>smoke test</b> contra la URL real y, si algo falla, hace <b>rollback automático</b> a la versión
+        anterior y te <b>avisa por Telegram</b>. La misma alerta cazó una vez un cron de carteles roto. Y todas las
+        noches un <b>autoplay de QA</b> juega el nivel solo (headless) y reporta si algo se rompió — todo in-cluster,
+        sin humanos en el loop.</p>
+        <div class="tagrow"><span>Kaniko</span><span>Argo Workflows</span><span>registry interno</span><span>Helm</span><span>rollback + alertas Telegram</span><span>autoplay QA nocturno</span></div>
       </div>
     </div>
 

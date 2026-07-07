@@ -11,7 +11,7 @@ const Player = (() => {
       aim: { x: 1, y: 0 }, hurtCd: 0,
 
       update(dt, room, cam, onShoot) {
-        const sp = 210;
+        const sp = 210 * (this.speedMul || 1);   // BUFF 'speed' (birra 🍺): game.js setea speedMul mientras dura
         this.vx = 0;
         if (!this.stunned) {
           if (Input.left()) this.vx = -sp;
@@ -51,6 +51,7 @@ const Player = (() => {
 
       hurt(dmg) {
         if (this.hurtCd > 0) return;
+        if (this.shielded) { this.hurtCd = 0.4; Sfx.hurt(); return; }   // BUFF 'shield' (birra 🍺): aguantás el golpe sin daño (i-frames)
         this.hp -= dmg; this.hurtCd = 0.4; Sfx.hurt();
         if (this.hp <= 0) { this.hp = 0; this.alive = false; }
       },
