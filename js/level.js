@@ -532,6 +532,10 @@ const Level = (() => {
         { name:'Linyera mayor', sprite:'linyera', x:13, action:'tesoro',
           dialog:'“Vos sos el gurú... a vos sí te lo damos. Guardamos un maletín toda la vida para alguien que entienda. Tomá: la guita y un secreto para que escupas como Dios manda.” 🐵💼' },
         { name:'Linyera', sprite:'linyera', x:17, dialog:'“Si querés salir de verdad, andá al portal de la Casa de Cambio. Si no, quedate en el loop.” 🔁' },
+        // QUEST MUNDO-AI (specs/quest-mundo-ai.md): la MÁQUINA DE MUNDOS del gurú → le pide a la IA/motor un mundo entero
+        // por SEED (mismo número = mismo mundo, compartible). action 'mundoai' abre el overlay #mundoai.
+        { name:'La máquina de mundos', sprite:'recepcionista', x:9, action:'mundoai',
+          dialog:'“Con lo que sobró del datacenter armamos ESTO, gurú: una máquina que le pide a la IA un MUNDO entero y te lo tira para jugar. Poné un número y entrás; el MISMO número, el MISMO mundo — pasáselo a un amigo. [E] 🌀”' },
       ],
       decor: [{t:'catre',x:10},{t:'barril',x:4},{t:'maletin',x:13.5},{t:'parlante',x:18}],
       pickups: [{t:'health',x:12},{t:'coins',x:6,amount:8}],

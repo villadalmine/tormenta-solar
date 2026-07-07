@@ -33,6 +33,9 @@
   Creatividad geométrica de la IA **sin niveles rotos**. Test `tests/geometria.js`.
 - **Tema "ORÁCULO" (personalizado):** la IA **inventa un nivel a tu medida** según **lo que charlaste con los
   linyeras** (`oracleMem` → `/nivel-ai` con tus mensajes) — name/intro/frases + **style + geometría**. Memoria → mundo.
+- **La MÁQUINA DE MUNDOS (mundo por SEED, compartible):** en el búnker, el gurú tiene una máquina que **genera un mundo
+  entero a partir de un número (semilla)**. El **mismo número da el MISMO mundo** — se lo pasás a un amigo y juega tu
+  mundo. Determinista (PRNG mulberry32) y siempre **jugable** (pasa la RED). Ver `specs/quest-mundo-ai.md`.
 - **Por qué interesante:** generación procedural + IA + **validación formal** = creatividad sin niveles rotos.
   Ver `specs/fabrica-niveles-ai.md`.
 

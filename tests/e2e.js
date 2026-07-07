@@ -199,6 +199,18 @@ if (require.main === module) {
     // morir en el nivel bonus NO debe matar el run: relanzar y salir por 'dead'
     Game.__nivelai.launch(); Game.__nivelai.end('dead');
     if (Game.__nivelai.active() || Game.serialize() == null) out.push('FAIL morir en el nivel-AI rompió el run');
+    // MUNDO por SEED (quest-mundo-ai.md): mismo seed = MISMO mundo (determinista, compartible) + jugable (la RED)
+    if (typeof NivelAI !== 'undefined' && NivelAI.generateLevel) {
+      const g1 = NivelAI.generateLevel(undefined, 12345), g2 = NivelAI.generateLevel(undefined, 12345);
+      if (!g1 || !g2 || !g1.model) out.push('FAIL mundo-seed no generó');
+      else {
+        if (JSON.stringify(g1.model) !== JSON.stringify(g2.model)) out.push('FAIL mundo-seed 12345 NO es determinista');
+        if (typeof Playable !== 'undefined' && !Playable.checkLevel(g1.model).ok) out.push('FAIL mundo-seed no es jugable (la RED)');
+        if (g1.model.seed !== '12345') out.push('FAIL el modelo no lleva el seed: ' + g1.model.seed);
+        const g3 = NivelAI.generateLevel(undefined, 999);
+        if (g3 && g3.model && JSON.stringify(g3.model) === JSON.stringify(g1.model)) out.push('FAIL distinto seed dio el MISMO mundo');
+      }
+    }
     return JSON.stringify(out);
   })()`, sandbox);
   JSON.parse(nivelai).forEach(f => sb.push(f));

@@ -22,15 +22,14 @@ El juego es 100% estático; se publica en
 > **try/finally** (nunca más se congela); (v329) **REINTENTAR** ahora **resetea de verdad** (`clearProgress()` borra el
 > progreso `ts_*`, conserva settings/suscripción).
 >
-> **Últimos self-contained:** (v330) **BOLETO** 🎫 (kind `ticket`); (v331) **CONTRAFLOR** 3v3 + **LLAVE 🔑** del depósito
-> (kind `key`, gate `{has}`); (v332) **BUFFS** temporales — birra 🍺 (kind `buff`, speed/regen/shield) + **landing al día**
-> (`/info` Nivel 2 + `/tech` deploy Argo/rollback/Telegram).
+> **Últimos:** (v330) **BOLETO** 🎫; (v331) **CONTRAFLOR** 3v3 + **LLAVE 🔑** (gate `{has}`); (v332) **BUFFS** — birra 🍺
+> (kind `buff`) + landing al día; (v333) **QUEST MUNDO-AI v1** — la MÁQUINA DE MUNDOS (mundo por SEED, compartible).
+> **Multijugador mesas server-side: ya estaba hecho (sesión previa) y lo VERIFIQUÉ en prod** (2 clientes: misma sala +
+> pos relay + whisper + mesa 1v1 parea a los dos). El plan `polymorphic-foraging-pascal.md` quedó obsoleto (hecho).
 >
-> **▶ SIGUIENTES self-contained (chicos, elegir):** más ítems-buff (mate/pucho con otros efectos) o más gates de
-> llave/depósitos (mecanismos ya genéricos). Los grandes que quedan necesitan al dueño o infra (ver abajo). **Playtest
-> del dueño pendiente:** recorrer el Nivel 2 completo + REINTENTAR limpio + boleto (subte sin SUBE → boletero) +
-> **contraflor con 2+ humanos** + **llave→depósito** + **birra** (botones debug: "🔑 Dar llave + ir al depósito",
-> "+100🪙…" que ahora da una birra).
+> **▶ SIGUIENTE:** **mundo-AI v2** = `/mundo-ai` (la IA autora el tema por PROMPT, cacheado por seed → sigue compartible).
+> Chicos: más ítems-buff, más gates de llave. **Playtest del dueño pendiente:** Nivel 2 completo + REINTENTAR + boleto +
+> contraflor 2+ humanos + llave→depósito + birra + **la máquina de mundos** (botón debug "🌀 Máquina de mundos").
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -68,6 +67,23 @@ El juego es 100% estático; se publica en
 - **Quest mundo-AI** (`quest-mundo-ai.md`) · **Memoria de chat persistente** (`memoria-chat.md`, "para analizar").
 
 ---
+
+## [v333] — 2026-07-07 — 🌀 QUEST MUNDO-AI v1: la MÁQUINA DE MUNDOS (mundo por SEED, compartible)
+
+- **La MÁQUINA DE MUNDOS** (approach 2.A de `quest-mundo-ai.md`, FREE): en el búnker, el gurú tiene una máquina que
+  **genera un mundo entero a partir de un número (semilla)** y lo jugás. El **MISMO número = el MISMO mundo** →
+  compartible ("jugá mi mundo #12345"). Reusa TODO el motor (`NivelAI.generateLevel` → `Mundo.fromModel` → la RED de
+  jugabilidad), sin tocar el proxy.
+- **Determinismo:** `NivelAI.generateLevel(theme, seed)` — con un `seed` numérico, un PRNG **mulberry32** (`mkRand`)
+  reemplaza `Math.random` en TODA la generación (tema por seed + geometría/enemigos/pickups/hazards + el bucle de
+  reparación de la RED). `model.seed` guarda el número. **Verificado:** mismo seed = mismo JSON, distinto seed = distinto,
+  y siempre pasa `Playable.checkLevel`.
+- **Trigger:** NPC `action:'mundoai'` = la máquina del gurú (búnker) → overlay `#mundoai` (input de semilla + "▶ Generar"
+  + "🎲 Al azar"). `launchMundoAI(seed)` → rooms-swap como el nivel-AI → jugás → `[ESC]`/meta vuelve. Debug: botón
+  "🌀 Máquina de mundos". i18n `mundoai.*`/`g.mundoai.*` (ES≡EN).
+- **Tests:** e2e determinismo (mismo/distinto seed) + jugabilidad; validado en **Chromium real** (abre, generás por seed,
+  ENTRÁS a un mundo con look propio, 0 errores). **Falta v2:** `/mundo-ai` para que la IA autore el tema por PROMPT
+  (cacheado por seed → sigue compartible). SDD `quest-mundo-ai.md §0`.
 
 ## [v332] — 2026-07-07 — 🍺 BUFFS temporales (birra) + 📄 landing al día (/info Nivel 2 + /tech deploy Argo)
 

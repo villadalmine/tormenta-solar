@@ -6,6 +6,8 @@
 // specs/fabrica-niveles-ai.md.
 const NivelAI = (() => {
   const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';   // mismo proxy que ai.js/propaganda.js
+  // PRNG determinista (mulberry32) para los MUNDOS por SEED (Quest mundo-AI): mismo seed = misma secuencia = mismo mundo.
+  function mkRand(seed) { let a = (seed >>> 0) || 1; return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   // CIRCUIT BREAKER: si la IA (GPU/upstream) falla o tarda, ABRIMOS el circuito 90s → todas las generaciones caen
   // a MODO ESTÁTICO al toque, sin esperar timeouts. Si la GPU se va al tacho, NO se cuelga nada. (premisa del dueño)
   // La señal de salud se COMPARTE con el chat (js/ai.js) vía window.__aiHealth: mismo backend GPU/proxy, así si
@@ -399,15 +401,18 @@ const NivelAI = (() => {
   // sala con plataformas saltables + spawn + meta + enemigos/pickups temáticos. Pasa por la RED (Playable):
   // genera → valida jugabilidad → si falla, RE-INTENTA (bucle de auto-reparación) → recién entonces se devuelve.
   // Así la "imaginación" de la IA nunca produce un nivel intransitable. Ver specs/fabrica-niveles-ai.md §4.7.
-  function generateLevel(forceId) {
+  function generateLevel(forceId, seed) {
+    // SEED (Quest mundo-AI, specs/quest-mundo-ai.md): si viene un `seed` numérico, TODA la generación es DETERMINISTA
+    // (mismo seed + mismo tema = MISMO mundo → compartible). `rand` reemplaza a Math.random en todo el generador.
+    const rand = (typeof seed === 'number') ? mkRand(seed) : Math.random;
     // forceId puede ser un ID (string) O un TEMA ad-hoc (objeto) — ej. el que INVENTA la IA en el tema 'oraculo'
     let t = (forceId && typeof forceId === 'object') ? forceId
-      : forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(Math.random() * THEMES.length) | 0];
+      : forceId ? (THEMES.find(x => x.id === forceId) || THEMES[0]) : THEMES[(rand() * THEMES.length) | 0];
     // A0-DEEP (1): el tema usa su secuencia de BEATS (la de la IA si vino, si no el molde estático por id). Sin beats → salas genéricas.
     if (!t.beats && THEME_BEATS[t.id]) t = Object.assign({}, t, { beats: THEME_BEATS[t.id] });
     const GTOP = 12;
-    const rnd = (a, b) => a + ((Math.random() * (b - a + 1)) | 0);
-    const pick = a => a[(Math.random() * a.length) | 0];
+    const rnd = (a, b) => a + ((rand() * (b - a + 1)) | 0);
+    const pick = a => a[(rand() * a.length) | 0];
     const decorKeys = t.decor || ['caja', 'barril', 'tacho'];
     const style = t.style || 'climb';
     // PLATAFORMAS según el STYLE del tema (data) — así cada nivel se SIENTE distinto (la muralla parece muralla, etc.).
@@ -419,7 +424,7 @@ const NivelAI = (() => {
       if (style === 'wall') {
         // MURALLA: caminás por la parte de ARRIBA del muro, con almenas (sube/baja 1) y huecos cortos para saltar
         let y = GTOP - 3;
-        for (let x = 5; x < w - 6;) { const pw = rnd(3, 5); P.push([x, y, pw]); x += pw + rnd(1, 2); y += (Math.random() < 0.5 ? -1 : 1); y = Math.max(GTOP - 5, Math.min(GTOP - 2, y)); }
+        for (let x = 5; x < w - 6;) { const pw = rnd(3, 5); P.push([x, y, pw]); x += pw + rnd(1, 2); y += (rand() < 0.5 ? -1 : 1); y = Math.max(GTOP - 5, Math.min(GTOP - 2, y)); }
       } else if (style === 'aisles') {
         // GÓNDOLAS/ESTANTES: 2 filas horizontales (pasillos) que saltás entre medio
         for (const y of [GTOP - 3, GTOP - 6]) for (let x = 5; x < w - 6; x += rnd(4, 6)) P.push([x, y, rnd(2, 3)]);
@@ -429,11 +434,11 @@ const NivelAI = (() => {
         for (let x = 6; x < w - 6; x += rnd(4, 6)) { let y = GTOP - 2; for (let s = 0, m = rnd(2, 3); s < m && y >= 4; s++) { P.push([x, y, 2]); y -= rnd(2, 3); } }
       } else if (style === 'rooftop') {
         // AZOTEAS (galpón/altura): plataformas ANCHAS y altas con huecos grandes — saltás de techo en techo (piso siempre abajo).
-        let y = GTOP - 4; for (let x = 5; x < w - 6;) { const pw = rnd(4, 6); P.push([x, y, pw]); x += pw + rnd(2, 3); y = Math.max(GTOP - 6, Math.min(GTOP - 2, y + (Math.random() < 0.5 ? -1 : 1))); }
+        let y = GTOP - 4; for (let x = 5; x < w - 6;) { const pw = rnd(4, 6); P.push([x, y, pw]); x += pw + rnd(2, 3); y = Math.max(GTOP - 6, Math.min(GTOP - 2, y + (rand() < 0.5 ? -1 : 1))); }
       } else {
         // CLIMB (default): zigzag que sube
         let px = rnd(5, 7), py = GTOP - 2;
-        for (let k = 0, m = rnd(3, 6); k < m && px < w - 6; k++) { P.push([px, py, rnd(2, 3)]); px += P[P.length - 1][2] + rnd(2, 3); py = Math.max(4, py - (Math.random() < 0.6 ? rnd(1, 2) : 0)); }
+        for (let k = 0, m = rnd(3, 6); k < m && px < w - 6; k++) { P.push([px, py, rnd(2, 3)]); px += P[P.length - 1][2] + rnd(2, 3); py = Math.max(4, py - (rand() < 0.6 ? rnd(1, 2) : 0)); }
       }
       return P;
     }
@@ -456,7 +461,7 @@ const NivelAI = (() => {
       // pickups SOLO en plataformas ALCANZABLES (R4 para pickups): la red nos dice qué techos se pisan saltando.
       const reach = (typeof Playable !== 'undefined' && Playable.reachableTops)
         ? Playable.reachableTops({ w, platforms: plats, entities: [{ tipo: 'marker', x: 2, render: { type: 'spawn' } }] }) : null;
-      for (const p of plats) { const ty = p[1] - 1; if (reach && !reach[p[0] + ',' + ty]) continue; if (Math.random() < 0.5) ents.push({ id: id + '/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: ty, give: { item: pick(['ammo', 'coins', 'health']), amount: rnd(3, 6) } }); }
+      for (const p of plats) { const ty = p[1] - 1; if (reach && !reach[p[0] + ',' + ty]) continue; if (rand() < 0.5) ents.push({ id: id + '/pk' + p[0], tipo: 'pickup', x: p[0] + 0.5, y: ty, give: { item: pick(['ammo', 'coins', 'health']), amount: rnd(3, 6) } }); }
       const aiEn = t.aiEnemies ? sanitizeEnemies(t.aiEnemies, w) : null;   // enemigos autorados por IA (posición) o aleatorios
       if (aiEn) aiEn.forEach((en, k) => ents.push({ id: id + '/en' + k, tipo: 'enemy', x: en.x + 0.5, combat: { type: en.type || pick(rPool) } }));
       else for (let k = 0, e = rnd(enemyN[0], enemyN[1]); k < e; k++) ents.push({ id: id + '/en' + k, tipo: 'enemy', x: rnd(6, w - 5) + 0.5, combat: { type: pick(rPool) } });
@@ -465,7 +470,7 @@ const NivelAI = (() => {
       // `hazards` = lista explícita autorada por IA; si no, se siembran 0-2 procedurales al azar.
       if (!noHaz) {
         if (hazards) hazards.forEach((h, k) => ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: h.x + 0.5, w: h.w, render: { type: h.kind }, combat: { dmg: 12 } }));
-        else for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = beat && beat.haz ? beat.haz === 'pit' : vibe && vibe.haz ? vibe.haz === 'pit' : Math.random() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
+        else for (let k = 0, hz = rnd(0, 2); k < hz; k++) { const pit = beat && beat.haz ? beat.haz === 'pit' : vibe && vibe.haz ? vibe.haz === 'pit' : rand() < 0.5; ents.push({ id: id + '/hz' + k, tipo: 'hazard', x: rnd(7, w - 8) + 0.5, w: pit ? rnd(1, 2) : 2, render: { type: pit ? 'pit' : 'spikes' }, combat: { dmg: 12 } }); }
       }
       for (let k = 0, d = rnd(2, 4); k < d; k++) ents.push({ id: id + '/dec' + k, tipo: 'decor', x: rnd(4, w - 4) + 0.5, render: { type: pick(decorKeys) } });
       // A0-DEEP: PROP ANCLA del relato (set-piece grande, posición deliberada = centro del piso) → el nivel "se lee" como la
@@ -496,14 +501,16 @@ const NivelAI = (() => {
       // con BEATS, la secuencia define cuántas salas (cada sala = un beat de la historia); sin beats, 2-3 al azar.
       const n = (t.beats && t.beats.length) ? Math.min(3, Math.max(2, t.beats.length)) : rnd(2, 3);
       const rooms = []; for (let i = 0; i < n; i++) rooms.push(room(i, n));
-      return { schemaVersion: 1, id: 'nivel-ai-' + t.id, nombre: L(t.name), seed: 'ai', rooms };
+      return { schemaVersion: 1, id: 'nivel-ai-' + t.id, nombre: L(t.name), seed: (typeof seed === 'number') ? String(seed) : 'ai', rooms };
     }
     // BUCLE de validación/reparación: probamos hasta 8 candidatos, devolvemos el 1º que pasa la RED.
+    // OJO con SEED: con seed determinista, cada `candidate()` avanza el MISMO stream → los reintentos siguen siendo
+    // deterministas (mismo seed → misma secuencia de candidatos → mismo 1er válido). Compartible.
     let last = null;
     for (let attempt = 0; attempt < 8; attempt++) {
       const model = candidate();
       const v = (typeof Playable !== 'undefined') ? Playable.checkLevel(model) : { ok: true, problems: [] };
-      last = { model, theme: t.id, name: L(t.name), reward: t.reward || { caramelos: 4 }, attempt, problems: v.problems };
+      last = { model, theme: t.id, name: L(t.name), reward: t.reward || { caramelos: 4 }, attempt, problems: v.problems, seed: (typeof seed === 'number') ? seed : null };
       if (v.ok) return last;
     }
     return last;   // (por construcción no debería fallar; si falla, el caller ve problems[])

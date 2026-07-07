@@ -55,6 +55,11 @@ const LANG_ES = {
   'opt.hardcoreNote': 'ON = morir borra TODO (sin checkpoints, como antes). OFF = al morir podés volver al último hito de la historia.',
   'opt.reset': 'Restablecer',
   'opt.close': 'Cerrar',
+  'mundoai.title': '🌀 MÁQUINA DE MUNDOS',
+  'mundoai.desc': 'Poné un número (semilla) y jugás ESE mundo generado. El MISMO número da el MISMO mundo — pasáselo a alguien. Dejalo vacío para uno al azar.',
+  'mundoai.ph': 'semilla (ej. 12345)',
+  'mundoai.go': '▶ GENERAR Y JUGAR',
+  'mundoai.rand': '🎲 Al azar',
   'opt.engine': 'Motor (experimental)',
   'opt.engineNote': 'v1 = estable · v2 = nuevo motor data-driven (aplica al (re)empezar).',
 

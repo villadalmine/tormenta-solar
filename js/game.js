@@ -659,6 +659,7 @@
     fifa:    () => playFifa(),
     compu:   () => openCarteles(),   // CARTELES C1: la computadora del tablón → overlay para fijar/ver carteles
     datacenter: () => openDatacenter(),   // DATACENTER D1: la computadora del datacenter → overlay para aportar partes
+    mundoai: () => openMundoAI(),   // QUEST MUNDO-AI: la MÁQUINA DE MUNDOS del gurú → overlay para generar un mundo por seed
     globo:   () => enterGlobo(),   // MAPA A: la sala de situación del búnker → el globo con satélites/bases
     plano:   () => enterBunkerMapa(),   // MAPA B: el plano del búnker → construir tu búnker (grilla + radar)
     moza:    n => handleMoza(n),
@@ -1899,6 +1900,26 @@
     }
     if (!loadGenLevel(NivelAI.generateLevel())) { back(); setMsg(T('g.nivelai.fail'), '#ff5252', 4000); }
   }
+  // QUEST MUNDO-AI (specs/quest-mundo-ai.md 2.A): un MUNDO por SEED — el motor genera DATA (Mundo.fromModel) determinista.
+  // MISMO seed = MISMO mundo (compartible). v1 entra SIEMPRE (generación por seed, sin depender de la IA); el /mundo-ai
+  // (tema por prompt) es enriquecimiento opcional. `theme` = tema autorado por IA (opcional). Reusa loadGenLevel + la RED.
+  let lastMundoSeed = 0;
+  function launchMundoAI(seed, theme) {
+    if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined' || !rooms || !player) return false;
+    if (typeof seed !== 'number' || !isFinite(seed)) seed = (Math.random() * 1e9) | 0;
+    seed = Math.abs(seed | 0) || 1;
+    closeMundoAI();
+    const gen = NivelAI.generateLevel(theme || undefined, seed);
+    if (loadGenLevel(gen)) { lastMundoSeed = seed; setMsg(T('g.mundoai.enter', { seed }), '#e0b0ff', 7000); return true; }
+    setMsg(T('g.nivelai.fail'), '#ff5252', 4000); return false;
+  }
+  function openMundoAI() {
+    const ov = document.getElementById('mundoai'); if (!ov) return;   // headless → no-op
+    const note = document.getElementById('mundoai-note'); if (note) note.textContent = lastMundoSeed ? T('g.mundoai.last', { seed: lastMundoSeed }) : '';
+    const inp = document.getElementById('mundoai-seed'); if (inp) inp.value = '';
+    ov.classList.remove('hidden'); if (inp && inp.focus) try { inp.focus(); } catch (e) {}
+  }
+  function closeMundoAI() { const ov = document.getElementById('mundoai'); if (ov) ov.classList.add('hidden'); }
   // salir del nivel generado: restaura el juego principal exactamente como estaba. outcome: win/dead/flee.
   function endSpinoffLevel(outcome) {
     if (!spinoffLevel || !spinoffSave) { spinoffLevel = false; return; }
@@ -3987,6 +4008,13 @@
   { const b = document.getElementById('invClose'); if (b) b.addEventListener('click', closeInv); }
   { const b = document.getElementById('cartelClose'); if (b) b.addEventListener('click', closeCarteles); }
   { const b = document.getElementById('dcClose'); if (b) b.addEventListener('click', closeDatacenter); }
+  // QUEST MUNDO-AI: la máquina de mundos (generar por seed)
+  { const c = document.getElementById('mundoai-close'); if (c) c.addEventListener('click', closeMundoAI);
+    const go = document.getElementById('mundoai-go'), rnd = document.getElementById('mundoai-rand'), inp = document.getElementById('mundoai-seed');
+    const parse = () => { const v = (inp && inp.value || '').trim(); if (!v) return null; const n = parseInt(v.replace(/[^0-9]/g, ''), 10); return isFinite(n) ? n : null; };
+    if (go) go.addEventListener('click', () => launchMundoAI(parse()));
+    if (rnd) rnd.addEventListener('click', () => launchMundoAI(null));
+    if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') launchMundoAI(parse()); }); }
   if (typeof Salon !== 'undefined' && Salon.onWhisper) Salon.onWhisper(onPeerWhisper);   // F2b.2: recibir chats privados del bodegón
   if (typeof Salon !== 'undefined' && Salon.onTable) Salon.onTable(onTable);             // MESAS: el server parea (table-update/start/end)
   document.getElementById('chat-send').addEventListener('click', chatSend);
@@ -4068,6 +4096,7 @@
         vida:        () => { if (!player) return 'empezá una partida primero'; player.hp = MAXHP; player.alive = true; syncHud(); return 'Vida full'; },
         viola:       () => { if (!player) return 'empezá una partida primero'; addItem('viola'); return 'Viola 🎸 al inventario'; },
         deposito:    () => { if (!rooms || !player) return 'empezá una partida primero'; try { localStorage.removeItem('ts_deposito_open'); } catch (e) {} addItem('llave'); const gi = rooms.findIndex(r => (r.tags || []).includes('galeria')); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); if (gi >= 0) spawnIn(gi, 33); return 'Te di la 🔑 llave + te dejé al lado del depósito 🔒 (apretá E)'; },
+        mundoai:     () => { if (!rooms || !player) return 'empezá una partida primero'; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); openMundoAI(); return 'Máquina de mundos 🌀 abierta (poné una semilla)'; },
         mapa:        () => { if (!rooms) return 'empezá una partida primero'; for (let i = 0; i < rooms.length; i++) visitedRooms.add(i); saveVisited(); return 'Mapa: todas las salas marcadas visitadas'; },
         wipe:        () => { try { if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear(); for (const k of Object.keys(localStorage)) if (/^ts_/.test(k) && k !== 'ts_debug' && k !== 'ts_nick' && k !== 'ts_nick_sfx' && k !== 'ts_lang') localStorage.removeItem(k); } catch (e) {} return 'Partida + flags borrados (recargá o Restablecer)'; },
       };

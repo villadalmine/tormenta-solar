@@ -7442,7 +7442,22 @@
           }
         },
         {
-          "id": "el-bunker-de-los-linyeras/decor6",
+          "id": "el-bunker-de-los-linyeras/npc6",
+          "tipo": "npc",
+          "render": {
+            "sprite": "recepcionista"
+          },
+          "x": 9,
+          "name": "La máquina de mundos",
+          "interact": {
+            "action": "mundoai"
+          },
+          "dialogue": {
+            "text": "“Con lo que sobró del datacenter armamos ESTO, gurú: una máquina que le pide a la IA un MUNDO entero y te lo tira para jugar. Poné un número y entrás; el MISMO número, el MISMO mundo — pasáselo a un amigo. [E] 🌀”"
+          }
+        },
+        {
+          "id": "el-bunker-de-los-linyeras/decor7",
           "tipo": "decor",
           "render": {
             "type": "catre"
@@ -7450,7 +7465,7 @@
           "x": 10
         },
         {
-          "id": "el-bunker-de-los-linyeras/decor7",
+          "id": "el-bunker-de-los-linyeras/decor8",
           "tipo": "decor",
           "render": {
             "type": "barril"
@@ -7458,7 +7473,7 @@
           "x": 4
         },
         {
-          "id": "el-bunker-de-los-linyeras/decor8",
+          "id": "el-bunker-de-los-linyeras/decor9",
           "tipo": "decor",
           "render": {
             "type": "maletin"
@@ -7466,7 +7481,7 @@
           "x": 13.5
         },
         {
-          "id": "el-bunker-de-los-linyeras/decor9",
+          "id": "el-bunker-de-los-linyeras/decor10",
           "tipo": "decor",
           "render": {
             "type": "parlante"
@@ -7474,7 +7489,7 @@
           "x": 18
         },
         {
-          "id": "el-bunker-de-los-linyeras/pickup10",
+          "id": "el-bunker-de-los-linyeras/pickup11",
           "tipo": "pickup",
           "give": {
             "item": "health"
@@ -7482,7 +7497,7 @@
           "x": 12
         },
         {
-          "id": "el-bunker-de-los-linyeras/pickup11",
+          "id": "el-bunker-de-los-linyeras/pickup12",
           "tipo": "pickup",
           "give": {
             "item": "coins",

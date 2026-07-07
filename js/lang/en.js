@@ -56,6 +56,11 @@ const LANG_EN = {
   'opt.hardcoreNote': 'ON = dying wipes EVERYTHING (no checkpoints, classic). OFF = on death you can return to the last story milestone.',
   'opt.reset': 'Reset',
   'opt.close': 'Close',
+  'mundoai.title': '🌀 WORLD MACHINE',
+  'mundoai.desc': 'Type a number (seed) and you play THAT generated world. The SAME number gives the SAME world — share it. Leave it empty for a random one.',
+  'mundoai.ph': 'seed (e.g. 12345)',
+  'mundoai.go': '▶ GENERATE & PLAY',
+  'mundoai.rand': '🎲 Random',
   'opt.engine': 'Engine (experimental)',
   'opt.engineNote': 'v1 = stable · v2 = new data-driven engine (applies on (re)start).',
 
