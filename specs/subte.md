@@ -244,11 +244,17 @@ Pedido del dueño (2026-07-08): al reventar los satélites desde la Pirámide, l
     Bosques, Cañuelas — DATA rotando), y **locales MOCK** data-driven (kiosco/café/diarios/locutorio/boletería) que dan
     flavor "próximamente" (iteramos con interior real). Salidas: escalera **▼ SUBTE C** (vuelve al andén de la Línea C →
     menú de viaje) y una puerta a la calle (próximamente, para E3). Debug: acción/botón `constiYa`.
-- **E2 — PENDIENTE:** **Retiro** (misma idea: terminal Mitre/San Martín/Belgrano, molinetes + locales mock). Sumar `retiro`
-  a los destinos + `enterRetiro()` + `js/retiro.js`.
-- **E3 — PENDIENTE:** salir de Retiro a la **calle / Plaza (San Martín / Fuerza Aérea)** → tomar la **Línea San Martín**
-  (tren) → ir hacia abajo → aparece **VILLA 31**.
-- **E4 — PENDIENTE:** entrar a **Villa 31** → te contratan para un **comedor popular** (quest). "Ahí quedamos" (dueño).
+- **E2 — HECHO (v347):** **Retiro** (`js/retiro.js`, misma idea que Constitución pero con la **bóveda de hierro y vidrio
+  del Mitre** + molinetes Mitre/San Martín/Belgrano + locales mock). `retiro` en `ESTACIONES` con `surface:'retiro'` y en
+  los destinos de la Línea C → `enterRetiro()`. **Diferencia:** su SALIDA a la calle está HABILITADA (`exitTo='villa31'`).
+- **E3 — HECHO (v347):** de Retiro salís a la calle y, siguiendo las vías de la **Línea San Martín**, entrás a la
+  **Villa 31** (transición directa `enterVilla31()`; las vías están dibujadas arriba de la escena).
+- **E4 — HECHO (v347):** **Villa 31** (`js/villa31.js`, top-down): casas de ladrillo, cables, murales; el **COMEDOR
+  POPULAR** (olla humeante) donde **Doña Rosa te CONTRATA** (flag `ts_comedor`, arista `comedor_contratado` terminal); y
+  la **iglesia del Padre Mugica** (capilla Cristo Obrero) con el **cura villero**. Doña Rosa y el cura son **NPCs con IA**
+  (personas `comedor` y `cura` — fichas `personajes/{comedor,cura}.md` → `gen-personas.mjs`; el cura es **peronista +
+  holístico**). Getters `hireEdge`/`openChatNpc` → game.js (`openChat` + `chatReturnTo='villa31'`). "Ahí quedamos"
+  (dueño): cocinar en el comedor se itera después. **Requiere deploy del PROXY** (personas nuevas). Debug `retiroYa`/`villaYa`.
 
 Nota geográfica: por jugabilidad, "habilitar la Línea C" abre el destino Constitución desde CUALQUIER estación (no forzamos
 volver a Lavalle). El metro (subte) y el tren conviven: la terminal (Constitución/Retiro) tiene el andén del subte C abajo y

@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','retiro.js','villa31.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -455,6 +455,28 @@ if (require.main === module) {
     const co2 = Constitucion.create({});
     if (!co2.__local()) throw new Error('constitucion: un local mock debería dar un mensaje de flavor');
     ok.push('constitucion:ok');
+    // TERMINAL RETIRO (§11 E2): hall del Mitre; su SALIDA a la calle → Villa 31; escalera → subte C
+    if (typeof Retiro === 'undefined' || !Retiro.create) throw new Error('Retiro no cargó');
+    const re = Retiro.create({});
+    for (let i = 0; i < 30; i++) { re.update(0.05); re.draw(C, 960, 540); }
+    if (re.__leave() !== 'back') throw new Error('retiro: la escalera debería volver al subte: ' + re.exitTo);
+    const re2 = Retiro.create({});
+    if (re2.__street() !== 'villa31') throw new Error('retiro: la SALIDA a la calle debería ir a Villa 31: ' + re2.exitTo);
+    ok.push('retiro:ok');
+    // VILLA 31 (§11 E3/E4): te contratan en el comedor + chat con la referente y el cura (personas comedor/cura)
+    if (typeof Villa31 === 'undefined' || !Villa31.create) throw new Error('Villa31 no cargó');
+    const vi = Villa31.create({});
+    for (let i = 0; i < 30; i++) { vi.update(0.05); vi.draw(C, 960, 540); }
+    const hire = vi.__hire();
+    if (!hire.hired) throw new Error('villa31: acercarte al comedor debería CONTRATARTE');
+    if (!vi.hireEdge && !(hire.npc)) throw new Error('villa31: contratar debería disparar el edge una vez');
+    if (!(hire.npc && hire.npc.persona === 'comedor')) throw new Error('villa31: debería abrir chat con la referente (comedor): ' + JSON.stringify(hire.npc));
+    const vi2 = Villa31.create({ hired: true });
+    const curaNpc = vi2.__cura();
+    if (!(curaNpc && curaNpc.persona === 'cura')) throw new Error('villa31: el cura de la iglesia Mugica debería abrir chat (persona cura): ' + JSON.stringify(curaNpc));
+    const vi3 = Villa31.create({});
+    if (vi3.__leave() !== 'back') throw new Error('villa31: las vías deberían volver a Retiro: ' + vi3.exitTo);
+    ok.push('villa31:ok');
     // PLAZA DE MAYO (Nivel 2, arco sanmartiniano): chip del Libertador (tumba) → Pirámide → señal → win2
     if (typeof Plaza === 'undefined' || !Plaza.create) throw new Error('Plaza no cargó');
     const pz = Plaza.create({});
@@ -667,7 +689,8 @@ if (require.main === module) {
     const allDone = { stormed:true, borrachosHappy:true, bunkerUnlocked:true, chinoFrontOpen:true, trucoWon:true,
       won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true,
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
-      subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true };
+      subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
+      enRetiro:true, enVilla31:true, comedorHired:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

@@ -134,6 +134,7 @@
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let subteGame = null, subteReturn = 'street';   // subte.md §4: la estación (sub-modo top-down); dónde volvés al salir
   let constitucionGame = null;                     // subte.md §11: terminal de tren Constitución (Línea C, post Nivel 2)
+  let retiroGame = null, villa31Game = null;       // subte.md §11 E2-E4: terminal Retiro → Línea San Martín → Villa 31 (comedor)
   let plazaGame = null;   // subte.md §10 / F4: PLAZA DE MAYO (arranque del Nivel 2), llegás en subte a Catedral
   let finaleGame = null;  // subte.md §10.1: cinemática de cierre del Nivel 2 (liberación sanmartiniana) → pantalla de fin
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
@@ -391,7 +392,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; retiroGame = null; villa31Game = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -690,7 +691,7 @@
     if (returnTo) subteReturn = returnTo;   // en un VIAJE (travel:X) no lo pisamos: conservás dónde volvés a la superficie
     const available = ['florida'];          // estaciones jugables que YA existen
     if (lsFlag('ts_sat_down')) { available.push('lavalle'); available.push('catedral'); }   // tras herir al satélite: Lavalle + Catedral (→ Plaza de Mayo, Nivel 2)
-    if (lsFlag('ts_linea_c')) { available.push('constitucion'); }   // subte.md §11: ganar el Nivel 2 habilita la Línea C entera → Constitución (Retiro llega en E2)
+    if (lsFlag('ts_linea_c')) { available.push('constitucion'); available.push('retiro'); }   // subte.md §11: ganar el Nivel 2 habilita la Línea C entera → Constitución + Retiro
     subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged'), available,
       hasBoleto: !!(player.inventory && player.inventory.includes('boleto')), coins: player.coins || 0, boletoPrice: 20 }); state = 'subte';
     evlog('hito', 'bajó al subte (' + station + ')');
@@ -717,6 +718,28 @@
     constitucionGame = Constitucion.create({}); state = 'constitucion';
     applyEdge('constitucion_llegada', 'enConstitucion');   // GRAFO: hito → map/checkpoint/ticker + los oráculos saben
     evlog('hito', 'llegó a la terminal Constitución');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // TERMINAL RETIRO (subte.md §11 E2): igual que Constitución (Línea C) pero su SALIDA a la calle está habilitada
+  // y lleva a la Línea San Martín → Villa 31 (E3/E4).
+  function enterRetiro() {
+    if (typeof Retiro === 'undefined' || !Retiro.create) { enterSubte('retiro'); return true; }
+    retiroGame = Retiro.create({}); state = 'retiro';
+    applyEdge('retiro_llegada', 'enRetiro');
+    evlog('hito', 'llegó a la terminal Retiro');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // VILLA 31 (subte.md §11 E3/E4): salís de Retiro por las vías de la San Martín → el barrio. Comedor popular
+  // (te contratan) + la iglesia del Padre Mugica. NPCs con IA (referente del comedor, cura villero).
+  function enterVilla31() {
+    if (typeof Villa31 === 'undefined' || !Villa31.create) { enterRetiro(); return true; }
+    villa31Game = Villa31.create({ hired: lsFlag('ts_comedor') }); state = 'villa31';
+    applyEdge('villa31_llegada', 'enVilla31');
+    evlog('hito', 'llegó a la Villa 31');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -1123,6 +1146,9 @@
     // POST NIVEL 2 (subte.md §11): la LÍNEA C queda habilitada → red de tren (Constitución/Retiro)
     lineaC:           v => { try { localStorage.setItem('ts_linea_c', v ? '1' : ''); } catch (e) {} },
     enConstitucion:   v => { try { localStorage.setItem('ts_en_constitucion', v ? '1' : ''); } catch (e) {} },
+    enRetiro:         v => { try { localStorage.setItem('ts_en_retiro', v ? '1' : ''); } catch (e) {} },
+    enVilla31:        v => { try { localStorage.setItem('ts_en_villa31', v ? '1' : ''); } catch (e) {} },
+    comedorHired:     v => { try { localStorage.setItem('ts_comedor', v ? '1' : ''); } catch (e) {} },   // te contrataron en el comedor de la Villa 31
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1177,6 +1203,9 @@
       escarapela: lsFlag('ts_escarapela'),          // Cabildo: repicaste la campana → escarapela + French & Beruti
       lineaC: lsFlag('ts_linea_c'),                 // post Nivel 2: Línea C habilitada (red de tren)
       enConstitucion: lsFlag('ts_en_constitucion'), // llegaste a la terminal Constitución
+      enRetiro: lsFlag('ts_en_retiro'),             // llegaste a la terminal Retiro
+      enVilla31: lsFlag('ts_en_villa31'),           // llegaste a la Villa 31
+      comedorHired: lsFlag('ts_comedor'),           // te contrataron en el comedor popular
       sleptOnce: loopCount > 0,
     };
   }
@@ -1212,6 +1241,7 @@
       enPlaza: lsFlag('ts_en_plaza'), sanmartinChip: lsFlag('ts_sanmartin_chip'), nivel2Win: lsFlag('ts_nivel2_win'),
       escarapela: lsFlag('ts_escarapela'),   // Cabildo 1810: escarapela + French & Beruti (los oráculos lo saben)
       lineaC: lsFlag('ts_linea_c'), enConstitucion: lsFlag('ts_en_constitucion'),   // §11: red de tren post Nivel 2 (Constitución/Retiro)
+      enRetiro: lsFlag('ts_en_retiro'), enVilla31: lsFlag('ts_en_villa31'), comedorHired: lsFlag('ts_comedor'),   // §11 E2-E4: Retiro → Villa 31 → comedor
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -1472,6 +1502,8 @@
       if (chatReturnTo === 'lavalle' && lavalleGame) { chatReturnTo = null; state = 'lavalle'; }
       // Plaza de Mayo: el chat con French/Beruti se abrió DESDE la plaza (Nivel 2) → volvés ahí (plazaGame sigue vivo)
       else if (chatReturnTo === 'plaza' && plazaGame) { chatReturnTo = null; state = 'plaza'; }
+      // Villa 31: el chat con la referente/cura se abrió DESDE la villa → volvés ahí (villa31Game sigue vivo)
+      else if (chatReturnTo === 'villa31' && villa31Game) { chatReturnTo = null; state = 'villa31'; }
       // T2b: si el chat privado se abrió DESDE el bodegón top-down → volvés ahí (no al side-scroller)
       else if (from === 'bodegon' && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
       else { chatReturnTo = null; state = 'playing'; }
@@ -3829,7 +3861,7 @@
         if (ex && ex.indexOf('surface:') === 0) {   // §11: la escalera de una TERMINAL sube al hall del tren (Constitución/Retiro)
           const surf = ex.slice(8);
           if (surf === 'constitucion') { enterConstitucion(); return; }
-          // (retiro llega en E2) — fallback: te quedás en el subte
+          if (surf === 'retiro') { enterRetiro(); return; }
         }
         if (ex && ex.indexOf('travel:') === 0) {   // F3: VIAJASTE a otra estación → contás el pasaje y reaparecés allá
           const dest = ex.slice(7);
@@ -3866,6 +3898,21 @@
       if (constitucionGame.done) {
         const ex = constitucionGame.exitTo; constitucionGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         enterSubte('constitucion', 'street'); return;   // bajás de la terminal al subte (Línea C) → menú de viaje
+      }
+    } else if (state === 'retiro' && retiroGame) {                    // §11 E2: terminal Retiro (Línea C)
+      retiroGame.update(dt); retiroGame.draw(ctx, W, H);
+      if (retiroGame.done) {
+        const ex = retiroGame.exitTo; retiroGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'villa31') { enterVilla31(); return; }              // salís a la calle → Línea San Martín → Villa 31
+        enterSubte('retiro', 'street'); return;                        // bajás al subte (Línea C) → menú de viaje
+      }
+    } else if (state === 'villa31' && villa31Game) {                  // §11 E3/E4: Villa 31 (comedor + iglesia Mugica)
+      villa31Game.update(dt); villa31Game.draw(ctx, W, H);
+      if (villa31Game.hireEdge) applyEdge('comedor_contratado', 'comedorHired');   // GRAFO: te contrataron en el comedor
+      { const vc = villa31Game.openChatNpc; if (vc) { chatReturnTo = 'villa31'; openChat({ name: vc.name, persona: vc.persona }); } }   // [E] referente/cura → chat IA
+      if (villa31Game.done) {
+        const ex = villa31Game.exitTo; villa31Game = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        enterRetiro(); return;                                         // volvés por las vías → Retiro
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
@@ -4167,6 +4214,8 @@
         subteYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sube_seen'); lsOn('ts_sube_got'); lsOn('ts_sube_charged'); addItem('sube'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterSubte('lavalle', 'street'); return 'Bajaste a la estación Lavalle 🚇'; },
         plazaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterPlaza(); return 'Fuiste a PLAZA DE MAYO 🏛️'; },
         constiYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterConstitucion(); return 'Fuiste a la terminal CONSTITUCIÓN 🚆 (Línea C)'; },
+        retiroYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterRetiro(); return 'Fuiste a la terminal RETIRO 🚆 (Línea C)'; },
+        villaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); lsOn('ts_en_retiro'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterVilla31(); return 'Fuiste a la VILLA 31 🍲 (comedor + iglesia Mugica)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

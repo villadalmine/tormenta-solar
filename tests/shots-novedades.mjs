@@ -69,6 +69,8 @@ try {
   await dbg('plazaYa');   await shotCanvas('02-plaza-cabildo');
   await dbg('subteYa');   await shotCanvas('03-subte');
   await dbg('constiYa');  await shotCanvas('04-constitucion');
+  await dbg('retiroYa');  await shotCanvas('05-retiro');
+  await dbg('villaYa');   await shotCanvas('06-villa31');
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {

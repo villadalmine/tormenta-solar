@@ -709,6 +709,88 @@ const Historia = {
         ]
       },
       "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "retiro_llegada",
+      "title": "Llegar a la terminal Retiro (Línea C)",
+      "title_en": "Reach Retiro terminal (Line C)",
+      "at": "plaza",
+      "pre": {
+        "lineaC": true
+      },
+      "sets": {
+        "enRetiro": true
+      },
+      "hints": {
+        "es": [
+          "La Línea C también va a RETIRO. Bajá al subte y viajá.",
+          "En el andén, con la SUBE, abrí el menú de viaje y elegí Retiro.",
+          "La escalera de Retiro sube a la terminal del Mitre (bóveda de hierro).",
+          "Desde Retiro podés SALIR A LA CALLE: seguí las vías de la San Martín."
+        ],
+        "en": [
+          "Line C also goes to RETIRO. Head down and travel.",
+          "On the platform, with the SUBE, open the travel menu and pick Retiro.",
+          "Retiro's stairs lead up to the Mitre terminal (iron vault).",
+          "From Retiro you can EXIT TO THE STREET: follow the San Martín tracks."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "villa31_llegada",
+      "title": "Llegar a la Villa 31 (por la Línea San Martín)",
+      "title_en": "Reach Villa 31 (via the San Martín line)",
+      "at": "plaza",
+      "pre": {
+        "enRetiro": true
+      },
+      "sets": {
+        "enVilla31": true
+      },
+      "hints": {
+        "es": [
+          "Salí de Retiro a la calle.",
+          "Seguí las vías de la Línea San Martín hacia abajo.",
+          "Atrás de Retiro está la VILLA 31 (Barrio Padre Mugica).",
+          "Entrá a la Villa 31: hay un comedor popular y la iglesia del Padre Mugica."
+        ],
+        "en": [
+          "Exit Retiro to the street.",
+          "Follow the San Martín tracks downward.",
+          "Behind Retiro is VILLA 31 (Padre Mugica neighborhood).",
+          "Enter Villa 31: there's a soup kitchen and Padre Mugica's church."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "comedor_contratado",
+      "title": "El comedor popular de la Villa 31 te contrata",
+      "title_en": "The Villa 31 soup kitchen hires you",
+      "at": "plaza",
+      "pre": {
+        "enVilla31": true
+      },
+      "sets": {
+        "comedorHired": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "En la Villa 31, buscá el COMEDOR POPULAR (la olla humeante).",
+          "Acercate a la REFERENTE del comedor y apretá [E].",
+          "Te contrata para dar una mano en la olla.",
+          "Charlá con la referente (y con el CURA de la iglesia del Padre Mugica) — hablan con IA."
+        ],
+        "en": [
+          "In Villa 31, find the SOUP KITCHEN (the steaming pot).",
+          "Walk up to the kitchen's community leader and press [E].",
+          "She hires you to lend a hand at the pot.",
+          "Chat with her (and with the PRIEST at Padre Mugica's church) — they run on AI."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
     }
   ]
 };

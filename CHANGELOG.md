@@ -101,6 +101,20 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v347] — 2026-07-08 — 🍲 Red de tren completa: Retiro + Línea San Martín → Villa 31 (comedor + iglesia Mugica)
+- **E2 — Retiro** (`js/retiro.js`): la Línea C ahora también va a **Retiro**, la terminal del norte — **bóveda de
+  hierro y vidrio del Mitre**, molinetes Mitre/San Martín/Belgrano, locales mock. A diferencia de Constitución, su
+  **salida a la calle está habilitada**.
+- **E3/E4 — Villa 31** (`js/villa31.js`): de Retiro salís y seguís las vías de la **Línea San Martín** hasta la
+  **Villa 31** (Barrio Padre Mugica). Una **referente (Doña Rosa) te contrata para el comedor popular** (olla humeante,
+  flag `ts_comedor`), y podés visitar la **iglesia del Padre Mugica** (capilla Cristo Obrero) y hablar con el **cura
+  villero**. Doña Rosa y el cura son **NPCs con IA** (personas `comedor` y `cura`; el cura **peronista + holístico**).
+  Casas de ladrillo, cables y murales completan el barrio. "Ahí quedamos" (dueño): cocinar se itera después.
+- **Data-driven + grafo** (29 aristas): `retiro_llegada`/`villa31_llegada`/`comedor_contratado`; flags
+  `enRetiro`/`enVilla31`/`comedorHired` en FLAG_SETTERS/getters/historiaState/worldSnapshot. Personas nuevas desde
+  fichas → `gen-personas.mjs` (**requiere deploy del proxy**). Blog de Novedades + capturas (05-retiro, 06-villa31)
+  regeneradas. Debug `retiroYa`/`villaYa`. i18n ES≡EN. e2e (`retiro:ok`+`villa31:ok`) + web-smoke verdes. Cache v347.
+
 ## [v345] — 2026-07-08 — 🐛 FIX "el chat se cuelga tras hablar" (candado busy que no se liberaba)
 - **Bug:** después de un par de mensajes el chat con los NPC "se colgaba" y no respondía hasta **cerrar y reabrir**
   el chat. Causa: en `chatSend()` el post-procesado de la respuesta (mostrar la línea, telemetría, quests, ideas,
