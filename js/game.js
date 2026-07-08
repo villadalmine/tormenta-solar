@@ -2299,7 +2299,10 @@
       cineArchive = null; guardaAsk = {}; mundialQuest = null; mundialApproach = null;
     }
     if (isCine(r)) cineNoticias = pickNoticias(r);   // CINE: varias noticias del piso (Deportes/Mundo/Tecno…); se leen en pantalla, [R] las lee en voz alta
-    Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (hasTag(r,'truco') ? 'telo' : 'dance') : null);
+    // música por sala: metal (Cemento) · telo/dance (secret) · CUMBIA VILLERA random-por-piso en el edificio abandonado
+    // (borrachines) y la cueva/galería (rock/concrete) · si no, la música normal. En niveles-AI (spinoff) no metemos villera.
+    if (!spinoffLevel && (hasTag(r, 'edificio') || r.theme === 'rock' || r.theme === 'concrete') && Sfx.setVillera) Sfx.setVillera(current);
+    else Sfx.setRoomTrack(r.theme === 'cemento' ? 'metal' : r.theme === 'secret' ? (hasTag(r,'truco') ? 'telo' : 'dance') : null);
     Sfx.setAmbient(ambientFor(r));   // cama de ambiente por zona (capa aparte de la música)
     if (spinoffLevel) setMsg(T('g.nivelai.room', { name: TX(r.name) }), '#e0b0ff', 2500);   // cruzando salas del nivel generado
     else if (current === 0 && stormed) { flash(); setMsg(T('g.trans.streetStorm'), '#ff5252', 6500); }

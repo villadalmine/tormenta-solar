@@ -35,9 +35,9 @@ El juego es 100% estático; se publica en
 > aún con la GPU apagada, porque `gen` usa los modelos PAGO cloud; cache por seed confirmado). `srv-t7910` NotReady = la
 > GPU que el dueño apagó (esperado, no es falla).
 >
-> **Últimos (v335/v336):** 🎸 **música "heavy criollo"** en Cemento (power chords + distorsión + batería, homenaje
-> original a Almafuerte) + 🥟 **chiptune ORIENTAL** en el chino (pentatónica + koto pulsado). Próximo del audio (idea del
-> dueño): **TTS con voces no robóticas por personaje** (reemplazar espeak-ng
+> **Últimos (audio, v335-v338):** 🎸 **heavy criollo** en Cemento · 🥟 **oriental** en el chino · 🎺 **Marcha Peronista**
+> (real) en el piquete · 🇦🇷 **Himno** en el Obelisco · 🎶 **5 cumbias villeras** random por piso en el edificio y la cueva.
+> Próximo del audio (idea del dueño): **TTS con voces no robóticas por personaje** (reemplazar espeak-ng
 > por **Piper** neural + pre-gen por cron, ver §propuesta) — pendiente.
 >
 > **▶ SIGUIENTE:** TTS Piper (voces por personaje) · chicos — más ítems-buff, más gates de llave, geometría cruda en
@@ -100,6 +100,18 @@ El juego es 100% estático; se publica en
 - **⚠️ Deploy bloqueado por infra** (ver tracker arriba): v334 vive en GitHub Pages; el self-host y el proxy con
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
+
+## [v338] — 2026-07-08 — 🎶 MÚSICA: CUMBIA VILLERA (5 temas) random por piso en el edificio + la cueva
+
+- **5 temas de cumbia villera** (`VILLERA_SONGS` en `js/audio.js`) que suenan **random por piso** en el **edificio
+  abandonado** (los 20 pisos de los borrachines/linyeras) y en la **cueva/galería** (subsuelos). Lo que los hace
+  "villera" es la **güira** + el **bajo bouncy (tumbao)** + la melodía simple de **organito** — homenaje al **estilo**
+  (no copian temas puntuales de Damas Gratis/Pibes Chorros/etc., así que sin líos de copyright). 5 riffs distintos
+  (La/Do/Re/Mi menor + Sol mayor).
+- **Random estable por piso:** `Sfx.setVillera(i)` mapea el nº de sala → uno de los 5 (mismo piso = mismo tema, pisos
+  distintos = temas distintos). Se engancha en la transición de sala (`game.js`): si es del **edificio** (tag `edificio`)
+  o cueva/galería (theme `rock`/`concrete`) → villera; si no, la música de siempre. En niveles-AI no se mete.
+- Validado en Chromium real (los 5 temas suenan, 21 osc/1.2s c/u, 0 errores) + e2e.
 
 ## [v337] — 2026-07-08 — 🎺 MÚSICA: Marcha Peronista (melodía real) en el piquete + 🇦🇷 HIMNO en el Obelisco
 

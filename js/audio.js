@@ -235,7 +235,30 @@ const Sfx = (() => {
     ['C5','C3',4],
   ];
   const Oriental = makeTrack(ORIENTAL, 0.25, { leadType:'triangle', leadVol:0.085, bassVol:0.05, bassType:'triangle', staccato:0.85, pluck:true, wood:true, woodVol:0.014 });
+  // CUMBIA VILLERA (estilo, homenaje ORIGINAL — no copia temas puntuales): lo que la hace "villera" es la GÜIRA + el
+  // BAJO bouncy (tumbao) + la melodía simple de ORGANITO barato. 5 temas distintos → se ponen RANDOM por piso (el
+  // edificio de 20 + los subsuelos de la cueva). Suenan en el edificio abandonado (borrachines) y la cueva/galería.
+  const V_OPTS = { leadType:'square', leadVol:0.06, bassVol:0.065, staccato:0.55, guira:true };
+  const VILLERA_SONGS = [
+    // 1 — La menor, bien clásica/bouncy
+    [ ['A4','A2',1],['C5','A2',1],['E5','A2',1],['C5','A2',1], ['D5','G2',1],['B4','G2',1],['G4','G2',1],['B4','G2',1],
+      ['C5','F2',1],['E5','F2',1],['A5','F2',1],['E5','F2',1], ['D5','E2',1],['C5','E2',1],['B4','E2',1],['A4','E2',1] ],
+    // 2 — Do menor, oscura (Bb = A#)
+    [ ['G4','C2',1],['G4','C2',1],['A#4','C2',1],['G4','C2',1], ['F4','F2',1],['G4','F2',1],['A#4','F2',1],['C5','F2',1],
+      ['C5','G2',1],['A#4','G2',1],['G4','G2',1],['F4','G2',1], ['G4','C2',2],['F4','C2',1],['G4','C2',1] ],
+    // 3 — Re menor, cantadita
+    [ ['A4','D2',1],['D5','D2',1],['F5','D2',1],['D5','D2',1], ['E5','A2',1],['C5','A2',1],['A4','A2',1],['C5','A2',1],
+      ['D5','G2',1],['F5','G2',1],['A5','G2',1],['F5','G2',1], ['E5','A2',1],['D5','A2',1],['C5','A2',1],['A4','A2',1] ],
+    // 4 — Sol mayor, festiva
+    [ ['G4','G2',1],['B4','G2',1],['D5','G2',1],['B4','G2',1], ['C5','C3',1],['E5','C3',1],['C5','C3',1],['G4','C3',1],
+      ['D5','D3',1],['B4','D3',1],['G4','D3',1],['D5','D3',1], ['G4','G2',2],['A4','G2',1],['B4','G2',1] ],
+    // 5 — Mi menor, melódica
+    [ ['E5','E2',1],['G5','E2',1],['B4','E2',1],['E5','E2',1], ['D5','G2',1],['B4','G2',1],['G4','G2',1],['B4','G2',1],
+      ['A4','A2',1],['C5','A2',1],['E5','A2',1],['C5','A2',1], ['B4','E2',1],['A4','E2',1],['G4','E2',1],['E4','E2',1] ],
+  ];
+  const VILLERA = VILLERA_SONGS.map(s => makeTrack(s, 0.2, V_OPTS));
   const ROOM = { metal: Metal, dance: Dance, telo: Telo, chino: Oriental };
+  VILLERA.forEach((t, i) => { ROOM['villera' + i] = t; });
   let musicWanted = false, cumbiaActive = false, marchaActive = false, himnoActive = false;
 
   return {
@@ -320,5 +343,7 @@ const Sfx = (() => {
       if (kind && ROOM[kind]) { Music.stop(); Cumbia.stop(); Eighties.stop(); ROOM[kind].start(); }
       else if (musicWanted && !cumbiaActive) Music.start();
     },
+    // CUMBIA VILLERA random-por-piso: el índice (nº de sala) elige uno de los 5 temas, estable por piso pero distinto entre pisos.
+    setVillera(i) { const n = VILLERA.length; this.setRoomTrack('villera' + ((((i | 0) % n) + n) % n)); },
   };
 })();

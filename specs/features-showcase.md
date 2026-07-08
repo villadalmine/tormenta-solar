@@ -160,7 +160,8 @@
   lead que canta → lick), data-driven. Y el del **súper chino** es un chiptune **ORIENTAL**: melodía **pentatónica**
   con **koto pulsado** (pluck) + woodblock — lo pentatónico es lo que le da el color asiático. En el **piquete** suena
   la **Marcha Peronista** (melodía real en La menor) y en el **Obelisco** el **Himno Nacional** ("o juremos con gloria
-  morir", dominio público) — todo chiptune, sin archivos.
+  morir", dominio público) — todo chiptune, sin archivos. Y en el **edificio abandonado** (20 pisos) y la **cueva**
+  suenan **5 cumbias villeras** distintas, random por piso (güira + bajo bouncy + organito — homenaje al estilo).
 
 ## 4.b RESILIENCIA: si la GPU se cae, NO se para nada → modo estático
 - **Premisa (dueño):** *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático de
