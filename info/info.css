@@ -96,3 +96,16 @@ code,.mono{font-family:"Courier New",monospace; color:var(--amber2); background:
 .alt-ascii{margin-top:10px} .alt-ascii summary{cursor:pointer; color:var(--cyan); font-size:12.5px}
 
 footer{margin-top:50px; padding-top:18px; border-top:1px solid var(--bd); color:var(--dim); font-size:12px; text-align:center}
+
+/* ---- BLOG DE NOVEDADES ---- */
+.posts{ display:flex; flex-direction:column; gap:1.6rem; margin-top:1rem }
+.post{ border:1px solid var(--bd); border-radius:10px; background:var(--panel); padding:1.1rem 1.2rem; }
+.post-date{ color:var(--amber); font-size:.82rem; letter-spacing:.05em; text-transform:uppercase; }
+.post h3{ margin:.35rem 0 .5rem; color:var(--amber2); font-size:1.12rem; }
+.post p{ margin:.5rem 0; color:var(--tx); }
+.post .dim{ color:var(--dim); }
+.post .tags{ margin-top:.6rem; display:flex; gap:.4rem; flex-wrap:wrap; }
+.post .tag-chip{ font-size:.72rem; border:1px solid var(--bd); border-radius:999px; padding:.12rem .6rem; color:var(--cyan); }
+.shot{ margin:.7rem 0 .2rem; border:1px solid var(--bd); border-radius:8px; overflow:hidden; background:#05080c; }
+.shot img{ display:block; width:100%; height:auto; }
+.shot figcaption{ font-size:.76rem; color:var(--dim); padding:.4rem .6rem; border-top:1px solid var(--bd); }

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TORMENTA SOLAR — Novedades (bitácora de avances)</title>
+<meta name="description" content="Bitácora de avances de TORMENTA SOLAR, día por día: Plaza de Mayo, el subte, el mapa, el Cabildo y French & Beruti, la red de tren y más.">
+<meta name="theme-color" content="#05080c">
+<meta property="og:title" content="TORMENTA SOLAR — Novedades">
+<meta property="og:description" content="Bitácora de avances del juego, día por día. Nivel 2, subte, Plaza de Mayo, Cabildo, red de tren.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://villadalmine.github.io/tormenta-solar/info/novedades.html">
+<meta property="og:image" content="https://villadalmine.github.io/tormenta-solar/info/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="info.css?v=4">
+</head>
+<body>
+<header class="bar">
+  <span class="brand">☀ TORMENTA SOLAR</span>
+  <nav>
+    <a href="../">▶ Jugar</a>
+    <a href="index.html">¿Qué es?</a>
+    <a href="tech.html">Cómo funciona</a>
+    <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">GitHub</a>
+    <a href="novedades.en.html">EN</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>📓 Novedades</h1>
+    <p class="tag">La bitácora de avances, día por día. Lo último, arriba.</p>
+    <div class="badge">se actualiza a cada release · las capturas salen del test automático (Playwright)</div>
+  </div>
+
+  <div class="posts">
+
+    <article class="post">
+      <div class="post-date">8 de julio de 2026</div>
+      <h3>🚆 Arranca la red de tren: la terminal de Constitución</h3>
+      <p>Ganar el <b>Nivel 2</b> ya no termina el juego: te sale la pantalla de "¡Ganaste!" pero ahora podés
+      <b>seguir jugando</b>. Se te habilita la <b>Línea C</b> del subte (la que une Retiro con Constitución) y podés
+      viajar a la <b>gran terminal del Roca</b>: el hall abovedado, el reloj histórico, los molinetes del tren con los
+      ramales (La Plata, Ezeiza, Korn…) y los locales del andén.</p>
+      <figure class="shot">
+        <img src="img/novedades/04-constitucion.png" alt="La terminal de Constitución: hall del Roca, molinetes, reloj y locales" loading="lazy">
+        <figcaption>Estación Constitución — el hall del Ferrocarril Roca (los locales son mock por ahora; los iteramos).</figcaption>
+      </figure>
+      <p class="dim">Es la primera etapa de una expansión más grande: después vienen Retiro, la Línea San Martín y
+      Villa 31 con un comedor popular. Todo data-driven y metido en el grafo de la historia.</p>
+      <div class="tags"><span class="tag-chip">Nivel 2</span><span class="tag-chip">subte/tren</span><span class="tag-chip">mundo abierto</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">8 de julio de 2026</div>
+      <h3>🔔🎗️ El Cabildo de Mayo: la campana, la escarapela y dos próceres con IA</h3>
+      <p>En Plaza de Mayo ahora entrás al <b>Cabildo</b> y podés <b>repicar la campana</b>: la primera vez
+      <b>caen escarapelas</b> y agarrás una (guiño al 25 de mayo de 1810). Si la volvés a tocar, la campana
+      <b>toca el Himno</b> (la parte de "o juremos con gloria morir", con timbre de carillón).</p>
+      <p>Y con la escarapela puesta aparecen <b>granaderos</b> y dos personajes nuevos: <b>Domingo French</b> y
+      <b>Antonio Luis Beruti</b> —los que repartían las cintas en 1810—, <b>chateables con IA</b> y memoria. Hablan
+      solo de la Revolución de Mayo y la Independencia… y te confían que notaron "algo raro": el tiempo que se tuerce,
+      hechos que se repiten. No saben que es <b>la IA manipulando el espacio-tiempo</b>.</p>
+      <figure class="shot">
+        <img src="img/novedades/02-plaza-cabildo.png" alt="Plaza de Mayo: la Pirámide, las Madres, el Cabildo con French y Beruti, la Casa Rosada" loading="lazy">
+        <figcaption>Plaza de Mayo — el Cabildo (izq.) con Domingo French y Antonio Beruti; la Pirámide y las Madres al centro; la Casa Rosada (der.).</figcaption>
+      </figure>
+      <div class="tags"><span class="tag-chip">Cabildo</span><span class="tag-chip">NPCs con IA</span><span class="tag-chip">historia 🇦🇷</span><span class="tag-chip">música chiptune</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">8 de julio de 2026</div>
+      <h3>🐛 Arreglado: el chat ya no se cuelga</h3>
+      <p>Había un bug feo: después de un par de mensajes, el chat con los NPC se "colgaba" y no respondía hasta que
+      cerrabas y volvías a abrir. Era un <b>candado interno</b> que no se soltaba si algo fallaba al procesar la
+      respuesta. Ahora se libera pase lo que pase. No tiene nada que ver con la IA ni con tu suscripción.</p>
+      <div class="tags"><span class="tag-chip">fix</span><span class="tag-chip">chat IA</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">6–7 de julio de 2026</div>
+      <h3>🎵 Música chiptune en vivo, sin un solo archivo de audio</h3>
+      <p>Todo el audio se <b>compone en tiempo real</b> con Web Audio (cero mp3). Sumamos varios temas nuevos según
+      dónde estés: la <b>Marcha Peronista</b> en el piquete, el <b>Himno Nacional</b> en el Obelisco, un chiptune
+      <b>oriental</b> (pentatónico) al entrar al súper chino, un motor <b>heavy criollo</b> con distorsión para
+      Cemento, y <b>cinco cumbias villeras</b> distintas que suenan al azar en el edificio abandonado y la cueva.</p>
+      <div class="tags"><span class="tag-chip">audio</span><span class="tag-chip">chiptune</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">3–4 de julio de 2026</div>
+      <h3>🚇 El subte te lleva a Plaza de Mayo — el Nivel 2</h3>
+      <p>Ganás el piquete de Lavalle, herís al satélite y aparece la <b>boca del subte</b>. Con la tarjeta
+      <b>SUBE</b> (o un boleto que te vende el boletero) pasás el molinete y <b>viajás entre estaciones reales</b>
+      (Florida, Lavalle, Catedral). Catedral te deja en <b>Plaza de Mayo</b>, donde arranca el <b>Nivel 2</b>: entrás
+      a la <b>tumba de San Martín</b> en la Catedral, sacás el <b>chip del Libertador</b>, esquivás los drones de la
+      IA y lo armás en la <b>Pirámide de Mayo</b> — la señal sube a los satélites y arranca la liberación, con
+      cinemática de cierre.</p>
+      <figure class="shot">
+        <img src="img/novedades/03-subte.png" alt="El andén de la Estación Lavalle (Línea C): molinetes con la SUBE, el borde del andén y el tren" loading="lazy">
+        <figcaption>Estación Lavalle (Línea C) — los molinetes leen tu tarjeta SUBE; el tren llega al andén.</figcaption>
+      </figure>
+      <div class="tags"><span class="tag-chip">Nivel 2</span><span class="tag-chip">subte</span><span class="tag-chip">San Martín</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">4 de julio de 2026</div>
+      <h3>🗺️ El mapa del barrio, pulido</h3>
+      <p>El mapa tiene tres vistas —la cuadra (skyline), la manzana (los cajones de edificios) y los subsuelos— más
+      una pestaña de <b>subte</b> con el plano de las líneas. Lo movés con las <b>flechas/WASD</b> (cursor caja a
+      caja) y ahora hay un <b>minimapa en el HUD</b> mientras jugás. También se ve mejor <b>cuánta gente hay online</b>
+      por sala.</p>
+      <div class="tags"><span class="tag-chip">mapa</span><span class="tag-chip">UX</span></div>
+    </article>
+
+  </div>
+
+  <section>
+    <p class="dim">¿Querés el detalle técnico de cada cosa? Está en el
+    <a href="https://github.com/villadalmine/tormenta-solar/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG</a>
+    del repo. Y si te interesa la infra que lo hace andar, mirá <a href="tech.html">Cómo funciona</a>.</p>
+  </section>
+
+  <footer>
+    TORMENTA SOLAR — open source (GPLv3) · <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">github.com/villadalmine/tormenta-solar</a><br>
+    Hecho en Buenos Aires, con humor porteño y mucha IA.
+  </footer>
+</div>
+</body>
+</html>

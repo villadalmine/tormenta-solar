@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TORMENTA SOLAR — Devlog (what's new)</title>
+<meta name="description" content="TORMENTA SOLAR devlog, day by day: Plaza de Mayo, the subway, the map, the Cabildo with French & Beruti, the railway network and more.">
+<meta name="theme-color" content="#05080c">
+<meta property="og:title" content="TORMENTA SOLAR — Devlog">
+<meta property="og:description" content="The game's devlog, day by day. Level 2, subway, Plaza de Mayo, Cabildo, railway network.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://villadalmine.github.io/tormenta-solar/info/novedades.en.html">
+<meta property="og:image" content="https://villadalmine.github.io/tormenta-solar/info/img/og.en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="info.css?v=4">
+</head>
+<body>
+<header class="bar">
+  <span class="brand">☀ TORMENTA SOLAR</span>
+  <nav>
+    <a href="../">▶ Play</a>
+    <a href="index.en.html">What is it?</a>
+    <a href="tech.en.html">How it works</a>
+    <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">GitHub</a>
+    <a href="novedades.html">ES</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>📓 What's new</h1>
+    <p class="tag">The devlog, day by day. Newest on top.</p>
+    <div class="badge">updated every release · screenshots come straight from the automated test (Playwright)</div>
+  </div>
+
+  <div class="posts">
+
+    <article class="post">
+      <div class="post-date">July 8, 2026</div>
+      <h3>🚆 The railway network begins: Constitución terminal</h3>
+      <p>Beating <b>Level 2</b> no longer ends the game: you still get the "You won!" screen, but now you can
+      <b>keep playing</b>. Subway <b>Line C</b> (the one linking Retiro and Constitución) opens up and you can travel
+      to the <b>grand Roca railway terminal</b>: the vaulted hall, the historic clock, the train turnstiles with their
+      branches (La Plata, Ezeiza, Korn…) and the platform shops.</p>
+      <figure class="shot">
+        <img src="img/novedades/04-constitucion.png" alt="Constitución terminal: Roca hall, turnstiles, clock and shops" loading="lazy">
+        <figcaption>Constitución station — the Roca railway hall (shops are mock for now; we'll iterate).</figcaption>
+      </figure>
+      <p class="dim">It's the first stage of a bigger expansion: next come Retiro, the San Martín line and Villa 31
+      with a soup kitchen. All data-driven and wired into the story graph.</p>
+      <div class="tags"><span class="tag-chip">Level 2</span><span class="tag-chip">subway/rail</span><span class="tag-chip">open world</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">July 8, 2026</div>
+      <h3>🔔🎗️ The Cabildo: the bell, the cockade and two founding fathers with AI</h3>
+      <p>In Plaza de Mayo you can now enter the <b>Cabildo</b> and <b>ring the bell</b>: the first time,
+      <b>cockades rain down</b> and you grab one (a nod to May 25th, 1810). Ring it again and the bell <b>plays the
+      Anthem</b> (the "or let us swear to die in glory" part, with a carillon timbre).</p>
+      <p>And with the cockade on, <b>grenadiers</b> appear along with two new characters: <b>Domingo French</b> and
+      <b>Antonio Luis Beruti</b> —the men who handed out the ribbons in 1810— <b>chattable with AI</b> and memory. They
+      only talk about the May Revolution and Independence… and they confide that they noticed "something strange": time
+      bending, events repeating. They have no idea it's <b>the AI bending space-time</b>.</p>
+      <figure class="shot">
+        <img src="img/novedades/02-plaza-cabildo.png" alt="Plaza de Mayo: the Pyramid, the Mothers, the Cabildo with French and Beruti, the Casa Rosada" loading="lazy">
+        <figcaption>Plaza de Mayo — the Cabildo (left) with Domingo French and Antonio Beruti; the Pyramid and the Mothers at the center; the Casa Rosada (right).</figcaption>
+      </figure>
+      <div class="tags"><span class="tag-chip">Cabildo</span><span class="tag-chip">AI NPCs</span><span class="tag-chip">history 🇦🇷</span><span class="tag-chip">chiptune music</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">July 8, 2026</div>
+      <h3>🐛 Fixed: the chat no longer freezes</h3>
+      <p>There was a nasty bug: after a couple of messages, the NPC chat would "freeze" and stop answering until you
+      closed and reopened it. It was an <b>internal lock</b> that wasn't released if something failed while processing
+      the reply. Now it's always released, no matter what. Nothing to do with the AI or your subscription.</p>
+      <div class="tags"><span class="tag-chip">fix</span><span class="tag-chip">AI chat</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">July 6–7, 2026</div>
+      <h3>🎵 Live chiptune music, not a single audio file</h3>
+      <p>All audio is <b>composed in real time</b> with Web Audio (zero mp3s). We added several new tracks depending on
+      where you are: the <b>Peronist March</b> at the picket, the <b>National Anthem</b> at the Obelisk, an
+      <b>oriental</b> (pentatonic) chiptune when you enter the Chinese supermarket, a <b>criollo heavy-metal</b> engine
+      with distortion for Cemento, and <b>five different cumbia villera</b> tracks that play at random in the abandoned
+      building and the cave.</p>
+      <div class="tags"><span class="tag-chip">audio</span><span class="tag-chip">chiptune</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">July 3–4, 2026</div>
+      <h3>🚇 The subway takes you to Plaza de Mayo — Level 2</h3>
+      <p>You win the Lavalle picket, wound the satellite and the <b>subway entrance</b> appears. With the <b>SUBE</b>
+      card (or a ticket the clerk sells you) you get past the turnstile and <b>travel between real stations</b>
+      (Florida, Lavalle, Catedral). Catedral drops you at <b>Plaza de Mayo</b>, where <b>Level 2</b> begins: you enter
+      <b>San Martín's tomb</b> in the Cathedral, take the <b>Liberator's chip</b>, dodge the AI drones and arm it at
+      the <b>Pyramid of May</b> — the signal rises to the satellites and liberation begins, with a closing cinematic.</p>
+      <figure class="shot">
+        <img src="img/novedades/03-subte.png" alt="The Lavalle Station platform (Line C): turnstiles with the SUBE, the platform edge and the train" loading="lazy">
+        <figcaption>Lavalle Station (Line C) — the turnstiles read your SUBE card; the train pulls into the platform.</figcaption>
+      </figure>
+      <div class="tags"><span class="tag-chip">Level 2</span><span class="tag-chip">subway</span><span class="tag-chip">San Martín</span></div>
+    </article>
+
+    <article class="post">
+      <div class="post-date">July 4, 2026</div>
+      <h3>🗺️ The neighborhood map, polished</h3>
+      <p>The map has three views —the block (skyline), the city block (the building crates) and the underground floors—
+      plus a <b>subway</b> tab with the line plan. You move it with the <b>arrows/WASD</b> (box-to-box cursor) and now
+      there's a <b>minimap in the HUD</b> while you play. It also shows <b>how many people are online</b> per room more
+      clearly.</p>
+      <div class="tags"><span class="tag-chip">map</span><span class="tag-chip">UX</span></div>
+    </article>
+
+  </div>
+
+  <section>
+    <p class="dim">Want the technical detail of each thing? It's in the repo's
+    <a href="https://github.com/villadalmine/tormenta-solar/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG</a>.
+    And if you're into the infra that runs it, check out <a href="tech.en.html">How it works</a>.</p>
+  </section>
+
+  <footer>
+    TORMENTA SOLAR — open source (GPLv3) · <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">github.com/villadalmine/tormenta-solar</a><br>
+    Made in Buenos Aires, with porteño humor and lots of AI.
+  </footer>
+</div>
+</body>
+</html>

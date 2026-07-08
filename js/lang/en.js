@@ -14,6 +14,7 @@ const LANG_EN = {
   'intro.homenaje': "You're <strong>el Carpo</strong>: a bum bluesman, bald, guitar on his back, zero glamour. 🎸 A fond tribute to the bums of Florida & Lavalle (Pechito, Diógenes, Dante). Fiction/parody, no affiliation.",
   'intro.gh': 'Open source (GPLv3) ·',
   'intro.info': 'What is this? · How it works (the stack)',
+  'intro.novedades': '📓 What\'s new — devlog',
 
   // --- HUD ---
   'hud.life': 'LIFE',
