@@ -1904,19 +1904,29 @@
   // MISMO seed = MISMO mundo (compartible). v1 entra SIEMPRE (generación por seed, sin depender de la IA); el /mundo-ai
   // (tema por prompt) es enriquecimiento opcional. `theme` = tema autorado por IA (opcional). Reusa loadGenLevel + la RED.
   let lastMundoSeed = 0;
-  function launchMundoAI(seed, theme) {
+  // v2: si hay IA disponible, le pedimos que autore el TEMA (flavor+beats) de ESE seed (`NivelAI.requestMundo`,
+  // cacheado por seed en el proxy → mismo seed siempre trae el mismo tema). Best-effort y NUNCA bloquea: si la IA
+  // está caída/tarda (circuit breaker), entra igual con el tema 100% procedural-por-seed (`generateLevel` sync).
+  function launchMundoAI(seed, prompt) {
     if (typeof NivelAI === 'undefined' || !NivelAI.generateLevel || typeof Mundo === 'undefined' || !rooms || !player) return false;
     if (typeof seed !== 'number' || !isFinite(seed)) seed = (Math.random() * 1e9) | 0;
     seed = Math.abs(seed | 0) || 1;
     closeMundoAI();
-    const gen = NivelAI.generateLevel(theme || undefined, seed);
-    if (loadGenLevel(gen)) { lastMundoSeed = seed; setMsg(T('g.mundoai.enter', { seed }), '#e0b0ff', 7000); return true; }
-    setMsg(T('g.nivelai.fail'), '#ff5252', 4000); return false;
+    const enter = theme => {
+      if (spinoffLevel || state !== 'playing') return;   // ya entraste a otro lado / cambió el estado
+      const gen = NivelAI.generateLevel(theme || undefined, seed);
+      if (loadGenLevel(gen)) { lastMundoSeed = seed; setMsg(T('g.mundoai.enter', { seed }), '#e0b0ff', 7000); }
+      else setMsg(T('g.nivelai.fail'), '#ff5252', 4000);
+    };
+    if (NivelAI.requestMundo) { setMsg(T('g.mundoai.shaping', { seed }), '#e0b0ff', 8000); NivelAI.requestMundo(seed, prompt, enter); }
+    else enter(null);
+    return true;
   }
   function openMundoAI() {
     const ov = document.getElementById('mundoai'); if (!ov) return;   // headless → no-op
     const note = document.getElementById('mundoai-note'); if (note) note.textContent = lastMundoSeed ? T('g.mundoai.last', { seed: lastMundoSeed }) : '';
     const inp = document.getElementById('mundoai-seed'); if (inp) inp.value = '';
+    const pin = document.getElementById('mundoai-prompt'); if (pin) pin.value = '';
     ov.classList.remove('hidden'); if (inp && inp.focus) try { inp.focus(); } catch (e) {}
   }
   function closeMundoAI() { const ov = document.getElementById('mundoai'); if (ov) ov.classList.add('hidden'); }
@@ -4010,11 +4020,12 @@
   { const b = document.getElementById('dcClose'); if (b) b.addEventListener('click', closeDatacenter); }
   // QUEST MUNDO-AI: la máquina de mundos (generar por seed)
   { const c = document.getElementById('mundoai-close'); if (c) c.addEventListener('click', closeMundoAI);
-    const go = document.getElementById('mundoai-go'), rnd = document.getElementById('mundoai-rand'), inp = document.getElementById('mundoai-seed');
+    const go = document.getElementById('mundoai-go'), rnd = document.getElementById('mundoai-rand'), inp = document.getElementById('mundoai-seed'), pin = document.getElementById('mundoai-prompt');
     const parse = () => { const v = (inp && inp.value || '').trim(); if (!v) return null; const n = parseInt(v.replace(/[^0-9]/g, ''), 10); return isFinite(n) ? n : null; };
-    if (go) go.addEventListener('click', () => launchMundoAI(parse()));
-    if (rnd) rnd.addEventListener('click', () => launchMundoAI(null));
-    if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') launchMundoAI(parse()); }); }
+    const prompt = () => (pin && pin.value || '').trim();
+    if (go) go.addEventListener('click', () => launchMundoAI(parse(), prompt()));
+    if (rnd) rnd.addEventListener('click', () => launchMundoAI(null, prompt()));
+    if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') launchMundoAI(parse(), prompt()); }); }
   if (typeof Salon !== 'undefined' && Salon.onWhisper) Salon.onWhisper(onPeerWhisper);   // F2b.2: recibir chats privados del bodegón
   if (typeof Salon !== 'undefined' && Salon.onTable) Salon.onTable(onTable);             // MESAS: el server parea (table-update/start/end)
   document.getElementById('chat-send').addEventListener('click', chatSend);
@@ -4116,6 +4127,8 @@
   if (typeof window !== 'undefined') window.Game = Object.assign(window.Game || {}, { serialize, continueGame, world: worldSnapshot, quests: () => QUEST_DEFS, questRuntime: Quests, actions: () => Object.keys(NPC_ACTIONS),
     // superficie de prueba (e2e) del nivel-AI en el motor real (rooms-swap): lanzar / consultar / salir
     __nivelai: { launch: launchNivelAI, end: endSpinoffLevel, active: () => spinoffLevel, room: () => rooms[current], player: () => player },
+    // superficie de prueba (e2e) de la QUEST MUNDO-AI (specs/quest-mundo-ai.md §0): entrar por seed, consultar, salir
+    __mundoai: { launch: launchMundoAI, end: endSpinoffLevel, active: () => spinoffLevel, room: () => rooms[current], lastSeed: () => lastMundoSeed },
     // superficie de prueba (e2e) del GATE del cuevero (specs/cuevero-gate-truco.md): ruta A (Guido) y ruta B (vos)
     // superficie de prueba (e2e) de los CHECKPOINTS por hito (guardar-partida.md)
     __chk: { save: saveCheckpoint, load: loadCheckpoint },

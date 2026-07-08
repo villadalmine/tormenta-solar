@@ -211,6 +211,21 @@ if (require.main === module) {
         if (g3 && g3.model && JSON.stringify(g3.model) === JSON.stringify(g1.model)) out.push('FAIL distinto seed dio el MISMO mundo');
       }
     }
+    // MUNDO-AI en el MOTOR REAL (rooms-swap, como __nivelai): lanzar por seed → entra → sala con spawn → salir restaura
+    if (!Game.__mundoai) out.push('FAIL no expone Game.__mundoai');
+    else {
+      const mbefore = Game.serialize();
+      Game.__mundoai.launch(54321);   // sin fetch en el sandbox headless → NivelAI.requestMundo cae sync a null → entra igual (nunca bloquea)
+      if (!Game.__mundoai.active()) out.push('FAIL mundo-ai no entró (¿generación/validación falló?)');
+      else {
+        if (Game.__mundoai.lastSeed() !== 54321) out.push('FAIL mundo-ai no guardó el seed jugado: ' + Game.__mundoai.lastSeed());
+        const mrm = Game.__mundoai.room(); if (!mrm || !mrm.playerStart) out.push('FAIL sala del mundo-ai sin spawn');
+        Game.__mundoai.end('win');
+        if (Game.__mundoai.active()) out.push('FAIL no salió del mundo-ai');
+        const mafter = Game.serialize();
+        if (!mafter || mafter.current !== mbefore.current) out.push('FAIL mundo-ai no restauró la sala del juego principal');
+      }
+    }
     return JSON.stringify(out);
   })()`, sandbox);
   JSON.parse(nivelai).forEach(f => sb.push(f));

@@ -60,6 +60,7 @@ const LANG_ES = {
   'mundoai.ph': 'semilla (ej. 12345)',
   'mundoai.go': '▶ GENERAR Y JUGAR',
   'mundoai.rand': '🎲 Al azar',
+  'mundoai.promptPh': '¿de qué querés el mundo? (opcional)',
   'opt.engine': 'Motor (experimental)',
   'opt.engineNote': 'v1 = estable · v2 = nuevo motor data-driven (aplica al (re)empezar).',
 

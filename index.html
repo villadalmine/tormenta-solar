@@ -8,7 +8,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TORMENTA SOLAR — Nivel 1: Calle Florida</title>
-<link rel="stylesheet" href="css/style.css?v=333">
+<link rel="stylesheet" href="css/style.css?v=334">
 </head>
 <body>
 <div id="stage">
@@ -243,6 +243,7 @@
       <h2 data-i18n="mundoai.title">🌀 MÁQUINA DE MUNDOS</h2>
       <p data-i18n="mundoai.desc">Poné un número (semilla) y jugás ESE mundo generado. El MISMO número da el MISMO mundo — pasáselo a alguien. Dejalo vacío para uno al azar.</p>
       <div class="opt-row"><input id="mundoai-seed" type="text" inputmode="numeric" data-i18n-attr="placeholder:mundoai.ph" placeholder="semilla (ej. 12345)" autocomplete="off" style="flex:1;min-width:8em"></div>
+      <div class="opt-row"><input id="mundoai-prompt" type="text" maxlength="140" data-i18n-attr="placeholder:mundoai.promptPh" placeholder="¿de qué querés el mundo? (opcional)" autocomplete="off" style="flex:1;min-width:8em"></div>
       <div id="mundoai-note" class="opt-note"></div>
       <button id="mundoai-go" data-i18n="mundoai.go">▶ GENERAR Y JUGAR</button>
       <button id="mundoai-rand" class="opt-btn" data-i18n="mundoai.rand">🎲 Al azar</button>
@@ -270,73 +271,73 @@
   <div id="flash"></div>
 </div>
 
-<script src="js/config.js?v=333"></script>
-<script src="js/lang/es.js?v=333"></script>
-<script src="js/lang/en.js?v=333"></script>
-<script src="js/lang/game.es.js?v=333"></script>
-<script src="js/lang/game.en.js?v=333"></script>
-<script src="js/lang/level.en.js?v=333"></script>
-<script src="js/dialogos.js?v=333"></script>
-<script src="js/i18n.js?v=333"></script>
-<script src="js/historia.js?v=333"></script>
-<script src="js/hint-engine.js?v=333"></script>
-<script src="js/mensajero.js?v=333"></script>
-<script src="js/truco.js?v=333"></script>
-<script src="js/truco-net.js?v=333"></script>
-<script src="js/truco-net6.js?v=333"></script>
-<script src="js/telemetry.js?v=333"></script>
-<script src="js/audio.js?v=333"></script>
-<script src="js/art.js?v=333"></script>
-<script src="js/input.js?v=333"></script>
-<script src="js/fx.js?v=333"></script>
-<script src="js/level.js?v=333"></script>
-<script src="js/player.js?v=333"></script>
-<script src="js/enemies.js?v=333"></script>
-<script src="js/arcade.js?v=333"></script>
-<script src="js/super.js?v=333"></script>
-<script src="js/vinilos.js?v=333"></script>
-<script src="js/playable.js?v=333"></script>
-<script src="js/nivelai.js?v=333"></script>
-<script src="js/spinoff.js?v=333"></script>
-<script src="js/tienda.js?v=333"></script>
-<script src="js/telo.js?v=333"></script>
-<script src="js/bodegon.js?v=333"></script>
-<script src="js/lavalle.js?v=333"></script>
-<script src="js/obelisco.js?v=333"></script>
-<script src="js/subte.js?v=333"></script>
-<script src="js/plaza.js?v=333"></script>
-<script src="js/finale.js?v=333"></script>
-<script src="js/mapa.js?v=333"></script>
-<script src="js/piquete.js?v=333"></script>
-<script src="js/soga.js?v=333"></script>
-<script src="js/bombo.js?v=333"></script>
-<script src="js/olla.js?v=333"></script>
-<script src="js/pancarta.js?v=333"></script>
-<script src="js/globo.js?v=333"></script>
-<script src="js/bunkermapa.js?v=333"></script>
-<script src="js/truco-pvp.js?v=333"></script>
-<script src="js/truco-pvp6.js?v=333"></script>
-<script src="js/linyera-pool.js?v=333"></script>
-<script src="js/noticias.js?v=333"></script>
-<script src="js/propaganda.js?v=333"></script>
-<script src="js/chusmerio.js?v=333"></script>
-<script src="js/historias-vecino.js?v=333"></script>
-<script src="js/ai.js?v=333"></script>
+<script src="js/config.js?v=334"></script>
+<script src="js/lang/es.js?v=334"></script>
+<script src="js/lang/en.js?v=334"></script>
+<script src="js/lang/game.es.js?v=334"></script>
+<script src="js/lang/game.en.js?v=334"></script>
+<script src="js/lang/level.en.js?v=334"></script>
+<script src="js/dialogos.js?v=334"></script>
+<script src="js/i18n.js?v=334"></script>
+<script src="js/historia.js?v=334"></script>
+<script src="js/hint-engine.js?v=334"></script>
+<script src="js/mensajero.js?v=334"></script>
+<script src="js/truco.js?v=334"></script>
+<script src="js/truco-net.js?v=334"></script>
+<script src="js/truco-net6.js?v=334"></script>
+<script src="js/telemetry.js?v=334"></script>
+<script src="js/audio.js?v=334"></script>
+<script src="js/art.js?v=334"></script>
+<script src="js/input.js?v=334"></script>
+<script src="js/fx.js?v=334"></script>
+<script src="js/level.js?v=334"></script>
+<script src="js/player.js?v=334"></script>
+<script src="js/enemies.js?v=334"></script>
+<script src="js/arcade.js?v=334"></script>
+<script src="js/super.js?v=334"></script>
+<script src="js/vinilos.js?v=334"></script>
+<script src="js/playable.js?v=334"></script>
+<script src="js/nivelai.js?v=334"></script>
+<script src="js/spinoff.js?v=334"></script>
+<script src="js/tienda.js?v=334"></script>
+<script src="js/telo.js?v=334"></script>
+<script src="js/bodegon.js?v=334"></script>
+<script src="js/lavalle.js?v=334"></script>
+<script src="js/obelisco.js?v=334"></script>
+<script src="js/subte.js?v=334"></script>
+<script src="js/plaza.js?v=334"></script>
+<script src="js/finale.js?v=334"></script>
+<script src="js/mapa.js?v=334"></script>
+<script src="js/piquete.js?v=334"></script>
+<script src="js/soga.js?v=334"></script>
+<script src="js/bombo.js?v=334"></script>
+<script src="js/olla.js?v=334"></script>
+<script src="js/pancarta.js?v=334"></script>
+<script src="js/globo.js?v=334"></script>
+<script src="js/bunkermapa.js?v=334"></script>
+<script src="js/truco-pvp.js?v=334"></script>
+<script src="js/truco-pvp6.js?v=334"></script>
+<script src="js/linyera-pool.js?v=334"></script>
+<script src="js/noticias.js?v=334"></script>
+<script src="js/propaganda.js?v=334"></script>
+<script src="js/chusmerio.js?v=334"></script>
+<script src="js/historias-vecino.js?v=334"></script>
+<script src="js/ai.js?v=334"></script>
 <!-- motor v2 (data-driven) detrás del toggle de ⚙ Opciones; default v1. Ver specs/modelo-de-entidades.md -->
-<script src="js/mundo.js?v=333"></script>
-<script src="js/level-data.js?v=333"></script>
+<script src="js/mundo.js?v=334"></script>
+<script src="js/level-data.js?v=334"></script>
 <!-- salon.js ANTES de game.js: game.js registra Salon.onWhisper/onTable en su init (si Salon no existe aún, los chats privados y las mesas multijugador quedan sin cablear) -->
-<script src="js/presence.js?v=333"></script>
-<script src="js/salon.js?v=333"></script>
-<script src="js/eventos.js?v=333"></script>
-<script src="js/ideas.js?v=333"></script>
-<script src="js/game.js?v=333"></script>
-<script src="js/save.js?v=333"></script>
-<script src="js/ads.js?v=333"></script>
-<script src="js/carteles.js?v=333"></script>
-<script src="js/datacenter.js?v=333"></script>
-<script src="js/fit.js?v=333"></script>
+<script src="js/presence.js?v=334"></script>
+<script src="js/salon.js?v=334"></script>
+<script src="js/eventos.js?v=334"></script>
+<script src="js/ideas.js?v=334"></script>
+<script src="js/game.js?v=334"></script>
+<script src="js/save.js?v=334"></script>
+<script src="js/ads.js?v=334"></script>
+<script src="js/carteles.js?v=334"></script>
+<script src="js/datacenter.js?v=334"></script>
+<script src="js/fit.js?v=334"></script>
 <!-- capa MOBILE: dormida en desktop; en táctil inyecta los controles (mobile/touch.js + mobile.css) -->
-<script src="mobile/boot.js?v=333"></script>
+<script src="mobile/boot.js?v=334"></script>
 </body>
 </html>

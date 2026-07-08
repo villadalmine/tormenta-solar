@@ -847,6 +847,7 @@
     'g.nivelai.enter': '🌀 You drop into a generated level: "{name}". Reach the purple EXIT (→ right). [ESC] to return.',
     'g.mundoai.enter': '🌀 WORLD #{seed} — generated just for you. Same number = same world (share it). Reach the purple EXIT. [ESC] to return.',
     'g.mundoai.last': 'Last world played: #{seed} (type the same number to replay it).',
+    'g.mundoai.shaping': '🌀 The machine hums and shakes, shaping WORLD #{seed}... the AI gives it form. Hang on a sec.',
     'g.nivelai.fail': 'The portal sparks and closes on its own. You stay at the chino\'s. 🌀',
     'g.nivelai.oraculo': '🔮 You slip into the back of the chino\'s shop, where his family lives... and the oracle reads your mind: it builds a level tailored to YOU from what you talked about. Hang on a sec.',
     'g.nivelai.shaping': '🌀 You slip behind the curtain, into the back where the chino\'s family lives... reality warps and the AI draws the level. Hang on a sec.',

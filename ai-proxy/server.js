@@ -115,6 +115,21 @@ const CHK_POST_GAP = {};                                   // anti-spam: 1 POST 
 function loadCheckpoints() { try { CHECKPOINTS = JSON.parse(fs.readFileSync(CHECKPOINT_STORE, 'utf8')) || {}; } catch (e) { CHECKPOINTS = {}; } }
 function saveCheckpoints() { try { fs.mkdirSync(CHECKPOINT_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(CHECKPOINT_STORE, JSON.stringify(CHECKPOINTS)); } catch (e) { console.error('checkpoints save:', e.message); } }
 loadCheckpoints();
+// ── MUNDO-AI (quest-mundo-ai.md §0, v2): la IA autora el TEMA (flavor + geometría opcional) de un mundo por SEED.
+// Cacheado por seed (PVC + LRU 500, como los otros bancos): el MISMO seed SIEMPRE devuelve el MISMO tema (incluso el
+// autorado por IA) → sigue siendo compartible aunque enriquezca. Sin esto, 2 pedidos del mismo seed podrían traer
+// temas distintos (la IA no es determinista) y "mismo seed = mismo mundo" se rompería para el que lo comparte.
+const MUNDO_STORE = process.env.MUNDO_STORE || '/data/mundo-ai.json';
+let MUNDO_CACHE = {};                                       // seed(string) -> { j, ts }
+function loadMundoCache() { try { MUNDO_CACHE = JSON.parse(fs.readFileSync(MUNDO_STORE, 'utf8')) || {}; } catch (e) { MUNDO_CACHE = {}; } }
+function saveMundoCache() { try { fs.mkdirSync(MUNDO_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(MUNDO_STORE, JSON.stringify(MUNDO_CACHE)); } catch (e) { console.error('mundo-ai store save:', e.message); } }
+function mundoCacheSet(seed, j) {
+  MUNDO_CACHE[seed] = { j, ts: Date.now() };
+  const keys = Object.keys(MUNDO_CACHE);
+  if (keys.length > 500) { keys.sort((a, b) => MUNDO_CACHE[a].ts - MUNDO_CACHE[b].ts); for (const k of keys.slice(0, keys.length - 500)) delete MUNDO_CACHE[k]; }
+  saveMundoCache();
+}
+loadMundoCache();
 // ── QA REPORTE (autoplay-qa.md §2.2/F2): el CronWorkflow tormenta-autoplay publica acá su veredicto →
 // métrica tormenta_qa_failed → PrometheusRule → Telegram + el prompt de auto-fix queda legible sin kubectl.
 const QA_STORE = process.env.QA_STORE || '/data/qa.json';
@@ -1398,6 +1413,56 @@ http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
       } catch (e) {
         res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');   // cliente usa su fallback estático
+      }
+    });
+    return;
+  }
+  // MUNDO-AI (quest-mundo-ai.md §0, v2): la Máquina de Mundos del gurú pide {seed, prompt?, lang} → la IA autora
+  // el TEMA de ESE mundo (flavor + geometría opcional), CACHEADO por seed (mundoCacheSet/MUNDO_CACHE) para que el
+  // mismo seed SIEMPRE traiga el mismo tema. FREE por ahora (sin gate de suscripción). Best-effort: si la IA falla
+  // o el seed no está cacheado y no hay tiempo, {} → el cliente cae al mundo 100% procedural-por-seed (nunca se cuelga).
+  if (req.method === 'POST' && req.url === '/mundo-ai') {
+    let mb = '';
+    req.on('data', c => { mb += c; if (mb.length > 1000) req.destroy(); });
+    req.on('end', async () => {
+      let seed = '', prompt = '', lang = 'es';
+      try { const b = JSON.parse(mb || '{}'); seed = String(b.seed || '').replace(/[^0-9]/g, '').slice(0, 12); prompt = String(b.prompt || '').slice(0, 140); lang = b.lang; } catch (e) {}
+      if (!seed) { res.writeHead(400); return res.end('bad seed'); }
+      const cached = MUNDO_CACHE[seed];
+      if (cached) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(cached.j)); }   // MISMO seed → MISMO tema (compartible)
+      const ipKey = clientIp(req);
+      if (!allowed(ipKey)) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end('{}'); }   // ráfaga → fallback silencioso (nunca rompe el flujo)
+      const en = lang === 'en';
+      const sys = en ? 'You design a whole surreal comedy WORLD in JSON. Reply ONLY with compact JSON, no prose.' : 'Diseñás un MUNDO surrealista de comedia entero en JSON. Respondé SOLO con JSON compacto, sin prosa.';
+      const ask_ = prompt ? (en ? 'The player asked for a world about: "' + prompt + '". ' : 'El jugador pidió un mundo sobre: "' + prompt + '". ') : (en ? 'Surprise them with something absurd and Buenos-Aires-flavored. ' : 'Sorprendelo con algo absurdo y con sabor porteño. ');
+      const user = ask_ + (en
+        ? 'Return JSON {"name": short world title (max 5 words), "intro": one short sentence, "lines": array of 6 VERY short NPC phrases, "style": one of "wall"|"aisles"|"climb"|"shelves"|"rooftop", "motif": one emoji, "props": 5 emojis space-separated, "beats": array of 2-3 {"name": short room name (max 4 words), "anchor": one emoji set-piece, "enemy": one of "peaton"|"dron"|"pacman"|"galaga"|"cuevero"} forming a story sequence}.'
+        : 'Devolvé JSON {"name": título corto del mundo (máx 5 palabras), "intro": una frase corta, "lines": array de 6 frases de NPC muy cortas, "style": uno de "wall"|"aisles"|"climb"|"shelves"|"rooftop", "motif": un emoji, "props": 5 emojis separados por espacio, "beats": array de 2-3 {"name": nombre corto de sala (máx 4 palabras), "anchor": un emoji set-piece, "enemy": uno de "peaton"|"dron"|"pacman"|"galaga"|"cuevero"} formando una secuencia narrativa}.');
+      try {
+        const { reply } = await ask([{ role: 'system', content: sys }, { role: 'user', content: user }], { maxTokens: 380, gen: true });
+        const m = String(reply || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
+        const j = m ? JSON.parse(m[0]) : {};
+        const out = {};
+        if (j.name) out.name = String(j.name).slice(0, 60);
+        if (j.intro) out.intro = String(j.intro).slice(0, 160);
+        if (Array.isArray(j.lines) && j.lines.length) out.lines = j.lines.slice(0, 8).map(s => String(s).slice(0, 40));
+        if (j.style) out.style = String(j.style).slice(0, 12);
+        if (j.motif) out.motif = String(j.motif).slice(0, 4);
+        if (j.props) out.props = String(j.props).slice(0, 60);
+        if (Array.isArray(j.beats)) {
+          const bs = j.beats.map(b => (b && typeof b === 'object')
+            ? { name: String(b.name || '').slice(0, 28), anchor: String(b.anchor || '').slice(0, 4), enemy: String(b.enemy || '').slice(0, 12) }
+            : null).filter(b => b && (b.name || b.anchor)).slice(0, 3);
+          if (bs.length) out.beats = bs;
+        }
+        mundoCacheSet(seed, out);   // se cachea SIEMPRE (incluso vacío): el próximo pedido del mismo seed no vuelve a pagar el modelo
+        res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out));
+      } catch (e) {
+        // ask() tiró (todos los modelos fallaron/timeout): se cachea IGUAL como {} — si no, un seed compartido durante
+        // una caída de la IA podría "cambiar" más tarde (otro jugador lo pide y sí sale con flavor) y dejar de ser el
+        // MISMO mundo. Prioridad: compartible > eventualmente enriquecido. (Se puede limpiar el archivo a mano si hace falta.)
+        mundoCacheSet(seed, {});
+        res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}');   // cliente cae al mundo procedural-por-seed
       }
     });
     return;

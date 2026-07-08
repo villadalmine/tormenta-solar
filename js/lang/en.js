@@ -61,6 +61,7 @@ const LANG_EN = {
   'mundoai.ph': 'seed (e.g. 12345)',
   'mundoai.go': '▶ GENERATE & PLAY',
   'mundoai.rand': '🎲 Random',
+  'mundoai.promptPh': 'what should the world be about? (optional)',
   'opt.engine': 'Engine (experimental)',
   'opt.engineNote': 'v1 = stable · v2 = new data-driven engine (applies on (re)start).',
 

@@ -23,13 +23,20 @@ El juego es 100% estático; se publica en
 > progreso `ts_*`, conserva settings/suscripción).
 >
 > **Últimos:** (v330) **BOLETO** 🎫; (v331) **CONTRAFLOR** 3v3 + **LLAVE 🔑** (gate `{has}`); (v332) **BUFFS** — birra 🍺
-> (kind `buff`) + landing al día; (v333) **QUEST MUNDO-AI v1** — la MÁQUINA DE MUNDOS (mundo por SEED, compartible).
+> (kind `buff`) + landing al día; (v333/v334) **QUEST MUNDO-AI v1+v2** — la MÁQUINA DE MUNDOS (mundo por SEED,
+> compartible) + `/mundo-ai` (la IA autora el TEMA por PROMPT, cacheado por seed → sigue compartible).
 > **Multijugador mesas server-side: ya estaba hecho (sesión previa) y lo VERIFIQUÉ en prod** (2 clientes: misma sala +
 > pos relay + whisper + mesa 1v1 parea a los dos). El plan `polymorphic-foraging-pascal.md` quedó obsoleto (hecho).
 >
-> **▶ SIGUIENTE:** **mundo-AI v2** = `/mundo-ai` (la IA autora el tema por PROMPT, cacheado por seed → sigue compartible).
-> Chicos: más ítems-buff, más gates de llave. **Playtest del dueño pendiente:** Nivel 2 completo + REINTENTAR + boleto +
-> contraflor 2+ humanos + llave→depósito + birra + **la máquina de mundos** (botón debug "🌀 Máquina de mundos").
+> **⚠️ DEPLOY WEB BLOQUEADO (infra, v334):** el Argo Workflow `tormenta-deploy` se cuelga si su pod cae en el nodo
+> `srv-pi-rack2b` (Raspberry Pi, NO nodo Longhorn) → la PVC no attachea. **v334 quedó en GitHub Pages pero NO en el
+> self-host** hasta que el dueño arregle el `nodeSelector` del WorkflowTemplate (o cordone el Pi a mano). Ver memoria
+> `deploy-longhorn-node.md`. El **proxy** (`/mundo-ai`) también está pendiente de deploy por el mismo motivo.
+>
+> **▶ SIGUIENTE:** chicos — más ítems-buff, más gates de llave, geometría cruda en `/mundo-ai` (como oráculo/historia).
+> **Playtest del dueño pendiente:** Nivel 2 completo + REINTENTAR + boleto + contraflor 2+ humanos + llave→depósito +
+> birra + **la máquina de mundos** (botón debug "🌀 Máquina de mundos") — y una vez desbloqueado el deploy, probar
+> `/mundo-ai` con un prompt real (necesita el proxy actualizado en prod).
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -67,6 +74,26 @@ El juego es 100% estático; se publica en
 - **Quest mundo-AI** (`quest-mundo-ai.md`) · **Memoria de chat persistente** (`memoria-chat.md`, "para analizar").
 
 ---
+
+## [v334] — 2026-07-07/08 — 🌀 QUEST MUNDO-AI v2: la IA autora el TEMA por PROMPT (`/mundo-ai`, cacheado por seed)
+
+- **La Máquina de Mundos ahora ACEPTA UN PROMPT** ("¿de qué querés el mundo?"): si la IA está arriba, autora el
+  nombre/intro/frases/estilo/beats de ESE mundo a partir de lo que pediste; si está caída o tarda, entrás **igual**
+  con el 100% procedural de v1 — **nunca bloquea la entrada**. `NivelAI.requestMundo(seed, prompt, cb)` (mismo patrón
+  de circuit breaker que `requestOraculo`/`requestGeometry`).
+- **Proxy `POST /mundo-ai`:** valida el seed (400 si falta), y **CACHEA la respuesta por seed** (`MUNDO_CACHE`, PVC
+  `/data/mundo-ai.json`, LRU 500) — el mismo seed SIEMPRE trae el mismo tema (aunque la IA no sea determinista), y
+  aunque la IA haya fallado esa vez (se cachea también el `{}`): prioridad = compartible por sobre "eventualmente
+  enriquecido". Rate-limit 12/min sólo en cache-miss (los hits son gratis). **FREE, sin gate de suscripción.**
+- **Fix durante la validación:** el catch de `ask()` (todos los modelos fallan) no estaba cacheando el resultado —
+  corregido para que TAMBIÉN se cachee (si no, un seed compartido durante una caída de la IA podía "cambiar" más
+  tarde para otro jugador, rompiendo la compartibilidad).
+- **Tests:** `Game.__mundoai` (round-trip en el motor real) + validación local del proxy standalone (400/cache-hit
+  instantáneo/rate-limit) + **Chromium real con `/mundo-ai` mockeado** en los dos caminos: IA arriba (entra con el
+  tema enriquecido, nombre visible en el HUD) e IA caída con 500 (entra igual, procedural). 0 errores JS en ambos.
+- **⚠️ Deploy bloqueado por infra** (ver tracker arriba): v334 vive en GitHub Pages; el self-host y el proxy con
+  `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
+- SDD `quest-mundo-ai.md §0.1`.
 
 ## [v333] — 2026-07-07 — 🌀 QUEST MUNDO-AI v1: la MÁQUINA DE MUNDOS (mundo por SEED, compartible)
 

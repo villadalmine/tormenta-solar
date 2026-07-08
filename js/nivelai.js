@@ -548,6 +548,35 @@ const NivelAI = (() => {
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático 90s)
   }
 
+  // ----- MUNDO-AI (quest-mundo-ai.md §0, v2): la Máquina de Mundos del gurú — la IA autora el TEMA (flavor + beats)
+  // de un mundo por SEED, a partir de un prompt libre opcional. El proxy CACHEA la respuesta por seed (mismo seed =
+  // mismo tema, siempre) → sigue siendo compartible aunque venga enriquecido. Best-effort: si la IA está caída/falla
+  // → cb(null) y el caller (launchMundoAI) genera igual con `generateLevel(undefined, seed)` (100% procedural por seed,
+  // también determinista). NUNCA bloquea la entrada al mundo. -----
+  function requestMundo(seed, prompt, cb) {
+    if (typeof fetch !== 'function' || aiDown()) { cb(null); return; }   // GPU caída → mundo procedural INSTANTÁNEO
+    const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), AI_TIMEOUT);
+    fetch(PROXY + '/mundo-ai', { method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seed: String(seed), prompt: String(prompt || '').slice(0, 140), lang: short() }) })
+      .then(r => { clearTimeout(to); if (!r.ok) { markAi(false); return null; } return r.json(); })
+      .then(j => {
+        if (!j || !j.name) { if (j) markAi(true); cb(null); return; }   // {} = proxy vivo pero sin tema (o seed sin suerte) → procedural
+        markAi(true);
+        const styles = ['wall', 'aisles', 'climb', 'shelves', 'rooftop'];
+        const props = (typeof j.props === 'string' ? j.props.trim().split(/\s+/) : Array.isArray(j.props) ? j.props : ['🌀', '✨', '🌍']).slice(0, 8);
+        const lines = (Array.isArray(j.lines) && j.lines.length ? j.lines : ['bienvenido a tu mundo, pibe']).map(s => String(s).slice(0, 40));
+        cb({
+          id: 'mundo-' + seed, motif: String(j.motif || '🌀').slice(0, 4),
+          name: { es: j.name, en: j.name }, intro: { es: j.intro || '', en: j.intro || '' },
+          palette: { floor: '#1a1e2e', floor2: '#222840', wall: '#3a4a66', accent: '#7ff3ff' },
+          props, npc: { emoji: '🌀', lines: { es: lines, en: lines } },
+          goal: { es: 'SALIDA', en: 'EXIT' }, reward: { caramelos: 6 },
+          style: styles.indexOf(j.style) >= 0 ? j.style : 'climb', decor: ['cartel', 'caja', 'barril', 'tacho'],
+          beats: sanitizeBeats(j.beats) || undefined,
+        });
+      }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático 90s)
+  }
+
   // ----- GEOMETRÍA IA para los TEMAS FIJOS (no solo el oráculo): pide al proxy las plataformas/enemigos de un
   // tema concreto y devuelve el tema (clonado de THEMES) con aiPlatforms/aiEnemies para generateLevel. El texto
   // (name/intro/frases) sigue siendo el bilingüe estático del tema; acá SOLO traemos geometría. Best-effort: si
@@ -601,7 +630,7 @@ const NivelAI = (() => {
       }).catch(() => { clearTimeout(to); markAi(false); cb(null); });   // timeout/red → abre el circuito (modo estático)
   }
 
-  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, requestHistoria, generateShop, requestShop, shopCache, SHOP_RUBROS, THEMES };
+  return { generate, generateLevel, enrich, requestOraculo, requestGeometry, requestHistoria, requestMundo, generateShop, requestShop, shopCache, SHOP_RUBROS, THEMES };
 })();
 if (typeof window !== 'undefined') window.NivelAI = NivelAI;
 if (typeof module !== 'undefined') module.exports = NivelAI;

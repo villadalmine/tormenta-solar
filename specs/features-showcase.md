@@ -35,7 +35,10 @@
   linyeras** (`oracleMem` → `/nivel-ai` con tus mensajes) — name/intro/frases + **style + geometría**. Memoria → mundo.
 - **La MÁQUINA DE MUNDOS (mundo por SEED, compartible):** en el búnker, el gurú tiene una máquina que **genera un mundo
   entero a partir de un número (semilla)**. El **mismo número da el MISMO mundo** — se lo pasás a un amigo y juega tu
-  mundo. Determinista (PRNG mulberry32) y siempre **jugable** (pasa la RED). Ver `specs/quest-mundo-ai.md`.
+  mundo. Determinista (PRNG mulberry32) y siempre **jugable** (pasa la RED). Además le podés escribir **qué querés que
+  tenga el mundo** (un prompt libre): la IA le pone el nombre, la ambientación y el hilo narrativo — cacheado por
+  semilla, así sigue siendo el MISMO mundo para quien lo comparta, incluso con lo que inventó la IA. Si la IA no
+  contesta a tiempo, entrás igual (nunca te deja esperando). Ver `specs/quest-mundo-ai.md`.
 - **Por qué interesante:** generación procedural + IA + **validación formal** = creatividad sin niveles rotos.
   Ver `specs/fabrica-niveles-ai.md`.
 

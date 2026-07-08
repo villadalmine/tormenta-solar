@@ -869,6 +869,7 @@
     'g.nivelai.enter': '🌀 Caés en un nivel generado: «{name}». Llegá a la SALIDA morada (→ derecha). [ESC] para volver.',
     'g.mundoai.enter': '🌀 MUNDO #{seed} — generado a tu medida. Mismo número = mismo mundo (compartilo). Llegá a la SALIDA morada. [ESC] para volver.',
     'g.mundoai.last': 'Último mundo jugado: #{seed} (poné el mismo número para repetirlo).',
+    'g.mundoai.shaping': '🌀 La máquina zumba y tiembla armando el MUNDO #{seed}... la IA le da forma. Esperá un toque.',
     'g.nivelai.fail': 'El portal chisporrotea y se cierra solo. Quedás en lo del chino. 🌀',
     'g.nivelai.oraculo': '🔮 Te colás al fondo del chino, donde vive su familia... y el oráculo te lee la mente: te arma un nivel a TU medida con lo que charlaste. Esperá un toque.',
     'g.nivelai.shaping': '🌀 Te colás detrás de la cortina, al fondo donde vive la familia del chino... la realidad se retuerce y la IA dibuja el nivel. Esperá un toque.',
