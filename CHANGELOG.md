@@ -101,6 +101,15 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v339] — 2026-07-08 — 🎼 Ajuste de melodías: Himno rehecho (parte cantada) + Marcha más larga
+
+- **Himno Nacional rehecho:** la melodía anterior estaba sacada de una tab de melódica que no era la buena; ahora es
+  la **parte cantada real** ("Sean eternos los laureles / que supimos conseguir / coronados de gloria vivamos / o
+  juremos con gloria morir", en Sol mayor: sol si sol re do la fa…).
+- **Marcha Peronista:** se mantuvo la parte que gustó ("un grito de corazón / ¡Viva Perón! ¡Viva Perón!") y se **alargó**
+  con un cierre grande; el arranque ("Los muchachos peronistas…") queda a ajustar por oído del dueño.
+- Validado en Chromium real (Marcha 39 osc, Himno 14 osc/2.5s, 0 errores) + e2e.
+
 ## [v338] — 2026-07-08 — 🎶 MÚSICA: CUMBIA VILLERA (5 temas) random por piso en el edificio + la cueva
 
 - **5 temas de cumbia villera** (`VILLERA_SONGS` en `js/audio.js`) que suenan **random por piso** en el **edificio

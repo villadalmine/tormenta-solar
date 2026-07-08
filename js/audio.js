@@ -112,23 +112,27 @@ const Sfx = (() => {
   const Eighties = makeTrack(EIGHTIES, 0.20, { leadVol:0.05, bassVol:0.05, leadType:'square' });
   // MARCHA PERONISTA (chiptune, homenaje) — melodía REAL en La menor ("mi do la mi..."; la más conocida, arranca en menor).
   // "Los muchachos peronistas / todos unidos triunfaremos / y como siempre daremos / un grito de corazón: ¡Viva Perón!"
+  // MARCHA PERONISTA (homenaje) — se mantiene la parte que gustó ("un grito de corazón / ¡Viva Perón! ¡Viva Perón!")
+  // y se alarga con un cierre grande. La estrofa "Los muchachos peronistas / todos unidos triunfaremos" a ajustar por oído.
   const MARCHA = [
-    ['E4','A2',2],['C4','A2',1],['A3','A2',1],['E4','A2',1],['C4','A2',1],['A3','A2',1],['E4','A2',1],['C4','A2',1],   // Los mu-cha-chos pe-ro-nis-tas
-    ['E4','A2',2],['C4','A2',1],['A3','A2',1],['E4','A2',1],['E4','A2',1],['D4','G2',1],['C4','G2',1],['D4','G2',1],['B3','E2',1],   // to-dos u-ni-dos triun-fa-re-mos
-    ['D4','D3',2],['B3','D3',1],['A3','D3',1],['D4','D3',1],['B3','D3',1],['A3','D3',1],['D4','D3',1],['B3','G2',1],   // y co-mo siem-pre da-re-mos
-    ['F4','F2',2],['F4','F2',1],['F4','F2',1],['F4','F2',2],['E4','E2',1],['D4','E2',1],['E4','E2',1],                  // un gri-to de co-ra-zón
-    ['F4','F2',1],['E4','A2',1],['D4','E2',1],['E4','A2',1],['F4','F2',1],['E4','A2',1],['D4','E2',1],['E4','A2',1],   // ¡Vi-va Pe-rón! ¡Vi-va Pe-rón!
-    ['E4','A2',2],['C4','A2',1],['A3','A2',1],['E4','A2',1],['C4','A2',1],['A3','A2',1],['E4','A2',3],                  // (vuelta)
+    ['E4','A2',1],['C4','A2',1],['A3','A2',1],['E4','A2',1],['C4','A2',1],['A3','A2',1],['E4','A2',2],                 // Los mu-cha-chos pe-ro-nis-tas
+    ['E4','A2',1],['C4','A2',1],['A3','A2',1],['E4','A2',1],['D4','G2',1],['C4','G2',1],['D4','G2',1],['B3','E2',2],   // to-dos u-ni-dos triun-fa-re-mos
+    ['D4','D3',1],['B3','D3',1],['A3','D3',1],['D4','D3',1],['B3','D3',1],['A3','G2',1],['B3','G2',2],                 // y co-mo siem-pre da-re-mos
+    ['F4','F2',2],['F4','F2',1],['F4','F2',1],['F4','F2',2],['E4','E2',1],['D4','E2',1],['E4','E2',1],                  // un gri-to de co-ra-zón  ← (te gustó)
+    ['F4','F2',1],['E4','A2',1],['D4','E2',1],['E4','A2',1],['F4','F2',1],['E4','A2',1],['D4','E2',1],['E4','A2',2],   // ¡Vi-va Pe-rón! ¡Vi-va Pe-rón!  ← (te gustó)
+    ['A4','A2',1],['G4','A2',1],['F4','F2',1],['E4','E2',1],['F4','F2',1],['E4','A2',1],['D4','E2',1],['E4','A2',1],['A3','A2',3],   // cierre grande (más larga)
   ];
   const Marcha = makeTrack(MARCHA, 0.2, { leadVol:0.07, bassVol:0.06, leadType:'square', staccato:0.7, wood:true, woodVol:0.012 });
-  // HIMNO NACIONAL ARGENTINO — cierre "coronados de gloria vivamos / o juremos con gloria morir" (dominio público, 1813).
-  // Do mayor, solemne (legato). El gran salto en "O" (a Do agudo) sostenido y la caída que resuelve al tónico.
+  // HIMNO NACIONAL ARGENTINO — parte CANTADA (dominio público): "Sean eternos los laureles / que supimos conseguir /
+  // coronados de gloria vivamos / o juremos con gloria morir". Melodía de la voz cantada (Sol mayor: sol si sol re do la fa...).
   const HIMNO = [
-    ['C4','C3',1],['D4','C3',1],['E4','C3',1],['F4','F2',1],['G4','G2',2],['G4','G2',1],['F4','G2',1],['E4','C3',2],   // co-ro-na-dos de glo-ria vi-va-mos
-    ['C5','C3',2],['B4','G2',1],['A4','G2',1],['G4','C3',1],['A4','F2',1],['G4','G2',1],['F4','G2',1],['E4','C3',1],['D4','G2',1],['C4','C3',3],   // o ju-re-mos con glo-ria mo-rir
-    ['C5','C3',2],['B4','G2',1],['A4','G2',1],['G4','C3',1],['A4','F2',1],['G4','G2',1],['E4','C3',1],['D4','G2',1],['C4','C3',4],                 // o ju-re-mos con glo-ria mo-rir (cierre)
+    ['G4','G2',1],['B4','G2',1],['G4','G2',1],['D5','G2',1],['C5','C3',2],['A4','F2',1],['F4','F2',2],                 // Sean e-ter-nos los lau-re-les
+    ['F4','F2',1],['F4','F2',1],['F4','F2',1],['G4','C3',1],['A4','F2',1],['G4','G2',1],['E4','C3',2],                 // que su-pi-mos con-se-guir
+    ['F4','F2',1],['F4','F2',1],['F4','F2',1],['G4','C3',1],['A4','F2',1],['B4','G2',1],['C5','C3',2],                 // que su-pi-mos con-se-guir (sube)
+    ['C5','C3',1],['C5','C3',1],['D5','G2',1],['E5','C3',1],['D5','G2',1],['C5','C3',1],['B4','G2',2],                 // co-ro-na-dos de glo-ria vi-va-mos
+    ['G4','G2',1],['C5','C3',2],['B4','G2',1],['A4','F2',1],['G4','C3',1],['F4','G2',1],['E4','C3',1],['D4','G2',1],['C4','C3',3],   // o ju-re-mos con glo-ria mo-rir
   ];
-  const Himno = makeTrack(HIMNO, 0.3, { leadVol:0.08, bassVol:0.06, leadType:'square', staccato:0.96 });
+  const Himno = makeTrack(HIMNO, 0.3, { leadVol:0.08, bassVol:0.06, leadType:'square', staccato:0.9 });
   // ---- MOTOR "HEAVY CRIOLLO" (homenaje ORIGINAL a Almafuerte/Iorio, sin copiar temas): power chords con DISTORSIÓN
   // (waveshaper) + bajo con cuerpo + BATERÍA (kick/snare/hats) + ADSR + vibrato en los leads, todo por un bus con
   // compresor para que suene LLENO y no clipee. Data-driven: cada paso = [acorde, bajo, beats, drum, mel?].
