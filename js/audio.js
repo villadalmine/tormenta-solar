@@ -126,10 +126,10 @@ const Sfx = (() => {
   // HIMNO NACIONAL ARGENTINO — parte CANTADA (dominio público): "Sean eternos los laureles / que supimos conseguir /
   // coronados de gloria vivamos / o juremos con gloria morir". Melodía de la voz cantada (Sol mayor: sol si sol re do la fa...).
   const HIMNO = [
-    ['G4','G2',1],['B4','G2',1],['G4','G2',1],['D5','G2',1],['C5','C3',2],['A4','F2',1],['F4','F2',2],                 // Sean e-ter-nos los lau-re-les
-    ['F4','F2',1],['F4','F2',1],['F4','F2',1],['G4','C3',1],['A4','F2',1],['G4','G2',1],['E4','C3',2],                 // que su-pi-mos con-se-guir
-    ['F4','F2',1],['F4','F2',1],['F4','F2',1],['G4','C3',1],['A4','F2',1],['B4','G2',1],['C5','C3',2],                 // que su-pi-mos con-se-guir (sube)
-    ['C5','C3',1],['C5','C3',1],['D5','G2',1],['E5','C3',1],['D5','G2',1],['C5','C3',1],['B4','G2',2],                 // co-ro-na-dos de glo-ria vi-va-mos
+    ['G4','C3',1],['A4','C3',1],['B4','G2',1],['C5','C3',1],['C5','C3',1],['E5','C3',1],['D5','G2',1],['C5','C3',2],   // Sean e-ter-nos los lau-re-les (SOL LA SI do do mi re do)
+    ['B4','G2',1],['A4','G2',1],['G4','G2',1],['E4','C3',1],['C4','C3',1],['E4','C3',1],['G4','G2',2],                 // que su-pi-mos con-se-guir (SI LA SOL MI DO MI SOL)
+    ['F4','F2',1],['F4','F2',1],['A4','F2',1],['G4','C3',1],['A4','F2',1],['B4','G2',1],['C5','C3',2],                 // que su-pi-mos con-se-guir (FA FA LA SOL LA SI do)
+    ['C5','C3',1],['D5','G2',1],['E5','C3',1],['E5','C3',1],['D5','G2',1],['C5','C3',1],['D5','G2',2],                 // co-ro-na-dos de glo-ria vi-va-mos
     ['G4','G2',1],['C5','C3',2],['B4','G2',1],['A4','F2',1],['G4','C3',1],['F4','G2',1],['E4','C3',1],['D4','G2',1],['C4','C3',3],   // o ju-re-mos con glo-ria mo-rir
   ];
   const Himno = makeTrack(HIMNO, 0.3, { leadVol:0.08, bassVol:0.06, leadType:'square', staccato:0.9 });

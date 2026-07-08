@@ -101,6 +101,13 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v340] — 2026-07-08 — 🇦🇷 Himno rehecho con las notas REALES (flauta dulce)
+
+- El Himno del Obelisco ahora usa la melodía **real de la parte cantada** tomada de notas de flauta dulce
+  ("SOL LA SI do do mi re do · SI LA SOL MI DO MI SOL · FA FA LA SOL LA SI do" = "Sean eternos los laureles / que
+  supimos conseguir"), en vez de la aproximación anterior que no pegaba. El cierre ("coronados… o juremos con gloria
+  morir") es reconstrucción; a confirmar por oído del dueño.
+
 ## [v339] — 2026-07-08 — 🎼 Ajuste de melodías: Himno rehecho (parte cantada) + Marcha más larga
 
 - **Himno Nacional rehecho:** la melodía anterior estaba sacada de una tab de melódica que no era la buena; ahora es
