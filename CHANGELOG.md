@@ -101,6 +101,25 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v343 · infra-67] — 2026-07-08 — 🔔🎗️ Cabildo: campana → escarapela → French & Beruti (NPCs con IA) + Himno-coda
+
+- **Repicás la campana del Cabildo** (Plaza de Mayo, Nivel 2): la 1ª vez **caen escarapelas** celestes y blancas y
+  **agarrás una** (homenaje al 25 de Mayo de 1810); si repicás de nuevo, la campana **toca el Himno** ("o juremos con
+  gloria morir", coda más rápida, como carillón — `Sfx.himnoCoda()`, otro timbre).
+- **Al salir del Cabildo con la escarapela aparecen GRANADEROS + Domingo French y Antonio Beruti** (los que repartieron
+  las cintas en 1810), **NPCs chateables con IA** (personas nuevas `french`/`beruti` con memoria + grounding). Hablan
+  SOLO de la Revolución de Mayo/Independencia (educativo) y confían "algo raro" que no comprenden: el tiempo que se
+  tuerce (la IA manipulando el espacio-tiempo). Fichas `specs/nivel-1/personajes/{french,beruti}.md` → `personas.js`.
+- **Al grafo:** arista `escarapela` (at plaza, pre enPlaza) → historia.js 25 aristas; flag `ts_escarapela` en
+  FLAG_SETTERS/getters/historiaState/grounding (los oráculos lo saben). El chat vuelve a la plaza al cerrar.
+- Validado: e2e (campana→escarapela→arista→patriotas→chat persona) + Chromium real (French/Beruti + granaderos
+  renderizan, 0 errores). **Requiere deploy del PROXY** (personas nuevas server-side). SDD `subte.md §10.2`.
+
+## [v341-v342] — 2026-07-08 — 🇦🇷 Ajuste fino del tempo del Himno
+
+- Tras el playtest del dueño: el Himno estaba muy rápido → se bajó a beat 0.52 (triangle + legato, solemne), y luego un
+  toque más ágil a 0.44 ("ni tan lento ni tan rápido"). Sólo tempo/timbre; la melodía (notas reales) quedó.
+
 ## [v340] — 2026-07-08 — 🇦🇷 Himno rehecho con las notas REALES (flauta dulce)
 
 - El Himno del Obelisco ahora usa la melodía **real de la parte cantada** tomada de notas de flauta dulce

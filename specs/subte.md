@@ -208,3 +208,17 @@ y chip, haz de la señal). Superficies de test en `plaza.js`: `__chip`, `__arm`,
 
 **FIX de paso (v321):** el hueco de la barricada del piquete se ensanchó (x6-11) → cruzar al Obelisco ya no exige
 alinearte al pixel (era la causa del "se cuelga al pasar la valla").
+
+## 10.2 — El CABILDO de Mayo: escarapela + French & Beruti (v343)
+En la Plaza de Mayo (Nivel 2), el **Cabildo** (oeste) suma un arco histórico/educativo:
+- **Campana:** entrás al Cabildo y repicás la campana. **1ª vez** → caen **escarapelas** celestes y blancas y **agarrás
+  una** (flag `ts_escarapela`; homenaje al 25 de mayo de 1810). **Repicás de nuevo** → la campana **toca el Himno**
+  (coda "o juremos con gloria morir", `Sfx.himnoCoda()`, timbre de carillón, más rápida que el Himno solemne del Obelisco).
+- **French & Beruti:** con la escarapela, al volver a la plaza aparecen **granaderos** (custodia) + **Domingo French** y
+  **Antonio Luis Beruti** (los que repartieron las cintas en 1810). Son **NPCs chateables con IA** (personas `french`/
+  `beruti`, memoria + grounding): hablan **sólo** de la Revolución de Mayo/Independencia (educativo) y confían "algo raro"
+  que no entienden — el tiempo que se tuerce, hechos que se repiten (la **IA manipulando el espacio-tiempo**). No saben
+  qué es una IA (lo viven como prodigio).
+- **Data/grafo:** arista `escarapela` (at `plaza`, pre `enPlaza`) en `lavalle-quest.md` → `historia.js`; flag `escarapela`
+  en `FLAG_SETTERS`/getters/`historiaState`/grounding. Personas desde fichas `personajes/{french,beruti}.md` →
+  `gen-personas.mjs`. Wiring: `plaza.js` getters `openChatNpc`/`escarapelaEdge` → `game.js` (`openChat`, `chatReturnTo='plaza'`).

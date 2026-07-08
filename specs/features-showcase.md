@@ -152,6 +152,16 @@
   nos libera del yugo de la IA. Sub-modo aislado `js/plaza.js`; el subte es el conector Nivel 1 → Nivel 2. Ver
   `specs/subte.md §10`. **¿No hiciste la quest de la SUBE?** El **boletero** te vende un **BOLETO 🎫** de un solo viaje
   para pasar el molinete igual (la SUBE sigue siendo la posta: permanente y gratis).
+- **El CABILDO de Mayo — un guiño a 1810 (Nivel 2):** en la Plaza, el **Cabildo** es enterable y tiene una **campana**.
+  La **repicás una vez** y **caen escarapelas** celestes y blancas: agarrás una (homenaje al **25 de mayo de 1810**).
+  La **volvés a tocar** y la campana **toca el Himno** (la coda *"o juremos con gloria morir"*, con timbre de carillón —
+  el mismo motor chiptune, sin archivos). Y acá está lo lindo: con la escarapela puesta, al salir a la plaza aparecen
+  **granaderos** custodiando y **Domingo French** y **Antonio Luis Beruti** —los que en 1810 repartían las cintas—,
+  **NPCs con IA de verdad** (memoria + grounding). Hablan **sólo** de la Revolución de Mayo y la Independencia (es
+  educativo, sabés con quién estás charlando) y te confían **algo raro** que no logran entender: el tiempo que se
+  tuerce, hechos que se repiten… **la IA manipulando el espacio-tiempo** (ellos lo viven como un prodigio, no saben qué
+  es). Todo **data-driven y en el grafo**: la escarapela es una **arista** de la historia, y las personas de French y
+  Beruti salen de fichas en `specs/nivel-1/personajes/`. Ver `specs/subte.md §10.2`.
 - **Música chiptune generada, sin archivos (`js/audio.js`):** todo el audio es **Web Audio en vivo** (cero mp3) —
   SFX + temas compuestos como DATA (tango, cumbia, marcha peronista, dance, telo…). El de **Cemento** es un motor
   **"heavy criollo"** aparte (homenaje ORIGINAL a Almafuerte, no un tema suyo): **power chords con distorsión**

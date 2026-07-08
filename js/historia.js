@@ -601,6 +601,33 @@ const Historia = {
       "from": "specs/nivel-1/lugares/lavalle-quest.md"
     },
     {
+      "id": "escarapela",
+      "title": "Repicar la campana del Cabildo → la escarapela (French & Beruti)",
+      "title_en": "Ring the Cabildo bell → the cockade (French & Beruti)",
+      "at": "plaza",
+      "pre": {
+        "enPlaza": true
+      },
+      "sets": {
+        "escarapela": true
+      },
+      "hints": {
+        "es": [
+          "En la Plaza de Mayo, el CABILDO (oeste) guarda algo del 25 de Mayo de 1810.",
+          "Entrá al Cabildo y tocá la CAMPANA de la torre.",
+          "Al repicar caen ESCARAPELAS celestes y blancas — agarrá una.",
+          "Con la escarapela, al salir aparecen los granaderos y DOMINGO FRENCH y ANTONIO BERUTI: hablales [E] (te cuentan de Mayo de 1810)."
+        ],
+        "en": [
+          "At Plaza de Mayo, the CABILDO (west) holds something from May 25th, 1810.",
+          "Enter the Cabildo and ring the tower BELL.",
+          "As it rings, blue-and-white COCKADES fall — grab one.",
+          "With the cockade, on your way out the grenadiers appear with DOMINGO FRENCH and ANTONIO BERUTI: talk to them [E] (they tell you about May 1810)."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
       "id": "sanmartin_chip",
       "title": "Conseguir el CHIP del Libertador (tumba de San Martín)",
       "title_en": "Get the Liberator's CHIP (San Martín's tomb)",

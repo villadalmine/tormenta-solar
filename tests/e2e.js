@@ -455,6 +455,17 @@ if (require.main === module) {
     // la boca de la Catedral vuelve al subte
     const pz2 = Plaza.create({});
     if (!pz2.__leave() || pz2.exitTo !== 'subte') throw new Error('plaza: la boca debería volver al subte: ' + pz2.exitTo);
+    // CABILDO 1810: repicar la campana → escarapela (grafo) → aparecen French & Beruti (chat IA)
+    const pz3 = Plaza.create({});
+    const b1 = pz3.__bell();                                  // 1ª campanada: cae la escarapela
+    if (!b1.gotEscarapela) throw new Error('plaza: la 1ª campanada debería dar la escarapela');
+    if (!pz3.escarapelaEdge) throw new Error('plaza: repicar debería disparar la arista de la escarapela (grafo)');
+    pz3.__bell();                                             // 2ª campanada: suena el himno-coda (sin crash)
+    const pats = pz3.__patriota();                            // con escarapela, aparecen los patriotas
+    if (!(pats && pats.length === 2)) throw new Error('plaza: deberían aparecer French y Beruti');
+    { const kb = Input.keys; Input.keys = {}; pz3.update(0.05); Input.keys = { e: true }; pz3.update(0.05); Input.keys = kb; }   // soltar (libera eHeld) → [E] cerca de un patriota
+    const chatNpc = pz3.openChatNpc;
+    if (!(chatNpc && (chatNpc.persona === 'french' || chatNpc.persona === 'beruti'))) throw new Error('plaza: [E] sobre un patriota debería abrir chat con french/beruti: ' + JSON.stringify(chatNpc));
     ok.push('plaza:ok');
     // FINALE (subte.md §10.1): la cinemática de cierre corre los 5 beats y termina en exitTo 'end'
     if (typeof Finale === 'undefined' || !Finale.create) throw new Error('Finale no cargó');
@@ -645,7 +656,7 @@ if (require.main === module) {
     const allDone = { stormed:true, borrachosHappy:true, bunkerUnlocked:true, chinoFrontOpen:true, trucoWon:true,
       won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true,
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
-      subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, sanmartinChip:true, nivel2Win:true };
+      subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

@@ -701,7 +701,7 @@
     if (typeof Plaza === 'undefined' || !Plaza.create) return false;
     // Nivel 2 (arco sanmartiniano): el requisito de la victoria es el CHIP DEL LIBERTADOR (tumba de San Martín),
     // no el datacenter comunitario. Solo pasamos si ya ganaste antes (para el estado "ya liberado").
-    plazaGame = Plaza.create({ won2: lsFlag('ts_nivel2_win') }); state = 'plaza';
+    plazaGame = Plaza.create({ won2: lsFlag('ts_nivel2_win'), escarapela: lsFlag('ts_escarapela') }); state = 'plaza';
     applyEdge('plaza_llegada', 'enPlaza');   // GRAFO F4c: hito reconocido → map + checkpoint + ticker
     evlog('hito', 'llegó a Plaza de Mayo');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -1106,6 +1106,7 @@
     // NIVEL 2 (arco sanmartiniano, specs/subte.md §10.1): el CHIP del Libertador y la LIBERACIÓN están EN EL GRAFO
     sanmartinChip:    v => { try { localStorage.setItem('ts_sanmartin_chip', v ? '1' : ''); } catch (e) {} },
     nivel2Win:        v => { try { localStorage.setItem('ts_nivel2_win', v ? '1' : ''); } catch (e) {} },
+    escarapela:       v => { try { localStorage.setItem('ts_escarapela', v ? '1' : ''); } catch (e) {} },   // Cabildo: repicaste la campana, agarraste la escarapela (French & Beruti)
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1157,6 +1158,7 @@
       enPlaza: lsFlag('ts_en_plaza'),
       sanmartinChip: lsFlag('ts_sanmartin_chip'),   // Nivel 2: tenés el chip del Libertador (grafo)
       nivel2Win: lsFlag('ts_nivel2_win'),           // Nivel 2: ganaste (liberación sanmartiniana)
+      escarapela: lsFlag('ts_escarapela'),          // Cabildo: repicaste la campana → escarapela + French & Beruti
       sleptOnce: loopCount > 0,
     };
   }
@@ -1190,6 +1192,7 @@
       // NIVEL 2 (arco sanmartiniano): el subte, la Plaza, el chip del Libertador, la liberación — los oráculos LO SABEN
       sateliteHerido: lsFlag('ts_sat_down'), subeReady: lsFlag('ts_sube_charged'),
       enPlaza: lsFlag('ts_en_plaza'), sanmartinChip: lsFlag('ts_sanmartin_chip'), nivel2Win: lsFlag('ts_nivel2_win'),
+      escarapela: lsFlag('ts_escarapela'),   // Cabildo 1810: escarapela + French & Beruti (los oráculos lo saben)
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -1448,6 +1451,8 @@
     if (state === 'chat') {
       // Lavalle: el chat con el linyera peronista se abrió DESDE el piquete top-down → volvés ahí (lavalleGame sigue vivo)
       if (chatReturnTo === 'lavalle' && lavalleGame) { chatReturnTo = null; state = 'lavalle'; }
+      // Plaza de Mayo: el chat con French/Beruti se abrió DESDE la plaza (Nivel 2) → volvés ahí (plazaGame sigue vivo)
+      else if (chatReturnTo === 'plaza' && plazaGame) { chatReturnTo = null; state = 'plaza'; }
       // T2b: si el chat privado se abrió DESDE el bodegón top-down → volvés ahí (no al side-scroller)
       else if (from === 'bodegon' && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
       else { chatReturnTo = null; state = 'playing'; }
@@ -3792,6 +3797,8 @@
     } else if (state === 'plaza' && plazaGame) {                      // F4: PLAZA DE MAYO (Nivel 2, circular)
       plazaGame.update(dt); plazaGame.draw(ctx, W, H);
       if (plazaGame.chipEdge) applyEdge('sanmartin_chip', 'sanmartinChip');   // GRAFO (one-shot): tomaste el chip del Libertador → mapa/ticker/checkpoint/grounding
+      if (plazaGame.escarapelaEdge) applyEdge('escarapela', 'escarapela');    // GRAFO: repicaste la campana → escarapela (French & Beruti)
+      { const pc = plazaGame.openChatNpc; if (pc) { chatReturnTo = 'plaza'; openChat({ name: pc.name, persona: pc.persona }); } }   // [E] sobre French/Beruti → chat IA (vuelve a la plaza)
       if (plazaGame.done) {
         const ex = plazaGame.exitTo; plazaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'win2') {   // NIVEL 2: chip del Libertador → Pirámide → señal a los satélites → LIBERACIÓN SANMARTINIANA

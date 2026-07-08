@@ -17,6 +17,16 @@ const Plaza = (() => {
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, near = null, madreIdx = -1;
     // interiores: null | 'rosada' (control del satélite, lore/enemigo) | 'tumba' (San Martín → chip del Libertador)
     let inside = null, ip = { x: 0, y: 130, dir: 1, walk: 0 }, iNear = null, termIdx = -1, bellT = 0;
+    // CABILDO 1810 (French & Beruti): repicás la campana → 1ª vez caen ESCARAPELAS y agarrás una; después suena el
+    // Himno (coda). Con la escarapela ganada, al volver a la plaza aparecen GRANADEROS + los NPC French y Beruti
+    // (los que repartieron las cintas el 25-May-1810), chateables (IA) — hablan de la Independencia y de "algo raro"
+    // que notaron (la IA torciendo el espacio-tiempo). specs/subte.md §10.2.
+    let bellRung = 0, escaFallT = 0, gotEscarapela = !!opts.escarapela, escarapelaJustGot = false, chatNpc = null;
+    const PATRIOTAS = [
+      { id: 'french', name: 'Domingo French', persona: 'french', x: -118, y: 34, col: '#3b5aa6' },
+      { id: 'beruti', name: 'Antonio Beruti', persona: 'beruti', x: -128, y: -24, col: '#8a2f2f' },
+    ];
+    const granaderos = [{ x: -150, y: 6 }, { x: -96, y: 58 }, { x: -100, y: -52 }];   // custodia (visual) por haber repicado
     const alreadyWon = !!opts.won2;
     let hasChip = alreadyWon;         // ¿tenés el CHIP AI DEL LIBERTADOR? (de la tumba). Requisito para armar la Pirámide.
     let chipJustGot = false;          // one-shot: game.js lee chipEdge → applyEdge('sanmartin_chip') (grafo/mapa/grounding)
@@ -95,7 +105,8 @@ const Plaza = (() => {
       if (Math.hypot(player.x, player.y) < 44) near = { kind: 'piramide' };
       else if (Math.hypot(player.x - bocaCatedral.x, player.y - bocaCatedral.y) < 22) near = { kind: 'boca' };
       else if (nearMadre()) near = { kind: 'madre' };
-      else for (const L of LANDMARKS) { const p = landmarkPos(L, 1); if (Math.hypot(player.x - p.wx, player.y - p.wy) < 40) { near = { kind: 'landmark', L }; break; } }
+      else if (gotEscarapela) { for (const p of PATRIOTAS) if (Math.hypot(player.x - p.x, player.y - p.y) < 20) { near = { kind: 'npc', p }; break; } }   // French/Beruti (tras repicar)
+      if (!near) for (const L of LANDMARKS) { const p = landmarkPos(L, 1); if (Math.hypot(player.x - p.wx, player.y - p.wy) < 40) { near = { kind: 'landmark', L }; break; } }
 
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; leave(); } } else escHeld = false;
       // ARMAR la Pirámide: con el chip, SOSTENÉS [E] → la señal de San Martín (celeste) gana terreno; la IA resiste
@@ -118,6 +129,7 @@ const Plaza = (() => {
       if (near && near.kind === 'piramide') prompt = alreadyWon ? '' : hasChip ? T('g.plaza.promptArm') : T('g.plaza.promptPiramide');
       else if (near && near.kind === 'boca') prompt = T('g.plaza.promptSubte');
       else if (near && near.kind === 'madre') prompt = T('g.plaza.promptMadre');
+      else if (near && near.kind === 'npc') prompt = T('g.plaza.promptNpc', { n: near.p.name });
       else if (near && near.kind === 'landmark') prompt = T('g.plaza.promptLandmark', { n: near.L.name });
       else prompt = '';
     }
@@ -128,6 +140,7 @@ const Plaza = (() => {
         setMsg(T('g.plaza.armStart'), 5);   // tenés el chip: te dice que SOSTENGAS [E]
         return;
       }
+      if (near && near.kind === 'npc') { chatNpc = { name: near.p.name, persona: near.p.persona }; return; }   // [E] → chat IA (French/Beruti); game.js lo abre
       if (near && near.kind === 'boca') { leave(); return; }              // volvés al subte (Catedral)
       if (near && near.kind === 'madre') { madreIdx = (madreIdx + 1) % 3; setMsg(T('g.plaza.madre' + (madreIdx + 1)), 7); return; }
       if (near && near.kind === 'landmark') {
@@ -174,11 +187,20 @@ const Plaza = (() => {
         else if (iNear === 'chip') { hasChip = true; chipJustGot = true; chipFx = 1; setMsg(T('g.plaza.gotChip'), 10); if (typeof Sfx !== 'undefined' && Sfx.pick) Sfx.pick(); try { localStorage.setItem('ts_sanmartin_chip', '1'); } catch (e) {} }
         else if (iNear === 'sarco') { setMsg(T(hasChip ? 'g.plaza.sarcoGot' : 'g.plaza.sarco'), 8); }
         else if (iNear === 'term') { termIdx = (termIdx + 1) % 3; setMsg(T('g.plaza.term' + (termIdx + 1)), 8); }
-        else if (iNear === 'campana') { bellT = 1.2; setMsg(T('g.plaza.cabildoBell'), 8); if (typeof Sfx !== 'undefined' && Sfx.blip) Sfx.blip(); }
+        else if (iNear === 'campana') { bellT = 1.2; bellRung++;
+          if (!gotEscarapela) {   // 1ª vez: caen ESCARAPELAS de la torre y agarrás una (French & Beruti, 25-May-1810)
+            gotEscarapela = true; escarapelaJustGot = true; escaFallT = 3.2;
+            try { localStorage.setItem('ts_escarapela', '1'); } catch (e) {}
+            setMsg(T('g.plaza.escarapela'), 10); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup();
+          } else {                 // repicás de nuevo → suena el HIMNO (coda "o juremos con gloria morir", como campana)
+            setMsg(T('g.plaza.cabildoHimno'), 8); if (typeof Sfx !== 'undefined' && Sfx.himnoCoda) Sfx.himnoCoda();
+          }
+        }
         else if (iNear === 'balcon') { setMsg(T('g.plaza.cabildoBalcon'), 8); }
         else setMsg(T(inside === 'tumba' ? 'g.plaza.tumbaHint' : inside === 'cabildo' ? 'g.plaza.cabildoHint' : 'g.plaza.rosadaHint'), 4);
       } } else eHeld = false;
       if (bellT > 0) bellT -= dt;
+      if (escaFallT > 0) escaFallT -= dt;
       if (inside === 'tumba') prompt = iNear === 'chip' ? T('g.plaza.promptChip') : iNear === 'sarco' ? T('g.plaza.promptSarco') : iNear === 'salir' ? T('g.plaza.promptSalir') : '';
       else if (inside === 'cabildo') prompt = iNear === 'campana' ? T('g.plaza.promptCampana') : iNear === 'balcon' ? T('g.plaza.promptBalcon') : iNear === 'salir' ? T('g.plaza.promptSalir') : '';
       else prompt = iNear === 'term' ? T('g.plaza.promptTerm') : iNear === 'salir' ? T('g.plaza.promptSalir') : '';
@@ -246,6 +268,25 @@ const Plaza = (() => {
         g.fillStyle = 'rgba(200,210,220,0.3)'; for (const hx of [-7, 7]) { g.beginPath(); g.ellipse(s.x + hx * SC, s.y - 4 * SC, 3.6 * SC, 1.2 * SC, t * 20, 0, Math.PI * 2); g.fill(); }   // hélices
         g.fillStyle = '#2a3140'; g.fillRect(s.x - 4 * SC, s.y - 3 * SC, 8 * SC, 7 * SC);   // cuerpo
         g.fillStyle = Math.sin(t * 9 + d.x) > 0 ? '#ff3040' : '#a01820'; g.beginPath(); g.arc(s.x, s.y, 2 * SC, 0, Math.PI * 2); g.fill(); }   // ojo rojo
+      // GRANADEROS (custodia) + French & Beruti (aparecen tras repicar la campana), cerca del Cabildo (O)
+      if (gotEscarapela) {
+        for (const gr of granaderos) { const s = W2S(gr.x, gr.y);
+          g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(s.x, s.y + 8 * SC, 4 * SC, 2 * SC, 0, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#12305a'; g.fillRect(s.x - 3 * SC, s.y - 2 * SC, 6 * SC, 11 * SC);       // uniforme azul granadero
+          g.fillStyle = '#d9c07a'; g.fillRect(s.x - 3 * SC, s.y + 1 * SC, 6 * SC, 2 * SC);        // correaje
+          g.fillStyle = '#e8d8b0'; g.beginPath(); g.arc(s.x, s.y - 4 * SC, 3 * SC, 0, Math.PI * 2); g.fill();  // cara
+          g.fillStyle = '#0a1a3a'; g.fillRect(s.x - 3.4 * SC, s.y - 12 * SC, 6.8 * SC, 6 * SC);   // morrión
+          g.fillStyle = '#c0392b'; g.fillRect(s.x - 1 * SC, s.y - 15 * SC, 2 * SC, 4 * SC); }     // pluma roja
+        for (const p of PATRIOTAS) { const s = W2S(p.x, p.y), hov = near && near.kind === 'npc' && near.p === p;
+          g.fillStyle = 'rgba(0,0,0,0.28)'; g.beginPath(); g.ellipse(s.x, s.y + 8 * SC, 5 * SC, 2 * SC, 0, 0, Math.PI * 2); g.fill();
+          if (hov) { g.strokeStyle = '#ffd54f'; g.lineWidth = 2; g.beginPath(); g.arc(s.x, s.y - 2 * SC, 12 * SC, 0, Math.PI * 2); g.stroke(); }
+          g.fillStyle = p.col; g.fillRect(s.x - 4 * SC, s.y - 2 * SC, 8 * SC, 12 * SC);            // levita
+          g.fillStyle = '#e8d8b0'; g.beginPath(); g.arc(s.x, s.y - 5 * SC, 3.6 * SC, 0, Math.PI * 2); g.fill();  // cara
+          g.fillStyle = '#2a2018'; g.fillRect(s.x - 3.6 * SC, s.y - 9 * SC, 7.2 * SC, 3 * SC);     // galera de época
+          g.fillStyle = '#74acdf'; g.beginPath(); g.arc(s.x, s.y + 1 * SC, 2.2 * SC, 0, Math.PI * 2); g.fill();  // escarapela
+          g.fillStyle = '#fff'; g.beginPath(); g.arc(s.x, s.y + 1 * SC, 1 * SC, 0, Math.PI * 2); g.fill();
+          g.fillStyle = hov ? '#ffe9b0' : '#dfe8f2'; g.font = (hov ? 'bold ' : '') + '8px monospace'; g.textAlign = 'center'; g.fillText(p.name, s.x, s.y - 12 * SC); }
+      }
       // VOS
       { const s = W2S(player.x, player.y), sw = Math.sin(player.walk) * 2;
         g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(s.x, s.y + 9, 8, 3, 0, 0, Math.PI * 2); g.fill();
@@ -374,6 +415,14 @@ const Plaza = (() => {
         g.fillStyle = '#7a5a20'; g.fillRect(-1, 8, 2, 3); g.restore();
         if (bellT > 0) { g.strokeStyle = 'rgba(255,220,140,' + (bellT / 1.2 * 0.7) + ')'; g.lineWidth = 2; for (const rr of [16, 24]) { g.beginPath(); g.arc(s.x, s.y + 4, rr, 0, Math.PI * 2); g.stroke(); } }
         if (hov) { g.strokeStyle = '#ffd54f'; g.lineWidth = 2; g.strokeRect(s.x - 15, s.y - 22, 30, 42); } }
+      // ESCARAPELAS cayendo de la torre (al repicar la 1ª vez, homenaje a French & Beruti): celestes y blancas
+      if (escaFallT > 0) { const fall = 1 - Math.max(0, escaFallT) / 3.2;
+        for (let i = 0; i < 14; i++) { const seed = i * 1.71;
+          const fx = bell.x + Math.sin(seed) * 62 + Math.sin(t * 2 + seed) * 9;
+          const fy = bell.y + 16 + ((fall * 280 + i * 20) % 280);
+          const s = W2S(fx, fy);
+          g.fillStyle = '#74acdf'; g.beginPath(); g.arc(s.x, s.y, 3.4, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#f4f4f4'; g.beginPath(); g.arc(s.x, s.y, 1.7, 0, Math.PI * 2); g.fill(); } }
       // el BALCÓN de la Junta (centro) — donde se asomó el pueblo el 25 de Mayo
       { const s = W2S(balcon.x, balcon.y), hov = iNear === 'balcon';
         g.fillStyle = '#cec6b0'; g.fillRect(s.x - 26, s.y - 6, 52, 16);                          // base del balcón
@@ -411,10 +460,14 @@ const Plaza = (() => {
     return {
       update, draw, get done() { return done; }, get exitTo() { return exitTo; },
       get chipEdge() { const r = chipJustGot; chipJustGot = false; return r; },   // one-shot: tomaste el chip → grafo
+      get escarapelaEdge() { const r = escarapelaJustGot; escarapelaJustGot = false; return r; },   // one-shot: agarraste la escarapela → grafo
+      get openChatNpc() { const r = chatNpc; chatNpc = null; return r; },          // one-shot: [E] sobre French/Beruti → game.js abre el chat IA
       // superficies de test: tomar el chip en la tumba, armar la pirámide, salir
-      get _dbg() { return { inside, hasChip, armed, iNear, near: near && near.kind, pz: { x: player.x, y: player.y }, ip: { x: ip.x, y: ip.y } }; },
+      get _dbg() { return { inside, hasChip, armed, iNear, near: near && near.kind, gotEscarapela, bellRung, pz: { x: player.x, y: player.y }, ip: { x: ip.x, y: ip.y } }; },
       __enter: (w) => { inside = w; ip = { x: 0, y: 60, dir: 1, walk: 0 }; iNear = null; return inside; },
       __chip: () => { inside = 'tumba'; ip = { x: chipPos.x, y: chipPos.y, dir: 1, walk: 0 }; iNear = 'chip'; hasChip = true; inside = null; return hasChip; },
+      __bell: () => { inside = 'cabildo'; ip = { x: bell.x, y: bell.y, dir: 1, walk: 0 }; iNear = 'campana'; eHeld = false; if (Input && Input.keys) Input.keys['e'] = true; updateInside(0.016); if (Input && Input.keys) Input.keys['e'] = false; return { gotEscarapela, bellRung }; },
+      __patriota: () => { inside = null; eHeld = false; gotEscarapela = true; player.x = PATRIOTAS[0].x; player.y = PATRIOTAS[0].y + 12; return PATRIOTAS.map(p => p.name); },
       __arm: () => { hasChip = true; charge = 1; armed = true; armT = 3.6; return armed; },
       __leave: () => { player.x = bocaCatedral.x; player.y = bocaCatedral.y; near = { kind: 'boca' }; interact(); return done; },
     };

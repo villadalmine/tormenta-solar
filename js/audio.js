@@ -133,6 +133,12 @@ const Sfx = (() => {
     ['G4','G2',1],['C5','C3',2],['B4','G2',1],['A4','F2',1],['G4','C3',1],['F4','G2',1],['E4','C3',1],['D4','G2',1],['C4','C3',3],   // o ju-re-mos con glo-ria mo-rir
   ];
   const Himno = makeTrack(HIMNO, 0.44, { leadVol:0.09, bassVol:0.055, leadType:'triangle', staccato:0.99 });   // solemne pero no arrastrado; triangle + legato = tono de himno
+  // CODA del himno "o juremos con gloria morir" ×2 — MÁS RÁPIDA y marcada, tocada como CAMPANA (square pulsado +
+  // octava): la campana del Cabildo "toca" esta parte. Notas: do mi do sol fa re si (salto a "juremos" y caída).
+  const HIMNO_CODA = [
+    ['C5',1],['E5',1],['C5',1],['G4',1],['F4',1],['D5',1],['B4',2],           // o ju-re-mos con glo-ria mo-rir
+    ['C5',1],['E5',1],['C5',1],['G4',1],['F4',1],['D5',1],['B4',1],['C5',3],  // o ju-re-mos con glo-ria mo-rir (resuelve)
+  ];
   // ---- MOTOR "HEAVY CRIOLLO" (homenaje ORIGINAL a Almafuerte/Iorio, sin copiar temas): power chords con DISTORSIÓN
   // (waveshaper) + bajo con cuerpo + BATERÍA (kick/snare/hats) + ADSR + vibrato en los leads, todo por un bus con
   // compresor para que suene LLENO y no clipee. Data-driven: cada paso = [acorde, bajo, beats, drum, mel?].
@@ -331,6 +337,12 @@ const Sfx = (() => {
     setMarcha(on) {   // Marcha Peronista (fiesta de Lavalle al ganar los 5 mini-juegos)
       if (on && !marchaActive) { marchaActive = true; Music.stop(); Cumbia.stop(); Himno.stop(); cumbiaActive = false; himnoActive = false; Marcha.start(); }
       else if (!on && marchaActive) { marchaActive = false; Marcha.stop(); if (musicWanted) Music.start(); }
+    },
+    himnoCoda() {   // toca UNA VEZ el cierre "o juremos con gloria morir" como CAMPANA (Cabildo, al repicar de nuevo)
+      const c = ensure(); let t0 = c.currentTime + 0.04; const beat = 0.26;
+      for (const [n, b] of HIMNO_CODA) { const dur = (b || 1) * beat;
+        if (n) { voice(nf(n), t0, dur * 0.95, 'square', 0.09, true); voice(nf(n) * 2, t0, dur * 0.6, 'triangle', 0.03, true); }
+        t0 += dur; }
     },
     setHimno(on) {   // Himno Nacional Argentino (Obelisco: al llegar; silencio tenso durante la pelea del satélite)
       if (on && !himnoActive) { himnoActive = true; Music.stop(); Cumbia.stop(); Marcha.stop(); cumbiaActive = false; marchaActive = false; Himno.start(); }
