@@ -132,7 +132,7 @@ const Sfx = (() => {
     ['C5','C3',1],['D5','G2',1],['E5','C3',1],['E5','C3',1],['D5','G2',1],['C5','C3',1],['D5','G2',2],                 // co-ro-na-dos de glo-ria vi-va-mos
     ['G4','G2',1],['C5','C3',2],['B4','G2',1],['A4','F2',1],['G4','C3',1],['F4','G2',1],['E4','C3',1],['D4','G2',1],['C4','C3',3],   // o ju-re-mos con glo-ria mo-rir
   ];
-  const Himno = makeTrack(HIMNO, 0.3, { leadVol:0.08, bassVol:0.06, leadType:'square', staccato:0.9 });
+  const Himno = makeTrack(HIMNO, 0.52, { leadVol:0.09, bassVol:0.055, leadType:'triangle', staccato:0.99 });   // LENTO y solemne (era muy rápido); triangle + legato = tono de himno
   // ---- MOTOR "HEAVY CRIOLLO" (homenaje ORIGINAL a Almafuerte/Iorio, sin copiar temas): power chords con DISTORSIÓN
   // (waveshaper) + bajo con cuerpo + BATERÍA (kick/snare/hats) + ADSR + vibrato en los leads, todo por un bus con
   // compresor para que suene LLENO y no clipee. Data-driven: cada paso = [acorde, bajo, beats, drum, mel?].
