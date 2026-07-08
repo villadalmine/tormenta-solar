@@ -1696,6 +1696,10 @@
     chatHistory.push({ role: 'user', content: msg });
     chatBusy = true;
     const thinking = chatThinking();   // iconos animados mientras espera la IA (chat-linyera-ux §2)
+    // TODO el post-procesado va en try/finally: cualquier throw (chatLine, Quests, Ideas, telemetría…) NO debe
+    // saltarse `chatBusy=false`. Era el bug "el chat se cuelga tras hablar y hay que cerrar/reabrir" — el candado
+    // busy quedaba encendido. (Misma clase que el "se cuelga" del game-loop: un throw salteaba la limpieza.)
+    try {
     // linyera oráculo: cada repregunta sube el spoiler (0→3); la pista se le pasa como GROUNDING a la IA
     // (la dice con su voz, no inventa ruta). Si la respuesta sale LOCAL, la mostramos explícita (garantía).
     const ground = isOraculo(chatNpc) ? getHint(Math.min(++hintAsks, 3)) : null;
@@ -1737,8 +1741,12 @@
     // CINE: el linyera a veces te manda al cine a buscar un topic → runtime decide (chance/giver desde el registro).
     // CHIPEADO: los linyeras de la habitación del telo NO te mandan al cine — solo el chip (suprimir el giver de noticias).
     if (isOraculo(chatNpc) && !chipped) { const g = Quests.maybeGive('oraculo'); if (g) chatLine('npc', g.line); }
-    chatBusy = false;
-    if (elChatInput) elChatInput.focus();
+    } finally {
+      // pase lo que pase: sacá el "pensando" y LIBERÁ el candado para el próximo mensaje.
+      try { thinking.remove(); } catch (e) {}
+      chatBusy = false;
+      if (elChatInput) elChatInput.focus();
+    }
   }
   // ARSENAL por defecto si el nivel no trae data (paridad con v1: un solo fierro, +40 munición/+20 vida por 15).
   const ARSENAL_FALLBACK = [{ key: 'facon', cost: 15, ammo: 40, hp: 20 }];

@@ -101,6 +101,16 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v345] — 2026-07-08 — 🐛 FIX "el chat se cuelga tras hablar" (candado busy que no se liberaba)
+- **Bug:** después de un par de mensajes el chat con los NPC "se colgaba" y no respondía hasta **cerrar y reabrir**
+  el chat. Causa: en `chatSend()` el post-procesado de la respuesta (mostrar la línea, telemetría, quests, ideas,
+  `AI.lastSource()`…) NO estaba protegido → si CUALQUIERA de esas lanzaba una excepción, se **saltaba `chatBusy=false`**
+  y el candado quedaba encendido para siempre (cerrar/reabrir lo reseteaba en `openChat`). Misma clase que el "se cuelga"
+  del game-loop.
+- **Fix:** todo el cuerpo en **try/finally** — pase lo que pase, se saca el "pensando" y se **libera `chatBusy`**. No
+  toca nada de la IA/key/ruteo (era 100% del cliente). Nota: en `/metrics` `tormenta_ai_sub_codes 0` → no hay código de
+  suscripción cargado en el proxy (dominio del dueño, no se tocó).
+
 ## [v344] — 2026-07-08 — 🚆 Post Nivel 2: win2 continuable + LÍNEA C → terminal CONSTITUCIÓN (E1 de la red de tren)
 - **Ganar el Nivel 2 ya no termina el juego.** Al reventar los satélites: sale la pantalla *"¡Ganaste el Nivel 2!"*
   (como antes) pero ahora con botón **▶️ SEGUIR JUGANDO** → volvés a **Plaza de Mayo** (hub, ya liberada) y se
