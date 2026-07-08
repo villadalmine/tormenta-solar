@@ -152,6 +152,12 @@
   nos libera del yugo de la IA. Sub-modo aislado `js/plaza.js`; el subte es el conector Nivel 1 → Nivel 2. Ver
   `specs/subte.md §10`. **¿No hiciste la quest de la SUBE?** El **boletero** te vende un **BOLETO 🎫** de un solo viaje
   para pasar el molinete igual (la SUBE sigue siendo la posta: permanente y gratis).
+- **Música chiptune generada, sin archivos (`js/audio.js`):** todo el audio es **Web Audio en vivo** (cero mp3) —
+  SFX + temas compuestos como DATA (tango, cumbia, marcha peronista, dance, telo…). El de **Cemento** es un motor
+  **"heavy criollo"** aparte (homenaje ORIGINAL a Almafuerte, no un tema suyo): **power chords con distorsión**
+  (waveshaper) + bajo + **batería** (bombo/redoblante/hi-hats) + ADSR + vibrato en los leads, todo por un bus con
+  **compresor** para que suene lleno. Un tema con estructura real (riff galopante en Mi → puente → estribillo con
+  lead que canta → lick), data-driven.
 
 ## 4.b RESILIENCIA: si la GPU se cae, NO se para nada → modo estático
 - **Premisa (dueño):** *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático de

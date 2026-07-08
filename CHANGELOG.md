@@ -35,9 +35,13 @@ El juego es 100% estático; se publica en
 > aún con la GPU apagada, porque `gen` usa los modelos PAGO cloud; cache por seed confirmado). `srv-t7910` NotReady = la
 > GPU que el dueño apagó (esperado, no es falla).
 >
-> **▶ SIGUIENTE:** chicos — más ítems-buff, más gates de llave, geometría cruda en `/mundo-ai` (como oráculo/historia).
-> **Playtest del dueño pendiente:** Nivel 2 completo + REINTENTAR + boleto + contraflor 2+ humanos + llave→depósito +
-> birra + **la máquina de mundos** (botón debug "🌀 Máquina de mundos") — ahora con `/mundo-ai` vivo, probá un prompt real.
+> **Último (v335):** 🎸 **música "heavy criollo"** en Cemento (power chords + distorsión + batería, homenaje original a
+> Almafuerte). Próximo del audio (idea del dueño): **TTS con voces no robóticas por personaje** (reemplazar espeak-ng
+> por **Piper** neural + pre-gen por cron, ver §propuesta) — pendiente.
+>
+> **▶ SIGUIENTE:** TTS Piper (voces por personaje) · chicos — más ítems-buff, más gates de llave, geometría cruda en
+> `/mundo-ai`. **Playtest del dueño pendiente:** Nivel 2 completo + REINTENTAR + boleto + contraflor 2+ humanos +
+> llave→depósito + birra + **la máquina de mundos** + **el tema HEAVY** (botón debug "🎸 Tocar el tema HEAVY" o entrá a Cemento).
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -95,6 +99,22 @@ El juego es 100% estático; se publica en
 - **⚠️ Deploy bloqueado por infra** (ver tracker arriba): v334 vive en GitHub Pages; el self-host y el proxy con
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
+
+## [v335] — 2026-07-08 — 🎸 MÚSICA: motor "heavy criollo" (Almafuerte-style, original) — power chords + distorsión + batería
+
+- **Sube el nivel de la música de Cemento** (donde toca Iorio): antes era un riff chiptune básico de "prueba de sonido";
+  ahora es un **motor heavy criollo** aparte (`makeHeavy` en `js/audio.js`) — **power chords con distorsión**
+  (waveshaper: raíz + quinta + octava), **bajo** con cuerpo, **batería** de verdad (bombo con pitch-drop, redoblante de
+  ruido filtrado, hi-hats en cada pulso), **ADSR** y **vibrato** en los leads, todo por un **bus con compresor** para que
+  suene lleno y no clipee con las capas. Homenaje **ORIGINAL** a Almafuerte (no es un tema suyo — sin líos de copyright).
+- **Tema con estructura de canción de verdad** (`HEAVY`, data-driven `[acorde, bajo, beats, drum, mel?]`): riff galopante
+  en Mi → variación → **estribillo** con un lead que canta arriba de los acordes → lick de cierre, y loopea.
+- **Aditivo:** los otros temas (tango, cumbia, marcha, dance, telo) quedan igual; sólo se reemplazó el track de Cemento,
+  con el mismo hook (`setRoomTrack('metal')`). Nuevo helper `nf()` (nombre de nota → frecuencia, para componer libre).
+- Debug: botón **"🎸 Tocar el tema HEAVY"** (toggle, para escucharlo sin ir a Cemento).
+- **Validado en Chromium real** (autoplay habilitado): el scheduler emite **56 osciladores en 2.2s**, el bus arma
+  distorsión+compresor (1 c/u), `AudioContext` running, **0 errores**. e2e OK (mock de audio ampliado con
+  waveshaper/compressor). La calidad musical, a tu oído (entrá a Cemento o usá el botón debug).
 
 ## [infra-66] — 2026-07-08 — 🔧 FIX deploy que se colgaba: `nodeSelector` a los nodos Longhorn (el pod caía en el Pi)
 

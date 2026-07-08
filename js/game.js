@@ -4089,6 +4089,7 @@
       const wrap = document.getElementById('opt-debug-wrap'), toggle = document.getElementById('opt-debug-toggle'), dmsg = document.getElementById('opt-debug-msg');
       if (!wrap || !wrap.querySelectorAll || !wrap.classList) return;   // headless/e2e: sin DOM real → no-op
       const lsOn = k => { try { localStorage.setItem(k, '1'); } catch (e) {} };
+      let metalDbg = false;   // toggle del botón debug "tocar el tema heavy"
       const on = () => { try { return localStorage.getItem('ts_debug') === '1' || /[?&]debug=1/.test(location.search); } catch (e) { return false; } };
       const say = t => { if (dmsg) dmsg.textContent = t; };
       const DEBUG_ACTIONS = {
@@ -4108,6 +4109,7 @@
         viola:       () => { if (!player) return 'empezá una partida primero'; addItem('viola'); return 'Viola 🎸 al inventario'; },
         deposito:    () => { if (!rooms || !player) return 'empezá una partida primero'; try { localStorage.removeItem('ts_deposito_open'); } catch (e) {} addItem('llave'); const gi = rooms.findIndex(r => (r.tags || []).includes('galeria')); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); if (gi >= 0) spawnIn(gi, 33); return 'Te di la 🔑 llave + te dejé al lado del depósito 🔒 (apretá E)'; },
         mundoai:     () => { if (!rooms || !player) return 'empezá una partida primero'; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); openMundoAI(); return 'Máquina de mundos 🌀 abierta (poné una semilla)'; },
+        metal:       () => { if (typeof Sfx === 'undefined') return 'sin audio'; Sfx.init(); metalDbg = !metalDbg; Sfx.setRoomTrack(metalDbg ? 'metal' : null); return metalDbg ? 'Tocando el tema HEAVY CRIOLLO 🎸 (así suena en Cemento). Apretá de nuevo para parar.' : 'Metal off 🎸'; },
         mapa:        () => { if (!rooms) return 'empezá una partida primero'; for (let i = 0; i < rooms.length; i++) visitedRooms.add(i); saveVisited(); return 'Mapa: todas las salas marcadas visitadas'; },
         wipe:        () => { try { if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear(); for (const k of Object.keys(localStorage)) if (/^ts_/.test(k) && k !== 'ts_debug' && k !== 'ts_nick' && k !== 'ts_nick_sfx' && k !== 'ts_lang') localStorage.removeItem(k); } catch (e) {} return 'Partida + flags borrados (recargá o Restablecer)'; },
       };

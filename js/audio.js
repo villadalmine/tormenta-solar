@@ -113,14 +113,82 @@ const Sfx = (() => {
     ['C5','C2',1],['C5','C2',1],['C5','C2',2],                  // ¡Vi-va Pe-rón!
   ];
   const Marcha = makeTrack(MARCHA, 0.26, { leadVol:0.06, bassVol:0.06, leadType:'square', staccato:0.6, guira:true });
-  // heavy metal argentino (Almafuerte) prueba de sonido
-  const METAL = [
-    ['E4','E2',1],['E4','E2',1],['G4','E2',1],['E4','E2',1],
-    ['A4','A2',1],['E4','A2',1],['G4','G2',1],['E4','G2',1],
-    ['E4','E2',1],['G4','E2',1],['A4','E2',1],['B4','E2',1],
-    ['G4','E2',2],['E4','E2',1],['E4','E2',1],
+  // ---- MOTOR "HEAVY CRIOLLO" (homenaje ORIGINAL a Almafuerte/Iorio, sin copiar temas): power chords con DISTORSIÓN
+  // (waveshaper) + bajo con cuerpo + BATERÍA (kick/snare/hats) + ADSR + vibrato en los leads, todo por un bus con
+  // compresor para que suene LLENO y no clipee. Data-driven: cada paso = [acorde, bajo, beats, drum, mel?].
+  //   acorde  = raíz del power chord (rítmica distorsionada; se le suma la quinta + octava)
+  //   bajo    = nota del bajo (limpia, grave)         beats = duración en pulsos
+  //   drum    = ''|'k'(bombo)|'s'(redoblante)|'ks'    mel   = (opcional) nota del LEAD que "canta" arriba (estribillo/lick)
+  // nf(): nombre de nota ("E2","G#4") → frecuencia, así se compone libre sin tabla fija.
+  const NOTE_SEMI = { C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11 };
+  function nf(n) { if (!n) return 0; const m = /^([A-G]#?)(-?\d)$/.exec(n); if (!m) return FREQ[n] || 0; const semi = NOTE_SEMI[m[1]] + (parseInt(m[2], 10) + 1) * 12; return 440 * Math.pow(2, (semi - 69) / 12); }
+  function distCurve(k) { const n = 8192, c = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; c[i] = (1 + k) * x / (1 + k * Math.abs(x)); } return c; }
+  function makeHeavy(song, beat, opts) {
+    opts = opts || {};
+    let on = false, idx = 0, nextT = 0, timer = null, gtr = null, clean = null;
+    function chain() {                                    // bus: guitarra→distorsión→comp ; bajo/batería→comp ; comp→master→salida
+      if (clean) return; const c = ensure();
+      const comp = c.createDynamicsCompressor();
+      comp.threshold.value = -20; comp.knee.value = 24; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.18;
+      const out = c.createGain(); out.gain.value = opts.master || 0.72; comp.connect(out); out.connect(c.destination);
+      const ws = c.createWaveShaper(); ws.curve = distCurve(opts.drive || 6); ws.oversample = '4x';
+      const gi = c.createGain(); gi.gain.value = 1; gi.connect(ws); ws.connect(comp);
+      gtr = gi; clean = comp;
+    }
+    function env(g, start, dur, sus) { g.gain.setValueAtTime(0, start); g.gain.linearRampToValueAtTime(1, start + 0.007); g.gain.setValueAtTime(1, start + dur * (sus || 0.7)); g.gain.exponentialRampToValueAtTime(0.0006, start + dur); }
+    function power(freq, start, dur) {                    // power chord: raíz + quinta + octava → guitarra rítmica gorda
+      const c = ensure(), g = c.createGain(); env(g, start, dur, 0.72); g.connect(gtr);
+      [[freq, 0.18], [freq * 1.4983, 0.11], [freq * 2, 0.07]].forEach(([f, v]) => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const gg = c.createGain(); gg.gain.value = v; o.connect(gg); gg.connect(g); o.start(start); o.stop(start + dur + 0.05); });
+    }
+    function lead(freq, start, dur) {                     // LEAD que canta (con vibrato) — estribillos y licks
+      const c = ensure(), g = c.createGain(); env(g, start, dur, 0.8); g.connect(gtr);
+      [[freq, 0.26], [freq * 2, 0.10]].forEach(([f, v]) => { const o = c.createOscillator(); o.type = 'square'; o.frequency.value = f; const gg = c.createGain(); gg.gain.value = v; o.connect(gg); gg.connect(g);
+        const lfo = c.createOscillator(); lfo.frequency.value = 5.5; const lg = c.createGain(); lg.gain.value = f * 0.011; lfo.connect(lg); lg.connect(o.frequency); lfo.start(start); lfo.stop(start + dur + 0.05);
+        o.start(start); o.stop(start + dur + 0.05); });
+    }
+    function bassN(freq, start, dur) { const c = ensure(), o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = freq; env(g, start, dur, 0.85); g.gain.value = 0; const gg = c.createGain(); gg.gain.value = opts.bassVol || 0.42; o.connect(g); g.connect(gg); gg.connect(clean); o.start(start); o.stop(start + dur + 0.05); }
+    function kick(start) { const c = ensure(), o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(160, start); o.frequency.exponentialRampToValueAtTime(48, start + 0.11); g.gain.setValueAtTime(0.9, start); g.gain.exponentialRampToValueAtTime(0.001, start + 0.14); o.connect(g); g.connect(clean); o.start(start); o.stop(start + 0.15); }
+    function noise(start, dur, hp, bp, vol) { const c = ensure(); const b = c.createBuffer(1, Math.max(1, (c.sampleRate || 44100) * dur), c.sampleRate || 44100); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const s = c.createBufferSource(); s.buffer = b; const f = c.createBiquadFilter(); f.type = hp ? 'highpass' : 'bandpass'; f.frequency.value = bp; f.Q.value = 0.8; const g = c.createGain(); g.gain.setValueAtTime(vol, start); g.gain.exponentialRampToValueAtTime(0.001, start + dur); s.connect(f); f.connect(g); g.connect(clean); s.start(start); }
+    function tick() {
+      if (!on) return; const c = ensure();
+      while (nextT < c.currentTime + 0.3) {
+        const [chord, bass, beats, drum, mel] = song[idx % song.length];
+        const dur = (beats || 1) * beat;
+        if (chord) power(nf(chord), nextT, dur * 0.9);
+        if (bass) bassN(nf(bass), nextT, dur * 0.95);
+        if (mel) lead(nf(mel), nextT, dur * 0.92);
+        if (drum && drum.indexOf('k') >= 0) kick(nextT);
+        if (drum && drum.indexOf('s') >= 0) noise(nextT, 0.13, false, 1900, 0.5);   // redoblante
+        noise(nextT, 0.03, true, 8000, 0.06);                                        // hi-hat en cada pulso (drive)
+        idx++; nextT += dur;
+      }
+      timer = setTimeout(tick, 55);
+    }
+    return { start() { if (on) return; chain(); on = true; idx = 0; nextT = ensure().currentTime + 0.1; tick(); }, stop() { on = false; if (timer) clearTimeout(timer); } };
+  }
+  // "FIERRO CRIOLLO" — instrumental ORIGINAL en Mi menor, estilo heavy criollo (homenaje a Almafuerte, NO es un tema suyo):
+  // RIFF galopante en E → puente por C/D/A → ESTRIBILLO con lead cantando arriba → vuelta al riff. Loopea como canción.
+  const HEAVY = [
+    // -- RIFF A (galope en Mi, el "fierro") --
+    ['E2','E1',1,'k'],['E2','E1',1,''],['E2','E1',1,'s'],['G2','G1',1,''],
+    ['E2','E1',1,'k'],['E2','E1',1,''],['D2','D1',1,'s'],['E2','E1',1,''],
+    ['E2','E1',1,'k'],['E2','E1',1,''],['C2','C1',1,'s'],['C2','C1',1,''],
+    ['B1','B0',1,'k'],['C2','C1',1,''],['D2','D1',1,'s'],['D2','D1',1,''],
+    // -- RIFF A' (variación, resuelve a Mi) --
+    ['E2','E1',1,'k'],['G2','G1',1,''],['A2','A1',1,'s'],['E2','E1',1,''],
+    ['E2','E1',1,'k'],['A2','A1',1,''],['G2','G1',1,'s'],['E2','E1',1,''],
+    ['E2','E1',1,'k'],['E2','E1',1,''],['D2','D1',1,'s'],['C2','C1',1,''],
+    ['B1','B0',1,'ks'],['B1','B0',1,''],['E2','E1',2,'k'],
+    // -- ESTRIBILLO (acordes largos + LEAD que canta) --
+    ['A2','A1',2,'k','E4'],['A2','A1',2,'s','G4'],
+    ['C3','C2',2,'k','A4'],['C3','C2',2,'s','B4'],
+    ['D3','D2',2,'k','C5'],['D3','D2',2,'s','B4'],
+    ['E3','E2',2,'k','G4'],['E3','E2',2,'ks','E4'],
+    // -- LICK de cierre (lead solista) y vuelta --
+    ['E2','E1',1,'k','E5'],['E2','E1',1,'','D5'],['E2','E1',1,'s','B4'],['G2','G1',1,'','G4'],
+    ['A2','A1',1,'k','A4'],['G2','G1',1,'','G4'],['E2','E1',1,'s','E4'],['E2','E1',2,'ks','E4'],
   ];
-  const Metal = makeTrack(METAL, 0.16, { leadVol:0.055, bassVol:0.06, leadType:'sawtooth' });
+  const Metal = makeHeavy(HEAVY, 0.19, { master: 0.72, drive: 6, bassVol: 0.42 });
   // dance pedorra (la parte que juegan)
   const DANCE = [
     ['A4','A2',1],['A4','A2',1],['E5','A2',1],['A4','A2',1],
@@ -142,6 +210,7 @@ const Sfx = (() => {
 
   return {
     init() { ensure(); },
+    __ctx() { return ctx; },   // superficie de prueba (validación de audio en navegador)
     shoot() { blip(220, 0.08, 'square', 0.18); noiseBurst(0.05, 0.14); },
     spit() { blip(150, 0.05, 'sawtooth', 0.08); noiseBurst(0.08, 0.12); },
     eShoot() { blip(160, 0.09, 'sawtooth', 0.12); },

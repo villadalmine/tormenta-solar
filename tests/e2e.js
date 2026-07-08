@@ -63,11 +63,14 @@ const document = withListeners({
 
 // ---- audio mock ----
 class FakeParam { constructor(){this.value=0;} setValueAtTime(){} linearRampToValueAtTime(){} exponentialRampToValueAtTime(){} setTargetAtTime(){} }
-class FakeNode { constructor(){ this.frequency=new FakeParam(); this.gain=new FakeParam(); this.Q=new FakeParam(); this.detune=new FakeParam(); this.type=''; }
+class FakeNode { constructor(){ this.frequency=new FakeParam(); this.gain=new FakeParam(); this.Q=new FakeParam(); this.detune=new FakeParam();
+  this.threshold=new FakeParam(); this.knee=new FakeParam(); this.ratio=new FakeParam(); this.attack=new FakeParam(); this.release=new FakeParam();
+  this.type=''; this.curve=null; this.oversample=''; }
   connect(){return this;} disconnect(){} start(){} stop(){} }
 class FakeAudioContext { constructor(){ this.currentTime=0; this.state='running'; this.sampleRate=44100; this.destination={}; }
   resume(){} createOscillator(){return new FakeNode();} createGain(){return new FakeNode();}
   createBiquadFilter(){return new FakeNode();} createBufferSource(){return new FakeNode();}
+  createWaveShaper(){return new FakeNode();} createDynamicsCompressor(){return new FakeNode();} createAnalyser(){return new FakeNode();}
   createBuffer(){ return { getChannelData: () => new Float32Array(16) }; } }
 
 // ---- RAF controlado a mano ----
