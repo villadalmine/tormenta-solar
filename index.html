@@ -8,7 +8,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TORMENTA SOLAR — Nivel 1: Calle Florida</title>
-<link rel="stylesheet" href="css/style.css?v=343">
+<link rel="stylesheet" href="css/style.css?v=344">
 </head>
 <body>
 <div id="stage">
@@ -94,6 +94,7 @@
       <p id="endText"></p>
       <div id="endStats" class="end-stats"></div>
       <button id="hitoBtn" class="hidden"></button>
+      <button id="seguirBtn" class="hidden"></button>
       <button id="restartBtn" data-i18n="end.restart">REINTENTAR</button>
     </div>
   </div>
@@ -151,6 +152,7 @@
           <button class="dbg-btn dbg-wide" data-dbg="satelite">Satélite herido (boca en el piquete)</button>
           <button class="dbg-btn dbg-wide" data-dbg="subteYa" style="color:#7ff3ff">🚇 Bajar al subte YA (estación Lavalle)</button>
           <button class="dbg-btn dbg-wide" data-dbg="plazaYa" style="color:#f6b4c4">🏛️ Ir a PLAZA DE MAYO (Nivel 2) YA</button>
+          <button class="dbg-btn dbg-wide" data-dbg="constiYa" style="color:#7ecbff">🚆 Ir a CONSTITUCIÓN (Línea C, post Nivel 2)</button>
           <button class="dbg-btn" data-dbg="tormenta">Tormenta cayó</button>
           <button class="dbg-btn" data-dbg="bunker">Búnker (gurú)</button>
           <button class="dbg-btn" data-dbg="chino">Chino abierto</button>
@@ -272,73 +274,74 @@
   <div id="flash"></div>
 </div>
 
-<script src="js/config.js?v=343"></script>
-<script src="js/lang/es.js?v=343"></script>
-<script src="js/lang/en.js?v=343"></script>
-<script src="js/lang/game.es.js?v=343"></script>
-<script src="js/lang/game.en.js?v=343"></script>
-<script src="js/lang/level.en.js?v=343"></script>
-<script src="js/dialogos.js?v=343"></script>
-<script src="js/i18n.js?v=343"></script>
-<script src="js/historia.js?v=343"></script>
-<script src="js/hint-engine.js?v=343"></script>
-<script src="js/mensajero.js?v=343"></script>
-<script src="js/truco.js?v=343"></script>
-<script src="js/truco-net.js?v=343"></script>
-<script src="js/truco-net6.js?v=343"></script>
-<script src="js/telemetry.js?v=343"></script>
-<script src="js/audio.js?v=343"></script>
-<script src="js/art.js?v=343"></script>
-<script src="js/input.js?v=343"></script>
-<script src="js/fx.js?v=343"></script>
-<script src="js/level.js?v=343"></script>
-<script src="js/player.js?v=343"></script>
-<script src="js/enemies.js?v=343"></script>
-<script src="js/arcade.js?v=343"></script>
-<script src="js/super.js?v=343"></script>
-<script src="js/vinilos.js?v=343"></script>
-<script src="js/playable.js?v=343"></script>
-<script src="js/nivelai.js?v=343"></script>
-<script src="js/spinoff.js?v=343"></script>
-<script src="js/tienda.js?v=343"></script>
-<script src="js/telo.js?v=343"></script>
-<script src="js/bodegon.js?v=343"></script>
-<script src="js/lavalle.js?v=343"></script>
-<script src="js/obelisco.js?v=343"></script>
-<script src="js/subte.js?v=343"></script>
-<script src="js/plaza.js?v=343"></script>
-<script src="js/finale.js?v=343"></script>
-<script src="js/mapa.js?v=343"></script>
-<script src="js/piquete.js?v=343"></script>
-<script src="js/soga.js?v=343"></script>
-<script src="js/bombo.js?v=343"></script>
-<script src="js/olla.js?v=343"></script>
-<script src="js/pancarta.js?v=343"></script>
-<script src="js/globo.js?v=343"></script>
-<script src="js/bunkermapa.js?v=343"></script>
-<script src="js/truco-pvp.js?v=343"></script>
-<script src="js/truco-pvp6.js?v=343"></script>
-<script src="js/linyera-pool.js?v=343"></script>
-<script src="js/noticias.js?v=343"></script>
-<script src="js/propaganda.js?v=343"></script>
-<script src="js/chusmerio.js?v=343"></script>
-<script src="js/historias-vecino.js?v=343"></script>
-<script src="js/ai.js?v=343"></script>
+<script src="js/config.js?v=344"></script>
+<script src="js/lang/es.js?v=344"></script>
+<script src="js/lang/en.js?v=344"></script>
+<script src="js/lang/game.es.js?v=344"></script>
+<script src="js/lang/game.en.js?v=344"></script>
+<script src="js/lang/level.en.js?v=344"></script>
+<script src="js/dialogos.js?v=344"></script>
+<script src="js/i18n.js?v=344"></script>
+<script src="js/historia.js?v=344"></script>
+<script src="js/hint-engine.js?v=344"></script>
+<script src="js/mensajero.js?v=344"></script>
+<script src="js/truco.js?v=344"></script>
+<script src="js/truco-net.js?v=344"></script>
+<script src="js/truco-net6.js?v=344"></script>
+<script src="js/telemetry.js?v=344"></script>
+<script src="js/audio.js?v=344"></script>
+<script src="js/art.js?v=344"></script>
+<script src="js/input.js?v=344"></script>
+<script src="js/fx.js?v=344"></script>
+<script src="js/level.js?v=344"></script>
+<script src="js/player.js?v=344"></script>
+<script src="js/enemies.js?v=344"></script>
+<script src="js/arcade.js?v=344"></script>
+<script src="js/super.js?v=344"></script>
+<script src="js/vinilos.js?v=344"></script>
+<script src="js/playable.js?v=344"></script>
+<script src="js/nivelai.js?v=344"></script>
+<script src="js/spinoff.js?v=344"></script>
+<script src="js/tienda.js?v=344"></script>
+<script src="js/telo.js?v=344"></script>
+<script src="js/bodegon.js?v=344"></script>
+<script src="js/lavalle.js?v=344"></script>
+<script src="js/obelisco.js?v=344"></script>
+<script src="js/subte.js?v=344"></script>
+<script src="js/plaza.js?v=344"></script>
+<script src="js/constitucion.js?v=344"></script>
+<script src="js/finale.js?v=344"></script>
+<script src="js/mapa.js?v=344"></script>
+<script src="js/piquete.js?v=344"></script>
+<script src="js/soga.js?v=344"></script>
+<script src="js/bombo.js?v=344"></script>
+<script src="js/olla.js?v=344"></script>
+<script src="js/pancarta.js?v=344"></script>
+<script src="js/globo.js?v=344"></script>
+<script src="js/bunkermapa.js?v=344"></script>
+<script src="js/truco-pvp.js?v=344"></script>
+<script src="js/truco-pvp6.js?v=344"></script>
+<script src="js/linyera-pool.js?v=344"></script>
+<script src="js/noticias.js?v=344"></script>
+<script src="js/propaganda.js?v=344"></script>
+<script src="js/chusmerio.js?v=344"></script>
+<script src="js/historias-vecino.js?v=344"></script>
+<script src="js/ai.js?v=344"></script>
 <!-- motor v2 (data-driven) detrás del toggle de ⚙ Opciones; default v1. Ver specs/modelo-de-entidades.md -->
-<script src="js/mundo.js?v=343"></script>
-<script src="js/level-data.js?v=343"></script>
+<script src="js/mundo.js?v=344"></script>
+<script src="js/level-data.js?v=344"></script>
 <!-- salon.js ANTES de game.js: game.js registra Salon.onWhisper/onTable en su init (si Salon no existe aún, los chats privados y las mesas multijugador quedan sin cablear) -->
-<script src="js/presence.js?v=343"></script>
-<script src="js/salon.js?v=343"></script>
-<script src="js/eventos.js?v=343"></script>
-<script src="js/ideas.js?v=343"></script>
-<script src="js/game.js?v=343"></script>
-<script src="js/save.js?v=343"></script>
-<script src="js/ads.js?v=343"></script>
-<script src="js/carteles.js?v=343"></script>
-<script src="js/datacenter.js?v=343"></script>
-<script src="js/fit.js?v=343"></script>
+<script src="js/presence.js?v=344"></script>
+<script src="js/salon.js?v=344"></script>
+<script src="js/eventos.js?v=344"></script>
+<script src="js/ideas.js?v=344"></script>
+<script src="js/game.js?v=344"></script>
+<script src="js/save.js?v=344"></script>
+<script src="js/ads.js?v=344"></script>
+<script src="js/carteles.js?v=344"></script>
+<script src="js/datacenter.js?v=344"></script>
+<script src="js/fit.js?v=344"></script>
 <!-- capa MOBILE: dormida en desktop; en táctil inyecta los controles (mobile/touch.js + mobile.css) -->
-<script src="mobile/boot.js?v=343"></script>
+<script src="mobile/boot.js?v=344"></script>
 </body>
 </html>

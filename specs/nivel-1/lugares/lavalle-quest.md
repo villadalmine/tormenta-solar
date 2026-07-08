@@ -194,8 +194,7 @@ LIBERTADOR → lo armás en la PIRÁMIDE DE MAYO → señal a los satélites →
   "title_en": "Arm the Pyramid → San Martín liberation (win Level 2)",
   "at": "plaza",
   "pre": { "sanmartinChip": true },
-  "sets": { "nivel2Win": true },
-  "terminal": true,
+  "sets": { "nivel2Win": true, "lineaC": true },
   "hints": {
     "es": [
       "Tenés el chip del Libertador. ¿Dónde se arma el dispositivo anti-IA?",
@@ -208,6 +207,36 @@ LIBERTADOR → lo armás en la PIRÁMIDE DE MAYO → señal a los satélites →
       "The PIRÁMIDE DE MAYO (center of the plaza) is the device. Bring the chip there.",
       "Stand at the Pyramid and HOLD [E]: San Martín's signal must overpower the AI.",
       "Hold [E] at the Pyramid until the beam rises to the satellites — San Martín process of worldwide liberation!"
+    ]
+  }
+}
+```
+
+Ganar el Nivel 2 habilita la **Línea C** entera del subte (une Retiro ↔ Constitución). Desde cualquier estación
+podés viajar a **Constitución**, la gran terminal del Roca (hall, molinetes de tren, locales — por ahora mock).
+Es el arranque de la expansión de la red ferroviaria (subte.md §11).
+
+```hist
+{
+  "id": "constitucion_llegada",
+  "title": "Llegar a la terminal Constitución (Línea C, tren Roca)",
+  "title_en": "Reach Constitución terminal (Line C, Roca railway)",
+  "at": "plaza",
+  "pre": { "lineaC": true },
+  "sets": { "enConstitucion": true },
+  "terminal": true,
+  "hints": {
+    "es": [
+      "Ganaste el Nivel 2: se habilitó la LÍNEA C. Bajá al subte.",
+      "En el andén, con la SUBE, abrí el menú de viaje.",
+      "Viajá a CONSTITUCIÓN: la escalera de esa estación sube a la terminal del Roca.",
+      "Recorré el hall de Constitución: el reloj, los molinetes del tren, los locales (mock por ahora)."
+    ],
+    "en": [
+      "You beat Level 2: LINE C is now open. Head down to the subway.",
+      "On the platform, with the SUBE, open the travel menu.",
+      "Travel to CONSTITUCIÓN: that station's stairs lead up to the Roca terminal.",
+      "Explore the Constitución hall: the clock, the train turnstiles, the shops (mock for now)."
     ]
   }
 }

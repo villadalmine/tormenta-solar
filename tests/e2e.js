@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -443,7 +443,18 @@ if (require.main === module) {
     const sHave = Subte.create({ station: 'florida', subeReady: false, hasBoleto: true, coins: 0 });
     if (!sHave.__pass()) throw new Error('subte: con un boleto ya en la mochila debería pasar el molinete');
     if (!sHave.boletoUsed) throw new Error('subte: al pasar con el boleto de la mochila debería marcar boletoUsed');
+    // §11: la terminal (Constitución) tiene surface → la escalera sube al hall del tren, no a la calle
+    const sSurf = Subte.create({ station: 'constitucion', subeReady: true });
+    if (sSurf.__leave() && sSurf.exitTo !== 'surface:constitucion') throw new Error('subte: la escalera de Constitución debería subir a la terminal: ' + sSurf.exitTo);
     ok.push('subte:ok');
+    // TERMINAL CONSTITUCIÓN (subte.md §11): hall del Roca + molinetes de tren + locales mock; sale al subte C
+    if (typeof Constitucion === 'undefined' || !Constitucion.create) throw new Error('Constitucion no cargó');
+    const co = Constitucion.create({});
+    for (let i = 0; i < 30; i++) { co.update(0.05); co.draw(C, 960, 540); }
+    if (co.__leave() !== 'back') throw new Error('constitucion: la escalera debería volver al subte: ' + co.exitTo);
+    const co2 = Constitucion.create({});
+    if (!co2.__local()) throw new Error('constitucion: un local mock debería dar un mensaje de flavor');
+    ok.push('constitucion:ok');
     // PLAZA DE MAYO (Nivel 2, arco sanmartiniano): chip del Libertador (tumba) → Pirámide → señal → win2
     if (typeof Plaza === 'undefined' || !Plaza.create) throw new Error('Plaza no cargó');
     const pz = Plaza.create({});
@@ -656,7 +667,7 @@ if (require.main === module) {
     const allDone = { stormed:true, borrachosHappy:true, bunkerUnlocked:true, chinoFrontOpen:true, trucoWon:true,
       won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true,
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
-      subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true };
+      subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

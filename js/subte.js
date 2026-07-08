@@ -10,6 +10,11 @@ const Subte = (() => {
     florida:  { nombre: 'Estación Florida',  linea: 'B', color: '#e2231a', destinos: ['L. N. Alem', 'C. Pellegrini'] },
     lavalle:  { nombre: 'Estación Lavalle',  linea: 'C', color: '#1f6cb5', destinos: ['San Martín', 'Diagonal Norte'] },
     catedral: { nombre: 'Catedral · PLAZA DE MAYO', linea: 'D', color: '#00a54f', destinos: ['9 de Julio'] },
+    // Línea C real: une RETIRO ↔ CONSTITUCIÓN (sus terminales). Tras ganar el Nivel 2 se habilita la C entera y
+    // podés viajar a las dos grandes terminales de TREN. Su escalera de salida sube al HALL de la terminal
+    // (`surface` → game.js abre el sub-modo Constitucion/Retiro), no a la calle.
+    constitucion: { nombre: 'Constitución',  linea: 'C', color: '#1f6cb5', destinos: ['Retiro', 'Diagonal Norte'], surface: 'constitucion' },
+    retiro:       { nombre: 'Retiro',        linea: 'C', color: '#1f6cb5', destinos: ['Constitución', 'Lavalle'],  surface: 'retiro' },
   };
 
   function create(opts) {
@@ -39,7 +44,9 @@ const Subte = (() => {
     setMsg(subeReady ? T('g.subte.enter', { e: est.nombre, l: est.linea }) : T('g.subte.enterNoSube', { e: est.nombre, l: est.linea }), subeReady ? 6 : 8);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
-    function leave() { done = true; exitTo = 'back'; }
+    // salir por la escalera: en las terminales de tren (Constitución/Retiro) la escalera SUBE al hall de la terminal
+    // (`surface:<id>`); en el resto vuelve a donde bajaste ('back').
+    function leave() { done = true; exitTo = est.surface ? ('surface:' + est.surface) : 'back'; }
     function solid(px, py) { const tx = Math.floor(px / CS), ty = Math.floor(py / CS); if (tx < 0 || ty < 0 || tx >= W || ty >= H) return true; return map[ty][tx] === 1 || map[ty][tx] === 2; }
     function freeAt(x, y) { const r = player.r; return !solid(x - r, y - r) && !solid(x + r, y - r) && !solid(x - r, y + r) && !solid(x + r, y + r); }
     function near(c) { return Math.hypot(player.x - (c.x + 0.5) * CS, player.y - (c.y + 0.5) * CS) < CS * 1.5; }

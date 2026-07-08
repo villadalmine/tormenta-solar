@@ -101,6 +101,20 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v344] — 2026-07-08 — 🚆 Post Nivel 2: win2 continuable + LÍNEA C → terminal CONSTITUCIÓN (E1 de la red de tren)
+- **Ganar el Nivel 2 ya no termina el juego.** Al reventar los satélites: sale la pantalla *"¡Ganaste el Nivel 2!"*
+  (como antes) pero ahora con botón **▶️ SEGUIR JUGANDO** → volvés a **Plaza de Mayo** (hub, ya liberada) y se
+  **habilita la LÍNEA C** entera del subte (`ts_linea_c`), que une Retiro ↔ Constitución.
+- **Terminal CONSTITUCIÓN** (`js/constitucion.js`, sub-modo top-down): viajás por la Línea C desde el subte y la
+  escalera te sube a la **gran terminal del Roca** — hall abovedado, **reloj histórico**, **molinetes de tren** con
+  cartel de ramales (La Plata, Ezeiza, A. Korn, Bosques, Cañuelas), y **locales MOCK** (kiosco/café/diarios/locutorio/
+  boletería, "próximamente"). Volvés al subte por la escalera **▼ SUBTE C**.
+- **Data-driven + grafo:** catálogo `ESTACIONES` con `surface:<id>` (Constitución/Retiro) → `exitTo='surface:...'`;
+  grafo (26 aristas): `nivel2_liberacion` setea `nivel2Win`+`lineaC`, nueva arista `constitucion_llegada`. Flags
+  `lineaC`/`enConstitucion` en FLAG_SETTERS/getters/historiaState/worldSnapshot (los oráculos lo saben). Debug `constiYa`.
+- Roadmap (subte.md §11): E2 Retiro · E3 Línea San Martín · E4 Villa 31 → comedor popular. i18n ES≡EN. e2e
+  (`subte:ok` con surface + `constitucion:ok`) + web-smoke verdes. Cache v344.
+
 ## [v343 · infra-67] — 2026-07-08 — 🔔🎗️ Cabildo: campana → escarapela → French & Beruti (NPCs con IA) + Himno-coda
 
 - **Repicás la campana del Cabildo** (Plaza de Mayo, Nivel 2): la 1ª vez **caen escarapelas** celestes y blancas y

@@ -222,3 +222,34 @@ En la Plaza de Mayo (Nivel 2), el **Cabildo** (oeste) suma un arco histórico/ed
 - **Data/grafo:** arista `escarapela` (at `plaza`, pre `enPlaza`) en `lavalle-quest.md` → `historia.js`; flag `escarapela`
   en `FLAG_SETTERS`/getters/`historiaState`/grounding. Personas desde fichas `personajes/{french,beruti}.md` →
   `gen-personas.mjs`. Wiring: `plaza.js` getters `openChatNpc`/`escarapelaEdge` → `game.js` (`openChat`, `chatReturnTo='plaza'`).
+
+## 11 — POST NIVEL 2: la red de TREN (Línea C → Constitución / Retiro → Villa 31)
+
+Pedido del dueño (2026-07-08): al reventar los satélites desde la Pirámide, la pantalla de **win2 sigue diciendo
+"ganaste el Nivel 2"** pero **YA NO termina el juego** — te deja seguir en el mapa porque se **habilita la Línea C**
+(que une Retiro ↔ Constitución). Roadmap por etapas (como Lavalle E1-E5):
+
+- **E1 — HECHO (v344):** win2 **continuable** + **Constitución**.
+  - `showWin2End()` enciende `ts_linea_c` y muestra el botón **"▶️ SEGUIR JUGANDO"** (`#seguirBtn`) → `resumeAfterWin2()`
+    reanuda el loop y te devuelve a **Plaza de Mayo** (hub, ya liberada). El grafo: `nivel2_liberacion` ahora setea
+    `nivel2Win` + **`lineaC`** (arista `constitucion_llegada` cuelga de `lineaC`). Flags `ts_linea_c`/`ts_en_constitucion`
+    en FLAG_SETTERS/getters/historiaState/worldSnapshot (los oráculos lo saben). `clearProgress()` los borra en partida
+    nueva (progreso de Nivel 2), se conservan en CONTINUAR/checkpoint.
+  - **Catálogo del subte** (`js/subte.js`): estaciones `constitucion`/`retiro` (Línea C) con `surface:<id>` → la escalera
+    de salida de una TERMINAL sube al **hall del tren** (no a la calle): `leave()` emite `exitTo='surface:<id>'`.
+  - `enterSubte()` suma `constitucion` a los destinos cuando `ts_linea_c`. El handler del subte en game.js: `surface:constitucion`
+    → `enterConstitucion()`.
+  - **`js/constitucion.js`** — sub-modo top-down de la GRAN TERMINAL DEL ROCA, basado en la estación real: hall abovedado,
+    **reloj histórico** central, fila de **molinetes de tren** con cartel de **ramales del Roca** (La Plata, Ezeiza, A. Korn,
+    Bosques, Cañuelas — DATA rotando), y **locales MOCK** data-driven (kiosco/café/diarios/locutorio/boletería) que dan
+    flavor "próximamente" (iteramos con interior real). Salidas: escalera **▼ SUBTE C** (vuelve al andén de la Línea C →
+    menú de viaje) y una puerta a la calle (próximamente, para E3). Debug: acción/botón `constiYa`.
+- **E2 — PENDIENTE:** **Retiro** (misma idea: terminal Mitre/San Martín/Belgrano, molinetes + locales mock). Sumar `retiro`
+  a los destinos + `enterRetiro()` + `js/retiro.js`.
+- **E3 — PENDIENTE:** salir de Retiro a la **calle / Plaza (San Martín / Fuerza Aérea)** → tomar la **Línea San Martín**
+  (tren) → ir hacia abajo → aparece **VILLA 31**.
+- **E4 — PENDIENTE:** entrar a **Villa 31** → te contratan para un **comedor popular** (quest). "Ahí quedamos" (dueño).
+
+Nota geográfica: por jugabilidad, "habilitar la Línea C" abre el destino Constitución desde CUALQUIER estación (no forzamos
+volver a Lavalle). El metro (subte) y el tren conviven: la terminal (Constitución/Retiro) tiene el andén del subte C abajo y
+el hall del tren arriba.

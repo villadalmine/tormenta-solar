@@ -133,6 +133,7 @@
   let globoGame = null;     // MAPA A: el globo del mundo (satélites + bases) — sala de situación del búnker
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let subteGame = null, subteReturn = 'street';   // subte.md §4: la estación (sub-modo top-down); dónde volvés al salir
+  let constitucionGame = null;                     // subte.md §11: terminal de tren Constitución (Línea C, post Nivel 2)
   let plazaGame = null;   // subte.md §10 / F4: PLAZA DE MAYO (arranque del Nivel 2), llegás en subte a Catedral
   let finaleGame = null;  // subte.md §10.1: cinemática de cierre del Nivel 2 (liberación sanmartiniana) → pantalla de fin
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
@@ -390,7 +391,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -689,6 +690,7 @@
     if (returnTo) subteReturn = returnTo;   // en un VIAJE (travel:X) no lo pisamos: conservás dónde volvés a la superficie
     const available = ['florida'];          // estaciones jugables que YA existen
     if (lsFlag('ts_sat_down')) { available.push('lavalle'); available.push('catedral'); }   // tras herir al satélite: Lavalle + Catedral (→ Plaza de Mayo, Nivel 2)
+    if (lsFlag('ts_linea_c')) { available.push('constitucion'); }   // subte.md §11: ganar el Nivel 2 habilita la Línea C entera → Constitución (Retiro llega en E2)
     subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged'), available,
       hasBoleto: !!(player.inventory && player.inventory.includes('boleto')), coins: player.coins || 0, boletoPrice: 20 }); state = 'subte';
     evlog('hito', 'bajó al subte (' + station + ')');
@@ -704,6 +706,17 @@
     plazaGame = Plaza.create({ won2: lsFlag('ts_nivel2_win'), escarapela: lsFlag('ts_escarapela') }); state = 'plaza';
     applyEdge('plaza_llegada', 'enPlaza');   // GRAFO F4c: hito reconocido → map + checkpoint + ticker
     evlog('hito', 'llegó a Plaza de Mayo');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // TERMINAL CONSTITUCIÓN (subte.md §11): viajás por la Línea C (habilitada al ganar el Nivel 2) → la escalera del
+  // andén sube a la gran terminal del Roca (hall + molinetes de tren + locales mock). Al salir volvés al subte C.
+  function enterConstitucion() {
+    if (typeof Constitucion === 'undefined' || !Constitucion.create) { enterSubte('constitucion'); return true; }
+    constitucionGame = Constitucion.create({}); state = 'constitucion';
+    applyEdge('constitucion_llegada', 'enConstitucion');   // GRAFO: hito → map/checkpoint/ticker + los oráculos saben
+    evlog('hito', 'llegó a la terminal Constitución');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -1107,6 +1120,9 @@
     sanmartinChip:    v => { try { localStorage.setItem('ts_sanmartin_chip', v ? '1' : ''); } catch (e) {} },
     nivel2Win:        v => { try { localStorage.setItem('ts_nivel2_win', v ? '1' : ''); } catch (e) {} },
     escarapela:       v => { try { localStorage.setItem('ts_escarapela', v ? '1' : ''); } catch (e) {} },   // Cabildo: repicaste la campana, agarraste la escarapela (French & Beruti)
+    // POST NIVEL 2 (subte.md §11): la LÍNEA C queda habilitada → red de tren (Constitución/Retiro)
+    lineaC:           v => { try { localStorage.setItem('ts_linea_c', v ? '1' : ''); } catch (e) {} },
+    enConstitucion:   v => { try { localStorage.setItem('ts_en_constitucion', v ? '1' : ''); } catch (e) {} },
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1159,6 +1175,8 @@
       sanmartinChip: lsFlag('ts_sanmartin_chip'),   // Nivel 2: tenés el chip del Libertador (grafo)
       nivel2Win: lsFlag('ts_nivel2_win'),           // Nivel 2: ganaste (liberación sanmartiniana)
       escarapela: lsFlag('ts_escarapela'),          // Cabildo: repicaste la campana → escarapela + French & Beruti
+      lineaC: lsFlag('ts_linea_c'),                 // post Nivel 2: Línea C habilitada (red de tren)
+      enConstitucion: lsFlag('ts_en_constitucion'), // llegaste a la terminal Constitución
       sleptOnce: loopCount > 0,
     };
   }
@@ -1193,6 +1211,7 @@
       sateliteHerido: lsFlag('ts_sat_down'), subeReady: lsFlag('ts_sube_charged'),
       enPlaza: lsFlag('ts_en_plaza'), sanmartinChip: lsFlag('ts_sanmartin_chip'), nivel2Win: lsFlag('ts_nivel2_win'),
       escarapela: lsFlag('ts_escarapela'),   // Cabildo 1810: escarapela + French & Beruti (los oráculos lo saben)
+      lineaC: lsFlag('ts_linea_c'), enConstitucion: lsFlag('ts_en_constitucion'),   // §11: red de tren post Nivel 2 (Constitución/Retiro)
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -3505,6 +3524,7 @@
   function closeMyStats() { const ov = document.getElementById('mystats'); if (ov) ov.classList.add('hidden'); }
   function win() {
     if (state === 'win') return;
+    { const sb = document.getElementById('seguirBtn'); if (sb) sb.classList.add('hidden'); }
     state = 'win'; running = false; Sfx.stopHum(); Sfx.stopAmbient(); Sfx.win();
     tel('win', { engine: engineUsed });
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // terminaste: borrá el guardado
@@ -3518,6 +3538,7 @@
     // piquete te levanta ("te teletransportaste como un RAYO SOLAR"). El save NO se borra.
     if (!bunkerUnlocked && typeof Lavalle !== 'undefined' && Lavalle.create) { respawnPiquete(); return; }
     state = 'dead'; running = false; Sfx.stopHum(); Sfx.stopAmbient();
+    { const sb = document.getElementById('seguirBtn'); if (sb) sb.classList.add('hidden'); }
     tel('death', { engine: engineUsed });
     evlog('muerte', '');
     if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear();   // moriste de verdad: guardado a la basura
@@ -3576,10 +3597,25 @@
   }
   // pantalla de fin del NIVEL 2 (tras la cinemática de cierre, o directo si no está el módulo)
   function showWin2End() {
+    // ganar el Nivel 2 HABILITA LA LÍNEA C entera (Constitución/Retiro): el mundo sigue abierto (subte.md §11).
+    lsOn('ts_linea_c');
     elEndTitle.textContent = T('g.win2.title'); elEndTitle.style.color = '#7CFC00';
     elEndText.innerHTML = T('g.win2.text'); renderStats(true);
     const hitoBtn = document.getElementById('hitoBtn'); if (hitoBtn) hitoBtn.classList.add('hidden');
+    // en vez de terminar el juego, ofrecemos SEGUIR JUGANDO (mundo abierto, Línea C → Constitución).
+    const sb = document.getElementById('seguirBtn'); if (sb) { sb.classList.remove('hidden'); sb.textContent = T('g.nivel2.seguir'); }
     state = 'dead'; running = false; showEnd();
+  }
+  // "SEGUIR JUGANDO" tras ganar el Nivel 2: cierra la pantalla de fin y te devuelve a la Plaza (hub), con la
+  // Línea C ya habilitada para viajar a Constitución. Reanuda el loop (patrón continueGame).
+  function resumeAfterWin2() {
+    const sb = document.getElementById('seguirBtn'); if (sb) sb.classList.add('hidden');
+    elEnd.classList.add('hidden'); elHud.classList.remove('hidden');
+    if (typeof Sfx !== 'undefined') { Sfx.init(); Sfx.startMusic(); }
+    running = true; lastT = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    enterPlaza();                                   // volvés a Plaza de Mayo (ya liberada); salís al subte → Línea C → Constitución
+    setMsg(T('g.nivel2.lineaC'), '#7ff3ff', 8000);
+    requestAnimationFrame(loop);
   }
   function showEnd() {
     elEnd.classList.remove('hidden'); elHud.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden');
@@ -3782,9 +3818,14 @@
       if (subteGame.done) {
         const ex = subteGame.exitTo; subteGame = null;
         if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex && ex.indexOf('surface:') === 0) {   // §11: la escalera de una TERMINAL sube al hall del tren (Constitución/Retiro)
+          const surf = ex.slice(8);
+          if (surf === 'constitucion') { enterConstitucion(); return; }
+          // (retiro llega en E2) — fallback: te quedás en el subte
+        }
         if (ex && ex.indexOf('travel:') === 0) {   // F3: VIAJASTE a otra estación → contás el pasaje y reaparecés allá
           const dest = ex.slice(7);
-          try { const s = JSON.parse(localStorage.getItem('ts_subte_stats') || '{}'); const nm = dest === 'lavalle' ? 'Lavalle' : dest === 'florida' ? 'Florida' : 'Catedral'; s[nm] = s[nm] || { usos: 0, gasto: 0 }; s[nm].usos++; s[nm].gasto += 10; localStorage.setItem('ts_subte_stats', JSON.stringify(s)); } catch (e) {}
+          try { const s = JSON.parse(localStorage.getItem('ts_subte_stats') || '{}'); const nm = dest === 'lavalle' ? 'Lavalle' : dest === 'florida' ? 'Florida' : dest === 'constitucion' ? 'Constitución' : dest === 'retiro' ? 'Retiro' : 'Catedral'; s[nm] = s[nm] || { usos: 0, gasto: 0 }; s[nm].usos++; s[nm].gasto += 10; localStorage.setItem('ts_subte_stats', JSON.stringify(s)); } catch (e) {}
           if (dest === 'catedral') { enterPlaza(); setMsg(T('g.subte.traveled'), '#7ff3ff', 4000); return; }   // F4: Catedral = PLAZA DE MAYO (Nivel 2)
           enterSubte(dest); setMsg(T('g.subte.traveled'), '#7ff3ff', 4000); return;
         }
@@ -3812,6 +3853,12 @@
     } else if (state === 'finale' && finaleGame) {                    // §10.1: cinemática de cierre del Nivel 2
       finaleGame.update(dt); finaleGame.draw(ctx, W, H);
       if (finaleGame.done) { finaleGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear(); showWin2End(); return; }
+    } else if (state === 'constitucion' && constitucionGame) {        // §11: terminal de tren Constitución (post Nivel 2)
+      constitucionGame.update(dt); constitucionGame.draw(ctx, W, H);
+      if (constitucionGame.done) {
+        const ex = constitucionGame.exitTo; constitucionGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        enterSubte('constitucion', 'street'); return;   // bajás de la terminal al subte (Línea C) → menú de viaje
+      }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
       const lc = lavalleGame.openChatNpc;                             // [E] sobre el linyera peronista → chat IA (vuelve a Lavalle)
@@ -4080,6 +4127,8 @@
       continueGame(chk.snap);
       setMsg(T('g.chk.loaded', { t: chkTitle(chk) }), '#7CFC00', 6000);
     });
+    const sb = document.getElementById('seguirBtn');   // "SEGUIR JUGANDO" tras ganar el Nivel 2 (mundo abierto → Línea C)
+    if (sb) sb.addEventListener('click', () => { resumeAfterWin2(); });
     const ay = document.getElementById('opt-ayuda');
     if (ay) {
       const facil = () => { try { return localStorage.getItem('ts_ayuda_facil') === '1'; } catch (e) { return false; } };
@@ -4109,6 +4158,7 @@
         satelite:    () => { lsOn('ts_juramento'); lsOn('ts_obelisco_visto'); lsOn('ts_sat_down'); return 'Satélite herido — la boca del subte ya está en el piquete (o usá "Bajar al subte YA")'; },
         subteYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sube_seen'); lsOn('ts_sube_got'); lsOn('ts_sube_charged'); addItem('sube'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterSubte('lavalle', 'street'); return 'Bajaste a la estación Lavalle 🚇'; },
         plazaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterPlaza(); return 'Fuiste a PLAZA DE MAYO 🏛️'; },
+        constiYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterConstitucion(); return 'Fuiste a la terminal CONSTITUCIÓN 🚆 (Línea C)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },
