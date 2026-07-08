@@ -42,14 +42,19 @@ const Sfx = (() => {
     E4:329.63, F4:349.23, G4:392.00, A4:440.00, B4:493.88,
     C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99, A5:880.00,
   };
-  function voice(freq, start, dur, type, vol) {
+  function voice(freq, start, dur, type, vol, pluck) {
     const c = ensure();
     const o = c.createOscillator(), g = c.createGain();
     o.type = type; o.frequency.value = freq;
     g.gain.setValueAtTime(0, start);
-    g.gain.linearRampToValueAtTime(vol, start + 0.02);
-    g.gain.setValueAtTime(vol, start + dur * 0.7);
-    g.gain.exponentialRampToValueAtTime(0.0008, start + dur);
+    if (pluck) {                                            // cuerda PULSADA (koto/pizzicato): ataque rápido + decae, sin sustain
+      g.gain.linearRampToValueAtTime(vol, start + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0008, start + dur);
+    } else {
+      g.gain.linearRampToValueAtTime(vol, start + 0.02);
+      g.gain.setValueAtTime(vol, start + dur * 0.7);
+      g.gain.exponentialRampToValueAtTime(0.0008, start + dur);
+    }
     o.connect(g); g.connect(c.destination);
     o.start(start); o.stop(start + dur + 0.03);
   }
@@ -62,9 +67,11 @@ const Sfx = (() => {
       while (nextT < c.currentTime + 0.25) {
         const [lead, bass, beats] = song[idx % song.length];
         const dur = beats * beat;
-        if (lead && FREQ[lead]) voice(FREQ[lead], nextT, dur * (opts.staccato || 0.92), opts.leadType || 'square', opts.leadVol || 0.05);
-        if (bass && FREQ[bass]) voice(FREQ[bass], nextT, dur * 0.95, 'triangle', opts.bassVol || 0.05);
+        // nf(): acepta cualquier nombre de nota (no sólo la tabla FREQ) → se puede componer libre; reproduce FREQ para las de siempre.
+        if (lead && nf(lead)) voice(nf(lead), nextT, dur * (opts.staccato || 0.92), opts.leadType || 'square', opts.leadVol || 0.05, opts.pluck);
+        if (bass && nf(bass)) voice(nf(bass), nextT, dur * 0.95, opts.bassType || 'triangle', opts.bassVol || 0.05);
         if (opts.guira) voice(1600, nextT + dur*0.5, 0.03, 'square', 0.018); // güira de cumbia
+        if (opts.wood) voice(2100, nextT, 0.05, 'square', opts.woodVol || 0.018, true); // woodblock (percusión oriental)
         idx++; nextT += dur;
       }
       timer = setTimeout(tick, 55);
@@ -205,7 +212,21 @@ const Sfx = (() => {
     ['E4','E2',2],['G4','E2',1],['A4','E2',1],
   ];
   const Telo = makeTrack(TELO, 0.42, { leadVol:0.10, bassVol:0.09, leadType:'triangle' });   // bien grasa y AUDIBLE (subido de 0.05)
-  const ROOM = { metal: Metal, dance: Dance, telo: Telo };
+  // "EL CHINO" — chiptune ORIENTAL: melodía PENTATÓNICA (Do mayor pentatónica: C-D-E-G-A) con koto PULSADO + bajo
+  // suave + woodblock. Lo pentatónico es lo que da el color oriental. Suena al entrar al súper chino. Original, sin samples.
+  const ORIENTAL = [
+    ['E5','C3',1],['G5','C3',1],['A5','C3',2],
+    ['G5','G2',1],['E5','G2',1],['D5','G2',2],
+    ['C5','A2',1],['D5','A2',1],['E5','A2',1],['G5','A2',1],
+    ['A5','C3',2],['G5','C3',1],['E5','C3',1],
+    ['E5','D3',1],['D5','D3',1],['C5','G2',1],['A4','G2',1],
+    ['G4','C3',2],['A4','C3',1],['C5','C3',1],
+    ['D5','G2',1],['E5','G2',1],['G5','A2',1],['A5','A2',1],
+    ['G5','C3',2],['E5','C3',1],['D5','C3',1],
+    ['C5','C3',4],
+  ];
+  const Oriental = makeTrack(ORIENTAL, 0.25, { leadType:'triangle', leadVol:0.085, bassVol:0.05, bassType:'triangle', staccato:0.85, pluck:true, wood:true, woodVol:0.014 });
+  const ROOM = { metal: Metal, dance: Dance, telo: Telo, chino: Oriental };
   let musicWanted = false, cumbiaActive = false, marchaActive = false;
 
   return {

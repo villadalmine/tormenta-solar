@@ -35,8 +35,9 @@ El juego es 100% estático; se publica en
 > aún con la GPU apagada, porque `gen` usa los modelos PAGO cloud; cache por seed confirmado). `srv-t7910` NotReady = la
 > GPU que el dueño apagó (esperado, no es falla).
 >
-> **Último (v335):** 🎸 **música "heavy criollo"** en Cemento (power chords + distorsión + batería, homenaje original a
-> Almafuerte). Próximo del audio (idea del dueño): **TTS con voces no robóticas por personaje** (reemplazar espeak-ng
+> **Últimos (v335/v336):** 🎸 **música "heavy criollo"** en Cemento (power chords + distorsión + batería, homenaje
+> original a Almafuerte) + 🥟 **chiptune ORIENTAL** en el chino (pentatónica + koto pulsado). Próximo del audio (idea del
+> dueño): **TTS con voces no robóticas por personaje** (reemplazar espeak-ng
 > por **Piper** neural + pre-gen por cron, ver §propuesta) — pendiente.
 >
 > **▶ SIGUIENTE:** TTS Piper (voces por personaje) · chicos — más ítems-buff, más gates de llave, geometría cruda en
@@ -99,6 +100,16 @@ El juego es 100% estático; se publica en
 - **⚠️ Deploy bloqueado por infra** (ver tracker arriba): v334 vive en GitHub Pages; el self-host y el proxy con
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
+
+## [v336] — 2026-07-08 — 🥟 MÚSICA del CHINO: chiptune ORIENTAL (pentatónica + koto pulsado)
+
+- Al entrar al **súper chino** ahora suena un chiptune **oriental**: melodía en **escala pentatónica** (Do mayor
+  pentatónica C-D-E-G-A — lo que da el color asiático) con **koto PULSADO** (nuevo modo `pluck` en `voice()`: ataque
+  rápido + decaimiento tipo cuerda) + bajo suave + **woodblock** (percusión). Tema `ORIENTAL` data-driven, original.
+- **Aditivo:** se agregó `pluck`/`wood` opt-in a `makeTrack` y se pasó su lookup de notas a `nf()` (nombre→frecuencia,
+  reproduce la tabla FREQ para las de siempre → los otros temas quedan idénticos). Track `chino` en `ROOM`; se engancha
+  en `enterSuper` (`setRoomTrack('chino')`) y se corta al salir. Debug: botón "🥟 …" (no agregado; se escucha entrando al chino).
+- Validado en Chromium real (21 osciladores/2s, `AudioContext` running, 0 errores) + web-smoke + e2e.
 
 ## [v335] — 2026-07-08 — 🎸 MÚSICA: motor "heavy criollo" (Almafuerte-style, original) — power chords + distorsión + batería
 

@@ -157,7 +157,8 @@
   **"heavy criollo"** aparte (homenaje ORIGINAL a Almafuerte, no un tema suyo): **power chords con distorsión**
   (waveshaper) + bajo + **batería** (bombo/redoblante/hi-hats) + ADSR + vibrato en los leads, todo por un bus con
   **compresor** para que suene lleno. Un tema con estructura real (riff galopante en Mi → puente → estribillo con
-  lead que canta → lick), data-driven.
+  lead que canta → lick), data-driven. Y el del **súper chino** es un chiptune **ORIENTAL**: melodía **pentatónica**
+  con **koto pulsado** (pluck) + woodblock — lo pentatónico es lo que le da el color asiático.
 
 ## 4.b RESILIENCIA: si la GPU se cae, NO se para nada → modo estático
 - **Premisa (dueño):** *"si se me va al tacho la GPU, no se puede parar todo, tiene que ir al modo estático de

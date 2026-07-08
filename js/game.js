@@ -1820,7 +1820,7 @@
     if (n.hint && (n.talks >= 6 || Math.random() < 0.3)) setMsg(n.hint, '#ffd54f', 5500);
     else setMsg(n.lines ? pick(n.lines) : T('g.borracho.askDefault'), '#ffd54f', 4200);
   }
-  function enterSuper(raid) { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed, raid: !!raid }); state = 'super'; elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = ''; }
+  function enterSuper(raid) { if (stormed) applyEdge('chino_back', 'chinoEntered'); superGame = Super.create({ player, gaveBeers, stormed, raid: !!raid }); state = 'super'; if (typeof Sfx !== 'undefined' && Sfx.setRoomTrack) Sfx.setRoomTrack('chino'); elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = ''; }
   // NIVEL-AI en EL MOTOR REAL: te colaste a la trastienda del chino → la IA GENERA un nivel-plataforma, pasa la
   // RED (Playable), y lo cargamos en EL motor (rooms-swap). Si por lo que sea no es jugable, abortamos al juego
   // normal (NUNCA un nivel roto). Al llegar a la meta / morir / escapar → endSpinoffLevel restaura todo.
@@ -3656,6 +3656,7 @@
       superGame.update(dt); superGame.draw(ctx, W, H);
       if (superGame.done) {
         const to = superGame.exitTo, charged = superGame.subeCharged; superGame = null;
+        if (typeof Sfx !== 'undefined' && Sfx.setRoomTrack) Sfx.setRoomTrack(null);   // salís del chino → corta el oriental y vuelve la música normal
         if (charged && !lsFlag('ts_sube_edge')) { try { localStorage.setItem('ts_sube_edge', '1'); } catch (e) {} applyEdge('sube_carga', 'subeReady'); }   // cargaste la SUBE → arista (map/ticker/checkpoint)
         if (to === 'nivelai') { launchNivelAI(); }   // te colaste a la trastienda → NIVEL-AI generado
         else {
