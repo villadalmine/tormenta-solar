@@ -19,10 +19,10 @@ const Obelisco = (() => {
     const sat = { x: 9, hp: SAT_HP, phase: 'move', pt: 0, aimX: 9, downT: 0 };   // el jefe (tiles)
     const cuida = { x: 7.2, y: 9.2 };
     setMsg(T(boss ? 'g.obelisco.stormIntro' : 'g.obelisco.intro'), boss ? 6 : 7);
-    if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(!boss);   // en la pelea, silencio tenso (sin Marcha)
+    if (typeof Sfx !== 'undefined' && Sfx.setHimno) Sfx.setHimno(!boss);   // HIMNO al llegar al Obelisco; en la pelea, silencio tenso
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
-    function leave(res) { if (typeof Sfx !== 'undefined' && Sfx.setMarcha) Sfx.setMarcha(false); result = res || null; done = true; exitTo = 'lavalle'; }
+    function leave(res) { if (typeof Sfx !== 'undefined' && Sfx.setHimno) Sfx.setHimno(false); result = res || null; done = true; exitTo = 'lavalle'; }
 
     function update(dt) {
       t += dt; msgT -= dt; if (invuln > 0) invuln -= dt; if (rayCd > 0) rayCd -= dt; rayFx = Math.max(0, rayFx - dt * 5);

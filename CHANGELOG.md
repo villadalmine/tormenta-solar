@@ -101,6 +101,18 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v337] — 2026-07-08 — 🎺 MÚSICA: Marcha Peronista (melodía real) en el piquete + 🇦🇷 HIMNO en el Obelisco
+
+- **Marcha Peronista mejorada:** la melodía anterior era una aproximación en mayor; ahora es la **real en La menor**
+  ("mi do la mi…", la parte más conocida: "Los muchachos peronistas / todos unidos triunfaremos / …¡Viva Perón!"),
+  transcripta de las notas de melódica. Suena en la **fiesta de Lavalle** al ganar los 5 mini-juegos del piquete.
+- **Himno Nacional Argentino en el Obelisco:** al llegar al Obelisco suena el cierre **"coronados de gloria vivamos /
+  o juremos con gloria morir"** (dominio público, 1813) — Do mayor, solemne, con el salto en "O" sostenido y la caída
+  que resuelve. Durante la pelea del satélite: silencio tenso (`setHimno(false)`). `obelisco.js` pasó de `setMarcha`→`setHimno`.
+- Aditivo: nuevos tracks `Marcha`(reescrito)/`Himno` + `setHimno(on)` en `audio.js` (cross-stop con Marcha/Cumbia/Music).
+- Validado en Chromium real (Marcha 24 osc, Himno 18 osc/3s, `AudioContext` running, 0 errores) + e2e.
+- Fuentes de las notas: notasparamelodica.com (Marcha + Himno).
+
 ## [v336] — 2026-07-08 — 🥟 MÚSICA del CHINO: chiptune ORIENTAL (pentatónica + koto pulsado)
 
 - Al entrar al **súper chino** ahora suena un chiptune **oriental**: melodía en **escala pentatónica** (Do mayor

@@ -110,16 +110,25 @@ const Sfx = (() => {
   const Music = makeTrack(TANGO, 0.34, { leadVol:0.05, bassVol:0.05 });
   const Cumbia = makeTrack(CUMBIA, 0.21, { leadVol:0.05, bassVol:0.06, staccato:0.55, guira:true });
   const Eighties = makeTrack(EIGHTIES, 0.20, { leadVol:0.05, bassVol:0.05, leadType:'square' });
-  // MARCHA PERONISTA (chiptune, homenaje): "Los muchachos peronistas / todos unidos triunfaremos / ¡Viva Perón!"
+  // MARCHA PERONISTA (chiptune, homenaje) — melodía REAL en La menor ("mi do la mi..."; la más conocida, arranca en menor).
+  // "Los muchachos peronistas / todos unidos triunfaremos / y como siempre daremos / un grito de corazón: ¡Viva Perón!"
   const MARCHA = [
-    ['G4','C2',1],['G4','C2',1],['G4','C2',1],['C5','C2',1],   // Los mu-cha-chos pe-
-    ['C5','G2',1],['B4','G2',1],['A4','G2',1],['G4','G2',1],   // -ro-nis-tas
-    ['A4','F2',1],['A4','F2',1],['A4','F2',1],['D5','F2',1],   // to-dos u-ni-dos
-    ['D5','G2',1],['C5','G2',1],['B4','G2',1],['A4','G2',1],   // triun-fa-re-mos
-    ['C5','C2',1],['C5','C2',1],['G4','G2',2],                  // ¡Vi-va Pe-rón!
-    ['C5','C2',1],['C5','C2',1],['C5','C2',2],                  // ¡Vi-va Pe-rón!
+    ['E4','A2',2],['C4','A2',1],['A3','A2',1],['E4','A2',1],['C4','A2',1],['A3','A2',1],['E4','A2',1],['C4','A2',1],   // Los mu-cha-chos pe-ro-nis-tas
+    ['E4','A2',2],['C4','A2',1],['A3','A2',1],['E4','A2',1],['E4','A2',1],['D4','G2',1],['C4','G2',1],['D4','G2',1],['B3','E2',1],   // to-dos u-ni-dos triun-fa-re-mos
+    ['D4','D3',2],['B3','D3',1],['A3','D3',1],['D4','D3',1],['B3','D3',1],['A3','D3',1],['D4','D3',1],['B3','G2',1],   // y co-mo siem-pre da-re-mos
+    ['F4','F2',2],['F4','F2',1],['F4','F2',1],['F4','F2',2],['E4','E2',1],['D4','E2',1],['E4','E2',1],                  // un gri-to de co-ra-zón
+    ['F4','F2',1],['E4','A2',1],['D4','E2',1],['E4','A2',1],['F4','F2',1],['E4','A2',1],['D4','E2',1],['E4','A2',1],   // ¡Vi-va Pe-rón! ¡Vi-va Pe-rón!
+    ['E4','A2',2],['C4','A2',1],['A3','A2',1],['E4','A2',1],['C4','A2',1],['A3','A2',1],['E4','A2',3],                  // (vuelta)
   ];
-  const Marcha = makeTrack(MARCHA, 0.26, { leadVol:0.06, bassVol:0.06, leadType:'square', staccato:0.6, guira:true });
+  const Marcha = makeTrack(MARCHA, 0.2, { leadVol:0.07, bassVol:0.06, leadType:'square', staccato:0.7, wood:true, woodVol:0.012 });
+  // HIMNO NACIONAL ARGENTINO — cierre "coronados de gloria vivamos / o juremos con gloria morir" (dominio público, 1813).
+  // Do mayor, solemne (legato). El gran salto en "O" (a Do agudo) sostenido y la caída que resuelve al tónico.
+  const HIMNO = [
+    ['C4','C3',1],['D4','C3',1],['E4','C3',1],['F4','F2',1],['G4','G2',2],['G4','G2',1],['F4','G2',1],['E4','C3',2],   // co-ro-na-dos de glo-ria vi-va-mos
+    ['C5','C3',2],['B4','G2',1],['A4','G2',1],['G4','C3',1],['A4','F2',1],['G4','G2',1],['F4','G2',1],['E4','C3',1],['D4','G2',1],['C4','C3',3],   // o ju-re-mos con glo-ria mo-rir
+    ['C5','C3',2],['B4','G2',1],['A4','G2',1],['G4','C3',1],['A4','F2',1],['G4','G2',1],['E4','C3',1],['D4','G2',1],['C4','C3',4],                 // o ju-re-mos con glo-ria mo-rir (cierre)
+  ];
+  const Himno = makeTrack(HIMNO, 0.3, { leadVol:0.08, bassVol:0.06, leadType:'square', staccato:0.96 });
   // ---- MOTOR "HEAVY CRIOLLO" (homenaje ORIGINAL a Almafuerte/Iorio, sin copiar temas): power chords con DISTORSIÓN
   // (waveshaper) + bajo con cuerpo + BATERÍA (kick/snare/hats) + ADSR + vibrato en los leads, todo por un bus con
   // compresor para que suene LLENO y no clipee. Data-driven: cada paso = [acorde, bajo, beats, drum, mel?].
@@ -227,7 +236,7 @@ const Sfx = (() => {
   ];
   const Oriental = makeTrack(ORIENTAL, 0.25, { leadType:'triangle', leadVol:0.085, bassVol:0.05, bassType:'triangle', staccato:0.85, pluck:true, wood:true, woodVol:0.014 });
   const ROOM = { metal: Metal, dance: Dance, telo: Telo, chino: Oriental };
-  let musicWanted = false, cumbiaActive = false, marchaActive = false;
+  let musicWanted = false, cumbiaActive = false, marchaActive = false, himnoActive = false;
 
   return {
     init() { ensure(); },
@@ -293,8 +302,12 @@ const Sfx = (() => {
     stopMusic() { musicWanted = false; Music.stop(); },
     toggleMusic() { musicWanted = !musicWanted; if (musicWanted && !cumbiaActive) Music.start(); else Music.stop(); return musicWanted; },
     setMarcha(on) {   // Marcha Peronista (fiesta de Lavalle al ganar los 5 mini-juegos)
-      if (on && !marchaActive) { marchaActive = true; Music.stop(); Cumbia.stop(); cumbiaActive = false; Marcha.start(); }
+      if (on && !marchaActive) { marchaActive = true; Music.stop(); Cumbia.stop(); Himno.stop(); cumbiaActive = false; himnoActive = false; Marcha.start(); }
       else if (!on && marchaActive) { marchaActive = false; Marcha.stop(); if (musicWanted) Music.start(); }
+    },
+    setHimno(on) {   // Himno Nacional Argentino (Obelisco: al llegar; silencio tenso durante la pelea del satélite)
+      if (on && !himnoActive) { himnoActive = true; Music.stop(); Cumbia.stop(); Marcha.stop(); cumbiaActive = false; marchaActive = false; Himno.start(); }
+      else if (!on && himnoActive) { himnoActive = false; Himno.stop(); if (musicWanted) Music.start(); }
     },
     setCumbia(on) {
       if (on && !cumbiaActive) { cumbiaActive = true; Music.stop(); Cumbia.start(); }
