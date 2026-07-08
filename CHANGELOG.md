@@ -28,15 +28,16 @@ El juego es 100% estático; se publica en
 > **Multijugador mesas server-side: ya estaba hecho (sesión previa) y lo VERIFIQUÉ en prod** (2 clientes: misma sala +
 > pos relay + whisper + mesa 1v1 parea a los dos). El plan `polymorphic-foraging-pascal.md` quedó obsoleto (hecho).
 >
-> **⚠️ DEPLOY WEB BLOQUEADO (infra, v334):** el Argo Workflow `tormenta-deploy` se cuelga si su pod cae en el nodo
-> `srv-pi-rack2b` (Raspberry Pi, NO nodo Longhorn) → la PVC no attachea. **v334 quedó en GitHub Pages pero NO en el
-> self-host** hasta que el dueño arregle el `nodeSelector` del WorkflowTemplate (o cordone el Pi a mano). Ver memoria
-> `deploy-longhorn-node.md`. El **proxy** (`/mundo-ai`) también está pendiente de deploy por el mismo motivo.
+> **✅ DEPLOY DESBLOQUEADO (infra-66):** el Argo Workflow `tormenta-deploy` se colgaba cuando su pod caía en el nodo
+> `srv-pi-rack2b` (Raspberry Pi, NO nodo Longhorn) → la PVC longhorn-nvme no attachea. FIX: **`nodeSelector: storage:
+> rk1-longhorn`** en el template `deploy` → siempre cae en un nodo de storage rk1. **web v334 + proxy 0.1.88 (`/mundo-ai`)
+> desplegados y verificados en el self-host** (el `/mundo-ai` en prod autora un mundo REAL —"Piratas del Baño Público"—
+> aún con la GPU apagada, porque `gen` usa los modelos PAGO cloud; cache por seed confirmado). `srv-t7910` NotReady = la
+> GPU que el dueño apagó (esperado, no es falla).
 >
 > **▶ SIGUIENTE:** chicos — más ítems-buff, más gates de llave, geometría cruda en `/mundo-ai` (como oráculo/historia).
 > **Playtest del dueño pendiente:** Nivel 2 completo + REINTENTAR + boleto + contraflor 2+ humanos + llave→depósito +
-> birra + **la máquina de mundos** (botón debug "🌀 Máquina de mundos") — y una vez desbloqueado el deploy, probar
-> `/mundo-ai` con un prompt real (necesita el proxy actualizado en prod).
+> birra + **la máquina de mundos** (botón debug "🌀 Máquina de mundos") — ahora con `/mundo-ai` vivo, probá un prompt real.
 
 ### 🖐️ Bloqueado esperando al DUEÑO (no se arranca solo)
 - **Pasarela de pago** (`specs/pasarela-pago.md`): research hecho; falta que el dueño abra cuenta **Mollie** (EU)
@@ -94,6 +95,22 @@ El juego es 100% estático; se publica en
 - **⚠️ Deploy bloqueado por infra** (ver tracker arriba): v334 vive en GitHub Pages; el self-host y el proxy con
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
+
+## [infra-66] — 2026-07-08 — 🔧 FIX deploy que se colgaba: `nodeSelector` a los nodos Longhorn (el pod caía en el Pi)
+
+- **Síntoma:** `deploy/deploy-argo.sh web|proxy` quedaba `Running / PodInitializing` para siempre; el pod del workflow
+  montaba la PVC `work` (storageClass `longhorn-nvme`) y a veces el scheduler lo mandaba a **`srv-pi-rack2b`** (un
+  Raspberry Pi que NO es nodo Longhorn) → `AttachVolume.Attach failed ... node.longhorn.io "srv-pi-rack2b" not found`.
+  Los deploys que andaban fue por SUERTE (caían en un nodo Longhorn).
+- **Fix:** `nodeSelector: { storage: rk1-longhorn }` en el template `deploy` del WorkflowTemplate `tormenta-deploy`
+  (`deploy/argo/workflowtemplate-deploy.yaml`). Los 4 nodos de storage rk1 llevan ese label (el Pi no) → el pod del
+  deploy SIEMPRE cae donde Longhorn puede attachear el volumen. Son arm64 y la imagen del runner es multi-arch.
+- **Resultado:** web v334 (release 0.1.94) + proxy **0.1.88** (con `/mundo-ai`) desplegados y verificados en el
+  self-host. `/mundo-ai` en prod autora un mundo real ("Piratas del Baño Público") aún con la GPU apagada (usa la
+  cadena de modelos PAGO cloud para `gen`), y el mismo seed devuelve el mismo mundo (cache por seed confirmado).
+- **Nota:** `srv-t7910` figura NotReady en Longhorn = es el server de GPU que el dueño apagó (esperado; baja la
+  redundancia de réplicas mientras esté apagado, pero no bloquea nada — el `nodeSelector` apunta a los rk1 siempre-on).
+  Memoria: `deploy-longhorn-node.md` (actualizada a RESUELTO).
 
 ## [v333] — 2026-07-07 — 🌀 QUEST MUNDO-AI v1: la MÁQUINA DE MUNDOS (mundo por SEED, compartible)
 

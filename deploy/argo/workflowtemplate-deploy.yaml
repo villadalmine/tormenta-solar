@@ -43,6 +43,12 @@ spec:
             storage: 1Gi
   templates:
     - name: deploy
+      # El pod monta la PVC `work` (longhorn-nvme) → DEBE correr en un nodo que Longhorn maneje, si no el volumen
+      # NO attachea y el pod queda PodInitializing para siempre (incidente 2026-07-07: cayó en `srv-pi-rack2b`, un
+      # Raspberry Pi que NO es nodo Longhorn → "node.longhorn.io srv-pi-rack2b not found"). Los 4 nodos de storage
+      # rk1 llevan el label `storage: rk1-longhorn` (el Pi no) → lo fijamos ahí. Son arm64 y la imagen es multi-arch.
+      nodeSelector:
+        storage: rk1-longhorn
       script:
         image: alpine/k8s:1.34.1       # kubectl+helm+git+jq+curl, multi-arch (cluster mixto arm64/amd64)
         command: [bash]
