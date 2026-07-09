@@ -505,7 +505,9 @@ if (require.main === module) {
     if (typeof Campana === 'undefined' || !Campana.create) throw new Error('Campana no cargó');
     const cmp = Campana.create({});
     for (let i = 0; i < 30; i++) { cmp.update(0.05); cmp.draw(C, 960, 540); }
-    if (cmp.__enterEstadio() !== 'estadio') throw new Error('campana: la puerta debería meterte al estadio');
+    const tano = cmp.__viejo();
+    if (!(tano && tano.persona === 'violeta')) throw new Error('campana: el Tano deberia abrir chat (persona violeta): ' + JSON.stringify(tano));
+    if (cmp.__enterEstadio() !== 'estadio') throw new Error('campana: la puerta deberia meterte al estadio');
     const full = Campana.create({});
     const res2 = full.__full();
     if (!(res2.done && res2.exitTo === 'portal')) throw new Error('campana: la secuencia completa debería terminar en el PORTAL: ' + JSON.stringify(res2));

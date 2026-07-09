@@ -23,6 +23,9 @@ const Campana = (() => {
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W - 1] = 1; }
     const escalinata = { x: 7.5, y: 5 };
     const estadioDoor = { x: 15.5, y: 6.5 };
+    // EL TANO: hincha viejo de Dálmine, socio de toda la vida, ex obrero de la fábrica. NPC con IA (persona `violeta`).
+    const viejo = { x: 12.6, y: 8.8, name: T('g.campana.viejoName'), persona: 'violeta' };
+    let chatNpc = null;
     const banda = [];                                  // la hinchada de Dálmine caminando a la cancha
     for (let i = 0; i < 8; i++) banda.push({ x: (3 + i * 1.3), y: 7.5 + (i % 3) * 0.7, ph: i * 0.9 });
     const player = { x: 2.2 * CS, y: 7 * CS, r: 10, dir: 1, walk: 0 };
@@ -38,6 +41,7 @@ const Campana = (() => {
 
     function interact() {
       if (phase === 'calle') {
+        if (near(viejo, 1.7)) { chatNpc = { name: viejo.name, persona: viejo.persona }; return; }   // el Tano → chat IA
         if (near(estadioDoor, 1.8)) { phase = 'estadio'; st = 'pt1'; stT = 0; player.x = 9 * CS; player.y = 8.5 * CS;
           setMsg(T('g.campana.estadio'), 8); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }
         if (near(escalinata, 2.2)) { setMsg(T('g.campana.escalinata'), 7); return; }
@@ -81,7 +85,7 @@ const Campana = (() => {
       if (mvy && freeAt(player.x, player.y + mvy * sp)) { player.y += mvy * sp; player.walk = 1; }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; if (phase === 'calle') { done = true; exitTo = 'back'; } } } else escHeld = false;   // del estadio no te vas: esto termina en portal
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
-      if (phase === 'calle') prompt = near(estadioDoor, 1.8) ? T('g.campana.promptEstadio') : near(escalinata, 2.2) ? T('g.campana.promptEscalinata') : '';
+      if (phase === 'calle') prompt = near(viejo, 1.7) ? T('g.campana.promptViejo') : near(estadioDoor, 1.8) ? T('g.campana.promptEstadio') : near(escalinata, 2.2) ? T('g.campana.promptEscalinata') : '';
       else prompt = st === 'gol' ? T('g.campana.promptGrito') : (st === 'half' && !choriEaten) ? (near(choriPuesto, 1.8) ? T('g.campana.promptChori') : T('g.campana.promptIrChori')) : '';
     }
 
@@ -115,6 +119,15 @@ const Campana = (() => {
         g.fillStyle = '#e0a878'; g.beginPath(); g.arc(bx2, by2 - 8, 5, 0, Math.PI * 2); g.fill();
         if (b.ph % 3 < 1) { g.fillStyle = VIOLETA; g.fillRect(bx2 + 6, by2 - 20, 12, 9); }   // bandera
       }
+      // EL TANO (hincha viejo): gorra y bufanda violeta, termo bajo el brazo
+      const vx2 = ox + (viejo.x + 0.5) * CS, vy2 = oy + (viejo.y + 0.5) * CS;
+      g.fillStyle = '#111'; g.beginPath(); g.ellipse(vx2, vy2 + 9, 8, 3, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#8a8577'; g.fillRect(vx2 - 6, vy2 - 4, 12, 16);            // saco gris de viejo
+      g.fillStyle = VIOLETA; g.fillRect(vx2 - 7, vy2 - 6, 14, 4);               // bufanda violeta
+      g.fillStyle = '#e8c9a8'; g.beginPath(); g.arc(vx2, vy2 - 10, 5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = VIOLETA2; g.fillRect(vx2 - 6, vy2 - 15, 12, 4);             // gorra violeta
+      g.fillStyle = '#3a7a3a'; g.fillRect(vx2 + 7, vy2 - 2, 4, 8);              // el termo
+      g.fillStyle = '#e8f0ff'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText(viejo.name, vx2, vy2 - 21);
       g.fillStyle = '#cbb3e8'; g.font = 'bold 10px monospace'; g.textAlign = 'center';
       g.fillText('♪ ' + T('g.campana.canto') + ' ♪', ox + 8 * CS, oy + 10.4 * CS + Math.sin(t * 3) * 2);
       // cartel de la ciudad
@@ -182,7 +195,9 @@ const Campana = (() => {
       get done() { return done; }, get exitTo() { return exitTo; },
       get choriEdge() { const c = choriJustNow; choriJustNow = false; return c; },   // one-shot: comiste EL chori → game.js cura
       get golGrito() { const gjn = golJustNow; golJustNow = false; return gjn; },    // one-shot por gol (sfx/telemetría)
+      get openChatNpc() { const c = chatNpc; chatNpc = null; return c; },            // [E] sobre el Tano → chat IA (vuelve a Campana)
       update, draw,
+      __viejo: () => { player.x = (viejo.x + 0.5) * CS; player.y = (viejo.y - 1.2) * CS; interact(); return chatNpc; },   // e2e: chat con el Tano (persona violeta)
       // e2e: correr la secuencia completa del estadio (entrar → chori → 4 goles → satélite → portal)
       __full: () => { phase = 'estadio'; st = 'pt1'; stT = 0;
         for (let k = 0; k < 2000 && !done; k++) { update(0.05);

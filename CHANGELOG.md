@@ -101,6 +101,14 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v354 · proxy 0.1.98] — 2026-07-09 — 💜 EL TANO: el hincha viejo de Villa Dálmine (NPC con IA)
+- En la calle del estadio (Campana, §12) aparece **el Tano**: hincha de toda la vida, **socio vitalicio** y ex obrero
+  de la **fábrica Dálmine** (la de los tubos, la que le dio nombre al barrio y al club). **NPC con IA** (persona
+  `violeta`, ficha `personajes/hincha-violeta.md`): te cuenta la historia del club de barrio —la fábrica, el violeta,
+  Mitre y Puccini, el clásico con CADU— con ternura de abuelo y pasión de tablón. Gorra y bufanda violeta + termo.
+- Wiring estándar: `openChatNpc` en campana.js → game.js (`openChat`, `chatReturnTo='campana'`). e2e (persona violeta)
+  + smoke verdes. i18n ES≡EN. Captura 12-campana regenerada (con el Tano). Cache v354. **Requiere deploy del proxy.**
+
 ## [v353 · proxy 0.1.97] — 2026-07-09 — 💜 LA ODISEA A CAMPANA completa (S1-S8): UBA → clásico → trapo → Villa Dálmine → portal
 - **S1/S2 — el tren ROJO de la San Martín** (ramal 'San Martín — C. Universitaria' desde Retiro, `trainCol()`): el tren
   **frena en Ciudad Universitaria** por un **piquete de estudiantes de la UBA** (recorte de presupuesto) — banner,

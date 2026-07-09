@@ -311,6 +311,8 @@ hay que traerle **la remera/bandera de Boca** (robada de la hinchada en el clás
   → `exitTo='portal'` → game.js: arista `dalmine_portal` (terminal) + `spawnIn(bunker)` — caés en el **búnker del loop**
   al lado de tu cama. Cierra el círculo. Grafo 33 aristas; flags bocaTrapo/enCampana/dalmineGritado en snapshots.
   Debug `sanmartinYa`/`canchaYa`/`campanaYa`. e2e cadena completa (tren S1-S5 + cancha + campana 4 goles→portal) verde.
+- **S9 — HECHO (v354): EL TANO**, hincha viejo de Dálmine (socio vitalicio, ex obrero de la fábrica) en la calle del
+  estadio — NPC con IA (persona `violeta`): la historia del club de barrio, con ternura de abuelo.
 
 Ítems/flags nuevos previstos: `boca_trapo` (kind trofeo), flags `enMonumental`/`clasicoVisto`/`bocaTrapo`/`campanaLibre`/
 `enCampana`/`dalmineGritado`. El maquinista pasa a tener gate `{has:'boca_trapo'}` para el viaje a Campana.

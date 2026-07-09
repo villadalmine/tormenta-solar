@@ -217,6 +217,8 @@
     'g.campana.promptIrChori': 'halftime: head to the chori stand (bottom left)',
     'g.campana.promptEstadio': '[E] enter the stadium (Mitre y Puccini)',
     'g.campana.promptEscalinata': '[E] look at the stairway',
+    'g.campana.viejoName': 'el Tano',
+    'g.campana.promptViejo': '[E] chat with el Tano (lifelong fan) 💜',
     'g.campana.portal': '🛰️ An AI SATELLITE falls from the sky behind the stands! The impact TEARS space-time… a portal swallows you…',
     'g.campana.back': '🌀 The portal spat you out in the loop BUNKER, next to your bed. Was it real? You smell of chori with a goal cry stuck in your throat.',
     'g.wpn.trapo': 'Boca flag',

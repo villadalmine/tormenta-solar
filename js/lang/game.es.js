@@ -218,6 +218,8 @@
     'g.campana.promptIrChori': 'entretiempo: andá al puesto de chori (abajo a la izquierda)',
     'g.campana.promptEstadio': '[E] entrar al estadio (Mitre y Puccini)',
     'g.campana.promptEscalinata': '[E] mirar la escalinata',
+    'g.campana.viejoName': 'el Tano',
+    'g.campana.promptViejo': '[E] charlar con el Tano (hincha de toda la vida) 💜',
     'g.campana.portal': '🛰️ ¡Un SATÉLITE de la IA cae del cielo detrás de la tribuna! El impacto RASGA el espacio-tiempo… un portal te chupa…',
     'g.campana.back': '🌀 El portal te escupió en el BÚNKER del loop, al lado de tu cama. ¿Fue real? Tenés olor a chori y un grito de gol atragantado.',
     'g.wpn.trapo': 'trapo de Boca',

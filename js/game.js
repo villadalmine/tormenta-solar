@@ -1553,6 +1553,8 @@
       else if (chatReturnTo === 'villa31' && villa31Game) { chatReturnTo = null; state = 'villa31'; }
       // Tren (Villa Ballester): el chat con el maquinista se abrió DESDE el andén → volvés ahí (trenGame sigue vivo)
       else if (chatReturnTo === 'tren' && trenGame) { chatReturnTo = null; state = 'tren'; }
+      // Campana: el chat con el Tano se abrió DESDE la calle del estadio → volvés ahí (campanaGame sigue vivo)
+      else if (chatReturnTo === 'campana' && campanaGame) { chatReturnTo = null; state = 'campana'; }
       // T2b: si el chat privado se abrió DESDE el bodegón top-down → volvés ahí (no al side-scroller)
       else if (from === 'bodegon' && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
       else { chatReturnTo = null; state = 'playing'; }
@@ -3995,6 +3997,7 @@
       }
     } else if (state === 'campana' && campanaGame) {                  // §12 S6-S8: Campana / Villa Dálmine → el portal
       campanaGame.update(dt); campanaGame.draw(ctx, W, H);
+      { const vc = campanaGame.openChatNpc; if (vc) { chatReturnTo = 'campana'; openChat({ name: vc.name, persona: vc.persona }); } }   // [E] el Tano (hincha violeta) → chat IA
       if (campanaGame.choriEdge) { player.hp = MAXHP; syncHud(); }     // EL MEJOR CHORI DE TU VIDA → vida full
       if (campanaGame.done) {
         const ex = campanaGame.exitTo; campanaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
