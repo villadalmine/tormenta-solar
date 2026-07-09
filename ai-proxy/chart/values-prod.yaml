@@ -17,18 +17,22 @@ auth:
   existingSecretKey: apiKey
 
 upstream:
-  # cadena del chat: free primero (gemma4-free, $0 cuando hay cupo) → RED PAGA cuando el free se agota.
-  # Red paga = gemma4-paid (gemelo EXACTO del free, rápido/no-reasoning, $0.47/1M, SIN límite diario) con
-  # claude-sonnet de respaldo premium. cheap (deepseek-v4-flash) salió: era reasoning → lento 9s.
-  model: gemma4-free,gemma4-paid,claude-sonnet
+  # cadena del chat — TODO PAGO (dueño 2026-07-09: "no uses free ni GPU hasta que la prenda, todo pago").
+  # Diagnóstico en vivo (2026-07-09): gemma4-free daba 429 (cupo de cuenta agotado) y gemma4-paid COLGABA
+  # (>18s en respuestas largas; la ruta gemma-4-31b estaba degradada) → la cadena free→gemma4-paid→sonnet
+  # se comía el budget y NUNCA llegaba a un modelo que anduviera → timeout → NPC "desconectados".
+  # Medido andando HOY: cheap ~3s (respuesta completa, sin reasoning) · claude-sonnet ~3-8s (siempre responde).
+  # Por eso: cheap (barato+rápido) primero, claude-sonnet de respaldo premium. Reponer gemma4-free/gemma4-paid
+  # cuando se normalicen (free) / prenda la GPU no aplica al chat (el chat NUNCA usó GPU).
+  model: cheap,claude-sonnet
 
 # timeouts (el pago tarda 5-7s → presupuesto más amplio) + cupo/día por sesión + tope DURO de gasto pago
 extraEnv:
   - { name: UPSTREAM_TIMEOUT_MS, value: "10500" }   # presupuesto TOTAL (el cliente espera 11s)
-  - { name: PER_MODEL_TIMEOUT_MS, value: "6000" }   # gemma4-paid ~1.5s, claude-sonnet ~5s → 6s alcanza y capea cuelgues (antes 9.5s era para 'cheap' lento)
+  - { name: PER_MODEL_TIMEOUT_MS, value: "7000" }   # cheap ~3s, claude-sonnet 3-8s → 7s alcanza (con UPSTREAM 10.5s entran los 2)
   - { name: DAILY_CAP, value: "40" }                # chats/día por sesión (anti-DoS honesto)
   - { name: PAID_MODELS, value: "gemma4-paid,claude-sonnet,cheap,paid-final" }  # qué model_names cuestan plata
-  - { name: PAID_DAILY_CAP, value: "600" }          # tope DURO: respuestas pagas/día (todos los users)
+  - { name: PAID_DAILY_CAP, value: "2000" }         # tope DURO: respuestas pagas/día (subido: AHORA TODO el chat es pago, ya no hay free absorbiendo; cheap es barato). Bajar si el gasto molesta.
   # F2 ModelScorer (auto-pilot "más barato-bueno"): cruza disponibilidad+latencia+precio reales y arma la
   # cadena sola. CANDIDATES = pool free (varios, así si gemma4-free se satura, otro free responde) + el pago
   # entra solo como red (último). FLOOR = piso que nunca falta. CHAIN_MAX 3 = 2 free + 1 pago.
@@ -37,7 +41,7 @@ extraEnv:
   # PER_MODEL 6s / budget 10.5s NUNCA llegaba al pago → el anónimo caía a fallback. Ver specs/ia-tiers.md.
   - { name: AUTOPILOT, value: "0" }
   - { name: CANDIDATES, value: "gemma4-free,gpt-oss-free,llama70b-free,kimi-free,gemma4-paid,claude-sonnet" }
-  - { name: FLOOR_MODEL, value: "gemma4-free" }
+  - { name: FLOOR_MODEL, value: "cheap" }
   - { name: CHAIN_MAX, value: "4" }                 # 2 free + gemma4-paid + claude-sonnet (respaldo)
   - { name: PAID_IN_CHAIN, value: "2" }             # gemma4-paid (barato) primero, claude-sonnet de respaldo
   # Suscripción (suscripcion.md §9 F1): un código válido → cadena paga directa (salta free+cupo). Los CÓDIGOS
