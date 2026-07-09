@@ -3654,7 +3654,9 @@
   // pantalla de fin del NIVEL 2 (tras la cinemática de cierre, o directo si no está el módulo)
   function showWin2End() {
     // ganar el Nivel 2 HABILITA LA LÍNEA C entera (Constitución/Retiro): el mundo sigue abierto (subte.md §11).
-    lsOn('ts_linea_c');
+    // OJO: `lsOn` es local del IIFE de debug — NO existe acá. Usar el setter directo (era el crash "gano el Nivel 2 y
+    // no me puedo mover": showWin2End tiraba "lsOn is not defined" → la pantalla de fin nunca salía → juego congelado).
+    try { localStorage.setItem('ts_linea_c', '1'); } catch (e) {}
     elEndTitle.textContent = T('g.win2.title'); elEndTitle.style.color = '#7CFC00';
     elEndText.innerHTML = T('g.win2.text'); renderStats(true);
     const hitoBtn = document.getElementById('hitoBtn'); if (hitoBtn) hitoBtn.classList.add('hidden');
@@ -4250,6 +4252,8 @@
         villaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); lsOn('ts_en_retiro'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterVilla31(); return 'Fuiste a la VILLA 31 🍲 (comedor + iglesia Mugica)'; },
         trenYa:      () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('La Plata', 'Roca', 'constitucion'); return 'Tomaste el TREN 🚆 a La Plata (Roca)'; },
         ballesterYa: () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('Villa Ballester', 'Mitre', 'retiro'); return 'Tomaste el tren a VILLA BALLESTER 🚆 (el maquinista curda)'; },
+        win2Ya:      () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterPlaza(); if (plazaGame && plazaGame.__arm) plazaGame.__arm(); return 'Armando la Pirámide → GANÁS el Nivel 2 (finale → win)'; },
+        win2endYa:   () => { const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); showWin2End(); return 'Pantalla de fin del Nivel 2 (probá SEGUIR JUGANDO)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

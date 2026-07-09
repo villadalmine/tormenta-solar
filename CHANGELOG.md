@@ -101,6 +101,18 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v352] — 2026-07-09 — 🐛🔥 FIX CRÍTICO "gano el Nivel 2 y no me puedo mover" (crash en showWin2End)
+- **Bug (desde v344):** al ganar el Nivel 2, `showWin2End()` llamaba **`lsOn('ts_linea_c')`**, pero `lsOn` es una
+  helper **local del IIFE de debug** — NO existe en ese scope. Tiraba **"lsOn is not defined"** en la 1ª línea →
+  `showWin2End` crasheaba → la **pantalla de fin nunca aparecía** → el estado quedaba trabado en `'finale'` con
+  `finaleGame=null` → **el juego se CONGELABA** ("no me puedo mover"). Afectaba a **todo** el que ganaba el Nivel 2.
+- **Fix:** `showWin2End` usa `localStorage.setItem('ts_linea_c','1')` directo (en scope en todos lados). Nuevo test de
+  regresión **`tests/repro-win2.mjs`** (Playwright: gana → aparece la pantalla de fin + SEGUIR reanuda sin congelar).
+  Cache v352. Sin cambios de IA/proxy.
+- **Nota infra (no-código):** el chat de los NPC (Villa 31 y todos) está dando **timeout** — el backend de IA está
+  saturado/caído (GPU apagada + cupo free + `sub_codes=0`, sin premium cargado). Eso también deja los **crons de datos**
+  (noticias/cine) sin contenido fresco. Es dominio del dueño (regla: no tocar la key); reportado, no tocado.
+
 ## [v351] — 2026-07-09 — 🍷 Villa Ballester: el maquinista curda (arranca la odisea a Campana)
 - Nuevo destino de tren **Villa Ballester** (ramal Mitre desde Retiro), con **contenido**: acá se combina para
   **Campana**… pero el tren **no sale** porque el **maquinista se quedó en la parrilla del andén** con **tira de asado y
