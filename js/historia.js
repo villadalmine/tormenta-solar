@@ -775,7 +775,6 @@ const Historia = {
       "sets": {
         "comedorHired": true
       },
-      "terminal": true,
       "hints": {
         "es": [
           "En la Villa 31, buscá el COMEDOR POPULAR (la olla humeante).",
@@ -788,6 +787,34 @@ const Historia = {
           "Walk up to the kitchen's community leader and press [E].",
           "She hires you to lend a hand at the pot.",
           "Chat with her (and with the PRIEST at Padre Mugica's church) — they run on AI."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "comedor_jornada",
+      "title": "Servir la jornada del comedor popular",
+      "title_en": "Serve a shift at the soup kitchen",
+      "at": "plaza",
+      "pre": {
+        "comedorHired": true
+      },
+      "sets": {
+        "comedorJornada": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Ya te contrataron: ahora hay que servir la olla.",
+          "Parate en la OLLA y apretá [E] para agarrar un plato.",
+          "Llevale el plato a cada vecino de la COLA y apretá [E].",
+          "Serví a todos los vecinos: la referente te paga la changa."
+        ],
+        "en": [
+          "You're hired: now serve the pot.",
+          "Stand at the POT and press [E] to grab a plate.",
+          "Take the plate to each neighbor in the QUEUE and press [E].",
+          "Serve everyone in line: the leader pays you for the shift."
         ]
       },
       "from": "specs/nivel-1/lugares/lavalle-quest.md"

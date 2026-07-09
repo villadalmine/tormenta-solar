@@ -154,6 +154,13 @@
     'g.villa.promptHire': '[E] talk to the kitchen\'s leader',
     'g.villa.promptTalk': '[E] chat with Doña Rosa',
     'g.villa.promptCura': '[E] talk to the priest (Padre Mugica\'s church)',
+    'g.villa.plato': '🍽️ You grab a steaming plate from the pot. Take it to someone in the line.',
+    'g.villa.servido': '🍲 "Thank you, sweetheart!" — you served a neighbor ({n}/{m}).',
+    'g.villa.jornada': '🍲 "Phew, we fed everyone! You\'re a gem, kid. Here\'s something for the bus, for the shift." — shift complete.',
+    'g.villa.paga': '🪙 +30 — Doña Rosa pays you for the soup-kitchen shift. Thanks for the hand!',
+    'g.villa.listo': 'shift ✓',
+    'g.villa.promptServir': '[E] serve the plate to the neighbor',
+    'g.villa.promptPlato': '[E] grab a plate from the pot',
     'g.super.barricada': "The corner shop's FRONT is barricaded: burning drums, grenades and the ninjas on guard. No way in here. → Go in through the BACK DOOR (from the cueva) or get IORIO to play so they clear out. 🔥🥷",
     'g.cambio.cola': [
       '"Hey, pal, no cutting the line!"',

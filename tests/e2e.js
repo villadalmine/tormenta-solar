@@ -476,6 +476,11 @@ if (require.main === module) {
     if (!(curaNpc && curaNpc.persona === 'cura')) throw new Error('villa31: el cura de la iglesia Mugica debería abrir chat (persona cura): ' + JSON.stringify(curaNpc));
     const vi3 = Villa31.create({});
     if (vi3.__leave() !== 'back') throw new Error('villa31: las vías deberían volver a Retiro: ' + vi3.exitTo);
+    // JORNADA del comedor: agarrás plato en la olla + lo servís a cada vecino → completás META y disparás el edge
+    const vi4 = Villa31.create({ hired: true });
+    const jor = vi4.__servir();
+    if (!jor.jornadaDone) throw new Error('villa31: servir a toda la cola debería completar la jornada: ' + JSON.stringify(jor));
+    if (!jor.edge) throw new Error('villa31: completar la jornada debería disparar el edge una vez');
     ok.push('villa31:ok');
     // PLAZA DE MAYO (Nivel 2, arco sanmartiniano): chip del Libertador (tumba) → Pirámide → señal → win2
     if (typeof Plaza === 'undefined' || !Plaza.create) throw new Error('Plaza no cargó');
@@ -690,7 +695,7 @@ if (require.main === module) {
       won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true,
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
       subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
-      enRetiro:true, enVilla31:true, comedorHired:true };
+      enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

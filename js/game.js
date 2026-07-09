@@ -737,7 +737,7 @@
   // (te contratan) + la iglesia del Padre Mugica. NPCs con IA (referente del comedor, cura villero).
   function enterVilla31() {
     if (typeof Villa31 === 'undefined' || !Villa31.create) { enterRetiro(); return true; }
-    villa31Game = Villa31.create({ hired: lsFlag('ts_comedor') }); state = 'villa31';
+    villa31Game = Villa31.create({ hired: lsFlag('ts_comedor'), jornada: lsFlag('ts_comedor_jornada') }); state = 'villa31';
     applyEdge('villa31_llegada', 'enVilla31');
     evlog('hito', 'llegó a la Villa 31');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -1149,6 +1149,7 @@
     enRetiro:         v => { try { localStorage.setItem('ts_en_retiro', v ? '1' : ''); } catch (e) {} },
     enVilla31:        v => { try { localStorage.setItem('ts_en_villa31', v ? '1' : ''); } catch (e) {} },
     comedorHired:     v => { try { localStorage.setItem('ts_comedor', v ? '1' : ''); } catch (e) {} },   // te contrataron en el comedor de la Villa 31
+    comedorJornada:   v => { try { localStorage.setItem('ts_comedor_jornada', v ? '1' : ''); } catch (e) {} },   // completaste una jornada de servir en el comedor
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1206,6 +1207,7 @@
       enRetiro: lsFlag('ts_en_retiro'),             // llegaste a la terminal Retiro
       enVilla31: lsFlag('ts_en_villa31'),           // llegaste a la Villa 31
       comedorHired: lsFlag('ts_comedor'),           // te contrataron en el comedor popular
+      comedorJornada: lsFlag('ts_comedor_jornada'), // serviste una jornada entera en el comedor
       sleptOnce: loopCount > 0,
     };
   }
@@ -1241,7 +1243,7 @@
       enPlaza: lsFlag('ts_en_plaza'), sanmartinChip: lsFlag('ts_sanmartin_chip'), nivel2Win: lsFlag('ts_nivel2_win'),
       escarapela: lsFlag('ts_escarapela'),   // Cabildo 1810: escarapela + French & Beruti (los oráculos lo saben)
       lineaC: lsFlag('ts_linea_c'), enConstitucion: lsFlag('ts_en_constitucion'),   // §11: red de tren post Nivel 2 (Constitución/Retiro)
-      enRetiro: lsFlag('ts_en_retiro'), enVilla31: lsFlag('ts_en_villa31'), comedorHired: lsFlag('ts_comedor'),   // §11 E2-E4: Retiro → Villa 31 → comedor
+      enRetiro: lsFlag('ts_en_retiro'), enVilla31: lsFlag('ts_en_villa31'), comedorHired: lsFlag('ts_comedor'), comedorJornada: lsFlag('ts_comedor_jornada'),   // §11 E2-E4: Retiro → Villa 31 → comedor (+ jornada)
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -3909,6 +3911,11 @@
     } else if (state === 'villa31' && villa31Game) {                  // §11 E3/E4: Villa 31 (comedor + iglesia Mugica)
       villa31Game.update(dt); villa31Game.draw(ctx, W, H);
       if (villa31Game.hireEdge) applyEdge('comedor_contratado', 'comedorHired');   // GRAFO: te contrataron en el comedor
+      if (villa31Game.jornadaEdge) {   // completaste la jornada del comedor (serviste todos los platos) → paga + grafo
+        applyEdge('comedor_jornada', 'comedorJornada');
+        player.coins = (player.coins || 0) + 30; syncHud();
+        setMsg(T('g.villa.paga'), '#7CFC00', 6000);
+      }
       { const vc = villa31Game.openChatNpc; if (vc) { chatReturnTo = 'villa31'; openChat({ name: vc.name, persona: vc.persona }); } }   // [E] referente/cura → chat IA
       if (villa31Game.done) {
         const ex = villa31Game.exitTo; villa31Game = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();

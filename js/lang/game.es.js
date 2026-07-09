@@ -155,6 +155,13 @@
     'g.villa.promptHire': '[E] hablar con la referente del comedor',
     'g.villa.promptTalk': '[E] charlar con Doña Rosa',
     'g.villa.promptCura': '[E] hablar con el cura (iglesia del Padre Mugica)',
+    'g.villa.plato': '🍽️ Agarrás un plato humeante de la olla. Llevaselo a alguno de la cola.',
+    'g.villa.servido': '🍲 «¡Gracias, corazón!» — le serviste a un vecino ({n}/{m}).',
+    'g.villa.jornada': '🍲 «¡Uf, servimos a todos! Sos un sol, m\'hijo. Tomá algo para el bondi por la changa.» — jornada completa.',
+    'g.villa.paga': '🪙 +30 — Doña Rosa te paga la changa del comedor. ¡Gracias por la mano!',
+    'g.villa.listo': 'jornada ✓',
+    'g.villa.promptServir': '[E] servirle el plato al vecino',
+    'g.villa.promptPlato': '[E] agarrar un plato de la olla',
     'g.super.barricada': 'El FRENTE del chino está atrincherado: tachos con fuego, granadas y los ninjas de guardia. No entrás por acá. → Entrá por la PUERTA TRASERA (desde la cueva) o que IORIO toque para que se vayan. 🔥🥷',
     'g.cambio.cola': [
       '“¡Ehh, loco, no te coles!”',

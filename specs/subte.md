@@ -255,6 +255,10 @@ Pedido del dueño (2026-07-08): al reventar los satélites desde la Pirámide, l
   (personas `comedor` y `cura` — fichas `personajes/{comedor,cura}.md` → `gen-personas.mjs`; el cura es **peronista +
   holístico**). Getters `hireEdge`/`openChatNpc` → game.js (`openChat` + `chatReturnTo='villa31'`). "Ahí quedamos"
   (dueño): cocinar en el comedor se itera después. **Requiere deploy del PROXY** (personas nuevas). Debug `retiroYa`/`villaYa`.
+- **E4.1 — HECHO (v348): la JORNADA del comedor.** Contratada, agarrás un plato de la **olla** ([E]) y se lo servís a
+  cada vecino de la **cola** ([E]); al servir los `META=6`, la referente te paga una **changa (+30 🪙)**. Estado en
+  `villa31.js` (`carrying`/`servidos`/`cola`/`jornadaDone`), one-shot `jornadaEdge` → game.js aplica la paga + arista
+  `comedor_jornada` (flag `comedorJornada`, `ts_comedor_jornada`). HUD `X/6` + plato en mano + cola que se vacía.
 
 Nota geográfica: por jugabilidad, "habilitar la Línea C" abre el destino Constitución desde CUALQUIER estación (no forzamos
 volver a Lavalle). El metro (subte) y el tren conviven: la terminal (Constitución/Retiro) tiene el andén del subte C abajo y

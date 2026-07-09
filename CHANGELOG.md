@@ -101,6 +101,15 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v348] — 2026-07-09 — 🍽️ La jornada del comedor: servir la olla (gameplay del comedor popular)
+- Una vez que Doña Rosa te contrata, el comedor de la Villa 31 tiene **laburo de verdad**: **agarrás un plato de la
+  olla** ([E]) y se lo **servís a cada vecino** de la cola ([E]). Al servir a los 6, la referente te agradece y te
+  **paga una changa (+30 🪙)**. HUD con el contador `X/6` + el plato humeante en la mano + la cola que se vacía.
+- **Data-driven + grafo** (30 aristas): nueva arista `comedor_jornada` (pre `comedorHired`, terminal) + flag
+  `comedorJornada` en FLAG_SETTERS/getters/historiaState/worldSnapshot; persiste en `ts_comedor_jornada`. La paga la
+  aplica game.js al leer el one-shot `jornadaEdge`. e2e (`__servir` completa la jornada) + web-smoke verdes. i18n
+  ES≡EN. Captura 06-villa31 regenerada (con la cola). Cache v348. (Sin cambios de IA/proxy.)
+
 ## [v347] — 2026-07-08 — 🍲 Red de tren completa: Retiro + Línea San Martín → Villa 31 (comedor + iglesia Mugica)
 - **E2 — Retiro** (`js/retiro.js`): la Línea C ahora también va a **Retiro**, la terminal del norte — **bóveda de
   hierro y vidrio del Mitre**, molinetes Mitre/San Martín/Belgrano, locales mock. A diferencia de Constitución, su

@@ -30,6 +30,13 @@ const Villa31 = (() => {
     const player = { x: 10 * CS, y: 3.2 * CS, r: 10, dir: 1, walk: 0 };
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false;
     let hired = !!opts.hired, hireJustNow = false, chatNpc = null, humo = 0;
+    // COMEDOR — jornada de servir: agarrás un plato de la olla y se lo das a cada vecino de la cola (META platos).
+    const META = 6;
+    let carrying = false, servidos = opts.servidos || 0, jornadaDone = !!opts.jornada, jornadaJustNow = false;
+    const COLC = ['#6b8f3a', '#8a5a3a', '#4a6b8f', '#8f4a6b', '#7a7a3a', '#5a8f7a'];
+    const cola = [];                                  // la fila de vecinos a la derecha de la olla (DATA)
+    for (let i = 0; i < META; i++) cola.push({ x: 11.8 + (i % 3) * 1.3, y: 9.3 + Math.floor(i / 3) * 1.6, served: false, col: COLC[i % COLC.length] });
+    function nextVecino() { return carrying ? cola.find(v => !v.served && near(v, 1.3)) : null; }
     setMsg(T('g.villa.enter'), 7);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
@@ -43,7 +50,18 @@ const Villa31 = (() => {
         chatNpc = { name: cura.name, persona: cura.persona };   // el cura villero de la iglesia del Padre Mugica (IA)
         return;
       }
-      if (near(referente, 1.7) || near(comedor, 1.4)) {
+      // COMEDOR — servir (ya contratada, y la jornada no está completa)
+      if (hired && !jornadaDone) {
+        const v = nextVecino();
+        if (v) { v.served = true; carrying = false; servidos++;   // le diste el plato al vecino
+          if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup();
+          if (servidos >= META) { jornadaDone = true; jornadaJustNow = true; setMsg(T('g.villa.jornada'), 8); }
+          else setMsg(T('g.villa.servido', { n: servidos, m: META }), 4);
+          return; }
+        if (!carrying && near(comedor, 1.3) && servidos < META) {   // agarrás un plato de la olla
+          carrying = true; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); setMsg(T('g.villa.plato'), 3); return; }
+      }
+      if (near(referente, 1.5)) {
         if (!hired) { hired = true; hireJustNow = true; setMsg(T('g.villa.hire'), 7); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
         chatNpc = { name: referente.name, persona: referente.persona };   // abrí el chat con la referente (IA)
         return;
@@ -66,7 +84,9 @@ const Villa31 = (() => {
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
       if (near(vias, 1.4)) prompt = T('g.villa.promptVias');
       else if (near(cura, 1.6) || near(iglesia, 1.5)) prompt = T('g.villa.promptCura');
-      else if (near(referente, 1.7) || near(comedor, 1.4)) prompt = hired ? T('g.villa.promptTalk') : T('g.villa.promptHire');
+      else if (hired && !jornadaDone && nextVecino()) prompt = T('g.villa.promptServir');
+      else if (hired && !jornadaDone && !carrying && near(comedor, 1.3) && servidos < META) prompt = T('g.villa.promptPlato');
+      else if (near(referente, 1.5)) prompt = hired ? T('g.villa.promptTalk') : T('g.villa.promptHire');
       else prompt = '';
     }
 
@@ -108,6 +128,18 @@ const Villa31 = (() => {
       // humo
       g.fillStyle = 'rgba(220,220,220,' + (0.18 + 0.1 * Math.sin(t * 3)) + ')';
       for (let i = 0; i < 3; i++) { const yy = cy - 8 - ((humo * 8 + i * 10) % 30); g.beginPath(); g.arc(cx + Math.sin((t + i) * 2) * 5, yy, 5 - i, 0, Math.PI * 2); g.fill(); }
+      // COLA de vecinos esperando el plato (los servidos ya se fueron contentos → no se dibujan)
+      for (const v of cola) { if (v.served) continue;
+        const vx = ox + (v.x + 0.5) * CS, vy = oy + (v.y + 0.5) * CS + Math.sin(t * 2 + v.x) * 1.5;
+        g.fillStyle = '#111'; g.beginPath(); g.ellipse(vx, vy + 8, 7, 3, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = v.col; g.fillRect(vx - 5, vy - 3, 10, 13);
+        g.fillStyle = '#e0a878'; g.beginPath(); g.arc(vx, vy - 7, 5, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#d8d2c4'; g.beginPath(); g.arc(vx + 8, vy + 2, 3, 0, Math.PI * 2); g.fill();   // el platito vacío en la mano
+      }
+      // contador de la jornada (si ya te contrataron)
+      if (hired) { g.fillStyle = '#0d1017cc'; g.fillRect(ox + W * CS - 118, oy + 4, 112, 20);
+        g.fillStyle = jornadaDone ? '#7CFC00' : '#ffe9b0'; g.font = 'bold 11px monospace'; g.textAlign = 'left';
+        g.fillText('🍽️ ' + (jornadaDone ? T('g.villa.listo') : servidos + '/' + META), ox + W * CS - 110, oy + 18); }
       // IGLESIA del Padre Mugica (capilla Cristo Obrero) — fachada simple + cruz
       const ix = ox + (iglesia.x + 0.5) * CS, iy = oy + (iglesia.y + 0.5) * CS;
       g.fillStyle = '#d8cdb6'; g.fillRect(ix - 22, iy - 30, 44, 44);   // nave
@@ -135,6 +167,10 @@ const Villa31 = (() => {
       g.fillStyle = '#111'; g.beginPath(); g.ellipse(px, py + 10, 10, 4, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = '#ffcf5b'; g.beginPath(); g.arc(px, py, player.r, 0, Math.PI * 2); g.fill();
       g.fillStyle = '#0a0a0a'; g.fillRect(px + player.dir * 3 - 1, py - 3, 2, 2);
+      // el plato humeante que llevás
+      if (carrying) { g.fillStyle = '#e8e2d0'; g.beginPath(); g.arc(px + player.dir * 10, py + 2, 5, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#b06a3a'; g.beginPath(); g.arc(px + player.dir * 10, py + 2, 3, 0, Math.PI * 2); g.fill();
+        g.fillStyle = 'rgba(230,230,230,0.4)'; g.beginPath(); g.arc(px + player.dir * 10, py - 4 - (t * 6 % 6), 2, 0, Math.PI * 2); g.fill(); }
       // cartelito de barrio
       g.fillStyle = '#0d1017cc'; g.fillRect(ox + W * CS / 2 - 60, oy + 2.0 * CS, 120, 20);
       g.fillStyle = '#ffd54f'; g.font = 'bold 12px monospace'; g.textAlign = 'center'; g.fillText('VILLA 31 · RETIRO', ox + W * CS / 2, oy + 2.0 * CS + 14);
@@ -147,10 +183,18 @@ const Villa31 = (() => {
       // one-shot: game.js lee si te acaban de contratar (setea el flag/grafo) y a quién chatear (IA)
       get hireEdge() { const h = hireJustNow; hireJustNow = false; return h; },
       get openChatNpc() { const c = chatNpc; chatNpc = null; return c; },
+      // one-shot: completaste la JORNADA del comedor (serviste los META platos) → game.js da la recompensa + grafo
+      get jornadaEdge() { const j = jornadaJustNow; jornadaJustNow = false; return j; },
       update, draw,
       __leave: () => { player.x = (vias.x + 0.5) * CS; player.y = (vias.y + 1.2) * CS; interact(); return exitTo; },   // e2e: volver a Retiro por las vías
       __hire: () => { player.x = (referente.x + 0.5) * CS; player.y = (referente.y + 1.2) * CS; interact(); return { hired, npc: chatNpc }; },   // e2e: te contrata + abre chat
       __cura: () => { player.x = (cura.x + 0.5) * CS; player.y = (cura.y - 0.8) * CS; interact(); return chatNpc; },   // e2e: chat con el cura de la iglesia Mugica
+      // e2e: servir la jornada entera (agarrar plato en la olla + dárselo a cada vecino) → debería completar META
+      __servir: () => { hired = true; for (let k = 0; k < META * 2 + 2 && !jornadaDone; k++) {
+        const v = cola.find(x => !x.served); if (!v) break;
+        player.x = (comedor.x + 0.5) * CS; player.y = (comedor.y + 0.9) * CS; interact();   // agarrar plato
+        player.x = (v.x + 0.5) * CS; player.y = (v.y + 0.5) * CS; interact();               // servir al vecino
+      } return { servidos, jornadaDone, edge: jornadaJustNow }; },
     };
   }
   return { create, CASAS };
