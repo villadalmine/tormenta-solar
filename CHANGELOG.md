@@ -101,6 +101,12 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v355 · proxy 0.1.99] — 2026-07-09 — 💜 El canto REAL de la popular de Dálmine
+- Corrección del dueño: en Mitre y Puccini se canta **"dale dale dale dale vio, dale dale dale dale vio,
+  daleeeeee daleeee viooooooo"** (no "Vio-le-ta"). Actualizado en la calle del estadio (la banda), en el grito de
+  cada gol, y en la ficha del Tano (ahora lo canta tal cual en el chat). i18n ES≡EN (el canto no se traduce: es EL
+  canto). Captura 12-campana regenerada. Cache v355. Proxy 0.1.99 (persona actualizada).
+
 ## [v354 · proxy 0.1.98] — 2026-07-09 — 💜 EL TANO: el hincha viejo de Villa Dálmine (NPC con IA)
 - En la calle del estadio (Campana, §12) aparece **el Tano**: hincha de toda la vida, **socio vitalicio** y ex obrero
   de la **fábrica Dálmine** (la de los tubos, la que le dio nombre al barrio y al club). **NPC con IA** (persona
