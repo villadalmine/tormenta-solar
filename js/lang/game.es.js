@@ -173,6 +173,16 @@
     'g.tren.promptVuelta': '[E] tomar el tren de vuelta',
     'g.tren.promptCartel': '[E] mirar el cartel de la estación',
     'g.tren.promptBanco': '[E] sentarte en el banco',
+    // Villa Ballester (destino especial con el maquinista curda)
+    'g.tren.maqName': 'el Maquinista',
+    'g.tren.llegadaBallester': '🚉 Llegaste a VILLA BALLESTER. Acá se combina para Campana… pero el tren no sale. Uh.',
+    'g.tren.hintBallester': 'El tren a Campana no sale. Hablá con el maquinista (en la parrilla) o volvé a Retiro (arriba).',
+    'g.tren.parrilla': '🔥 Una parrilla humeante en el andén: tira de asado dorándose, una damajuana de vino al lado. Así está la cosa.',
+    'g.tren.demorado': '🚆 TREN A CAMPANA — DEMORADO. «Servicio suspendido por el maquinista», dice alguien. Todos miran la parrilla.',
+    'g.tren.promptMaq': '[E] hablar con el maquinista',
+    'g.tren.promptParrilla': '[E] mirar la parrilla del andén',
+    'g.tren.promptDemorado': '[E] mirar el cartel del tren a Campana',
+
     'g.villa.promptCura': '[E] hablar con el cura (iglesia del Padre Mugica)',
     'g.villa.plato': '🍽️ Agarrás un plato humeante de la olla. Llevaselo a alguno de la cola.',
     'g.villa.servido': '🍲 «¡Gracias, corazón!» — le serviste a un vecino ({n}/{m}).',

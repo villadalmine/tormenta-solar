@@ -172,6 +172,16 @@
     'g.tren.promptVuelta': '[E] take the train back',
     'g.tren.promptCartel': '[E] look at the station sign',
     'g.tren.promptBanco': '[E] sit on the bench',
+    // Villa Ballester (special destination with the drunk train driver)
+    'g.tren.maqName': 'the Driver',
+    'g.tren.llegadaBallester': '🚉 You arrived at VILLA BALLESTER. This is the transfer for Campana… but the train isn\'t leaving. Ugh.',
+    'g.tren.hintBallester': 'The train to Campana isn\'t leaving. Talk to the driver (at the grill) or head back to Retiro (up top).',
+    'g.tren.parrilla': '🔥 A smoking grill on the platform: a rack of ribs browning, a demijohn of wine beside it. So that\'s the deal.',
+    'g.tren.demorado': '🚆 TRAIN TO CAMPANA — DELAYED. "Service suspended, driver unavailable," someone says. Everyone looks at the grill.',
+    'g.tren.promptMaq': '[E] talk to the driver',
+    'g.tren.promptParrilla': '[E] look at the platform grill',
+    'g.tren.promptDemorado': '[E] look at the Campana train sign',
+
     'g.villa.promptCura': '[E] talk to the priest (Padre Mugica\'s church)',
     'g.villa.plato': '🍽️ You grab a steaming plate from the pot. Take it to someone in the line.',
     'g.villa.servido': '🍲 "Thank you, sweetheart!" — you served a neighbor ({n}/{m}).',

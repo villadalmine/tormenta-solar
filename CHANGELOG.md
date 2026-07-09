@@ -101,6 +101,19 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v351] — 2026-07-09 — 🍷 Villa Ballester: el maquinista curda (arranca la odisea a Campana)
+- Nuevo destino de tren **Villa Ballester** (ramal Mitre desde Retiro), con **contenido**: acá se combina para
+  **Campana**… pero el tren **no sale** porque el **maquinista se quedó en la parrilla del andén** con **tira de asado y
+  vino** y **se pasó de copa**. La escena tiene la **parrilla humeante** (brasas + asado), el cartel **"CAMPANA —
+  DEMORADO"** y el **maquinista**, un **NPC con IA** (persona `maquinista`: bonachón, curda simpático, no maneja en pedo).
+  Te quedás varado: sólo podés volver a Retiro… por ahora.
+- `js/tren.js` gana destinos ESPECIALES (`special==='ballester'`): props propios + `openChatNpc` (game.js → `openChat`,
+  `chatReturnTo='tren'`). Persona `maquinista` desde ficha → `gen-personas.mjs` (15 personas, **requiere deploy del
+  proxy**). Debug `ballesterYa`. e2e (`tren:ok` incl. maquinista) + web-smoke verdes. Blog + captura 09-ballester. Cache v351.
+- **Es el S0 de una quest chain grande** (subte.md §12, "La odisea a Campana / Villa Dálmine"): San Martín → piquete UBA →
+  clásico River-Boca → robar la de Boca → destrabar al maquinista → Campana/Villa Dálmine → satélite/portal → loop. Se
+  construye por etapas.
+
 ## [v350] — 2026-07-09 — 🚆 Andenes de tren REALES: tomás el tren de las terminales a los ramales
 - Los **molinetes de tren** de Constitución y Retiro dejan de ser mock: te parás en el molinete → **menú de RAMALES**
   (los reales de cada línea) → **tomás el tren**. Nuevo sub-modo **`js/tren.js`**: (1) un **VIAJE** con paisaje que

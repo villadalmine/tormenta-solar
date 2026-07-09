@@ -283,3 +283,30 @@ Estado al 2026-07-09 (cache v349): **E1-E4 + E4.1 (jornada) + kioscos HECHOS y e
 Recordatorio de infra (no-código de juego): `tormenta_ai_sub_codes=0` en el proxy ⇒ el **código premium del dueño no está
 cargado**; es dominio del dueño (regla dura: no tocar la key), recordárselo. GOTCHA e2e: sin backticks en comentarios que
 caigan dentro del `vm.runInContext(\`...\`)` de `tests/e2e.js`.
+
+## §12 — LA ODISEA A CAMPANA / VILLA DÁLMINE (quest chain, pedido del dueño 2026-07-09)
+Cadena grande que sale de la red de tren y cierra en LOOP (volvés al búnker). Homenaje a **Villa Dálmine** (Campana),
+el club del dueño. Se construye por etapas; cada una self-contained, testeada y deployada.
+
+**Gancho:** en Villa Ballester (§11) el **maquinista está pasado de copa** y NO lleva el tren a Campana. Para destrabarlo
+hay que traerle **la remera/bandera de Boca** (robada de la hinchada en el clásico) → "se le pasa el pedo" y te lleva gratis.
+
+- **S0 — HECHO (v351):** Villa Ballester + **maquinista curda** (persona `maquinista`, IA). El tren a Campana no sale.
+- **S1 — PEND:** desde **Retiro**, tomar el **ramal SAN MARTÍN** (el tren ROJO, "en el medio entre la estación Retiro y la
+  Villa 31"). Arranca hacia una estación **cerca de la cancha de River** (Monumental).
+- **S2 — PEND:** el tren **se para** por un **PIQUETE de estudiantes de la UBA** (corte de presupuesto universitario) justo
+  en la **sede del CBC / Ciudad Universitaria**. Quedás varado cerca del Monumental.
+- **S3 — PEND:** como **River juega el CLÁSICO con Boca**, te **colás en la cancha** (Monumental) y vas a **alentar a River**.
+- **S4 — PEND:** volvés con una **remera/bandera de BOCA** que le **robaste a la hinchada** (ítem `boca_trapo` 🔵🟡).
+- **S5 — PEND:** volvés a **Villa Ballester** y se la **das al maquinista** → **se le pasa el pedo** → te lleva **GRATIS a
+  Campana** (el gate: el maquinista solo arranca con `boca_trapo` en el inventario).
+- **S6 — PEND:** en **Campana** pasás por **la Roca** hasta la **escalinata** (la barranca del río), con la **hinchada/banda
+  de Villa Dálmine** yendo a la cancha.
+- **S7 — PEND:** el **estadio Mitre y Puccini** (Coliseo de Villa Dálmine); juegan **Villa Dálmine vs CADU** (Defensores
+  Unidos de Zárate, el clásico de la zona). En el **entretiempo** te clavás **el mejor chori de tu vida** y gritás **4
+  goles de Dálmine**.
+- **S8 — PEND (cierre en LOOP):** justo **cae un satélite de la IA maligna** → **portal espacio-tiempo** → volvés a caer en
+  la **cueva de los borrachines / el búnker del loop de la tormenta** (donde tenés la cama). Cierra el círculo del juego.
+
+Ítems/flags nuevos previstos: `boca_trapo` (kind trofeo), flags `enMonumental`/`clasicoVisto`/`bocaTrapo`/`campanaLibre`/
+`enCampana`/`dalmineGritado`. El maquinista pasa a tener gate `{has:'boca_trapo'}` para el viaje a Campana.

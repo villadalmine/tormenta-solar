@@ -25,6 +25,13 @@ const Tren = (() => {
     const ramal = opts.ramal || 'Ramal';
     const linea = opts.linea || 'Roca';
     const fl = flavorFor(ramal);
+    // DESTINO ESPECIAL con contenido: Villa Ballester — combinás para Campana, pero el tren NO SALE porque el
+    // maquinista se quedó en la parrilla del andén con tira de asado y vino, y se pasó de copa. Te quedás varado.
+    const special = /ballester/i.test(ramal) ? 'ballester' : null;
+    const maquinista = { x: 11.6, y: 8.4, name: T('g.tren.maqName'), persona: 'maquinista' };
+    const parrilla = { x: 12.9, y: 8.6 };
+    const demoradoSign = { x: 11, y: 6.4 };
+    let chatNpc = null;
     let phase = 'viaje', t = 0, scroll = 0, done = false, exitTo = null, msg = '', msgT = 0, prompt = '';
     let escHeld = false, eHeld = false, arrived = false;
     // ANDÉN de destino (se usa en la fase 'anden')
@@ -43,10 +50,16 @@ const Tren = (() => {
     function interact() {
       if (phase !== 'anden') return;
       if (near(trenVuelta, 1.6)) { done = true; exitTo = 'back'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }
+      if (special === 'ballester') {   // el gag de Villa Ballester: el maquinista curda + el asado + el servicio demorado
+        if (near(maquinista, 1.8)) { chatNpc = { name: maquinista.name, persona: maquinista.persona }; return; }
+        if (near(parrilla, 1.5)) { setMsg(T('g.tren.parrilla'), 6); return; }
+        if (near(demoradoSign, 1.7)) { setMsg(T('g.tren.demorado'), 7); return; }
+      }
       if (near(cartel, 1.6)) { setMsg(T('g.tren.cartel', { r: ramal, l: linea }), 6); return; }
       if (near(banco, 1.4)) { setMsg(T('g.tren.banco'), 5); return; }
-      setMsg(T('g.tren.hint'), 3);
+      setMsg(T(special === 'ballester' ? 'g.tren.hintBallester' : 'g.tren.hint'), 3);
     }
+    function arrive() { phase = 'anden'; setMsg(special === 'ballester' ? T('g.tren.llegadaBallester') : T('g.tren.llegada', { r: ramal }), 7); }
 
     function update(dt) {
       t += dt; msgT -= dt;
@@ -54,9 +67,9 @@ const Tren = (() => {
         scroll += dt * 220;
         // saltar el viaje con [E]/Espacio/Esc
         const skip = Input.keys['e'] || Input.keys['enter'] || Input.keys[' '] || Input.keys['escape'];
-        if (skip) { if (!eHeld) { eHeld = true; phase = 'anden'; setMsg(T('g.tren.llegada', { r: ramal }), 6); } }
+        if (skip) { if (!eHeld) { eHeld = true; arrive(); } }
         else eHeld = false;
-        if (t >= VIAJE_DUR) { phase = 'anden'; setMsg(T('g.tren.llegada', { r: ramal }), 6); }
+        if (t >= VIAJE_DUR) arrive();
         return;
       }
       // fase ANDÉN
@@ -72,6 +85,9 @@ const Tren = (() => {
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; done = true; exitTo = 'back'; } } else escHeld = false;
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
       if (near(trenVuelta, 1.6)) prompt = T('g.tren.promptVuelta');
+      else if (special === 'ballester' && near(maquinista, 1.8)) prompt = T('g.tren.promptMaq');
+      else if (special === 'ballester' && near(parrilla, 1.5)) prompt = T('g.tren.promptParrilla');
+      else if (special === 'ballester' && near(demoradoSign, 1.7)) prompt = T('g.tren.promptDemorado');
       else if (near(cartel, 1.6)) prompt = T('g.tren.promptCartel');
       else if (near(banco, 1.4)) prompt = T('g.tren.promptBanco');
       else prompt = '';
@@ -144,7 +160,29 @@ const Tren = (() => {
       // prop del flavor en el andén (una silueta característica al fondo)
       g.fillStyle = 'rgba(255,255,255,0.08)'; g.textAlign = 'center'; g.font = '30px monospace';
       const emoji = fl.prop === 'rio' ? '🚣' : fl.prop === 'ciudad' ? '🏛️' : fl.prop === 'avion' ? '✈️' : fl.prop === 'campo' ? '🌾' : '🏘️';
-      g.fillText(emoji, ox + 13 * CS, oy + 8 * CS);
+      if (!special) g.fillText(emoji, ox + 13 * CS, oy + 8 * CS);
+      // VILLA BALLESTER: el cartel de "servicio a Campana DEMORADO", la PARRILLA con asado y el MAQUINISTA curda
+      if (special === 'ballester') {
+        const dx = ox + demoradoSign.x * CS, dy = oy + demoradoSign.y * CS;
+        g.fillStyle = '#2a1a10'; g.fillRect(dx - 70, dy - 12, 140, 24);
+        g.fillStyle = '#ff6a3a'; g.font = 'bold 10px monospace'; g.textAlign = 'center';
+        g.fillText('CAMPANA — ' + (Math.floor(t * 2) % 2 ? 'DEMORADO' : '⚠ DEMORADO'), dx, dy + 3);
+        // parrilla + asado + humo
+        const gx = ox + parrilla.x * CS, gy = oy + parrilla.y * CS;
+        g.fillStyle = '#2a2a2a'; g.fillRect(gx - 18, gy - 2, 36, 12); g.fillStyle = '#111'; g.fillRect(gx - 16, gy + 8, 4, 10); g.fillRect(gx + 12, gy + 8, 4, 10);
+        g.fillStyle = '#ff5a2a'; for (let i = 0; i < 5; i++) g.fillRect(gx - 14 + i * 6, gy + 6, 4, 3);   // brasas
+        g.fillStyle = '#6a3a2a'; g.fillRect(gx - 12, gy - 1, 10, 5); g.fillRect(gx + 2, gy - 1, 12, 5);   // tira de asado
+        g.fillStyle = 'rgba(210,210,210,' + (0.2 + 0.1 * Math.sin(t * 3)) + ')';
+        for (let i = 0; i < 3; i++) { const yy = gy - 6 - ((t * 14 + i * 9) % 26); g.beginPath(); g.arc(gx + Math.sin((t + i) * 2) * 4, yy, 5 - i, 0, Math.PI * 2); g.fill(); }
+        // el maquinista (gorra, vaso de vino)
+        const mx = ox + maquinista.x * CS, my = oy + maquinista.y * CS;
+        g.fillStyle = '#111'; g.beginPath(); g.ellipse(mx, my + 9, 8, 3, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#3a4a5a'; g.fillRect(mx - 6, my - 4, 12, 16);        // uniforme
+        g.fillStyle = '#e8b98e'; g.beginPath(); g.arc(mx, my - 8, 6, 0, Math.PI * 2); g.fill();   // cabeza
+        g.fillStyle = '#1a2a3a'; g.fillRect(mx - 7, my - 13, 14, 4); g.fillRect(mx - 9, my - 11, 5, 2);   // gorra ferroviaria
+        g.fillStyle = '#7a1a2a'; g.fillRect(mx + 8, my - 2, 4, 5);         // vasito de vino
+        g.fillStyle = '#e8f0ff'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText(maquinista.name, mx, my - 18);
+      }
       // jugador
       const px = ox + player.x, py = oy + player.y;
       g.fillStyle = '#111'; g.beginPath(); g.ellipse(px, py + 10, 10, 4, 0, 0, Math.PI * 2); g.fill();
@@ -160,9 +198,11 @@ const Tren = (() => {
 
     return {
       get done() { return done; }, get exitTo() { return exitTo; },
+      get openChatNpc() { const c = chatNpc; chatNpc = null; return c; },   // Villa Ballester: [E] sobre el maquinista → chat IA
       update, draw,
-      __arrive: () => { phase = 'anden'; return phase; },   // e2e: forzar la llegada
+      __arrive: () => { arrive(); return phase; },   // e2e: forzar la llegada
       __leave: () => { phase = 'anden'; player.x = (trenVuelta.x + 0.5) * CS; player.y = (trenVuelta.y + 1.4) * CS; interact(); return exitTo; },   // e2e: tomar el tren de vuelta
+      __maq: () => { phase = 'anden'; player.x = (maquinista.x + 0.5) * CS; player.y = (maquinista.y + 1.2) * CS; interact(); return chatNpc; },   // e2e: chat con el maquinista (Villa Ballester)
     };
   }
   return { create, FLAVORS, flavorFor };

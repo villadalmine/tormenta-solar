@@ -474,6 +474,12 @@ if (require.main === module) {
     tr.__arrive();
     for (let i = 0; i < 20; i++) { tr.update(0.05); tr.draw(C, 960, 540); }   // corre el andén
     if (tr.__leave() !== 'back') throw new Error('tren: el tren de vuelta debería salir al origen: ' + tr.exitTo);
+    // VILLA BALLESTER (destino especial): el maquinista curda es un NPC con IA (persona maquinista)
+    const trB = Tren.create({ ramal: 'Villa Ballester', linea: 'Mitre' });
+    trB.__arrive();
+    for (let i = 0; i < 10; i++) { trB.update(0.05); trB.draw(C, 960, 540); }
+    const maq = trB.__maq();
+    if (!(maq && maq.persona === 'maquinista')) throw new Error('tren: el maquinista de Villa Ballester debería abrir chat (persona maquinista): ' + JSON.stringify(maq));
     ok.push('tren:ok');
     // TERMINAL RETIRO (§11 E2): hall del Mitre; su SALIDA a la calle → Villa 31; escalera → subte C
     if (typeof Retiro === 'undefined' || !Retiro.create) throw new Error('Retiro no cargó');

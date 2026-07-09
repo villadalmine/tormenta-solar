@@ -1518,6 +1518,8 @@
       else if (chatReturnTo === 'plaza' && plazaGame) { chatReturnTo = null; state = 'plaza'; }
       // Villa 31: el chat con la referente/cura se abrió DESDE la villa → volvés ahí (villa31Game sigue vivo)
       else if (chatReturnTo === 'villa31' && villa31Game) { chatReturnTo = null; state = 'villa31'; }
+      // Tren (Villa Ballester): el chat con el maquinista se abrió DESDE el andén → volvés ahí (trenGame sigue vivo)
+      else if (chatReturnTo === 'tren' && trenGame) { chatReturnTo = null; state = 'tren'; }
       // T2b: si el chat privado se abrió DESDE el bodegón top-down → volvés ahí (no al side-scroller)
       else if (from === 'bodegon' && hasTag(room(), 'bodegon') && enterBodegon()) { /* de vuelta en el bodegón */ }
       else { chatReturnTo = null; state = 'playing'; }
@@ -3939,6 +3941,7 @@
       }
     } else if (state === 'tren' && trenGame) {                        // §11: el TREN (viaje + andén de destino)
       trenGame.update(dt); trenGame.draw(ctx, W, H);
+      { const tc = trenGame.openChatNpc; if (tc) { chatReturnTo = 'tren'; openChat({ name: tc.name, persona: tc.persona }); } }   // Villa Ballester: [E] maquinista → chat IA
       if (trenGame.done) {
         trenGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (trenReturn === 'retiro') enterRetiro(); else enterConstitucion(); return;   // el tren te trae de vuelta a la terminal
@@ -4246,6 +4249,7 @@
         retiroYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterRetiro(); return 'Fuiste a la terminal RETIRO 🚆 (Línea C)'; },
         villaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); lsOn('ts_en_retiro'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterVilla31(); return 'Fuiste a la VILLA 31 🍲 (comedor + iglesia Mugica)'; },
         trenYa:      () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('La Plata', 'Roca', 'constitucion'); return 'Tomaste el TREN 🚆 a La Plata (Roca)'; },
+        ballesterYa: () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('Villa Ballester', 'Mitre', 'retiro'); return 'Tomaste el tren a VILLA BALLESTER 🚆 (el maquinista curda)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },
