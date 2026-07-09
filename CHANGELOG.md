@@ -132,6 +132,15 @@ El juego es 100% estático; se publica en
   fichas → `gen-personas.mjs` (**requiere deploy del proxy**). Blog de Novedades + capturas (05-retiro, 06-villa31)
   regeneradas. Debug `retiroYa`/`villaYa`. i18n ES≡EN. e2e (`retiro:ok`+`villa31:ok`) + web-smoke verdes. Cache v347.
 
+## [v346] — 2026-07-08 — 📓 Blog de Novedades (bitácora por día) + capturas Playwright
+- **`info/novedades.html` + `.en.html`:** bitácora de avances **por día**, estilo blog (reusa `info.css`, nuevas clases
+  `.post`/`.shot`), con las features recientes (terminal Constitución, Cabildo/French & Beruti, subte/Plaza de Mayo Nivel 2,
+  música chiptune, el mapa, el fix del chat). Enlazado desde el **nav de todas las páginas info** + la **intro del juego**
+  (`intro.novedades` ES/EN).
+- **`tests/shots-novedades.mjs`:** script Playwright que arranca el juego, salta a cada feature con los **hooks de debug**
+  (`plazaYa`/`subteYa`/`constiYa`/…) y guarda PNGs del canvas en `info/img/novedades/`. Las capturas del blog salen del
+  test automático. `info.css?v=4` en las 6 páginas. web-smoke verde. Cache v346.
+
 ## [v345] — 2026-07-08 — 🐛 FIX "el chat se cuelga tras hablar" (candado busy que no se liberaba)
 - **Bug:** después de un par de mensajes el chat con los NPC "se colgaba" y no respondía hasta **cerrar y reabrir**
   el chat. Causa: en `chatSend()` el post-procesado de la respuesta (mostrar la línea, telemetría, quests, ideas,
