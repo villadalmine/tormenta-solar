@@ -101,6 +101,23 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v353 · proxy 0.1.97] — 2026-07-09 — 💜 LA ODISEA A CAMPANA completa (S1-S8): UBA → clásico → trapo → Villa Dálmine → portal
+- **S1/S2 — el tren ROJO de la San Martín** (ramal 'San Martín — C. Universitaria' desde Retiro, `trainCol()`): el tren
+  **frena en Ciudad Universitaria** por un **piquete de estudiantes de la UBA** (recorte de presupuesto) — banner,
+  fogata, el CBC, y la **estudiante NPC con IA** (persona `estudiante`, **requiere deploy del proxy**).
+- **S3/S4 — el Monumental** (`js/cancha.js`): al lado del piquete, **River-Boca**. Te **colás**, alentás a River ([E],
+  la tribuna salta) y **manoteás la bandera de Boca** del lado visitante → ítem `boca_trapo` 🎽 + arista `clasico_trapo`.
+  Al salir volvés al andén sin repetir el viaje (`trenCtx` + `opts.arrived`).
+- **S5 — destrabar al maquinista:** en Villa Ballester, [E] con el trapo → «se me pasó el pedo DE GOLPE» → te lleva
+  **GRATIS a Campana** (consume el ítem via `trapoUsed`).
+- **S6-S8 — Campana / Villa Dálmine** (`js/campana.js`): la **escalinata**, la **banda violeta** cantando, el **Coliseo
+  de MITRE Y PUCCINI**: **Dálmine vs CADU** con marcador vivo → entretiempo con **EL MEJOR CHORI DE TU VIDA** (+vida
+  full) → **gritás los 4 goles** ([E] con la popular saltando) → **cae un SATÉLITE de la IA** → **PORTAL espacio-tiempo**
+  → caés en el **búnker del loop**, al lado de tu cama. Arista `dalmine_portal` (terminal).
+- Grafo **33 aristas** (`clasico_trapo`/`campana_llegada`/`dalmine_portal`); flags `bocaTrapo`/`enCampana`/`dalmineGritado`
+  en FLAG_SETTERS/historiaState/worldSnapshot. Debug `sanmartinYa`/`canchaYa`/`campanaYa`. i18n ES≡EN. e2e (cadena
+  completa: colar→robar→dar trapo→4 goles→portal) + web-smoke verdes. Blog + capturas 10-13. Cache v353.
+
 ## [v352] — 2026-07-09 — 🐛🔥 FIX CRÍTICO "gano el Nivel 2 y no me puedo mover" (crash en showWin2End)
 - **Bug (desde v344):** al ganar el Nivel 2, `showWin2End()` llamaba **`lsOn('ts_linea_c')`**, pero `lsOn` es una
   helper **local del IIFE de debug** — NO existe en ese scope. Tiraba **"lsOn is not defined"** en la 1ª línea →

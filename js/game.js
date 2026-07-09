@@ -136,6 +136,8 @@
   let constitucionGame = null;                     // subte.md §11: terminal de tren Constitución (Línea C, post Nivel 2)
   let retiroGame = null, villa31Game = null;       // subte.md §11 E2-E4: terminal Retiro → Línea San Martín → Villa 31 (comedor)
   let trenGame = null, trenReturn = 'constitucion'; // subte.md §11: tomar el TREN a un ramal (viaje + andén de destino)
+  let trenCtx = null;                               // {ramal, linea, origen} del tren actual (para volver de la cancha al andén)
+  let canchaGame = null, campanaGame = null;        // subte.md §12: el Monumental (clásico) + Campana/Villa Dálmine (final de la odisea)
   let plazaGame = null;   // subte.md §10 / F4: PLAZA DE MAYO (arranque del Nivel 2), llegás en subte a Catedral
   let finaleGame = null;  // subte.md §10.1: cinemática de cierre del Nivel 2 (liberación sanmartiniana) → pantalla de fin
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
@@ -393,7 +395,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; retiroGame = null; villa31Game = null; trenGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; retiroGame = null; villa31Game = null; trenGame = null; canchaGame = null; campanaGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -747,11 +749,33 @@
   }
   // TOMAR EL TREN (subte.md §11): desde el molinete de una terminal elegís un ramal → viaje + andén de destino.
   // `origen` = a qué terminal volvés al bajar (constitucion/retiro). `linea` = para el color del tren.
-  function enterTren(ramal, linea, origen) {
+  function enterTren(ramal, linea, origen, xtra) {
     if (typeof Tren === 'undefined' || !Tren.create) return false;
     trenReturn = origen || 'constitucion';
-    trenGame = Tren.create({ ramal, linea }); state = 'tren';
+    trenCtx = { ramal, linea, origen: trenReturn };   // para volver de la cancha al MISMO andén sin repetir el viaje
+    trenGame = Tren.create(Object.assign({ ramal, linea,
+      hasTrapo: !!(player && player.inventory && player.inventory.includes('boca_trapo')) }, xtra || {})); state = 'tren';
     evlog('hito', 'tomó el tren a ' + ramal);
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // EL MONUMENTAL (subte.md §12 S3/S4): te colás desde el piquete de la UBA al clásico River-Boca → robás el trapo.
+  function enterCancha() {
+    if (typeof Cancha === 'undefined' || !Cancha.create) return false;
+    canchaGame = Cancha.create({ gotTrapo: !!(player && player.inventory && player.inventory.includes('boca_trapo')) || lsFlag('ts_boca_trapo') }); state = 'cancha';
+    evlog('hito', 'se coló al Monumental (River-Boca)');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // CAMPANA / VILLA DÁLMINE (subte.md §12 S6-S8): el maquinista sobrio te lleva; escalinata → Mitre y Puccini →
+  // Dálmine vs CADU → el chori → 4 goles → satélite → PORTAL → volvés al búnker del loop.
+  function enterCampana() {
+    if (typeof Campana === 'undefined' || !Campana.create) return false;
+    campanaGame = Campana.create({}); state = 'campana';
+    applyEdge('campana_llegada', 'enCampana');
+    evlog('hito', 'llegó a Campana (Villa Dálmine)');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -854,6 +878,7 @@
     // ITEMS DE PIQUETE (premios de los mini-juegos co-op de Lavalle). F2 (specs/inventario-armas.md §F2): el CHORIPÁN
     // es COMIDA → "usar" desde [I] te cura (efecto DATA-driven kind:'heal') y se CONSUME. Los demás quedan de flavor.
     chori:      { id: 'chori',      emoji: '🌭', label: 'g.wpn.chori',   use: { kind: 'heal', amount: 30 } },   // olla → comida (+vida)
+    boca_trapo: { id: 'boca_trapo', emoji: '🎽', label: 'g.wpn.trapo' },   // §12: la remera/bandera de Boca robada — se la das al maquinista (Ballester) y te lleva a Campana
     fernet:     { id: 'fernet',     emoji: '🥤', label: 'g.wpn.fernet',  use: { kind: 'heal', amount: 25 } },   // pancarta → Fernet con Coca (+vida)
     mortero:    { id: 'mortero',    emoji: '🎆', label: 'g.wpn.mortero', use: { kind: 'ammo', amount: 25 } },    // bombo → prendés el mortero (+munición)
     palo:       { id: 'palo',       emoji: '🏏', label: 'g.wpn.palo',    noEquip: true },
@@ -1162,6 +1187,10 @@
     enVilla31:        v => { try { localStorage.setItem('ts_en_villa31', v ? '1' : ''); } catch (e) {} },
     comedorHired:     v => { try { localStorage.setItem('ts_comedor', v ? '1' : ''); } catch (e) {} },   // te contrataron en el comedor de la Villa 31
     comedorJornada:   v => { try { localStorage.setItem('ts_comedor_jornada', v ? '1' : ''); } catch (e) {} },   // completaste una jornada de servir en el comedor
+    // ODISEA A CAMPANA (subte.md §12): el trapo de Boca → maquinista sobrio → Campana → 4 goles de Dálmine → portal
+    bocaTrapo:        v => { try { localStorage.setItem('ts_boca_trapo', v ? '1' : ''); } catch (e) {} },
+    enCampana:        v => { try { localStorage.setItem('ts_en_campana', v ? '1' : ''); } catch (e) {} },
+    dalmineGritado:   v => { try { localStorage.setItem('ts_dalmine', v ? '1' : ''); } catch (e) {} },
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1220,6 +1249,9 @@
       enVilla31: lsFlag('ts_en_villa31'),           // llegaste a la Villa 31
       comedorHired: lsFlag('ts_comedor'),           // te contrataron en el comedor popular
       comedorJornada: lsFlag('ts_comedor_jornada'), // serviste una jornada entera en el comedor
+      bocaTrapo: lsFlag('ts_boca_trapo'),           // §12: robaste la remera/bandera de Boca en el clásico
+      enCampana: lsFlag('ts_en_campana'),           // §12: el maquinista te llevó a Campana
+      dalmineGritado: lsFlag('ts_dalmine'),         // §12: gritaste los 4 goles de Dálmine → portal → búnker
       sleptOnce: loopCount > 0,
     };
   }
@@ -1256,6 +1288,7 @@
       escarapela: lsFlag('ts_escarapela'),   // Cabildo 1810: escarapela + French & Beruti (los oráculos lo saben)
       lineaC: lsFlag('ts_linea_c'), enConstitucion: lsFlag('ts_en_constitucion'),   // §11: red de tren post Nivel 2 (Constitución/Retiro)
       enRetiro: lsFlag('ts_en_retiro'), enVilla31: lsFlag('ts_en_villa31'), comedorHired: lsFlag('ts_comedor'), comedorJornada: lsFlag('ts_comedor_jornada'),   // §11 E2-E4: Retiro → Villa 31 → comedor (+ jornada)
+      bocaTrapo: lsFlag('ts_boca_trapo'), enCampana: lsFlag('ts_en_campana'), dalmineGritado: lsFlag('ts_dalmine'),   // §12: la odisea a Campana / Villa Dálmine
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -3944,9 +3977,35 @@
     } else if (state === 'tren' && trenGame) {                        // §11: el TREN (viaje + andén de destino)
       trenGame.update(dt); trenGame.draw(ctx, W, H);
       { const tc = trenGame.openChatNpc; if (tc) { chatReturnTo = 'tren'; openChat({ name: tc.name, persona: tc.persona }); } }   // Villa Ballester: [E] maquinista → chat IA
+      if (trenGame.trapoUsed) { consumeItem('boca_trapo'); }           // §12 S5: le diste el trapo al maquinista → se consume
       if (trenGame.done) {
-        trenGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        const ex = trenGame.exitTo; trenGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'cancha') { enterCancha(); return; }                // §12 S3: te colás al Monumental (desde el piquete)
+        if (ex === 'campana') { enterCampana(); return; }              // §12 S5→S6: el maquinista sobrio te lleva a Campana
         if (trenReturn === 'retiro') enterRetiro(); else enterConstitucion(); return;   // el tren te trae de vuelta a la terminal
+      }
+    } else if (state === 'cancha' && canchaGame) {                    // §12 S3/S4: el Monumental (clásico River-Boca)
+      canchaGame.update(dt); canchaGame.draw(ctx, W, H);
+      if (canchaGame.trapoEdge) { applyEdge('clasico_trapo', 'bocaTrapo'); addItem('boca_trapo'); }   // robaste el trapo de Boca → ítem + grafo
+      if (canchaGame.done) {
+        canchaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        // volvés al andén del piquete (sin repetir el viaje)
+        if (trenCtx) { enterTren(trenCtx.ramal, trenCtx.linea, trenCtx.origen, { arrived: true }); return; }
+        enterRetiro(); return;
+      }
+    } else if (state === 'campana' && campanaGame) {                  // §12 S6-S8: Campana / Villa Dálmine → el portal
+      campanaGame.update(dt); campanaGame.draw(ctx, W, H);
+      if (campanaGame.choriEdge) { player.hp = MAXHP; syncHud(); }     // EL MEJOR CHORI DE TU VIDA → vida full
+      if (campanaGame.done) {
+        const ex = campanaGame.exitTo; campanaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'portal') {                                         // el satélite abrió el portal → caés en el BÚNKER del loop (la cama)
+          applyEdge('dalmine_portal', 'dalmineGritado');
+          tel('win', { result: 'dalmine' }); evlog('hito', 'gritó 4 goles de Dálmine y cayó por el portal al búnker');
+          const bi = rooms.findIndex(r => (r.tags || []).includes('bunker'));
+          state = 'playing'; transCd = 0.5; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+          if (bi >= 0) spawnIn(bi, 5); setMsg(T('g.campana.back'), '#c8aaff', 9000); return;
+        }
+        enterTren('Villa Ballester', 'Mitre', 'retiro', { arrived: true }); return;   // te fuiste antes → de vuelta a Ballester
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
@@ -4254,6 +4313,9 @@
         ballesterYa: () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('Villa Ballester', 'Mitre', 'retiro'); return 'Tomaste el tren a VILLA BALLESTER 🚆 (el maquinista curda)'; },
         win2Ya:      () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterPlaza(); if (plazaGame && plazaGame.__arm) plazaGame.__arm(); return 'Armando la Pirámide → GANÁS el Nivel 2 (finale → win)'; },
         win2endYa:   () => { const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); showWin2End(); return 'Pantalla de fin del Nivel 2 (probá SEGUIR JUGANDO)'; },
+        sanmartinYa: () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('San Martín — C. Universitaria', 'San Martín', 'retiro'); return 'Tren ROJO de la San Martín 🚆 → el piquete de la UBA'; },
+        canchaYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); trenCtx = { ramal: 'San Martín — C. Universitaria', linea: 'San Martín', origen: 'retiro' }; enterCancha(); return 'Te colaste al MONUMENTAL ⚽ (robá el trapo de Boca)'; },
+        campanaYa:   () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_boca_trapo'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterCampana(); return 'Fuiste a CAMPANA 💜 (Villa Dálmine vs CADU)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

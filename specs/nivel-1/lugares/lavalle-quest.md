@@ -349,3 +349,85 @@ la cola. Al servir a todos, la referente te lo agradece y te paga una **changa**
   }
 }
 ```
+
+La **ODISEA A CAMPANA** (subte.md §12): en Villa Ballester el maquinista está pasado de copa y el tren a Campana no
+sale. La vuelta: tomás el **tren rojo de la San Martín** (piquete de la UBA en Ciudad Universitaria), te **colás al
+Monumental** (clásico River-Boca) y **robás una bandera de Boca**; se la das al maquinista → **sobrio** → te lleva
+**gratis a Campana**: la escalinata, la banda violeta, **Villa Dálmine vs CADU** en Mitre y Puccini, el mejor chori,
+**4 goles**, y un **satélite de la IA** que abre un **portal** que te devuelve al búnker del loop.
+
+```hist
+{
+  "id": "clasico_trapo",
+  "title": "Colarse al Monumental y robar el trapo de Boca",
+  "title_en": "Sneak into the Monumental and steal the Boca flag",
+  "at": "plaza",
+  "pre": { "lineaC": true },
+  "sets": { "bocaTrapo": true },
+  "hints": {
+    "es": [
+      "El maquinista de Villa Ballester no maneja borracho… pero algo lo puede despabilar.",
+      "Tomá el TREN ROJO de la San Martín en Retiro: hay un piquete de la UBA en Ciudad Universitaria.",
+      "Al lado del piquete está el MONUMENTAL: River-Boca. Colate.",
+      "Del lado visitante hay una BANDERA DE BOCA al alcance: manoteála [E]."
+    ],
+    "en": [
+      "The Villa Ballester driver won't drive drunk… but something might snap him out of it.",
+      "Take the RED San Martín train at Retiro: there's a UBA picket at Ciudad Universitaria.",
+      "Right next to the picket is the MONUMENTAL: River-Boca. Sneak in.",
+      "On the away side there's a BOCA FLAG within reach: snatch it [E]."
+    ]
+  }
+}
+```
+
+```hist
+{
+  "id": "campana_llegada",
+  "title": "El maquinista sobrio te lleva a Campana",
+  "title_en": "The sobered-up driver takes you to Campana",
+  "at": "plaza",
+  "pre": { "bocaTrapo": true },
+  "sets": { "enCampana": true },
+  "hints": {
+    "es": [
+      "Tenés el trapo de Boca. ¿A quién le puede cambiar el día?",
+      "Volvé a VILLA BALLESTER (tren del Mitre desde Retiro).",
+      "Dale el trapo al MAQUINISTA de la parrilla [E].",
+      "Se le pasa el pedo de golpe y te lleva GRATIS a CAMPANA."
+    ],
+    "en": [
+      "You have the Boca flag. Whose day could it make?",
+      "Head back to VILLA BALLESTER (Mitre train from Retiro).",
+      "Give the flag to the DRIVER at the grill [E].",
+      "He sobers up on the spot and takes you to CAMPANA FOR FREE."
+    ]
+  }
+}
+```
+
+```hist
+{
+  "id": "dalmine_portal",
+  "title": "4 goles de Villa Dálmine → el satélite → el portal al búnker",
+  "title_en": "4 Villa Dálmine goals → the satellite → the portal to the bunker",
+  "at": "plaza",
+  "pre": { "enCampana": true },
+  "sets": { "dalmineGritado": true },
+  "terminal": true,
+  "hints": {
+    "es": [
+      "En Campana, seguí a la banda violeta.",
+      "Entrá al estadio de MITRE Y PUCCINI: juegan Villa Dálmine vs CADU.",
+      "En el entretiempo clavate EL chori; en el 2º tiempo GRITÁ cada gol [E].",
+      "Al 4º gol cae un SATÉLITE de la IA y el portal te devuelve al búnker del loop."
+    ],
+    "en": [
+      "In Campana, follow the violet crowd.",
+      "Enter the MITRE Y PUCCINI stadium: Villa Dálmine vs CADU.",
+      "At halftime devour THE chori; in the 2nd half SHOUT every goal [E].",
+      "On the 4th goal an AI SATELLITE falls and the portal drops you back at the loop bunker."
+    ]
+  }
+}
+```

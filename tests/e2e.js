@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','retiro.js','villa31.js','tren.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','retiro.js','villa31.js','tren.js','cancha.js','campana.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -480,7 +480,38 @@ if (require.main === module) {
     for (let i = 0; i < 10; i++) { trB.update(0.05); trB.draw(C, 960, 540); }
     const maq = trB.__maq();
     if (!(maq && maq.persona === 'maquinista')) throw new Error('tren: el maquinista de Villa Ballester debería abrir chat (persona maquinista): ' + JSON.stringify(maq));
+    // §12 S5: llegás a Ballester CON el trapo → se lo das al maquinista → arranca a Campana
+    const trT = Tren.create({ ramal: 'Villa Ballester', linea: 'Mitre', hasTrapo: true, arrived: true });
+    if (trT.__darTrapo() !== 'campana') throw new Error('tren: dar el trapo debería llevarte a Campana: ' + trT.exitTo);
+    if (!trT.trapoUsed) throw new Error('tren: dar el trapo debería marcar trapoUsed (para consumir el ítem)');
+    // §12 S1/S2: SAN MARTÍN → piquete de la UBA: estudiante (IA) + colarte al Monumental
+    const trS = Tren.create({ ramal: 'San Martín — C. Universitaria', linea: 'San Martín', arrived: true });
+    for (let i = 0; i < 10; i++) { trS.update(0.05); trS.draw(C, 960, 540); }
+    const est = trS.__est();
+    if (!(est && est.persona === 'estudiante')) throw new Error('tren: la estudiante del piquete debería abrir chat (persona estudiante): ' + JSON.stringify(est));
+    const trS2 = Tren.create({ ramal: 'San Martín — C. Universitaria', linea: 'San Martín', arrived: true });
+    if (trS2.__colar() !== 'cancha') throw new Error('tren: el Monumental debería dejarte colar (exit cancha): ' + trS2.exitTo);
     ok.push('tren:ok');
+    // §12 S3/S4 — EL MONUMENTAL: alentás + robás el trapo de Boca (one-shot trapoEdge) + salís
+    if (typeof Cancha === 'undefined' || !Cancha.create) throw new Error('Cancha no cargó');
+    const ca = Cancha.create({});
+    for (let i = 0; i < 40; i++) { ca.update(0.05); ca.draw(C, 960, 540); }
+    const robo = ca.__robo();
+    if (!robo.gotTrapo) throw new Error('cancha: manotear la bandera debería dártela');
+    if (!ca.trapoEdge && !robo.edge) throw new Error('cancha: robar debería disparar el edge una vez');
+    if (ca.__leave() !== 'back') throw new Error('cancha: la salida debería volver al piquete: ' + ca.exitTo);
+    ok.push('cancha:ok');
+    // §12 S6-S8 — CAMPANA/VILLA DÁLMINE: calle→estadio→chori→4 goles→satélite→PORTAL
+    if (typeof Campana === 'undefined' || !Campana.create) throw new Error('Campana no cargó');
+    const cmp = Campana.create({});
+    for (let i = 0; i < 30; i++) { cmp.update(0.05); cmp.draw(C, 960, 540); }
+    if (cmp.__enterEstadio() !== 'estadio') throw new Error('campana: la puerta debería meterte al estadio');
+    const full = Campana.create({});
+    const res2 = full.__full();
+    if (!(res2.done && res2.exitTo === 'portal')) throw new Error('campana: la secuencia completa debería terminar en el PORTAL: ' + JSON.stringify(res2));
+    if (res2.goles !== 4) throw new Error('campana: deberían ser 4 goles de Dálmine: ' + res2.goles);
+    if (!res2.choriEaten) throw new Error('campana: el chori del entretiempo debería comerse en la secuencia');
+    ok.push('campana:ok');
     // TERMINAL RETIRO (§11 E2): hall del Mitre; su SALIDA a la calle → Villa 31; escalera → subte C
     if (typeof Retiro === 'undefined' || !Retiro.create) throw new Error('Retiro no cargó');
     const re = Retiro.create({});
@@ -724,7 +755,7 @@ if (require.main === module) {
       won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true,
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
       subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
-      enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true };
+      enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, bocaTrapo:true, enCampana:true, dalmineGritado:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

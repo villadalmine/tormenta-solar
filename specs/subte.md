@@ -292,21 +292,25 @@ el club del dueño. Se construye por etapas; cada una self-contained, testeada y
 hay que traerle **la remera/bandera de Boca** (robada de la hinchada en el clásico) → "se le pasa el pedo" y te lleva gratis.
 
 - **S0 — HECHO (v351):** Villa Ballester + **maquinista curda** (persona `maquinista`, IA). El tren a Campana no sale.
-- **S1 — PEND:** desde **Retiro**, tomar el **ramal SAN MARTÍN** (el tren ROJO, "en el medio entre la estación Retiro y la
-  Villa 31"). Arranca hacia una estación **cerca de la cancha de River** (Monumental).
-- **S2 — PEND:** el tren **se para** por un **PIQUETE de estudiantes de la UBA** (corte de presupuesto universitario) justo
-  en la **sede del CBC / Ciudad Universitaria**. Quedás varado cerca del Monumental.
-- **S3 — PEND:** como **River juega el CLÁSICO con Boca**, te **colás en la cancha** (Monumental) y vas a **alentar a River**.
-- **S4 — PEND:** volvés con una **remera/bandera de BOCA** que le **robaste a la hinchada** (ítem `boca_trapo` 🔵🟡).
-- **S5 — PEND:** volvés a **Villa Ballester** y se la **das al maquinista** → **se le pasa el pedo** → te lleva **GRATIS a
-  Campana** (el gate: el maquinista solo arranca con `boca_trapo` en el inventario).
-- **S6 — PEND:** en **Campana** pasás por **la Roca** hasta la **escalinata** (la barranca del río), con la **hinchada/banda
-  de Villa Dálmine** yendo a la cancha.
-- **S7 — PEND:** el **estadio Mitre y Puccini** (Coliseo de Villa Dálmine); juegan **Villa Dálmine vs CADU** (Defensores
-  Unidos de Zárate, el clásico de la zona). En el **entretiempo** te clavás **el mejor chori de tu vida** y gritás **4
-  goles de Dálmine**.
-- **S8 — PEND (cierre en LOOP):** justo **cae un satélite de la IA maligna** → **portal espacio-tiempo** → volvés a caer en
-  la **cueva de los borrachines / el búnker del loop de la tormenta** (donde tenés la cama). Cierra el círculo del juego.
+- **S1 — HECHO (v353):** ramal **'San Martín — C. Universitaria'** en Retiro; el tren es **ROJO** (`trainCol()` en tren.js).
+- **S2 — HECHO (v353):** destino especial `sanmartin` en tren.js: el tren FRENA por el **piquete de la UBA** (banner
+  presupuesto + fogata + CBC) con la **estudiante NPC IA** (persona `estudiante`, ficha personajes/estudiante.md).
+- **S3 — HECHO (v353):** al lado está el **Monumental** (tribuna+marquesina RIVER vs BOCA) → **[E] te colás** (`exitTo='cancha'`
+  → `js/cancha.js`): la cancha con la jugada, tu tribuna de River ([E]=alentar, saltan), la de Boca enfrente.
+- **S4 — HECHO (v353):** del lado visitante hay una **bandera de Boca** al alcance → la **manoteás** ([E]) → one-shot
+  `trapoEdge` → game.js: `addItem('boca_trapo')` 🎽 + arista `clasico_trapo`. Al salir volvés al andén (opts.arrived,
+  sin repetir el viaje; game.js guarda `trenCtx`).
+- **S5 — HECHO (v353):** en Ballester, con `boca_trapo` en el inventario, **[E] sobre el maquinista** = se lo das →
+  «se me pasó el pedo DE GOLPE» → countdown 2.6s → `exitTo='campana'`. One-shot `trapoUsed` → game.js consume el ítem.
+- **S6 — HECHO (v353):** **`js/campana.js`** fase 'calle': estación → **escalinata** → la **banda VIOLETA** de Dálmine
+  caminando y cantando → el estadio con luces.
+- **S7 — HECHO (v353):** fase 'estadio' (**Mitre y Puccini**, Dálmine violeta vs CADU verde, marcador vivo): secuencia
+  1T → **ENTRETIEMPO con el puesto de chori** ([E] = EL MEJOR CHORI DE TU VIDA → `choriEdge` → vida FULL) → 2T: **4
+  goles** (cartel ¡GOL DE DÁLMINE! → [E] = gritarlo, la popular salta).
+- **S8 — HECHO (v353):** tras el 4º gol **cae el SATÉLITE** (estela+fuego) → **PORTAL espacio-tiempo** (anillos violeta)
+  → `exitTo='portal'` → game.js: arista `dalmine_portal` (terminal) + `spawnIn(bunker)` — caés en el **búnker del loop**
+  al lado de tu cama. Cierra el círculo. Grafo 33 aristas; flags bocaTrapo/enCampana/dalmineGritado en snapshots.
+  Debug `sanmartinYa`/`canchaYa`/`campanaYa`. e2e cadena completa (tren S1-S5 + cancha + campana 4 goles→portal) verde.
 
 Ítems/flags nuevos previstos: `boca_trapo` (kind trofeo), flags `enMonumental`/`clasicoVisto`/`bocaTrapo`/`campanaLibre`/
 `enCampana`/`dalmineGritado`. El maquinista pasa a tener gate `{has:'boca_trapo'}` para el viaje a Campana.

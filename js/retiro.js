@@ -7,7 +7,7 @@ const Retiro = (() => {
   const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   const CS = 30, W = 20, H = 14;
   // Líneas/ramales REALES que salen de Retiro (DATA → cartel de salidas rotando). Flavor "oficial".
-  const RAMALES = ['Mitre — Tigre', 'Mitre — J. L. Suárez', 'Villa Ballester', 'Belgrano Norte', 'San Martín — Pilar'];
+  const RAMALES = ['Mitre — Tigre', 'Mitre — J. L. Suárez', 'Villa Ballester', 'Belgrano Norte', 'San Martín — C. Universitaria'];
   // Locales del hall (MOCK, data-driven): iteramos con interior real después.
   const LOCALES = [
     { id: 'cafe',    x: 2.4,  y: 8.5,  emoji: '☕' },

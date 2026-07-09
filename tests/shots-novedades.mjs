@@ -74,6 +74,13 @@ try {
   await dbg('trenYa');    await page.waitForTimeout(1000); await shotCanvas('07-tren-viaje');   // el viaje (paisaje que scrollea)
   await page.waitForTimeout(4200); await shotCanvas('08-tren-anden');                          // el andén de destino
   await dbg('ballesterYa'); await page.waitForTimeout(5000); await shotCanvas('09-ballester');  // Villa Ballester: el maquinista curda
+  await dbg('sanmartinYa'); await page.waitForTimeout(5000); await shotCanvas('10-piquete-uba'); // el piquete de la UBA + el Monumental
+  await dbg('canchaYa');    await page.waitForTimeout(900);  await shotCanvas('11-monumental');  // adentro del clásico River-Boca
+  await dbg('campanaYa');   await page.waitForTimeout(900);  await shotCanvas('12-campana');     // Campana: escalinata + banda violeta
+  // caminar hasta la puerta del estadio y entrar → la popular violeta de Dálmine vs CADU
+  await page.keyboard.down('d'); await page.waitForTimeout(2600); await page.keyboard.up('d');
+  await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');
+  await page.waitForTimeout(800); await shotCanvas('13-dalmine');
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {
