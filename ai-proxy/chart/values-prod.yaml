@@ -29,7 +29,7 @@ upstream:
 # timeouts (el pago tarda 5-7s → presupuesto más amplio) + cupo/día por sesión + tope DURO de gasto pago
 extraEnv:
   - { name: UPSTREAM_TIMEOUT_MS, value: "10500" }   # presupuesto TOTAL (el cliente espera 11s)
-  - { name: PER_MODEL_TIMEOUT_MS, value: "7000" }   # cheap ~3s, claude-sonnet 3-8s → 7s alcanza (con UPSTREAM 10.5s entran los 2)
+  - { name: PER_MODEL_TIMEOUT_MS, value: "9500" }   # cheap por el prompt completo (persona+grounding) tarda 6-8s → 9.5s para que NO lo aborte (1 modelo se come casi todo el budget de 10.5s; el pago es confiable, no necesita 2º intento)
   - { name: CHAT_MAX_TOKENS, value: "150" }         # respuesta del chat CORTA = rápida y confiable (con 220 el pago escribía largo y pasaba el timeout). 150 ≈ 3-4 frases
   - { name: DAILY_CAP, value: "40" }                # chats/día por sesión (anti-DoS honesto)
   - { name: PAID_MODELS, value: "gemma4-paid,claude-sonnet,cheap,paid-final" }  # qué model_names cuestan plata
