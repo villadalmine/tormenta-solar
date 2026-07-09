@@ -231,6 +231,9 @@ setInterval(() => { for (const r of BODEGON.values()) for (const nm in r.tables)
 // TOPE DURO de latencia: el linyera no puede tardar >10s. Cortamos el upstream a 8s; el cliente espera 9s.
 const UPSTREAM_TIMEOUT = +process.env.UPSTREAM_TIMEOUT_MS || 8000;    // presupuesto TOTAL del CHAT (tope duro, tiempo real)
 const PER_MODEL_TIMEOUT = +process.env.PER_MODEL_TIMEOUT_MS || 4000;  // tope POR modelo → entran 2 intentos en 8s
+// tope de tokens de la respuesta del CHAT: MÁS CORTO = más rápido y confiable (las personas piden frases cortas
+// igual). Con 220 el modelo pago escribía largo y pasaba el PER_MODEL_TIMEOUT → timeout. 150 ≈ 3-4 frases y ~3-4s.
+const CHAT_MAX_TOKENS = +process.env.CHAT_MAX_TOKENS || 150;
 // GENERACIÓN del dueño (niveles/tiendas/historias, opts.gen): NO es el chat en tiempo real. Antes usaba la misma
 // cadena free-first → los free lentos se comían el presupuesto y el PAGO (al final) ni se probaba → caía a estático
 // aunque hubiera pago. Fix: gen usa SOLO el/los modelo(s) pago confiables (estadísticamente mejores), con más tiempo.
@@ -1499,7 +1502,7 @@ http.createServer((req, res) => {
     const npcLbl = cleanLbl(npc, 24);
     try {
       const rec = sub ? STORE[subCode] : null;          // si el código tiene key propia → directo a OpenRouter
-      const { reply, model, usage } = await ask(buildMessages(npc, message, history, grounding), { sub, user: sub ? subCode : undefined, orKey: rec && rec.orKey });
+      const { reply, model, usage } = await ask(buildMessages(npc, message, history, grounding), { sub, user: sub ? subCode : undefined, orKey: rec && rec.orKey, maxTokens: CHAT_MAX_TOKENS });
       const dt = Date.now() - t0; M.durMsSum += dt; M.durCount++;
       const be = backendOf(model);
       incChat(model, be, sub ? 'ai_sub' : 'ai', npcLbl); obsLatency(model, be, dt / 1000);   // ← modelo/backend/tier + latencia
