@@ -13,7 +13,7 @@ const Retiro = (() => {
     { id: 'cafe',    x: 2.4,  y: 8.5,  emoji: '☕' },
     { id: 'libreria',x: 2.4,  y: 11,   emoji: '📚' },
     { id: 'flores',  x: 17,   y: 8.5,  emoji: '💐' },
-    { id: 'facturas',x: 17,   y: 11,   emoji: '🥐' },
+    { id: 'facturas',x: 17,   y: 11,   emoji: '🥐', sells: 'chori' },
     { id: 'boleteria', x: 10, y: 8.6,  emoji: '🎫' },
   ];
 
@@ -28,6 +28,9 @@ const Retiro = (() => {
     const escalera = { x: 10, y: 12 };               // baja al subte (Línea C)
     const salida = { x: 3, y: 12 };                  // a la calle → Línea San Martín / Villa 31 (HABILITADA)
     const player = { x: 10 * CS, y: 12 * CS, r: 10, dir: -1, walk: 0 };
+    // KIOSCO (facturas): te vende un choripán 🌭 (comida que cura). Mismo patrón que el boletero del subte.
+    const CHORI_PRICE = opts.choriPrice || 15;
+    let coinsLeft = opts.coins || 0, purchase = null;
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, ramIdx = 0;
     setMsg(T('g.retiro.enter'), 6);
 
@@ -43,6 +46,12 @@ const Retiro = (() => {
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) { setMsg(T('g.retiro.andenSoon'), 6); return; }
       const loc = nearLocal();
+      if (loc && loc.sells === 'chori') {   // KIOSCO: comprás un choripán 🌭 si te alcanza
+        if (coinsLeft >= CHORI_PRICE) { coinsLeft -= CHORI_PRICE; purchase = { item: 'chori', spent: CHORI_PRICE };
+          setMsg(T('g.retiro.buyChori', { p: CHORI_PRICE }), 6); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
+        else { setMsg(T('g.retiro.noCoins', { p: CHORI_PRICE }), 6); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
+        return;
+      }
       if (loc) { setMsg(T('g.retiro.local', { n: T('g.retiro.loc_' + loc.id) }), 5); return; }
       if (near(reloj, 1.8)) { setMsg(T('g.retiro.reloj'), 6); return; }
       setMsg(T('g.retiro.hint'), 3);
@@ -65,6 +74,7 @@ const Retiro = (() => {
       if (near(escalera)) prompt = T('g.retiro.promptSubte');
       else if (near(salida)) prompt = T('g.retiro.promptCalle');
       else if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = T('g.retiro.promptAnden');
+      else if (nearLocal() && nearLocal().sells === 'chori') prompt = T('g.retiro.promptChori', { p: CHORI_PRICE });
       else if (nearLocal()) prompt = T('g.retiro.promptLocal', { n: T('g.retiro.loc_' + nearLocal().id) });
       else if (near(reloj, 1.8)) prompt = T('g.retiro.promptReloj');
       else prompt = '';
@@ -143,10 +153,12 @@ const Retiro = (() => {
 
     return {
       get done() { return done; }, get exitTo() { return exitTo; },
+      get purchase() { const p = purchase; purchase = null; return p; },   // KIOSCO: one-shot que game.js lee para cobrar + addItem
       update, draw,
       __leave: () => { player.x = (escalera.x + 0.5) * CS; player.y = (escalera.y + 0.5) * CS; interact(); return exitTo; },
       __street: () => { player.x = (salida.x + 0.5) * CS; player.y = (salida.y + 0.5) * CS; interact(); return exitTo; },
-      __local: () => { const l = LOCALES[0]; player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },
+      __local: () => { const l = LOCALES.find(x => !x.sells); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },
+      __buyChori: () => { const l = LOCALES.find(x => x.sells === 'chori'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar chori en el kiosco
     };
   }
   return { create, RAMALES, LOCALES };

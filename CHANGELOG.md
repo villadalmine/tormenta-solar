@@ -101,6 +101,14 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v349] — 2026-07-09 — 🌭 Los kioscos de las terminales venden choripán (iteramos los locales mock)
+- El **kiosco de Constitución** y el **puestito de facturas de Retiro** dejan de ser sólo flavor: te **venden un
+  choripán 🌭** (15 🪙) — el ítem `chori` que ya existía (comida que **cura +30** en el inventario). Mismo patrón que
+  el boletero del subte: la terminal expone un one-shot `purchase`, game.js cobra + `addItem('chori')` + `syncHud`.
+- Data-driven: `sells: 'chori'` en el local del catálogo `LOCALES`; precio DATA (`choriPrice`, def. 15). Los demás
+  locales siguen "próximamente". e2e (`__buyChori` en consti/retiro, incl. caso sin plata) + web-smoke verdes. i18n
+  ES≡EN. Cache v349. Sin cambios de IA/proxy.
+
 ## [v348] — 2026-07-09 — 🍽️ La jornada del comedor: servir la olla (gameplay del comedor popular)
 - Una vez que Doña Rosa te contrata, el comedor de la Villa 31 tiene **laburo de verdad**: **agarrás un plato de la
   olla** ([E]) y se lo **servís a cada vecino** de la cola ([E]). Al servir a los 6, la referente te agradece y te

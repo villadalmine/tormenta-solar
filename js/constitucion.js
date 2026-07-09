@@ -10,7 +10,7 @@ const Constitucion = (() => {
   const RAMALES = ['La Plata', 'Ezeiza', 'A. Korn', 'Bosques', 'Cañuelas'];
   // Locales del hall (MOCK, data-driven): posición en tiles + etiqueta + emoji. Iteramos con interior real después.
   const LOCALES = [
-    { id: 'kiosco',  x: 2.4,  y: 8.5,  label: 'Kiosco',        emoji: '🏪' },
+    { id: 'kiosco',  x: 2.4,  y: 8.5,  label: 'Kiosco',        emoji: '🏪', sells: 'chori' },
     { id: 'cafe',    x: 2.4,  y: 11,   label: 'Café',          emoji: '☕' },
     { id: 'diario',  x: 17,   y: 8.5,  label: 'Diarios',       emoji: '📰' },
     { id: 'locutorio', x: 17, y: 11,   label: 'Locutorio',     emoji: '📞' },
@@ -29,6 +29,10 @@ const Constitucion = (() => {
     const escalera = { x: 10, y: 12 };               // baja al subte (Línea C)
     const salida = { x: 3, y: 1.4 };                 // a la calle (Barrio Constitución) — próximamente
     const player = { x: 10 * CS, y: 12 * CS, r: 10, dir: -1, walk: 0 };
+    // KIOSCO: te vende un choripán 🌭 (comida que cura). Mismo patrón que el boletero del subte: game.js pasa la plata
+    // y lee purchase (one-shot) para cobrarte + addItem. Precio DATA.
+    const CHORI_PRICE = opts.choriPrice || 15;
+    let coinsLeft = opts.coins || 0, purchase = null;
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, ramIdx = 0;
     setMsg(T('g.consti.enter'), 6);
 
@@ -45,6 +49,12 @@ const Constitucion = (() => {
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) { setMsg(T('g.consti.andenSoon'), 6); return; }
       const loc = nearLocal();
+      if (loc && loc.sells === 'chori') {   // KIOSCO: comprás un choripán 🌭 (comida que cura) si te alcanza
+        if (coinsLeft >= CHORI_PRICE) { coinsLeft -= CHORI_PRICE; purchase = { item: 'chori', spent: CHORI_PRICE };
+          setMsg(T('g.consti.buyChori', { p: CHORI_PRICE }), 6); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
+        else { setMsg(T('g.consti.noCoins', { p: CHORI_PRICE }), 6); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
+        return;
+      }
       if (loc) { setMsg(T('g.consti.local', { n: T('g.consti.loc_' + loc.id) }), 5); return; }
       if (near(reloj, 1.8)) { setMsg(T('g.consti.reloj'), 6); return; }
       setMsg(T('g.consti.hint'), 3);
@@ -67,6 +77,7 @@ const Constitucion = (() => {
       if (near(escalera)) prompt = T('g.consti.promptSubte');
       else if (near(salida)) prompt = T('g.consti.promptCalle');
       else if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = T('g.consti.promptAnden');
+      else if (nearLocal() && nearLocal().sells === 'chori') prompt = T('g.consti.promptChori', { p: CHORI_PRICE });
       else if (nearLocal()) prompt = T('g.consti.promptLocal', { n: T('g.consti.loc_' + nearLocal().id) });
       else if (near(reloj, 1.8)) prompt = T('g.consti.promptReloj');
       else prompt = '';
@@ -144,9 +155,11 @@ const Constitucion = (() => {
 
     return {
       get done() { return done; }, get exitTo() { return exitTo; },
+      get purchase() { const p = purchase; purchase = null; return p; },   // KIOSCO: one-shot que game.js lee para cobrar + addItem
       update, draw,
       __leave: () => { player.x = (escalera.x + 0.5) * CS; player.y = (escalera.y + 0.5) * CS; interact(); return exitTo; },   // e2e: salir al subte
-      __local: () => { const l = LOCALES[0]; player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },   // e2e: mirar un local mock
+      __local: () => { const l = LOCALES.find(x => !x.sells); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },   // e2e: mirar un local mock
+      __buyChori: () => { const l = LOCALES.find(x => x.sells === 'chori'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar chori en el kiosco
     };
   }
   return { create, RAMALES, LOCALES };

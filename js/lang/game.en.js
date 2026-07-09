@@ -124,6 +124,9 @@
     'g.consti.loc_diario': 'Newsstand',
     'g.consti.loc_locutorio': 'Call shop',
     'g.consti.loc_boleteria': 'Roca ticket office',
+    'g.consti.buyChori': '🌭 You buy a choripán from the kiosk (–{p} 🪙). Hot food for the road — heals you from [I].',
+    'g.consti.noCoins': 'The choripán costs {p} 🪙 and you\'re short. Come back with more cash.',
+    'g.consti.promptChori': '[E] buy a choripán 🌭 ({p} 🪙)',
     // Retiro terminal (subte.md §11 E2)
     'g.retiro.enter': 'You step out of the subway into the RETIRO hall. The huge Mitre iron-and-glass vault, people everywhere, the train turnstiles at the back.',
     'g.retiro.hint': 'You are in the terminal. Train turnstiles (up top), shops, or EXIT TO THE STREET (toward the San Martín line / Villa 31).',
@@ -141,6 +144,9 @@
     'g.retiro.loc_flores': 'Florist',
     'g.retiro.loc_facturas': 'Pastries',
     'g.retiro.loc_boleteria': 'Ticket office',
+    'g.retiro.buyChori': '🌭 You buy a choripán from the stand (–{p} 🪙). Hot food — heals you from [I].',
+    'g.retiro.noCoins': 'The choripán costs {p} 🪙 and you\'re short. Come back with more cash.',
+    'g.retiro.promptChori': '[E] buy a choripán 🌭 ({p} 🪙)',
     // Villa 31 + soup kitchen + Mugica church (subte.md §11 E3/E4)
     'g.villa.enter': 'You leave Retiro and follow the San Martín tracks. Right behind it, VILLA 31: brick houses, alleys, murals, and a steaming pot.',
     'g.villa.hint': 'Wander the neighborhood. The soup kitchen (the pot), Padre Mugica\'s church, or head back along the tracks to Retiro.',

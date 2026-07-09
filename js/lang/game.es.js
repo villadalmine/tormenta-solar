@@ -125,6 +125,9 @@
     'g.consti.loc_diario': 'Diarios',
     'g.consti.loc_locutorio': 'Locutorio',
     'g.consti.loc_boleteria': 'Boletería Roca',
+    'g.consti.buyChori': '🌭 Le comprás un choripán al kiosco (–{p} 🪙). Comida caliente para el viaje — te repone la vida en [I].',
+    'g.consti.noCoins': 'El choripán sale {p} 🪙 y no te alcanza. Volvé con más plata.',
+    'g.consti.promptChori': '[E] comprar un choripán 🌭 ({p} 🪙)',
     // Terminal Retiro (subte.md §11 E2)
     'g.retiro.enter': 'Salís del subte al hall de RETIRO. La enorme bóveda de hierro y vidrio del Mitre, gente por todos lados, los molinetes del tren al fondo.',
     'g.retiro.hint': 'Estás en la terminal. Molinetes del tren (arriba), locales, o SALÍ A LA CALLE (hacia la Línea San Martín / Villa 31).',
@@ -142,6 +145,9 @@
     'g.retiro.loc_flores': 'Florería',
     'g.retiro.loc_facturas': 'Facturas',
     'g.retiro.loc_boleteria': 'Boletería',
+    'g.retiro.buyChori': '🌭 Comprás un choripán en el puestito (–{p} 🪙). Comida caliente — te repone la vida en [I].',
+    'g.retiro.noCoins': 'El choripán sale {p} 🪙 y no te alcanza. Volvé con más plata.',
+    'g.retiro.promptChori': '[E] comprar un choripán 🌭 ({p} 🪙)',
     // Villa 31 + comedor + iglesia Mugica (subte.md §11 E3/E4)
     'g.villa.enter': 'Salís de Retiro y seguís las vías de la Línea San Martín. Atrás nomás, la VILLA 31: casas de ladrillo, pasillos, murales, y una olla humeando.',
     'g.villa.hint': 'Recorré el barrio. El comedor popular (la olla), la iglesia del Padre Mugica, o volvé por las vías a Retiro.',

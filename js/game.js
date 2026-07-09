@@ -715,7 +715,7 @@
   // andén sube a la gran terminal del Roca (hall + molinetes de tren + locales mock). Al salir volvés al subte C.
   function enterConstitucion() {
     if (typeof Constitucion === 'undefined' || !Constitucion.create) { enterSubte('constitucion'); return true; }
-    constitucionGame = Constitucion.create({}); state = 'constitucion';
+    constitucionGame = Constitucion.create({ coins: player.coins || 0 }); state = 'constitucion';
     applyEdge('constitucion_llegada', 'enConstitucion');   // GRAFO: hito → map/checkpoint/ticker + los oráculos saben
     evlog('hito', 'llegó a la terminal Constitución');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -726,7 +726,7 @@
   // y lleva a la Línea San Martín → Villa 31 (E3/E4).
   function enterRetiro() {
     if (typeof Retiro === 'undefined' || !Retiro.create) { enterSubte('retiro'); return true; }
-    retiroGame = Retiro.create({}); state = 'retiro';
+    retiroGame = Retiro.create({ coins: player.coins || 0 }); state = 'retiro';
     applyEdge('retiro_llegada', 'enRetiro');
     evlog('hito', 'llegó a la terminal Retiro');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -3897,12 +3897,14 @@
       if (finaleGame.done) { finaleGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear(); showWin2End(); return; }
     } else if (state === 'constitucion' && constitucionGame) {        // §11: terminal de tren Constitución (post Nivel 2)
       constitucionGame.update(dt); constitucionGame.draw(ctx, W, H);
+      { const buy = constitucionGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // KIOSCO: comprás un chori
       if (constitucionGame.done) {
         const ex = constitucionGame.exitTo; constitucionGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         enterSubte('constitucion', 'street'); return;   // bajás de la terminal al subte (Línea C) → menú de viaje
       }
     } else if (state === 'retiro' && retiroGame) {                    // §11 E2: terminal Retiro (Línea C)
       retiroGame.update(dt); retiroGame.draw(ctx, W, H);
+      { const buy = retiroGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // KIOSCO: comprás un chori
       if (retiroGame.done) {
         const ex = retiroGame.exitTo; retiroGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'villa31') { enterVilla31(); return; }              // salís a la calle → Línea San Martín → Villa 31

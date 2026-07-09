@@ -454,6 +454,14 @@ if (require.main === module) {
     if (co.__leave() !== 'back') throw new Error('constitucion: la escalera debería volver al subte: ' + co.exitTo);
     const co2 = Constitucion.create({});
     if (!co2.__local()) throw new Error('constitucion: un local mock debería dar un mensaje de flavor');
+    // KIOSCO: te vende un chori si te alcanza; game.js lo cobra vía el one-shot purchase
+    const coBuy = Constitucion.create({ coins: 100, choriPrice: 15 });
+    const cp = coBuy.__buyChori();
+    if (!(cp && cp.item === 'chori' && cp.spent === 15)) throw new Error('constitucion: el kiosco debería venderte un chori: ' + JSON.stringify(cp));
+    if (!coBuy.purchase) throw new Error('constitucion: el getter purchase debería exponer la compra una vez');
+    if (coBuy.purchase !== null) throw new Error('constitucion: purchase es one-shot (2ª lectura null)');
+    const coPoor = Constitucion.create({ coins: 5, choriPrice: 15 });
+    if (coPoor.__buyChori() !== null) throw new Error('constitucion: sin plata NO debería vender el chori');
     ok.push('constitucion:ok');
     // TERMINAL RETIRO (§11 E2): hall del Mitre; su SALIDA a la calle → Villa 31; escalera → subte C
     if (typeof Retiro === 'undefined' || !Retiro.create) throw new Error('Retiro no cargó');
@@ -462,6 +470,9 @@ if (require.main === module) {
     if (re.__leave() !== 'back') throw new Error('retiro: la escalera debería volver al subte: ' + re.exitTo);
     const re2 = Retiro.create({});
     if (re2.__street() !== 'villa31') throw new Error('retiro: la SALIDA a la calle debería ir a Villa 31: ' + re2.exitTo);
+    const reBuy = Retiro.create({ coins: 100, choriPrice: 15 });
+    const rp = reBuy.__buyChori();
+    if (!(rp && rp.item === 'chori' && rp.spent === 15)) throw new Error('retiro: el kiosco debería venderte un chori: ' + JSON.stringify(rp));
     ok.push('retiro:ok');
     // VILLA 31 (§11 E3/E4): te contratan en el comedor + chat con la referente y el cura (personas comedor/cura)
     if (typeof Villa31 === 'undefined' || !Villa31.create) throw new Error('Villa31 no cargó');
