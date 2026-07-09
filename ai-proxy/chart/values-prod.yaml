@@ -48,9 +48,11 @@ extraEnv:
   - { name: PAID_IN_CHAIN, value: "2" }             # gemma4-paid (barato) primero, claude-sonnet de respaldo
   # Suscripción (suscripcion.md §9 F1): un código válido → cadena paga directa (salta free+cupo). Los CÓDIGOS
   # son SECRETOS → NO se commitean: van por --set 'extraEnv...' al deploy, o por POST /sub-codes (GEN_TOKEN).
-  - { name: SUB_MODELS, value: "gemma4-paid,claude-sonnet" }
+  # OJO: los usuarios PREMIUM (código cargado) van por ACÁ, NO por AI_MODEL. gemma-4-31b estaba COLGANDO → el
+  # premium fallaba (por eso "no anda ningún NPC" para el dueño, que tiene código). claude-sonnet PRIMERO (confiable).
+  - { name: SUB_MODELS, value: "claude-sonnet,gemma4-paid" }
   # F3 (key-por-código): el sub provisionado va DIRECTO a OpenRouter con su key → estos son ids de OpenRouter
-  - { name: SUB_OR_MODELS, value: "google/gemma-4-31b-it,anthropic/claude-sonnet-4.5" }
+  - { name: SUB_OR_MODELS, value: "anthropic/claude-sonnet-4.5,google/gemma-4-31b-it" }
   - { name: SUB_LIMIT_USD, value: "1" }             # budget por key (tope US$1/usuario) al provisionar
   - { name: SUB_TTL_DAYS, value: "30" }             # la suscripción vence en 1 mes
 
