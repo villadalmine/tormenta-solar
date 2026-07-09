@@ -21,10 +21,11 @@ upstream:
   # Diagnóstico en vivo (2026-07-09): gemma4-free daba 429 (cupo de cuenta agotado) y gemma4-paid COLGABA
   # (>18s en respuestas largas; la ruta gemma-4-31b estaba degradada) → la cadena free→gemma4-paid→sonnet
   # se comía el budget y NUNCA llegaba a un modelo que anduviera → timeout → NPC "desconectados".
-  # Medido andando HOY: cheap ~3s (respuesta completa, sin reasoning) · claude-sonnet ~3-8s (siempre responde).
-  # Por eso: cheap (barato+rápido) primero, claude-sonnet de respaldo premium. Reponer gemma4-free/gemma4-paid
-  # cuando se normalicen (free) / prenda la GPU no aplica al chat (el chat NUNCA usó GPU).
-  model: cheap,claude-sonnet
+  # Medido andando HOY (desde el pod, prompt grande, max_tokens=150): claude-sonnet CONSISTENTE ~5s y RESPETA el
+  # max_tokens (150/150) → confiable. cheap IGNORA el cap (devolvía 249-264 tokens!) → se alarga y cuelga >9.5s →
+  # ~50% timeout. Por eso claude-sonnet PRIMERO (confiable) y cheap de respaldo barato. Reponer gemma4-free/paid
+  # cuando se normalicen; la GPU no aplica al chat (nunca la usó).
+  model: claude-sonnet,cheap
 
 # timeouts (el pago tarda 5-7s → presupuesto más amplio) + cupo/día por sesión + tope DURO de gasto pago
 extraEnv:
