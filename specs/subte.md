@@ -263,3 +263,22 @@ Pedido del dueño (2026-07-08): al reventar los satélites desde la Pirámide, l
 Nota geográfica: por jugabilidad, "habilitar la Línea C" abre el destino Constitución desde CUALQUIER estación (no forzamos
 volver a Lavalle). El metro (subte) y el tren conviven: la terminal (Constitución/Retiro) tiene el andén del subte C abajo y
 el hall del tren arriba.
+
+### §11 — DÓNDE SEGUIR (próximos pasos del arco red de tren / Villa 31)
+Estado al 2026-07-09 (cache v349): **E1-E4 + E4.1 (jornada) + kioscos HECHOS y en prod.** Lo que sigue, en orden de valor:
+1. **Andenes de tren REALES** — hoy los molinetes de Constitución/Retiro y los andenes son **mock** (`andenSoon`). Hacer
+   que el molinete te suba a un ANDÉN jugable y el TREN te lleve a un ramal (Roca: La Plata/Ezeiza/…; Mitre: Tigre/…) →
+   nueva sala/mini-escena por ramal. Reusar el patrón `surface`/sub-modo top-down. Es la iteración natural de "los locales
+   y andenes mock".
+2. **Villa 31 más profunda** — (a) **quest del cura** (un mandado del barrio / bendición con recompensa: ítem o buff
+   "espiritual"); (b) el **comedor por rondas** (varias jornadas, la cola se renueva, sube la dificultad, paga escalonada);
+   (c) más vida de barrio (vecinos que caminan, murales, un mural del Padre Mugica, perros).
+3. **Locales mock restantes** — café / diarios / locutorio / librería / flores. Darles función simple y data-driven
+   (comida que cura, "diario" = pista del grafo, "locutorio" = rumor/telegram-lore). Hoy sólo el kiosco (Constitución) y el
+   puesto de facturas (Retiro) venden (chori). El patrón de venta ya está: `sells:'chori'` en `LOCALES` + one-shot
+   `purchase` → game.js. Generalizar `sells` a otros ítems.
+4. **Boarding cross-terminal por tren** — que desde Constitución puedas llegar a un ramal y volver, cerrando el "viajás en
+   TREN" (hoy el viaje entre terminales es por el SUBTE Línea C; el TREN todavía no te lleva a ningún lado).
+Recordatorio de infra (no-código de juego): `tormenta_ai_sub_codes=0` en el proxy ⇒ el **código premium del dueño no está
+cargado**; es dominio del dueño (regla dura: no tocar la key), recordárselo. GOTCHA e2e: sin backticks en comentarios que
+caigan dentro del `vm.runInContext(\`...\`)` de `tests/e2e.js`.

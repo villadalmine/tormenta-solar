@@ -162,6 +162,18 @@
   tuerce, hechos que se repiten… **la IA manipulando el espacio-tiempo** (ellos lo viven como un prodigio, no saben qué
   es). Todo **data-driven y en el grafo**: la escarapela es una **arista** de la historia, y las personas de French y
   Beruti salen de fichas en `specs/nivel-1/personajes/`. Ver `specs/subte.md §10.2`.
+- **La RED DE TREN y el mundo abierto post-Nivel 2 (subte.md §11):** ganar el Nivel 2 ya **no termina el juego** — sale
+  la pantalla de victoria pero con **"SEGUIR JUGANDO"**, y se **habilita la Línea C** entera del subte. Con eso viajás a
+  las dos grandes terminales de tren, hechas a imagen de las reales: **Constitución** (la del **Ferrocarril Roca**, con su
+  reloj histórico y los ramales La Plata/Ezeiza/Korn…) y **Retiro** (la del **Mitre**, con su **bóveda de hierro y
+  vidrio** y las líneas Mitre/San Martín/Belgrano). De Retiro **salís a la calle** y, siguiendo las vías de la **Línea San
+  Martín**, llegás a la **Villa 31** (Barrio Padre Mugica): casas de ladrillo, cables, murales. Ahí una **referente
+  (Doña Rosa) te contrata para el comedor popular** y podés visitar la **iglesia del Padre Mugica** (capilla Cristo
+  Obrero) y charlar con el **cura villero**. Los dos son **NPCs con IA**: Doña Rosa habla del barrio y el hambre; el cura,
+  **peronista y holístico**, une el Evangelio, la justicia social y la idea de que todo está conectado. Y hay **gameplay
+  de verdad**: en el comedor **agarrás platos de la olla y servís a la cola de vecinos** (jornada → te pagan una changa),
+  y los **kioscos de las terminales te venden un choripán** que después te cura. Todo **data-driven y en el grafo de la
+  historia** (sub-modos aislados `js/{constitucion,retiro,villa31}.js`; las personas salen de fichas). Ver `specs/subte.md §11`.
 - **Música chiptune generada, sin archivos (`js/audio.js`):** todo el audio es **Web Audio en vivo** (cero mp3) —
   SFX + temas compuestos como DATA (tango, cumbia, marcha peronista, dance, telo…). El de **Cemento** es un motor
   **"heavy criollo"** aparte (homenaje ORIGINAL a Almafuerte, no un tema suyo): **power chords con distorsión**
