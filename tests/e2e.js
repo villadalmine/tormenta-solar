@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','retiro.js','villa31.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','retiro.js','villa31.js','tren.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -462,7 +462,19 @@ if (require.main === module) {
     if (coBuy.purchase !== null) throw new Error('constitucion: purchase es one-shot (2ª lectura null)');
     const coPoor = Constitucion.create({ coins: 5, choriPrice: 15 });
     if (coPoor.__buyChori() !== null) throw new Error('constitucion: sin plata NO debería vender el chori');
+    // MOLINETE DEL TREN → menú de ramales → tomás el tren (exit 'tren:<ramal>')
+    const coTren = Constitucion.create({});
+    const tx = coTren.__tren();
+    if (!(typeof tx === 'string' && tx.indexOf('tren:') === 0)) throw new Error('constitucion: el molinete debería dejarte tomar el tren: ' + tx);
     ok.push('constitucion:ok');
+    // TREN (§11): viaje → andén de destino → tomás el tren de vuelta
+    if (typeof Tren === 'undefined' || !Tren.create) throw new Error('Tren no cargó');
+    const tr = Tren.create({ ramal: 'La Plata', linea: 'Roca' });
+    for (let i = 0; i < 40; i++) { tr.update(0.05); tr.draw(C, 960, 540); }   // corre el viaje
+    tr.__arrive();
+    for (let i = 0; i < 20; i++) { tr.update(0.05); tr.draw(C, 960, 540); }   // corre el andén
+    if (tr.__leave() !== 'back') throw new Error('tren: el tren de vuelta debería salir al origen: ' + tr.exitTo);
+    ok.push('tren:ok');
     // TERMINAL RETIRO (§11 E2): hall del Mitre; su SALIDA a la calle → Villa 31; escalera → subte C
     if (typeof Retiro === 'undefined' || !Retiro.create) throw new Error('Retiro no cargó');
     const re = Retiro.create({});

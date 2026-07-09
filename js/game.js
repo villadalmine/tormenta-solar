@@ -135,6 +135,7 @@
   let subteGame = null, subteReturn = 'street';   // subte.md §4: la estación (sub-modo top-down); dónde volvés al salir
   let constitucionGame = null;                     // subte.md §11: terminal de tren Constitución (Línea C, post Nivel 2)
   let retiroGame = null, villa31Game = null;       // subte.md §11 E2-E4: terminal Retiro → Línea San Martín → Villa 31 (comedor)
+  let trenGame = null, trenReturn = 'constitucion'; // subte.md §11: tomar el TREN a un ramal (viaje + andén de destino)
   let plazaGame = null;   // subte.md §10 / F4: PLAZA DE MAYO (arranque del Nivel 2), llegás en subte a Catedral
   let finaleGame = null;  // subte.md §10.1: cinemática de cierre del Nivel 2 (liberación sanmartiniana) → pantalla de fin
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
@@ -392,7 +393,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; retiroGame = null; villa31Game = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; retiroGame = null; villa31Game = null; trenGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -740,6 +741,17 @@
     villa31Game = Villa31.create({ hired: lsFlag('ts_comedor'), jornada: lsFlag('ts_comedor_jornada') }); state = 'villa31';
     applyEdge('villa31_llegada', 'enVilla31');
     evlog('hito', 'llegó a la Villa 31');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // TOMAR EL TREN (subte.md §11): desde el molinete de una terminal elegís un ramal → viaje + andén de destino.
+  // `origen` = a qué terminal volvés al bajar (constitucion/retiro). `linea` = para el color del tren.
+  function enterTren(ramal, linea, origen) {
+    if (typeof Tren === 'undefined' || !Tren.create) return false;
+    trenReturn = origen || 'constitucion';
+    trenGame = Tren.create({ ramal, linea }); state = 'tren';
+    evlog('hito', 'tomó el tren a ' + ramal);
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -3900,6 +3912,7 @@
       { const buy = constitucionGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // KIOSCO: comprás un chori
       if (constitucionGame.done) {
         const ex = constitucionGame.exitTo; constitucionGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex && ex.indexOf('tren:') === 0) { enterTren(ex.slice(5), 'Roca', 'constitucion'); return; }   // molinete → tomás el tren del Roca
         enterSubte('constitucion', 'street'); return;   // bajás de la terminal al subte (Línea C) → menú de viaje
       }
     } else if (state === 'retiro' && retiroGame) {                    // §11 E2: terminal Retiro (Línea C)
@@ -3908,6 +3921,7 @@
       if (retiroGame.done) {
         const ex = retiroGame.exitTo; retiroGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'villa31') { enterVilla31(); return; }              // salís a la calle → Línea San Martín → Villa 31
+        if (ex && ex.indexOf('tren:') === 0) { const r = ex.slice(5); enterTren(r, /mitre/i.test(r) ? 'Mitre' : 'Belgrano', 'retiro'); return; }   // molinete → tomás el tren
         enterSubte('retiro', 'street'); return;                        // bajás al subte (Línea C) → menú de viaje
       }
     } else if (state === 'villa31' && villa31Game) {                  // §11 E3/E4: Villa 31 (comedor + iglesia Mugica)
@@ -3922,6 +3936,12 @@
       if (villa31Game.done) {
         const ex = villa31Game.exitTo; villa31Game = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         enterRetiro(); return;                                         // volvés por las vías → Retiro
+      }
+    } else if (state === 'tren' && trenGame) {                        // §11: el TREN (viaje + andén de destino)
+      trenGame.update(dt); trenGame.draw(ctx, W, H);
+      if (trenGame.done) {
+        trenGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (trenReturn === 'retiro') enterRetiro(); else enterConstitucion(); return;   // el tren te trae de vuelta a la terminal
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
@@ -4225,6 +4245,7 @@
         constiYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterConstitucion(); return 'Fuiste a la terminal CONSTITUCIÓN 🚆 (Línea C)'; },
         retiroYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterRetiro(); return 'Fuiste a la terminal RETIRO 🚆 (Línea C)'; },
         villaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); lsOn('ts_en_retiro'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterVilla31(); return 'Fuiste a la VILLA 31 🍲 (comedor + iglesia Mugica)'; },
+        trenYa:      () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('La Plata', 'Roca', 'constitucion'); return 'Tomaste el TREN 🚆 a La Plata (Roca)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

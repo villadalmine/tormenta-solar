@@ -71,6 +71,8 @@ try {
   await dbg('constiYa');  await shotCanvas('04-constitucion');
   await dbg('retiroYa');  await shotCanvas('05-retiro');
   await dbg('villaYa');   await shotCanvas('06-villa31');
+  await dbg('trenYa');    await page.waitForTimeout(1000); await shotCanvas('07-tren-viaje');   // el viaje (paisaje que scrollea)
+  await page.waitForTimeout(4200); await shotCanvas('08-tren-anden');                          // el andén de destino
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {

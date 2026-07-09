@@ -101,6 +101,17 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v350] — 2026-07-09 — 🚆 Andenes de tren REALES: tomás el tren de las terminales a los ramales
+- Los **molinetes de tren** de Constitución y Retiro dejan de ser mock: te parás en el molinete → **menú de RAMALES**
+  (los reales de cada línea) → **tomás el tren**. Nuevo sub-modo **`js/tren.js`**: (1) un **VIAJE** con paisaje que
+  scrollea, **tematizado por destino** (`FLAVORS`: río/ciudad/campo/aeropuerto/conurbano por keyword del ramal), tren en
+  primer plano + barra de progreso (skippable con [E]/Espacio); (2) el **ANDÉN de destino** (top-down): cartel de la
+  estación, banco, y el **tren de vuelta** que te trae a la terminal de origen.
+- Wiring: consti/retiro emiten `exitTo='tren:<ramal>'` (menú `menuOpen`+teclas 1..N) → game.js `enterTren(ramal,linea,
+  origen)` → al salir vuelve a la terminal (`trenReturn`). i18n `g.tren.*` ES≡EN. Debug `trenYa`. e2e (`tren:ok`:
+  molinete→exit + viaje→andén→vuelta) + web-smoke verdes. Blog + capturas 07-tren-viaje/08-tren-anden. Cache v350.
+  Sin cambios de IA/proxy.
+
 ## [v349] — 2026-07-09 — 🌭 Los kioscos de las terminales venden choripán (iteramos los locales mock)
 - El **kiosco de Constitución** y el **puestito de facturas de Retiro** dejan de ser sólo flavor: te **venden un
   choripán 🌭** (15 🪙) — el ítem `chori` que ya existía (comida que **cura +30** en el inventario). Mismo patrón que

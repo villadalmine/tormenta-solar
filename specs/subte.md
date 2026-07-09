@@ -266,10 +266,11 @@ el hall del tren arriba.
 
 ### §11 — DÓNDE SEGUIR (próximos pasos del arco red de tren / Villa 31)
 Estado al 2026-07-09 (cache v349): **E1-E4 + E4.1 (jornada) + kioscos HECHOS y en prod.** Lo que sigue, en orden de valor:
-1. **Andenes de tren REALES** — hoy los molinetes de Constitución/Retiro y los andenes son **mock** (`andenSoon`). Hacer
-   que el molinete te suba a un ANDÉN jugable y el TREN te lleve a un ramal (Roca: La Plata/Ezeiza/…; Mitre: Tigre/…) →
-   nueva sala/mini-escena por ramal. Reusar el patrón `surface`/sub-modo top-down. Es la iteración natural de "los locales
-   y andenes mock".
+1. ~~**Andenes de tren REALES**~~ ✅ **HECHO (v350):** `js/tren.js` — el molinete abre un **menú de ramales** (`tren:<ramal>`)
+   → **VIAJE** con paisaje que scrollea (tematizado por destino, `FLAVORS`) → **ANDÉN de destino** (cartel + banco + tren
+   de vuelta). `enterTren(ramal,linea,origen)` en game.js; vuelve a la terminal (`trenReturn`). Debug `trenYa`. **Siguiente
+   sobre esto:** darle CONTENIDO a cada andén de destino (un NPC, una tienda, una mini-quest por ramal) — hoy es una
+   escena de llegada linda pero vacía.
 2. **Villa 31 más profunda** — (a) **quest del cura** (un mandado del barrio / bendición con recompensa: ítem o buff
    "espiritual"); (b) el **comedor por rondas** (varias jornadas, la cola se renueva, sube la dificultad, paga escalonada);
    (c) más vida de barrio (vecinos que caminan, murales, un mural del Padre Mugica, perros).

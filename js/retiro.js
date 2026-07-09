@@ -32,6 +32,7 @@ const Retiro = (() => {
     const CHORI_PRICE = opts.choriPrice || 15;
     let coinsLeft = opts.coins || 0, purchase = null;
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, ramIdx = 0;
+    let menuOpen = false, numHeld = {};   // menú de RAMALES del tren (al molinete)
     setMsg(T('g.retiro.enter'), 6);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
@@ -44,7 +45,7 @@ const Retiro = (() => {
       if (near(escalera)) { done = true; exitTo = 'back'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }
       if (near(salida)) { done = true; exitTo = 'villa31'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }   // a la calle → Línea San Martín / Villa 31
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
-      if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) { setMsg(T('g.retiro.andenSoon'), 6); return; }
+      if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) { menuOpen = !menuOpen; return; }   // molinete → menú de ramales del tren
       const loc = nearLocal();
       if (loc && loc.sells === 'chori') {   // KIOSCO: comprás un choripán 🌭 si te alcanza
         if (coinsLeft >= CHORI_PRICE) { coinsLeft -= CHORI_PRICE; purchase = { item: 'chori', spent: CHORI_PRICE };
@@ -68,8 +69,10 @@ const Retiro = (() => {
       if (mvx) player.dir = mvx;
       if (mvx && freeAt(player.x + mvx * sp, player.y)) { player.x += mvx * sp; player.walk = 1; }
       if (mvy && freeAt(player.x, player.y + mvy * sp)) { player.y += mvy * sp; player.walk = 1; }
-      if (Input.keys['escape']) { if (!escHeld) { escHeld = true; done = true; exitTo = 'back'; } } else escHeld = false;
+      if (Input.keys['escape']) { if (!escHeld) { escHeld = true; if (menuOpen) menuOpen = false; else { done = true; exitTo = 'back'; } } } else escHeld = false;
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
+      if (menuOpen) for (let i = 0; i < RAMALES.length; i++) { const k = String(i + 1);
+        if (Input.keys[k]) { if (!numHeld[k]) { numHeld[k] = true; menuOpen = false; exitTo = 'tren:' + RAMALES[i]; done = true; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); } } else numHeld[k] = false; }
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (near(escalera)) prompt = T('g.retiro.promptSubte');
       else if (near(salida)) prompt = T('g.retiro.promptCalle');
@@ -147,6 +150,16 @@ const Retiro = (() => {
       // labels de locales
       g.font = '9px monospace'; g.textAlign = 'center'; g.fillStyle = '#9fb0c4';
       for (const l of LOCALES) g.fillText(T('g.retiro.loc_' + l.id), ox + l.x * CS + 1, oy + l.y * CS - 18);
+      // MENÚ DE RAMALES (tren): elegís destino con 1..N
+      if (menuOpen) {
+        const mw = 320, mh = 34 + RAMALES.length * 24, mx = (VW - mw) / 2, my = (VH - mh) / 2;
+        g.fillStyle = 'rgba(6,12,20,0.96)'; g.fillRect(mx, my, mw, mh);
+        g.strokeStyle = '#c9a24a'; g.lineWidth = 2; g.strokeRect(mx + 0.5, my + 0.5, mw, mh);
+        g.fillStyle = '#ffe9b0'; g.font = 'bold 13px monospace'; g.textAlign = 'center'; g.fillText('🚆 ' + T('g.tren.elegir'), mx + mw / 2, my + 22);
+        RAMALES.forEach((r, i) => { const ry = my + 40 + i * 24;
+          g.fillStyle = '#e8f0ff'; g.textAlign = 'left'; g.font = '12px monospace'; g.fillText('[' + (i + 1) + ']  ' + r, mx + 24, ry + 4); });
+        g.fillStyle = '#8fa8c8'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText(T('g.tren.esc'), mx + mw / 2, my + mh - 8);
+      }
       if (prompt) { g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(0, VH - 54, VW, 22); g.fillStyle = '#7ff3ff'; g.font = 'bold 13px monospace'; g.textAlign = 'center'; g.fillText(prompt, VW / 2, VH - 38); }
       if (msgT > 0 && msg) { g.fillStyle = 'rgba(0,0,0,0.72)'; g.fillRect(0, VH - 30, VW, 26); g.fillStyle = '#e8f0ff'; g.font = '13px monospace'; g.textAlign = 'center'; g.fillText(msg, VW / 2, VH - 12); }
     }
@@ -159,6 +172,7 @@ const Retiro = (() => {
       __street: () => { player.x = (salida.x + 0.5) * CS; player.y = (salida.y + 0.5) * CS; interact(); return exitTo; },
       __local: () => { const l = LOCALES.find(x => !x.sells); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },
       __buyChori: () => { const l = LOCALES.find(x => x.sells === 'chori'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar chori en el kiosco
+      __tren: () => { player.x = (GATE_GAP + 0.5) * CS; player.y = (GATE_Y + 1.4) * CS; interact(); menuOpen = false; exitTo = 'tren:' + RAMALES[0]; done = true; return exitTo; },   // e2e: molinete → menú → tomar el tren
     };
   }
   return { create, RAMALES, LOCALES };
