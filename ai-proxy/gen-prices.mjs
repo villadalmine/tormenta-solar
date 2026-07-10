@@ -9,7 +9,13 @@ const TOKEN = process.env.GEN_TOKEN || '';
 const CANDIDATES = (process.env.OR_PRICE_MODELS || [
   'google/gemma-4-31b-it:free', 'google/gemma-4-26b-a4b-it:free', 'openai/gpt-oss-20b:free',
   'moonshotai/kimi-k2.6:free', 'google/gemini-2.0-flash-001', 'openai/gpt-4o-mini', 'openai/gpt-4o',
-].join(',')).split(',').map(s => s.trim()).filter(Boolean);
+].join(',')).split(',').map(s => s.trim()).filter(Boolean);   // OJO: se le suman los reales del pool (abajo)
+
+// además de la lista fija, bajar los precios de los modelos REALES del pool (mapeo /ia-models del proxy):
+// así el scout y la página /info/ia.html muestran cuánto sale claude/deepseek/gemma de verdad (infra-70e).
+try { const mm = await (await fetch(process.env.IA_MODELS_URL || (POST_URL ? POST_URL.replace(/\/precios$/, '/ia-models') : ''))).json();
+  for (const k in (mm.map || {})) { const real = mm.map[k]; if (real && !CANDIDATES.includes(real)) CANDIDATES.push(real); }
+} catch (e) {}
 
 const r = await fetch(URL, { headers: { 'Accept': 'application/json' } });
 if (!r.ok) { console.error('OpenRouter /models', r.status); process.exit(1); }

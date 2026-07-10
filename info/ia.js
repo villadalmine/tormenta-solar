@@ -16,7 +16,10 @@ const PAT = {
 };
 
 let MODELMAP = {};   // model_name (LiteLLM) → modelo REAL (p.ej. claude-sonnet → anthropic/claude-sonnet-4.5), de GET /ia-models
-const modelTag = n => { const u = MODELMAP[n]; return u && u !== n ? n + ' <span class="muted">(' + u + ')</span>' : n; };
+let PRICES = {};     // catálogo real de OpenRouter (GET /precios, lo baja un cron cada 6h)
+const priceOf = n => { const real = MODELMAP[n] || n; const p = PRICES[real]; if (!p) return null; return +(((+p.prompt || 0) + 3 * (+p.completion || 0)) / 4 * 1e6).toFixed(2); };
+const modelTag = n => { const u = MODELMAP[n]; const pr = priceOf(n); const extra = [u && u !== n ? u : null, pr != null ? (pr === 0 ? 'gratis' : '$' + pr + '/M') : null].filter(Boolean).join(' · ');
+  return extra ? n + ' <span class="muted">(' + extra + ')</span>' : n; };
 const chainTag = arr => (arr || []).map(m => modelTag(esc(m))).join(' → ');
 
 const $ = id => document.getElementById(id);
@@ -30,9 +33,11 @@ const nice = w => String(w || '').replace(/ningún modelo aprobó/i, 'sin cambio
 function repHealth(r) {
   const w = r.window || {}, d = r.day || {};
   return '<div class="hd"><span class="kind">🩺 chequeo de salud</span>' + pill(r.verdict || '?') + '<span class="hora">' + hora(r.ts) + '</span></div>' +
-    '<div class="kv">últimas horas: <b>' + (w.chats || 0) + '</b> charlas con NPCs · <b>' + (w.fallbackPct || 0) + '%</b> falladas' +
-    ' &nbsp;|&nbsp; hoy: <b>' + (d.paidCalls || 0) + '/' + (d.paidCap || 0) + '</b> respuestas pagas (' + (d.paidUsedPct || 0) + '%) ≈ <b>US$' + (d.estCostUsd || 0) + '</b>' +
-    (d.subRealCostUsd ? ' · suscripciones US$' + d.subRealCostUsd : '') + '</div>' + (r.note ? '<div class="muted">' + esc(nice(r.note)) + '</div>' : '');
+    '<div class="kv">últimas horas: <b>' + (w.chats || 0) + '</b> charlas con NPCs · <b>' + (w.fallbackPct || 0) + '%</b> falladas</div>' +
+    '<div class="kv">cupo del pool COMPARTIDO (jugadores sin código): <b>' + (d.paidCalls || 0) + '/' + (d.paidCap || 0) + '</b> respuestas pagas hoy (' + (d.paidUsedPct || 0) + '%) ≈ <b>US$' + (d.estCostUsd || 0) + '</b>' +
+    ' &nbsp;|&nbsp; suscripciones (códigos premium): <b>US$' + (d.subRealCostUsd || 0) + '</b> gastados</div>' +
+    '<div class="muted">ojo: si jugás con tu código premium, tu gasto se cuenta en "suscripciones" — NO consume el cupo compartido (por eso puede decir 0/' + (d.paidCap || 2000) + ' aunque hayas chateado un montón).</div>' +
+    (r.note ? '<div class="muted">' + esc(nice(r.note)) + '</div>' : '');
 }
 function repScout(r) {
   let h = '<div class="hd"><span class="kind">🔭 prueba diaria de modelos</span><span class="hora">' + hora(r.ts) + '</span></div>' +
@@ -73,6 +78,7 @@ function repTune(r) {
   // 2) QUÉ FLUJO DEL JUEGO usa QUÉ MODELO, ahora mismo (con el modelo REAL de OpenRouter entre paréntesis)
   try {
     try { MODELMAP = (await (await fetch(PROXY + '/ia-models')).json()).map || {}; } catch (e) {}
+    try { PRICES = (await (await fetch(PROXY + '/precios')).json()).prices || {}; } catch (e) {}
     const ch = await (await fetch(PROXY + '/ia-chain')).json();
     const fila = (icon, nombre, modelsHtml, cubre, criterio) => '<div style="margin:.45rem 0"><b>' + icon + ' ' + esc(nombre) + '</b> → <code>' + modelsHtml + '</code>' +
       (cubre ? '<br><span class="muted">cubre: ' + esc(cubre) + '</span>' : '') +
@@ -81,7 +87,7 @@ function repTune(r) {
       fila(PAT.chat.icon, PAT.chat.nombre, chainTag(ch.effective), PAT.chat.cubre, PAT.chat.criterio) +
       fila('💎', 'Suscriptores (premium)', chainTag(ch.subModels), 'los que cargaron su código en Opciones: siempre la cadena de primera calidad, sin cupos', 'NO se autotunea — estabilidad ante todo (se cambia a mano en values-prod)') +
       fila(PAT.gen.icon, PAT.gen.nombre, chainTag(ch.effectiveGen), PAT.gen.cubre, PAT.gen.criterio) +
-      fila(PAT.banco.icon, PAT.banco.nombre, ch.effectiveBanco ? chainTag(ch.effectiveBanco) : 'el configurado de cada cron (el optimizador todavía no eligió uno mejor)', PAT.banco.cubre, PAT.banco.criterio) +
+      fila(PAT.banco.icon, PAT.banco.nombre, ch.effectiveBanco ? chainTag(ch.effectiveBanco) : (modelTag('gemma4-paid') + ' <span class="muted">(carteles/propaganda/chusmerío/historias)</span> · ' + modelTag('gemma4-free') + ' <span class="muted">(frases del linyera)</span>'), PAT.banco.cubre, PAT.banco.criterio + (ch.effectiveBanco ? '' : ' · hoy cada cron usa su modelo configurado; cuando el optimizador encuentre uno más barato que apruebe, lo levantan todos solos')) +
       (ch.override ? '<div class="muted" style="margin-top:.4rem">⚙️ hay un cambio del optimizador activo — motivo: ' + esc(ch.override.reason || '') + ' (' + hora(ch.override.ts) + '). Si la salud se degrada, se revierte solo.</div>'
         : '<div class="muted" style="margin-top:.4rem">sin cambios del optimizador: corriendo con la configuración base.</div>');
     // 2b) LOS ROBOTS QUE CORREN SOLOS: toda la infra de IA/crons, para que se entienda el ecosistema completo
@@ -98,6 +104,10 @@ function repTune(r) {
     const rb = document.createElement('div'); rb.className = 'chain';
     rb.innerHTML = '<b>🤖 Los robots que corren solos (los crons de la infra):</b>' +
       robots.map(r => '<div style="margin:.35rem 0"><b>' + r[0] + ' ' + esc(r[1]) + '</b> <span class="muted">· ' + esc(r[2]) + '</span><br><span class="muted">' + esc(r[3]) + '</span></div>').join('') +
+      '<div style="margin-top:.55rem"><b>🎮 El fierro propio (GPU/NPU):</b><br>' +
+      '<span class="muted">· <b>GPU NVIDIA</b> (' + modelTag('local-gpu') + '): hoy <b>DESHABILITADA por mantenimiento</b> (apagada a propósito — el juego NO la necesita: el chat siempre fue por la nube). Cuando está prendida se usa para inferencia local corta y pruebas.<br>' +
+      '· <b>NPUs RK1</b> (' + modelTag('rk1-npu-local') + '): pensadas para pre-generar los textos batch (carteles/propaganda) sin gastar nube.<br>' +
+      '· El optimizador las <b>excluye a propósito</b> de las pruebas diarias (pueden estar apagadas); nada del juego se rompe si no están.</span></div>' +
       '<div class="muted" style="margin-top:.4rem">La ruta de cada mensaje: jugador → proxy propio (k8s en casa) → LiteLLM (el pool de modelos) → la nube (OpenRouter). El jugador también puede traer su propia key (BYOK). Y si TODO falla, el juego no se rompe: los NPCs caen a un modo estático con frases pre-generadas. El detalle capa por capa está en <a href="tech.html">Cómo funciona</a>.</div>';
     $('cadena').after(rb);
   } catch (e) { $('cadena').innerHTML = '<span class="muted">no pude leer la configuración (' + esc(e.message) + ')</span>'; }

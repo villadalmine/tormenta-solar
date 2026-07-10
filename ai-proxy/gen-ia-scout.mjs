@@ -73,10 +73,14 @@ models = [...new Set([...HINT.filter(h => models.includes(h)), ...models])].slic
 console.error('candidatos:', models.join(', '));
 
 // precios del catálogo OR (el cron `precios` los dejó en el proxy) — best-effort para el score
-let orPrices = {};
+let orPrices = {}; let MODELMAP = {};
+try { const mm = await (await fetch((POST_URL || '').replace(/\/ia-report$/, '/ia-models'))).json(); MODELMAP = mm.map || {}; } catch (e) {}
 try { const pr = await fetch((process.env.PRICES_URL || '').trim() || (POST_URL.replace(/\/ia-report$/, '/precios'))); if (pr.ok) { const d = await pr.json(); orPrices = d.prices || {}; } } catch (e) {}
-function blended(id) {   // $/1M blended (in + 3·out)/4; matchea por nombre aproximado del model_name → id de OR
-  for (const k in orPrices) { const short = k.split('/').pop().replace(/:free$/, ''); if (id.includes(short) || short.includes(id)) { const p = orPrices[k]; return +(((+p.prompt || 0) + 3 * (+p.completion || 0)) / 4 * 1e6).toFixed(2); } }
+function blended(id) {   // $/1M blended (in + 3·out)/4 — 1º por el modelo REAL (mapeo exacto), 2º fuzzy por nombre
+  const calc = p => +(((+p.prompt || 0) + 3 * (+p.completion || 0)) / 4 * 1e6).toFixed(2);
+  const real = MODELMAP[id]; if (real && orPrices[real]) return calc(orPrices[real]);
+  if (orPrices[id]) return calc(orPrices[id]);
+  for (const k in orPrices) { const short = k.split('/').pop().replace(/:free$/, ''); if (id.includes(short) || short.includes(id)) return calc(orPrices[k]); }
   return null;   // desconocido (no descalifica: se reporta "?")
 }
 
