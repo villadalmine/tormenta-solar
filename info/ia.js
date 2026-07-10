@@ -15,6 +15,10 @@ const PAT = {
     criterio: 'humor rioplatense corto; la velocidad NO importa (corre de noche) — gana EL MÁS BARATO que escriba bien' },
 };
 
+let MODELMAP = {};   // model_name (LiteLLM) → modelo REAL (p.ej. claude-sonnet → anthropic/claude-sonnet-4.5), de GET /ia-models
+const modelTag = n => { const u = MODELMAP[n]; return u && u !== n ? n + ' <span class="muted">(' + u + ')</span>' : n; };
+const chainTag = arr => (arr || []).map(m => modelTag(esc(m))).join(' → ');
+
 const $ = id => document.getElementById(id);
 const fecha = ts => new Date(ts).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const hora = ts => new Date(ts).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
@@ -36,7 +40,7 @@ function repScout(r) {
   for (const pat of ['chat', 'gen', 'banco']) {
     const rk = (r.rank && r.rank[pat]) || [];
     h += '<table class="rk"><tr><th>' + patTag(pat) + ' — aprobaron</th><th>velocidad</th><th>precio $/M</th></tr>';
-    if (rk.length) h += rk.slice(0, 4).map(x => '<tr><td>' + esc(x.model) + '</td><td>' + ((x.p95Ms || 0) / 1000).toFixed(1) + 's</td><td>' + (x.priceUsdM == null ? '?' : '$' + x.priceUsdM) + '</td></tr>').join('');
+    if (rk.length) h += rk.slice(0, 4).map(x => '<tr><td>' + modelTag(esc(x.model)) + '</td><td>' + ((x.p95Ms || 0) / 1000).toFixed(1) + 's</td><td>' + (x.priceUsdM == null ? '?' : '$' + x.priceUsdM) + '</td></tr>').join('');
     else h += '<tr><td colspan="3" class="muted">ninguno pasó el estándar HOY en la prueba — el juego sigue andando con su modelo actual (mirá el chequeo de salud)</td></tr>';
     h += '</table>';
   }
@@ -45,7 +49,7 @@ function repScout(r) {
 }
 function repTune(r) {
   const one = (p, o) => o ? ('<div style="margin:.2rem 0"><b>' + patTag(p) + '</b> ' + pill(o.action || '?') +
-    (o.to ? ' → ahora usa <code>' + esc((o.to || []).join(', ')) + '</code>' : '') +
+    (o.to ? ' → ahora usa <code>' + chainTag(o.to) + '</code>' : '') +
     (o.e2e ? ' <span class="muted">(probado punta a punta: ' + esc(o.e2e) + ' charlas reales OK)</span>' : '') +
     (o.why ? ' <span class="muted">' + esc(nice(o.why)) + '</span>' : '') + '</div>') : '';
   if (r.action) return '<div class="hd"><span class="kind">⚙️ optimizador</span>' + pill(r.action) + '<span class="hora">' + hora(r.ts) + '</span></div><div class="kv">' + esc(nice(r.why || '')) + '</div>';
@@ -66,18 +70,36 @@ function repTune(r) {
     document.querySelector('.wrap').insertBefore(el, $('cadena'));
   } catch (e) {}
 
-  // 2) QUÉ FLUJO DEL JUEGO usa QUÉ MODELO, ahora mismo
+  // 2) QUÉ FLUJO DEL JUEGO usa QUÉ MODELO, ahora mismo (con el modelo REAL de OpenRouter entre paréntesis)
   try {
+    try { MODELMAP = (await (await fetch(PROXY + '/ia-models')).json()).map || {}; } catch (e) {}
     const ch = await (await fetch(PROXY + '/ia-chain')).json();
-    const fila = (p, models) => '<div style="margin:.45rem 0"><b>' + PAT[p].icon + ' ' + esc(PAT[p].nombre) + '</b> → <code>' + esc(models) + '</code>' +
-      '<br><span class="muted">cubre: ' + esc(PAT[p].cubre) + '</span>' +
-      '<br><span class="muted">estándar: ' + esc(PAT[p].criterio) + '</span></div>';
-    $('cadena').innerHTML = '<b>Qué modelo usa cada parte del juego, AHORA:</b>' +
-      fila('chat', (ch.effective || []).join(' → ')) +
-      fila('gen', (ch.effectiveGen || []).join(' → ')) +
-      fila('banco', ch.effectiveBanco ? ch.effectiveBanco.join(' → ') : 'el configurado de cada cron (el optimizador todavía no eligió uno mejor)') +
+    const fila = (icon, nombre, modelsHtml, cubre, criterio) => '<div style="margin:.45rem 0"><b>' + icon + ' ' + esc(nombre) + '</b> → <code>' + modelsHtml + '</code>' +
+      (cubre ? '<br><span class="muted">cubre: ' + esc(cubre) + '</span>' : '') +
+      (criterio ? '<br><span class="muted">estándar: ' + esc(criterio) + '</span></div>' : '</div>');
+    $('cadena').innerHTML = '<b>Qué modelo usa cada parte del juego, AHORA</b> <span class="muted">(entre paréntesis, el modelo real detrás del alias)</span>:' +
+      fila(PAT.chat.icon, PAT.chat.nombre, chainTag(ch.effective), PAT.chat.cubre, PAT.chat.criterio) +
+      fila('💎', 'Suscriptores (premium)', chainTag(ch.subModels), 'los que cargaron su código en Opciones: siempre la cadena de primera calidad, sin cupos', 'NO se autotunea — estabilidad ante todo (se cambia a mano en values-prod)') +
+      fila(PAT.gen.icon, PAT.gen.nombre, chainTag(ch.effectiveGen), PAT.gen.cubre, PAT.gen.criterio) +
+      fila(PAT.banco.icon, PAT.banco.nombre, ch.effectiveBanco ? chainTag(ch.effectiveBanco) : 'el configurado de cada cron (el optimizador todavía no eligió uno mejor)', PAT.banco.cubre, PAT.banco.criterio) +
       (ch.override ? '<div class="muted" style="margin-top:.4rem">⚙️ hay un cambio del optimizador activo — motivo: ' + esc(ch.override.reason || '') + ' (' + hora(ch.override.ts) + '). Si la salud se degrada, se revierte solo.</div>'
         : '<div class="muted" style="margin-top:.4rem">sin cambios del optimizador: corriendo con la configuración base.</div>');
+    // 2b) LOS ROBOTS QUE CORREN SOLOS: toda la infra de IA/crons, para que se entienda el ecosistema completo
+    const robots = [
+      ['🗞️', 'Noticias del barrio + cartelera del CINE', 'todos los días 9:00 (+ el ticker EN VIVO cada hora)', 'la IA escribe los titulares y lo que pasan en el cine; el juego los muestra en carteles y noticieros'],
+      ['🪧', 'Carteles vivos + propaganda', 'carteles cada 6h · propaganda 4:00', 'los carteles del barrio y la vía pública que cambian solos'],
+      ['🗣️', 'Chusmerío entre los NPCs', 'todos los días 4:30', 'las frases que se dicen los personajes de fondo entre ellos'],
+      ['🧔', 'Frases del linyera (pool offline)', 'todos los días (madrugada)', 'el banco de respuestas que usan los NPCs si la IA en vivo no está'],
+      ['🏚️', 'Historias del vecino', 'todos los días 4:45', 'los relatos de los edificios clausurados'],
+      ['💱', 'Precios del catálogo de modelos', 'cada 6h', 'baja los precios reales de OpenRouter (los usa el optimizador para el costo-beneficio)'],
+      ['🩺', 'Chequeo de salud de la IA', 'cada 6h (a los :30)', 'mide charlas falladas, gasto y budget — si algo anda mal, alerta sola a Telegram y revierte cambios'],
+      ['🔭⚙️', 'Prueba de modelos + optimizador', 'todos los días 6:15', 'banchmarkea el pool con los estándares de cada flujo y cambia el modelo SOLO si lo prueba de punta a punta (con vuelta atrás automática)'],
+    ];
+    const rb = document.createElement('div'); rb.className = 'chain';
+    rb.innerHTML = '<b>🤖 Los robots que corren solos (los crons de la infra):</b>' +
+      robots.map(r => '<div style="margin:.35rem 0"><b>' + r[0] + ' ' + esc(r[1]) + '</b> <span class="muted">· ' + esc(r[2]) + '</span><br><span class="muted">' + esc(r[3]) + '</span></div>').join('') +
+      '<div class="muted" style="margin-top:.4rem">La ruta de cada mensaje: jugador → proxy propio (k8s en casa) → LiteLLM (el pool de modelos) → la nube (OpenRouter). El jugador también puede traer su propia key (BYOK). Y si TODO falla, el juego no se rompe: los NPCs caen a un modo estático con frases pre-generadas. El detalle capa por capa está en <a href="tech.html">Cómo funciona</a>.</div>';
+    $('cadena').after(rb);
   } catch (e) { $('cadena').innerHTML = '<span class="muted">no pude leer la configuración (' + esc(e.message) + ')</span>'; }
 
   // 3) los reportes POR DÍA

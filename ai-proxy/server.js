@@ -111,7 +111,8 @@ loadDeployLog();
 const IAREPORTS_STORE = process.env.IAREPORTS_STORE || '/data/ia-reports.json';
 let IA_REPORTS = [];                                // últimos 60 (health + scout)
 let IA_HEALTH = null;                               // el último health → gauges en /metrics → PrometheusRule → Telegram
-let IA_TUNE_TS = 0;                                 // último cambio del override (aplicar o reset) → alerta informativa
+let IA_TUNE_TS = 0;
+let IA_MODELMAP = { map: {}, ts: 0 };               // model_name de LiteLLM → modelo real (para la página /info/ia.html)                                 // último cambio del override (aplicar o reset) → alerta informativa
 function loadIaReports() { try { const d = JSON.parse(fs.readFileSync(IAREPORTS_STORE, 'utf8')); if (Array.isArray(d)) { IA_REPORTS = d; IA_HEALTH = d.filter(x => x.kind === 'health').pop() || null; } } catch (e) {} }
 function saveIaReports() { try { fs.mkdirSync(IAREPORTS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(IAREPORTS_STORE, JSON.stringify(IA_REPORTS)); } catch (e) { console.error('ia-reports save:', e.message); } }
 loadIaReports();
@@ -956,11 +957,22 @@ http.createServer((req, res) => {
     } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
   }
+  if (req.method === 'GET' && req.url === '/ia-models') {                            // mapeo LiteLLM → modelo REAL (p.ej. claude-sonnet → openrouter/anthropic/claude-sonnet-4.5)
+    if (IA_MODELMAP.ts > Date.now() - 600000) { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' }); return res.end(JSON.stringify({ map: IA_MODELMAP.map })); }
+    (async () => { try {
+      const r = await fetch(BASE.replace(/\/v1$/, '') + '/model/info', { headers: { Authorization: 'Bearer ' + KEY } });
+      const d = await r.json(); const map = {};
+      for (const m of (d.data || [])) { const un = ((m.litellm_params || {}).model || '').replace(/^(openai|openrouter)\//, ''); if (m.model_name && un && !map[m.model_name]) map[m.model_name] = un; }
+      IA_MODELMAP = { map, ts: Date.now() };
+    } catch (e) {} finally { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' }); res.end(JSON.stringify({ map: IA_MODELMAP.map })); } })();
+    return;
+  }
   if (req.method === 'GET' && req.url === '/ia-chain') {                              // cadena efectiva + override (auditable)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ env: MODELS, envGen: GEN_MODELS, override: IA_CHAIN, effective: activeChain(),
       effectiveGen: (IA_CHAIN && IA_CHAIN.gen && IA_CHAIN.gen.length) ? IA_CHAIN.gen : GEN_MODELS,
-      effectiveBanco: (IA_CHAIN && IA_CHAIN.banco && IA_CHAIN.banco.length) ? IA_CHAIN.banco : null }));
+      effectiveBanco: (IA_CHAIN && IA_CHAIN.banco && IA_CHAIN.banco.length) ? IA_CHAIN.banco : null,
+      subModels: SUB_MODELS }));   // la cadena PREMIUM (suscriptores) — informativa: NO se autotunea
   }
   // CHECKPOINTS por nick (guardar-partida.md F3): leer / subir el último hito de tu partida.
   if (req.method === 'GET' && req.url.startsWith('/checkpoint')) {
