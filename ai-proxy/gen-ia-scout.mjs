@@ -78,7 +78,9 @@ try { const mm = await (await fetch((POST_URL || '').replace(/\/ia-report$/, '/i
 try { const pr = await fetch((process.env.PRICES_URL || '').trim() || (POST_URL.replace(/\/ia-report$/, '/precios'))); if (pr.ok) { const d = await pr.json(); orPrices = d.prices || {}; } } catch (e) {}
 function blended(id) {   // $/1M blended (in + 3·out)/4 — 1º por el modelo REAL (mapeo exacto), 2º fuzzy por nombre
   const calc = p => +(((+p.prompt || 0) + 3 * (+p.completion || 0)) / 4 * 1e6).toFixed(2);
-  const real = MODELMAP[id]; if (real && orPrices[real]) return calc(orPrices[real]);
+  const norm = x => String(x || '').toLowerCase().replace(/[.\-]/g, '');
+  const real = MODELMAP[id];
+  for (const k in orPrices) { if (real && norm(k) === norm(real)) return calc(orPrices[k]); }
   if (orPrices[id]) return calc(orPrices[id]);
   for (const k in orPrices) { const short = k.split('/').pop().replace(/:free$/, ''); if (id.includes(short) || short.includes(id)) return calc(orPrices[k]); }
   return null;   // desconocido (no descalifica: se reporta "?")

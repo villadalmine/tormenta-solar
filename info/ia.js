@@ -17,7 +17,10 @@ const PAT = {
 
 let MODELMAP = {};   // model_name (LiteLLM) → modelo REAL (p.ej. claude-sonnet → anthropic/claude-sonnet-4.5), de GET /ia-models
 let PRICES = {};     // catálogo real de OpenRouter (GET /precios, lo baja un cron cada 6h)
-const priceOf = n => { const real = MODELMAP[n] || n; const p = PRICES[real]; if (!p) return null; return +(((+p.prompt || 0) + 3 * (+p.completion || 0)) / 4 * 1e6).toFixed(2); };
+const _norm = x => String(x || '').toLowerCase().replace(/[.\-]/g, '');
+const priceOf = n => { const real = MODELMAP[n] || n; let p = PRICES[real];
+  if (!p) { for (const k in PRICES) if (_norm(k) === _norm(real)) { p = PRICES[k]; break; } }
+  if (!p) return null; return +(((+p.prompt || 0) + 3 * (+p.completion || 0)) / 4 * 1e6).toFixed(2); };
 const modelTag = n => { const u = MODELMAP[n]; const pr = priceOf(n); const extra = [u && u !== n ? u : null, pr != null ? (pr === 0 ? 'gratis' : '$' + pr + '/M') : null].filter(Boolean).join(' · ');
   return extra ? n + ' <span class="muted">(' + extra + ')</span>' : n; };
 const chainTag = arr => (arr || []).map(m => modelTag(esc(m))).join(' → ');

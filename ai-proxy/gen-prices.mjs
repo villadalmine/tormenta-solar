@@ -22,8 +22,10 @@ if (!r.ok) { console.error('OpenRouter /models', r.status); process.exit(1); }
 const models = (await r.json()).data || [];
 
 const prices = {};
+const norm = x => String(x || '').toLowerCase().replace(/[.\-]/g, '');   // LiteLLM escribe claude-sonnet-4-5, OR cataloga 4.5
+const CAND_NORM = new Set(CANDIDATES.map(norm));
 for (const m of models) {
-  if (!CANDIDATES.includes(m.id)) continue;
+  if (!CAND_NORM.has(norm(m.id))) continue;
   const p = m.pricing || {};
   prices[m.id] = { prompt: +p.prompt || 0, completion: +p.completion || 0, name: m.name || m.id, free: p.prompt === '0' && p.completion === '0' };
 }
