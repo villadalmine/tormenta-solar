@@ -97,7 +97,7 @@ for (const model of models) {
     const p95 = lat[lat.length - 1] || 0;
     const price = blended(model);
     const pass = okRuns.length >= P.minOk && p95 <= P.p95Max;
-    const score = pass ? +(100 - (price || 2) - p95 / 500).toFixed(1) : 0;
+    const score = pass ? +(100 - (price == null ? 2 : price) - p95 / 500).toFixed(1) : 0;   // gratis=0 NO se penaliza (0||2 daba 2)
     results[model][pat] = { pass, ok: okRuns.length + '/' + runs.length, p95Ms: p95, priceUsdM: price, score };
     console.error(`${model} · ${pat}: ${pass ? 'PASS' : 'fail'} (${okRuns.length}/${runs.length}, p95 ${p95}ms, $${price == null ? '?' : price}/M)`);
   }

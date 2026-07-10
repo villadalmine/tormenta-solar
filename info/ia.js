@@ -48,7 +48,9 @@ function repScout(r) {
   for (const pat of ['chat', 'gen', 'banco']) {
     const rk = (r.rank && r.rank[pat]) || [];
     h += '<table class="rk"><tr><th>' + patTag(pat) + ' — aprobaron</th><th>velocidad</th><th>precio $/M</th></tr>';
-    if (rk.length) h += rk.slice(0, 4).map(x => '<tr><td>' + modelTag(esc(x.model)) + '</td><td>' + ((x.p95Ms || 0) / 1000).toFixed(1) + 's</td><td>' + (x.priceUsdM == null ? '?' : '$' + x.priceUsdM) + '</td></tr>').join('');
+    const fmtP = v => v == null ? '?' : v === 0 ? 'gratis' : '$' + v;
+    if (rk.length) h += rk.slice(0, 4).map(x => { const pv = x.priceUsdM != null ? x.priceUsdM : priceOf(x.model);   // reportes viejos sin precio → se calcula EN VIVO
+      return '<tr><td>' + modelTag(esc(x.model)) + '</td><td>' + ((x.p95Ms || 0) / 1000).toFixed(1) + 's</td><td>' + fmtP(pv) + '</td></tr>'; }).join('');
     else h += '<tr><td colspan="3" class="muted">ninguno pasó el estándar HOY en la prueba — el juego sigue andando con su modelo actual (mirá el chequeo de salud)</td></tr>';
     h += '</table>';
   }
