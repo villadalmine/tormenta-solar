@@ -718,7 +718,9 @@
   // andén sube a la gran terminal del Roca (hall + molinetes de tren + locales mock). Al salir volvés al subte C.
   function enterConstitucion() {
     if (typeof Constitucion === 'undefined' || !Constitucion.create) { enterSubte('constitucion'); return true; }
-    constitucionGame = Constitucion.create({ coins: player.coins || 0 }); state = 'constitucion';
+    // v359: el puesto de DIARIOS trae LA PISTA del grafo como titular (HintEngine sobre el estado actual)
+    let pista = null; try { if (typeof HintEngine !== 'undefined') { const e = HintEngine.next(historiaState(), { at: 'constitucion' }); pista = e && e.text; } } catch (err) {}
+    constitucionGame = Constitucion.create({ coins: player.coins || 0, pista }); state = 'constitucion';
     applyEdge('constitucion_llegada', 'enConstitucion');   // GRAFO: hito → map/checkpoint/ticker + los oráculos saben
     evlog('hito', 'llegó a la terminal Constitución');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -902,6 +904,7 @@
     // use.buffs = lista de efectos, use.secs = duración. Se consume. specs/inventario-armas.md §7.3.
     birra:      { id: 'birra',      emoji: '🍺', label: 'g.wpn.birra',   noEquip: true, use: { kind: 'buff', buffs: ['speed', 'regen', 'shield'], secs: 8 } },
     estampita:  { id: 'estampita',  emoji: '🙏', label: 'g.wpn.estampita', noEquip: true, use: { kind: 'buff', buffs: ['shield', 'regen'], secs: 12 } },   // v358: la bendición del cura (Villa 31)
+    cafe:       { id: 'cafe',       emoji: '☕', label: 'g.wpn.cafe',   use: { kind: 'heal', amount: 15 } },   // v359: cortado de las terminales (+vida)
   };
   // BUFFS temporales (Inventario F3, kind:'buff'). Efectos con timer en segundos (decrementan por dt, sin reloj de pared →
   // se pausan en los sub-modos). `tickBuffs` deriva los flags que leen player.js (speedMul/shielded) + cura con 'regen'.
@@ -3966,7 +3969,9 @@
       }
     } else if (state === 'retiro' && retiroGame) {                    // §11 E2: terminal Retiro (Línea C)
       retiroGame.update(dt); retiroGame.draw(ctx, W, H);
-      { const buy = retiroGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // KIOSCO: comprás un chori
+      { const buy = retiroGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent);
+        if (buy.item === 'flor') player.flores = (player.flores || 0) + 1; else addItem(buy.item);   // v359: la florería suma flores 🌸 (moneda del truco), el resto va al inventario
+        syncHud(); } }
       if (retiroGame.done) {
         const ex = retiroGame.exitTo; retiroGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'villa31') { enterVilla31(); return; }              // salís a la calle → Línea San Martín → Villa 31

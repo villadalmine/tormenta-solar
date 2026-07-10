@@ -280,10 +280,14 @@ Estado al 2026-07-09 (cache v349): **E1-E4 + E4.1 (jornada) + kioscos HECHOS y e
 2. **Villa 31 más profunda** — (a) **quest del cura** (un mandado del barrio / bendición con recompensa: ítem o buff
    "espiritual"); (b) el **comedor por rondas** (varias jornadas, la cola se renueva, sube la dificultad, paga escalonada);
    (c) más vida de barrio (vecinos que caminan, murales, un mural del Padre Mugica, perros).
-3. **Locales mock restantes** — café / diarios / locutorio / librería / flores. Darles función simple y data-driven
-   (comida que cura, "diario" = pista del grafo, "locutorio" = rumor/telegram-lore). Hoy sólo el kiosco (Constitución) y el
-   puesto de facturas (Retiro) venden (chori). El patrón de venta ya está: `sells:'chori'` en `LOCALES` + one-shot
-   `purchase` → game.js. Generalizar `sells` a otros ítems.
+3. ~~**Locales mock restantes**~~ ✅ **HECHO (v359):** todos los locales de las terminales tienen función data-driven:
+   **diarios** (Constitución) = la **pista del grafo** como titular (game.js pasa `HintEngine.next()` en `opts.pista`);
+   **locutorio** = un **rumor** de `window.CHUSMERIO`; **librería** (Retiro) = **versos del Martín Fierro** (dominio
+   público, rotan; array `FIERRO`); **florería** = vende flor 🌸 (5 🪙, `purchase {item:'flor'}` → game.js suma
+   `player.flores`); **café** (ambas) = **cortado ☕** (8 🪙, ítem `cafe` `heal 15`). `sells` generalizado:
+   `sells:'<item>'` + `price` por local, i18n dinámico `buy_<item>`/`promptBuy_<item>`, specials en `special:'pista'|
+   'rumor'|'libro'|'flor'`. GOTCHA: locales cerca de la salida/escalera pierden el [E] (radio 1.5) — la librería se
+   movió a (2.4,10.2) por eso. Queda la **boletería Roca/Mitre** como único mock (flavor).
 4. **Boarding cross-terminal por tren** — que desde Constitución puedas llegar a un ramal y volver, cerrando el "viajás en
    TREN" (hoy el viaje entre terminales es por el SUBTE Línea C; el TREN todavía no te lleva a ningún lado).
 Recordatorio de infra (no-código de juego): `tormenta_ai_sub_codes=0` en el proxy ⇒ el **código premium del dueño no está

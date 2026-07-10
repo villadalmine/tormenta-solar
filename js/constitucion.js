@@ -11,9 +11,9 @@ const Constitucion = (() => {
   // Locales del hall (MOCK, data-driven): posición en tiles + etiqueta + emoji. Iteramos con interior real después.
   const LOCALES = [
     { id: 'kiosco',  x: 2.4,  y: 8.5,  label: 'Kiosco',        emoji: '🏪', sells: 'chori' },
-    { id: 'cafe',    x: 2.4,  y: 11,   label: 'Café',          emoji: '☕' },
-    { id: 'diario',  x: 17,   y: 8.5,  label: 'Diarios',       emoji: '📰' },
-    { id: 'locutorio', x: 17, y: 11,   label: 'Locutorio',     emoji: '📞' },
+    { id: 'cafe',    x: 2.4,  y: 11,   label: 'Café',          emoji: '☕', sells: 'cafe', price: 8 },
+    { id: 'diario',  x: 17,   y: 8.5,  label: 'Diarios',       emoji: '📰', special: 'pista' },     // v359: el diario trae LA PISTA del grafo
+    { id: 'locutorio', x: 17, y: 11,   label: 'Locutorio',     emoji: '📞', special: 'rumor' },     // v359: escuchás un rumor del chusmerío
     { id: 'boleteria', x: 10, y: 8.6,  label: 'Boletería Roca',emoji: '🎫' },
   ];
 
@@ -50,10 +50,16 @@ const Constitucion = (() => {
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) { menuOpen = !menuOpen; return; }
       const loc = nearLocal();
-      if (loc && loc.sells === 'chori') {   // KIOSCO: comprás un choripán 🌭 (comida que cura) si te alcanza
-        if (coinsLeft >= CHORI_PRICE) { coinsLeft -= CHORI_PRICE; purchase = { item: 'chori', spent: CHORI_PRICE };
-          setMsg(T('g.consti.buyChori', { p: CHORI_PRICE }), 6); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
-        else { setMsg(T('g.consti.noCoins', { p: CHORI_PRICE }), 6); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
+      if (loc && loc.special === 'pista') {   // v359 DIARIOS: el titular de hoy = LA PISTA del grafo (game.js la pasa)
+        setMsg(opts.pista ? T('g.consti.diario', { p: opts.pista }) : T('g.consti.diarioNada'), 8); return; }
+      if (loc && loc.special === 'rumor') {   // v359 LOCUTORIO: un rumor del chusmerío vivo (window.CHUSMERIO)
+        const pool = (typeof window !== 'undefined' && window.CHUSMERIO && window.CHUSMERIO.length) ? window.CHUSMERIO : null;
+        setMsg(pool ? T('g.consti.rumor', { r: pool[(Math.random() * pool.length) | 0] }) : T('g.consti.rumorNada'), 7); return; }
+      if (loc && loc.sells) {   // locales que VENDEN (kiosco=chori, café=cortado): patrón one-shot purchase
+        const precio = loc.price || CHORI_PRICE;
+        if (coinsLeft >= precio) { coinsLeft -= precio; purchase = { item: loc.sells, spent: precio };
+          setMsg(T('g.consti.buy_' + loc.sells, { p: precio }), 6); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
+        else { setMsg(T('g.consti.noCoins', { p: precio }), 6); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
         return;
       }
       if (loc) { setMsg(T('g.consti.local', { n: T('g.consti.loc_' + loc.id) }), 5); return; }
@@ -81,7 +87,9 @@ const Constitucion = (() => {
       if (near(escalera)) prompt = T('g.consti.promptSubte');
       else if (near(salida)) prompt = T('g.consti.promptCalle');
       else if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = T('g.consti.promptAnden');
-      else if (nearLocal() && nearLocal().sells === 'chori') prompt = T('g.consti.promptChori', { p: CHORI_PRICE });
+      else if (nearLocal() && nearLocal().special === 'pista') prompt = T('g.consti.promptDiario');
+      else if (nearLocal() && nearLocal().special === 'rumor') prompt = T('g.consti.promptRumor');
+      else if (nearLocal() && nearLocal().sells) prompt = T('g.consti.promptBuy_' + nearLocal().sells, { p: nearLocal().price || CHORI_PRICE });
       else if (nearLocal()) prompt = T('g.consti.promptLocal', { n: T('g.consti.loc_' + nearLocal().id) });
       else if (near(reloj, 1.8)) prompt = T('g.consti.promptReloj');
       else prompt = '';
@@ -172,8 +180,10 @@ const Constitucion = (() => {
       get purchase() { const p = purchase; purchase = null; return p; },   // KIOSCO: one-shot que game.js lee para cobrar + addItem
       update, draw,
       __leave: () => { player.x = (escalera.x + 0.5) * CS; player.y = (escalera.y + 0.5) * CS; interact(); return exitTo; },   // e2e: salir al subte
-      __local: () => { const l = LOCALES.find(x => !x.sells); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },   // e2e: mirar un local mock
+      __local: () => { const l = LOCALES.find(x => !x.sells && !x.special); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },   // e2e: mirar un local mock
       __buyChori: () => { const l = LOCALES.find(x => x.sells === 'chori'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar chori en el kiosco
+      __buyCafe: () => { const l = LOCALES.find(x => x.sells === 'cafe'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: cortado en el café
+      __diario: () => { const l = LOCALES.find(x => x.special === 'pista'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },   // e2e: leer el diario (pista)
       __tren: () => { player.x = (GATE_GAP + 0.5) * CS; player.y = (GATE_Y + 1.4) * CS; interact(); menuOpen = false; exitTo = 'tren:' + RAMALES[0]; done = true; return exitTo; },   // e2e: molinete → menú → tomar el tren
     };
   }

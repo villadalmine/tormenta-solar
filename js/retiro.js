@@ -8,11 +8,19 @@ const Retiro = (() => {
   const CS = 30, W = 20, H = 14;
   // Líneas/ramales REALES que salen de Retiro (DATA → cartel de salidas rotando). Flavor "oficial".
   const RAMALES = ['Mitre — Tigre', 'Mitre — J. L. Suárez', 'Villa Ballester', 'Belgrano Norte', 'San Martín — C. Universitaria'];
+  // v359 LIBRERÍA: versos del Martín Fierro (José Hernández, 1872 — dominio público), rotan con cada [E]
+  const FIERRO = [
+    'Los hermanos sean unidos, porque ésa es la ley primera.',
+    'El que nace barrigón es al ñudo que lo fajen.',
+    'Es mejor que aprender mucho, el aprender cosas buenas.',
+    'Al que es amigo, jamás lo dejen en la estacada.',
+    'La ley es tela de araña… la rompe el bicho grande.',
+  ];
   // Locales del hall (MOCK, data-driven): iteramos con interior real después.
   const LOCALES = [
-    { id: 'cafe',    x: 2.4,  y: 8.5,  emoji: '☕' },
-    { id: 'libreria',x: 2.4,  y: 11,   emoji: '📚' },
-    { id: 'flores',  x: 17,   y: 8.5,  emoji: '💐' },
+    { id: 'cafe',    x: 2.4,  y: 8.5,  emoji: '☕', sells: 'cafe', price: 8 },
+    { id: 'libreria',x: 2.4,  y: 10.2, emoji: '📚', special: 'libro' },   // v359: te lee el Martín Fierro (dominio público). OJO: lejos de la salida (3,12) — si no, [E] dispara la calle
+    { id: 'flores',  x: 17,   y: 8.5,  emoji: '💐', special: 'flor', price: 5 },   // v359: te vende una flor 🌸 (player.flores)
     { id: 'facturas',x: 17,   y: 11,   emoji: '🥐', sells: 'chori' },
     { id: 'boleteria', x: 10, y: 8.6,  emoji: '🎫' },
   ];
@@ -33,6 +41,7 @@ const Retiro = (() => {
     let coinsLeft = opts.coins || 0, purchase = null;
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, ramIdx = 0;
     let menuOpen = false, numHeld = {};   // menú de RAMALES del tren (al molinete)
+    let fierroIdx = -1;                   // v359: qué verso del Martín Fierro toca
     setMsg(T('g.retiro.enter'), 6);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
@@ -47,10 +56,20 @@ const Retiro = (() => {
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) { menuOpen = !menuOpen; return; }   // molinete → menú de ramales del tren
       const loc = nearLocal();
-      if (loc && loc.sells === 'chori') {   // KIOSCO: comprás un choripán 🌭 si te alcanza
-        if (coinsLeft >= CHORI_PRICE) { coinsLeft -= CHORI_PRICE; purchase = { item: 'chori', spent: CHORI_PRICE };
-          setMsg(T('g.retiro.buyChori', { p: CHORI_PRICE }), 6); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
-        else { setMsg(T('g.retiro.noCoins', { p: CHORI_PRICE }), 6); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
+      if (loc && loc.special === 'libro') {   // v359 LIBRERÍA: un verso del Martín Fierro por vez
+        fierroIdx = (fierroIdx + 1) % FIERRO.length;
+        setMsg(T('g.retiro.libro', { v: FIERRO[fierroIdx] }), 8); return; }
+      if (loc && loc.special === 'flor') {    // v359 FLORERÍA: comprás una flor 🌸 (suma a player.flores via one-shot)
+        const precio = loc.price || 5;
+        if (coinsLeft >= precio) { coinsLeft -= precio; purchase = { item: 'flor', spent: precio };
+          setMsg(T('g.retiro.flor', { p: precio }), 6); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
+        else { setMsg(T('g.retiro.noCoins', { p: precio }), 6); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
+        return; }
+      if (loc && loc.sells) {                 // locales que VENDEN (facturas=chori, café=cortado)
+        const precio = loc.price || CHORI_PRICE;
+        if (coinsLeft >= precio) { coinsLeft -= precio; purchase = { item: loc.sells, spent: precio };
+          setMsg(T('g.retiro.buy_' + loc.sells, { p: precio }), 6); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
+        else { setMsg(T('g.retiro.noCoins', { p: precio }), 6); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
         return;
       }
       if (loc) { setMsg(T('g.retiro.local', { n: T('g.retiro.loc_' + loc.id) }), 5); return; }
@@ -77,7 +96,9 @@ const Retiro = (() => {
       if (near(escalera)) prompt = T('g.retiro.promptSubte');
       else if (near(salida)) prompt = T('g.retiro.promptCalle');
       else if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = T('g.retiro.promptAnden');
-      else if (nearLocal() && nearLocal().sells === 'chori') prompt = T('g.retiro.promptChori', { p: CHORI_PRICE });
+      else if (nearLocal() && nearLocal().special === 'libro') prompt = T('g.retiro.promptLibro');
+      else if (nearLocal() && nearLocal().special === 'flor') prompt = T('g.retiro.promptFlor', { p: 5 });
+      else if (nearLocal() && nearLocal().sells) prompt = T('g.retiro.promptBuy_' + nearLocal().sells, { p: nearLocal().price || CHORI_PRICE });
       else if (nearLocal()) prompt = T('g.retiro.promptLocal', { n: T('g.retiro.loc_' + nearLocal().id) });
       else if (near(reloj, 1.8)) prompt = T('g.retiro.promptReloj');
       else prompt = '';
@@ -170,7 +191,9 @@ const Retiro = (() => {
       update, draw,
       __leave: () => { player.x = (escalera.x + 0.5) * CS; player.y = (escalera.y + 0.5) * CS; interact(); return exitTo; },
       __street: () => { player.x = (salida.x + 0.5) * CS; player.y = (salida.y + 0.5) * CS; interact(); return exitTo; },
-      __local: () => { const l = LOCALES.find(x => !x.sells); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },
+      __local: () => { const l = LOCALES.find(x => !x.sells && !x.special); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },
+      __libro: () => { const l = LOCALES.find(x => x.special === 'libro'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return FIERRO[fierroIdx]; },   // e2e: verso del Fierro (crudo, no i18n)
+      __flor: () => { const l = LOCALES.find(x => x.special === 'flor'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar flor
       __buyChori: () => { const l = LOCALES.find(x => x.sells === 'chori'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar chori en el kiosco
       __tren: () => { player.x = (GATE_GAP + 0.5) * CS; player.y = (GATE_Y + 1.4) * CS; interact(); menuOpen = false; exitTo = 'tren:' + RAMALES[0]; done = true; return exitTo; },   // e2e: molinete → menú → tomar el tren
     };

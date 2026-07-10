@@ -101,6 +101,19 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v359] — 2026-07-10 — 📰 Los locales de las terminales tienen FUNCIÓN: diario=pista, locutorio=rumor, librería=Fierro, florería=flores, café=cortado
+- **Constitución:** el puesto de **DIARIOS 📰** te muestra "EL TITULAR DE HOY" = **la pista del grafo** (game.js
+  le pasa `HintEngine.next(historiaState())` como `opts.pista`); el **LOCUTORIO 📞** te deja escuchar un **rumor
+  del chusmerío vivo** (`window.CHUSMERIO`, con fallback si no hay red).
+- **Retiro:** la **LIBRERÍA 📚** te lee **versos del Martín Fierro** (dominio público, rotan con cada [E]); la
+  **FLORERÍA 🌸** vende una flor (5 🪙) que suma a `player.flores` (la moneda del truco); movida la librería para
+  no pisar el radio de la salida a la calle (gotcha: `near(salida)` ganaba el [E]).
+- **CAFÉ ☕ (ambas terminales):** vende un **cortado** (8 🪙) — ítem `cafe` nuevo (`use: heal 15`). El patrón de
+  venta se generalizó: `sells:'<item>'` + `price` por local (antes sólo chori) → claves i18n dinámicas
+  `buy_<item>`/`promptBuy_<item>`.
+- e2e (diario con/sin pista, cortado, verso que rota, flor con/sin plata) + smoke verdes. i18n ES≡EN (18 claves).
+  Blog + capturas 14-diario/15-libreria nuevas. Cache v359. Sin cambios de proxy.
+
 ## [v358] — 2026-07-10 — 🙏 Villa 31 VIVA: el mandado del cura + la abuela Coca + rondas de la olla
 - **Quest del cura** (`cura_bendicion`, grafo 34 aristas): el cura te pide llevarle un **plato de la olla a la
   abuela Coca** (no puede caminar; está en la puerta de su casa) → al volver, la **BENDICIÓN**: ítem

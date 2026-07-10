@@ -462,6 +462,15 @@ if (require.main === module) {
     if (coBuy.purchase !== null) throw new Error('constitucion: purchase es one-shot (2ª lectura null)');
     const coPoor = Constitucion.create({ coins: 5, choriPrice: 15 });
     if (coPoor.__buyChori() !== null) throw new Error('constitucion: sin plata NO debería vender el chori');
+    // v359: el DIARIO trae la pista del grafo (game.js la pasa como opts.pista) — con pista y sin pista dan msgs distintos
+    const coPista = Constitucion.create({ pista: 'anda al chino' });
+    const coSinPista = Constitucion.create({});
+    const dm1 = coPista.__diario(), dm2 = coSinPista.__diario();
+    if (!dm1 || !dm2 || dm1 === dm2) throw new Error('constitucion: el diario con pista debería mostrarla (y sin pista, otra cosa): ' + dm1 + ' / ' + dm2);
+    // v359: el CAFÉ vende un cortado (item cafe, precio propio del local)
+    const coCafe = Constitucion.create({ coins: 100 });
+    const ccp = coCafe.__buyCafe();
+    if (!(ccp && ccp.item === 'cafe' && ccp.spent === 8)) throw new Error('constitucion: el café debería venderte un cortado: ' + JSON.stringify(ccp));
     // MOLINETE DEL TREN → menú de ramales → tomás el tren (exit 'tren:<ramal>')
     const coTren = Constitucion.create({});
     const tx = coTren.__tren();
@@ -532,6 +541,16 @@ if (require.main === module) {
     const reBuy = Retiro.create({ coins: 100, choriPrice: 15 });
     const rp = reBuy.__buyChori();
     if (!(rp && rp.item === 'chori' && rp.spent === 15)) throw new Error('retiro: el kiosco debería venderte un chori: ' + JSON.stringify(rp));
+    // v359: LIBRERÍA lee el Martín Fierro (rota versos) + FLORERÍA vende una flor 🌸 (game.js suma player.flores)
+    const reLibro = Retiro.create({});
+    const fie1 = reLibro.__libro();
+    if ((fie1 || '').indexOf('hermanos sean unidos') < 0) throw new Error('retiro: la librería debería arrancar con "Los hermanos sean unidos": ' + fie1);
+    if (reLibro.__libro() === fie1) throw new Error('retiro: el segundo [E] debería leer OTRO verso del Fierro');
+    const reFlor = Retiro.create({ coins: 20 });
+    const florBuy = reFlor.__flor();
+    if (!(florBuy && florBuy.item === 'flor' && florBuy.spent === 5)) throw new Error('retiro: la florería debería venderte una flor: ' + JSON.stringify(florBuy));
+    const reFlorPoor = Retiro.create({ coins: 2 });
+    if (reFlorPoor.__flor() !== null) throw new Error('retiro: sin plata la florería NO debería vender');
     ok.push('retiro:ok');
     // VILLA 31 (§11 E3/E4): te contratan en el comedor + chat con la referente y el cura (personas comedor/cura)
     if (typeof Villa31 === 'undefined' || !Villa31.create) throw new Error('Villa31 no cargó');

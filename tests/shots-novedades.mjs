@@ -69,7 +69,17 @@ try {
   await dbg('plazaYa');   await shotCanvas('02-plaza-cabildo');
   await dbg('subteYa');   await shotCanvas('03-subte');
   await dbg('constiYa');  await shotCanvas('04-constitucion');
+  // v359: caminar al puesto de DIARIOS y leer el titular (= la pista del grafo)
+  await page.keyboard.down('d'); await page.waitForTimeout(1350); await page.keyboard.up('d');
+  await page.keyboard.down('w'); await page.waitForTimeout(700);  await page.keyboard.up('w');
+  await page.keyboard.down('e'); await page.waitForTimeout(150);  await page.keyboard.up('e');
+  await page.waitForTimeout(400); await shotCanvas('14-diario');
   await dbg('retiroYa');  await shotCanvas('05-retiro');
+  // v359: caminar a la LIBRERÍA y pedir un verso del Martín Fierro (poco 'w': ni la salida ni el café)
+  await page.keyboard.down('a'); await page.waitForTimeout(1400); await page.keyboard.up('a');
+  await page.keyboard.down('w'); await page.waitForTimeout(270);  await page.keyboard.up('w');
+  await page.keyboard.down('e'); await page.waitForTimeout(150);  await page.keyboard.up('e');
+  await page.waitForTimeout(400); await shotCanvas('15-libreria');
   await dbg('villaYa');   await shotCanvas('06-villa31');
   await dbg('trenYa');    await page.waitForTimeout(1000); await shotCanvas('07-tren-viaje');   // el viaje (paisaje que scrollea)
   await page.waitForTimeout(4200); await shotCanvas('08-tren-anden');                          // el andén de destino

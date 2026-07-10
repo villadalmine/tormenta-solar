@@ -174,6 +174,11 @@
   de verdad**: en el comedor **agarrás platos de la olla y servís a la cola de vecinos** (jornada → te pagan una changa),
   y los **kioscos de las terminales te venden un choripán** que después te cura. Todo **data-driven y en el grafo de la
   historia** (sub-modos aislados `js/{constitucion,retiro,villa31}.js`; las personas salen de fichas). Ver `specs/subte.md §11`.
+  **Y los locales de las terminales tienen FUNCIÓN (v359):** el puesto de **diarios** de Constitución te muestra como
+  titular **la pista del grafo** (el motor de hints alimenta el diario — el mundo te cuenta qué hacer sin romper la
+  ficción), el **locutorio** te deja escuchar los **rumores del chusmerío vivo** (el mismo bank del proxy), la
+  **librería** de Retiro te lee **versos del Martín Fierro** (dominio público), la **florería** vende flores 🌸 (la
+  moneda del truco) y el **café** un cortado que cura — la venta es un patrón genérico `sells:'<item>'+price` por local.
 - **Música chiptune generada, sin archivos (`js/audio.js`):** todo el audio es **Web Audio en vivo** (cero mp3) —
   SFX + temas compuestos como DATA (tango, cumbia, marcha peronista, dance, telo…). El de **Cemento** es un motor
   **"heavy criollo"** aparte (homenaje ORIGINAL a Almafuerte, no un tema suyo): **power chords con distorsión**
