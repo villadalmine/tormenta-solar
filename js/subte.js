@@ -15,6 +15,9 @@ const Subte = (() => {
     // (`surface` → game.js abre el sub-modo Constitucion/Retiro), no a la calle.
     constitucion: { nombre: 'Constitución',  linea: 'C', color: '#1f6cb5', destinos: ['Retiro', 'Diagonal Norte'], surface: 'constitucion' },
     retiro:       { nombre: 'Retiro',        linea: 'C', color: '#1f6cb5', destinos: ['Constitución', 'Lavalle'],  surface: 'retiro' },
+    // v364 (zarate-60.md): la LÍNEA A te lleva a ONCE (Plaza Miserere) — ahí espera el CHEVALLIER a Zárate.
+    // Mismo gate ts_linea_c (post Nivel 2). Su escalera sube al hall de Once (`surface:'once'`).
+    once: { nombre: 'Plaza Miserere · ONCE', linea: 'A', color: '#2bb0c8', destinos: ['Perú', 'Castro Barros'], surface: 'once' },
   };
 
   function create(opts) {

@@ -183,6 +183,15 @@
   obras/robo de cables…) consistente para todos (seed horario vía proxy) y **enchufable a la API real de transporte**
   (GTFS-RT service alerts, cron listo). **LA CALLE (v362):** bondis con líneas reales que paran y arrancan, canas de
   ronda, puestos de chori/bondiola/tortafritas/garrapiñada.
+  **ZÁRATE Y EL 60 (v363-365, `specs/nivel-1/lugares/zarate-60.md`):** dos maneras de ir al norte con moraleja de
+  conurbano. **El gag:** el Belgrano Norte te deja "cerca" de **Puente Saavedra** (cerca es un decir: a pie por
+  Maipú y el puente sobre la General Paz) y ahí tomás **el mítico 60 ramal Zárate**… tan largo que te dormís y
+  **despertás donde empezaste** (el loop te reclama — arista terminal). **El lujo:** la **Línea A a ONCE** (Plaza
+  Miserere: santería incluida) y el **CHEVALLIER**, un micro **caminable por dentro** (butacas, ventanillas con la
+  Panamericana, aire acondicionado, cortadito de a bordo) que te baja en la **costanera de Zárate**: choris, el
+  club Arsenal y el **CLUB DE REMO** con torneo — Campana ganó todas las combinaciones y a la final del OCHO le
+  falta el timonel: **vos timoneás la final** (mini-juego: [E] al ritmo = ¡BOGA!, A/D esquiva boyas, Zárate aprieta
+  al final) → **CAMPANA CAMPEÓN + EL TROFEO 🏆** (coleccionable; qué se hace con él, se verá).
   **Y los locales de las terminales tienen FUNCIÓN (v359):** el puesto de **diarios** de Constitución te muestra como
   titular **la pista del grafo** (el motor de hints alimenta el diario — el mundo te cuenta qué hacer sin romper la
   ficción), el **locutorio** te deja escuchar los **rumores del chusmerío vivo** (el mismo bank del proxy), la

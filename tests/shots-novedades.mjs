@@ -103,6 +103,11 @@ try {
   await page.keyboard.down('d'); await page.waitForTimeout(2600); await page.keyboard.up('d');
   await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');
   await page.waitForTimeout(800); await shotCanvas('13-dalmine');
+  // v363-365 ZÁRATE Y EL 60: Puente Saavedra + el 60, Once, el Chevallier, la costanera y la regata
+  await dbg('saavedraYa'); await page.waitForTimeout(600); await shotCanvas('18-saavedra');       // Av. Maipú + el puente + la parada del 60
+  await dbg('onceYa');     await page.waitForTimeout(600); await shotCanvas('19-once');           // Plaza Miserere: la dársena del Chevallier
+  await dbg('zarateYa');   await page.waitForTimeout(600); await shotCanvas('20-zarate');         // la costanera: choris + club de remo
+  await dbg('regataYa');   await page.waitForTimeout(4200); await shotCanvas('21-regata');        // la final del ocho (ya largó)
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {

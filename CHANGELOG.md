@@ -101,6 +101,44 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v365] — 2026-07-10 — 🚣 ZÁRATE: la costanera + LA REGATA (timoneás la final del ocho → EL TROFEO 🏆)
+- **Sub-modo `js/zarate.js` (la costanera):** el Paraná arriba con **botes del torneo pasando**, el puesto de
+  **CHORIS de la costanera** 🌭 (12, patrón sells), el **club ARSENAL** (flavor), el **TABLERO del torneo**
+  (single/doble par/cuatro **1–0 Campana**… OCHO: ¿?) y el **CLUB DE REMO** con el cartel "¡FALTA TIMONEL!" —
+  [E] = te reclutan para la final. Con `ts_regata`: festejo, tablero 1–0 🏆 y "el timonel: VOS".
+- **Sub-modo `js/regata.js` (mini-juego de ritmo y timón):** la FINAL DEL OCHO, Campana (violeta, vos de
+  timonel en la popa) vs Zárate (amarillo). **[E] en la zona verde del metrónomo = ¡BOGA!** (combo acelera;
+  fuera de ritmo, los remos se enredan), **W/S–A/D timonea** esquivando **boyas** (pegarle frena), **Zárate
+  aprieta en el último tramo** (gomita leve para que nunca sea paseo ni humillación). Ganás → arista
+  **`regata_timonel`** + ítem **`trofeo_remo` 🏆** (coleccionable sin `use` — "qué hacés con el trofeo": hook
+  abierto en backlog). Perdés → **[R] revancha**. Largada 3-2-1, hinchada violeta/amarilla, papelitos.
+- Grafo **40 aristas** (`zarate-60.md`): `bondi60_loop` + `zarate_llegada` + `regata_timonel`; flags
+  `ts_bondi60`/`ts_en_zarate`/`ts_regata` en FLAG_SETTERS + historiaState + worldSnapshot (los oráculos saben).
+  Debug `saavedraYa`/`onceYa`/`zarateYa`/`regataYa` (+ botones). e2e: 5 sub-modos nuevos + allDone + salida
+  Belgrano Norte. Blog ES/EN con capturas 18-21.
+
+## [v364] — 2026-07-10 — 🚍 ONCE (Línea A) + el CHEVALLIER a Zárate: el viaje de LUJO caminable
+- **`js/subte.js`:** estación nueva **ONCE (Plaza Miserere, Línea A celeste, `surface:'once'`)** — mismo gate
+  `ts_linea_c` (post Nivel 2), enterSubte la suma a `available`.
+- **Sub-modo `js/once.js` (el hall):** patrón dársena (fila de molinetes con hueco), **kiosco** (chori 15),
+  **SANTERÍA** 🕯️ y **SALDOS** 🧦 (flavor bien de Once, closest-pick), la escalera vuelve a la Línea A. El
+  **pasaje del Chevallier sale 25** — y si no te alcanza **el chofer TE FÍA** ("hoy viaja vacío", gag no gate).
+- **Sub-modo `js/chevallier.js` (EL VIAJE DE LUJO, pedido del dueño):** interior del micro **CAMINABLE**
+  (20×8: pasillo central + butacas sólidas), **ventanillas con la Panamericana scrolleando**, chapa de **AIRE
+  ACONDICIONADO** ❄️, **dispenser de cortadito de a bordo** ☕ (UN café de cortesía por pasajero, item `cafe`),
+  **TU BUTACA** (sentado el viaje corre ×3), al llegar (río + grúas en la ventanilla) la puerta te baja en la
+  costanera → arista `zarate_llegada`.
+
+## [v363] — 2026-07-10 — 🚌 EL MÍTICO 60 a Zárate: Puente Saavedra a pie + el viaje que te devuelve al principio
+- **`js/tren.js`:** el andén del **Belgrano Norte** (ramal ya existente en Retiro) gana la **SALIDA A PIE**
+  `saavedraOut` → "PTE. SAAVEDRA" (el andén sigue genérico: el Flaco y el bizcocho quedan).
+- **Sub-modo `js/saavedra.js`:** la caminata ("te deja cerca… cerca es un decir"): **Av. Maipú** con sus
+  manzanas, el **puente sobre la GENERAL PAZ** (autitos pasando abajo, baranda, cartel), un kiosquito que te
+  aconseja ("llevate agua, pibe. Y una almohadita") y la **PARADA DEL 60** con el bondi rojo resoplando.
+  [E] = subís → **EL VIAJE ETERNO**: el 60 de noche por la ruta, tarjetas de tiempo (1h → 2h → ¿Escobar OTRA
+  VEZ? → Zzz), fundido a negro → **arista `bondi60_loop` + spawnIn(búnker)**: te despertás en la cama del loop
+  (patrón dalmine_portal). Logro/gag terminal — la pista te sopla que hay "una manera VIP" (Once).
+
 ## [v362] — 2026-07-10 — 🚌 LA CALLE de Constitución: bondis, canas y puestos de comida de estación
 - **Sub-modo nuevo `js/consticalle.js`:** la SALIDA del hall (antes "próximamente") ahora sale de verdad a la
   puerta de la terminal: **fachada** con la puerta grande (volvés por ahí), la **avenida** con el **BONDI vivo**

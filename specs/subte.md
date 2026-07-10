@@ -338,3 +338,11 @@ hay que traerle **la remera/bandera de Boca** (robada de la hinchada en el clás
 
 Ítems/flags nuevos previstos: `boca_trapo` (kind trofeo), flags `enMonumental`/`clasicoVisto`/`bocaTrapo`/`campanaLibre`/
 `enCampana`/`dalmineGritado`. El maquinista pasa a tener gate `{has:'boca_trapo'}` para el viaje a Campana.
+
+## §13 — ZÁRATE Y EL 60 (v363-365) → ver `specs/nivel-1/lugares/zarate-60.md`
+
+La otra punta del río (la orilla de enfrente de Campana): el gag del **60 desde Puente Saavedra** (Belgrano
+Norte + caminata `saavedra.js` → el viaje eterno → el loop te reclama), el viaje VIP **Línea A → ONCE →
+CHEVALLIER caminable** (`once.js`/`chevallier.js`) y la **costanera de Zárate** con el **CLUB DE REMO**: la
+regata Campana vs Zárate donde **timoneás la final del ocho** (`zarate.js`/`regata.js` → trofeo 🏆). Grafo:
+`bondi60_loop` / `zarate_llegada` / `regata_timonel` (40 aristas).

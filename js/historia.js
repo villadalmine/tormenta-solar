@@ -1010,6 +1010,89 @@ const Historia = {
         ]
       },
       "from": "specs/nivel-1/lugares/misterio-polaco.md"
+    },
+    {
+      "id": "bondi60_loop",
+      "title": "El 60 a Zárate: el viaje tan largo que te devuelve al principio",
+      "title_en": "Bus 60 to Zárate: the ride so long it returns you to the start",
+      "at": "plaza",
+      "pre": {
+        "nivel2Win": true
+      },
+      "sets": {
+        "bondi60": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Dicen que hay un colectivo que va tan lejos que llega al principio.",
+          "El tren BELGRANO NORTE (desde Retiro) te deja cerca de Puente Saavedra. Cerca… es un decir.",
+          "Caminá desde la estación hasta PUENTE SAAVEDRA y esperá el 60 RAMAL ZÁRATE en la parada.",
+          "Subite al 60 en Puente Saavedra [E]: el viaje es tan largo que… mejor descubrilo vos."
+        ],
+        "en": [
+          "They say there's a bus that goes so far it arrives at the beginning.",
+          "The BELGRANO NORTE train (from Retiro) leaves you near Puente Saavedra. Near… so to speak.",
+          "Walk from the station to PUENTE SAAVEDRA and wait for the 60 ZÁRATE BRANCH at the stop.",
+          "Board the 60 at Puente Saavedra [E]: the ride is so long that… better find out yourself."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/zarate-60.md"
+    },
+    {
+      "id": "zarate_llegada",
+      "title": "El Chevallier de lujo: Once → la costanera de Zárate",
+      "title_en": "The luxury Chevallier: Once → Zárate's riverside",
+      "at": "plaza",
+      "pre": {
+        "nivel2Win": true
+      },
+      "sets": {
+        "enZarate": true
+      },
+      "hints": {
+        "es": [
+          "Hay una manera VIP de ir al norte, y sale de donde llega la Línea A.",
+          "Tomá la LÍNEA A del subte hasta ONCE (Plaza Miserere).",
+          "En Once está la plataforma del CHEVALLIER: el rápido a Zárate, un viaje de lujo con aire acondicionado.",
+          "Subite al CHEVALLIER en Once [E]: caminá por el bus si querés — te baja en la COSTANERA de Zárate."
+        ],
+        "en": [
+          "There's a VIP way north, and it leaves from where Line A ends.",
+          "Take subway LINE A to ONCE (Plaza Miserere).",
+          "At Once you'll find the CHEVALLIER platform: the Zárate express, a luxury ride with A/C.",
+          "Board the CHEVALLIER at Once [E]: walk around the bus if you like — it drops you at Zárate's RIVERSIDE."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/zarate-60.md"
+    },
+    {
+      "id": "regata_timonel",
+      "title": "La regata: timoneás la final y Campana es campeón (el trofeo)",
+      "title_en": "The regatta: you cox the final and Campana takes the title (the trophy)",
+      "at": "plaza",
+      "pre": {
+        "enZarate": true
+      },
+      "sets": {
+        "regataWon": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "En el río hay un campeonato por definirse, y falta alguien en un bote.",
+          "En la costanera de Zárate, pasá por el CLUB DE REMO: hay torneo Campana vs Zárate.",
+          "Campana ganó todas las combinaciones, pero para la FINAL del ocho les falta el TIMONEL.",
+          "Ofrecete de TIMONEL en el club de remo [E]: marcá el ritmo (¡BOGA!), esquivá las boyas y ganá la final 🏆."
+        ],
+        "en": [
+          "On the river a championship hangs in the balance, and a boat is missing someone.",
+          "At Zárate's riverside, stop by the ROWING CLUB: it's Campana vs Zárate tournament day.",
+          "Campana won every class, but for the eights FINAL they're missing the COXSWAIN.",
+          "Volunteer as COX at the rowing club [E]: call the stroke (¡BOGA!), dodge the buoys and win the final 🏆."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/zarate-60.md"
     }
   ]
 };

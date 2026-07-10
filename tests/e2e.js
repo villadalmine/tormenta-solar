@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','consticalle.js','retiro.js','villa31.js','trenes.js','tren.js','cancha.js','campana.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','consticalle.js','retiro.js','villa31.js','trenes.js','tren.js','cancha.js','campana.js','saavedra.js','once.js','chevallier.js','zarate.js','regata.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -624,6 +624,71 @@ if (require.main === module) {
     const coCalle = Constitucion.create({});
     if (coCalle.__street) throw new Error('unexpected');
     ok.push('consticalle:ok');
+    // v363 ZARATE Y EL 60 (zarate-60.md): saavedra (a pie + el 60 eterno que te devuelve al loop)
+    if (typeof Saavedra === 'undefined' || !Saavedra.create) throw new Error('Saavedra no cargo');
+    const sv = Saavedra.create({});
+    for (let i = 0; i < 30; i++) { sv.update(0.05); sv.draw(C, 960, 540); }
+    if (sv.__sube60() !== 'loop') throw new Error('saavedra: el 60 eterno deberia terminar en loop: ' + sv.exitTo);
+    const sv2 = Saavedra.create({});
+    if (sv2.__volver() !== 'back') throw new Error('saavedra: la estacion deberia volver al tren: ' + sv2.exitTo);
+    // el anden del Belgrano Norte tiene la SALIDA a pie (los otros ramales no)
+    const trBN = Tren.create({ ramal: 'Belgrano Norte', linea: 'Belgrano' });
+    trBN.__arrive();
+    if (trBN.__saavedra() !== 'saavedra') throw new Error('tren: Belgrano Norte deberia salir a Saavedra: ' + trBN.exitTo);
+    const trRoca = Tren.create({ ramal: 'La Plata', linea: 'Roca' });
+    trRoca.__arrive();
+    if (trRoca.__saavedra() !== null) throw new Error('tren: solo Belgrano Norte tiene la salida a pie');
+    ok.push('saavedra:ok');
+    // v364 ONCE: la Linea A tiene la estacion + el pasaje del Chevallier (con plata) / el fiado (sin plata)
+    if (!Subte.ESTACIONES.once || Subte.ESTACIONES.once.surface !== 'once') throw new Error('subte: falta la estacion ONCE (surface once)');
+    if (typeof Once === 'undefined' || !Once.create) throw new Error('Once no cargo');
+    const on1 = Once.create({ coins: 100 });
+    for (let i = 0; i < 30; i++) { on1.update(0.05); on1.draw(C, 960, 540); }
+    if (on1.__chev() !== 'chevallier') throw new Error('once: la darsena deberia subir al Chevallier: ' + on1.exitTo);
+    const onFare = on1.fare;
+    if (!(onFare && onFare.spent === 25)) throw new Error('once: el pasaje deberia costar 25: ' + JSON.stringify(onFare));
+    if (on1.fare !== null) throw new Error('once: fare es one-shot');
+    const on2 = Once.create({ coins: 2 });
+    if (on2.__chev() !== 'chevallier') throw new Error('once: sin plata el chofer te FIA igual: ' + on2.exitTo);
+    if (on2.fare !== null) throw new Error('once: fiado no cobra pasaje');
+    const on3 = Once.create({ coins: 100 });
+    for (let i = 0; i < 5; i++) { on3.update(0.05); on3.draw(C, 960, 540); }
+    const onChori = on3.__local('kiosco');
+    if (!on3.purchase && !onChori) throw new Error('once: el kiosco deberia vender chori');
+    if (on3.__leave() !== 'back') throw new Error('once: la escalera deberia volver a la Linea A: ' + on3.exitTo);
+    ok.push('once:ok');
+    // v364 CHEVALLIER: el cortadito de cortesia (una vez) + llegar y bajar en la costanera
+    if (typeof Chevallier === 'undefined' || !Chevallier.create) throw new Error('Chevallier no cargo');
+    const ch1 = Chevallier.create({});
+    for (let i = 0; i < 30; i++) { ch1.update(0.05); ch1.draw(C, 960, 540); }
+    const chCafe = ch1.__cafe();
+    if (!(chCafe && chCafe.item === 'cafe' && chCafe.spent === 0)) throw new Error('chev: el cortadito es de cortesia: ' + JSON.stringify(chCafe));
+    if (!ch1.purchase) throw new Error('chev: purchase deberia exponerse una vez');
+    if (ch1.__cafe() !== null) throw new Error('chev: UN cafe de cortesia por pasajero');
+    if (ch1.__llegar() !== 'zarate') throw new Error('chev: la puerta deberia bajar en la costanera: ' + ch1.exitTo);
+    ok.push('chevallier:ok');
+    // v365 ZARATE: choris + el club de remo recluta TIMONEL; con regataWon el club festeja (no re-corre)
+    if (typeof Zarate === 'undefined' || !Zarate.create) throw new Error('Zarate no cargo');
+    const za = Zarate.create({ coins: 50 });
+    for (let i = 0; i < 30; i++) { za.update(0.05); za.draw(C, 960, 540); }
+    const zaCh = za.__chori();
+    if (!(zaCh && zaCh.item === 'chori' && zaCh.spent === 12)) throw new Error('zarate: el puesto deberia vender chori: ' + JSON.stringify(zaCh));
+    if (za.__remo() !== 'regata') throw new Error('zarate: el club deberia reclutarte de timonel: ' + za.exitTo);
+    const za2 = Zarate.create({ regataWon: true });
+    for (let i = 0; i < 5; i++) { za2.update(0.05); za2.draw(C, 960, 540); }
+    if (za2.__remo() === 'regata') throw new Error('zarate: campeon NO vuelve a correr la final');
+    const za3 = Zarate.create({});
+    if (za3.__volver() !== 'back') throw new Error('zarate: el Chevallier deberia volver: ' + za3.exitTo);
+    ok.push('zarate:ok');
+    // v365 REGATA: ganar la final sale con win; si Zarate llega primero, estado lost (revancha)
+    if (typeof Regata === 'undefined' || !Regata.create) throw new Error('Regata no cargo');
+    const rg = Regata.create({});
+    for (let i = 0; i < 80; i++) { rg.update(0.05); rg.draw(C, 960, 540); }
+    if (rg.__win() !== 'win') throw new Error('regata: ganar deberia salir con win: ' + rg.exitTo);
+    const rg2 = Regata.create({});
+    for (let i = 0; i < 80; i++) rg2.update(0.05);
+    if (rg2.__lose() !== 'lost') throw new Error('regata: si Zarate llega primero se pierde: ' + rg2.__state());
+    ok.push('regata:ok');
     // VILLA 31 (§11 E3/E4): te contratan en el comedor + chat con la referente y el cura (personas comedor/cura)
     if (typeof Villa31 === 'undefined' || !Villa31.create) throw new Error('Villa31 no cargó');
     const vi = Villa31.create({});
@@ -866,7 +931,7 @@ if (require.main === module) {
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
       subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
       enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, curaBendicion:true, bocaTrapo:true, enCampana:true, dalmineGritado:true,
-      polacoCaso:true, polacoCarrito:true, polacoHallado:true };
+      polacoCaso:true, polacoCarrito:true, polacoHallado:true, bondi60:true, enZarate:true, regataWon:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

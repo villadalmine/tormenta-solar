@@ -138,6 +138,7 @@
   let retiroGame = null, villa31Game = null;       // subte.md §11 E2-E4: terminal Retiro → Línea San Martín → Villa 31 (comedor)
   let trenGame = null, trenReturn = 'constitucion'; // subte.md §11: tomar el TREN a un ramal (viaje + andén de destino)
   let trenCtx = null;                               // {ramal, linea, origen} del tren actual (para volver de la cancha al andén)
+  let saavedraGame = null, onceGame = null, chevallierGame = null, zarateGame = null, regataGame = null;   // v363-365 (zarate-60.md): el 60 + Once/Chevallier + Zárate/la regata
   let canchaGame = null, campanaGame = null;        // subte.md §12: el Monumental (clásico) + Campana/Villa Dálmine (final de la odisea)
   let plazaGame = null;   // subte.md §10 / F4: PLAZA DE MAYO (arranque del Nivel 2), llegás en subte a Catedral
   let finaleGame = null;  // subte.md §10.1: cinemática de cierre del Nivel 2 (liberación sanmartiniana) → pantalla de fin
@@ -396,7 +397,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; consticalleGame = null; retiroGame = null; villa31Game = null; trenGame = null; canchaGame = null; campanaGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; consticalleGame = null; retiroGame = null; villa31Game = null; trenGame = null; canchaGame = null; campanaGame = null; saavedraGame = null; onceGame = null; chevallierGame = null; zarateGame = null; regataGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -695,7 +696,7 @@
     if (returnTo) subteReturn = returnTo;   // en un VIAJE (travel:X) no lo pisamos: conservás dónde volvés a la superficie
     const available = ['florida'];          // estaciones jugables que YA existen
     if (lsFlag('ts_sat_down')) { available.push('lavalle'); available.push('catedral'); }   // tras herir al satélite: Lavalle + Catedral (→ Plaza de Mayo, Nivel 2)
-    if (lsFlag('ts_linea_c')) { available.push('constitucion'); available.push('retiro'); }   // subte.md §11: ganar el Nivel 2 habilita la Línea C entera → Constitución + Retiro
+    if (lsFlag('ts_linea_c')) { available.push('constitucion'); available.push('retiro'); available.push('once'); }   // subte.md §11 + v364: post Nivel 2 → Línea C entera + combinación a ONCE (Línea A, el Chevallier)
     subteGame = Subte.create({ station, subeReady: lsFlag('ts_sube_charged'), available,
       hasBoleto: !!(player.inventory && player.inventory.includes('boleto')), coins: player.coins || 0, boletoPrice: 20 }); state = 'subte';
     evlog('hito', 'bajó al subte (' + station + ')');
@@ -771,6 +772,54 @@
     trenGame = Tren.create(Object.assign({ ramal, linea, coins: (player && player.coins) || 0, polacoStage: polacoStage(),
       hasTrapo: !!(player && player.inventory && player.inventory.includes('boca_trapo')) }, xtra || {})); state = 'tren';
     evlog('hito', 'tomó el tren a ' + ramal);
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // v363 (zarate-60.md): A PIE A PUENTE SAAVEDRA — del andén del Belgrano Norte, caminata por Av. Maipú y el
+  // puente sobre la Gral. Paz hasta la parada del 60. El viaje del 60 es tan largo que el loop te reclama.
+  function enterSaavedra() {
+    if (typeof Saavedra === 'undefined' || !Saavedra.create) return false;
+    saavedraGame = Saavedra.create({}); state = 'saavedra';
+    evlog('hito', 'caminó de la estación a Puente Saavedra (la parada del 60)');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // v364: ONCE (Plaza Miserere) — el hall al que llega la Línea A: kiosco, santería (Once es Once) y la
+  // plataforma del CHEVALLIER, el rápido a Zárate.
+  function enterOnce() {
+    if (typeof Once === 'undefined' || !Once.create) { enterSubte('once'); return true; }
+    onceGame = Once.create({ coins: player.coins || 0 }); state = 'once';
+    evlog('hito', 'llegó a Once (Plaza Miserere)');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // v364: EL CHEVALLIER — el viaje DE LUJO: micro caminable con aire acondicionado y cortadito de a bordo.
+  function enterChevallier() {
+    if (typeof Chevallier === 'undefined' || !Chevallier.create) return false;
+    chevallierGame = Chevallier.create({}); state = 'chevallier';
+    evlog('hito', 'se subió al Chevallier a Zárate (el rápido, con aire)');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // v365: LA COSTANERA DE ZÁRATE — el río, los choris, el club Arsenal y el CLUB DE REMO con el torneo.
+  function enterZarate() {
+    if (typeof Zarate === 'undefined' || !Zarate.create) return false;
+    zarateGame = Zarate.create({ coins: player.coins || 0, regataWon: lsFlag('ts_regata') }); state = 'zarate';
+    applyEdge('zarate_llegada', 'enZarate');   // GRAFO: llegaste a la otra punta del río (los oráculos lo saben)
+    evlog('hito', 'llegó a la costanera de Zárate');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // v365: LA REGATA — timoneás el ocho de Campana en la final vs Zárate (mini-juego de ritmo y timón).
+  function enterRegata() {
+    if (typeof Regata === 'undefined' || !Regata.create) return false;
+    regataGame = Regata.create({}); state = 'regata';
+    evlog('hito', 'se ofreció de timonel para la final del ocho (Campana vs Zárate)');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -921,6 +970,7 @@
     radiecita:  { id: 'radiecita',  emoji: '📻', label: 'g.wpn.radiecita', noEquip: true, use: { kind: 'hint' } },   // v360: la radio del Polaco — sopla la pista (no se consume)
     bondiola:   { id: 'bondiola',   emoji: '🥖', label: 'g.wpn.bondiola', use: { kind: 'heal', amount: 35 } },   // v362: bondiola de la calle de Constitución
     garrapinada:{ id: 'garrapinada',emoji: '🥜', label: 'g.wpn.garrapinada', use: { kind: 'heal', amount: 10 } },   // v362: garrapiñada de estación
+    trofeo_remo:{ id: 'trofeo_remo',emoji: '🏆', label: 'g.wpn.trofeo', noEquip: true },   // v365: el trofeo de la regata (Campana campeón) — coleccionable, sin use (hook abierto)
   };
   // BUFFS temporales (Inventario F3, kind:'buff'). Efectos con timer en segundos (decrementan por dt, sin reloj de pared →
   // se pausan en los sub-modos). `tickBuffs` deriva los flags que leen player.js (speedMul/shielded) + cura con 'regen'.
@@ -1228,6 +1278,10 @@
     bocaTrapo:        v => { try { localStorage.setItem('ts_boca_trapo', v ? '1' : ''); } catch (e) {} },
     enCampana:        v => { try { localStorage.setItem('ts_en_campana', v ? '1' : ''); } catch (e) {} },
     dalmineGritado:   v => { try { localStorage.setItem('ts_dalmine', v ? '1' : ''); } catch (e) {} },
+    // ZÁRATE Y EL 60 (zarate-60.md, v363-365): el gag del 60 + el Chevallier a la costanera + la regata
+    bondi60:          v => { try { localStorage.setItem('ts_bondi60', v ? '1' : ''); } catch (e) {} },   // v363: el 60 tan largo que te devolvió al búnker
+    enZarate:         v => { try { localStorage.setItem('ts_en_zarate', v ? '1' : ''); } catch (e) {} }, // v364: el Chevallier te bajó en la costanera
+    regataWon:        v => { try { localStorage.setItem('ts_regata', v ? '1' : ''); } catch (e) {} },    // v365: timoneaste la final del ocho (el trofeo)
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1291,6 +1345,7 @@
       bocaTrapo: lsFlag('ts_boca_trapo'),           // §12: robaste la remera/bandera de Boca en el clásico
       enCampana: lsFlag('ts_en_campana'),           // §12: el maquinista te llevó a Campana
       dalmineGritado: lsFlag('ts_dalmine'),         // §12: gritaste los 4 goles de Dálmine → portal → búnker
+      bondi60: lsFlag('ts_bondi60'), enZarate: lsFlag('ts_en_zarate'), regataWon: lsFlag('ts_regata'),   // v363-365: el 60 / el Chevallier a Zárate / la regata
       sleptOnce: loopCount > 0,
     };
   }
@@ -1329,6 +1384,7 @@
       enRetiro: lsFlag('ts_en_retiro'), enVilla31: lsFlag('ts_en_villa31'), comedorHired: lsFlag('ts_comedor'), comedorJornada: lsFlag('ts_comedor_jornada'), curaBendicion: lsFlag('ts_bendicion'),   // §11 E2-E4: Retiro → Villa 31 → comedor (+ jornada + el mandado del cura)
       polacoCaso: lsFlag('ts_polaco_caso'), polacoCarrito: lsFlag('ts_polaco_carrito'), polacoHallado: lsFlag('ts_polaco_hallado'),   // v360: el misterio del Polaco (la Gallega/el carrito/La Plata)
       bocaTrapo: lsFlag('ts_boca_trapo'), enCampana: lsFlag('ts_en_campana'), dalmineGritado: lsFlag('ts_dalmine'),   // §12: la odisea a Campana / Villa Dálmine
+      bondi60: lsFlag('ts_bondi60'), enZarate: lsFlag('ts_en_zarate'), regataWon: lsFlag('ts_regata'),   // v363-365: el 60 a Zárate / el Chevallier / la regata (el trofeo)
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -3955,6 +4011,7 @@
           const surf = ex.slice(8);
           if (surf === 'constitucion') { enterConstitucion(); return; }
           if (surf === 'retiro') { enterRetiro(); return; }
+          if (surf === 'once') { enterOnce(); return; }   // v364: la Línea A sube al hall de Once (el Chevallier)
         }
         if (ex && ex.indexOf('travel:') === 0) {   // F3: VIAJASTE a otra estación → contás el pasaje y reaparecés allá
           const dest = ex.slice(7);
@@ -4043,6 +4100,7 @@
         const ex = trenGame.exitTo; trenGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'cancha') { enterCancha(); return; }                // §12 S3: te colás al Monumental (desde el piquete)
         if (ex === 'campana') { enterCampana(); return; }              // §12 S5→S6: el maquinista sobrio te lleva a Campana
+        if (ex === 'saavedra') { enterSaavedra(); return; }            // v363: salida a pie → Puente Saavedra (el 60)
         if (trenReturn === 'retiro') enterRetiro(); else enterConstitucion(); return;   // el tren te trae de vuelta a la terminal
       }
     } else if (state === 'cancha' && canchaGame) {                    // §12 S3/S4: el Monumental (clásico River-Boca)
@@ -4070,6 +4128,55 @@
         }
         if (typeof Sfx !== 'undefined' && Sfx.setVioleta) Sfx.setVioleta(false);
         enterTren('Villa Ballester', 'Mitre', 'retiro', { arrived: true }); return;   // te fuiste antes → de vuelta a Ballester
+      }
+    } else if (state === 'saavedra' && saavedraGame) {                // v363: a pie a Puente Saavedra + el 60 eterno
+      saavedraGame.update(dt); saavedraGame.draw(ctx, W, H);
+      if (saavedraGame.done) {
+        const ex = saavedraGame.exitTo; saavedraGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'loop') {   // EL GAG: el 60 tan largo que te dormís → el loop te reclama (la cama del búnker)
+          applyEdge('bondi60_loop', 'bondi60');
+          tel('win', { result: 'bondi60' }); evlog('hito', 'se durmió en el 60 a Zárate y despertó en el búnker');
+          const bi = rooms.findIndex(r => (r.tags || []).includes('bunker'));
+          state = 'playing'; transCd = 0.5; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
+          if (bi >= 0) spawnIn(bi, 5); setMsg(T('g.saav.despertar'), '#c8aaff', 9000); return;
+        }
+        enterTren('Belgrano Norte', 'Belgrano', 'retiro', { arrived: true }); return;   // volvés al andén sin repetir el viaje
+      }
+    } else if (state === 'once' && onceGame) {                        // v364: Once (Plaza Miserere) — el hall del Chevallier
+      onceGame.update(dt); onceGame.draw(ctx, W, H);
+      { const buy = onceGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // el kiosco de Once
+      { const f = onceGame.fare; if (f) { player.coins = Math.max(0, (player.coins || 0) - f.spent); syncHud(); } }   // el pasaje del Chevallier (one-shot)
+      if (onceGame.done) {
+        const ex = onceGame.exitTo; onceGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'chevallier') { enterChevallier(); return; }        // la dársena → EL VIAJE DE LUJO
+        enterSubte('once', 'street'); return;                          // la escalera → de vuelta a la Línea A
+      }
+    } else if (state === 'chevallier' && chevallierGame) {            // v364: el Chevallier (micro caminable, aire, cortadito)
+      chevallierGame.update(dt); chevallierGame.draw(ctx, W, H);
+      { const buy = chevallierGame.purchase; if (buy) { addItem(buy.item); syncHud(); } }   // el cortadito de a bordo (cortesía: spent 0)
+      if (chevallierGame.done) {
+        const ex = chevallierGame.exitTo; chevallierGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'zarate') { enterZarate(); return; }                // te baja en la COSTANERA (grafo zarate_llegada)
+        enterOnce(); return;                                           // te bajaste antes de salir → el hall de Once
+      }
+    } else if (state === 'zarate' && zarateGame) {                    // v365: la costanera de Zárate (choris/Arsenal/club de remo)
+      zarateGame.update(dt); zarateGame.draw(ctx, W, H);
+      { const buy = zarateGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // los choris de la costanera
+      if (zarateGame.done) {
+        const ex = zarateGame.exitTo; zarateGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'regata') { enterRegata(); return; }                // te reclutan de TIMONEL → la final del ocho
+        enterOnce(); return;                                           // el Chevallier de vuelta → el hall de Once
+      }
+    } else if (state === 'regata' && regataGame) {                    // v365: la final del ocho (vos de timonel)
+      regataGame.update(dt); regataGame.draw(ctx, W, H);
+      if (regataGame.done) {
+        const ex = regataGame.exitTo; regataGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (ex === 'win') {   // CAMPANA CAMPEÓN: el grafo + EL TROFEO 🏆 (qué hacés con él: hook abierto)
+          applyEdge('regata_timonel', 'regataWon'); addItem('trofeo_remo');
+          tel('win', { result: 'regata' }); evlog('hito', 'timoneó la final del ocho: Campana campeón — el trofeo 🏆');
+          enterZarate(); return;   // el festejo en el club (lee ts_regata recién seteado)
+        }
+        enterZarate(); return;     // te bajaste de la final → la costanera
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
       lavalleGame.update(dt); lavalleGame.draw(ctx, W, H);
@@ -4381,6 +4488,10 @@
         sanmartinYa: () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('San Martín — C. Universitaria', 'San Martín', 'retiro'); return 'Tren ROJO de la San Martín 🚆 → el piquete de la UBA'; },
         canchaYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); trenCtx = { ramal: 'San Martín — C. Universitaria', linea: 'San Martín', origen: 'retiro' }; enterCancha(); return 'Te colaste al MONUMENTAL ⚽ (robá el trapo de Boca)'; },
         campanaYa:   () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_boca_trapo'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterCampana(); return 'Fuiste a CAMPANA 💜 (Villa Dálmine vs CADU)'; },
+        saavedraYa:  () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterSaavedra(); return 'A pie a PUENTE SAAVEDRA 🚶 (la parada del 60 a Zárate)'; },
+        onceYa:      () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterOnce(); return 'Llegaste a ONCE 🚇 (Línea A → el Chevallier)'; },
+        zarateYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterZarate(); return 'Bajaste en la COSTANERA DE ZÁRATE 🌭 (choris + club de remo)'; },
+        regataYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); lsOn('ts_en_zarate'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterRegata(); return 'Timoneás la FINAL DEL OCHO 🚣 (Campana vs Zárate)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },
