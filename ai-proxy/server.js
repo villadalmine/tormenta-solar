@@ -22,7 +22,9 @@ let LINYERA_POOL = null, LINYERA_POOL_TS = 0;             // pool de saturación
 // --- OpenRouter DINÁMICO (specs/openrouter-dinamico.md F1 precios + F3 novedades) ---
 // El proxy SOLO guarda y sirve; un Argo CronWorkflow (gen-prices.mjs) hace el fetch de /api/v1/models y
 // postea acá (POST /precios). Sirve precios → /metrics + /precios, y novedades → /novedades. Sin key en el cliente.
-let OR_PRICES = {}, OR_NEWS = [], OR_TS = 0;   // poblado por el CronWorkflow vía POST /precios
+let OR_PRICES = {}, OR_NEWS = [], OR_TS = 0;   // poblado por el CronWorkflow vía POST /precios (persistido: un deploy no los borra)
+const PRECIOS_STORE = process.env.PRECIOS_STORE || '/data/precios.json';
+try { const d = JSON.parse(require('fs').readFileSync(PRECIOS_STORE, 'utf8')); if (d && d.prices) { OR_PRICES = d.prices; OR_NEWS = d.news || []; OR_TS = d.ts || 0; } } catch (e) {}
 // NOTICIAS del CINE (cine-noticias.md): banco de titulares por topic, lo llena un cron (gen-noticias.mjs) que
 // FETCHEA (código, no modelo) y postea acá. El juego lo lee en GET /noticias (pantalla del cine + linyera).
 // PERSISTE en JSON-en-PVC (como SUBS_STORE): el cron corre 1×/día, así que si NO se guardara, cada redeploy/restart
@@ -1237,7 +1239,9 @@ http.createServer((req, res) => {
     let pb = '';
     req.on('data', c => { pb += c; if (pb.length > 100000) req.destroy(); });
     req.on('end', () => {
-      try { const d = JSON.parse(pb || '{}'); if (d.prices) OR_PRICES = d.prices; if (Array.isArray(d.news)) OR_NEWS = d.news; OR_TS = Date.now(); res.writeHead(200); res.end('ok'); }
+      try { const d = JSON.parse(pb || '{}'); if (d.prices) OR_PRICES = d.prices; if (Array.isArray(d.news)) OR_NEWS = d.news; OR_TS = Date.now();
+        try { fs.mkdirSync(PRECIOS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(PRECIOS_STORE, JSON.stringify({ prices: OR_PRICES, news: OR_NEWS, ts: OR_TS })); } catch (e2) {}
+        res.writeHead(200); res.end('ok'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });
     return;

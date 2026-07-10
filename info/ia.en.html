@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TORMENTA SOLAR — IA: salud, costos y autotune (reportes por día)</title>
-<meta name="description" content="Los reportes vivos del sistema de IA del juego: salud cada 6h, scout diario de modelos por patrón (chat/gen/banco) y los cambios del autotune reactivo.">
+<title>TORMENTA SOLAR — AI: health, costs & autotune (daily reports)</title>
+<meta name="description" content="Live reports of the game's AI system: health every 6h, daily model scout per usage pattern (chat/gen/bank) and the reactive autotune changes.">
 <meta name="theme-color" content="#05080c">
 <link rel="stylesheet" href="info.css?v=4">
 <style>
@@ -31,31 +31,31 @@
 <header class="bar">
   <span class="brand">☀ TORMENTA SOLAR</span>
   <nav>
-    <a href="../">▶ Jugar</a>
-    <a href="index.html">¿Qué es?</a>
-    <a href="novedades.html">📓 Novedades</a>
-    <a href="tech.html">Cómo funciona</a>
+    <a href="../">▶ Play</a>
+    <a href="index.en.html">What is it?</a>
+    <a href="novedades.en.html">📓 What's new</a>
+    <a href="tech.en.html">How it works</a>
     <a href="https://github.com/villadalmine/tormenta-solar" target="_blank" rel="noopener">GitHub</a>
-    <a href="ia.en.html">EN</a>
+    <a href="ia.html">ES</a>
   </nav>
 </header>
 
 <div class="wrap">
   <div class="hero">
-    <h1>🩺💸 La IA del juego, por día</h1>
-    <p class="tag">Salud cada 6h · scout diario de modelos (chat / gen / banco) · autotune reactivo.</p>
-    <div class="badge">datos EN VIVO del proxy (se actualizan solos con cada cron) · specs/ia-costos.md</div>
+    <h1>🩺💸 The game's AI, day by day</h1>
+    <p class="tag">Health every 6h · daily model scout (chat / gen / bank) · reactive autotune.</p>
+    <div class="badge">LIVE data from the proxy (auto-updates with every cron) · specs/ia-costos.md</div>
   </div>
 
-  <div class="chain" id="cadena"><span class="muted">cargando la cadena efectiva…</span></div>
-  <p id="estado">cargando reportes…</p>
+  <div class="chain" id="cadena"><span class="muted">loading the effective chains…</span></div>
+  <p id="estado">loading reports…</p>
   <div id="dias"></div>
 
   <section>
-    <p class="muted">Cómo funciona: el <b>health</b> (cada 6h) mide fallback, timeouts y gasto — si algo se degrada, la
-    alerta llega sola a Telegram y el override se revierte al baseline. El <b>scout</b> (diario 6:15) banchmarkea los
-    modelos reales del pool con estándares por patrón; el <b>tune</b> aplica el mejor solo si aprobó 2 scouts seguidos +
-    canary + verificación punta a punta (con rollback). Fuente: <a href="https://llm-tormenta-solar.cybercirujas.club/ia-reports" target="_blank" rel="noopener">/ia-reports</a> ·
+    <p class="muted">How it works: the <b>health check</b> (every 6h) measures fallbacks, timeouts and spend — if anything degrades, an
+    alert reaches Telegram on its own and the override reverts to the baseline. The <b>scout</b> (daily 6:15) benchmarks the
+    pool's real models against per-pattern standards; the <b>tune</b> applies the best one only after 2 consecutive passing scouts +
+    a fresh canary + end-to-end verification (with rollback). Source: <a href="https://llm-tormenta-solar.cybercirujas.club/ia-reports" target="_blank" rel="noopener">/ia-reports</a> ·
     <a href="https://llm-tormenta-solar.cybercirujas.club/ia-chain" target="_blank" rel="noopener">/ia-chain</a></p>
   </section>
 
@@ -64,6 +64,6 @@
   </footer>
 </div>
 
-<script src="ia.js?v=6"></script>
+<script src="ia.en.js?v=1"></script>
 </body>
 </html>
