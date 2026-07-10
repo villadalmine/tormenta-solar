@@ -753,7 +753,7 @@
     if (typeof Tren === 'undefined' || !Tren.create) return false;
     trenReturn = origen || 'constitucion';
     trenCtx = { ramal, linea, origen: trenReturn };   // para volver de la cancha al MISMO andén sin repetir el viaje
-    trenGame = Tren.create(Object.assign({ ramal, linea,
+    trenGame = Tren.create(Object.assign({ ramal, linea, coins: (player && player.coins) || 0,
       hasTrapo: !!(player && player.inventory && player.inventory.includes('boca_trapo')) }, xtra || {})); state = 'tren';
     evlog('hito', 'tomó el tren a ' + ramal);
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -880,6 +880,12 @@
     // es COMIDA → "usar" desde [I] te cura (efecto DATA-driven kind:'heal') y se CONSUME. Los demás quedan de flavor.
     chori:      { id: 'chori',      emoji: '🌭', label: 'g.wpn.chori',   use: { kind: 'heal', amount: 30 } },   // olla → comida (+vida)
     boca_trapo: { id: 'boca_trapo', emoji: '🎽', label: 'g.wpn.trapo' },   // §12: la remera/bandera de Boca robada — se la das al maquinista (Ballester) y te lleva a Campana
+    // v357: la COMIDA REGIONAL de los vendedores ambulantes de los andenes (comida que cura, DATA)
+    fruta:      { id: 'fruta',      emoji: '🍑', label: 'g.wpn.fruta',      use: { kind: 'heal', amount: 25 } },   // frutos del delta (Tigre)
+    tortafrita: { id: 'tortafrita', emoji: '🫓', label: 'g.wpn.tortafrita', use: { kind: 'heal', amount: 20 } },   // tortas fritas (La Plata)
+    miga:       { id: 'miga',       emoji: '🥪', label: 'g.wpn.miga',       use: { kind: 'heal', amount: 25 } },   // sanguchito de miga (Ezeiza, precio aeropuerto)
+    picada:     { id: 'picada',     emoji: '🧀', label: 'g.wpn.picada',     use: { kind: 'heal', amount: 35 } },   // picada de campo (Cañuelas/Korn)
+    bizcocho:   { id: 'bizcocho',   emoji: '🥐', label: 'g.wpn.bizcocho',   use: { kind: 'heal', amount: 15 } },   // bizcochos de grasa (conurbano)
     fernet:     { id: 'fernet',     emoji: '🥤', label: 'g.wpn.fernet',  use: { kind: 'heal', amount: 25 } },   // pancarta → Fernet con Coca (+vida)
     mortero:    { id: 'mortero',    emoji: '🎆', label: 'g.wpn.mortero', use: { kind: 'ammo', amount: 25 } },    // bombo → prendés el mortero (+munición)
     palo:       { id: 'palo',       emoji: '🏏', label: 'g.wpn.palo',    noEquip: true },
@@ -3981,6 +3987,7 @@
       trenGame.update(dt); trenGame.draw(ctx, W, H);
       { const tc = trenGame.openChatNpc; if (tc) { chatReturnTo = 'tren'; openChat({ name: tc.name, persona: tc.persona }); } }   // Villa Ballester: [E] maquinista → chat IA
       if (trenGame.trapoUsed) { consumeItem('boca_trapo'); }           // §12 S5: le diste el trapo al maquinista → se consume
+      { const buy = trenGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // v357: el vendedor ambulante
       if (trenGame.done) {
         const ex = trenGame.exitTo; trenGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'cancha') { enterCancha(); return; }                // §12 S3: te colás al Monumental (desde el piquete)

@@ -491,6 +491,14 @@ if (require.main === module) {
     if (!(est && est.persona === 'estudiante')) throw new Error('tren: la estudiante del piquete debería abrir chat (persona estudiante): ' + JSON.stringify(est));
     const trS2 = Tren.create({ ramal: 'San Martín — C. Universitaria', linea: 'San Martín', arrived: true });
     if (trS2.__colar() !== 'cancha') throw new Error('tren: el Monumental debería dejarte colar (exit cancha): ' + trS2.exitTo);
+    // v357: el VENDEDOR AMBULANTE regional en los andenes genéricos (con plata compra; sin plata no)
+    const trV = Tren.create({ ramal: 'La Plata', linea: 'Roca', arrived: true, coins: 50 });
+    const vp = trV.__vend();
+    if (!(vp && vp.item === 'tortafrita' && vp.spent === 8)) throw new Error('tren: en La Plata el ambulante deberia vender torta frita: ' + JSON.stringify(vp));
+    if (!trV.purchase) throw new Error('tren: purchase deberia exponerse una vez');
+    if (trV.purchase !== null) throw new Error('tren: purchase es one-shot');
+    const trVpoor = Tren.create({ ramal: 'Mitre — Tigre', linea: 'Mitre', arrived: true, coins: 2 });
+    if (trVpoor.__vend() !== null) throw new Error('tren: sin plata el ambulante NO deberia vender');
     ok.push('tren:ok');
     // §12 S3/S4 — EL MONUMENTAL: alentás + robás el trapo de Boca (one-shot trapoEdge) + salís
     if (typeof Cancha === 'undefined' || !Cancha.create) throw new Error('Cancha no cargó');

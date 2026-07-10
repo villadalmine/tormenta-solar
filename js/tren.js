@@ -7,12 +7,14 @@ const Tren = (() => {
   const CS = 30, W = 16, H = 12;
   const VIAJE_DUR = 4.2;
   // flavor por destino (DATA): match por palabra clave del ramal → tinte + prop del paisaje/andén
+  // Cada flavor trae su VENDEDOR AMBULANTE regional (v357, DATA): el clásico del tren argentino. `vend` =
+  // { item (id de WEAPONS en game.js, comida que cura), emoji, price }. El pregón sale de i18n g.tren.vend_<id>.
   const FLAVORS = {
-    rio:    { sky: '#375566', gnd: '#274536', prop: 'rio',    key: ['tigre', 'delta'] },
-    ciudad: { sky: '#3a4560', gnd: '#3a3a30', prop: 'ciudad', key: ['la plata', 'plata'] },
-    aero:   { sky: '#4a4e5e', gnd: '#464636', prop: 'avion',  key: ['ezeiza'] },
-    campo:  { sky: '#4a6a5a', gnd: '#4a4526', prop: 'campo',  key: ['cañuelas', 'korn', 'bosques', 'pilar'] },
-    conurb: { sky: '#3a3a48', gnd: '#38332a', prop: 'casas',  key: [] },   // default: conurbano
+    rio:    { id: 'rio',    sky: '#375566', gnd: '#274536', prop: 'rio',    key: ['tigre', 'delta'],  vend: { item: 'fruta',      emoji: '🍑', price: 10 } },
+    ciudad: { id: 'ciudad', sky: '#3a4560', gnd: '#3a3a30', prop: 'ciudad', key: ['la plata', 'plata'], vend: { item: 'tortafrita', emoji: '🫓', price: 8 } },
+    aero:   { id: 'aero',   sky: '#4a4e5e', gnd: '#464636', prop: 'avion',  key: ['ezeiza'],          vend: { item: 'miga',       emoji: '🥪', price: 14 } },
+    campo:  { id: 'campo',  sky: '#4a6a5a', gnd: '#4a4526', prop: 'campo',  key: ['cañuelas', 'korn', 'bosques', 'pilar'], vend: { item: 'picada', emoji: '🧀', price: 12 } },
+    conurb: { id: 'conurb', sky: '#3a3a48', gnd: '#38332a', prop: 'casas',  key: [],                  vend: { item: 'bizcocho',   emoji: '🥐', price: 6 } },   // default: conurbano
   };
   function flavorFor(ramal) {
     const r = (ramal || '').toLowerCase();
@@ -50,6 +52,10 @@ const Tren = (() => {
     for (let y = 0; y < H; y++) { map[y][0] = 1; map[y][W - 1] = 1; }
     const trenVuelta = { x: 8, y: 2 };               // el tren (arriba, en las vías) → volvés
     const banco = { x: 4, y: 7 }, cartel = { x: 8, y: 5 };
+    // VENDEDOR AMBULANTE regional (v357, solo andenes genéricos): te vende la comida del lugar (patrón kiosco:
+    // one-shot `purchase` → game.js cobra + addItem). El pregón y el producto salen del flavor (DATA).
+    const vendedor = { x: 12, y: 8 };
+    let coinsLeft = opts.coins || 0, purchase = null;
     const player = { x: 8 * CS, y: 8 * CS, r: 10, dir: 1, walk: 0 };
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
@@ -75,6 +81,13 @@ const Tren = (() => {
         if (near(estudiante, 1.8)) { chatNpc = { name: estudiante.name, persona: estudiante.persona }; return; }
         if (near(monumental, 1.8)) { done = true; exitTo = 'cancha'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }   // te colás a la cancha (River-Boca)
         if (near(fogata, 1.5)) { setMsg(T('g.tren.fogata'), 6); return; }
+      }
+      if (!special && fl.vend && near(vendedor, 1.7)) {   // el vendedor ambulante: comprás la comida regional
+        if (coinsLeft >= fl.vend.price) { coinsLeft -= fl.vend.price; purchase = { item: fl.vend.item, spent: fl.vend.price };
+          setMsg(T('g.tren.vendCompra', { e: fl.vend.emoji, n: T('g.wpn.' + fl.vend.item), p: fl.vend.price }), 6);
+          if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); }
+        else { setMsg(T('g.tren.vendCaro', { p: fl.vend.price }), 5); if (typeof Sfx !== 'undefined' && Sfx.empty) Sfx.empty(); }
+        return;
       }
       if (near(cartel, 1.6)) { setMsg(T('g.tren.cartel', { r: ramal, l: linea }), 6); return; }
       if (near(banco, 1.4)) { setMsg(T('g.tren.banco'), 5); return; }
@@ -114,6 +127,7 @@ const Tren = (() => {
       else if (special === 'sanmartin' && near(estudiante, 1.8)) prompt = T('g.tren.promptEst');
       else if (special === 'sanmartin' && near(monumental, 1.8)) prompt = T('g.tren.promptColar');
       else if (special === 'sanmartin' && near(fogata, 1.5)) prompt = T('g.tren.promptFogata');
+      else if (!special && fl.vend && near(vendedor, 1.7)) prompt = T('g.tren.vend_' + fl.id) + '  ·  ' + T('g.tren.promptVend', { e: fl.vend.emoji, p: fl.vend.price });
       else if (near(cartel, 1.6)) prompt = T('g.tren.promptCartel');
       else if (near(banco, 1.4)) prompt = T('g.tren.promptBanco');
       else prompt = '';
@@ -186,7 +200,15 @@ const Tren = (() => {
       // prop del flavor en el andén (una silueta característica al fondo)
       g.fillStyle = 'rgba(255,255,255,0.08)'; g.textAlign = 'center'; g.font = '30px monospace';
       const emoji = fl.prop === 'rio' ? '🚣' : fl.prop === 'ciudad' ? '🏛️' : fl.prop === 'avion' ? '✈️' : fl.prop === 'campo' ? '🌾' : '🏘️';
-      if (!special) g.fillText(emoji, ox + 13 * CS, oy + 8 * CS);
+      if (!special) g.fillText(emoji, ox + 13 * CS, oy + 6.2 * CS);
+      // el VENDEDOR AMBULANTE (genéricos): canasta al hombro + el producto flotando
+      if (!special && fl.vend) { const wx = ox + (vendedor.x + 0.5) * CS, wy = oy + (vendedor.y + 0.5) * CS;
+        g.fillStyle = '#111'; g.beginPath(); g.ellipse(wx, wy + 9, 8, 3, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#7a6a4a'; g.fillRect(wx - 6, wy - 4, 12, 16);              // guardapolvo/delantal
+        g.fillStyle = '#e0a878'; g.beginPath(); g.arc(wx, wy - 8, 5, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#a8834a'; g.fillRect(wx + 6, wy - 2, 12, 8);               // la canasta
+        g.font = '12px monospace'; g.textAlign = 'center'; g.fillText(fl.vend.emoji, wx + 12, wy - 6 - Math.abs(Math.sin(t * 2)) * 3);
+        g.fillStyle = '#9fb0c4'; g.font = '8px monospace'; g.fillText(T('g.tren.vendName'), wx, wy - 17); }
       // VILLA BALLESTER: el cartel de "servicio a Campana DEMORADO", la PARRILLA con asado y el MAQUINISTA curda
       if (special === 'ballester') {
         const dx = ox + demoradoSign.x * CS, dy = oy + demoradoSign.y * CS;
@@ -260,12 +282,14 @@ const Tren = (() => {
       get done() { return done; }, get exitTo() { return exitTo; },
       get openChatNpc() { const c = chatNpc; chatNpc = null; return c; },   // Villa Ballester: [E] sobre el maquinista → chat IA
       get trapoUsed() { const u = trapoUsedFlag; trapoUsedFlag = false; return u; },   // S5 one-shot: le diste el trapo → game.js lo consume del inventario
+      get purchase() { const p = purchase; purchase = null; return p; },              // v357 one-shot: le compraste al vendedor ambulante → game.js cobra + addItem
       update, draw,
       __arrive: () => { arrive(); return phase; },   // e2e: forzar la llegada
       __leave: () => { phase = 'anden'; player.x = (trenVuelta.x + 0.5) * CS; player.y = (trenVuelta.y + 1.4) * CS; interact(); return exitTo; },   // e2e: tomar el tren de vuelta
       __maq: () => { phase = 'anden'; player.x = (maquinista.x + 0.5) * CS; player.y = (maquinista.y + 1.2) * CS; interact(); return chatNpc; },   // e2e: chat con el maquinista (Villa Ballester)
       __est: () => { phase = 'anden'; player.x = (estudiante.x + 0.5) * CS; player.y = (estudiante.y + 1.2) * CS; interact(); return chatNpc; },   // e2e: chat con la estudiante del piquete
       __colar: () => { phase = 'anden'; player.x = (monumental.x + 0.5) * CS; player.y = (monumental.y + 1.4) * CS; interact(); return exitTo; },   // e2e: colarte a la cancha
+      __vend: () => { phase = 'anden'; player.x = (vendedor.x + 0.5) * CS; player.y = (vendedor.y - 0.4) * CS; interact(); return purchase; },   // e2e: comprarle al ambulante
       __darTrapo: () => { phase = 'anden'; player.x = (maquinista.x + 0.5) * CS; player.y = (maquinista.y + 1.2) * CS; interact(); for (let k = 0; k < 80 && !done; k++) update(0.05); return exitTo; },   // e2e: dar el trapo → arranca a Campana
     };
   }

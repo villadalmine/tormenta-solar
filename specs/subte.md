@@ -266,7 +266,9 @@ el hall del tren arriba.
 
 ### §11 — DÓNDE SEGUIR (próximos pasos del arco red de tren / Villa 31)
 Estado al 2026-07-09 (cache v349): **E1-E4 + E4.1 (jornada) + kioscos HECHOS y en prod.** Lo que sigue, en orden de valor:
-1. ~~**Andenes de tren REALES**~~ ✅ **HECHO (v350):** `js/tren.js` — el molinete abre un **menú de ramales** (`tren:<ramal>`)
+1. ~~**Andenes de tren REALES**~~ ✅ **HECHO (v350)** + **v357: VENDEDORES AMBULANTES regionales** en los andenes
+   genéricos (`FLAVORS.vend` DATA: item/emoji/price + pregón i18n; one-shot `purchase` → game.js; 5 comidas `heal`).
+   ✅ **HECHO (v350):** `js/tren.js` — el molinete abre un **menú de ramales** (`tren:<ramal>`)
    → **VIAJE** con paisaje que scrollea (tematizado por destino, `FLAVORS`) → **ANDÉN de destino** (cartel + banco + tren
    de vuelta). `enterTren(ramal,linea,origen)` en game.js; vuelve a la terminal (`trenReturn`). Debug `trenYa`. **Siguiente
    sobre esto:** darle CONTENIDO a cada andén de destino (un NPC, una tienda, una mini-quest por ramal) — hoy es una

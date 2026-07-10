@@ -101,6 +101,13 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v357] — 2026-07-10 — 🍑 Los vendedores ambulantes de los andenes (comida regional que cura)
+- Cada andén genérico de tren tiene su **VENDEDOR AMBULANTE** con la comida de la zona (DATA en `FLAVORS.vend`):
+  Tigre=fruta del delta 🍑 (+25), La Plata=tortas fritas 🫓 (+20), Ezeiza=miga a precio de aeropuerto 🥪 (+25),
+  campo=picada 🧀 (+35), conurbano=bizcochos de grasa 🥐 (+15). Pregón regional por flavor (i18n `g.tren.vend_<id>`),
+  compra con [E] (patrón kiosco: one-shot `purchase` → game.js cobra + `addItem`), 5 ítems `heal` nuevos en WEAPONS.
+- e2e (compra en La Plata + sin plata en Tigre) + smoke verdes. i18n ES≡EN. Captura 08 regenerada. Cache v357.
+
 ## [v356] — 2026-07-10 — 🎶 EL CANTO DE LA POPULAR en chiptune (con el bombo de la banda)
 - Al entrar a **Campana** suena **el canto de Dálmine** ("dale dale dale dale vio ×2, daleeeeee daleeee viooooooo")
   compuesto como chiptune: tema `VIOLETA` en `js/audio.js` (Do mayor, cantito de tribuna, square lead + bajo) con el
