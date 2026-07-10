@@ -15,7 +15,7 @@ ser excelente para `banco` y malo para `chat`).
 
 | Patrón | Quién lo usa | Estándar de calidad (APRUEBA si…) | Cómo pesa el costo |
 |---|---|---|---|
-| **`chat`** — tiempo real, en personaje | `/chat` (NPCs/oráculos: linyeras, French/Beruti, Doña Rosa, el cura, el maquinista, la estudiante, el Tano…) | Con prompt real (~persona+grounding ≈2.5k tok, `max_tokens=150`): **p95 ≤ 7s**, responde **3/3**, **respeta max_tokens** (≤180 tok), contesta **en castellano** (heurística: voseo/es-palabras), **sin CoT leak** (no `<think>`/razonamiento visible) | **Confiabilidad > precio.** El jugador espera 11s como mucho. Objetivo: blended < $4/M tok. Un modelo barato que cuelga = carísimo (quema el budget y da fallback) |
+| **`chat`** — tiempo real, en personaje | `/chat` (NPCs/oráculos: linyeras, French/Beruti, Doña Rosa, el cura, el maquinista, la estudiante, el Tano…) | Con prompt real (~persona+grounding ≈2.5k tok, `max_tokens=150`): **p95 ≤ 8s** (calibrado: claude-sonnet real 5-7s; el cliente aguanta 11s), responde **3/3**, **respeta max_tokens** (≤180 tok), contesta **en castellano** (heurística: voseo/es-palabras), **sin CoT leak** (no `<think>`/razonamiento visible) | **Confiabilidad > precio.** El jugador espera 11s como mucho. Objetivo: blended < $4/M tok. Un modelo barato que cuelga = carísimo (quema el budget y da fallback) |
 | **`gen`** — JSON estructurado, batch/casi-real-time | `/nivel-ai` (niveles, tiendas, historias del vecino, `/mundo-ai`) | Con el prompt de nivel: devuelve **JSON parseable** con los campos pedidos, **2/2**, en **≤ 14s** | Precio bajo importa (pero corre pocas veces/día + cachea). Objetivo: < $2/M |
 | **`banco`** — texto corto batch (cron, latencia irrelevante) | crons: carteles, propaganda, noticias/**cine**, chusmerío, pool del linyera, historias | 1-3 frases **con humor rioplatense** (es-castellano), sin CoT leak, longitud sana (10-400 chars), **2/2**, ≤ 20s | **EL MÁS BARATO que apruebe.** Corre en batch de madrugada; si tarda 20s no importa. Objetivo: free o < $0.5/M |
 
@@ -66,3 +66,4 @@ ser excelente para `banco` y malo para `chat`).
   los reporta). — decisión del dueño.
 - Cerrar el loop: botón/endpoint "aplicar recomendación" que edite values-prod + dispare deploy (hoy manual a propósito).
 - Sumar calidad "en personaje" con un LLM-judge barato (hoy heurísticas: es-castellano, longitud, no-CoT).
+- Matching de precios model_name→id de OpenRouter: hoy es por nombre aproximado y suele dar "$?/M" (p.ej. claude-sonnet→anthropic/claude-sonnet-4.5 no matchea). Un mapa explícito en env lo arregla.

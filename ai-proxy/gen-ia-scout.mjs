@@ -17,7 +17,7 @@ const MAX_MODELS = +process.env.SCOUT_MAX_MODELS || 12;
 const GROUND = 'Contexto del mundo: pasó una tormenta solar, todo glitcheado; la IA maneja satélites; el jugador ganó el Nivel 2 y anda en tren. ';
 const PATTERNS = {
   chat: {   // tiempo real, en personaje — confiabilidad > precio
-    maxTokens: 150, timeoutMs: 9000, minOk: 3, p95Max: 7000,
+    maxTokens: 150, timeoutMs: 9500, minOk: 3, p95Max: 8000,   // calibrado 2026-07-10: claude-sonnet real = 5-7s (falló por 20ms con 7000); el cliente aguanta 11s y prod usa PER_MODEL 9.5s
     prompts: [
       ['Sos Doña Rosa, referente de un comedor popular de la Villa 31: cálida, rioplatense, madraza. ' + GROUND + 'No rompas personaje.', 'hola doña rosa, en qué ayudo?'],
       ['Sos un maquinista de tren bonachón y curda simpático de Villa Ballester. Habla rioplatense. ' + GROUND, 'che maestro, y el tren a campana?'],
