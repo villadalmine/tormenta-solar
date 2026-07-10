@@ -101,6 +101,25 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-68 · proxy 0.2.0] — 2026-07-10 — 🩺💸 IA/COSTOS: salud cada 6h + scout diario de modelos (patrones por uso)
+- **Pedido del dueño:** *"un cron cada 6h para ver cómo va por si hay que corregir, y uno diario para aprender qué
+  modelos están bien y baratos — con los estándares para que cada NPC/cartel/chat/estático/cine funcione; definir
+  un patrón de qué es bueno para cada uno para el costo-beneficio."* SDD nuevo: **`specs/ia-costos.md`**.
+- **LOS PATRONES (§1):** `chat` (tiempo real NPC: p95≤7s, 3/3, respeta max_tokens, castellano, sin CoT — confiabilidad
+  > precio) · `gen` (JSON válido ≤14s, 2/2 — precio bajo) · `banco` (carteles/noticias/cine/chusmerío: humor
+  rioplatense corto, ≤20s — EL MÁS BARATO que apruebe). Score = pasa estándares − precio blended − latencia.
+- **Cron 6h `ia-health`** (`check-ia.mjs`): lee /metrics, delta de la ventana (fallback%, timeouts, budget pago,
+  gasto estimado) → veredicto ok/warn/critical → `POST /ia-report`. El proxy expone gauges `tormenta_ia_health_*`
+  → **PrometheusRule nuevas** (grupo `tormenta-ia` en deploy/argo/monitoring.yaml, aplicadas) → **Telegram** solo:
+  FallbackAlto ≥20% (warn) / Crítico ≥50% / Budget ≥80% / cron mudo >8h.
+- **Cron diario `ia-scout`** (`scout-models.mjs`, 6:15): lista los model_names REALES del pool (LiteLLM /v1/models),
+  mini-bench por patrón (7 prompts estándar), cruza precios del catálogo OR (cron `precios`) → ranking + 
+  recomendaciones + candidatos nuevos baratos "para agregar". **NO cambia el ruteo** (LiteLLM = dominio del dueño);
+  gasto del bench ≈ centavos/día. Reportes legibles en **`GET /ia-reports`** (PVC, últimos 60).
+- Validado: check-ia contra prod (health ok, detectó sub_cost US$0.187) + scout contra mock (bueno PASS 3/3;
+  lento falla chat pero aprueba gen/banco = el costo-beneficio por patrón; inglés falla todo; GPU excluida).
+  2 CronWorkflows nuevos en el chart (patrón -precios). Proxy 0.2.0.
+
 ## [v357] — 2026-07-10 — 🍑 Los vendedores ambulantes de los andenes (comida regional que cura)
 - Cada andén genérico de tren tiene su **VENDEDOR AMBULANTE** con la comida de la zona (DATA en `FLAVORS.vend`):
   Tigre=fruta del delta 🍑 (+25), La Plata=tortas fritas 🫓 (+20), Ezeiza=miga a precio de aeropuerto 🥪 (+25),

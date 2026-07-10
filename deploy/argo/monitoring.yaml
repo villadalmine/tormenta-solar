@@ -13,6 +13,41 @@ metadata:
     release: kube-prometheus-stack        # lo que exige el ruleSelector del stack
 spec:
   groups:
+    - name: tormenta-ia
+      # IA/COSTOS (specs/ia-costos.md): el cron ia-health (6h) publica gauges → estas reglas → Telegram.
+      rules:
+        - alert: TormentaIAFallbackAlto
+          expr: tormenta_ia_health_fallback_pct >= 20 and tormenta_ia_health_fallback_pct < 50
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: '🤖⚠️ IA del juego: {{ $value }}% de fallback en la última ventana'
+            description: 'Los NPC están cayendo a las líneas locales. Revisar la cadena de modelos (specs/ia-costos.md §1). Reportes: https://llm-tormenta-solar.cybercirujas.club/ia-reports'
+        - alert: TormentaIAFallbackCritico
+          expr: tormenta_ia_health_fallback_pct >= 50
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: '🤖🚨 IA del juego CAÍDA: {{ $value }}% de fallback'
+            description: 'La mayoría de los chats está fallando. Ver https://llm-tormenta-solar.cybercirujas.club/ia-reports y las cadenas en ai-proxy/chart/values-prod.yaml'
+        - alert: TormentaIABudgetAlto
+          expr: tormenta_ia_health_paid_used_pct >= 80
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: '💸 IA del juego: budget pago al {{ $value }}% del tope diario'
+            description: 'Se está por agotar PAID_DAILY_CAP (al agotarse los anónimos caen a fallback). Subir el cap o abaratar la cadena. https://llm-tormenta-solar.cybercirujas.club/ia-reports'
+        - alert: TormentaIAHealthViejo
+          expr: (time() - tormenta_ia_health_ts / 1000) > 28800
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: '🩺 El cron ia-health no reporta hace >8h'
+            description: 'El CronWorkflow tormenta-ai-proxy-ia-health no está corriendo/reportando. kubectl -n ai get cronworkflow'
     - name: tormenta-deploy
       rules:
         - alert: TormentaDeployFailed

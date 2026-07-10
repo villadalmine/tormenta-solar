@@ -1,0 +1,63 @@
+{{- if .Values.linyeraPool.cronjob.enabled }}
+# Argo CronWorkflow DIARIO 6:15 (specs/ia-costos.md §3): scout-models.mjs = "aprender qué modelos están bien y
+# baratos" POR PATRÓN (chat/gen/banco). Mini-bench sobre los model_names del pool (LiteLLM /v1/models) + precios
+# del catálogo OR (cron precios) → ranking costo-beneficio + recomendaciones → POST /ia-report. NO cambia el
+# ruteo (dominio del dueño). Gasto del bench: centavos/día (~35k tokens).
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: {{ include "tormenta-ai-proxy.fullname" . }}-ia-scout
+  labels:
+    {{- include "tormenta-ai-proxy.labels" . | nindent 4 }}
+spec:
+  schedules:
+    - "15 6 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  workflowSpec:
+    entrypoint: gen
+    serviceAccountName: {{ include "tormenta-ai-proxy.fullname" . }}-pool
+    activeDeadlineSeconds: 1200
+    ttlStrategy:
+      secondsAfterCompletion: 86400
+      secondsAfterSuccess: 43200
+      secondsAfterFailure: 172800
+    podGC:
+      strategy: OnWorkflowCompletion
+    {{- with .Values.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+    templates:
+      - name: gen
+        retryStrategy:
+          limit: "2"
+          retryPolicy: Always
+          backoff: { duration: "60s", maxDuration: "5m" }
+        container:
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "scout-models.mjs"]
+          env:
+            - name: AI_BASE_URL
+              value: {{ .Values.upstream.baseUrl | default "http://litellm-proxy:4000/v1" | quote }}
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tormenta-ai-proxy.secretName" . }}
+                  key: {{ include "tormenta-ai-proxy.secretKey" . }}
+            - name: REPORT_POST_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/ia-report"
+            - name: PRICES_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/precios"
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}
+          resources:
+            requests: { cpu: 25m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 192Mi }
+{{- end }}

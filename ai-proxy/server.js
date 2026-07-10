@@ -107,6 +107,13 @@ let DEPLOYLOG = { last: {}, hist: [] };            // last[component]={tag,statu
 function loadDeployLog() { try { const d = JSON.parse(fs.readFileSync(DEPLOYLOG_STORE, 'utf8')); if (d && d.last) DEPLOYLOG = d; } catch (e) {} }
 function saveDeployLog() { try { fs.mkdirSync(DEPLOYLOG_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(DEPLOYLOG_STORE, JSON.stringify(DEPLOYLOG)); } catch (e) { console.error('deploylog save:', e.message); } }
 loadDeployLog();
+// IA/COSTOS (specs/ia-costos.md): reportes de los crons ia-health (6h) e ia-scout (diario) → PVC + gauges.
+const IAREPORTS_STORE = process.env.IAREPORTS_STORE || '/data/ia-reports.json';
+let IA_REPORTS = [];                                // últimos 60 (health + scout)
+let IA_HEALTH = null;                               // el último health → gauges en /metrics → PrometheusRule → Telegram
+function loadIaReports() { try { const d = JSON.parse(fs.readFileSync(IAREPORTS_STORE, 'utf8')); if (Array.isArray(d)) { IA_REPORTS = d; IA_HEALTH = d.filter(x => x.kind === 'health').pop() || null; } } catch (e) {} }
+function saveIaReports() { try { fs.mkdirSync(IAREPORTS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(IAREPORTS_STORE, JSON.stringify(IA_REPORTS)); } catch (e) { console.error('ia-reports save:', e.message); } }
+loadIaReports();
 // ── CHECKPOINTS por nick (guardar-partida.md F3): el último hito de tu partida viaja entre dispositivos.
 // Mismo patrón que barrio-mem: banco PVC + LRU + anti-spam. Cap 32KB por snapshot, 500 nicks (~16MB máx).
 const CHECKPOINT_STORE = process.env.CHECKPOINT_STORE || '/data/checkpoints.json';
@@ -897,6 +904,25 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify(DEPLOYLOG));
   }
+  // IA/COSTOS (specs/ia-costos.md): los crons ia-health/ia-scout postean sus reportes acá (GEN_TOKEN).
+  if (req.method === 'POST' && req.url === '/ia-report') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}');
+      if (d.kind !== 'health' && d.kind !== 'scout') { res.writeHead(400); return res.end('bad kind'); }
+      d.ts = d.ts || Date.now();
+      IA_REPORTS.push(d); IA_REPORTS = IA_REPORTS.slice(-60); saveIaReports();
+      if (d.kind === 'health') IA_HEALTH = d;
+      console.log('[ia-report]', d.kind, d.verdict || '', (d.recs || []).join(' | ') || (d.note || ''));
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.method === 'GET' && req.url === '/ia-reports') {                           // historial salud+scout (sin secretos)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ reports: IA_REPORTS }));
+  }
   // CHECKPOINTS por nick (guardar-partida.md F3): leer / subir el último hito de tu partida.
   if (req.method === 'GET' && req.url.startsWith('/checkpoint')) {
     const nick = bmNick(new URL(req.url, 'http://x').searchParams.get('nick'));
@@ -1027,6 +1053,11 @@ http.createServer((req, res) => {
       `# HELP tormenta_ai_timeouts_total Requests que pasaron el tope de ${UPSTREAM_TIMEOUT}ms\n# TYPE tormenta_ai_timeouts_total counter\ntormenta_ai_timeouts_total ${M.timeouts}\n` +
       `# HELP tormenta_ai_errors_total Errores de upstream (no timeout)\n# TYPE tormenta_ai_errors_total counter\ntormenta_ai_errors_total ${M.errors}\n` +
       `# HELP tormenta_ai_fallback_lines_total Respuestas servidas con línea local (timeout/error)\n# TYPE tormenta_ai_fallback_lines_total counter\ntormenta_ai_fallback_lines_total ${M.fallbackLines}\n` +
+      (IA_HEALTH ? `# HELP tormenta_ia_health_verdict Último health (0 ok, 1 warn, 2 critical)\n# TYPE tormenta_ia_health_verdict gauge\ntormenta_ia_health_verdict ${IA_HEALTH.verdict === 'critical' ? 2 : IA_HEALTH.verdict === 'warn' ? 1 : 0}\n` +
+        `# HELP tormenta_ia_health_fallback_pct Fallback %% de la última ventana de 6h\n# TYPE tormenta_ia_health_fallback_pct gauge\ntormenta_ia_health_fallback_pct ${(IA_HEALTH.window && IA_HEALTH.window.fallbackPct) || 0}\n` +
+        `# HELP tormenta_ia_health_paid_used_pct Budget pago usado del día (%%)\n# TYPE tormenta_ia_health_paid_used_pct gauge\ntormenta_ia_health_paid_used_pct ${(IA_HEALTH.day && IA_HEALTH.day.paidUsedPct) || 0}\n` +
+        `# HELP tormenta_ia_health_est_cost_usd Gasto estimado del día (pool compartido, US$)\n# TYPE tormenta_ia_health_est_cost_usd gauge\ntormenta_ia_health_est_cost_usd ${(IA_HEALTH.day && IA_HEALTH.day.estCostUsd) || 0}\n` +
+        `# HELP tormenta_ia_health_ts Timestamp del último health\n# TYPE tormenta_ia_health_ts gauge\ntormenta_ia_health_ts ${IA_HEALTH.ts || 0}\n` : '') +
       `# HELP tormenta_ai_latency_ms_avg Latencia media (ms) de las respuestas con IA\n# TYPE tormenta_ai_latency_ms_avg gauge\ntormenta_ai_latency_ms_avg ${avg.toFixed(0)}\n`;
     // chat_total etiquetado: qué modelo/backend/resultado por uso
     out += `# HELP tormenta_ai_chat_total Usos del chat por modelo/backend/resultado\n# TYPE tormenta_ai_chat_total counter\n`;
