@@ -288,7 +288,17 @@ Estado al 2026-07-09 (cache v349): **E1-E4 + E4.1 (jornada) + kioscos HECHOS y e
    `sells:'<item>'` + `price` por local, i18n dinámico `buy_<item>`/`promptBuy_<item>`, specials en `special:'pista'|
    'rumor'|'libro'|'flor'`. GOTCHA: locales cerca de la salida/escalera pierden el [E] (radio 1.5) — la librería se
    movió a (2.4,10.2) por eso. Queda la **boletería Roca/Mitre** como único mock (flavor).
-4. **Boarding cross-terminal por tren** — que desde Constitución puedas llegar a un ramal y volver, cerrando el "viajás en
+4. ✅ **HECHO (v360-v362) — el arco "estaciones VIVAS":** (v360) **EL MISTERIO DEL POLACO**
+   (`lugares/misterio-polaco.md`, grafo 37): cada estación tiene su LINYERA propio (`FLAVORS.liny` DATA: la
+   Turca/el Profe/el Chispa/el Vasco/el Flaco + la GALLEGA en Retiro y el POLACO desaparecido de Constitución);
+   quest caso→nota del carrito (Firulais)→hallado en La Plata→**radiecita 📻** (ítem `use:{kind:'hint'}` = el
+   HintEngine portátil, no se consume); personas `gallega`+`polaco` (19). (v361) **CARTELERA EN TIEMPO REAL**
+   (`js/trenes.js`): reloj REAL BsAs + frecuencias reales DATA + estado del servicio con lío (GET /trenes,
+   seed horario determinístico; enchufe a apitransporte GTFS-RT listo en `gen-trenes-estado.mjs`, falta que el
+   dueño registre credenciales gratis) + ticker de NOTICIAS + minutos en el menú del molinete. (v362) **LA
+   CALLE de Constitución** (`js/consticalle.js`): parada de bondis con líneas reales animadas, 2 canas de
+   ronda (frases rotativas), 4 puestos (chori/bondiola/tortafritas/garrapiñada), palomas; debug `calleYa`.
+5. **Boarding cross-terminal por tren** — que desde Constitución puedas llegar a un ramal y volver, cerrando el "viajás en
    TREN" (hoy el viaje entre terminales es por el SUBTE Línea C; el TREN todavía no te lleva a ningún lado).
 Recordatorio de infra (no-código de juego): `tormenta_ai_sub_codes=0` en el proxy ⇒ el **código premium del dueño no está
 cargado**; es dominio del dueño (regla dura: no tocar la key), recordárselo. GOTCHA e2e: sin backticks en comentarios que

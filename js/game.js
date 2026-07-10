@@ -134,6 +134,7 @@
   let obeliscoGame = null;  // Lavalle E2: la plaza del Obelisco (tras pasar el corte)
   let subteGame = null, subteReturn = 'street';   // subte.md §4: la estación (sub-modo top-down); dónde volvés al salir
   let constitucionGame = null;                     // subte.md §11: terminal de tren Constitución (Línea C, post Nivel 2)
+  let consticalleGame = null;                      // v362: la CALLE de Constitución (bondis, canas, puestos)
   let retiroGame = null, villa31Game = null;       // subte.md §11 E2-E4: terminal Retiro → Línea San Martín → Villa 31 (comedor)
   let trenGame = null, trenReturn = 'constitucion'; // subte.md §11: tomar el TREN a un ramal (viaje + andén de destino)
   let trenCtx = null;                               // {ramal, linea, origen} del tren actual (para volver de la cancha al andén)
@@ -395,7 +396,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; retiroGame = null; villa31Game = null; trenGame = null; canchaGame = null; campanaGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; consticalleGame = null; retiroGame = null; villa31Game = null; trenGame = null; canchaGame = null; campanaGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -716,13 +717,25 @@
   }
   // TERMINAL CONSTITUCIÓN (subte.md §11): viajás por la Línea C (habilitada al ganar el Nivel 2) → la escalera del
   // andén sube a la gran terminal del Roca (hall + molinetes de tren + locales mock). Al salir volvés al subte C.
+  // v360: etapa del misterio del Polaco (misterio-polaco.md) — la leen las terminales y el tren
+  function polacoStage() { return lsFlag('ts_polaco_hallado') ? 'hallado' : lsFlag('ts_polaco_carrito') ? 'carrito' : lsFlag('ts_polaco_caso') ? 'caso' : null; }
   function enterConstitucion() {
     if (typeof Constitucion === 'undefined' || !Constitucion.create) { enterSubte('constitucion'); return true; }
     // v359: el puesto de DIARIOS trae LA PISTA del grafo como titular (HintEngine sobre el estado actual)
     let pista = null; try { if (typeof HintEngine !== 'undefined') { const e = HintEngine.next(historiaState(), { at: 'constitucion' }); pista = e && e.text; } } catch (err) {}
-    constitucionGame = Constitucion.create({ coins: player.coins || 0, pista }); state = 'constitucion';
+    constitucionGame = Constitucion.create({ coins: player.coins || 0, pista, polacoStage: polacoStage() }); state = 'constitucion';
     applyEdge('constitucion_llegada', 'enConstitucion');   // GRAFO: hito → map/checkpoint/ticker + los oráculos saben
     evlog('hito', 'llegó a la terminal Constitución');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  // LA CALLE DE CONSTITUCIÓN (v362): salís del hall a la puerta de la terminal — parada de bondis con líneas
+  // reales, puestos de comida de estación (chori/bondiola/tortafritas/garrapiñada) y los canas de la ronda.
+  function enterConstiCalle() {
+    if (typeof ConstiCalle === 'undefined' || !ConstiCalle.create) return false;
+    consticalleGame = ConstiCalle.create({ coins: player.coins || 0 }); state = 'consticalle';
+    evlog('hito', 'salió a la calle de Constitución');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
@@ -731,7 +744,7 @@
   // y lleva a la Línea San Martín → Villa 31 (E3/E4).
   function enterRetiro() {
     if (typeof Retiro === 'undefined' || !Retiro.create) { enterSubte('retiro'); return true; }
-    retiroGame = Retiro.create({ coins: player.coins || 0 }); state = 'retiro';
+    retiroGame = Retiro.create({ coins: player.coins || 0, polacoStage: polacoStage() }); state = 'retiro';
     applyEdge('retiro_llegada', 'enRetiro');
     evlog('hito', 'llegó a la terminal Retiro');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -755,7 +768,7 @@
     if (typeof Tren === 'undefined' || !Tren.create) return false;
     trenReturn = origen || 'constitucion';
     trenCtx = { ramal, linea, origen: trenReturn };   // para volver de la cancha al MISMO andén sin repetir el viaje
-    trenGame = Tren.create(Object.assign({ ramal, linea, coins: (player && player.coins) || 0,
+    trenGame = Tren.create(Object.assign({ ramal, linea, coins: (player && player.coins) || 0, polacoStage: polacoStage(),
       hasTrapo: !!(player && player.inventory && player.inventory.includes('boca_trapo')) }, xtra || {})); state = 'tren';
     evlog('hito', 'tomó el tren a ' + ramal);
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -905,6 +918,9 @@
     birra:      { id: 'birra',      emoji: '🍺', label: 'g.wpn.birra',   noEquip: true, use: { kind: 'buff', buffs: ['speed', 'regen', 'shield'], secs: 8 } },
     estampita:  { id: 'estampita',  emoji: '🙏', label: 'g.wpn.estampita', noEquip: true, use: { kind: 'buff', buffs: ['shield', 'regen'], secs: 12 } },   // v358: la bendición del cura (Villa 31)
     cafe:       { id: 'cafe',       emoji: '☕', label: 'g.wpn.cafe',   use: { kind: 'heal', amount: 15 } },   // v359: cortado de las terminales (+vida)
+    radiecita:  { id: 'radiecita',  emoji: '📻', label: 'g.wpn.radiecita', noEquip: true, use: { kind: 'hint' } },   // v360: la radio del Polaco — sopla la pista (no se consume)
+    bondiola:   { id: 'bondiola',   emoji: '🥖', label: 'g.wpn.bondiola', use: { kind: 'heal', amount: 35 } },   // v362: bondiola de la calle de Constitución
+    garrapinada:{ id: 'garrapinada',emoji: '🥜', label: 'g.wpn.garrapinada', use: { kind: 'heal', amount: 10 } },   // v362: garrapiñada de estación
   };
   // BUFFS temporales (Inventario F3, kind:'buff'). Efectos con timer en segundos (decrementan por dt, sin reloj de pared →
   // se pausan en los sub-modos). `tickBuffs` deriva los flags que leen player.js (speedMul/shielded) + cura con 'regen'.
@@ -943,6 +959,12 @@
       player.ammo = (player.ammo || 0) + (u.amount || 20); consumeItem(id);
       if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); closeInv();
       setMsg(T('g.inv.usedAmmo', { item: wpnLabel(id), n: u.amount || 20 }), '#7CFC00', 4000); return;
+    }
+    if (u.kind === 'hint') {     // v360: la RADIECITA del Polaco — entre estáticas te sopla LA PISTA del grafo (no se consume)
+      closeInv();
+      let p = null; try { if (typeof HintEngine !== 'undefined') { const e = HintEngine.next(historiaState(), { at: currentAt() }); p = e && e.text; } } catch (e) {}
+      setMsg(p ? T('g.inv.radio', { p }) : T('g.inv.radioNada'), '#9be8a0', 8000);
+      if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return;
     }
     if (u.kind === 'ticket') {   // el boleto no se "usa" desde acá: se mete en el molinete del subte (y ahí se consume). Informativo.
       closeInv(); setMsg(T('g.inv.ticket'), '#9be8a0', 5000); return;
@@ -1199,6 +1221,9 @@
     comedorHired:     v => { try { localStorage.setItem('ts_comedor', v ? '1' : ''); } catch (e) {} },   // te contrataron en el comedor de la Villa 31
     comedorJornada:   v => { try { localStorage.setItem('ts_comedor_jornada', v ? '1' : ''); } catch (e) {} },   // completaste una jornada de servir en el comedor
     curaBendicion:    v => { try { localStorage.setItem('ts_bendicion', v ? '1' : ''); } catch (e) {} },   // v358: el mandado del cura hecho (la estampita)
+    polacoCaso:       v => { try { localStorage.setItem('ts_polaco_caso', v ? '1' : ''); } catch (e) {} },      // v360: la Gallega te dio el caso
+    polacoCarrito:    v => { try { localStorage.setItem('ts_polaco_carrito', v ? '1' : ''); } catch (e) {} },   // v360: leíste la nota del carrito
+    polacoHallado:    v => { try { localStorage.setItem('ts_polaco_hallado', v ? '1' : ''); } catch (e) {} },   // v360: encontraste al Polaco (radiecita)
     // ODISEA A CAMPANA (subte.md §12): el trapo de Boca → maquinista sobrio → Campana → 4 goles de Dálmine → portal
     bocaTrapo:        v => { try { localStorage.setItem('ts_boca_trapo', v ? '1' : ''); } catch (e) {} },
     enCampana:        v => { try { localStorage.setItem('ts_en_campana', v ? '1' : ''); } catch (e) {} },
@@ -1262,6 +1287,7 @@
       comedorHired: lsFlag('ts_comedor'),           // te contrataron en el comedor popular
       comedorJornada: lsFlag('ts_comedor_jornada'), // serviste una jornada entera en el comedor
       curaBendicion: lsFlag('ts_bendicion'),        // v358: el mandado del cura (la abuela Coca) → la estampita
+      polacoCaso: lsFlag('ts_polaco_caso'), polacoCarrito: lsFlag('ts_polaco_carrito'), polacoHallado: lsFlag('ts_polaco_hallado'),   // v360: el misterio del Polaco
       bocaTrapo: lsFlag('ts_boca_trapo'),           // §12: robaste la remera/bandera de Boca en el clásico
       enCampana: lsFlag('ts_en_campana'),           // §12: el maquinista te llevó a Campana
       dalmineGritado: lsFlag('ts_dalmine'),         // §12: gritaste los 4 goles de Dálmine → portal → búnker
@@ -1301,6 +1327,7 @@
       escarapela: lsFlag('ts_escarapela'),   // Cabildo 1810: escarapela + French & Beruti (los oráculos lo saben)
       lineaC: lsFlag('ts_linea_c'), enConstitucion: lsFlag('ts_en_constitucion'),   // §11: red de tren post Nivel 2 (Constitución/Retiro)
       enRetiro: lsFlag('ts_en_retiro'), enVilla31: lsFlag('ts_en_villa31'), comedorHired: lsFlag('ts_comedor'), comedorJornada: lsFlag('ts_comedor_jornada'), curaBendicion: lsFlag('ts_bendicion'),   // §11 E2-E4: Retiro → Villa 31 → comedor (+ jornada + el mandado del cura)
+      polacoCaso: lsFlag('ts_polaco_caso'), polacoCarrito: lsFlag('ts_polaco_carrito'), polacoHallado: lsFlag('ts_polaco_hallado'),   // v360: el misterio del Polaco (la Gallega/el carrito/La Plata)
       bocaTrapo: lsFlag('ts_boca_trapo'), enCampana: lsFlag('ts_en_campana'), dalmineGritado: lsFlag('ts_dalmine'),   // §12: la odisea a Campana / Villa Dálmine
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
@@ -3962,13 +3989,24 @@
     } else if (state === 'constitucion' && constitucionGame) {        // §11: terminal de tren Constitución (post Nivel 2)
       constitucionGame.update(dt); constitucionGame.draw(ctx, W, H);
       { const buy = constitucionGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // KIOSCO: comprás un chori
+      if (constitucionGame.carritoEdge) { applyEdge('polaco_carrito', 'polacoCarrito'); }   // v360: leíste la NOTA del carrito del Polaco → grafo
       if (constitucionGame.done) {
         const ex = constitucionGame.exitTo; constitucionGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex && ex.indexOf('tren:') === 0) { enterTren(ex.slice(5), 'Roca', 'constitucion'); return; }   // molinete → tomás el tren del Roca
+        if (ex === 'calle' && enterConstiCalle()) return;   // v362: la SALIDA → la calle de Constitución
         enterSubte('constitucion', 'street'); return;   // bajás de la terminal al subte (Línea C) → menú de viaje
+      }
+    } else if (state === 'consticalle' && consticalleGame) {          // v362: la calle de Constitución (bondis/canas/puestos)
+      consticalleGame.update(dt); consticalleGame.draw(ctx, W, H);
+      { const buy = consticalleGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }
+      if (consticalleGame.done) {
+        consticalleGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        enterConstitucion(); return;   // la puerta te devuelve al hall
       }
     } else if (state === 'retiro' && retiroGame) {                    // §11 E2: terminal Retiro (Línea C)
       retiroGame.update(dt); retiroGame.draw(ctx, W, H);
+      { const gc = retiroGame.openChatNpc; if (gc) { chatReturnTo = 'retiro'; openChat({ name: gc.name, persona: gc.persona }); } }   // v360: [E] la Gallega → chat IA
+      if (retiroGame.casoEdge) { applyEdge('polaco_caso', 'polacoCaso'); }   // v360: la Gallega te dio el CASO del Polaco → grafo
       { const buy = retiroGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent);
         if (buy.item === 'flor') player.flores = (player.flores || 0) + 1; else addItem(buy.item);   // v359: la florería suma flores 🌸 (moneda del truco), el resto va al inventario
         syncHud(); } }
@@ -3999,6 +4037,7 @@
       trenGame.update(dt); trenGame.draw(ctx, W, H);
       { const tc = trenGame.openChatNpc; if (tc) { chatReturnTo = 'tren'; openChat({ name: tc.name, persona: tc.persona }); } }   // Villa Ballester: [E] maquinista → chat IA
       if (trenGame.trapoUsed) { consumeItem('boca_trapo'); }           // §12 S5: le diste el trapo al maquinista → se consume
+      if (trenGame.halladoEdge) { applyEdge('polaco_hallado', 'polacoHallado'); addItem('radiecita'); setMsg(T('g.tren.radiecitaMsg'), '#9be8a0', 8000); }   // v360: encontraste al POLACO → radiecita 📻 + grafo
       { const buy = trenGame.purchase; if (buy) { player.coins = Math.max(0, (player.coins || 0) - buy.spent); addItem(buy.item); syncHud(); } }   // v357: el vendedor ambulante
       if (trenGame.done) {
         const ex = trenGame.exitTo; trenGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -4332,6 +4371,7 @@
         subteYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sube_seen'); lsOn('ts_sube_got'); lsOn('ts_sube_charged'); addItem('sube'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterSubte('lavalle', 'street'); return 'Bajaste a la estación Lavalle 🚇'; },
         plazaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterPlaza(); return 'Fuiste a PLAZA DE MAYO 🏛️'; },
         constiYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterConstitucion(); return 'Fuiste a la terminal CONSTITUCIÓN 🚆 (Línea C)'; },
+        calleYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; localStorage.setItem('ts_sat_down', '1'); localStorage.setItem('ts_nivel2_win', '1'); localStorage.setItem('ts_linea_c', '1'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterConstiCalle(); return 'Saliste a la CALLE de Constitución 🚌'; },
         retiroYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterRetiro(); return 'Fuiste a la terminal RETIRO 🚆 (Línea C)'; },
         villaYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); lsOn('ts_en_retiro'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterVilla31(); return 'Fuiste a la VILLA 31 🍲 (comedor + iglesia Mugica)'; },
         trenYa:      () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('La Plata', 'Roca', 'constitucion'); return 'Tomaste el TREN 🚆 a La Plata (Roca)'; },

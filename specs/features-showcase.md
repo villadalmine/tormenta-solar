@@ -174,6 +174,15 @@
   de verdad**: en el comedor **agarrás platos de la olla y servís a la cola de vecinos** (jornada → te pagan una changa),
   y los **kioscos de las terminales te venden un choripán** que después te cura. Todo **data-driven y en el grafo de la
   historia** (sub-modos aislados `js/{constitucion,retiro,villa31}.js`; las personas salen de fichas). Ver `specs/subte.md §11`.
+  **EL MISTERIO DEL POLACO (v360):** cada estación tiene su **linyera propio** con nombre e historia (homenaje al
+  corazón del juego), y una quest de investigación de 3 pasos por el grafo: la Gallega de Retiro te da el caso del
+  Polaco desaparecido → la nota del carrito (custodiado por Firulais) → lo hallás en La Plata escuchando la tormenta
+  por su **radiecita 📻**, que te regala: ítem que **sopla la pista del grafo** donde estés (el motor de hints hecho
+  objeto). 2 NPCs IA nuevos (la Gallega, el Polaco). **CARTELERA EN TIEMPO REAL (v361):** el tablero de salidas usa
+  el **reloj real de Buenos Aires** + frecuencias reales por ramal (DATA) + **estado del servicio con lío** (demoras/
+  obras/robo de cables…) consistente para todos (seed horario vía proxy) y **enchufable a la API real de transporte**
+  (GTFS-RT service alerts, cron listo). **LA CALLE (v362):** bondis con líneas reales que paran y arrancan, canas de
+  ronda, puestos de chori/bondiola/tortafritas/garrapiñada.
   **Y los locales de las terminales tienen FUNCIÓN (v359):** el puesto de **diarios** de Constitución te muestra como
   titular **la pista del grafo** (el motor de hints alimenta el diario — el mundo te cuenta qué hacer sin romper la
   ficción), el **locutorio** te deja escuchar los **rumores del chusmerío vivo** (el mismo bank del proxy), la

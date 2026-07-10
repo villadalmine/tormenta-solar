@@ -24,6 +24,7 @@ let LINYERA_POOL = null, LINYERA_POOL_TS = 0;             // pool de saturación
 // postea acá (POST /precios). Sirve precios → /metrics + /precios, y novedades → /novedades. Sin key en el cliente.
 let OR_PRICES = {}, OR_NEWS = [], OR_TS = 0;   // poblado por el CronWorkflow vía POST /precios (persistido: un deploy no los borra)
 const PRECIOS_STORE = process.env.PRECIOS_STORE || '/data/precios.json';
+const TRENES_STORE = process.env.TRENES_STORE || '/data/trenes-estado.json';   // v361: estado REAL del servicio (si el cron con credenciales lo escribe)
 try { const d = JSON.parse(require('fs').readFileSync(PRECIOS_STORE, 'utf8')); if (d && d.prices) { OR_PRICES = d.prices; OR_NEWS = d.news || []; OR_TS = d.ts || 0; } } catch (e) {}
 // NOTICIAS del CINE (cine-noticias.md): banco de titulares por topic, lo llena un cron (gen-noticias.mjs) que
 // FETCHEA (código, no modelo) y postea acá. El juego lo lee en GET /noticias (pantalla del cine + linyera).
@@ -647,6 +648,27 @@ http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/mundial') {                             // equipos del Mundial → quest de los hinchas
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ equipos: MUNDIAL }));
+  }
+  if (req.method === 'GET' && req.url === '/trenes') {                              // v361: estado del servicio de la red de tren
+    // Fuente: PVC /data/trenes-estado.json (lo escribe gen-trenes-estado.mjs si hay credenciales de la API real
+    // de transporte — GTFS-RT service alerts) o, si no existe/está viejo (>30 min), SIMULADO determinístico por
+    // seed (fecha+hora BsAs + línea): el mismo "lío" para todos los jugadores y para el fallback local del cliente.
+    let estados = null, source = 'simulado';
+    try { const d = JSON.parse(fs.readFileSync(TRENES_STORE, 'utf8'));
+      if (d && d.estados && Date.now() - (d.ts || 0) < 30 * 60 * 1000) { estados = d.estados; source = 'real'; } } catch (e) {}
+    if (!estados) {
+      estados = {};
+      const dt = new Date(Date.now() - 3 * 3600 * 1000);
+      const hk = dt.getUTCFullYear() + '-' + dt.getUTCMonth() + '-' + dt.getUTCDate() + '-' + dt.getUTCHours();
+      for (const linea of ['Roca', 'Mitre', 'San Martín', 'Belgrano Norte']) {
+        let h = 2166136261; const str = hk + '|' + linea;
+        for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+        h = h >>> 0; const roll = h % 100;   // 70% normal · 18% demorado · 8% limitado · 4% suspendido (mismo algoritmo que js/trenes.js)
+        estados[linea] = roll < 70 ? { e: 'normal' } : roll < 88 ? { e: 'demorado', m: h % 6, extra: 8 + (h % 18) } : roll < 96 ? { e: 'limitado', m: h % 6 } : { e: 'suspendido', m: h % 6 };
+      }
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
+    return res.end(JSON.stringify({ ts: Date.now(), source, estados }));
   }
   if (req.method === 'GET' && req.url === '/chusmerio') {                           // banco de frases ambiente (NPCs vivos)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });

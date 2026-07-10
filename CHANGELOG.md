@@ -101,6 +101,46 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v362] — 2026-07-10 — 🚌 LA CALLE de Constitución: bondis, canas y puestos de comida de estación
+- **Sub-modo nuevo `js/consticalle.js`:** la SALIDA del hall (antes "próximamente") ahora sale de verdad a la
+  puerta de la terminal: **fachada** con la puerta grande (volvés por ahí), la **avenida** con el **BONDI vivo**
+  que llega a la parada, para y arranca (cicla por las **líneas reales de Plaza Constitución**: 12, 100, 129,
+  133, 143, 148, cada una con su destino — el chofer te manda al tren, "con la tormenta los bondis van cuando
+  pueden"), la **PARADA** con su cartel, **2 CANAS patrullando** ([E] = 4 frases de cana rotando: "circulando,
+  circulando…"), **palomas**, y **4 PUESTOS de comida bien de estación**: chori 🌭 15, bondiola 🥖 20 (ítem
+  nuevo, heal 35), tortafritas 🫓 8, garrapiñada 🥜 10 (ítem nuevo, heal 10) — patrón sells/purchase.
+- `nearPuesto`/`nearLocal` (acá y en las terminales) ahora eligen el local **MÁS CERCANO**, no el primero del
+  array (dos puestos pegados ya no se roban el [E]). Debug `calleYa` (+ botón). e2e sub-modo completo.
+
+## [v361] — 2026-07-10 — 🕐 CARTELERA de trenes en TIEMPO REAL (reloj BsAs + frecuencias reales + el lío del día)
+- **`js/trenes.js` (módulo aditivo):** el tablero de SALIDAS de Constitución y Retiro se calcula con el **RELOJ
+  REAL de Buenos Aires** (Intl timeZone) + las **frecuencias y ventanas de servicio reales aproximadas** de cada
+  ramal (DATA: La Plata cada 12′ de 04 a 01, Cañuelas cada 60′…): los minutos que ves son los de verdad.
+- **El LÍO del día:** estado del servicio por línea (normal / demorado +X′ / limitado / suspendido) con motivos
+  típicos (accidente en paso a nivel, robo de cables, obras, señales, asamblea, la propia tormenta). Viene de
+  **GET /trenes del proxy** (consistente para todos los jugadores); sin red se simula LOCAL con el **mismo seed
+  horario determinístico** (el mismo quilombo para todos). **Enchufe a la API REAL listo**: si el dueño registra
+  credenciales gratis en apitransporte.buenosaires.gob.ar, el cron `gen-trenes-estado.mjs` baja los service
+  alerts GTFS-RT reales al PVC y el endpoint pasa a `source:'real'` solo.
+- **En el juego:** cartelera colgada sobre las vías (hora + 5 ramales + estado con color + pie con el motivo del
+  lío) + **TICKER de NOTICIAS** (el banco vivo del cine, `window.NOTICIAS`) desfilando bajo los molinetes + el
+  **menú del molinete muestra los minutos** de cada ramal ("La Plata — 3′", "SUSP"). Fallback al cartel simple.
+
+## [v360] — 2026-07-10 — 📻 EL MISTERIO DEL POLACO: cada estación tiene su linyera (y uno desapareció)
+- **Quest de investigación** (`specs/nivel-1/lugares/misterio-polaco.md`, grafo 37 aristas): **la GALLEGA**
+  (la linyera de la bóveda de Retiro, ex enfermera, la memoria de la terminal) te da el CASO: **el POLACO de
+  Constitución faltó a la olla de los jueves — nunca faltó en 20 años**. En su rincón bajo el reloj (carrito +
+  colchón + **FIRULAIS** esperando) encontrás la NOTA: "la tormenta me habla desde la playa de maniobras… me voy
+  a LA PLATA a escucharla". En el **andén de La Plata** lo encontrás: sano, escuchando la tormenta por su
+  **radiecita** — y te la REGALA: ítem 📻 **usable desde [I]: te sopla LA PISTA del grafo donde estés** (kind
+  `hint` nuevo, no se consume; el HintEngine portátil).
+- **Cada estación tiene su linyera propio** (DATA `FLAVORS.liny`): la Turca (Tigre), el Profe (La Plata), el
+  Chispa (Ezeiza), el Vasco (campo), el Flaco (conurbano) — cada uno con su frase; con la quest activa sueltan
+  la pista ("pasó para La Plata"). **2 personas IA nuevas** (fichas → gen-personas): `gallega` y `polaco` (19
+  personas) ⇒ **deploy del proxy**.
+- Flags `ts_polaco_caso/carrito/hallado` + FLAG_SETTERS + historiaState + worldSnapshot (los oráculos saben del
+  misterio). e2e: cadena completa (caso→nota→hallado, one-shots, sin-quest no aparece).
+
 ## [v359] — 2026-07-10 — 📰 Los locales de las terminales tienen FUNCIÓN: diario=pista, locutorio=rumor, librería=Fierro, florería=flores, café=cortado
 - **Constitución:** el puesto de **DIARIOS 📰** te muestra "EL TITULAR DE HOY" = **la pista del grafo** (game.js
   le pasa `HintEngine.next(historiaState())` como `opts.pista`); el **LOCUTORIO 📞** te deja escuchar un **rumor
@@ -124,6 +164,13 @@ El juego es 100% estático; se publica en
 - **Vida de barrio:** 3 vecinos paseando, el perro del barrio, y el **mural "MUGICA VIVE"** en una casa.
 - e2e (`__mandado` quest completa + `__ronda` + fix del test del cura: ahora el 1er [E] da el mandado) + smoke
   verdes. i18n ES≡EN (15 claves). Blog + captura 06 regeneradas. Cache v358. Sin cambios de proxy.
+
+## [infra-72 · proxy 0.2.13] — 2026-07-10 — 🚉 GET /trenes (estado del servicio) + personas gallega/polaco
+- **GET /trenes**: estado del servicio por línea (Roca/Mitre/San Martín/Belgrano Norte) — del PVC si el cron
+  con credenciales reales lo escribió (`source:'real'`), si no simulado determinístico por seed horario (el
+  mismo lío para todos; mismo algoritmo que el fallback local de js/trenes.js). `gen-trenes-estado.mjs` = el
+  enchufe a la API real (apitransporte GTFS-RT service alerts; sin credenciales sale limpio — registrarse es
+  gratis, dominio del dueño). **Personas 19**: + `gallega` + `polaco` (misterio v360).
 
 ## [infra-71 · proxy 0.2.12] — 2026-07-10 — 🔁 Cierre del loop con el repo INFRA: PR automático (A) + hot-add accionable (B)
 - **A (COMPROBADA — PR #1 abierto en villadalmine/infra):** `gen-ia-propose.mjs` = 3er paso del cron diario

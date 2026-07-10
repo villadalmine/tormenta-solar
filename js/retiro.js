@@ -42,19 +42,29 @@ const Retiro = (() => {
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, ramIdx = 0;
     let menuOpen = false, numHeld = {};   // menú de RAMALES del tren (al molinete)
     let fierroIdx = -1;                   // v359: qué verso del Martín Fierro toca
+    // v360 (misterio-polaco.md): la GALLEGA, la linyera de la bóveda. 1er [E] sin caso → te DA el caso
+    // (one-shot casoEdge → game.js aplica polaco_caso); con el caso dado → chat IA (persona gallega).
+    const gallega = { x: 13, y: 6.2 };
+    const polacoStage = opts.polacoStage || null;
+    let casoGiven = !!polacoStage, casoEdgeFlag = false, chatNpc = null;
     setMsg(T('g.retiro.enter'), 6);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
     function solid(px, py) { const tx = Math.floor(px / CS), ty = Math.floor(py / CS); if (tx < 0 || ty < 0 || tx >= W || ty >= H) return true; return map[ty][tx] === 1 || map[ty][tx] === 2; }
     function freeAt(x, y) { const r = player.r; return !solid(x - r, y - r) && !solid(x + r, y - r) && !solid(x - r, y + r) && !solid(x + r, y + r); }
     function near(c, d = 1.5) { return Math.hypot(player.x - (c.x + 0.5) * CS, player.y - (c.y + 0.5) * CS) < CS * d; }
-    function nearLocal() { return LOCALES.find(l => near(l, 1.4)); }
+    function nearLocal() { let best = null, bd = 1e9;   // el MÁS CERCANO (no el primero del array): entre dos locales pegados gana el que tenés al lado
+      for (const l of LOCALES) { const d = Math.hypot(player.x - (l.x + 0.5) * CS, player.y - (l.y + 0.5) * CS); if (d < CS * 1.4 && d < bd) { bd = d; best = l; } } return best; }
 
     function interact() {
       if (near(escalera)) { done = true; exitTo = 'back'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }
       if (near(salida)) { done = true; exitTo = 'villa31'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }   // a la calle → Línea San Martín / Villa 31
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) { menuOpen = !menuOpen; return; }   // molinete → menú de ramales del tren
+      if (near(gallega, 1.7)) {   // v360: la GALLEGA — el caso del Polaco, después chat IA
+        if (!casoGiven) { casoGiven = true; casoEdgeFlag = true; setMsg(T('g.retiro.gallegaCaso'), 9); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }
+        chatNpc = { name: T('g.retiro.gallegaName'), persona: 'gallega' }; return;
+      }
       const loc = nearLocal();
       if (loc && loc.special === 'libro') {   // v359 LIBRERÍA: un verso del Martín Fierro por vez
         fierroIdx = (fierroIdx + 1) % FIERRO.length;
@@ -96,6 +106,7 @@ const Retiro = (() => {
       if (near(escalera)) prompt = T('g.retiro.promptSubte');
       else if (near(salida)) prompt = T('g.retiro.promptCalle');
       else if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = T('g.retiro.promptAnden');
+      else if (near(gallega, 1.7)) prompt = casoGiven ? T('g.retiro.promptGallegaChat') : T('g.retiro.promptGallega');
       else if (nearLocal() && nearLocal().special === 'libro') prompt = T('g.retiro.promptLibro');
       else if (nearLocal() && nearLocal().special === 'flor') prompt = T('g.retiro.promptFlor', { p: 5 });
       else if (nearLocal() && nearLocal().sells) prompt = T('g.retiro.promptBuy_' + nearLocal().sells, { p: nearLocal().price || CHORI_PRICE });
@@ -137,11 +148,16 @@ const Retiro = (() => {
       const hh = t * 0.3, mm = t * 3.6;
       g.beginPath(); g.moveTo(rx, ry - 22); g.lineTo(rx + Math.cos(hh) * 8, ry - 22 + Math.sin(hh) * 8); g.stroke();
       g.beginPath(); g.moveTo(rx, ry - 22); g.lineTo(rx + Math.cos(mm) * 12, ry - 22 + Math.sin(mm) * 12); g.stroke();
-      // cartel de SALIDAS (ramales)
-      const bw = 170, bx = ox + W * CS / 2 - bw / 2, by = oy + (GATE_Y + 0.15) * CS;
-      g.fillStyle = '#0d1017'; g.fillRect(bx, by, bw, 20);
-      g.fillStyle = '#ffcf5b'; g.font = 'bold 11px monospace'; g.textAlign = 'center';
-      g.fillText('▶ ' + RAMALES[ramIdx], bx + bw / 2, by + 14);
+      // cartel de SALIDAS: la CARTELERA en tiempo real (v361) — fallback al cartel rotativo simple
+      if (typeof Trenes !== 'undefined' && Trenes.drawCartelera) {
+        Trenes.drawCartelera(g, ox + W * CS / 2, oy + 1.05 * CS, 'retiro', T, t);
+        Trenes.drawTicker(g, ox + CS, ox + (W - 1) * CS, oy + 4.75 * CS, t, T);   // ticker de NOTICIAS bajo los molinetes
+      } else {
+        const bw = 170, bx = ox + W * CS / 2 - bw / 2, by = oy + (GATE_Y + 0.15) * CS;
+        g.fillStyle = '#0d1017'; g.fillRect(bx, by, bw, 20);
+        g.fillStyle = '#ffcf5b'; g.font = 'bold 11px monospace'; g.textAlign = 'center';
+        g.fillText('▶ ' + RAMALES[ramIdx], bx + bw / 2, by + 14);
+      }
       // LOCALES (mock)
       for (const l of LOCALES) { const lx = ox + l.x * CS, ly = oy + l.y * CS;
         g.fillStyle = '#242a33'; g.fillRect(lx - 16, ly - 14, 34, 30);
@@ -163,6 +179,15 @@ const Retiro = (() => {
       g.fillStyle = '#1f6cb5'; g.beginPath(); g.arc(ox + W * CS / 2 - 66, oy + 5.3 * CS + 12, 9, 0, Math.PI * 2); g.fill();
       g.fillStyle = '#fff'; g.font = 'bold 12px monospace'; g.fillText('C', ox + W * CS / 2 - 66, oy + 5.3 * CS + 16);
       g.fillStyle = '#e8f0ff'; g.font = 'bold 13px monospace'; g.fillText('ESTACIÓN RETIRO', ox + W * CS / 2 + 16, oy + 5.3 * CS + 16);
+      // v360: la GALLEGA bajo la bóveda (manta, pañuelo, su bulto y el termo)
+      { const gx = ox + (gallega.x + 0.5) * CS, gy = oy + (gallega.y + 0.5) * CS;
+        g.fillStyle = '#111'; g.beginPath(); g.ellipse(gx, gy + 9, 9, 3, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#5a4a5a'; g.fillRect(gx - 7, gy - 3, 14, 13);              // manta
+        g.fillStyle = '#d8b89e'; g.beginPath(); g.arc(gx, gy - 8, 5, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#7a3a4a'; g.fillRect(gx - 6, gy - 13, 12, 4);              // pañuelo
+        g.fillStyle = '#4a5a3a'; g.fillRect(gx - 17, gy, 9, 9);                   // el bulto
+        g.fillStyle = '#8a2a2a'; g.fillRect(gx + 9, gy + 1, 4, 7);                // el termo
+        g.fillStyle = '#9fb0c4'; g.font = '8px monospace'; g.textAlign = 'center'; g.fillText(T('g.retiro.gallegaName'), gx, gy - 17); }
       // jugador
       const px = ox + player.x, py = oy + player.y;
       g.fillStyle = '#111'; g.beginPath(); g.ellipse(px, py + 10, 10, 4, 0, 0, Math.PI * 2); g.fill();
@@ -178,7 +203,8 @@ const Retiro = (() => {
         g.strokeStyle = '#c9a24a'; g.lineWidth = 2; g.strokeRect(mx + 0.5, my + 0.5, mw, mh);
         g.fillStyle = '#ffe9b0'; g.font = 'bold 13px monospace'; g.textAlign = 'center'; g.fillText('🚆 ' + T('g.tren.elegir'), mx + mw / 2, my + 22);
         RAMALES.forEach((r, i) => { const ry = my + 40 + i * 24;
-          g.fillStyle = '#e8f0ff'; g.textAlign = 'left'; g.font = '12px monospace'; g.fillText('[' + (i + 1) + ']  ' + r, mx + 24, ry + 4); });
+          g.fillStyle = '#e8f0ff'; g.textAlign = 'left'; g.font = '12px monospace'; g.fillText('[' + (i + 1) + ']  ' + r, mx + 24, ry + 4);
+          if (typeof Trenes !== 'undefined' && Trenes.infoRamal) { g.fillStyle = '#9fb0c4'; g.textAlign = 'right'; g.fillText(Trenes.infoRamal('retiro', r, T), mx + mw - 20, ry + 4); } });
         g.fillStyle = '#8fa8c8'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText(T('g.tren.esc'), mx + mw / 2, my + mh - 8);
       }
       if (prompt) { g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(0, VH - 54, VW, 22); g.fillStyle = '#7ff3ff'; g.font = 'bold 13px monospace'; g.textAlign = 'center'; g.fillText(prompt, VW / 2, VH - 38); }
@@ -188,10 +214,13 @@ const Retiro = (() => {
     return {
       get done() { return done; }, get exitTo() { return exitTo; },
       get purchase() { const p = purchase; purchase = null; return p; },   // KIOSCO: one-shot que game.js lee para cobrar + addItem
+      get casoEdge() { const e = casoEdgeFlag; casoEdgeFlag = false; return e; },      // v360 one-shot: la Gallega te dio el caso
+      get openChatNpc() { const c = chatNpc; chatNpc = null; return c; },              // v360: [E] la Gallega (con caso dado) → chat IA
       update, draw,
       __leave: () => { player.x = (escalera.x + 0.5) * CS; player.y = (escalera.y + 0.5) * CS; interact(); return exitTo; },
       __street: () => { player.x = (salida.x + 0.5) * CS; player.y = (salida.y + 0.5) * CS; interact(); return exitTo; },
       __local: () => { const l = LOCALES.find(x => !x.sells && !x.special); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },
+      __gallega: () => { player.x = (gallega.x + 0.5) * CS; player.y = (gallega.y + 1.2) * CS; interact(); return { caso: casoGiven, chat: chatNpc }; },   // e2e: la Gallega
       __libro: () => { const l = LOCALES.find(x => x.special === 'libro'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return FIERRO[fierroIdx]; },   // e2e: verso del Fierro (crudo, no i18n)
       __flor: () => { const l = LOCALES.find(x => x.special === 'flor'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar flor
       __buyChori: () => { const l = LOCALES.find(x => x.sells === 'chori'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar chori en el kiosco

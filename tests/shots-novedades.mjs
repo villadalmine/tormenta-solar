@@ -74,6 +74,8 @@ try {
   await page.keyboard.down('w'); await page.waitForTimeout(700);  await page.keyboard.up('w');
   await page.keyboard.down('e'); await page.waitForTimeout(150);  await page.keyboard.up('e');
   await page.waitForTimeout(400); await shotCanvas('14-diario');
+  // v362: la CALLE de Constitución (bondis + canas + puestos)
+  await dbg('calleYa'); await page.waitForTimeout(2500); await shotCanvas('16-calle');
   await dbg('retiroYa');  await shotCanvas('05-retiro');
   // v359: caminar a la LIBRERÍA y pedir un verso del Martín Fierro (poco 'w': ni la salida ni el café)
   await page.keyboard.down('a'); await page.waitForTimeout(1400); await page.keyboard.up('a');
@@ -83,6 +85,16 @@ try {
   await dbg('villaYa');   await shotCanvas('06-villa31');
   await dbg('trenYa');    await page.waitForTimeout(1000); await shotCanvas('07-tren-viaje');   // el viaje (paisaje que scrollea)
   await page.waitForTimeout(4200); await shotCanvas('08-tren-anden');                          // el andén de destino
+  // v360: EL POLACO hallado en el andén de La Plata (quest en etapa 'carrito')
+  await page.evaluate(() => { try { localStorage.setItem('ts_polaco_caso', '1'); localStorage.setItem('ts_polaco_carrito', '1'); } catch (e) {} });
+  await dbg('trenYa'); await page.waitForTimeout(800);
+  await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');   // saltear el viaje
+  await page.waitForTimeout(600);
+  await page.keyboard.down('d'); await page.waitForTimeout(1360); await page.keyboard.up('d');
+  await page.keyboard.down('s'); await page.waitForTimeout(280);  await page.keyboard.up('s');
+  await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');   // [E] ¡es el Polaco!
+  await page.waitForTimeout(500); await shotCanvas('17-polaco');
+  await page.evaluate(() => { try { localStorage.removeItem('ts_polaco_caso'); localStorage.removeItem('ts_polaco_carrito'); localStorage.removeItem('ts_polaco_hallado'); } catch (e) {} });
   await dbg('ballesterYa'); await page.waitForTimeout(5000); await shotCanvas('09-ballester');  // Villa Ballester: el maquinista curda
   await dbg('sanmartinYa'); await page.waitForTimeout(5000); await shotCanvas('10-piquete-uba'); // el piquete de la UBA + el Monumental
   await dbg('canchaYa');    await page.waitForTimeout(900);  await shotCanvas('11-monumental');  // adentro del clásico River-Boca

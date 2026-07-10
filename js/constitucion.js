@@ -35,20 +35,32 @@ const Constitucion = (() => {
     let coinsLeft = opts.coins || 0, purchase = null;
     let done = false, exitTo = null, t = 0, msg = '', msgT = 0, prompt = '', escHeld = false, eHeld = false, ramIdx = 0;
     let menuOpen = false, numHeld = {};   // menú de RAMALES del tren (al molinete) → tomás el tren a un destino
+    // v360 (misterio-polaco.md): el RINCÓN del Polaco bajo el reloj — carrito + colchón + FIRULAIS que espera.
+    // Con el caso dado ([E]): encontrás la NOTA (one-shot carritoEdge → polaco_carrito). Sin caso: Firulais gruñe.
+    const rincon = { x: 14.5, y: 6.3 };
+    const polacoStage = opts.polacoStage || null;
+    let carritoFired = polacoStage === 'carrito' || polacoStage === 'hallado', carritoEdgeFlag = false;
     setMsg(T('g.consti.enter'), 6);
 
     function setMsg(s, d = 4) { msg = s; msgT = d; }
     function solid(px, py) { const tx = Math.floor(px / CS), ty = Math.floor(py / CS); if (tx < 0 || ty < 0 || tx >= W || ty >= H) return true; return map[ty][tx] === 1 || map[ty][tx] === 2; }
     function freeAt(x, y) { const r = player.r; return !solid(x - r, y - r) && !solid(x + r, y - r) && !solid(x - r, y + r) && !solid(x + r, y + r); }
     function near(c, d = 1.5) { return Math.hypot(player.x - (c.x + 0.5) * CS, player.y - (c.y + 0.5) * CS) < CS * d; }
-    function nearLocal() { return LOCALES.find(l => near(l, 1.4)); }
+    function nearLocal() { let best = null, bd = 1e9;   // el MÁS CERCANO (no el primero del array): entre dos locales pegados gana el que tenés al lado
+      for (const l of LOCALES) { const d = Math.hypot(player.x - (l.x + 0.5) * CS, player.y - (l.y + 0.5) * CS); if (d < CS * 1.4 && d < bd) { bd = d; best = l; } } return best; }
 
     function interact() {
       if (near(escalera)) { done = true; exitTo = 'back'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }
-      if (near(salida)) { setMsg(T('g.consti.calleSoon'), 5); return; }   // salir a la calle: próximamente
+      if (near(salida)) { done = true; exitTo = 'calle'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }   // v362: salís a la CALLE (bondis/canas/puestos)
       // molinetes del tren: abrís el MENÚ DE RAMALES → tomás el tren del Roca a un destino
       const tx = Math.floor(player.x / CS), ty = Math.floor(player.y / CS);
       if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) { menuOpen = !menuOpen; return; }
+      if (near(rincon, 1.7)) {   // v360: el rincón del Polaco
+        if (polacoStage === 'hallado') { setMsg(T('g.consti.rinconFeliz'), 7); return; }        // Firulais mueve la cola: el Polaco volvió
+        if (polacoStage === 'caso' && !carritoFired) { carritoFired = true; carritoEdgeFlag = true; setMsg(T('g.consti.rinconNota'), 10); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }
+        if (carritoFired) { setMsg(T('g.consti.rinconNota2'), 7); return; }                     // releés la nota: LA PLATA
+        setMsg(T('g.consti.rinconGuard'), 6); return;                                           // sin caso: Firulais no te deja tocar nada
+      }
       const loc = nearLocal();
       if (loc && loc.special === 'pista') {   // v359 DIARIOS: el titular de hoy = LA PISTA del grafo (game.js la pasa)
         setMsg(opts.pista ? T('g.consti.diario', { p: opts.pista }) : T('g.consti.diarioNada'), 8); return; }
@@ -87,6 +99,7 @@ const Constitucion = (() => {
       if (near(escalera)) prompt = T('g.consti.promptSubte');
       else if (near(salida)) prompt = T('g.consti.promptCalle');
       else if (ty <= GATE_Y + 1 && (tx === GATE_GAP || tx === GATE_GAP + 1)) prompt = T('g.consti.promptAnden');
+      else if (near(rincon, 1.7)) prompt = T('g.consti.promptRincon');
       else if (nearLocal() && nearLocal().special === 'pista') prompt = T('g.consti.promptDiario');
       else if (nearLocal() && nearLocal().special === 'rumor') prompt = T('g.consti.promptRumor');
       else if (nearLocal() && nearLocal().sells) prompt = T('g.consti.promptBuy_' + nearLocal().sells, { p: nearLocal().price || CHORI_PRICE });
@@ -127,11 +140,17 @@ const Constitucion = (() => {
       const hh = t * 0.3, mm = t * 3.6;
       g.beginPath(); g.moveTo(rx, ry - 22); g.lineTo(rx + Math.cos(hh) * 8, ry - 22 + Math.sin(hh) * 8); g.stroke();
       g.beginPath(); g.moveTo(rx, ry - 22); g.lineTo(rx + Math.cos(mm) * 12, ry - 22 + Math.sin(mm) * 12); g.stroke();
-      // cartel de SALIDAS (ramales del Roca, van rotando)
-      const bw = 150, bx = ox + W * CS / 2 - bw / 2, by = oy + (GATE_Y + 0.15) * CS;
-      g.fillStyle = '#0d1017'; g.fillRect(bx, by, bw, 20);
-      g.fillStyle = '#ffcf5b'; g.font = 'bold 11px monospace'; g.textAlign = 'center';
-      g.fillText('▶ ' + RAMALES[ramIdx], bx + bw / 2, by + 14);
+      // cartel de SALIDAS: la CARTELERA en tiempo real (v361, js/trenes.js: reloj BsAs + frecuencias reales +
+      // estado del servicio con lío incluido) — con fallback al cartel rotativo simple si el módulo no está
+      if (typeof Trenes !== 'undefined' && Trenes.drawCartelera) {
+        Trenes.drawCartelera(g, ox + W * CS / 2, oy + 1.05 * CS, 'constitucion', T, t);
+        Trenes.drawTicker(g, ox + CS, ox + (W - 1) * CS, oy + 4.75 * CS, t, T);   // ticker de NOTICIAS bajo los molinetes
+      } else {
+        const bw = 150, bx = ox + W * CS / 2 - bw / 2, by = oy + (GATE_Y + 0.15) * CS;
+        g.fillStyle = '#0d1017'; g.fillRect(bx, by, bw, 20);
+        g.fillStyle = '#ffcf5b'; g.font = 'bold 11px monospace'; g.textAlign = 'center';
+        g.fillText('▶ ' + RAMALES[ramIdx], bx + bw / 2, by + 14);
+      }
       // LOCALES (mock)
       for (const l of LOCALES) { const lx = ox + l.x * CS, ly = oy + l.y * CS;
         g.fillStyle = '#242a33'; g.fillRect(lx - 16, ly - 14, 34, 30);
@@ -152,6 +171,20 @@ const Constitucion = (() => {
       g.fillStyle = '#1f6cb5'; g.beginPath(); g.arc(ox + W * CS / 2 - 78, oy + 5.3 * CS + 12, 9, 0, Math.PI * 2); g.fill();
       g.fillStyle = '#fff'; g.font = 'bold 12px monospace'; g.fillText('C', ox + W * CS / 2 - 78, oy + 5.3 * CS + 16);
       g.fillStyle = '#e8f0ff'; g.font = 'bold 13px monospace'; g.fillText('ESTACIÓN CONSTITUCIÓN', ox + W * CS / 2 + 14, oy + 5.3 * CS + 16);
+      // v360: el RINCÓN del Polaco (carrito + colchón + Firulais esperando)
+      { const rx = ox + (rincon.x + 0.5) * CS, ry = oy + (rincon.y + 0.5) * CS;
+        g.fillStyle = '#3a3630'; g.fillRect(rx - 22, ry + 4, 26, 10);             // el colchón
+        g.fillStyle = '#4a453c'; g.fillRect(rx - 20, ry + 2, 22, 4);              // la manta doblada
+        g.fillStyle = '#5a5a62'; g.fillRect(rx + 8, ry - 8, 16, 14);              // el carrito
+        g.strokeStyle = '#8a8a92'; g.lineWidth = 2; g.strokeRect(rx + 8, ry - 8, 16, 14);
+        g.fillStyle = '#222'; g.beginPath(); g.arc(rx + 11, ry + 8, 3, 0, Math.PI * 2); g.arc(rx + 21, ry + 8, 3, 0, Math.PI * 2); g.fill();
+        // FIRULAIS: sentado mirando la entrada, las orejas se mueven — espera
+        const fx = rx - 6, fy = ry - 4;
+        g.fillStyle = '#8a6a3a'; g.fillRect(fx - 6, fy, 12, 8); g.beginPath(); g.arc(fx + 7, fy - 2, 5, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#6a4a2a'; g.fillRect(fx + 4, fy - 8 - (Math.floor(t * 2) % 2), 3, 4); g.fillRect(fx + 9, fy - 8, 3, 4);   // orejas
+        g.fillStyle = '#111'; g.fillRect(fx + 9, fy - 3, 2, 2);
+        if (polacoStage === 'hallado') { g.fillStyle = '#ffe9b0'; g.font = '10px monospace'; g.textAlign = 'center'; g.fillText('♥', fx + 12, fy - 10 - Math.abs(Math.sin(t * 3)) * 3); }
+        g.fillStyle = '#9fb0c4'; g.font = '8px monospace'; g.textAlign = 'center'; g.fillText(T('g.consti.rinconName'), rx, ry - 14); }
       // jugador
       const px = ox + player.x, py = oy + player.y;
       g.fillStyle = '#111'; g.beginPath(); g.ellipse(px, py + 10, 10, 4, 0, 0, Math.PI * 2); g.fill();
@@ -167,7 +200,8 @@ const Constitucion = (() => {
         g.strokeStyle = '#1f6cb5'; g.lineWidth = 2; g.strokeRect(mx + 0.5, my + 0.5, mw, mh);
         g.fillStyle = '#ffe9b0'; g.font = 'bold 13px monospace'; g.textAlign = 'center'; g.fillText('🚆 ' + T('g.tren.elegir'), mx + mw / 2, my + 22);
         RAMALES.forEach((r, i) => { const ry = my + 40 + i * 24;
-          g.fillStyle = '#e8f0ff'; g.textAlign = 'left'; g.font = '12px monospace'; g.fillText('[' + (i + 1) + ']  ' + r, mx + 24, ry + 4); });
+          g.fillStyle = '#e8f0ff'; g.textAlign = 'left'; g.font = '12px monospace'; g.fillText('[' + (i + 1) + ']  ' + r, mx + 24, ry + 4);
+          if (typeof Trenes !== 'undefined' && Trenes.infoRamal) { g.fillStyle = '#9fb0c4'; g.textAlign = 'right'; g.fillText(Trenes.infoRamal('constitucion', r, T), mx + mw - 20, ry + 4); } });
         g.fillStyle = '#8fa8c8'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText(T('g.tren.esc'), mx + mw / 2, my + mh - 8);
       }
       // prompt + msg
@@ -178,11 +212,13 @@ const Constitucion = (() => {
     return {
       get done() { return done; }, get exitTo() { return exitTo; },
       get purchase() { const p = purchase; purchase = null; return p; },   // KIOSCO: one-shot que game.js lee para cobrar + addItem
+      get carritoEdge() { const e = carritoEdgeFlag; carritoEdgeFlag = false; return e; },   // v360 one-shot: la NOTA del carrito
       update, draw,
       __leave: () => { player.x = (escalera.x + 0.5) * CS; player.y = (escalera.y + 0.5) * CS; interact(); return exitTo; },   // e2e: salir al subte
       __local: () => { const l = LOCALES.find(x => !x.sells && !x.special); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },   // e2e: mirar un local mock
       __buyChori: () => { const l = LOCALES.find(x => x.sells === 'chori'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: comprar chori en el kiosco
       __buyCafe: () => { const l = LOCALES.find(x => x.sells === 'cafe'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return purchase; },   // e2e: cortado en el café
+      __rincon: () => { player.x = (rincon.x + 0.5) * CS; player.y = (rincon.y + 1.4) * CS; interact(); return msg; },   // e2e: el rincón del Polaco
       __diario: () => { const l = LOCALES.find(x => x.special === 'pista'); player.x = (l.x + 0.5) * CS; player.y = (l.y + 0.5) * CS; interact(); return msg; },   // e2e: leer el diario (pista)
       __tren: () => { player.x = (GATE_GAP + 0.5) * CS; player.y = (GATE_Y + 1.4) * CS; interact(); menuOpen = false; exitTo = 'tren:' + RAMALES[0]; done = true; return exitTo; },   // e2e: molinete → menú → tomar el tren
     };

@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','retiro.js','villa31.js','tren.js','cancha.js','campana.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','consticalle.js','retiro.js','villa31.js','trenes.js','tren.js','cancha.js','campana.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -552,6 +552,78 @@ if (require.main === module) {
     const reFlorPoor = Retiro.create({ coins: 2 });
     if (reFlorPoor.__flor() !== null) throw new Error('retiro: sin plata la florería NO debería vender');
     ok.push('retiro:ok');
+    // v360 EL MISTERIO DEL POLACO (misterio-polaco.md): la Gallega da el caso → la nota del carrito → hallado en La Plata
+    const reG = Retiro.create({});
+    const g1 = reG.__gallega();
+    if (!g1.caso || g1.chat) throw new Error('gallega: el 1er [E] debería DAR el caso (sin chat): ' + JSON.stringify(g1));
+    if (!reG.casoEdge) throw new Error('gallega: dar el caso debería disparar casoEdge una vez');
+    if (reG.casoEdge) throw new Error('gallega: casoEdge es one-shot');
+    const g2 = reG.__gallega();
+    if (!(g2.chat && g2.chat.persona === 'gallega')) throw new Error('gallega: el 2º [E] debería abrir chat IA: ' + JSON.stringify(g2));
+    const reG2 = Retiro.create({ polacoStage: 'caso' });   // con el caso ya dado, [E] = chat directo
+    if (!(reG2.__gallega().chat)) throw new Error('gallega: con caso dado, [E] debería chatear directo');
+    // el rincón del Polaco en Constitución: sin caso Firulais guarda; con caso, la NOTA (carritoEdge)
+    const coR0 = Constitucion.create({});
+    if (!coR0.__rincon()) throw new Error('rincon: sin caso debería haber flavor de Firulais');
+    if (coR0.carritoEdge) throw new Error('rincon: sin caso NO debería disparar carritoEdge');
+    const coR1 = Constitucion.create({ polacoStage: 'caso' });
+    coR1.__rincon();
+    if (!coR1.carritoEdge) throw new Error('rincon: con el caso, [E] debería encontrar la NOTA (carritoEdge)');
+    if (coR1.carritoEdge) throw new Error('rincon: carritoEdge es one-shot');
+    // en el andén de LA PLATA (flavor ciudad) con stage carrito: el POLACO aparece → halladoEdge → chat
+    const trP = Tren.create({ ramal: 'La Plata', linea: 'Roca', arrived: true, polacoStage: 'carrito' });
+    const p1 = trP.__polaco();
+    if (!p1.hallado) throw new Error('polaco: el 1er [E] debería HALLARLO: ' + JSON.stringify(p1));
+    if (!trP.halladoEdge) throw new Error('polaco: hallarlo debería disparar halladoEdge una vez');
+    if (trP.halladoEdge) throw new Error('polaco: halladoEdge es one-shot');
+    const p2 = trP.__polaco();
+    if (!(p2.chat && p2.chat.persona === 'polaco')) throw new Error('polaco: el 2º [E] debería abrir chat IA: ' + JSON.stringify(p2));
+    // sin la quest, el Polaco NO está en La Plata; y el LINYERA propio del andén sí (con pista si la quest anda)
+    const trP0 = Tren.create({ ramal: 'La Plata', linea: 'Roca', arrived: true });
+    const p0 = trP0.__polaco();
+    if (p0.hallado || p0.chat) throw new Error('polaco: sin quest NO debería estar en el andén');
+    const trL = Tren.create({ ramal: 'Ezeiza', linea: 'Roca', arrived: true });
+    if (!trL.__liny()) throw new Error('tren: el andén debería tener su linyera propio (el Chispa)');
+    const trL2 = Tren.create({ ramal: 'Ezeiza', linea: 'Roca', arrived: true, polacoStage: 'carrito' });
+    if (trL.__liny() === trL2.__liny()) throw new Error('tren: con la quest activa el linyera debería soltar la pista del Polaco');
+    ok.push('misterio-polaco:ok');
+    // v361 TRENES: el tablero en tiempo real (reloj BsAs + frecuencias reales + estado con lío)
+    if (typeof Trenes === 'undefined' || !Trenes.tablero) throw new Error('Trenes no cargó');
+    const tb = Trenes.tablero('constitucion');
+    if (tb.length !== 5) throw new Error('trenes: Constitución debería tener 5 ramales en el tablero: ' + tb.length);
+    for (const row of tb) {
+      if (!['normal', 'demorado', 'limitado', 'suspendido'].includes(row.estado)) throw new Error('trenes: estado inválido: ' + row.estado);
+      if (row.estado !== 'suspendido' && row.mins != null && (row.mins < 1 || row.mins > 200)) throw new Error('trenes: minutos fuera de rango: ' + row.mins);
+      if (row.estado === 'suspendido' && row.mins != null) throw new Error('trenes: suspendido no debería tener minutos');
+    }
+    const tbR = Trenes.tablero('retiro');
+    if (tbR.length !== 5) throw new Error('trenes: Retiro debería tener 5 ramales: ' + tbR.length);
+    if (!tbR.find(r => r.linea === 'San Martín') || !tbR.find(r => r.linea === 'Belgrano Norte')) throw new Error('trenes: Retiro debería tener líneas San Martín y Belgrano Norte');
+    // el estado es DETERMINÍSTICO por hora (mismo lío para todos): dos llamadas seguidas coinciden
+    const e1 = Trenes.estadoDe('Roca'), e2 = Trenes.estadoDe('Roca');
+    if (e1.e !== e2.e) throw new Error('trenes: el estado por seed debería ser estable dentro de la hora');
+    const hs = Trenes.horaStr();
+    if (!(hs.length === 5 && hs[2] === ':')) throw new Error('trenes: horaStr debería ser HH:MM: ' + hs);
+    ok.push('trenes:ok');
+    // v362 LA CALLE DE CONSTITUCIÓN: puerta vuelve a la terminal, puestos venden, el cana atiende, la parada informa
+    if (typeof ConstiCalle === 'undefined' || !ConstiCalle.create) throw new Error('ConstiCalle no cargó');
+    const cc = ConstiCalle.create({ coins: 100 });
+    for (let i = 0; i < 30; i++) { cc.update(0.05); cc.draw(C, 960, 540); }
+    const ccChori = cc.__buy('chori');
+    if (!(ccChori && ccChori.item === 'chori' && ccChori.spent === 15)) throw new Error('ccalle: el puesto debería vender chori: ' + JSON.stringify(ccChori));
+    if (!cc.purchase) throw new Error('ccalle: purchase debería exponerse una vez');
+    if (cc.purchase !== null) throw new Error('ccalle: purchase es one-shot');
+    const ccBond = cc.__buy('bondiola');
+    if (!(ccBond && ccBond.item === 'bondiola' && ccBond.spent === 20)) throw new Error('ccalle: el puesto debería vender bondiola: ' + JSON.stringify(ccBond));
+    if (!cc.__cana()) throw new Error('ccalle: el cana debería atenderte');
+    if (!cc.__parada()) throw new Error('ccalle: la parada debería informar el bondi');
+    if (cc.__volver() !== 'terminal') throw new Error('ccalle: la puerta debería volver a la terminal: ' + cc.exitTo);
+    const ccPoor = ConstiCalle.create({ coins: 2 });
+    if (ccPoor.__buy('tortafrita') !== null) throw new Error('ccalle: sin plata NO debería vender');
+    // la SALIDA de Constitución ahora sale a la calle (exitTo calle)
+    const coCalle = Constitucion.create({});
+    if (coCalle.__street) throw new Error('unexpected');
+    ok.push('consticalle:ok');
     // VILLA 31 (§11 E3/E4): te contratan en el comedor + chat con la referente y el cura (personas comedor/cura)
     if (typeof Villa31 === 'undefined' || !Villa31.create) throw new Error('Villa31 no cargó');
     const vi = Villa31.create({});
@@ -793,7 +865,8 @@ if (require.main === module) {
       won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true,
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
       subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
-      enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, curaBendicion:true, bocaTrapo:true, enCampana:true, dalmineGritado:true };
+      enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, curaBendicion:true, bocaTrapo:true, enCampana:true, dalmineGritado:true,
+      polacoCaso:true, polacoCarrito:true, polacoHallado:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

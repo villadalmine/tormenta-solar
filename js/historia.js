@@ -928,6 +928,88 @@ const Historia = {
         ]
       },
       "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "polaco_caso",
+      "title": "La Gallega te da el caso: el Polaco desapareció",
+      "title_en": "La Gallega gives you the case: el Polaco is missing",
+      "at": "plaza",
+      "pre": {
+        "enRetiro": true
+      },
+      "sets": {
+        "polacoCaso": true
+      },
+      "hints": {
+        "es": [
+          "En Retiro hay alguien que conoce todos los nombres de la terminal.",
+          "Buscá a la GALLEGA, la linyera de la bóveda de Retiro, y hablale [E].",
+          "La Gallega te cuenta: el POLACO de Constitución faltó a la olla de los jueves. Nunca faltó en 20 años.",
+          "Aceptá el caso de la GALLEGA en Retiro [E]: averiguar qué le pasó al POLACO, el linyera de Constitución."
+        ],
+        "en": [
+          "Someone at Retiro knows every name in the terminal.",
+          "Find LA GALLEGA, the homeless woman under Retiro's iron vault, and talk to her [E].",
+          "La Gallega tells you: EL POLACO from Constitución missed Thursday's soup pot. He never missed it in 20 years.",
+          "Take LA GALLEGA's case at Retiro [E]: find out what happened to EL POLACO, Constitución's homeless man."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/misterio-polaco.md"
+    },
+    {
+      "id": "polaco_carrito",
+      "title": "El rincón del Polaco: Firulais, el carrito y la nota",
+      "title_en": "El Polaco's corner: Firulais, the cart and the note",
+      "at": "plaza",
+      "pre": {
+        "polacoCaso": true
+      },
+      "sets": {
+        "polacoCarrito": true
+      },
+      "hints": {
+        "es": [
+          "Todo el que desaparece deja algo atrás. Y alguien que espera.",
+          "En CONSTITUCIÓN, bajo el reloj, está el rincón del Polaco: un perro cuida el carrito.",
+          "Revisá el CARRITO del Polaco [E] en Constitución — Firulais te deja pasar.",
+          "En el carrito hay una NOTA: 'la tormenta me habla desde la playa de maniobras… me voy a LA PLATA a escucharla'."
+        ],
+        "en": [
+          "Everyone who disappears leaves something behind. And someone waiting.",
+          "At CONSTITUCIÓN, under the clock, there's el Polaco's corner: a dog guards the cart.",
+          "Search el Polaco's CART [E] at Constitución — Firulais lets you through.",
+          "Inside the cart there's a NOTE: 'the storm talks to me from the rail yard… I'm off to LA PLATA to listen'."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/misterio-polaco.md"
+    },
+    {
+      "id": "polaco_hallado",
+      "title": "El Polaco aparece en La Plata: la radiecita de la tormenta",
+      "title_en": "El Polaco turns up at La Plata: the little storm radio",
+      "at": "plaza",
+      "pre": {
+        "polacoCarrito": true
+      },
+      "sets": {
+        "polacoHallado": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Las vías siempre llevan a alguna parte. Seguilas.",
+          "Tomá el TREN del Roca a LA PLATA desde Constitución (molinetes [E] → ramal La Plata).",
+          "En el ANDÉN de La Plata hay alguien escuchando una radio vieja entre las estáticas…",
+          "Hablale al POLACO en el andén de La Plata [E]: está sano — y te regala su RADIECITA 📻 (usala con [I]: te sopla la pista)."
+        ],
+        "en": [
+          "The tracks always lead somewhere. Follow them.",
+          "Take the Roca TRAIN to LA PLATA from Constitución (turnstiles [E] → La Plata branch).",
+          "On the La Plata PLATFORM someone is listening to an old radio through the static…",
+          "Talk to EL POLACO on the La Plata platform [E]: he's fine — and he gifts you his RADIO 📻 (use with [I]: it whispers the hint)."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/misterio-polaco.md"
     }
   ]
 };
