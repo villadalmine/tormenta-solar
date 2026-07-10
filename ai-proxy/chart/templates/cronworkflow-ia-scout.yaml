@@ -17,7 +17,7 @@ spec:
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   workflowSpec:
-    entrypoint: gen
+    entrypoint: main
     serviceAccountName: {{ include "tormenta-ai-proxy.fullname" . }}-pool
     activeDeadlineSeconds: 1200
     ttlStrategy:
@@ -34,6 +34,43 @@ spec:
       runAsNonRoot: true
       runAsUser: 1000
     templates:
+      - name: main
+        # REACTIVO (§6): 1º el scout (bench por patrón), 2º el tune (canary → aplicar → verificar punta a punta → rollback)
+        steps:
+          - - name: scout
+              template: gen
+          - - name: tune
+              template: tune
+      - name: tune
+        retryStrategy:
+          limit: "1"
+          retryPolicy: Always
+          backoff: { duration: "60s", maxDuration: "2m" }
+        container:
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "gen-ia-tune.mjs"]
+          env:
+            - name: AI_BASE_URL
+              value: {{ .Values.upstream.baseUrl | default "http://litellm-proxy:4000/v1" | quote }}
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tormenta-ai-proxy.secretName" . }}
+                  key: {{ include "tormenta-ai-proxy.secretKey" . }}
+            - name: PROXY_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}"
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}
+            - name: AUTOTUNE
+              value: {{ .Values.autotune | default "1" | quote }}
+            - name: TUNE_CONSECUTIVE
+              value: "2"
+            - name: TUNE_BASELINE   # el titular confiable que SIEMPRE queda de respaldo en la cadena
+              value: "claude-sonnet"
+          resources:
+            requests: { cpu: 25m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 192Mi }
       - name: gen
         retryStrategy:
           limit: "2"

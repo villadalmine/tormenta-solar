@@ -61,9 +61,27 @@ ser excelente para `banco` y malo para `chat`).
   `TormentaIAFallbackAlto` (warning, fallback_pct ≥ 20 por 15m) · `TormentaIAFallbackCritico` (critical, ≥ 50) ·
   `TormentaIABudgetAgotandose` (warning, paid_used ≥ 80% del cap). Rutea al Telegram existente.
 
+## 6. AUTOTUNE REACTIVO (infra-69, proxy 0.2.4) — "si detecta algo, lo prueba punta a punta y cambia"
+Pedido del dueño (2026-07-10): *"¿puede ser reactivo? si detecta algo, lo prueba punta a punta, si anda y responde,
+con un Argo Workflow cambia."* SÍ — el workflow diario ahora es **scout → tune** (2 pasos):
+
+1. **`gen-ia-tune.mjs`** (2º paso): si el scout encontró un modelo mejor para `chat`, exige que haya APROBADO los
+   últimos **TUNE_CONSECUTIVE=2 scouts** (una corrida buena no alcanza — gemma4-paid un día voló y al otro colgó).
+2. **CANARY** directo AHORA (3 prompts reales contra LiteLLM) — el scout fue a la mañana, esto re-verifica al momento.
+3. **Aplica** el override runtime: `POST /ia-chain {chat:[...], reason}` (GEN_TOKEN) → PVC. `activeChain()` lo usa;
+   el env `AI_MODEL` queda como **baseline intocable** (reset vuelve ahí). La cadena deseada SIEMPRE lleva el titular
+   confiable de respaldo (`TUNE_BASELINE=claude-sonnet`).
+4. **Verificación PUNTA A PUNTA**: 4 requests al **`POST /chat` real del proxy** → ≥3/4 sin fallback ⇒ queda; si no ⇒
+   **ROLLBACK automático** a la cadena anterior. Reporte `{kind:'tune', action: applied|rollback|noop|skip}` en /ia-reports.
+5. **Guardián de 6h**: si `ia-health` da **critical** con un override activo → **auto-reset al baseline** env.
+6. **Aviso**: gauge `tormenta_ia_tune_last_change_ts` + alerta `TormentaIACadenaCambiada` (Telegram, informativa 1h).
+7. **Límites duros**: solo la cadena ANÓNIMA (el premium SUB_* NO se autotunea); solo modelos ya en LiteLLM;
+   `AUTOTUNE=0` (values `autotune`) lo apaga entero; auditable en `GET /ia-chain` (env/override/effective + motivo).
+   Validado punta a punta en local (server real + mock: detecta→canary 3/3→aplica→verifica 4/4→applied; y noop/skip/rollback).
+
 ## 5. Deuda / siguientes
 - El scout podría auto-PROBAR candidatos nuevos de OpenRouter con una key efímera de la provisioning key (hoy solo
   los reporta). — decisión del dueño.
-- Cerrar el loop: botón/endpoint "aplicar recomendación" que edite values-prod + dispare deploy (hoy manual a propósito).
+- ~~Cerrar el loop~~ ✅ HECHO (§6, infra-69): autotune reactivo con canary + verificación punta a punta + rollback.
 - Sumar calidad "en personaje" con un LLM-judge barato (hoy heurísticas: es-castellano, longitud, no-CoT).
 - Matching de precios model_name→id de OpenRouter: hoy es por nombre aproximado y suele dar "$?/M" (p.ej. claude-sonnet→anthropic/claude-sonnet-4.5 no matchea). Un mapa explícito en env lo arregla.

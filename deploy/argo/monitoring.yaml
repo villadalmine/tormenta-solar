@@ -40,6 +40,14 @@ spec:
           annotations:
             summary: '💸 IA del juego: budget pago al {{ $value }}% del tope diario'
             description: 'Se está por agotar PAID_DAILY_CAP (al agotarse los anónimos caen a fallback). Subir el cap o abaratar la cadena. https://llm-tormenta-solar.cybercirujas.club/ia-reports'
+        - alert: TormentaIACadenaCambiada
+          expr: (time() - tormenta_ia_tune_last_change_ts / 1000) < 3600 and tormenta_ia_tune_last_change_ts > 0
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'ℹ️🤖 El AUTOTUNE cambió la cadena de chat (verificada punta a punta)'
+            description: 'Cadena efectiva + motivo: https://llm-tormenta-solar.cybercirujas.club/ia-chain · Historial: /ia-reports (kind tune). Si algo anda mal, el health de 6h revierte solo; para forzar baseline: POST /ia-chain {reset:true}.'
         - alert: TormentaIAHealthViejo
           expr: (time() - tormenta_ia_health_ts / 1000) > 28800
           for: 30m

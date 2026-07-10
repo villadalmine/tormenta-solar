@@ -111,9 +111,18 @@ loadDeployLog();
 const IAREPORTS_STORE = process.env.IAREPORTS_STORE || '/data/ia-reports.json';
 let IA_REPORTS = [];                                // últimos 60 (health + scout)
 let IA_HEALTH = null;                               // el último health → gauges en /metrics → PrometheusRule → Telegram
+let IA_TUNE_TS = 0;                                 // último cambio del override (aplicar o reset) → alerta informativa
 function loadIaReports() { try { const d = JSON.parse(fs.readFileSync(IAREPORTS_STORE, 'utf8')); if (Array.isArray(d)) { IA_REPORTS = d; IA_HEALTH = d.filter(x => x.kind === 'health').pop() || null; } } catch (e) {} }
 function saveIaReports() { try { fs.mkdirSync(IAREPORTS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(IAREPORTS_STORE, JSON.stringify(IA_REPORTS)); } catch (e) { console.error('ia-reports save:', e.message); } }
 loadIaReports();
+// AUTOTUNE (specs/ia-costos.md §6): override RUNTIME de la cadena ANÓNIMA del chat, aplicado por el workflow
+// ia-tune (scout→canary→aplicar→verificar punta a punta→rollback si falla). El env AI_MODEL queda como BASELINE
+// (reset vuelve ahí). NO toca SUB_MODELS/SUB_OR_MODELS (el premium del dueño no se autotunea).
+const IACHAIN_STORE = process.env.IACHAIN_STORE || '/data/ia-chain.json';
+let IA_CHAIN = null;                                // { chat:[...], reason, ts, prev:[...] } | null = usar env
+function loadIaChain() { try { const d = JSON.parse(fs.readFileSync(IACHAIN_STORE, 'utf8')); if (d && Array.isArray(d.chat) && d.chat.length) IA_CHAIN = d; } catch (e) {} }
+function saveIaChain() { try { fs.mkdirSync(IACHAIN_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); if (IA_CHAIN) fs.writeFileSync(IACHAIN_STORE, JSON.stringify(IA_CHAIN)); else { try { fs.unlinkSync(IACHAIN_STORE); } catch (e) {} } } catch (e) { console.error('ia-chain save:', e.message); } }
+loadIaChain();
 // ── CHECKPOINTS por nick (guardar-partida.md F3): el último hito de tu partida viaja entre dispositivos.
 // Mismo patrón que barrio-mem: banco PVC + LRU + anti-spam. Cap 32KB por snapshot, 500 nicks (~16MB máx).
 const CHECKPOINT_STORE = process.env.CHECKPOINT_STORE || '/data/checkpoints.json';
@@ -486,6 +495,7 @@ function buildChain() {
   return [...free.slice(0, nFree), ...paid.slice(0, nPaid)].slice(0, CHAIN_MAX);
 }
 function activeChain() {                                              // la que usa ask()
+  if (IA_CHAIN && IA_CHAIN.chat && IA_CHAIN.chat.length) return IA_CHAIN.chat;   // AUTOTUNE: override runtime (verificado punta a punta por ia-tune)
   if (!AUTOPILOT) return MODELS;                                      // override: cadena estática AI_MODEL
   const now = Date.now();
   if (!_chain || now - _chainTs > CHAIN_TTL) { _chain = buildChain(); _chainTs = now; }   // histéresis
@@ -910,7 +920,7 @@ http.createServer((req, res) => {
     let pb = ''; req.on('data', c => { pb += c; if (pb.length > 200000) req.destroy(); });
     req.on('end', () => { try {
       const d = JSON.parse(pb || '{}');
-      if (d.kind !== 'health' && d.kind !== 'scout') { res.writeHead(400); return res.end('bad kind'); }
+      if (d.kind !== 'health' && d.kind !== 'scout' && d.kind !== 'tune') { res.writeHead(400); return res.end('bad kind'); }
       d.ts = d.ts || Date.now();
       IA_REPORTS.push(d); IA_REPORTS = IA_REPORTS.slice(-60); saveIaReports();
       if (d.kind === 'health') IA_HEALTH = d;
@@ -922,6 +932,28 @@ http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/ia-reports') {                           // historial salud+scout (sin secretos)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ reports: IA_REPORTS }));
+  }
+  // AUTOTUNE (§6): aplicar/resetear el override de la cadena anónima (GEN_TOKEN; lo usa el workflow ia-tune).
+  if (req.method === 'POST' && req.url === '/ia-chain') {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 4000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}');
+      if (d.reset) { const prev = IA_CHAIN; IA_CHAIN = null; saveIaChain(); IA_TUNE_TS = Date.now();
+        console.log('[ia-chain] RESET → baseline env', MODELS.join(','), d.reason ? '(' + d.reason + ')' : '');
+        res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: true, effective: activeChain(), prev: prev && prev.chat })); }
+      const chat = Array.isArray(d.chat) ? d.chat.map(x => String(x).trim()).filter(x => /^[\w\/.:-]{2,64}$/.test(x)).slice(0, 4) : [];
+      if (!chat.length) { res.writeHead(400); return res.end('bad chain'); }
+      IA_CHAIN = { chat, reason: String(d.reason || '').slice(0, 200), ts: Date.now(), prev: activeChain() };
+      saveIaChain(); IA_TUNE_TS = IA_CHAIN.ts;
+      console.log('[ia-chain] override →', chat.join(','), '(', IA_CHAIN.reason, ')');
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, effective: activeChain() }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.method === 'GET' && req.url === '/ia-chain') {                              // cadena efectiva + override (auditable)
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ env: MODELS, override: IA_CHAIN, effective: activeChain() }));
   }
   // CHECKPOINTS por nick (guardar-partida.md F3): leer / subir el último hito de tu partida.
   if (req.method === 'GET' && req.url.startsWith('/checkpoint')) {
@@ -1058,6 +1090,8 @@ http.createServer((req, res) => {
         `# HELP tormenta_ia_health_paid_used_pct Budget pago usado del día (%%)\n# TYPE tormenta_ia_health_paid_used_pct gauge\ntormenta_ia_health_paid_used_pct ${(IA_HEALTH.day && IA_HEALTH.day.paidUsedPct) || 0}\n` +
         `# HELP tormenta_ia_health_est_cost_usd Gasto estimado del día (pool compartido, US$)\n# TYPE tormenta_ia_health_est_cost_usd gauge\ntormenta_ia_health_est_cost_usd ${(IA_HEALTH.day && IA_HEALTH.day.estCostUsd) || 0}\n` +
         `# HELP tormenta_ia_health_ts Timestamp del último health\n# TYPE tormenta_ia_health_ts gauge\ntormenta_ia_health_ts ${IA_HEALTH.ts || 0}\n` : '') +
+      `# HELP tormenta_ia_chain_override Override runtime de la cadena de chat activo (0=baseline env)\n# TYPE tormenta_ia_chain_override gauge\ntormenta_ia_chain_override ${IA_CHAIN ? 1 : 0}\n` +
+      `# HELP tormenta_ia_tune_last_change_ts Último cambio del autotune (ms epoch)\n# TYPE tormenta_ia_tune_last_change_ts gauge\ntormenta_ia_tune_last_change_ts ${IA_TUNE_TS || (IA_CHAIN && IA_CHAIN.ts) || 0}\n` +
       `# HELP tormenta_ai_latency_ms_avg Latencia media (ms) de las respuestas con IA\n# TYPE tormenta_ai_latency_ms_avg gauge\ntormenta_ai_latency_ms_avg ${avg.toFixed(0)}\n`;
     // chat_total etiquetado: qué modelo/backend/resultado por uso
     out += `# HELP tormenta_ai_chat_total Usos del chat por modelo/backend/resultado\n# TYPE tormenta_ai_chat_total counter\n`;

@@ -63,6 +63,19 @@ const report = {
 
 console.error(`health: ${verdict} · chats=${total} fallback=${fallbackPct}% · pago=${now.paidToday}/${now.paidCap} (${paidUsedPct}%) ≈ US$${estCost}`);
 
+// GUARDIÁN del autotune (§6): si la salud es CRÍTICA y hay un override de cadena activo → rollback al baseline
+// env (la cadena conocida-buena de values-prod). Reactivo también para deshacer.
+if (verdict === 'critical' && POST_URL && TOKEN && !/^(0|false|off)$/i.test(process.env.AUTOTUNE || '1')) {
+  try {
+    const ch = await (await fetch(POST_URL.replace(/\/ia-report$/, '/ia-chain'))).json();
+    if (ch.override) {
+      const rb = await fetch(POST_URL.replace(/\/ia-report$/, '/ia-chain'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-gen-token': TOKEN }, body: JSON.stringify({ reset: true, reason: 'auto-rollback del health: salud crítica con override activo' }) });
+      report.note += ' · AUTO-ROLLBACK del override de cadena → baseline env (' + (rb.ok ? 'hecho' : 'FALLÓ') + ')';
+      console.error('⛑️ auto-rollback del override →', rb.status);
+    }
+  } catch (e) { console.error('rollback check:', e.message); }
+}
+
 if (POST_URL && TOKEN) {
   const res = await fetch(POST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-gen-token': TOKEN }, body: JSON.stringify(report) });
   console.error('POST', POST_URL, '->', res.status);

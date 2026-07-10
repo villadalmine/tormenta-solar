@@ -101,6 +101,19 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-69 · proxy 0.2.4] — 2026-07-10 — 🤖⚙️ AUTOTUNE REACTIVO: detecta → prueba punta a punta → cambia (con rollback)
+- **Pedido del dueño:** *"¿puede ser reactivo? si detecta algo lo prueba punta a punta, si anda y responde, con un
+  Argo Workflow cambia."* El workflow diario ahora es **scout → tune** (2 pasos, mismo CronWorkflow).
+- **`gen-ia-tune.mjs`:** candidato aprobado en **2 scouts seguidos** → **canary** directo ahora (3/3) → aplica el
+  **override runtime** (`POST /ia-chain`, PVC; el env AI_MODEL queda de baseline; el titular confiable siempre de
+  respaldo) → **verifica por el /chat REAL** (≥3/4 sin fallback) → si falla, **ROLLBACK automático**. Todo en
+  /ia-reports (`kind:tune`) + `GET /ia-chain` (env/override/effective + motivo).
+- **Guardián:** el health de 6h hace **auto-reset al baseline** si detecta salud crítica con override activo.
+  Alerta informativa `TormentaIACadenaCambiada` → Telegram. **Límites:** solo la cadena anónima (el premium SUB_*
+  no se autotunea) · solo modelos ya en LiteLLM · `AUTOTUNE=0` lo apaga.
+- Validado punta a punta en local (server real + mock LiteLLM: detecta → canary 3/3 → aplica → verifica 4/4 →
+  `applied`, auditado). specs/ia-costos.md §6.
+
 ## [infra-68 · proxy 0.2.0] — 2026-07-10 — 🩺💸 IA/COSTOS: salud cada 6h + scout diario de modelos (patrones por uso)
 - **Pedido del dueño:** *"un cron cada 6h para ver cómo va por si hay que corregir, y uno diario para aprender qué
   modelos están bien y baratos — con los estándares para que cada NPC/cartel/chat/estático/cine funcione; definir
