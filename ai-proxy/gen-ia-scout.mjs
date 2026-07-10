@@ -102,7 +102,7 @@ const rank = {}; const recs = [];
 for (const pat in PATTERNS) {
   rank[pat] = models.map(m => ({ model: m, ...results[m][pat] })).filter(x => x.pass).sort((a, b) => b.score - a.score);
   const best = rank[pat][0];
-  recs.push(pat + ': ' + (best ? `#1 ${best.model} (p95 ${best.p95Ms}ms, $${best.priceUsdM == null ? '?' : best.priceUsdM}/M)` : 'NINGUNO aprobó — revisar'));
+  recs.push(pat + ': ' + (best ? `#1 ${best.model} (p95 ${best.p95Ms}ms, $${best.priceUsdM == null ? '?' : best.priceUsdM}/M)` : 'ninguno pasó el estándar HOY en el bench (la cadena activa sigue igual; el estado real está en el health)'));
 }
 // candidatos nuevos del catálogo OR: baratos (<$1/M) que NO están en el pool
 const newbies = Object.entries(orPrices)

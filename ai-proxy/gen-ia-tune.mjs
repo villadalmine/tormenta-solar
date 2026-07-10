@@ -46,7 +46,7 @@ function consistent(pat) {
 
 // ---- CHAT: canary → aplicar → verificar por el /chat REAL → rollback si falla -------------------------------
 const chatCands = consistent('chat');
-if (!chatCands.length) { out.chat.why = scouts.length < CONSEC ? 'historial insuficiente' : 'nadie aprobó ' + CONSEC + ' scouts seguidos'; }
+if (!chatCands.length) { out.chat.why = scouts.length < CONSEC ? 'sin cambios: falta historial (' + scouts.length + '/' + CONSEC + ' scouts)' : 'sin cambios — la cadena actual sigue andando; ningún candidato NUEVO aprobó ' + CONSEC + ' scouts seguidos'; }
 else {
   const top = chatCands.sort((a, b) => b.score - a.score)[0];
   const current = chains.effective || [];
@@ -77,7 +77,7 @@ else {
 
 // ---- GEN (niveles/tiendas/historias/mundo-ai): canary JSON fresco → aplicar ---------------------------------
 const genCands = consistent('gen');
-if (!genCands.length) { out.gen.why = 'sin candidato consistente'; }
+if (!genCands.length) { out.gen.why = 'sin cambios — sin candidato nuevo consistente'; }
 else {
   const top = genCands.sort((a, b) => b.score - a.score)[0];
   const curGen = chains.effectiveGen || [];
@@ -95,7 +95,7 @@ else {
 
 // ---- BANCO (carteles/cine/noticias/chusmerío/pool): EL MÁS BARATO que apruebe → canary → aplicar -------------
 const banCands = consistent('banco');
-if (!banCands.length) { out.banco.why = 'sin candidato consistente'; }
+if (!banCands.length) { out.banco.why = 'sin cambios — sin candidato nuevo consistente'; }
 else {
   // el patrón banco pesa PRECIO primero (null/desconocido al final), después score
   const top = banCands.sort((a, b) => ((a.priceUsdM == null ? 99 : a.priceUsdM) - (b.priceUsdM == null ? 99 : b.priceUsdM)) || (b.score - a.score))[0];
