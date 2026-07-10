@@ -88,6 +88,25 @@ con un Argo Workflow cambia."* SÍ — el workflow diario ahora es **scout → t
    `AUTOTUNE=0` (values `autotune`) lo apaga entero; auditable en `GET /ia-chain` (env/override/effective + motivo).
    Validado punta a punta en local (server real + mock: detecta→canary 3/3→aplica→verifica 4/4→applied; y noop/skip/rollback).
 
+## 7. CIERRE DEL LOOP con el REPO INFRA (infra-71) — "detecta → PR → aprobás → el autotune lo adopta"
+Pedido del dueño: *"hagamos A (PR GitOps), y mantengamos B (hot-add) como opción accionable desde Argo Workflow"*.
+La config de LiteLLM vive en **villadalmine/infra** (`roles/install-litellm-proxy/tasks/main.yml`, ConfigMap
+embebido; se aplica con `ansible-playbook playbooks/bootstrap.yml --tags ai-litellm-proxy`; el role fuerza el
+rollout). LiteLLM corre **SIN DB**.
+
+- **A — `gen-ia-propose.mjs` (COMPROBADO: PR #1 abierto):** 3er paso del cron diario (scout→tune→**propose**) y
+  también accionable a mano (`WorkflowTemplate tormenta-ia-propose`, params `model_id`/`model_alias`; sin params =
+  AUTO con el mejor `paraAgregar` del último scout). Por **API REST de GitHub** (el pod no tiene git): lee el
+  archivo, inserta el bloque tras el ancla `model_list:` (indent del ConfigMap), crea branch `ia/add-<alias>`,
+  commit y **PR** con precio/origen/instrucciones de aplicar. **Dedup**: no propone si el modelo ya está en LiteLLM
+  (vía /ia-models, matcheo normalizado) ni si ya hay PR abierto de esa rama. Secret: `github-pr-token` (ns ai,
+  token gh scope repo). Tras el merge+ansible, el scout de la mañana lo bencha y el **autotune lo adopta solo si
+  aprueba** (§6) — el círculo completo con el dueño como único punto de aprobación.
+- **B — `gen-ia-modeladd.mjs` (accionable, HOY bloqueada por infra):** `WorkflowTemplate tormenta-ia-model-add`
+  → LiteLLM `POST /model/new` (master key) para probar EN CALIENTE sin merge + smoke. **Comprobado 2026-07-10: el
+  LiteLLM actual (sin DB) devuelve 500 "No DB Connected"** → para activarla hay que darle DB a LiteLLM
+  (`store_model_in_db`, dominio del dueño). Aunque ande, NO persiste reinicios: lo durable siempre es la A.
+
 ## 5. Deuda / siguientes
 - El scout podría auto-PROBAR candidatos nuevos de OpenRouter con una key efímera de la provisioning key (hoy solo
   los reporta). — decisión del dueño.

@@ -1,0 +1,77 @@
+# WorkflowTemplates ACCIONABLES del cierre de loop IA (specs/ia-costos.md §7) — se disparan a mano
+# (argo submit --from workflowtemplate/... -p ...) o desde la UI de Argo. Aplicar: kubectl apply -f este archivo.
+#
+#   A) tormenta-ia-propose  → abre un PR al repo INFRA (villadalmine/infra) agregando el modelo al model_list
+#      de LiteLLM (GitOps: el dueño aprueba y aplica con ansible --tags ai-litellm-proxy). Modo AUTO sin params.
+#   B) tormenta-ia-model-add → lo agrega a LiteLLM EN CALIENTE (/model/new, master key) para PROBARLO YA.
+#      ⚠️ COMPROBADO 2026-07-10: el LiteLLM actual corre SIN DB → devuelve 500 'No DB Connected'. Para activar
+#      esta opción hay que darle DB a LiteLLM (store_model_in_db, dominio del dueño). Mientras: usar la A.
+#
+# Secrets: github-pr-token (key: token — gh token con scope repo) · tormenta-ai-key (key: apiKey — master key).
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: tormenta-ia-propose
+  namespace: ai
+spec:
+  entrypoint: propose
+  serviceAccountName: tormenta-ai-proxy-pool
+  activeDeadlineSeconds: 300
+  ttlStrategy: { secondsAfterCompletion: 86400 }
+  podGC: { strategy: OnWorkflowCompletion }
+  nodeSelector: { storage: rk1-longhorn }
+  arguments:
+    parameters:
+      - { name: model_id, value: "" }     # vacío = AUTO (el mejor candidato del último scout)
+      - { name: model_alias, value: "" }  # vacío = derivado del model_id
+  templates:
+    - name: propose
+      container:
+        image: ghcr.io/villadalmine/tormenta-ai-proxy:0.2.12
+        command: ["node", "gen-ia-propose.mjs"]
+        env:
+          - name: GH_TOKEN
+            valueFrom: { secretKeyRef: { name: github-pr-token, key: token } }
+          - name: PROXY_URL
+            value: "http://tormenta-ai-proxy"
+          - name: MODEL_ID
+            value: "{{workflow.parameters.model_id}}"
+          - name: MODEL_ALIAS
+            value: "{{workflow.parameters.model_alias}}"
+        resources:
+          requests: { cpu: 25m, memory: 48Mi }
+          limits: { cpu: 200m, memory: 128Mi }
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: tormenta-ia-model-add
+  namespace: ai
+spec:
+  entrypoint: add
+  serviceAccountName: tormenta-ai-proxy-pool
+  activeDeadlineSeconds: 180
+  ttlStrategy: { secondsAfterCompletion: 86400 }
+  podGC: { strategy: OnWorkflowCompletion }
+  nodeSelector: { storage: rk1-longhorn }
+  arguments:
+    parameters:
+      - { name: model_id, value: "" }     # obligatorio: id de OpenRouter (ej deepseek/deepseek-v4-mini)
+      - { name: model_alias, value: "" }  # obligatorio: model_name en LiteLLM
+  templates:
+    - name: add
+      container:
+        image: ghcr.io/villadalmine/tormenta-ai-proxy:0.2.12
+        command: ["node", "gen-ia-modeladd.mjs"]
+        env:
+          - name: AI_BASE_URL
+            value: "http://litellm-proxy.ai.svc.cluster.local:4000/v1"
+          - name: AI_API_KEY
+            valueFrom: { secretKeyRef: { name: tormenta-ai-key, key: apiKey } }
+          - name: MODEL_ID
+            value: "{{workflow.parameters.model_id}}"
+          - name: MODEL_ALIAS
+            value: "{{workflow.parameters.model_alias}}"
+        resources:
+          requests: { cpu: 25m, memory: 48Mi }
+          limits: { cpu: 200m, memory: 128Mi }

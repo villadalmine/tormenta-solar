@@ -101,6 +101,18 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-71 · proxy 0.2.12] — 2026-07-10 — 🔁 Cierre del loop con el repo INFRA: PR automático (A) + hot-add accionable (B)
+- **A (COMPROBADA — PR #1 abierto en villadalmine/infra):** `gen-ia-propose.mjs` = 3er paso del cron diario
+  (scout→tune→propose) + `WorkflowTemplate tormenta-ia-propose` a mano. Si el scout encuentra un modelo NUEVO
+  barato del catálogo, abre un **PR al repo infra** insertando el bloque en el model_list del role de LiteLLM
+  (API REST de GitHub, ancla `model_list:`, dedup por /ia-models + PRs abiertos, secret `github-pr-token`).
+  El PR trae precio/origen/cómo aplicar (`ansible --tags ai-litellm-proxy`); tras merge+apply, el scout lo bencha
+  y el autotune lo adopta SOLO si aprueba — el dueño queda como único punto de aprobación.
+- **B (accionable, hoy bloqueada por infra):** `WorkflowTemplate tormenta-ia-model-add` → LiteLLM `/model/new`
+  en caliente + smoke. Comprobado: el LiteLLM actual corre SIN DB → 500 "No DB Connected"; para activarla, darle
+  DB (`store_model_in_db`, dominio del dueño). Igual sería efímera (no persiste reinicios): lo durable es la A.
+- WorkflowTemplates aplicados (`deploy/argo/workflowtemplate-ia.yaml`). specs/ia-costos.md §7.
+
 ## [infra-70 · proxy 0.2.5] — 2026-07-10 — 🤖📄 Autotune MULTI-PATRÓN (carteles/cine/gen incluidos) + página /info/ia.html
 - **Pedido del dueño:** *"tené en cuenta los otros flujos: carteles, cine, los chats estáticos por cron"* + *"¿los
   reportes se pueden publicar en la página, una nueva que itere por día?"*

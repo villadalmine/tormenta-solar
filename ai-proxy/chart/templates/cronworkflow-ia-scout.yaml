@@ -41,6 +41,8 @@ spec:
               template: gen
           - - name: tune
               template: tune
+          - - name: propose   # §7 opción A: si el scout encontró candidatos NUEVOS del catálogo → PR al repo infra (dedup por rama)
+              template: propose
       - name: tune
         retryStrategy:
           limit: "1"
@@ -73,6 +75,29 @@ spec:
           resources:
             requests: { cpu: 25m, memory: 64Mi }
             limits: { cpu: 250m, memory: 192Mi }
+      - name: propose
+        retryStrategy:
+          limit: "1"
+          retryPolicy: Always
+          backoff: { duration: "30s", maxDuration: "2m" }
+        container:
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "gen-ia-propose.mjs"]
+          env:
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-pr-token
+                  key: token
+                  optional: true   # sin el secret, el paso sale con error suave (no rompe el cron)
+            - name: PROXY_URL
+              value: "http://{{ include "tormenta-ai-proxy.fullname" . }}"
+            - name: GEN_TOKEN
+              value: {{ .Values.linyeraPool.genToken | quote }}
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 200m, memory: 128Mi }
       - name: gen
         retryStrategy:
           limit: "2"
