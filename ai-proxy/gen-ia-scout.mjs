@@ -64,7 +64,12 @@ async function askModel(model, sys, user, maxTokens, timeoutMs) {
 // modelos del pool del dueño (LiteLLM sabe la verdad)
 const lm = await fetch(AI_BASE + '/models', { headers: { Authorization: 'Bearer ' + AI_KEY } });
 if (!lm.ok) { console.error('litellm /models', lm.status); process.exit(1); }
-let models = ((await lm.json()).data || []).map(m => m.id).filter(id => !EXCLUDE.test(id)).slice(0, MAX_MODELS);
+// CHAIN_HINT = los modelos de las cadenas ACTIVAS (AI_MODEL/SUB_MODELS) — van PRIMERO: el titular se benchmarkea
+// SIEMPRE aunque el pool tenga más de MAX_MODELS (1er scout real: claude-sonnet quedó fuera del slice ciego).
+const HINT = (process.env.CHAIN_HINT || '').split(',').map(x => x.trim()).filter(Boolean);
+let models = ((await lm.json()).data || []).map(m => m.id).filter(id => !EXCLUDE.test(id));
+models.sort((a, b) => (HINT.includes(b) ? 1 : 0) - (HINT.includes(a) ? 1 : 0));
+models = [...new Set([...HINT.filter(h => models.includes(h)), ...models])].slice(0, MAX_MODELS);
 console.error('candidatos:', models.join(', '));
 
 // precios del catálogo OR (el cron `precios` los dejó en el proxy) — best-effort para el score

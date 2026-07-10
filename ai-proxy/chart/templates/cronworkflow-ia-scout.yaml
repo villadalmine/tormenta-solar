@@ -57,6 +57,8 @@ spec:
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/precios"
             - name: GEN_TOKEN
               value: {{ .Values.linyeraPool.genToken | quote }}
+            - name: CHAIN_HINT   # las cadenas activas se benchmarkean SIEMPRE (titular primero)
+              value: "{{ .Values.upstream.model }},claude-sonnet,gemma4-paid,cheap,gemma4-free"
           resources:
             requests: { cpu: 25m, memory: 64Mi }
             limits: { cpu: 250m, memory: 192Mi }
