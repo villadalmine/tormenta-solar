@@ -6,7 +6,13 @@ const POST_URL = process.env.CARTELES_POST_URL || '';
 const TOKEN = process.env.GEN_TOKEN || '';
 const AI_BASE = (process.env.AI_BASE_URL || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
 const AI_KEY = (process.env.AI_API_KEY || process.env.AI_KEY || '').trim();
-const MODEL = process.env.CARTELES_MODEL || 'gemma4-paid';
+let MODEL = process.env.CARTELES_MODEL || 'gemma4-paid';
+// AUTOTUNE banco (specs/ia-costos.md §6): si el tuner eligió un modelo para el patrón `banco`, usarlo.
+// ADITIVO: si el proxy no responde o no hay override → queda el env de siempre. IA_CHAIN_URL viene del chart.
+try { const _c = await (await fetch(process.env.IA_CHAIN_URL || 'http://tormenta-ai-proxy/ia-chain')).json();
+  if (_c && Array.isArray(_c.effectiveBanco) && _c.effectiveBanco[0]) { MODEL = _c.effectiveBanco[0]; console.error('modelo banco por autotune:', MODEL); }
+} catch (e) {}
+
 const FLOORS = ['carteles-1', 'carteles-2'];
 const PER_FLOOR = +(process.env.CARTELES_AI_PER_FLOOR || 4);   // cuántos intenta por piso (el server igual capa al 30%)
 

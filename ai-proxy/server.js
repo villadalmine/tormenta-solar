@@ -120,7 +120,7 @@ loadIaReports();
 // (reset vuelve ahí). NO toca SUB_MODELS/SUB_OR_MODELS (el premium del dueño no se autotunea).
 const IACHAIN_STORE = process.env.IACHAIN_STORE || '/data/ia-chain.json';
 let IA_CHAIN = null;                                // { chat:[...], reason, ts, prev:[...] } | null = usar env
-function loadIaChain() { try { const d = JSON.parse(fs.readFileSync(IACHAIN_STORE, 'utf8')); if (d && Array.isArray(d.chat) && d.chat.length) IA_CHAIN = d; } catch (e) {} }
+function loadIaChain() { try { const d = JSON.parse(fs.readFileSync(IACHAIN_STORE, 'utf8')); if (d && ((Array.isArray(d.chat) && d.chat.length) || (Array.isArray(d.gen) && d.gen.length) || (Array.isArray(d.banco) && d.banco.length))) IA_CHAIN = d; } catch (e) {} }
 function saveIaChain() { try { fs.mkdirSync(IACHAIN_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); if (IA_CHAIN) fs.writeFileSync(IACHAIN_STORE, JSON.stringify(IA_CHAIN)); else { try { fs.unlinkSync(IACHAIN_STORE); } catch (e) {} } } catch (e) { console.error('ia-chain save:', e.message); } }
 loadIaChain();
 // ── CHECKPOINTS por nick (guardar-partida.md F3): el último hito de tu partida viaja entre dispositivos.
@@ -551,7 +551,8 @@ async function ask(messages, opts = {}) {
   const base = direct ? OR_BASE : BASE;
   const authKey = direct ? opts.orKey : KEY;
   // gen (contenido del dueño): cadena de PAGO confiable directa (sin los free lentos que se comían el tiempo)
-  const chain = direct ? SUB_OR_MODELS : (opts.gen ? GEN_MODELS : (opts.sub ? SUB_MODELS : activeChain()));
+  const genChain = (IA_CHAIN && IA_CHAIN.gen && IA_CHAIN.gen.length) ? IA_CHAIN.gen : GEN_MODELS;   // autotune del patrón gen (specs/ia-costos.md §6)
+  const chain = direct ? SUB_OR_MODELS : (opts.gen ? genChain : (opts.sub ? SUB_MODELS : activeChain()));
   for (const model of chain) {                           // cadena: si el 1º no contesta, prueba el 2º
     const left = deadline - Date.now();
     if (left <= 500) break;                              // sin tiempo → cortar y caer a la línea temática
@@ -942,18 +943,24 @@ http.createServer((req, res) => {
       if (d.reset) { const prev = IA_CHAIN; IA_CHAIN = null; saveIaChain(); IA_TUNE_TS = Date.now();
         console.log('[ia-chain] RESET → baseline env', MODELS.join(','), d.reason ? '(' + d.reason + ')' : '');
         res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: true, effective: activeChain(), prev: prev && prev.chat })); }
-      const chat = Array.isArray(d.chat) ? d.chat.map(x => String(x).trim()).filter(x => /^[\w\/.:-]{2,64}$/.test(x)).slice(0, 4) : [];
-      if (!chat.length) { res.writeHead(400); return res.end('bad chain'); }
-      IA_CHAIN = { chat, reason: String(d.reason || '').slice(0, 200), ts: Date.now(), prev: activeChain() };
+      const clean = a => Array.isArray(a) ? a.map(x => String(x).trim()).filter(x => /^[\w\/.:-]{2,64}$/.test(x)).slice(0, 4) : [];
+      const chat = clean(d.chat), gen = clean(d.gen), banco = clean(d.banco);
+      if (!chat.length && !gen.length && !banco.length) { res.writeHead(400); return res.end('bad chain'); }
+      const cur = IA_CHAIN || {};   // cambio POR PATRÓN: lo no enviado se conserva
+      IA_CHAIN = { chat: chat.length ? chat : (cur.chat || []), gen: gen.length ? gen : (cur.gen || []), banco: banco.length ? banco : (cur.banco || []),
+        reason: String(d.reason || '').slice(0, 200), ts: Date.now(),
+        prev: { chat: activeChain(), gen: (cur.gen && cur.gen.length) ? cur.gen : GEN_MODELS, banco: cur.banco || [] } };
       saveIaChain(); IA_TUNE_TS = IA_CHAIN.ts;
-      console.log('[ia-chain] override →', chat.join(','), '(', IA_CHAIN.reason, ')');
+      console.log('[ia-chain] override → chat:' + IA_CHAIN.chat.join(',') + ' gen:' + IA_CHAIN.gen.join(',') + ' banco:' + IA_CHAIN.banco.join(','), '(', IA_CHAIN.reason, ')');
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, effective: activeChain() }));
     } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
   }
   if (req.method === 'GET' && req.url === '/ia-chain') {                              // cadena efectiva + override (auditable)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-    return res.end(JSON.stringify({ env: MODELS, override: IA_CHAIN, effective: activeChain() }));
+    return res.end(JSON.stringify({ env: MODELS, envGen: GEN_MODELS, override: IA_CHAIN, effective: activeChain(),
+      effectiveGen: (IA_CHAIN && IA_CHAIN.gen && IA_CHAIN.gen.length) ? IA_CHAIN.gen : GEN_MODELS,
+      effectiveBanco: (IA_CHAIN && IA_CHAIN.banco && IA_CHAIN.banco.length) ? IA_CHAIN.banco : null }));
   }
   // CHECKPOINTS por nick (guardar-partida.md F3): leer / subir el último hito de tu partida.
   if (req.method === 'GET' && req.url.startsWith('/checkpoint')) {

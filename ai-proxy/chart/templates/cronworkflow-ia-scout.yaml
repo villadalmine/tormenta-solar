@@ -68,6 +68,8 @@ spec:
               value: "2"
             - name: TUNE_BASELINE   # el titular confiable que SIEMPRE queda de respaldo en la cadena
               value: "claude-sonnet"
+            - name: TUNE_BASELINE_GEN
+              value: "gemma4-paid"
           resources:
             requests: { cpu: 25m, memory: 64Mi }
             limits: { cpu: 250m, memory: 192Mi }

@@ -8,7 +8,13 @@ import { ROSTER } from './personas.js';                    // FUENTE ÚNICA del 
 
 const BASE = (process.env.AI_BASE || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
 const KEY = process.env.AI_KEY || 'sk-hermes-internal';
-const MODEL = process.env.MODEL || 'gemma4-free';
+let MODEL = process.env.MODEL || 'gemma4-free';
+// AUTOTUNE banco (specs/ia-costos.md §6): si el tuner eligió un modelo para el patrón `banco`, usarlo.
+// ADITIVO: si el proxy no responde o no hay override → queda el env de siempre. IA_CHAIN_URL viene del chart.
+try { const _c = await (await fetch(process.env.IA_CHAIN_URL || 'http://tormenta-ai-proxy/ia-chain')).json();
+  if (_c && Array.isArray(_c.effectiveBanco) && _c.effectiveBanco[0]) { MODEL = _c.effectiveBanco[0]; console.error('modelo banco por autotune:', MODEL); }
+} catch (e) {}
+
 const N = +(process.env.N || 30);                          // frases objetivo por persona (tras dedup)
 const POST_URL = process.env.POOL_POST_URL || '';         // si vacío: imprime el JSON (modo prueba)
 const TOKEN = process.env.GEN_TOKEN || '';

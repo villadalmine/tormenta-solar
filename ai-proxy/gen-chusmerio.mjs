@@ -6,7 +6,13 @@ const POST_URL = process.env.CHUSME_POST_URL || '';
 const TOKEN = process.env.GEN_TOKEN || '';
 const AI_BASE = (process.env.AI_BASE_URL || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
 const AI_KEY = (process.env.AI_API_KEY || process.env.AI_KEY || '').trim();
-const MODEL = process.env.CHUSME_MODEL || 'gemma4-paid';
+let MODEL = process.env.CHUSME_MODEL || 'gemma4-paid';
+// AUTOTUNE banco (specs/ia-costos.md §6): si el tuner eligió un modelo para el patrón `banco`, usarlo.
+// ADITIVO: si el proxy no responde o no hay override → queda el env de siempre. IA_CHAIN_URL viene del chart.
+try { const _c = await (await fetch(process.env.IA_CHAIN_URL || 'http://tormenta-ai-proxy/ia-chain')).json();
+  if (_c && Array.isArray(_c.effectiveBanco) && _c.effectiveBanco[0]) { MODEL = _c.effectiveBanco[0]; console.error('modelo banco por autotune:', MODEL); }
+} catch (e) {}
+
 
 const PROMPT = 'Inventá 24 frases CORTAS (máx 12 palabras) de CHUSMERÍO que los personajes del juego "Tormenta Solar" '
   + '(Florida y Lavalle, Buenos Aires) se dirían entre ellos en la calle, tipo comentario al pasar. Temas del mundo del '

@@ -8,7 +8,13 @@ const POST_URL = process.env.HIST_POST_URL || '';
 const TOKEN = process.env.GEN_TOKEN || '';
 const AI_BASE = (process.env.AI_BASE_URL || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
 const AI_KEY = (process.env.AI_API_KEY || process.env.AI_KEY || '').trim();
-const MODEL = process.env.HIST_MODEL || 'gemma4-paid';
+let MODEL = process.env.HIST_MODEL || 'gemma4-paid';
+// AUTOTUNE banco (specs/ia-costos.md §6): si el tuner eligió un modelo para el patrón `banco`, usarlo.
+// ADITIVO: si el proxy no responde o no hay override → queda el env de siempre. IA_CHAIN_URL viene del chart.
+try { const _c = await (await fetch(process.env.IA_CHAIN_URL || 'http://tormenta-ai-proxy/ia-chain')).json();
+  if (_c && Array.isArray(_c.effectiveBanco) && _c.effectiveBanco[0]) { MODEL = _c.effectiveBanco[0]; console.error('modelo banco por autotune:', MODEL); }
+} catch (e) {}
+
 const PER = Math.max(2, Math.min(8, parseInt(process.env.HIST_PER || '4', 10)));   // historias por edificio y por idioma
 
 // los 4 edificios clausurados (collapsesOnStorm), con su sabor para anclar al relato

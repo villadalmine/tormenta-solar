@@ -52,7 +52,10 @@ if (!LIVE) for (const [topic, q] of Object.entries(TOPICS)) {
 // "Captura por IA NPC" (opcional): un modelo FIEL rephrasea el TITULAR de display. El `answer` queda CRUDO
 // (el titular real, lo que el linyera verifica). Validado (2026-06-25): GPU/NPU NO sirven (GPU inventa datos,
 // NPU caída) → gemma4-paid. Corre 1×/día, así que el costo/latencia da igual. Si falla, queda el crudo.
-const SUM_MODEL = process.env.NEWS_SUMMARIZE_MODEL || '';
+let SUM_MODEL = process.env.NEWS_SUMMARIZE_MODEL || '';
+// AUTOTUNE banco (§6): si el resumen está ACTIVADO (SUM_MODEL seteado), usar el modelo elegido por el tuner.
+if (SUM_MODEL) { try { const _c = await (await fetch(process.env.IA_CHAIN_URL || 'http://tormenta-ai-proxy/ia-chain')).json();
+  if (_c && Array.isArray(_c.effectiveBanco) && _c.effectiveBanco[0]) { SUM_MODEL = _c.effectiveBanco[0]; console.error('modelo banco por autotune:', SUM_MODEL); } } catch (e) {} }
 const AI_BASE = (process.env.AI_BASE_URL || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
 const AI_KEY = (process.env.AI_API_KEY || process.env.AI_KEY || '').trim();
 async function capturar(headline) {

@@ -75,7 +75,16 @@ con un Argo Workflow cambia."* SÍ — el workflow diario ahora es **scout → t
    **ROLLBACK automático** a la cadena anterior. Reporte `{kind:'tune', action: applied|rollback|noop|skip}` en /ia-reports.
 5. **Guardián de 6h**: si `ia-health` da **critical** con un override activo → **auto-reset al baseline** env.
 6. **Aviso**: gauge `tormenta_ia_tune_last_change_ts` + alerta `TormentaIACadenaCambiada` (Telegram, informativa 1h).
-7. **Límites duros**: solo la cadena ANÓNIMA (el premium SUB_* NO se autotunea); solo modelos ya en LiteLLM;
+7. **MULTI-PATRÓN (infra-70):** el tune cubre LOS TRES consumidores — `chat` (canary + aplica + verificación punta a
+   punta por el /chat real + rollback), `gen` (canary JSON fresco + aplica; el server usa `IA_CHAIN.gen` para
+   /nivel-ai y /mundo-ai) y `banco` (elige **EL MÁS BARATO** que aprueba consistente + canary cartel + aplica;
+   **los crons** — carteles, propaganda, CINE/noticias, chusmerío, pool, historias — consultan `GET /ia-chain →
+   effectiveBanco` al arrancar, ADITIVO: sin respuesta usan su env de siempre; gen-noticias solo si SUM_MODEL ya
+   estaba activado). POST /ia-chain acepta cualquier subconjunto {chat,gen,banco} y conserva lo no enviado.
+8. **Página pública** `info/ia.html` (GitHub Pages + self-host): los reportes **agrupados POR DÍA** (health con
+   veredicto/fallback/gasto, scouts con ranking por patrón, tunes con acción y cadenas) + las cadenas efectivas AHORA
+   con el motivo del override. Lee /ia-reports y /ia-chain en vivo (CORS ya abierto). Link "🤖 IA" en el nav de info.
+9. **Límites duros**: solo la cadena ANÓNIMA (el premium SUB_* NO se autotunea); solo modelos ya en LiteLLM;
    `AUTOTUNE=0` (values `autotune`) lo apaga entero; auditable en `GET /ia-chain` (env/override/effective + motivo).
    Validado punta a punta en local (server real + mock: detecta→canary 3/3→aplica→verifica 4/4→applied; y noop/skip/rollback).
 

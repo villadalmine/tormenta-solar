@@ -101,6 +101,19 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-70 · proxy 0.2.5] — 2026-07-10 — 🤖📄 Autotune MULTI-PATRÓN (carteles/cine/gen incluidos) + página /info/ia.html
+- **Pedido del dueño:** *"tené en cuenta los otros flujos: carteles, cine, los chats estáticos por cron"* + *"¿los
+  reportes se pueden publicar en la página, una nueva que itere por día?"*
+- **Multi-patrón:** el tune ahora cubre `gen` (niveles/tiendas/mundo-ai — el server usa `IA_CHAIN.gen`) y `banco`
+  (elige **EL MÁS BARATO que aprueba** — validado: prefirió un modelo lento de $0.10/M porque a los crons la
+  latencia no les importa). **Los 6 crons banco** (carteles, propaganda, noticias/cine, chusmerío, pool, historias)
+  consultan `GET /ia-chain → effectiveBanco` al arrancar (ADITIVO: sin respuesta usan su env). POST /ia-chain acepta
+  {chat?,gen?,banco?} y conserva lo no enviado.
+- **Página `info/ia.html`** (GitHub Pages + self-host, link 🤖 IA en el nav): reportes **por día** — health
+  (veredicto/fallback/gasto US$), scouts (ranking por patrón con precio), tunes (applied/rollback/skip) — y las
+  cadenas efectivas AHORA con el motivo del override. Lee /ia-reports y /ia-chain en vivo.
+- Validado integral en local (server real + mock): tune aplicó chat+gen+banco, los crons levantan effectiveBanco.
+
 ## [infra-69 · proxy 0.2.4] — 2026-07-10 — 🤖⚙️ AUTOTUNE REACTIVO: detecta → prueba punta a punta → cambia (con rollback)
 - **Pedido del dueño:** *"¿puede ser reactivo? si detecta algo lo prueba punta a punta, si anda y responde, con un
   Argo Workflow cambia."* El workflow diario ahora es **scout → tune** (2 pasos, mismo CronWorkflow).
