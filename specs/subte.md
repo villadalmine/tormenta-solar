@@ -255,6 +255,10 @@ Pedido del dueño (2026-07-08): al reventar los satélites desde la Pirámide, l
   (personas `comedor` y `cura` — fichas `personajes/{comedor,cura}.md` → `gen-personas.mjs`; el cura es **peronista +
   holístico**). Getters `hireEdge`/`openChatNpc` → game.js (`openChat` + `chatReturnTo='villa31'`). "Ahí quedamos"
   (dueño): cocinar en el comedor se itera después. **Requiere deploy del PROXY** (personas nuevas). Debug `retiroYa`/`villaYa`.
+- **E4.2 — HECHO (v358): VILLA 31 VIVA.** Quest del cura (`cura_bendicion`): plato de la olla → la abuela Coca (su
+  casa, fondo derecha) → la BENDICIÓN = **estampita 🙏** (buff shield+regen, `ts_bendicion`; `curaQuest` 0-3, el 1er
+  [E] al cura da el mandado y después chatea IA normal). **Rondas**: jornada completa + [E] en la olla = cola renovada
+  (rejugable, paga cada ronda). Vida: paseantes + perro + mural "MUGICA VIVE".
 - **E4.1 — HECHO (v348): la JORNADA del comedor.** Contratada, agarrás un plato de la **olla** ([E]) y se lo servís a
   cada vecino de la **cola** ([E]); al servir los `META=6`, la referente te paga una **changa (+30 🪙)**. Estado en
   `villa31.js` (`carrying`/`servidos`/`cola`/`jornadaDone`), one-shot `jornadaEdge` → game.js aplica la paga + arista

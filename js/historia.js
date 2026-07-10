@@ -900,6 +900,34 @@ const Historia = {
         ]
       },
       "from": "specs/nivel-1/lugares/lavalle-quest.md"
+    },
+    {
+      "id": "cura_bendicion",
+      "title": "El mandado del cura: un plato para la abuela Coca → la bendición",
+      "title_en": "The priest's errand: a plate for grandma Coca → the blessing",
+      "at": "plaza",
+      "pre": {
+        "enVilla31": true
+      },
+      "sets": {
+        "curaBendicion": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "En la Villa 31, el cura de la capilla tiene algo para pedirte.",
+          "Hablale al CURA [E]: la abuela Coca no puede llegar a la olla.",
+          "Agarrá un PLATO de la olla y llevalo a la casa del fondo a la derecha.",
+          "Entregale el plato a la ABUELA COCA y volvé al cura: te da su BENDICIÓN (estampita 🙏, usala con [I])."
+        ],
+        "en": [
+          "In Villa 31, the chapel priest has something to ask you.",
+          "Talk to the PRIEST [E]: grandma Coca can't reach the pot.",
+          "Grab a PLATE from the pot and take it to the house at the back right.",
+          "Deliver the plate to GRANDMA COCA and return to the priest: he gives you his BLESSING (holy card 🙏, use with [I])."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/lavalle-quest.md"
     }
   ]
 };

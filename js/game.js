@@ -740,7 +740,7 @@
   // (te contratan) + la iglesia del Padre Mugica. NPCs con IA (referente del comedor, cura villero).
   function enterVilla31() {
     if (typeof Villa31 === 'undefined' || !Villa31.create) { enterRetiro(); return true; }
-    villa31Game = Villa31.create({ hired: lsFlag('ts_comedor'), jornada: lsFlag('ts_comedor_jornada') }); state = 'villa31';
+    villa31Game = Villa31.create({ hired: lsFlag('ts_comedor'), jornada: lsFlag('ts_comedor_jornada'), bendicion: lsFlag('ts_bendicion') }); state = 'villa31';
     applyEdge('villa31_llegada', 'enVilla31');
     evlog('hito', 'llegó a la Villa 31');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -901,6 +901,7 @@
     // BIRRA (F3, kind:'buff'): la birra del Carpo → te envalentonás por unos segundos (BUFF temporal con timer). Data:
     // use.buffs = lista de efectos, use.secs = duración. Se consume. specs/inventario-armas.md §7.3.
     birra:      { id: 'birra',      emoji: '🍺', label: 'g.wpn.birra',   noEquip: true, use: { kind: 'buff', buffs: ['speed', 'regen', 'shield'], secs: 8 } },
+    estampita:  { id: 'estampita',  emoji: '🙏', label: 'g.wpn.estampita', noEquip: true, use: { kind: 'buff', buffs: ['shield', 'regen'], secs: 12 } },   // v358: la bendición del cura (Villa 31)
   };
   // BUFFS temporales (Inventario F3, kind:'buff'). Efectos con timer en segundos (decrementan por dt, sin reloj de pared →
   // se pausan en los sub-modos). `tickBuffs` deriva los flags que leen player.js (speedMul/shielded) + cura con 'regen'.
@@ -1194,6 +1195,7 @@
     enVilla31:        v => { try { localStorage.setItem('ts_en_villa31', v ? '1' : ''); } catch (e) {} },
     comedorHired:     v => { try { localStorage.setItem('ts_comedor', v ? '1' : ''); } catch (e) {} },   // te contrataron en el comedor de la Villa 31
     comedorJornada:   v => { try { localStorage.setItem('ts_comedor_jornada', v ? '1' : ''); } catch (e) {} },   // completaste una jornada de servir en el comedor
+    curaBendicion:    v => { try { localStorage.setItem('ts_bendicion', v ? '1' : ''); } catch (e) {} },   // v358: el mandado del cura hecho (la estampita)
     // ODISEA A CAMPANA (subte.md §12): el trapo de Boca → maquinista sobrio → Campana → 4 goles de Dálmine → portal
     bocaTrapo:        v => { try { localStorage.setItem('ts_boca_trapo', v ? '1' : ''); } catch (e) {} },
     enCampana:        v => { try { localStorage.setItem('ts_en_campana', v ? '1' : ''); } catch (e) {} },
@@ -1256,6 +1258,7 @@
       enVilla31: lsFlag('ts_en_villa31'),           // llegaste a la Villa 31
       comedorHired: lsFlag('ts_comedor'),           // te contrataron en el comedor popular
       comedorJornada: lsFlag('ts_comedor_jornada'), // serviste una jornada entera en el comedor
+      curaBendicion: lsFlag('ts_bendicion'),        // v358: el mandado del cura (la abuela Coca) → la estampita
       bocaTrapo: lsFlag('ts_boca_trapo'),           // §12: robaste la remera/bandera de Boca en el clásico
       enCampana: lsFlag('ts_en_campana'),           // §12: el maquinista te llevó a Campana
       dalmineGritado: lsFlag('ts_dalmine'),         // §12: gritaste los 4 goles de Dálmine → portal → búnker
@@ -1294,7 +1297,7 @@
       enPlaza: lsFlag('ts_en_plaza'), sanmartinChip: lsFlag('ts_sanmartin_chip'), nivel2Win: lsFlag('ts_nivel2_win'),
       escarapela: lsFlag('ts_escarapela'),   // Cabildo 1810: escarapela + French & Beruti (los oráculos lo saben)
       lineaC: lsFlag('ts_linea_c'), enConstitucion: lsFlag('ts_en_constitucion'),   // §11: red de tren post Nivel 2 (Constitución/Retiro)
-      enRetiro: lsFlag('ts_en_retiro'), enVilla31: lsFlag('ts_en_villa31'), comedorHired: lsFlag('ts_comedor'), comedorJornada: lsFlag('ts_comedor_jornada'),   // §11 E2-E4: Retiro → Villa 31 → comedor (+ jornada)
+      enRetiro: lsFlag('ts_en_retiro'), enVilla31: lsFlag('ts_en_villa31'), comedorHired: lsFlag('ts_comedor'), comedorJornada: lsFlag('ts_comedor_jornada'), curaBendicion: lsFlag('ts_bendicion'),   // §11 E2-E4: Retiro → Villa 31 → comedor (+ jornada + el mandado del cura)
       bocaTrapo: lsFlag('ts_boca_trapo'), enCampana: lsFlag('ts_en_campana'), dalmineGritado: lsFlag('ts_dalmine'),   // §12: la odisea a Campana / Villa Dálmine
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
@@ -3973,6 +3976,10 @@
     } else if (state === 'villa31' && villa31Game) {                  // §11 E3/E4: Villa 31 (comedor + iglesia Mugica)
       villa31Game.update(dt); villa31Game.draw(ctx, W, H);
       if (villa31Game.hireEdge) applyEdge('comedor_contratado', 'comedorHired');   // GRAFO: te contrataron en el comedor
+      if (villa31Game.bendicionEdge) {   // v358: el cura te dio la BENDICIÓN → estampita 🙏 + grafo
+        applyEdge('cura_bendicion', 'curaBendicion'); addItem('estampita');
+        setMsg(T('g.villa.estampitaMsg'), '#c8aaff', 7000);
+      }
       if (villa31Game.jornadaEdge) {   // completaste la jornada del comedor (serviste todos los platos) → paga + grafo
         applyEdge('comedor_jornada', 'comedorJornada');
         player.coins = (player.coins || 0) + 30; syncHud();

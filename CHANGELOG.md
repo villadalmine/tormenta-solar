@@ -101,6 +101,17 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v358] — 2026-07-10 — 🙏 Villa 31 VIVA: el mandado del cura + la abuela Coca + rondas de la olla
+- **Quest del cura** (`cura_bendicion`, grafo 34 aristas): el cura te pide llevarle un **plato de la olla a la
+  abuela Coca** (no puede caminar; está en la puerta de su casa) → al volver, la **BENDICIÓN**: ítem
+  **estampita 🙏** (`use: buff shield+regen 12s`, patrón birra). Estados `curaQuest` 0→1→2→3, persistido
+  (`ts_bendicion`); el 1er [E] al cura da el mandado, después chatea normal (IA).
+- **Rondas de la olla:** con la jornada completa, [E] en la olla **renueva la cola** (rejugable; cada ronda paga
+  la changa +30 vía el mismo `jornadaEdge`).
+- **Vida de barrio:** 3 vecinos paseando, el perro del barrio, y el **mural "MUGICA VIVE"** en una casa.
+- e2e (`__mandado` quest completa + `__ronda` + fix del test del cura: ahora el 1er [E] da el mandado) + smoke
+  verdes. i18n ES≡EN (15 claves). Blog + captura 06 regeneradas. Cache v358. Sin cambios de proxy.
+
 ## [infra-71 · proxy 0.2.12] — 2026-07-10 — 🔁 Cierre del loop con el repo INFRA: PR automático (A) + hot-add accionable (B)
 - **A (COMPROBADA — PR #1 abierto en villadalmine/infra):** `gen-ia-propose.mjs` = 3er paso del cron diario
   (scout→tune→propose) + `WorkflowTemplate tormenta-ia-propose` a mano. Si el scout encuentra un modelo NUEVO

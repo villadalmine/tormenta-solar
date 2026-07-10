@@ -541,7 +541,7 @@ if (require.main === module) {
     if (!hire.hired) throw new Error('villa31: acercarte al comedor debería CONTRATARTE');
     if (!vi.hireEdge && !(hire.npc)) throw new Error('villa31: contratar debería disparar el edge una vez');
     if (!(hire.npc && hire.npc.persona === 'comedor')) throw new Error('villa31: debería abrir chat con la referente (comedor): ' + JSON.stringify(hire.npc));
-    const vi2 = Villa31.create({ hired: true });
+    const vi2 = Villa31.create({ hired: true, bendicion: true });   // v358: con la quest hecha, [E] al cura = chat directo (sin bendición: el 1er [E] da el MANDADO)
     const curaNpc = vi2.__cura();
     if (!(curaNpc && curaNpc.persona === 'cura')) throw new Error('villa31: el cura de la iglesia Mugica debería abrir chat (persona cura): ' + JSON.stringify(curaNpc));
     const vi3 = Villa31.create({});
@@ -551,6 +551,15 @@ if (require.main === module) {
     const jor = vi4.__servir();
     if (!jor.jornadaDone) throw new Error('villa31: servir a toda la cola debería completar la jornada: ' + JSON.stringify(jor));
     if (!jor.edge) throw new Error('villa31: completar la jornada debería disparar el edge una vez');
+    // v358 RONDAS: con la jornada hecha, [E] en la olla renueva la cola
+    const ron = vi4.__ronda();
+    if (!(ron.rondas === 1 && ron.jornadaDone === false && ron.servidos === 0)) throw new Error('villa31: la olla debería arrancar OTRA ronda: ' + JSON.stringify(ron));
+    // v358 QUEST DEL CURA: mandado → plato → abuela → bendición (edge one-shot)
+    const vi5 = Villa31.create({});
+    for (let i = 0; i < 10; i++) { vi5.update(0.05); vi5.draw(C, 960, 540); }
+    const man = vi5.__mandado();
+    if (man.curaQuest !== 3) throw new Error('villa31: el mandado del cura debería completarse (quest=3): ' + JSON.stringify(man));
+    if (!man.edge && !vi5.bendicionEdge) throw new Error('villa31: la bendición debería disparar el edge');
     ok.push('villa31:ok');
     // PLAZA DE MAYO (Nivel 2, arco sanmartiniano): chip del Libertador (tumba) → Pirámide → señal → win2
     if (typeof Plaza === 'undefined' || !Plaza.create) throw new Error('Plaza no cargó');
@@ -765,7 +774,7 @@ if (require.main === module) {
       won:true, hasMegaDrive:true, fifaWon:true, hasCementoTicket:true, armado:true, sleptOnce:true, chinoEntered:true,
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
       subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
-      enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, bocaTrapo:true, enCampana:true, dalmineGritado:true };
+      enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, curaBendicion:true, bocaTrapo:true, enCampana:true, dalmineGritado:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);
