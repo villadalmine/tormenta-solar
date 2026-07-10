@@ -1,10 +1,10 @@
-// check-ia.mjs — Argo CronWorkflow cada 6h (specs/ia-costos.md §2): ¿CÓMO VIENE la IA? Lee /metrics del proxy,
+// gen-ia-health.mjs — Argo CronWorkflow cada 6h (specs/ia-costos.md §2): ¿CÓMO VIENE la IA? Lee /metrics del proxy,
 // calcula el DELTA vs el snapshot anterior (fallback %, timeouts %, budget pago usado, gasto estimado) y publica
 // el reporte (POST /ia-report, GEN_TOKEN). El proxy expone los valores como gauges → PrometheusRule → Telegram.
 // Node puro, sin deps (patrón gen-prices.mjs).
 //
 //   METRICS_URL=http://tormenta-ai-proxy/metrics  REPORTS_URL=http://tormenta-ai-proxy/ia-reports
-//   REPORT_POST_URL=http://tormenta-ai-proxy/ia-report  GEN_TOKEN=...  node check-ia.mjs
+//   REPORT_POST_URL=http://tormenta-ai-proxy/ia-report  GEN_TOKEN=...  node gen-ia-health.mjs
 const METRICS_URL = process.env.METRICS_URL || 'http://tormenta-ai-proxy/metrics';
 const REPORTS_URL = process.env.REPORTS_URL || METRICS_URL.replace(/\/metrics$/, '/ia-reports');
 const POST_URL = process.env.REPORT_POST_URL || METRICS_URL.replace(/\/metrics$/, '/ia-report');

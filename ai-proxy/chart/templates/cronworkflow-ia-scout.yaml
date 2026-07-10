@@ -1,5 +1,5 @@
 {{- if .Values.linyeraPool.cronjob.enabled }}
-# Argo CronWorkflow DIARIO 6:15 (specs/ia-costos.md §3): scout-models.mjs = "aprender qué modelos están bien y
+# Argo CronWorkflow DIARIO 6:15 (specs/ia-costos.md §3): gen-ia-scout.mjs = "aprender qué modelos están bien y
 # baratos" POR PATRÓN (chat/gen/banco). Mini-bench sobre los model_names del pool (LiteLLM /v1/models) + precios
 # del catálogo OR (cron precios) → ranking costo-beneficio + recomendaciones → POST /ia-report. NO cambia el
 # ruteo (dominio del dueño). Gasto del bench: centavos/día (~35k tokens).
@@ -42,7 +42,7 @@ spec:
         container:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["node", "scout-models.mjs"]
+          command: ["node", "gen-ia-scout.mjs"]
           env:
             - name: AI_BASE_URL
               value: {{ .Values.upstream.baseUrl | default "http://litellm-proxy:4000/v1" | quote }}

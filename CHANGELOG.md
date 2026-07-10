@@ -108,11 +108,11 @@ El juego es 100% estático; se publica en
 - **LOS PATRONES (§1):** `chat` (tiempo real NPC: p95≤7s, 3/3, respeta max_tokens, castellano, sin CoT — confiabilidad
   > precio) · `gen` (JSON válido ≤14s, 2/2 — precio bajo) · `banco` (carteles/noticias/cine/chusmerío: humor
   rioplatense corto, ≤20s — EL MÁS BARATO que apruebe). Score = pasa estándares − precio blended − latencia.
-- **Cron 6h `ia-health`** (`check-ia.mjs`): lee /metrics, delta de la ventana (fallback%, timeouts, budget pago,
+- **Cron 6h `ia-health`** (`gen-ia-health.mjs`): lee /metrics, delta de la ventana (fallback%, timeouts, budget pago,
   gasto estimado) → veredicto ok/warn/critical → `POST /ia-report`. El proxy expone gauges `tormenta_ia_health_*`
   → **PrometheusRule nuevas** (grupo `tormenta-ia` en deploy/argo/monitoring.yaml, aplicadas) → **Telegram** solo:
   FallbackAlto ≥20% (warn) / Crítico ≥50% / Budget ≥80% / cron mudo >8h.
-- **Cron diario `ia-scout`** (`scout-models.mjs`, 6:15): lista los model_names REALES del pool (LiteLLM /v1/models),
+- **Cron diario `ia-scout`** (`gen-ia-scout.mjs`, 6:15): lista los model_names REALES del pool (LiteLLM /v1/models),
   mini-bench por patrón (7 prompts estándar), cruza precios del catálogo OR (cron `precios`) → ranking + 
   recomendaciones + candidatos nuevos baratos "para agregar". **NO cambia el ruteo** (LiteLLM = dominio del dueño);
   gasto del bench ≈ centavos/día. Reportes legibles en **`GET /ia-reports`** (PVC, últimos 60).

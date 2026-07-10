@@ -25,7 +25,7 @@ ser excelente para `banco` y malo para `chat`).
 
 ## 2. CRON CADA 6h — `ia-health` (¿cómo venimos? ¿hay que corregir?)
 
-`ai-proxy/check-ia.mjs` (CronWorkflow `-ia-health`, `30 */6 * * *` — corrido 30' del cron de precios):
+`ai-proxy/gen-ia-health.mjs` (CronWorkflow `-ia-health`, `30 */6 * * *` — corrido 30' del cron de precios):
 1. Lee **`GET /metrics`** del propio proxy: `chat_total{outcome}`, `fallback_lines`, `paid_budget`, `okrate{model}`,
    `sub_codes`, timeouts.
 2. Calcula el **delta vs el snapshot anterior** (viene en el último reporte guardado): chats totales, % fallback,
@@ -38,7 +38,7 @@ ser excelente para `banco` y malo para `chat`).
 
 ## 3. CRON DIARIO — `ia-scout` (aprender qué modelos están bien y baratos)
 
-`ai-proxy/scout-models.mjs` (CronWorkflow `-ia-scout`, `15 6 * * *` — 6:15 AM, tras los crons de contenido):
+`ai-proxy/gen-ia-scout.mjs` (CronWorkflow `-ia-scout`, `15 6 * * *` — 6:15 AM, tras los crons de contenido):
 1. **`GET {LiteLLM}/v1/models`** → los model_names REALES del pool del dueño (no adivina).
 2. **MINI-BENCH por patrón** sobre cada candidato (excluye `local-gpu`/`rk1-*` = GPU/NPU apagables): prompts
    ESTÁNDAR fijos por patrón (§1) — chat: 3 mensajes de persona con grounding; gen: 2 pedidos de JSON con schema;
@@ -52,7 +52,7 @@ ser excelente para `banco` y malo para `chat`).
 6. **Presupuesto del bench:** ~10 modelos × 7 prompts × ~500 tok ≈ 35k tok/día ≈ **centavos** (y los free, $0).
 
 ## 4. Implementación
-- `ai-proxy/check-ia.mjs` + `ai-proxy/scout-models.mjs` (Node puro, sin deps — patrón gen-*.mjs).
+- `ai-proxy/gen-ia-health.mjs` + `ai-proxy/gen-ia-scout.mjs` (Node puro, sin deps — patrón gen-*.mjs).
 - `ai-proxy/server.js`: `POST /ia-report` (GEN_TOKEN, guarda en PVC + actualiza gauges) · `GET /ia-reports`
   (público) · gauges `tormenta_ia_health_fallback_pct / timeout_pct / paid_used / est_cost_usd / verdict` en /metrics.
 - `ai-proxy/chart/templates/cronworkflow-ia-health.yaml` + `cronworkflow-ia-scout.yaml` (patrón `-precios`:

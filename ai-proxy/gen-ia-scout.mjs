@@ -1,11 +1,11 @@
-// scout-models.mjs — Argo CronWorkflow DIARIO (specs/ia-costos.md §3): "aprender qué modelos están bien y son
+// gen-ia-scout.mjs — Argo CronWorkflow DIARIO (specs/ia-costos.md §3): "aprender qué modelos están bien y son
 // baratos" POR PATRÓN de uso (chat / gen / banco). Lista los model_names del pool (LiteLLM /v1/models), corre un
 // MINI-BENCH con prompts estándar por patrón, cruza precios (OR_PRICES del cron `precios` vía GET /or-models del
 // proxy… acá usamos /ia-prices) y publica ranking + recomendaciones (POST /ia-report). NO cambia el ruteo: la
 // config de LiteLLM/values-prod es dominio del dueño. Node puro, sin deps.
 //
 //   AI_BASE_URL=http://litellm-proxy:4000/v1  AI_API_KEY=sk-...  REPORT_POST_URL=http://tormenta-ai-proxy/ia-report
-//   PRICES_URL=http://tormenta-ai-proxy/precios-vista  GEN_TOKEN=...  node scout-models.mjs
+//   PRICES_URL=http://tormenta-ai-proxy/precios-vista  GEN_TOKEN=...  node gen-ia-scout.mjs
 const AI_BASE = (process.env.AI_BASE_URL || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
 const AI_KEY = (process.env.AI_API_KEY || process.env.AI_KEY || '').trim();
 const POST_URL = process.env.REPORT_POST_URL || '';
