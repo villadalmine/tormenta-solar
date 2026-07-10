@@ -311,6 +311,8 @@ hay que traerle **la remera/bandera de Boca** (robada de la hinchada en el clás
   → `exitTo='portal'` → game.js: arista `dalmine_portal` (terminal) + `spawnIn(bunker)` — caés en el **búnker del loop**
   al lado de tu cama. Cierra el círculo. Grafo 33 aristas; flags bocaTrapo/enCampana/dalmineGritado en snapshots.
   Debug `sanmartinYa`/`canchaYa`/`campanaYa`. e2e cadena completa (tren S1-S5 + cancha + campana 4 goles→portal) verde.
+- **S10 — HECHO (v356): EL CANTO en chiptune** — tema `VIOLETA` (audio.js) + bombo (`drum:'k'`/`thump()` en makeTrack)
+  vía `Sfx.setVioleta(on)`: suena todo Campana, se corta con el portal. Check real: tests/check-violeta.mjs.
 - **S9 — HECHO (v354): EL TANO**, hincha viejo de Dálmine (socio vitalicio, ex obrero de la fábrica) en la calle del
   estadio — NPC con IA (persona `violeta`): la historia del club de barrio, con ternura de abuelo.
 

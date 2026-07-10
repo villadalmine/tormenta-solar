@@ -58,15 +58,24 @@ const Sfx = (() => {
     o.connect(g); g.connect(c.destination);
     o.start(start); o.stop(start + dur + 0.03);
   }
-  // track con scheduler de lookahead; [lead, bajo, tiempos]
+  // BOMBO de hinchada (para makeTrack, opcional por paso): sine que cae 150→45Hz, corto y gordo. Conecta directo
+  // a destination como voice(). Es el "pum" del bombo de la banda (canto de la popular de Dálmine, v356).
+  function thump(start, vol) {
+    const c = ensure(), o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(150, start); o.frequency.exponentialRampToValueAtTime(45, start + 0.1);
+    g.gain.setValueAtTime(vol || 0.5, start); g.gain.exponentialRampToValueAtTime(0.001, start + 0.13);
+    o.connect(g); g.connect(c.destination); o.start(start); o.stop(start + 0.15);
+  }
+  // track con scheduler de lookahead; [lead, bajo, tiempos, drum?] — drum: 'k' = bombo (opcional, no afecta los temas viejos)
   function makeTrack(song, beat, opts) {
     let on = false, idx = 0, nextT = 0, timer = null;
     function tick() {
       if (!on) return;
       const c = ensure();
       while (nextT < c.currentTime + 0.25) {
-        const [lead, bass, beats] = song[idx % song.length];
+        const [lead, bass, beats, drum] = song[idx % song.length];
         const dur = beats * beat;
+        if (drum && drum.indexOf('k') >= 0) thump(nextT, opts.kickVol);   // bombo de hinchada (v356)
         // nf(): acepta cualquier nombre de nota (no sólo la tabla FREQ) → se puede componer libre; reproduce FREQ para las de siempre.
         if (lead && nf(lead)) voice(nf(lead), nextT, dur * (opts.staccato || 0.92), opts.leadType || 'square', opts.leadVol || 0.05, opts.pluck);
         if (bass && nf(bass)) voice(nf(bass), nextT, dur * 0.95, opts.bassType || 'triangle', opts.bassVol || 0.05);
@@ -123,6 +132,18 @@ const Sfx = (() => {
     ['A4','A2',1],['G4','A2',1],['F4','F2',1],['E4','E2',1],['F4','F2',1],['E4','A2',1],['D4','E2',1],['E4','A2',1],['A3','A2',3],   // cierre grande (más larga)
   ];
   const Marcha = makeTrack(MARCHA, 0.2, { leadVol:0.07, bassVol:0.06, leadType:'square', staccato:0.7, wood:true, woodVol:0.012 });
+  // EL CANTO DE LA POPULAR DE VILLA DÁLMINE (v356, letra del dueño — EL hit de Mitre y Puccini):
+  // "dale dale dale dale vio / dale dale dale dale vio / daleeeeee daleeee viooooooo"
+  // Cantito de tribuna en Do mayor + BOMBO de la banda ('k' = thump) marcando los tiempos fuertes.
+  const VIOLETA = [
+    // "da-le da-le da-le da-le vio" (1ª)
+    ['C4','C2',1,'k'],['C4',null,1],['D4','G2',1],['D4',null,1],['E4','C2',1,'k'],['E4',null,1],['D4','G2',1],['D4',null,1],['E4','C2',2,'k'],
+    // "da-le da-le da-le da-le vio" (2ª)
+    ['C4','C2',1,'k'],['C4',null,1],['D4','G2',1],['D4',null,1],['E4','C2',1,'k'],['E4',null,1],['D4','G2',1],['D4',null,1],['E4','C2',2,'k'],
+    // "da-leeeeee  da-leee  viooooooo" (el cierre que se estira)
+    ['F4','F2',1,'k'],['G4','F2',1],['A4','F2',3,'k'],['G4','G2',3,'k'],['E4','C2',4,'k'],[null,'C2',1],
+  ];
+  const Violeta = makeTrack(VIOLETA, 0.23, { leadVol:0.075, bassVol:0.06, leadType:'square', staccato:0.8, kickVol:0.45 });
   // HIMNO NACIONAL ARGENTINO — parte CANTADA (dominio público): "Sean eternos los laureles / que supimos conseguir /
   // coronados de gloria vivamos / o juremos con gloria morir". Melodía de la voz cantada (Sol mayor: sol si sol re do la fa...).
   const HIMNO = [
@@ -269,7 +290,7 @@ const Sfx = (() => {
   const VILLERA = VILLERA_SONGS.map(s => makeTrack(s, 0.2, V_OPTS));
   const ROOM = { metal: Metal, dance: Dance, telo: Telo, chino: Oriental };
   VILLERA.forEach((t, i) => { ROOM['villera' + i] = t; });
-  let musicWanted = false, cumbiaActive = false, marchaActive = false, himnoActive = false;
+  let musicWanted = false, cumbiaActive = false, marchaActive = false, himnoActive = false, violetaActive = false;
 
   return {
     init() { ensure(); },
@@ -347,6 +368,10 @@ const Sfx = (() => {
     setHimno(on) {   // Himno Nacional Argentino (Obelisco: al llegar; silencio tenso durante la pelea del satélite)
       if (on && !himnoActive) { himnoActive = true; Music.stop(); Cumbia.stop(); Marcha.stop(); cumbiaActive = false; marchaActive = false; Himno.start(); }
       else if (!on && himnoActive) { himnoActive = false; Himno.stop(); if (musicWanted) Music.start(); }
+    },
+    setVioleta(on) {   // EL CANTO DE LA POPULAR de Dálmine (Campana, §12: la banda en la calle + el estadio)
+      if (on && !violetaActive) { violetaActive = true; Music.stop(); Cumbia.stop(); Marcha.stop(); Himno.stop(); cumbiaActive = false; marchaActive = false; himnoActive = false; Violeta.start(); }
+      else if (!on && violetaActive) { violetaActive = false; Violeta.stop(); if (musicWanted) Music.start(); }
     },
     setCumbia(on) {
       if (on && !cumbiaActive) { cumbiaActive = true; Music.stop(); Cumbia.start(); }

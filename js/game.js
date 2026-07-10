@@ -774,6 +774,7 @@
   function enterCampana() {
     if (typeof Campana === 'undefined' || !Campana.create) return false;
     campanaGame = Campana.create({}); state = 'campana';
+    if (typeof Sfx !== 'undefined' && Sfx.setVioleta) { Sfx.init(); Sfx.setVioleta(true); }   // 💜 el canto de la popular + bombo (v356)
     applyEdge('campana_llegada', 'enCampana');
     evlog('hito', 'llegó a Campana (Villa Dálmine)');
     if (typeof Input !== 'undefined' && Input.clear) Input.clear();
@@ -4002,12 +4003,14 @@
       if (campanaGame.done) {
         const ex = campanaGame.exitTo; campanaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'portal') {                                         // el satélite abrió el portal → caés en el BÚNKER del loop (la cama)
+          if (typeof Sfx !== 'undefined' && Sfx.setVioleta) Sfx.setVioleta(false);   // se apaga la popular (quedó del otro lado del portal)
           applyEdge('dalmine_portal', 'dalmineGritado');
           tel('win', { result: 'dalmine' }); evlog('hito', 'gritó 4 goles de Dálmine y cayó por el portal al búnker');
           const bi = rooms.findIndex(r => (r.tags || []).includes('bunker'));
           state = 'playing'; transCd = 0.5; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden');
           if (bi >= 0) spawnIn(bi, 5); setMsg(T('g.campana.back'), '#c8aaff', 9000); return;
         }
+        if (typeof Sfx !== 'undefined' && Sfx.setVioleta) Sfx.setVioleta(false);
         enterTren('Villa Ballester', 'Mitre', 'retiro', { arrived: true }); return;   // te fuiste antes → de vuelta a Ballester
       }
     } else if (state === 'lavalle' && lavalleGame) {                  // E1.5: el piquete top-down
@@ -4300,7 +4303,7 @@
       const wrap = document.getElementById('opt-debug-wrap'), toggle = document.getElementById('opt-debug-toggle'), dmsg = document.getElementById('opt-debug-msg');
       if (!wrap || !wrap.querySelectorAll || !wrap.classList) return;   // headless/e2e: sin DOM real → no-op
       const lsOn = k => { try { localStorage.setItem(k, '1'); } catch (e) {} };
-      let metalDbg = false;   // toggle del botón debug "tocar el tema heavy"
+      let metalDbg = false, violetaDbg = false;   // toggle del botón debug "tocar el tema heavy"
       const on = () => { try { return localStorage.getItem('ts_debug') === '1' || /[?&]debug=1/.test(location.search); } catch (e) { return false; } };
       const say = t => { if (dmsg) dmsg.textContent = t; };
       const DEBUG_ACTIONS = {
@@ -4331,6 +4334,7 @@
         deposito:    () => { if (!rooms || !player) return 'empezá una partida primero'; try { localStorage.removeItem('ts_deposito_open'); } catch (e) {} addItem('llave'); const gi = rooms.findIndex(r => (r.tags || []).includes('galeria')); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); if (gi >= 0) spawnIn(gi, 33); return 'Te di la 🔑 llave + te dejé al lado del depósito 🔒 (apretá E)'; },
         mundoai:     () => { if (!rooms || !player) return 'empezá una partida primero'; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); openMundoAI(); return 'Máquina de mundos 🌀 abierta (poné una semilla)'; },
         metal:       () => { if (typeof Sfx === 'undefined') return 'sin audio'; Sfx.init(); metalDbg = !metalDbg; Sfx.setRoomTrack(metalDbg ? 'metal' : null); return metalDbg ? 'Tocando el tema HEAVY CRIOLLO 🎸 (así suena en Cemento). Apretá de nuevo para parar.' : 'Metal off 🎸'; },
+        violeta:     () => { if (typeof Sfx === 'undefined' || !Sfx.setVioleta) return 'sin audio'; Sfx.init(); violetaDbg = !violetaDbg; Sfx.setVioleta(violetaDbg); return violetaDbg ? 'Sonando EL CANTO DE LA POPULAR 💜 (dale dale dale dale vio…). Apretá de nuevo para parar.' : 'Popular off 💜'; },
         mapa:        () => { if (!rooms) return 'empezá una partida primero'; for (let i = 0; i < rooms.length; i++) visitedRooms.add(i); saveVisited(); return 'Mapa: todas las salas marcadas visitadas'; },
         wipe:        () => { try { if (typeof SaveStore !== 'undefined' && SaveStore.clear) SaveStore.clear(); for (const k of Object.keys(localStorage)) if (/^ts_/.test(k) && k !== 'ts_debug' && k !== 'ts_nick' && k !== 'ts_nick_sfx' && k !== 'ts_lang') localStorage.removeItem(k); } catch (e) {} return 'Partida + flags borrados (recargá o Restablecer)'; },
       };

@@ -101,6 +101,15 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v356] — 2026-07-10 — 🎶 EL CANTO DE LA POPULAR en chiptune (con el bombo de la banda)
+- Al entrar a **Campana** suena **el canto de Dálmine** ("dale dale dale dale vio ×2, daleeeeee daleeee viooooooo")
+  compuesto como chiptune: tema `VIOLETA` en `js/audio.js` (Do mayor, cantito de tribuna, square lead + bajo) con el
+  **bombo de hinchada** — `makeTrack` gana un 4º elemento opcional por paso (`drum:'k'` → `thump()`, sine 150→45Hz;
+  no afecta los temas viejos). API `Sfx.setVioleta(on)` (patrón setMarcha); game.js lo prende en `enterCampana` y lo
+  corta en el portal / al irte. Debug 🎶 "Tocar EL CANTO de la popular" (`violetaDbg`).
+- Validado en **Chromium real** (`tests/check-violeta.mjs`: 27 osciladores + 5 bombos en 3.2s, 0 errores). e2e +
+  web-smoke verdes. Blog ES/EN. Cache v356. Sin cambios de proxy.
+
 ## [v355 · proxy 0.1.99] — 2026-07-09 — 💜 El canto REAL de la popular de Dálmine
 - Corrección del dueño: en Mitre y Puccini se canta **"dale dale dale dale vio, dale dale dale dale vio,
   daleeeeee daleeee viooooooo"** (no "Vio-le-ta"). Actualizado en la calle del estadio (la banda), en el grito de
