@@ -108,6 +108,14 @@ try {
   await dbg('onceYa');     await page.waitForTimeout(600); await shotCanvas('19-once');           // Plaza Miserere: la dársena del Chevallier
   await dbg('zarateYa');   await page.waitForTimeout(600); await shotCanvas('20-zarate');         // la costanera: choris + club de remo
   await dbg('regataYa');   await page.waitForTimeout(4200); await shotCanvas('21-regata');        // la final del ocho (ya largó)
+  // v366 EL TROFEO A CASA: el trofeo depositado BRILLA en la vitrina de la sede (Campana)
+  await page.evaluate(() => { try { localStorage.setItem('ts_trofeo_tano', '1'); localStorage.setItem('ts_trofeo_vitrina', '1'); } catch (e) {} });
+  await dbg('campanaYa'); await page.waitForTimeout(500);
+  await page.keyboard.down('s'); await page.waitForTimeout(620); await page.keyboard.up('s');
+  await page.keyboard.down('d'); await page.waitForTimeout(330); await page.keyboard.up('d');
+  await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');    // "ahí está el trofeo, brillando"
+  await page.waitForTimeout(400); await shotCanvas('22-vitrina');
+  await page.evaluate(() => { try { localStorage.removeItem('ts_trofeo_tano'); localStorage.removeItem('ts_trofeo_vitrina'); } catch (e) {} });
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {

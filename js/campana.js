@@ -6,6 +6,8 @@
 //    1er tiempo → ENTRETIEMPO (te clavás EL MEJOR CHORI DE TU VIDA, +vida) → 2º tiempo: GRITÁS 4 GOLES de Dálmine
 //    → justo CAE UN SATÉLITE de la IA maligna → se abre un PORTAL espacio-tiempo → volvés a caer en el búnker del
 //    loop de la tormenta (donde tenés la cama). exitTo 'portal'. Aislado: el juego principal queda EXACTO.
+// v366 EL TROFEO A CASA (zarate-60.md): si traés el trofeo de la regata 🏆, el 1er [E] al TANO es el beat guionado
+// (se emociona, te manda a la SEDE) → [E] en la VITRINA lo deposita: queda expuesto PARA SIEMPRE + festejo de la banda.
 const Campana = (() => {
   const T = (k, p) => (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(k, p) : k;
   const CS = 30, W = 18, H = 12;
@@ -26,6 +28,10 @@ const Campana = (() => {
     // EL TANO: hincha viejo de Dálmine, socio de toda la vida, ex obrero de la fábrica. NPC con IA (persona `violeta`).
     const viejo = { x: 12.6, y: 8.8, name: T('g.campana.viejoName'), persona: 'violeta' };
     let chatNpc = null;
+    // v366: EL TROFEO A CASA — la SEDE del club (vitrina de trofeos), cerca de la estación
+    const vitrina = { x: 3.2, y: 9.4 };
+    let hasTrofeo = !!opts.trofeo, tanoShown = !!opts.tanoDone, enVitrina = !!opts.enVitrina;
+    let tanoJustNow = false, vitrinaJustNow = false, celebrateT = 0;
     const banda = [];                                  // la hinchada de Dálmine caminando a la cancha
     for (let i = 0; i < 8; i++) banda.push({ x: (3 + i * 1.3), y: 7.5 + (i % 3) * 0.7, ph: i * 0.9 });
     const player = { x: 2.2 * CS, y: 7 * CS, r: 10, dir: 1, walk: 0 };
@@ -41,7 +47,20 @@ const Campana = (() => {
 
     function interact() {
       if (phase === 'calle') {
-        if (near(viejo, 1.7)) { chatNpc = { name: viejo.name, persona: viejo.persona }; return; }   // el Tano → chat IA
+        if (near(viejo, 1.7)) {
+          if (hasTrofeo && !tanoShown) {   // v366: el 1er [E] con el trofeo = beat guionado (después chat IA, como el cura)
+            tanoShown = true; tanoJustNow = true; setMsg(T('g.campana.tanoTrofeo'), 10);
+            if (typeof Sfx !== 'undefined' && Sfx.win) Sfx.win(); return;
+          }
+          chatNpc = { name: viejo.name, persona: viejo.persona }; return;   // el Tano → chat IA
+        }
+        if (near(vitrina, 1.7)) {          // v366: la vitrina de la sede
+          if (enVitrina) { setMsg(T('g.campana.vitrinaBrilla'), 6); return; }
+          if (hasTrofeo && tanoShown) { enVitrina = true; hasTrofeo = false; vitrinaJustNow = true; celebrateT = 7;
+            setMsg(T('g.campana.vitrinaPuesto'), 10); if (typeof Sfx !== 'undefined' && Sfx.win) Sfx.win(); return; }
+          if (hasTrofeo) { setMsg(T('g.campana.vitrinaTanoPrimero'), 6); return; }
+          setMsg(T('g.campana.vitrinaVacia'), 6); return;
+        }
         if (near(estadioDoor, 1.8)) { phase = 'estadio'; st = 'pt1'; stT = 0; player.x = 9 * CS; player.y = 8.5 * CS;
           setMsg(T('g.campana.estadio'), 8); if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }
         if (near(escalinata, 2.2)) { setMsg(T('g.campana.escalinata'), 7); return; }
@@ -61,7 +80,7 @@ const Campana = (() => {
     }
 
     function update(dt) {
-      t += dt; msgT -= dt;
+      t += dt; msgT -= dt; if (celebrateT > 0) celebrateT -= dt;
       // la banda camina hacia el estadio (fase calle)
       if (phase === 'calle') for (const b of banda) { b.x += dt * 0.55; if (b.x > 16) b.x = 2.4; }
       if (phase === 'estadio') {
@@ -85,7 +104,9 @@ const Campana = (() => {
       if (mvy && freeAt(player.x, player.y + mvy * sp)) { player.y += mvy * sp; player.walk = 1; }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; if (phase === 'calle') { done = true; exitTo = 'back'; } } } else escHeld = false;   // del estadio no te vas: esto termina en portal
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
-      if (phase === 'calle') prompt = near(viejo, 1.7) ? T('g.campana.promptViejo') : near(estadioDoor, 1.8) ? T('g.campana.promptEstadio') : near(escalinata, 2.2) ? T('g.campana.promptEscalinata') : '';
+      if (phase === 'calle') prompt = near(viejo, 1.7) ? ((hasTrofeo && !tanoShown) ? T('g.campana.promptTanoTrofeo') : T('g.campana.promptViejo'))
+        : near(vitrina, 1.7) ? ((hasTrofeo && tanoShown && !enVitrina) ? T('g.campana.promptVitrina') : T('g.campana.promptVitrinaVer'))
+        : near(estadioDoor, 1.8) ? T('g.campana.promptEstadio') : near(escalinata, 2.2) ? T('g.campana.promptEscalinata') : '';
       else prompt = st === 'gol' ? T('g.campana.promptGrito') : (st === 'half' && !choriEaten) ? (near(choriPuesto, 1.8) ? T('g.campana.promptChori') : T('g.campana.promptIrChori')) : '';
     }
 
@@ -112,8 +133,22 @@ const Campana = (() => {
       g.fillStyle = '#0d1017'; g.fillRect(dx - 30, dy - 4, 56, 16);
       g.fillStyle = '#ffe9b0'; g.font = 'bold 8px monospace'; g.fillText('MITRE Y PUCCINI', dx - 2, dy + 7);
       g.fillStyle = '#5a4a2e'; g.fillRect(dx - 8, dy - 14, 16, 12);   // el portón
-      // la BANDA de Dálmine caminando (violeta, bombos y banderas)
-      for (const b of banda) { const bx2 = ox + b.x * CS, by2 = oy + b.y * CS + Math.sin(t * 4 + b.ph) * 2;
+      // v366: la SEDE del club con la VITRINA de trofeos (cerca de la estación)
+      const sx2 = ox + (vitrina.x + 0.5) * CS, sy2 = oy + (vitrina.y + 0.5) * CS;
+      g.fillStyle = '#4a3d55'; g.fillRect(sx2 - 34, sy2 - 32, 68, 36);                 // el frente
+      g.fillStyle = VIOLETA; g.fillRect(sx2 - 34, sy2 - 40, 68, 8);                    // marquesina violeta
+      g.fillStyle = '#ffe9b0'; g.font = 'bold 7px monospace'; g.textAlign = 'center'; g.fillText(T('g.campana.sedeLabel'), sx2, sy2 - 34);
+      g.fillStyle = '#101820'; g.fillRect(sx2 - 26, sy2 - 26, 52, 26);                 // el vidrio de la vitrina
+      g.strokeStyle = '#c9c4b0'; g.lineWidth = 1.5; g.strokeRect(sx2 - 26, sy2 - 26, 52, 26);
+      g.fillStyle = '#8a8577'; g.fillRect(sx2 - 24, sy2 - 8, 48, 3);                   // el estante
+      g.fillStyle = '#e8e2c8'; g.font = '9px monospace'; g.fillText('🥈', sx2 - 16, sy2 - 11); g.fillText('🏅', sx2 + 16, sy2 - 11);   // copas viejas
+      if (enVitrina) {                                                                 // EL TROFEO del ocho, brillando en casa
+        g.fillStyle = 'rgba(255,215,80,' + (0.22 + 0.18 * Math.sin(t * 3)) + ')'; g.beginPath(); g.arc(sx2, sy2 - 16, 13, 0, Math.PI * 2); g.fill();
+        g.font = '13px monospace'; g.fillText('🏆', sx2, sy2 - 11);
+        g.fillStyle = '#ffd54f'; g.font = 'bold 6px monospace'; g.fillText(T('g.campana.placa'), sx2, sy2 - 2);
+      }
+      // la BANDA de Dálmine caminando (violeta, bombos y banderas) — salta si hay festejo del trofeo
+      for (const b of banda) { const bx2 = ox + b.x * CS, by2 = oy + b.y * CS + Math.sin(t * (celebrateT > 0 ? 9 : 4) + b.ph) * (celebrateT > 0 ? 5 : 2);
         g.fillStyle = '#111'; g.beginPath(); g.ellipse(bx2, by2 + 8, 7, 3, 0, 0, Math.PI * 2); g.fill();
         g.fillStyle = (b.ph % 2 < 1) ? VIOLETA : VIOLETA2; g.fillRect(bx2 - 5, by2 - 4, 10, 13);
         g.fillStyle = '#e0a878'; g.beginPath(); g.arc(bx2, by2 - 8, 5, 0, Math.PI * 2); g.fill();
@@ -133,6 +168,9 @@ const Campana = (() => {
       // cartel de la ciudad
       g.fillStyle = '#0d1017cc'; g.fillRect(ox + W * CS / 2 - 70, oy + 0.3 * CS, 140, 18);
       g.fillStyle = '#ffd54f'; g.font = 'bold 11px monospace'; g.fillText('CAMPANA · BS.AS.', ox + W * CS / 2, oy + 0.3 * CS + 13);
+      // v366: el festejo del trofeo (la banda te canta SOCIO HONORARIO)
+      if (celebrateT > 0) { g.fillStyle = 'rgba(106,61,154,' + (0.4 + 0.25 * Math.sin(t * 6)) + ')'; g.fillRect(0, VH / 2 - 34, VW, 68);
+        g.fillStyle = '#fff'; g.font = 'bold 22px monospace'; g.textAlign = 'center'; g.fillText(T('g.campana.festejo'), VW / 2, VH / 2 + 8); }
     }
 
     function drawEstadio(g, VW, VH) {
@@ -196,8 +234,12 @@ const Campana = (() => {
       get choriEdge() { const c = choriJustNow; choriJustNow = false; return c; },   // one-shot: comiste EL chori → game.js cura
       get golGrito() { const gjn = golJustNow; golJustNow = false; return gjn; },    // one-shot por gol (sfx/telemetría)
       get openChatNpc() { const c = chatNpc; chatNpc = null; return c; },            // [E] sobre el Tano → chat IA (vuelve a Campana)
+      get tanoEdge() { const v = tanoJustNow; tanoJustNow = false; return v; },      // one-shot v366: le mostraste el trofeo al Tano
+      get vitrinaEdge() { const v = vitrinaJustNow; vitrinaJustNow = false; return v; },   // one-shot v366: el trofeo quedó en la vitrina
       update, draw,
       __viejo: () => { player.x = (viejo.x + 0.5) * CS; player.y = (viejo.y - 1.2) * CS; interact(); return chatNpc; },   // e2e: chat con el Tano (persona violeta)
+      __trofeoTano: () => { player.x = (viejo.x + 0.5) * CS; player.y = (viejo.y - 0.8) * CS; interact(); return { tanoShown, hasTrofeo, enVitrina }; },   // e2e v366: [E] al Tano con el trofeo
+      __vitrina: () => { player.x = (vitrina.x + 0.5) * CS; player.y = (vitrina.y - 0.8) * CS; interact(); return { tanoShown, hasTrofeo, enVitrina }; },  // e2e v366: [E] en la vitrina
       // e2e: correr la secuencia completa del estadio (entrar → chori → 4 goles → satélite → portal)
       __full: () => { phase = 'estadio'; st = 'pt1'; stT = 0;
         for (let k = 0; k < 2000 && !done; k++) { update(0.05);

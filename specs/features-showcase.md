@@ -191,7 +191,10 @@
   Panamericana, aire acondicionado, cortadito de a bordo) que te baja en la **costanera de Zárate**: choris, el
   club Arsenal y el **CLUB DE REMO** con torneo — Campana ganó todas las combinaciones y a la final del OCHO le
   falta el timonel: **vos timoneás la final** (mini-juego: [E] al ritmo = ¡BOGA!, A/D esquiva boyas, Zárate aprieta
-  al final) → **CAMPANA CAMPEÓN + EL TROFEO 🏆** (coleccionable; qué se hace con él, se verá).
+  al final) → **CAMPANA CAMPEÓN + EL TROFEO 🏆**. **Y el trofeo VUELVE A CASA (v366):** se lo mostrás al **TANO**
+  en Campana (se le empañan los ojos, beat guionado antes del chat IA) y lo depositás en la **VITRINA de la SEDE
+  V. DÁLMINE**: queda **expuesto para siempre** (glow + placa "OCHO CON TIMONEL · 2026"), la banda festeja y el
+  club te nombra **SOCIO HONORARIO** (+80 🪙) — el coleccionable se vuelve un pedazo permanente del mundo (grafo 42).
   **Y los locales de las terminales tienen FUNCIÓN (v359):** el puesto de **diarios** de Constitución te muestra como
   titular **la pista del grafo** (el motor de hints alimenta el diario — el mundo te cuenta qué hacer sin romper la
   ficción), el **locutorio** te deja escuchar los **rumores del chusmerío vivo** (el mismo bank del proxy), la

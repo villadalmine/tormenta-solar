@@ -531,6 +531,28 @@ if (require.main === module) {
     if (res2.goles !== 4) throw new Error('campana: deberían ser 4 goles de Dálmine: ' + res2.goles);
     if (!res2.choriEaten) throw new Error('campana: el chori del entretiempo debería comerse en la secuencia');
     ok.push('campana:ok');
+    // v366 EL TROFEO A CASA: con el trofeo, el 1er E al Tano es el beat guionado; la vitrina primero pide al Tano
+    const ctf = Campana.create({ trofeo: true });
+    for (let i = 0; i < 10; i++) { ctf.update(0.05); ctf.draw(C, 960, 540); }
+    const vt0 = ctf.__vitrina();
+    if (vt0.enVitrina || !vt0.hasTrofeo) throw new Error('campana: la vitrina sin pasar por el Tano NO deberia aceptar el trofeo: ' + JSON.stringify(vt0));
+    const tt1 = ctf.__trofeoTano();
+    if (!(tt1.tanoShown && tt1.hasTrofeo)) throw new Error('campana: el 1er E al Tano con trofeo deberia ser el beat guionado: ' + JSON.stringify(tt1));
+    if (!ctf.tanoEdge) throw new Error('campana: tanoEdge one-shot deberia dispararse');
+    if (ctf.tanoEdge) throw new Error('campana: tanoEdge deberia consumirse (one-shot)');
+    ctf.__trofeoTano();                                       // 2o E al Tano: ahora abre el chat IA de siempre
+    const chatT = ctf.openChatNpc;
+    if (!(chatT && chatT.persona === 'violeta')) throw new Error('campana: el 2o E al Tano deberia abrir el chat IA: ' + JSON.stringify(chatT));
+    const vt1 = ctf.__vitrina();
+    if (!(vt1.enVitrina && !vt1.hasTrofeo)) throw new Error('campana: la vitrina deberia recibir el trofeo tras el Tano: ' + JSON.stringify(vt1));
+    if (!ctf.vitrinaEdge) throw new Error('campana: vitrinaEdge one-shot deberia dispararse');
+    for (let i = 0; i < 10; i++) { ctf.update(0.05); ctf.draw(C, 960, 540); }   // frames de festejo (banda saltando) sin crash
+    const ctf2 = Campana.create({ tanoDone: true, enVitrina: true });           // volver a Campana: el trofeo brilla en la vitrina
+    for (let i = 0; i < 6; i++) { ctf2.update(0.05); ctf2.draw(C, 960, 540); }
+    const vt2 = ctf2.__vitrina();
+    if (!(vt2.enVitrina && !vt2.hasTrofeo)) throw new Error('campana: al volver, la vitrina deberia mostrar el trofeo depositado: ' + JSON.stringify(vt2));
+    if (ctf2.vitrinaEdge) throw new Error('campana: mirar la vitrina llena NO deberia re-disparar la arista');
+    ok.push('trofeo-vitrina:ok');
     // TERMINAL RETIRO (§11 E2): hall del Mitre; su SALIDA a la calle → Villa 31; escalera → subte C
     if (typeof Retiro === 'undefined' || !Retiro.create) throw new Error('Retiro no cargó');
     const re = Retiro.create({});
@@ -931,7 +953,8 @@ if (require.main === module) {
       cueveroUnlocked:true, vecinoSeen:true, piqueteCampeon:true, juramento:true, obeliscoLlegado:true, sateliteHerido:true, tesoroTaken:true,
       subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
       enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, curaBendicion:true, bocaTrapo:true, enCampana:true, dalmineGritado:true,
-      polacoCaso:true, polacoCarrito:true, polacoHallado:true, bondi60:true, enZarate:true, regataWon:true };
+      polacoCaso:true, polacoCarrito:true, polacoHallado:true, bondi60:true, enZarate:true, regataWon:true,
+      trofeoTano:true, trofeoVitrina:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

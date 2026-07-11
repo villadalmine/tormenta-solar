@@ -15,8 +15,13 @@ En Zárate: te clavás unos **choris de la costanera**, pasás por el **club Ars
 hay TORNEO: **Campana vs Zárate en botes de competición** — y Campana le va ganando **en todas las
 combinaciones** (single, doble par, cuatro, ocho). Para la ÚLTIMA carrera (el ocho, la que da el campeonato)
 al equipo de Campana **le falta el TIMONEL**… y ahí entrás vos: **timoneás la final** (mini-juego de ritmo y
-timón), Campana campeón, y te dan **EL TROFEO 🏆** (qué se hace con el trofeo: se verá — hook abierto, pedido
-del dueño "con ese trofeo después vemos qué hacés").
+timón), Campana campeón, y te dan **EL TROFEO 🏆**.
+
+**EL TROFEO A CASA (v366 — cierra el hook "con ese trofeo después vemos qué hacés"):** el trofeo se ganó PARA
+Campana, así que vuelve a Campana: se lo **mostrás al TANO** (el hincha viejo de la calle del estadio) → se le
+empañan los ojos y te manda a la **VITRINA de la sede del club** → lo **depositás** [E]: queda **expuesto para
+siempre** (cada vez que volvés a Campana, ahí brilla), la banda te festeja y el club te nombra **socio honorario**
+(+80 🪙). El coleccionable se transforma en un pedazo permanente del mundo.
 
 ```hist
 {
@@ -77,7 +82,6 @@ del dueño "con ese trofeo después vemos qué hacés").
   "at": "plaza",
   "pre": { "enZarate": true },
   "sets": { "regataWon": true },
-  "terminal": true,
   "hints": {
     "es": [
       "En el río hay un campeonato por definirse, y falta alguien en un bote.",
@@ -90,6 +94,57 @@ del dueño "con ese trofeo después vemos qué hacés").
       "At Zárate's riverside, stop by the ROWING CLUB: it's Campana vs Zárate tournament day.",
       "Campana won every class, but for the eights FINAL they're missing the COXSWAIN.",
       "Volunteer as COX at the rowing club [E]: call the stroke (¡BOGA!), dodge the buoys and win the final 🏆."
+    ]
+  }
+}
+```
+
+```hist
+{
+  "id": "trofeo_tano",
+  "title": "El trofeo a casa: se lo mostrás al Tano en Campana",
+  "title_en": "The trophy comes home: you show it to el Tano in Campana",
+  "at": "plaza",
+  "pre": { "regataWon": true },
+  "sets": { "trofeoTano": true },
+  "hints": {
+    "es": [
+      "Ese trofeo no se ganó para vos. Hay alguien que tiene que verlo.",
+      "El trofeo es DE CAMPANA: volvé a Campana (el maquinista de Villa Ballester te lleva).",
+      "En la calle del estadio de Campana anda el TANO, el hincha viejo del termo. Él tiene que ver esto.",
+      "Con el trofeo 🏆 encima, apretá [E] frente al TANO en Campana: mostráselo."
+    ],
+    "en": [
+      "That trophy wasn't won for you. Someone has to see it.",
+      "The trophy belongs to CAMPANA: go back to Campana (the Villa Ballester engineer takes you).",
+      "On Campana's stadium street you'll find el TANO, the old fan with the thermos. He has to see this.",
+      "With the trophy 🏆 on you, press [E] in front of el TANO in Campana: show it to him."
+    ]
+  }
+}
+```
+
+```hist
+{
+  "id": "trofeo_vitrina",
+  "title": "El trofeo queda en la vitrina del club — socio honorario",
+  "title_en": "The trophy goes in the club's trophy case — honorary member",
+  "at": "plaza",
+  "pre": { "trofeoTano": true },
+  "sets": { "trofeoVitrina": true },
+  "terminal": true,
+  "hints": {
+    "es": [
+      "Hay un estante vacío esperando algo que brille.",
+      "El Tano dijo que el trofeo va DERECHO a la vitrina de la sede, en Campana.",
+      "La vitrina de la SEDE de Villa Dálmine está en la misma calle del estadio, cerca de la estación.",
+      "Con el trofeo 🏆 y la bendición del Tano, apretá [E] en la VITRINA de la sede: dejalo en casa."
+    ],
+    "en": [
+      "There's an empty shelf waiting for something shiny.",
+      "El Tano said the trophy goes STRAIGHT to the clubhouse trophy case, in Campana.",
+      "Villa Dálmine's CLUBHOUSE case is on the stadium street itself, near the station.",
+      "With the trophy 🏆 and el Tano's blessing, press [E] at the clubhouse CASE: bring it home."
     ]
   }
 }
@@ -111,3 +166,18 @@ del dueño "con ese trofeo después vemos qué hacés").
   el bote de Zárate aprieta al final) → ganás → arista `regata_timonel` + ítem **trofeo_remo 🏆** (sin `use`:
   coleccionable — el hook "después vemos qué hacés" queda anotado en backlog).
 - Flags: `ts_bondi60`, `ts_en_zarate`, `ts_regata` (FLAG_SETTERS + historiaState + worldSnapshot). Grafo 40.
+
+## Implementación (v366 — EL TROFEO A CASA)
+
+- **`js/campana.js`:** `create(opts)` gana `{trofeo, tanoDone, enVitrina}`. Con trofeo, el **1er [E] al TANO**
+  es el beat guionado (patrón del cura v358; después chat IA normal) → one-shot `tanoEdge`. Edificio nuevo
+  **SEDE V. DÁLMINE** con vitrina (`vitrina = {x:3.2, y:9.4}`, cerca de la estación): [E] deposita → one-shot
+  `vitrinaEdge` + festejo (`celebrateT` 7s: banda salta + banner). Con `enVitrina` el 🏆 se dibuja SIEMPRE
+  (glow + placa dentro del vidrio — la placa a `sy2-2`, a `+12` pisaba el canto). Guardas: vitrina sin Tano →
+  "la llave la tiene él"; vitrina llena → mensaje contemplativo, sin re-disparo.
+- **`js/game.js`:** `enterCampana` pasa los opts (trofeo = inventario ∧ !ts_trofeo_vitrina); dispatch:
+  `tanoEdge` → `applyEdge('trofeo_tano')`; `vitrinaEdge` → `applyEdge('trofeo_vitrina')` + saca `trofeo_remo`
+  del inventario + **+80 🪙** + `tel('win',{result:'vitrina'})`. Flags `ts_trofeo_tano`/`ts_trofeo_vitrina`
+  en FLAG_SETTERS + historiaState + worldSnapshot. Debug `trofeoYa`.
+- **Grafo 42:** aristas `trofeo_tano` (pre regataWon) y `trofeo_vitrina` (pre trofeoTano, terminal);
+  `regata_timonel` dejó de ser terminal. e2e `trofeo-vitrina:ok` + verificación Chromium real caminando.

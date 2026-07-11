@@ -1077,7 +1077,6 @@ const Historia = {
       "sets": {
         "regataWon": true
       },
-      "terminal": true,
       "hints": {
         "es": [
           "En el río hay un campeonato por definirse, y falta alguien en un bote.",
@@ -1090,6 +1089,61 @@ const Historia = {
           "At Zárate's riverside, stop by the ROWING CLUB: it's Campana vs Zárate tournament day.",
           "Campana won every class, but for the eights FINAL they're missing the COXSWAIN.",
           "Volunteer as COX at the rowing club [E]: call the stroke (¡BOGA!), dodge the buoys and win the final 🏆."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/zarate-60.md"
+    },
+    {
+      "id": "trofeo_tano",
+      "title": "El trofeo a casa: se lo mostrás al Tano en Campana",
+      "title_en": "The trophy comes home: you show it to el Tano in Campana",
+      "at": "plaza",
+      "pre": {
+        "regataWon": true
+      },
+      "sets": {
+        "trofeoTano": true
+      },
+      "hints": {
+        "es": [
+          "Ese trofeo no se ganó para vos. Hay alguien que tiene que verlo.",
+          "El trofeo es DE CAMPANA: volvé a Campana (el maquinista de Villa Ballester te lleva).",
+          "En la calle del estadio de Campana anda el TANO, el hincha viejo del termo. Él tiene que ver esto.",
+          "Con el trofeo 🏆 encima, apretá [E] frente al TANO en Campana: mostráselo."
+        ],
+        "en": [
+          "That trophy wasn't won for you. Someone has to see it.",
+          "The trophy belongs to CAMPANA: go back to Campana (the Villa Ballester engineer takes you).",
+          "On Campana's stadium street you'll find el TANO, the old fan with the thermos. He has to see this.",
+          "With the trophy 🏆 on you, press [E] in front of el TANO in Campana: show it to him."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/zarate-60.md"
+    },
+    {
+      "id": "trofeo_vitrina",
+      "title": "El trofeo queda en la vitrina del club — socio honorario",
+      "title_en": "The trophy goes in the club's trophy case — honorary member",
+      "at": "plaza",
+      "pre": {
+        "trofeoTano": true
+      },
+      "sets": {
+        "trofeoVitrina": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Hay un estante vacío esperando algo que brille.",
+          "El Tano dijo que el trofeo va DERECHO a la vitrina de la sede, en Campana.",
+          "La vitrina de la SEDE de Villa Dálmine está en la misma calle del estadio, cerca de la estación.",
+          "Con el trofeo 🏆 y la bendición del Tano, apretá [E] en la VITRINA de la sede: dejalo en casa."
+        ],
+        "en": [
+          "There's an empty shelf waiting for something shiny.",
+          "El Tano said the trophy goes STRAIGHT to the clubhouse trophy case, in Campana.",
+          "Villa Dálmine's CLUBHOUSE case is on the stadium street itself, near the station.",
+          "With the trophy 🏆 and el Tano's blessing, press [E] at the clubhouse CASE: bring it home."
         ]
       },
       "from": "specs/nivel-1/lugares/zarate-60.md"

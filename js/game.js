@@ -837,7 +837,9 @@
   // Dálmine vs CADU → el chori → 4 goles → satélite → PORTAL → volvés al búnker del loop.
   function enterCampana() {
     if (typeof Campana === 'undefined' || !Campana.create) return false;
-    campanaGame = Campana.create({}); state = 'campana';
+    campanaGame = Campana.create({   // v366: si traés el trofeo de la regata, el Tano y la vitrina lo esperan
+      trofeo: !!(player && player.inventory && player.inventory.includes('trofeo_remo')) && !lsFlag('ts_trofeo_vitrina'),
+      tanoDone: lsFlag('ts_trofeo_tano'), enVitrina: lsFlag('ts_trofeo_vitrina') }); state = 'campana';
     if (typeof Sfx !== 'undefined' && Sfx.setVioleta) { Sfx.init(); Sfx.setVioleta(true); }   // 💜 el canto de la popular + bombo (v356)
     applyEdge('campana_llegada', 'enCampana');
     evlog('hito', 'llegó a Campana (Villa Dálmine)');
@@ -1282,6 +1284,8 @@
     bondi60:          v => { try { localStorage.setItem('ts_bondi60', v ? '1' : ''); } catch (e) {} },   // v363: el 60 tan largo que te devolvió al búnker
     enZarate:         v => { try { localStorage.setItem('ts_en_zarate', v ? '1' : ''); } catch (e) {} }, // v364: el Chevallier te bajó en la costanera
     regataWon:        v => { try { localStorage.setItem('ts_regata', v ? '1' : ''); } catch (e) {} },    // v365: timoneaste la final del ocho (el trofeo)
+    trofeoTano:       v => { try { localStorage.setItem('ts_trofeo_tano', v ? '1' : ''); } catch (e) {} },      // v366: le mostraste el trofeo al Tano en Campana
+    trofeoVitrina:    v => { try { localStorage.setItem('ts_trofeo_vitrina', v ? '1' : ''); } catch (e) {} },   // v366: el trofeo quedó en la vitrina de la sede
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1346,6 +1350,7 @@
       enCampana: lsFlag('ts_en_campana'),           // §12: el maquinista te llevó a Campana
       dalmineGritado: lsFlag('ts_dalmine'),         // §12: gritaste los 4 goles de Dálmine → portal → búnker
       bondi60: lsFlag('ts_bondi60'), enZarate: lsFlag('ts_en_zarate'), regataWon: lsFlag('ts_regata'),   // v363-365: el 60 / el Chevallier a Zárate / la regata
+      trofeoTano: lsFlag('ts_trofeo_tano'), trofeoVitrina: lsFlag('ts_trofeo_vitrina'),   // v366: el trofeo a casa (el Tano → la vitrina de la sede)
       sleptOnce: loopCount > 0,
     };
   }
@@ -1385,6 +1390,7 @@
       polacoCaso: lsFlag('ts_polaco_caso'), polacoCarrito: lsFlag('ts_polaco_carrito'), polacoHallado: lsFlag('ts_polaco_hallado'),   // v360: el misterio del Polaco (la Gallega/el carrito/La Plata)
       bocaTrapo: lsFlag('ts_boca_trapo'), enCampana: lsFlag('ts_en_campana'), dalmineGritado: lsFlag('ts_dalmine'),   // §12: la odisea a Campana / Villa Dálmine
       bondi60: lsFlag('ts_bondi60'), enZarate: lsFlag('ts_en_zarate'), regataWon: lsFlag('ts_regata'),   // v363-365: el 60 a Zárate / el Chevallier / la regata (el trofeo)
+      trofeoTano: lsFlag('ts_trofeo_tano'), trofeoVitrina: lsFlag('ts_trofeo_vitrina'),   // v366: el trofeo a casa (Tano → vitrina, socio honorario)
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -4116,6 +4122,16 @@
       campanaGame.update(dt); campanaGame.draw(ctx, W, H);
       { const vc = campanaGame.openChatNpc; if (vc) { chatReturnTo = 'campana'; openChat({ name: vc.name, persona: vc.persona }); } }   // [E] el Tano (hincha violeta) → chat IA
       if (campanaGame.choriEdge) { player.hp = MAXHP; syncHud(); }     // EL MEJOR CHORI DE TU VIDA → vida full
+      if (campanaGame.tanoEdge) {                                      // v366: le mostraste el trofeo al Tano
+        applyEdge('trofeo_tano', 'trofeoTano');
+        evlog('hito', 'le mostró el trofeo de la regata al Tano 💜🏆');
+      }
+      if (campanaGame.vitrinaEdge) {                                   // v366: el trofeo quedó en la vitrina — socio honorario
+        applyEdge('trofeo_vitrina', 'trofeoVitrina');
+        if (player && player.inventory) player.inventory = player.inventory.filter(i => i !== 'trofeo_remo');
+        player.coins = (player.coins || 0) + 80; syncHud();
+        tel('win', { result: 'vitrina' }); evlog('hito', 'el trofeo del ocho quedó en la vitrina de la sede — socio honorario 🏆');
+      }
       if (campanaGame.done) {
         const ex = campanaGame.exitTo; campanaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'portal') {                                         // el satélite abrió el portal → caés en el BÚNKER del loop (la cama)
@@ -4492,6 +4508,7 @@
         onceYa:      () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterOnce(); return 'Llegaste a ONCE 🚇 (Línea A → el Chevallier)'; },
         zarateYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterZarate(); return 'Bajaste en la COSTANERA DE ZÁRATE 🌭 (choris + club de remo)'; },
         regataYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); lsOn('ts_en_zarate'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterRegata(); return 'Timoneás la FINAL DEL OCHO 🚣 (Campana vs Zárate)'; },
+        trofeoYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_boca_trapo'); lsOn('ts_regata'); addItem('trofeo_remo'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterCampana(); return 'A CAMPANA con el trofeo 🏆 (mostráselo al Tano → la vitrina)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

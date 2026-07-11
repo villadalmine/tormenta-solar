@@ -101,6 +101,21 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v366] — 2026-07-11 — 🏆 EL TROFEO A CASA: el Tano → la vitrina de la sede (SOCIO HONORARIO)
+- **Cierra el hook del dueño "con ese trofeo después vemos qué hacés" (v365):** el trofeo de la regata vuelve a
+  Campana. Con el 🏆 en el inventario, el **1er [E] al TANO** es un beat guionado (se emociona, te manda a la
+  sede — patrón del cura v358: primero el guion, después el chat IA de siempre) → arista **`trofeo_tano`**.
+- **La SEDE V. DÁLMINE** (edificio nuevo en la calle de Campana, cerca de la estación) con **VITRINA de
+  trofeos**: [E] deposita el trofeo → arista **`trofeo_vitrina`** (terminal): sale del inventario, queda
+  **expuesto PARA SIEMPRE** (glow + placa "OCHO CON TIMONEL · 2026" cada vez que volvés), festejo de la banda
+  (salta + banner "¡SOCIO HONORARIO!") y **+80 🪙**. Guardas: la vitrina sin pasar por el Tano avisa que la
+  llave la tiene él; mirar la vitrina llena no re-dispara nada.
+- **Grafo 40→42** (`zarate-60.md` bloques hist; `regata_timonel` dejó de ser terminal) + flags
+  `ts_trofeo_tano`/`ts_trofeo_vitrina` en FLAG_SETTERS/historiaState/worldSnapshot (los oráculos lo saben).
+- Debug `trofeoYa` (🏆 directo a Campana con el trofeo). e2e: bloque `trofeo-vitrina:ok` (orden vitrina→Tano→
+  vitrina + one-shots + reentrada). Verificado en Chromium real (flujo caminando: ambos flags, 0 errores JS).
+- Blog Novedades ES/EN + captura `22-vitrina` (shots-novedades). i18n 12 claves ES≡EN.
+
 ## [infra-72] — 2026-07-11 — 🎬 EL REEL de novedades: video del juego corriendo, servido desde EL PROPIO server
 - **`tools/gen-video-novedades.mjs` (pedido del dueño "un video tipo YouTube en novedades"):** graba un REEL
   (~90s, 1280×720) con Chromium `recordVideo` — el mismo robot de las capturas ahora **JUEGA y graba**: guion
