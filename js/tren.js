@@ -64,6 +64,14 @@ const Tren = (() => {
     // v363 (zarate-60.md): el andén del BELGRANO NORTE tiene SALIDA a pie → Puente Saavedra (el 60 a Zárate).
     // "Te deja cerca… cerca es un decir": la salida abre el sub-modo Saavedra (caminata + la parada del 60).
     const saavedraOut = /belgrano\s*norte/i.test(ramal) ? { x: 13.5, y: 9.4 } : null;
+    // v367-369 (andenes-vivos.md): SALIDAS por destino (DATA) — el andén grande gana la puerta a su propio arco.
+    const SALIDAS = [
+      { key: /tigre/i,      exit: 'tigre',   label: 'g.tren.outTigre' },    // 🏟️ la cancha de Tigre (clásico vs Dálmine)
+      { key: /ezeiza/i,     exit: 'ezeiza',  label: 'g.tren.outEzeiza' },   // 🏟️ el 20 de Junio (la final del ascenso)
+      { key: /la\s*plata/i, exit: 'laplata', label: 'g.tren.outLaPlata' },  // ⛪ Plaza Moreno + la catedral (las diagonales)
+    ];
+    const salidaDef = !special ? (SALIDAS.find(s => s.key.test(ramal)) || null) : null;
+    const salida = salidaDef ? { x: 6.5, y: 9.4 } : null;
     let halladoEdgeFlag = false, halladoFired = polacoStage === 'hallado';
     let coinsLeft = opts.coins || 0, purchase = null;
     const player = { x: 8 * CS, y: 8 * CS, r: 10, dir: 1, walk: 0 };
@@ -93,6 +101,7 @@ const Tren = (() => {
         if (near(fogata, 1.5)) { setMsg(T('g.tren.fogata'), 6); return; }
       }
       if (saavedraOut && near(saavedraOut, 1.7)) { done = true; exitTo = 'saavedra'; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }   // v363: a pie a Puente Saavedra
+      if (salida && near(salida, 1.7)) { done = true; exitTo = salidaDef.exit; if (typeof Sfx !== 'undefined' && Sfx.pickup) Sfx.pickup(); return; }   // v367-369: la salida al arco del destino
       if (!special && fl.vend && near(vendedor, 1.7)) {   // el vendedor ambulante: comprás la comida regional
         if (coinsLeft >= fl.vend.price) { coinsLeft -= fl.vend.price; purchase = { item: fl.vend.item, spent: fl.vend.price };
           setMsg(T('g.tren.vendCompra', { e: fl.vend.emoji, n: T('g.wpn.' + fl.vend.item), p: fl.vend.price }), 6);
@@ -146,6 +155,7 @@ const Tren = (() => {
       else if (special === 'sanmartin' && near(monumental, 1.8)) prompt = T('g.tren.promptColar');
       else if (special === 'sanmartin' && near(fogata, 1.5)) prompt = T('g.tren.promptFogata');
       else if (saavedraOut && near(saavedraOut, 1.7)) prompt = T('g.tren.promptSaavedra');
+      else if (salida && near(salida, 1.7)) prompt = T('g.tren.promptSalida', { s: T(salidaDef.label) });
       else if (!special && fl.vend && near(vendedor, 1.7)) prompt = T('g.tren.vend_' + fl.id) + '  ·  ' + T('g.tren.promptVend', { e: fl.vend.emoji, p: fl.vend.price });
       else if (polacoAca && near(polacoNpc, 1.8)) prompt = halladoFired ? T('g.tren.promptPolacoChat') : T('g.tren.promptPolaco');
       else if (!special && fl.liny && near(linyera, 1.6)) prompt = T('g.tren.promptLiny', { n: fl.liny });
@@ -257,6 +267,13 @@ const Tren = (() => {
         g.fillStyle = '#9fe6a0'; g.font = 'bold 8px monospace'; g.textAlign = 'center';
         g.fillText('🚶 ' + T('g.tren.saavedraOut'), sx, sy - 19);
         g.font = '11px monospace'; g.fillText('▶', sx, sy + 5); }
+      // v367-369: la SALIDA al arco del destino (Tigre/Ezeiza/La Plata): mismo portoncito, cartel propio
+      if (salida) { const sx = ox + (salida.x + 0.5) * CS, sy = oy + (salida.y + 0.5) * CS;
+        g.fillStyle = '#22303c'; g.fillRect(sx - 14, sy - 10, 28, 22);
+        g.fillStyle = '#0d1017'; g.fillRect(sx - 52, sy - 30, 104, 16);
+        g.fillStyle = '#9fe6a0'; g.font = 'bold 8px monospace'; g.textAlign = 'center';
+        g.fillText(T(salidaDef.label), sx, sy - 19);
+        g.font = '11px monospace'; g.fillText('▶', sx, sy + 5); }
       // VILLA BALLESTER: el cartel de "servicio a Campana DEMORADO", la PARRILLA con asado y el MAQUINISTA curda
       if (special === 'ballester') {
         const dx = ox + demoradoSign.x * CS, dy = oy + demoradoSign.y * CS;
@@ -343,6 +360,7 @@ const Tren = (() => {
       __polaco: () => { phase = 'anden'; player.x = (polacoNpc.x + 0.5) * CS; player.y = (polacoNpc.y - 0.6) * CS; interact(); return { hallado: halladoFired, chat: chatNpc }; },   // e2e: encontrar al Polaco
       __darTrapo: () => { phase = 'anden'; player.x = (maquinista.x + 0.5) * CS; player.y = (maquinista.y + 1.2) * CS; interact(); for (let k = 0; k < 80 && !done; k++) update(0.05); return exitTo; },   // e2e: dar el trapo → arranca a Campana
       __saavedra: () => { if (!saavedraOut) return null; phase = 'anden'; player.x = (saavedraOut.x + 0.5) * CS; player.y = (saavedraOut.y + 0.5) * CS; interact(); return exitTo; },   // e2e v363: salida a pie → Puente Saavedra
+      __salida: () => { if (!salida) return null; phase = 'anden'; player.x = (salida.x + 0.5) * CS; player.y = (salida.y + 0.5) * CS; interact(); return exitTo; },   // e2e v367-369: la salida al arco del destino
     };
   }
   return { create, FLAVORS, flavorFor };

@@ -101,6 +101,32 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v369] — 2026-07-11 — 🗺️ LA PLATA: las diagonales de Campana + el mapa de la extorsión (1882)
+- **`js/laplata.js`** (brief del dueño): del andén de La Plata a **Plaza Moreno** — el **plano de 1882** revela
+  que el trazado con diagonales **es IGUAL al de Campana** → entrás a la **CATEDRAL**, bajás a la **cripta del
+  archivo** y en la vitrina está **EL MAPA ORIGINAL**: el acta de la votación de la capital con tachaduras, un
+  nombre borrado (¿CAMPANA?) y la carta *"vote bien, o su ferrocarril no llega nunca"* — **HUBO EXTORSIÓN**,
+  por eso ganó La Plata. Arista `laplata_mapa` + ítem **`mapa_1882` 🗺️** (coleccionable). Volver con el mapa
+  llevado muestra el hueco + la notita *"lo tiene el Carpo"*. Dos fases (plaza ⇄ cripta), ESC vuelve al andén.
+
+## [v368] — 2026-07-11 — 💜 EZEIZA: Dálmine le gana el ascenso a Tristán Suárez (¡a la NACIONAL B!)
+- **`js/ezeiza.js`** (brief del dueño): del andén de Ezeiza al **estadio 20 de Junio** — FINAL DEL ASCENSO vs
+  **Tristán Suárez** (el Lechero, verde) con los aviones pasando bajito. Gritás el gol [E] → **AGUANTE** (3
+  atajadas del arquero a puro aliento [E]) → pitazo → **¡VILLA DÁLMINE A LA NACIONAL B!** (papelitos violetas,
+  vuelta olímpica, banner). Arista `ezeiza_ascenso` (flag `ts_ascenso`).
+
+## [v367] — 2026-07-11 — 🐯 TIGRE: el clásico que se pudre + las DOS hinchadas JUNTAS contra los canas
+- **LOS ANDENES VIVEN (`andenes-vivos.md`, brief del dueño; cierra la deuda "andenes genéricos vacíos"):**
+  `tren.js` gana **SALIDAS por destino (DATA)** — patrón `saavedraOut` generalizado: Tigre/Ezeiza/La Plata
+  tienen puerta a su propio arco (surface `__salida`), los demás andenes quedan igual.
+- **`js/tigre.js`:** la cancha de Victoria — **TIGRE vs VILLA DÁLMINE**: gol de Tigre → **el empate lo gritás
+  vos** [E] → se pudre (bengalas/corridas/humo) → **SUSPENDIDO POR VIOLENCIA** → y el folclore: **las dos
+  hinchadas SE MEZCLAN** (azul/rojo/violeta) y encaran juntas el cordón de canas → [E] cantás con todos
+  (*"¡EL QUE NO SALTA ES UN VIGILANTE!"*) → los canas retroceden. Arista `tigre_clasico` (flag `ts_tigre`).
+- **Grafo 42→45** + flags en FLAG_SETTERS/historiaState/worldSnapshot + debug `tigreYa/ezeizaYa/laplataYa`
+  (+botones) + e2e `tigre:ok`/`ezeiza:ok`/`laplata:ok` + salidas testeadas (Ballester NO tiene). Verificado en
+  Chromium real (3 flags, 0 errores). Blog ES/EN + shots 23-25. i18n 54 claves ES≡EN. Cache `?v=369`.
+
 ## [v366] — 2026-07-11 — 🏆 EL TROFEO A CASA: el Tano → la vitrina de la sede (SOCIO HONORARIO)
 - **Cierra el hook del dueño "con ese trofeo después vemos qué hacés" (v365):** el trofeo de la regata vuelve a
   Campana. Con el 🏆 en el inventario, el **1er [E] al TANO** es un beat guionado (se emociona, te manda a la

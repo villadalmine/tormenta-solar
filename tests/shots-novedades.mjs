@@ -116,6 +116,27 @@ try {
   await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');    // "ahí está el trofeo, brillando"
   await page.waitForTimeout(400); await shotCanvas('22-vitrina');
   await page.evaluate(() => { try { localStorage.removeItem('ts_trofeo_tano'); localStorage.removeItem('ts_trofeo_vitrina'); } catch (e) {} });
+  // v367 TIGRE: el clásico se pudre → suspendido → las hinchadas JUNTAS cantándole a los canas
+  await dbg('tigreYa');
+  await page.waitForTimeout(13600);                                                              // 1T + gol de Tigre + 2T
+  await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');   // ¡gritás el empate!
+  await page.waitForTimeout(9600);                                                               // lío + suspendido → juntada
+  await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');   // cantás con las DOS
+  await page.waitForTimeout(1600); await shotCanvas('23-tigre');
+  await page.waitForTimeout(6000);                                                               // el canto termina → vuelve al andén
+  // v368 EZEIZA: la final del ascenso → ¡A LA NACIONAL B!
+  await dbg('ezeizaYa');
+  await page.waitForTimeout(7200);
+  for (let i = 0; i < 4; i++) { await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e'); await page.waitForTimeout(650); }   // gol + aguante ×3
+  await page.waitForTimeout(3200); await shotCanvas('24-ezeiza');                                // la fiesta del ascenso
+  await page.waitForTimeout(6500);                                                               // termina → vuelve al andén
+  // v369 LA PLATA: Plaza Moreno — el plano de las diagonales (¡igual a Campana!) + la catedral
+  await dbg('laplataYa'); await page.waitForTimeout(500);
+  await page.keyboard.down('a'); await page.waitForTimeout(1050); await page.keyboard.up('a');
+  await page.keyboard.down('w'); await page.waitForTimeout(380);  await page.keyboard.up('w');
+  await page.keyboard.down('e'); await page.waitForTimeout(150);  await page.keyboard.up('e');   // el plano: la revelación
+  await page.waitForTimeout(400); await shotCanvas('25-laplata');
+  await page.evaluate(() => { try { localStorage.removeItem('ts_tigre'); localStorage.removeItem('ts_ascenso'); localStorage.removeItem('ts_laplata_mapa'); } catch (e) {} });
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {

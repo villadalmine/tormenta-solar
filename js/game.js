@@ -140,6 +140,7 @@
   let trenCtx = null;                               // {ramal, linea, origen} del tren actual (para volver de la cancha al andén)
   let saavedraGame = null, onceGame = null, chevallierGame = null, zarateGame = null, regataGame = null;   // v363-365 (zarate-60.md): el 60 + Once/Chevallier + Zárate/la regata
   let canchaGame = null, campanaGame = null;        // subte.md §12: el Monumental (clásico) + Campana/Villa Dálmine (final de la odisea)
+  let tigreGame = null, ezeizaGame = null, laplataGame = null;   // andenes-vivos.md v367-369: los arcos de Tigre/Ezeiza/La Plata
   let plazaGame = null;   // subte.md §10 / F4: PLAZA DE MAYO (arranque del Nivel 2), llegás en subte a Catedral
   let finaleGame = null;  // subte.md §10.1: cinemática de cierre del Nivel 2 (liberación sanmartiniana) → pantalla de fin
   let bunkerMapaGame = null; // MAPA B: el plano del búnker (construir desde la entrada de tu base)
@@ -397,7 +398,7 @@
     chipReset(); chipEverCured = false; chipLoops = 0;   // quest del chip, de cero
     spinoffReturnRoom = null; for (const k in entradoEdif) delete entradoEdif[k]; for (const k in vecinoState) delete vecinoState[k];   // edificios clausurados + chusmerío del vecino, de cero
     clearCompanions();   // compañeros (linyera/Guido) que te seguían, de cero
-    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; consticalleGame = null; retiroGame = null; villa31Game = null; trenGame = null; canchaGame = null; campanaGame = null; saavedraGame = null; onceGame = null; chevallierGame = null; zarateGame = null; regataGame = null; roamingNpc = null;
+    arcadeGame = null; superGame = null; vinilosGame = null; spinoffGame = null; tiendaGame = null; teloGame = null; bodegonGame = null; lavalleGame = null; globoGame = null; bunkerMapaGame = null; obeliscoGame = null; subteGame = null; plazaGame = null; finaleGame = null; constitucionGame = null; consticalleGame = null; retiroGame = null; villa31Game = null; trenGame = null; canchaGame = null; campanaGame = null; saavedraGame = null; onceGame = null; chevallierGame = null; zarateGame = null; regataGame = null; tigreGame = null; ezeizaGame = null; laplataGame = null; roamingNpc = null;
     trucoPvpGame = null; trucoPeer = null; truco6Game = null; truco6 = null; tableWait = null; piqueteGame = null; sogaGame = null; bomboGame = null; ollaGame = null; pancaGame = null;   // mesas/partidas multijugador, de cero
     peerChatFrom = null;
     ninjaRunT = -99; ninjaRunRoom = -1;
@@ -847,6 +848,32 @@
     elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
     return true;
   }
+  // LOS ANDENES VIVEN (andenes-vivos.md v367-369): los arcos de Tigre (clásico suspendido), Ezeiza (la final
+  // del ascenso) y La Plata (las diagonales + el mapa). Vuelven al MISMO andén vía trenCtx (patrón cancha).
+  function enterTigre() {
+    if (typeof Tigre === 'undefined' || !Tigre.create) return false;
+    tigreGame = Tigre.create({}); state = 'tigre';
+    evlog('hito', 'salió del andén de Tigre a la cancha (clásico vs Dálmine)');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  function enterEzeiza() {
+    if (typeof Ezeiza === 'undefined' || !Ezeiza.create) return false;
+    ezeizaGame = Ezeiza.create({}); state = 'ezeiza';
+    evlog('hito', 'salió del andén de Ezeiza al estadio (la final del ascenso)');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
+  function enterLaPlata() {
+    if (typeof LaPlata === 'undefined' || !LaPlata.create) return false;
+    laplataGame = LaPlata.create({ mapaDone: lsFlag('ts_laplata_mapa') }); state = 'laplata';
+    evlog('hito', 'salió del andén de La Plata a Plaza Moreno (las diagonales)');
+    if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+    elPrompt.classList.add('hidden'); elHud.classList.add('hidden'); elFloor.classList.add('hidden'); if (elChipBanner) elChipBanner.classList.add('hidden'); elMsg.textContent = '';
+    return true;
+  }
   // MAPA B (specs/mapas-satelites-bunkers.md F2): el plano del búnker — construís módulos desde la entrada de tu base.
   function enterBunkerMapa() {
     if (typeof BunkerMapa === 'undefined' || !BunkerMapa.create) return false;
@@ -972,7 +999,8 @@
     radiecita:  { id: 'radiecita',  emoji: '📻', label: 'g.wpn.radiecita', noEquip: true, use: { kind: 'hint' } },   // v360: la radio del Polaco — sopla la pista (no se consume)
     bondiola:   { id: 'bondiola',   emoji: '🥖', label: 'g.wpn.bondiola', use: { kind: 'heal', amount: 35 } },   // v362: bondiola de la calle de Constitución
     garrapinada:{ id: 'garrapinada',emoji: '🥜', label: 'g.wpn.garrapinada', use: { kind: 'heal', amount: 10 } },   // v362: garrapiñada de estación
-    trofeo_remo:{ id: 'trofeo_remo',emoji: '🏆', label: 'g.wpn.trofeo', noEquip: true },   // v365: el trofeo de la regata (Campana campeón) — coleccionable, sin use (hook abierto)
+    trofeo_remo:{ id: 'trofeo_remo',emoji: '🏆', label: 'g.wpn.trofeo', noEquip: true },   // v365: el trofeo de la regata (Campana campeón) — v366: termina en la vitrina de la sede
+    mapa_1882: { id: 'mapa_1882', emoji: '🗺️', label: 'g.wpn.mapa1882', noEquip: true },   // v369: el mapa de la catedral de La Plata (la extorsión de la capital) — coleccionable
   };
   // BUFFS temporales (Inventario F3, kind:'buff'). Efectos con timer en segundos (decrementan por dt, sin reloj de pared →
   // se pausan en los sub-modos). `tickBuffs` deriva los flags que leen player.js (speedMul/shielded) + cura con 'regen'.
@@ -1286,6 +1314,10 @@
     regataWon:        v => { try { localStorage.setItem('ts_regata', v ? '1' : ''); } catch (e) {} },    // v365: timoneaste la final del ocho (el trofeo)
     trofeoTano:       v => { try { localStorage.setItem('ts_trofeo_tano', v ? '1' : ''); } catch (e) {} },      // v366: le mostraste el trofeo al Tano en Campana
     trofeoVitrina:    v => { try { localStorage.setItem('ts_trofeo_vitrina', v ? '1' : ''); } catch (e) {} },   // v366: el trofeo quedó en la vitrina de la sede
+    // LOS ANDENES VIVEN (andenes-vivos.md, v367-369): Tigre / Ezeiza / La Plata
+    tigreClasico:     v => { try { localStorage.setItem('ts_tigre', v ? '1' : ''); } catch (e) {} },            // v367: el clásico suspendido + las hinchadas juntas
+    ezeizaAscenso:    v => { try { localStorage.setItem('ts_ascenso', v ? '1' : ''); } catch (e) {} },          // v368: Dálmine a la Nacional B
+    laplataMapa:      v => { try { localStorage.setItem('ts_laplata_mapa', v ? '1' : ''); } catch (e) {} },     // v369: el mapa de 1882 (la extorsión)
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1351,6 +1383,7 @@
       dalmineGritado: lsFlag('ts_dalmine'),         // §12: gritaste los 4 goles de Dálmine → portal → búnker
       bondi60: lsFlag('ts_bondi60'), enZarate: lsFlag('ts_en_zarate'), regataWon: lsFlag('ts_regata'),   // v363-365: el 60 / el Chevallier a Zárate / la regata
       trofeoTano: lsFlag('ts_trofeo_tano'), trofeoVitrina: lsFlag('ts_trofeo_vitrina'),   // v366: el trofeo a casa (el Tano → la vitrina de la sede)
+      tigreClasico: lsFlag('ts_tigre'), ezeizaAscenso: lsFlag('ts_ascenso'), laplataMapa: lsFlag('ts_laplata_mapa'),   // v367-369: los andenes viven
       sleptOnce: loopCount > 0,
     };
   }
@@ -1391,6 +1424,7 @@
       bocaTrapo: lsFlag('ts_boca_trapo'), enCampana: lsFlag('ts_en_campana'), dalmineGritado: lsFlag('ts_dalmine'),   // §12: la odisea a Campana / Villa Dálmine
       bondi60: lsFlag('ts_bondi60'), enZarate: lsFlag('ts_en_zarate'), regataWon: lsFlag('ts_regata'),   // v363-365: el 60 a Zárate / el Chevallier / la regata (el trofeo)
       trofeoTano: lsFlag('ts_trofeo_tano'), trofeoVitrina: lsFlag('ts_trofeo_vitrina'),   // v366: el trofeo a casa (Tano → vitrina, socio honorario)
+      tigreClasico: lsFlag('ts_tigre'), ezeizaAscenso: lsFlag('ts_ascenso'), laplataMapa: lsFlag('ts_laplata_mapa'),   // v367-369: clásico suspendido / ascenso / el mapa de 1882
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -4107,6 +4141,9 @@
         if (ex === 'cancha') { enterCancha(); return; }                // §12 S3: te colás al Monumental (desde el piquete)
         if (ex === 'campana') { enterCampana(); return; }              // §12 S5→S6: el maquinista sobrio te lleva a Campana
         if (ex === 'saavedra') { enterSaavedra(); return; }            // v363: salida a pie → Puente Saavedra (el 60)
+        if (ex === 'tigre') { enterTigre(); return; }                  // v367: la cancha de Tigre (clásico vs Dálmine)
+        if (ex === 'ezeiza') { enterEzeiza(); return; }                // v368: el 20 de Junio (la final del ascenso)
+        if (ex === 'laplata') { enterLaPlata(); return; }              // v369: Plaza Moreno + la catedral (el mapa)
         if (trenReturn === 'retiro') enterRetiro(); else enterConstitucion(); return;   // el tren te trae de vuelta a la terminal
       }
     } else if (state === 'cancha' && canchaGame) {                    // §12 S3/S4: el Monumental (clásico River-Boca)
@@ -4144,6 +4181,39 @@
         }
         if (typeof Sfx !== 'undefined' && Sfx.setVioleta) Sfx.setVioleta(false);
         enterTren('Villa Ballester', 'Mitre', 'retiro', { arrived: true }); return;   // te fuiste antes → de vuelta a Ballester
+      }
+    } else if (state === 'tigre' && tigreGame) {                      // v367: el clásico suspendido (Tigre-Dálmine 1-1)
+      tigreGame.update(dt); tigreGame.draw(ctx, W, H);
+      if (tigreGame.clasicoEdge) {                                     // cantaste con las DOS hinchadas contra los canas
+        applyEdge('tigre_clasico', 'tigreClasico');
+        tel('win', { result: 'tigre' }); evlog('hito', 'el clásico Tigre-Dálmine terminó suspendido y cantó con las DOS hinchadas');
+      }
+      if (tigreGame.done) {
+        tigreGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (trenCtx) { enterTren(trenCtx.ramal, trenCtx.linea, trenCtx.origen, { arrived: true }); return; }
+        enterRetiro(); return;
+      }
+    } else if (state === 'ezeiza' && ezeizaGame) {                    // v368: la final del ascenso (vs Tristán Suárez)
+      ezeizaGame.update(dt); ezeizaGame.draw(ctx, W, H);
+      if (ezeizaGame.ascensoEdge) {                                    // ¡VILLA DÁLMINE A LA NACIONAL B!
+        applyEdge('ezeiza_ascenso', 'ezeizaAscenso');
+        tel('win', { result: 'ascenso' }); evlog('hito', 'Dálmine le ganó el ascenso a Tristán Suárez en Ezeiza — ¡a la Nacional B!');
+      }
+      if (ezeizaGame.done) {
+        ezeizaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (trenCtx) { enterTren(trenCtx.ramal, trenCtx.linea, trenCtx.origen, { arrived: true }); return; }
+        enterConstitucion(); return;
+      }
+    } else if (state === 'laplata' && laplataGame) {                  // v369: las diagonales + el mapa de la catedral
+      laplataGame.update(dt); laplataGame.draw(ctx, W, H);
+      if (laplataGame.mapaEdge) {                                      // el MAPA de 1882: la extorsión de la capital
+        applyEdge('laplata_mapa', 'laplataMapa'); addItem('mapa_1882');
+        tel('win', { result: 'mapa1882' }); evlog('hito', 'encontró el mapa de 1882 en la catedral: la capital se votó con EXTORSIÓN 🗺️');
+      }
+      if (laplataGame.done) {
+        laplataGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
+        if (trenCtx) { enterTren(trenCtx.ramal, trenCtx.linea, trenCtx.origen, { arrived: true }); return; }
+        enterConstitucion(); return;
       }
     } else if (state === 'saavedra' && saavedraGame) {                // v363: a pie a Puente Saavedra + el 60 eterno
       saavedraGame.update(dt); saavedraGame.draw(ctx, W, H);
@@ -4509,6 +4579,9 @@
         zarateYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterZarate(); return 'Bajaste en la COSTANERA DE ZÁRATE 🌭 (choris + club de remo)'; },
         regataYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); lsOn('ts_en_zarate'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterRegata(); return 'Timoneás la FINAL DEL OCHO 🚣 (Campana vs Zárate)'; },
         trofeoYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_boca_trapo'); lsOn('ts_regata'); addItem('trofeo_remo'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterCampana(); return 'A CAMPANA con el trofeo 🏆 (mostráselo al Tano → la vitrina)'; },
+        tigreYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'Mitre — Tigre', linea: 'Mitre', origen: 'retiro' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTigre(); return 'A la CANCHA DE TIGRE 🐯💜 (el clásico que se pudre)'; },
+        ezeizaYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'Ezeiza', linea: 'Roca', origen: 'constitucion' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterEzeiza(); return 'Al 20 DE JUNIO ⚽💜 (la final del ascenso vs Tristán Suárez)'; },
+        laplataYa:   () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'La Plata', linea: 'Roca', origen: 'constitucion' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterLaPlata(); return 'A PLAZA MORENO ⛪🗺️ (las diagonales + el mapa de la catedral)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

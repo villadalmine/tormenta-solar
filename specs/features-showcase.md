@@ -195,6 +195,14 @@
   en Campana (se le empañan los ojos, beat guionado antes del chat IA) y lo depositás en la **VITRINA de la SEDE
   V. DÁLMINE**: queda **expuesto para siempre** (glow + placa "OCHO CON TIMONEL · 2026"), la banda festeja y el
   club te nombra **SOCIO HONORARIO** (+80 🪙) — el coleccionable se vuelve un pedazo permanente del mundo (grafo 42).
+  **LOS ANDENES VIVEN (v367-369, `andenes-vivos.md`):** los destinos grandes del tren ganan salida a su propio
+  arco. **TIGRE 🐯:** la cancha de Victoria — Tigre-Dálmine 1-1 (el empate lo gritás vos), se pudre, **SUSPENDIDO
+  por violencia**… y las **DOS hinchadas se JUNTAN** contra el cordón de canas cantando "¡el que no salta es un
+  vigilante!" (los canas retroceden). **EZEIZA 💜:** la final del ascenso en el 20 de Junio — Dálmine le gana a
+  **Tristán Suárez** con tu gol y tu aliento ([E]×3 atajadas) → **¡A LA NACIONAL B!** con papelitos violetas.
+  **LA PLATA 🗺️:** Plaza Moreno revela que las **diagonales son IGUALES a las de Campana** → en la cripta de la
+  catedral está **el mapa de 1882**: la votación de la capital tuvo **EXTORSIÓN** ("vote bien, o su ferrocarril
+  no llega nunca") — por eso ganó La Plata. Te llevás el mapa (coleccionable). Grafo **45 aristas**.
   **Y los locales de las terminales tienen FUNCIÓN (v359):** el puesto de **diarios** de Constitución te muestra como
   titular **la pista del grafo** (el motor de hints alimenta el diario — el mundo te cuenta qué hacer sin romper la
   ficción), el **locutorio** te deja escuchar los **rumores del chusmerío vivo** (el mismo bank del proxy), la

@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','consticalle.js','retiro.js','villa31.js','trenes.js','tren.js','cancha.js','campana.js','saavedra.js','once.js','chevallier.js','zarate.js','regata.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','consticalle.js','retiro.js','villa31.js','trenes.js','tren.js','cancha.js','campana.js','saavedra.js','once.js','chevallier.js','zarate.js','regata.js','tigre.js','ezeiza.js','laplata.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -553,6 +553,49 @@ if (require.main === module) {
     if (!(vt2.enVitrina && !vt2.hasTrofeo)) throw new Error('campana: al volver, la vitrina deberia mostrar el trofeo depositado: ' + JSON.stringify(vt2));
     if (ctf2.vitrinaEdge) throw new Error('campana: mirar la vitrina llena NO deberia re-disparar la arista');
     ok.push('trofeo-vitrina:ok');
+    // v367-369 LOS ANDENES VIVEN: la salida del andén por destino (DATA) — Tigre/Ezeiza/La Plata sí, Ballester no
+    const trTig = Tren.create({ ramal: 'Mitre — Tigre', linea: 'Mitre' }); trTig.__arrive();
+    if (trTig.__salida() !== 'tigre') throw new Error('tren: la salida de Tigre deberia ir a la cancha');
+    const trEze = Tren.create({ ramal: 'Ezeiza', linea: 'Roca' }); trEze.__arrive();
+    if (trEze.__salida() !== 'ezeiza') throw new Error('tren: la salida de Ezeiza deberia ir al estadio');
+    const trLPl = Tren.create({ ramal: 'La Plata', linea: 'Roca' }); trLPl.__arrive();
+    if (trLPl.__salida() !== 'laplata') throw new Error('tren: la salida de La Plata deberia ir a Plaza Moreno');
+    const trBB = Tren.create({ ramal: 'Villa Ballester', linea: 'Mitre' }); trBB.__arrive();
+    if (trBB.__salida() !== null) throw new Error('tren: Ballester NO deberia tener salida de arco');
+    // v367 TIGRE: el clasico completo — empate 1-1, suspendido, las hinchadas juntas
+    if (typeof Tigre === 'undefined' || !Tigre.create) throw new Error('Tigre no cargó');
+    const tg = Tigre.create({});
+    for (let i = 0; i < 10; i++) { tg.update(0.05); tg.draw(C, 960, 540); }
+    const tgr = tg.__full();
+    if (!(tgr.done && tgr.exitTo === 'back')) throw new Error('tigre: la secuencia deberia terminar en back: ' + JSON.stringify(tgr));
+    if (!(tgr.golTig === 1 && tgr.golDal === 1)) throw new Error('tigre: deberia ser EMPATE 1-1: ' + JSON.stringify(tgr));
+    if (!tg.clasicoEdge) throw new Error('tigre: clasicoEdge deberia dispararse al cantar juntos');
+    if (tg.clasicoEdge) throw new Error('tigre: clasicoEdge deberia consumirse (one-shot)');
+    ok.push('tigre:ok');
+    // v368 EZEIZA: la final del ascenso — 1-0, aguante x3, pitazo, NACIONAL B
+    if (typeof Ezeiza === 'undefined' || !Ezeiza.create) throw new Error('Ezeiza no cargó');
+    const ez = Ezeiza.create({});
+    for (let i = 0; i < 10; i++) { ez.update(0.05); ez.draw(C, 960, 540); }
+    const ezr = ez.__full();
+    if (!(ezr.done && ezr.exitTo === 'back' && ezr.gol === 1 && ezr.aliento >= 3)) throw new Error('ezeiza: la final deberia terminar 1-0 con aguante: ' + JSON.stringify(ezr));
+    if (!ez.ascensoEdge) throw new Error('ezeiza: ascensoEdge deberia dispararse');
+    ok.push('ezeiza:ok');
+    // v369 LA PLATA: las diagonales + la cripta + EL MAPA de 1882 (one-shot, y con mapaDone no re-dispara)
+    if (typeof LaPlata === 'undefined' || !LaPlata.create) throw new Error('LaPlata no cargó');
+    const lpz = LaPlata.create({});
+    for (let i = 0; i < 10; i++) { lpz.update(0.05); lpz.draw(C, 960, 540); }
+    const pl1 = lpz.__plano();
+    if (!pl1.diagonalesSeen) throw new Error('laplata: el plano deberia revelar las diagonales');
+    if (lpz.__catedral() !== 'cripta') throw new Error('laplata: la puerta deberia bajarte a la cripta');
+    for (let i = 0; i < 6; i++) { lpz.update(0.05); lpz.draw(C, 960, 540); }
+    const mp1 = lpz.__mapa();
+    if (!mp1.mapaFired) throw new Error('laplata: la vitrina deberia dar el MAPA');
+    if (!lpz.mapaEdge) throw new Error('laplata: mapaEdge deberia dispararse (one-shot)');
+    if (lpz.mapaEdge) throw new Error('laplata: mapaEdge deberia consumirse');
+    const lpz2 = LaPlata.create({ mapaDone: true });
+    lpz2.__catedral(); lpz2.__mapa();
+    if (lpz2.mapaEdge) throw new Error('laplata: con mapaDone la vitrina NO deberia re-disparar la arista');
+    ok.push('laplata:ok');
     // TERMINAL RETIRO (§11 E2): hall del Mitre; su SALIDA a la calle → Villa 31; escalera → subte C
     if (typeof Retiro === 'undefined' || !Retiro.create) throw new Error('Retiro no cargó');
     const re = Retiro.create({});
@@ -954,7 +997,7 @@ if (require.main === module) {
       subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
       enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, curaBendicion:true, bocaTrapo:true, enCampana:true, dalmineGritado:true,
       polacoCaso:true, polacoCarrito:true, polacoHallado:true, bondi60:true, enZarate:true, regataWon:true,
-      trofeoTano:true, trofeoVitrina:true };
+      trofeoTano:true, trofeoVitrina:true, tigreClasico:true, ezeizaAscenso:true, laplataMapa:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);

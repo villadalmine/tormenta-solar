@@ -467,6 +467,90 @@ const Historia = {
       "from": "specs/nivel-1/edificios/super-chino.md"
     },
     {
+      "id": "tigre_clasico",
+      "title": "El clásico suspendido: Tigre-Dálmine 1-1 y las hinchadas JUNTAS",
+      "title_en": "The abandoned derby: Tigre-Dálmine 1-1 and the two crowds UNITED",
+      "at": "plaza",
+      "pre": {
+        "nivel2Win": true
+      },
+      "sets": {
+        "tigreClasico": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Dicen que hay un partido que termina sin terminar.",
+          "El tren MITRE (desde Retiro) llega a TIGRE. En Victoria queda la cancha.",
+          "En el andén de Tigre hay una SALIDA a la cancha: juegan Tigre y Villa Dálmine.",
+          "Salí del andén de Tigre a la CANCHA [E]: gritá el empate… y mirá lo que pasa con las hinchadas."
+        ],
+        "en": [
+          "They say there's a match that ends without ending.",
+          "The MITRE train (from Retiro) reaches TIGRE. The stadium is in Victoria.",
+          "Tigre's platform has an EXIT to the stadium: Tigre vs Villa Dálmine are playing.",
+          "Leave Tigre's platform for the STADIUM [E]: shout the equalizer… and watch what the crowds do."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/andenes-vivos.md"
+    },
+    {
+      "id": "ezeiza_ascenso",
+      "title": "El ascenso en Ezeiza: Dálmine le gana a Tristán Suárez → Nacional B",
+      "title_en": "Promotion at Ezeiza: Dálmine beats Tristán Suárez → Nacional B",
+      "at": "plaza",
+      "pre": {
+        "nivel2Win": true
+      },
+      "sets": {
+        "ezeizaAscenso": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Hay una final que se juega lejos, donde los aviones pasan bajito.",
+          "El tren ROCA (desde Constitución) llega a EZEIZA. Ahí es local el Lechero: Tristán Suárez.",
+          "En el andén de Ezeiza hay una SALIDA al estadio: se juega la FINAL por el ascenso.",
+          "Salí del andén de Ezeiza al ESTADIO [E]: gritá el gol y aguantá el final — Dálmine a la NACIONAL B."
+        ],
+        "en": [
+          "There's a final played far away, where the planes fly low.",
+          "The ROCA train (from Constitución) reaches EZEIZA. Home of el Lechero: Tristán Suárez.",
+          "Ezeiza's platform has an EXIT to the stadium: the promotion FINAL is on.",
+          "Leave Ezeiza's platform for the STADIUM [E]: shout the goal and hold on — Dálmine up to NACIONAL B."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/andenes-vivos.md"
+    },
+    {
+      "id": "laplata_mapa",
+      "title": "La Plata: las diagonales de Campana y el mapa de la extorsión (1882)",
+      "title_en": "La Plata: Campana's diagonals and the map of the 1882 extortion",
+      "at": "plaza",
+      "pre": {
+        "nivel2Win": true
+      },
+      "sets": {
+        "laplataMapa": true
+      },
+      "terminal": true,
+      "hints": {
+        "es": [
+          "Hay una ciudad que es el espejo de otra, y un papel viejo que explica por qué.",
+          "El tren ROCA (desde Constitución) llega a LA PLATA. Mirá bien el trazado de la ciudad…",
+          "Las DIAGONALES de La Plata son iguales a las de Campana. En la CATEDRAL guardan el mapa original.",
+          "Salí del andén de La Plata [E], mirá el plano de las diagonales y bajá a la cripta de la CATEDRAL: el MAPA de 1882 cuenta la verdad de la votación."
+        ],
+        "en": [
+          "There's a city that mirrors another, and an old paper that explains why.",
+          "The ROCA train (from Constitución) reaches LA PLATA. Look closely at the city's layout…",
+          "La Plata's DIAGONALS match Campana's. The CATHEDRAL keeps the original map.",
+          "Leave La Plata's platform [E], study the diagonals plan and descend to the CATHEDRAL crypt: the 1882 MAP tells the truth about the vote."
+        ]
+      },
+      "from": "specs/nivel-1/lugares/andenes-vivos.md"
+    },
+    {
       "id": "piquete_juegos",
       "title": "Ganar los 5 mini-juegos del piquete",
       "title_en": "Win the 5 picket mini-games",
