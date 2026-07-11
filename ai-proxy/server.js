@@ -25,6 +25,7 @@ let LINYERA_POOL = null, LINYERA_POOL_TS = 0;             // pool de saturación
 let OR_PRICES = {}, OR_NEWS = [], OR_TS = 0;   // poblado por el CronWorkflow vía POST /precios (persistido: un deploy no los borra)
 const PRECIOS_STORE = process.env.PRECIOS_STORE || '/data/precios.json';
 const TRENES_STORE = process.env.TRENES_STORE || '/data/trenes-estado.json';   // v361: estado REAL del servicio (si el cron con credenciales lo escribe)
+const VIDEOS_DIR = process.env.VIDEOS_DIR || '/data/videos';   // infra-72 🎬: los reels de novedades (mp4 en PVC, subidos con GEN_TOKEN)
 try { const d = JSON.parse(require('fs').readFileSync(PRECIOS_STORE, 'utf8')); if (d && d.prices) { OR_PRICES = d.prices; OR_NEWS = d.news || []; OR_TS = d.ts || 0; } } catch (e) {}
 // NOTICIAS del CINE (cine-noticias.md): banco de titulares por topic, lo llena un cron (gen-noticias.mjs) que
 // FETCHEA (código, no modelo) y postea acá. El juego lo lee en GET /noticias (pantalla del cine + linyera).
@@ -649,6 +650,36 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
     return res.end(JSON.stringify({ equipos: MUNDIAL }));
   }
+  // 🎬 EL REEL DE NOVEDADES (infra-72): videos generados con tools/gen-video-novedades.mjs y subidos al PVC.
+  // GET /videos = listado JSON · GET /videos/<archivo> = stream con soporte de Range (el <video> del blog
+  // puede hacer seek). El nombre se valida estricto (sin / ni ..) así el concat con VIDEOS_DIR es seguro.
+  if (req.method === 'GET' && req.url === '/videos') {
+    let list = [];
+    try { list = fs.readdirSync(VIDEOS_DIR).filter(f => /^[\w][\w.-]*\.(mp4|webm)$/i.test(f))
+      .map(f => { const st = fs.statSync(VIDEOS_DIR + '/' + f); return { name: f, size: st.size, ts: Math.round(st.mtimeMs) }; })
+      .sort((a, b) => b.ts - a.ts); } catch (e) {}
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
+    return res.end(JSON.stringify({ videos: list }));
+  }
+  if (req.method === 'GET' && req.url.indexOf('/videos/') === 0) {
+    const name = decodeURIComponent(req.url.slice(8).split('?')[0]);
+    if (!/^[\w][\w.-]*\.(mp4|webm)$/i.test(name) || name.indexOf('..') >= 0) { res.writeHead(400); return res.end('bad name'); }
+    const fp = VIDEOS_DIR + '/' + name;
+    let st; try { st = fs.statSync(fp); } catch (e) { res.writeHead(404); return res.end('not found'); }
+    const type = /\.webm$/i.test(name) ? 'video/webm' : 'video/mp4';
+    const head = { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Cache-Control': 'public, max-age=3600' };
+    const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+    if (m) {
+      let start = m[1] ? parseInt(m[1], 10) : 0;
+      let end = m[2] ? parseInt(m[2], 10) : st.size - 1;
+      if (start >= st.size) { res.writeHead(416, { 'Content-Range': 'bytes */' + st.size }); return res.end(); }
+      if (end >= st.size) end = st.size - 1;
+      res.writeHead(206, Object.assign(head, { 'Content-Range': 'bytes ' + start + '-' + end + '/' + st.size, 'Content-Length': end - start + 1 }));
+      return fs.createReadStream(fp, { start, end }).pipe(res);
+    }
+    res.writeHead(200, Object.assign(head, { 'Content-Length': st.size }));
+    return fs.createReadStream(fp).pipe(res);
+  }
   if (req.method === 'GET' && req.url === '/trenes') {                              // v361: estado del servicio de la red de tren
     // Fuente: PVC /data/trenes-estado.json (lo escribe gen-trenes-estado.mjs si hay credenciales de la API real
     // de transporte — GTFS-RT service alerts) o, si no existe/está viejo (>30 min), SIMULADO determinístico por
@@ -1254,6 +1285,24 @@ http.createServer((req, res) => {
     }
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     return res.end(out);
+  }
+  // 🎬 subir un reel al PVC (GEN_TOKEN, streaming a disco, cap 80MB, write temp + rename atómico):
+  //   curl -X POST -H "X-Gen-Token: $TOK" --data-binary @reel.mp4 https://<proxy>/videos/novedades-<fecha>.mp4
+  if (req.method === 'POST' && req.url.indexOf('/videos/') === 0) {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    const name = decodeURIComponent(req.url.slice(8).split('?')[0]);
+    if (!/^[\w][\w.-]*\.(mp4|webm)$/i.test(name) || name.indexOf('..') >= 0) { res.writeHead(400); return res.end('bad name'); }
+    try { fs.mkdirSync(VIDEOS_DIR, { recursive: true }); } catch (e) {}
+    const tmp = VIDEOS_DIR + '/.' + name + '.up';
+    const ws = fs.createWriteStream(tmp);
+    let size = 0, aborted = false;
+    req.on('data', c => { size += c.length; if (size > 80 * 1024 * 1024) { aborted = true; req.destroy(); ws.destroy(); try { fs.unlinkSync(tmp); } catch (e) {} } });
+    req.pipe(ws);
+    ws.on('finish', () => { if (aborted) return;
+      try { fs.renameSync(tmp, VIDEOS_DIR + '/' + name); res.writeHead(200); res.end('ok ' + size); }
+      catch (e) { res.writeHead(500); res.end('fail'); } });
+    ws.on('error', () => { try { fs.unlinkSync(tmp); } catch (e) {} if (!aborted) { res.writeHead(500); res.end('fail'); } });
+    return;
   }
   // el CronWorkflow de precios postea acá (protegido por GEN_TOKEN): {prices, news}.
   if (req.method === 'POST' && req.url === '/precios') {

@@ -101,6 +101,21 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-72] — 2026-07-11 — 🎬 EL REEL de novedades: video del juego corriendo, servido desde EL PROPIO server
+- **`tools/gen-video-novedades.mjs` (pedido del dueño "un video tipo YouTube en novedades"):** graba un REEL
+  (~90s, 1280×720) con Chromium `recordVideo` — el mismo robot de las capturas ahora **JUEGA y graba**: guion
+  de segmentos (Villa 31 → cartelera → la calle → el Polaco con la quest seteada → el 60 completo → Once +
+  pasillo del Chevallier → Zárate → **LA REGATA remando al ritmo**), con **tarjetas de título** inyectadas que
+  además tapan el menú de debug entre saltos. ffmpeg → mp4 h264 faststart sin audio (~6.4MB). GOTCHAS: el
+  ffmpeg-free de Fedora NO trae libx264 → **libopenh264** (bitrate, sin crf); TRIM=3s recorta el boot para
+  abrir con la tarjeta; el mp4 NO va al repo.
+- **Proxy 0.2.14 — `GET /videos` (listado) + `GET /videos/<archivo>` con RANGE (206, seek del player) +
+  `POST /videos/<archivo>`** (GEN_TOKEN, streaming a PVC `/data/videos`, cap 80MB, temp+rename atómico,
+  nombre validado estricto). Testeado local: 403/subida íntegra/206 acotado y abierto/400 traversal/404.
+- **Blog:** post 🎬 en Novedades ES/EN con `<video controls>` apuntando al proxy — el CSP del self-host YA
+  permitía `media-src llm-tormenta-solar…` (quedó del TTS); en GitHub Pages no hay CSP. El video streamea
+  del cluster en los dos hosts. Regenerar: `node tools/gen-video-novedades.mjs` + curl POST (header del tool).
+
 ## [v365] — 2026-07-10 — 🚣 ZÁRATE: la costanera + LA REGATA (timoneás la final del ocho → EL TROFEO 🏆)
 - **Sub-modo `js/zarate.js` (la costanera):** el Paraná arriba con **botes del torneo pasando**, el puesto de
   **CHORIS de la costanera** 🌭 (12, patrón sells), el **club ARSENAL** (flavor), el **TABLERO del torneo**
