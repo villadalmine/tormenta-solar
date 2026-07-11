@@ -101,6 +101,12 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-73] — 2026-07-11 — 🎬 REEL del día (v366-369) subido al server
+- Guion nuevo en `tools/gen-video-novedades.mjs` (trofeo→Tano→vitrina · Tigre clásico suspendido · Ezeiza
+  ascenso · La Plata cripta+mapa), ~80s / 9MB. Subido al PVC (`novedades-2026-07-11.mp4`, POST /videos con
+  GEN_TOKEN); los dos reels conviven (GET /videos lista ambos). Post 🎬 nuevo en Novedades ES/EN
+  (poster 23-tigre). Sin cambios del proxy (0.2.14 sigue).
+
 ## [v369] — 2026-07-11 — 🗺️ LA PLATA: las diagonales de Campana + el mapa de la extorsión (1882)
 - **`js/laplata.js`** (brief del dueño): del andén de La Plata a **Plaza Moreno** — el **plano de 1882** revela
   que el trazado con diagonales **es IGUAL al de Campana** → entrás a la **CATEDRAL**, bajás a la **cripta del

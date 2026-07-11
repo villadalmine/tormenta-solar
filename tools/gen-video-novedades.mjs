@@ -89,60 +89,37 @@ const seg = async (title, sub, action, play) => {
 };
 
 try {
-  // ---- EL GUION (las mejoras de los últimos días, v358 → v365) ----
-  await card('TORMENTA SOLAR', 'NOVEDADES · semana del 10 de julio de 2026 — el juego corriendo, sin trucos');
+  // ---- EL GUION (las mejoras de los últimos días, v366 → v369) ----
+  await card('TORMENTA SOLAR', 'NOVEDADES · 11 de julio de 2026 — el juego corriendo, sin trucos');
   await page.waitForTimeout(2800); await uncard(); await page.waitForTimeout(600);
 
-  await seg('🍲 VILLA 31 VIVA', 'el mandado del cura · la abuela Coca · las rondas de la olla', 'villaYa', async () => {
-    await hold('d', 1400); await hold('w', 700); await tap('e'); await page.waitForTimeout(1800); await hold('a', 900);
-  });
-
-  await seg('🕐 TRENES EN TIEMPO REAL', 'reloj real de Buenos Aires + frecuencias reales + el lío del día', 'constiYa', async () => {
-    await hold('w', 900); await page.waitForTimeout(2600); await hold('d', 800);
-  });
-
-  await seg('🚌 LA CALLE DE CONSTITUCIÓN', 'bondis con líneas reales · canas de ronda · chori, bondiola y tortafritas', 'calleYa', async () => {
-    await hold('d', 1600); await tap('e'); await page.waitForTimeout(1600); await hold('a', 1000); await tap('e'); await page.waitForTimeout(1200);
-  });
-
-  // el Polaco: seteamos la quest en etapa "carrito" para que aparezca en el andén de La Plata
-  await page.evaluate(() => { try { localStorage.setItem('ts_polaco_caso', '1'); localStorage.setItem('ts_polaco_carrito', '1'); localStorage.setItem('ts_polaco_hallado', ''); } catch (e) {} });
-  await seg('📻 EL MISTERIO DEL POLACO', 'cada estación tiene su linyera — y el de Constitución desapareció', 'trenYa', async () => {
-    await page.waitForTimeout(1200); await tap('e');           // saltar el viaje → andén de La Plata
-    await page.waitForTimeout(900);
-    await hold('d', 1400); await hold('s', 500); await tap('e');   // hacia el Polaco → lo encontrás
+  await seg('🏆 EL TROFEO A CASA', 'la regata se ganó PARA Campana: el Tano se emociona → la vitrina de la sede', 'trofeoYa', async () => {
+    await hold('d', 1900); await hold('s', 400); await tap('e');   // se lo mostrás al TANO (se le empañan los ojos)
     await page.waitForTimeout(2600);
+    await hold('a', 1750); await hold('s', 350); await tap('e');   // lo dejás en la VITRINA → ¡SOCIO HONORARIO!
+    await page.waitForTimeout(4200);
   });
 
-  await seg('🚶 A PIE A PUENTE SAAVEDRA', 'el Belgrano Norte te deja "cerca"… cerca es un decir', 'saavedraYa', async () => {
-    await hold('d', 2900);                                      // Av. Maipú → el puente → la parada
-    await tap('e');                                             // ¡llegó el 60 RAMAL ZÁRATE!
-    await page.waitForTimeout(6500);                            // el viaje eterno (1h… 2h… Zzz)
+  await seg('🐯 EL CLÁSICO QUE SE PUDRE', 'Tigre vs Dálmine: empate, SUSPENDIDO… y las DOS hinchadas JUNTAS contra los canas', 'tigreYa', async () => {
+    await page.waitForTimeout(11500); await tap('e');              // ¡gritás el EMPATE!
+    await page.waitForTimeout(9600); await tap('e');               // lío → suspendido → cantás CON LAS DOS
+    await page.waitForTimeout(5000);                               // "¡el que no salta es un vigilante!"
   });
 
-  await seg('🚍 ONCE + EL CHEVALLIER DE LUJO', 'la Línea A llega a Plaza Miserere — y el rápido a Zárate tiene AIRE', 'onceYa', async () => {
-    await page.waitForTimeout(900);
-    await hold('w', 1700); await tap('e');                      // a la dársena → pasaje → arriba del micro
-    await page.waitForTimeout(1400);
-    await hold('d', 2600);                                      // caminás por el pasillo (ventanillas + aire)
-    await tap('e'); await page.waitForTimeout(1500);
+  await seg('💜 LA FINAL DEL ASCENSO', 'en Ezeiza: Dálmine vs Tristán Suárez — gritá el gol… y AGUANTÁ', 'ezeizaYa', async () => {
+    await page.waitForTimeout(5200); await tap('e');               // ¡gritás el gol!
+    for (let i = 0; i < 3; i++) { await page.waitForTimeout(900); await tap('e'); }   // el arquero ataja TODO
+    await page.waitForTimeout(3000);                               // pitazo → ¡A LA NACIONAL B!
+    await page.waitForTimeout(4500);                               // papelitos + vuelta olímpica
   });
 
-  await seg('🌭 LA COSTANERA DE ZÁRATE', 'choris, el club Arsenal… y un torneo de remo al que le falta ALGUIEN', 'zarateYa', async () => {
-    await hold('d', 1500); await hold('w', 700); await tap('e');   // el chori de la costanera
-    await page.waitForTimeout(1500);
-    await hold('d', 2200); await tap('e'); await page.waitForTimeout(1800);   // el tablero: Campana 1-0 en todo
-  });
-
-  await seg('🚣 LA FINAL DEL OCHO: VOS DE TIMONEL', 'Campana vs Zárate — [E] al ritmo = ¡BOGA! · esquivá las boyas', 'regataYa', async () => {
-    await page.waitForTimeout(3400);                            // 3… 2… 1… ¡LARGARON!
-    for (let i = 0; i < 9; i++) {                               // remás al ritmo del metrónomo
-      await page.waitForTimeout(i === 0 ? 1060 : 1110);
-      await tap('e');
-      if (i === 3) await hold('w', 260);                        // timoneás una boya
-      if (i === 6) await hold('s', 260);
-    }
-    await page.waitForTimeout(1200);
+  await seg('🗺️ LA PLATA Y EL MAPA DE 1882', 'las diagonales son IGUALES a Campana… y la catedral guarda la prueba de la EXTORSIÓN', 'laplataYa', async () => {
+    await hold('a', 1050); await hold('w', 380); await tap('e');   // el plano: "¡es IGUAL a Campana!"
+    await page.waitForTimeout(2800);
+    await hold('d', 1050); await hold('w', 550); await tap('e');   // entrás a la catedral → la cripta
+    await page.waitForTimeout(1000);
+    await hold('w', 680); await tap('e');                          // la vitrina: EL MAPA (la extorsión)
+    await page.waitForTimeout(3600);
   });
 
   await card('TORMENTA SOLAR ⚡', 'jugalo GRATIS · tormenta-solar.cybercirujas.club · villadalmine.github.io/tormenta-solar');
