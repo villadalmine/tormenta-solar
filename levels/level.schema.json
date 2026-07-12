@@ -340,6 +340,21 @@
      "type": "number",
      "description": "tile Y (opcional; default piso)"
     },
+    "mov": {
+     "description": "movilidad del NPC (F4 npcs-vivos, v276): false|'nunca' = clavado (colas, guardias); {tras:'flag'} = recién deambula cuando el flag se cumple (ej. borrachines post-quest); {hasta:'flag'} = deambula HASTA que el flag se cumple (ej. vecinos de guardia post-tormenta)",
+     "oneOf": [
+      { "type": "boolean" },
+      { "type": "string", "enum": ["nunca"] },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "tras": { "type": "string" },
+        "hasta": { "type": "string" }
+       }
+      }
+     ]
+    },
     "inward": {
      "type": "integer",
      "description": "sólo doors: dirección hacia adentro (-1/1) para calcular el spawn al cruzar"
@@ -649,9 +664,11 @@
      "type": "string",
      "enum": [
       "run",
+      "game",
       "meta"
      ],
-     "default": "run"
+     "default": "run",
+     "description": "run = se resetea por partida · game = persiste toda la partida guardada (ej. SUBE) · meta = cross-partida"
     },
     "repeatable": {
      "type": "boolean",
