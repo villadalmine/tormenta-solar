@@ -112,6 +112,12 @@ El juego es 100% estático; se publica en
   misconfig, `ignore-unfixed`). Corre en push/PR + barrido semanal. Pre-chequeo manual de los 668 commits:
   sin keys de alto valor (OpenRouter/Anthropic/GitHub/AWS/private keys) en la historia.
 - **Verificado:** el estado real de "listo-para-codear" — la contraflor 3v3 YA estaba (v331, solo playtest).
+- **(75b-e) CI VERDE punta a punta:** de paso se descubrió que el workflow `tests` estaba ROJO hace días —
+  `tests/levels.mjs` (solo corre en CI) rechazaba `mov` (v276) y `scope:'game'` (quest SUBE): **schema de
+  niveles al día** (documentado). Trivy destapó **4 hallazgos de hardening k8s** (proxy/web corren root, nginx
+  sin rootfs read-only, Role del deployer amplio) → `.trivyignore` DOCUMENTADO uno por uno + **pase de
+  hardening dedicado anotado en backlog** (no se toca infra que anda de pasada). Resultado final: `tests` ✅ +
+  `seguridad` ✅ (gitleaks historia completa limpia + trivy sin sorpresas nuevas).
 
 ## [v371 · infra-74] — 2026-07-11 — ⚽📽️ DÁLMINE REAL en el noticiero: próximo partido + el TANO lo sabe
 - **Hallazgo:** el live horario de noticias (§7.1) YA estaba completo y andando (spec/backlog estaban viejos):
