@@ -202,7 +202,15 @@
   **Tristán Suárez** con tu gol y tu aliento ([E]×3 atajadas) → **¡A LA NACIONAL B!** con papelitos violetas.
   **LA PLATA 🗺️:** Plaza Moreno revela que las **diagonales son IGUALES a las de Campana** → en la cripta de la
   catedral está **el mapa de 1882**: la votación de la capital tuvo **EXTORSIÓN** ("vote bien, o su ferrocarril
-  no llega nunca") — por eso ganó La Plata. Te llevás el mapa (coleccionable). Grafo **45 aristas**.
+  no llega nunca") — por eso ganó La Plata. Te llevás el mapa (coleccionable). **Y EL MAPA VUELVE A CAMPANA
+  (v370):** se lo mostrás al TANO ("mi viejo lo contaba y nadie le creía") y queda **enmarcado en la sede**
+  junto al trofeo — placa "CAMPANA CAPITAL · 1882", el mate del Tano (+vida) y la sede convertida en el
+  **museo del pueblo**. Grafo **47 aristas**. **DÁLMINE REAL EN EL NOTICIERO (v371):** el piso Deportes del
+  cine muestra cada hora los resultados REALES (Mundial con score, tabla, goleadores) y el último partido de
+  Villa Dálmine **con el próximo rival y fecha** — y ese titular alimenta a los 19 NPCs IA: el TANO te cuenta
+  cómo salió Dálmine de verdad. **ANDENES CHICOS CON SABOR (v372):** Cañuelas (dulce de leche DE LA CUNA + el
+  Tambero), A. Korn (salame de quinta + el Quintero) y Bosques (miel + el Hachero) — vendedor, precio y
+  linyera declarados como DATA por estación.
   **Y los locales de las terminales tienen FUNCIÓN (v359):** el puesto de **diarios** de Constitución te muestra como
   titular **la pista del grafo** (el motor de hints alimenta el diario — el mundo te cuenta qué hacer sin romper la
   ficción), el **locutorio** te deja escuchar los **rumores del chusmerío vivo** (el mismo bank del proxy), la

@@ -169,6 +169,14 @@ propio ARCO al bajarte, con una salida nueva en el andén. Brief del dueño (202
   (`ts_tigre`/`ts_ascenso`/`ts_laplata_mapa`), WEAPONS `mapa_1882` (noEquip), debug
   `tigreYa/ezeizaYa/laplataYa`. Grafo 45.
 
+## Implementación (v372 — LOS ANDENES CHICOS CON SABOR)
+
+- Cañuelas / A. Korn / Bosques dejan el flavor genérico `campo`: **3 FLAVORS nuevos (DATA)** en `tren.js` —
+  `canuelas` (🍮 dulcedeleche 15, liny **el Tambero**), `korn` (🍖 salame 13, **el Quintero**), `bosques`
+  (🍯 miel 12, **el Hachero**). Pilar sigue en `campo` (no hay ramal todavía). 3 ítems heal en WEAPONS
+  (30/30/25). i18n `g.tren.vend_<id>` / `g.tren.liny_<id>` / `g.wpn.<item>`. Debug `canuelasYa`.
+  e2e `andenes-sabor:ok`.
+
 ## Implementación (v370 — EL MAPA AL TANO)
 
 - **`js/campana.js`:** `create(opts)` gana `{mapa, mapaTanoDone, enMarco}`. Con el mapa, el [E] al TANO es el
