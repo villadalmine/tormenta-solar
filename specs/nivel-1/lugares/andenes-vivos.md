@@ -82,7 +82,6 @@ propio ARCO al bajarte, con una salida nueva en el andén. Brief del dueño (202
   "at": "plaza",
   "pre": { "nivel2Win": true },
   "sets": { "laplataMapa": true },
-  "terminal": true,
   "hints": {
     "es": [
       "Hay una ciudad que es el espejo de otra, y un papel viejo que explica por qué.",
@@ -95,6 +94,57 @@ propio ARCO al bajarte, con una salida nueva en el andén. Brief del dueño (202
       "The ROCA train (from Constitución) reaches LA PLATA. Look closely at the city's layout…",
       "La Plata's DIAGONALS match Campana's. The CATHEDRAL keeps the original map.",
       "Leave La Plata's platform [E], study the diagonals plan and descend to the CATHEDRAL crypt: the 1882 MAP tells the truth about the vote."
+    ]
+  }
+}
+```
+
+```hist
+{
+  "id": "mapa_tano",
+  "title": "El mapa al Tano: la leyenda del barrio era CIERTA",
+  "title_en": "The map to el Tano: the neighborhood legend was TRUE",
+  "at": "plaza",
+  "pre": { "laplataMapa": true },
+  "sets": { "mapaTano": true },
+  "hints": {
+    "es": [
+      "Hay un viejo que escuchó esa historia toda la vida, y nadie le creía.",
+      "El mapa de 1882 prueba lo que en Campana se contaba de padre a hijo. Llevalo a Campana.",
+      "El TANO, en la calle del estadio de Campana, tiene que ver el mapa: su viejo lo contaba.",
+      "Con el mapa 🗺️ encima, apretá [E] frente al TANO en Campana: mostrale la prueba."
+    ],
+    "en": [
+      "There's an old man who heard that story all his life, and nobody believed him.",
+      "The 1882 map proves what Campana passed down father to son. Take it to Campana.",
+      "El TANO, on Campana's stadium street, must see the map: his father used to tell it.",
+      "With the map 🗺️ on you, press [E] in front of el TANO in Campana: show him the proof."
+    ]
+  }
+}
+```
+
+```hist
+{
+  "id": "mapa_marco",
+  "title": "El mapa enmarcado en la sede: CAMPANA CAPITAL, a la vista de todos",
+  "title_en": "The map framed at the clubhouse: CAMPANA CAPITAL, for all to see",
+  "at": "plaza",
+  "pre": { "mapaTano": true },
+  "sets": { "mapaMarco": true },
+  "terminal": true,
+  "hints": {
+    "es": [
+      "Hay un marco vacío que espera hace años.",
+      "El Tano guarda un marco vacío en la sede, al lado de la vitrina. Ahora sabés para qué era.",
+      "El mapa de 1882 va al MARCO de la sede de Villa Dálmine, al lado de la vitrina del trofeo.",
+      "Con la bendición del Tano, apretá [E] en el MARCO de la sede: colgá la verdad del pueblo."
+    ],
+    "en": [
+      "There's an empty frame that has been waiting for years.",
+      "El Tano keeps an empty frame at the clubhouse, next to the trophy case. Now you know what for.",
+      "The 1882 map goes in the clubhouse FRAME at Villa Dálmine, next to the trophy case.",
+      "With el Tano's blessing, press [E] at the clubhouse FRAME: hang the town's truth."
     ]
   }
 }
@@ -118,3 +168,14 @@ propio ARCO al bajarte, con una salida nueva en el andén. Brief del dueño (202
   andén con `{arrived:true}`), dispatches, FLAG_SETTERS/historiaState/worldSnapshot
   (`ts_tigre`/`ts_ascenso`/`ts_laplata_mapa`), WEAPONS `mapa_1882` (noEquip), debug
   `tigreYa/ezeizaYa/laplataYa`. Grafo 45.
+
+## Implementación (v370 — EL MAPA AL TANO)
+
+- **`js/campana.js`:** `create(opts)` gana `{mapa, mapaTanoDone, enMarco}`. Con el mapa, el [E] al TANO es el
+  beat guionado (si además hay trofeo pendiente, los beats van EN ORDEN: trofeo → mapa → chat) → one-shot
+  `mapaTanoEdge`. **El MARCO** (`marco = {x:5.6, y:9.4}`, junto a la sede) se dibuja solo cuando el arco está
+  activo: vacío ("(un marco vacío)") tras el beat del Tano, o con EL MAPA (glow + placa "CAMPANA CAPITAL ·
+  1882") si `enMarco`. [E] cuelga el mapa → one-shot `marcoEdge` + festejo con banner propio (`celebrateKey`).
+- **`js/game.js`:** `enterCampana` pasa los opts; dispatch: `mapaTanoEdge` → `applyEdge('mapa_tano')`;
+  `marcoEdge` → `applyEdge('mapa_marco')` + saca `mapa_1882` del inventario + **el mate del Tano (+vida
+  FULL)**. Flags `ts_mapa_tano`/`ts_mapa_marco`. Debug `mapaTanoYa`. Grafo 47 (`laplata_mapa` ya no terminal).

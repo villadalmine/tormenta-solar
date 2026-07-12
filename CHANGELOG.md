@@ -101,6 +101,19 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v370] — 2026-07-11 — 🗺️💜 EL MAPA AL TANO: "mi viejo lo contaba" — CAMPANA CAPITAL en la sede
+- **Cierra el hook del mapa (v369):** con el `mapa_1882` encima, el [E] al TANO es el beat guionado (patrón
+  v366; con trofeo Y mapa pendientes, los beats van EN ORDEN: trofeo → mapa → chat IA) → arista **`mapa_tano`**:
+  su viejo contaba la historia y nadie le creía — y hace AÑOS guarda un **marco vacío** en la sede.
+- **El MARCO de la sede** (junto a la vitrina): [E] cuelga el mapa → arista **`mapa_marco`** (terminal): sale
+  del inventario, queda **enmarcado para siempre** (glow + placa "CAMPANA CAPITAL · 1882"), festejo de la banda
+  con banner propio (¡CAMPANA CAPITAL!) y **el mate del Tano** (+vida FULL). La sede = el museo del pueblo
+  (trofeo + mapa lado a lado). Guardas: el marco sin pasar por el Tano avisa; el marco lleno no re-dispara.
+- **Grafo 45→47** (`laplata_mapa` dejó de ser terminal) + flags `ts_mapa_tano`/`ts_mapa_marco` en
+  FLAG_SETTERS/historiaState/worldSnapshot. Debug `mapaTanoYa` (+botón). e2e `mapa-marco:ok` (orden de beats
+  con trofeo+mapa juntos + one-shots + reentrada). Verificado en Chromium real caminando (2 flags, 0 errores).
+  Blog ES/EN + captura `26-museo` (la sede completa). i18n 11 claves ES≡EN. Cache `?v=370`.
+
 ## [infra-73] — 2026-07-11 — 🎬 REEL del día (v366-369) subido al server
 - Guion nuevo en `tools/gen-video-novedades.mjs` (trofeo→Tano→vitrina · Tigre clásico suspendido · Ezeiza
   ascenso · La Plata cripta+mapa), ~80s / 9MB. Subido al PVC (`novedades-2026-07-11.mp4`, POST /videos con

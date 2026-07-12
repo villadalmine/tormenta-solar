@@ -840,7 +840,10 @@
     if (typeof Campana === 'undefined' || !Campana.create) return false;
     campanaGame = Campana.create({   // v366: si traés el trofeo de la regata, el Tano y la vitrina lo esperan
       trofeo: !!(player && player.inventory && player.inventory.includes('trofeo_remo')) && !lsFlag('ts_trofeo_vitrina'),
-      tanoDone: lsFlag('ts_trofeo_tano'), enVitrina: lsFlag('ts_trofeo_vitrina') }); state = 'campana';
+      tanoDone: lsFlag('ts_trofeo_tano'), enVitrina: lsFlag('ts_trofeo_vitrina'),
+      // v370: y si traés el mapa de 1882, el Tano tiene un marco vacío guardado hace años
+      mapa: !!(player && player.inventory && player.inventory.includes('mapa_1882')) && !lsFlag('ts_mapa_marco'),
+      mapaTanoDone: lsFlag('ts_mapa_tano'), enMarco: lsFlag('ts_mapa_marco') }); state = 'campana';
     if (typeof Sfx !== 'undefined' && Sfx.setVioleta) { Sfx.init(); Sfx.setVioleta(true); }   // 💜 el canto de la popular + bombo (v356)
     applyEdge('campana_llegada', 'enCampana');
     evlog('hito', 'llegó a Campana (Villa Dálmine)');
@@ -1318,6 +1321,8 @@
     tigreClasico:     v => { try { localStorage.setItem('ts_tigre', v ? '1' : ''); } catch (e) {} },            // v367: el clásico suspendido + las hinchadas juntas
     ezeizaAscenso:    v => { try { localStorage.setItem('ts_ascenso', v ? '1' : ''); } catch (e) {} },          // v368: Dálmine a la Nacional B
     laplataMapa:      v => { try { localStorage.setItem('ts_laplata_mapa', v ? '1' : ''); } catch (e) {} },     // v369: el mapa de 1882 (la extorsión)
+    mapaTano:         v => { try { localStorage.setItem('ts_mapa_tano', v ? '1' : ''); } catch (e) {} },        // v370: el Tano vio el mapa (la leyenda era cierta)
+    mapaMarco:        v => { try { localStorage.setItem('ts_mapa_marco', v ? '1' : ''); } catch (e) {} },       // v370: el mapa enmarcado en la sede
   };
   const lsFlag = k => { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } };
   // lectura de flags por nombre (paralelo a FLAG_SETTERS) → lo usa el gate declarativo de las puertas (F4)
@@ -1384,6 +1389,7 @@
       bondi60: lsFlag('ts_bondi60'), enZarate: lsFlag('ts_en_zarate'), regataWon: lsFlag('ts_regata'),   // v363-365: el 60 / el Chevallier a Zárate / la regata
       trofeoTano: lsFlag('ts_trofeo_tano'), trofeoVitrina: lsFlag('ts_trofeo_vitrina'),   // v366: el trofeo a casa (el Tano → la vitrina de la sede)
       tigreClasico: lsFlag('ts_tigre'), ezeizaAscenso: lsFlag('ts_ascenso'), laplataMapa: lsFlag('ts_laplata_mapa'),   // v367-369: los andenes viven
+      mapaTano: lsFlag('ts_mapa_tano'), mapaMarco: lsFlag('ts_mapa_marco'),   // v370: el mapa al Tano → enmarcado en la sede
       sleptOnce: loopCount > 0,
     };
   }
@@ -1425,6 +1431,7 @@
       bondi60: lsFlag('ts_bondi60'), enZarate: lsFlag('ts_en_zarate'), regataWon: lsFlag('ts_regata'),   // v363-365: el 60 a Zárate / el Chevallier / la regata (el trofeo)
       trofeoTano: lsFlag('ts_trofeo_tano'), trofeoVitrina: lsFlag('ts_trofeo_vitrina'),   // v366: el trofeo a casa (Tano → vitrina, socio honorario)
       tigreClasico: lsFlag('ts_tigre'), ezeizaAscenso: lsFlag('ts_ascenso'), laplataMapa: lsFlag('ts_laplata_mapa'),   // v367-369: clásico suspendido / ascenso / el mapa de 1882
+      mapaTano: lsFlag('ts_mapa_tano'), mapaMarco: lsFlag('ts_mapa_marco'),   // v370: el mapa al Tano (CAMPANA CAPITAL en la sede)
       questRegistry: Object.keys(QUEST_DEFS),   // todas las quests declaradas (data) — la IA las conoce genéricamente
       quests: {
         news: newsQuest ? { topic: newsQuest.topic } : null,
@@ -4169,6 +4176,16 @@
         player.coins = (player.coins || 0) + 80; syncHud();
         tel('win', { result: 'vitrina' }); evlog('hito', 'el trofeo del ocho quedó en la vitrina de la sede — socio honorario 🏆');
       }
+      if (campanaGame.mapaTanoEdge) {                                  // v370: le mostraste el mapa de 1882 al Tano
+        applyEdge('mapa_tano', 'mapaTano');
+        evlog('hito', 'el Tano vio el mapa de 1882: la leyenda del barrio era CIERTA 🗺️');
+      }
+      if (campanaGame.marcoEdge) {                                     // v370: el mapa quedó enmarcado — el mate del Tano
+        applyEdge('mapa_marco', 'mapaMarco');
+        if (player && player.inventory) player.inventory = player.inventory.filter(i => i !== 'mapa_1882');
+        player.hp = MAXHP; syncHud();
+        tel('win', { result: 'marco1882' }); evlog('hito', 'el mapa de 1882 quedó enmarcado en la sede: CAMPANA CAPITAL, a la vista de todos 🗺️');
+      }
       if (campanaGame.done) {
         const ex = campanaGame.exitTo; campanaGame = null; if (typeof Input !== 'undefined' && Input.clear) Input.clear();
         if (ex === 'portal') {                                         // el satélite abrió el portal → caés en el BÚNKER del loop (la cama)
@@ -4582,6 +4599,7 @@
         tigreYa:     () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'Mitre — Tigre', linea: 'Mitre', origen: 'retiro' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTigre(); return 'A la CANCHA DE TIGRE 🐯💜 (el clásico que se pudre)'; },
         ezeizaYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'Ezeiza', linea: 'Roca', origen: 'constitucion' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterEzeiza(); return 'Al 20 DE JUNIO ⚽💜 (la final del ascenso vs Tristán Suárez)'; },
         laplataYa:   () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'La Plata', linea: 'Roca', origen: 'constitucion' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterLaPlata(); return 'A PLAZA MORENO ⛪🗺️ (las diagonales + el mapa de la catedral)'; },
+        mapaTanoYa:  () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_boca_trapo'); lsOn('ts_laplata_mapa'); addItem('mapa_1882'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterCampana(); return 'A CAMPANA con el mapa 🗺️ (mostráselo al Tano → el marco)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

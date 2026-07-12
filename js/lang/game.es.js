@@ -269,6 +269,17 @@
     'g.campana.vitrinaTanoPrimero': 'La vitrina está cerrada con llave… la llave la tiene el TANO. Mostrale el trofeo primero.',
     'g.campana.vitrinaVacia': 'La vitrina de la sede: copas viejas de remo y fútbol. Hay un estante vacío que espera algo.',
     'g.campana.festejo': '💜 ¡SOCIO HONORARIO! 🏆',
+    // v370 EL MAPA AL TANO: la leyenda del barrio era cierta
+    'g.campana.tanoMapa': '🗺️ El TANO mira el mapa un minuto entero, en silencio. Después dice, despacio: "Mi viejo lo contaba y nadie le creía: nos AFANARON la capital con aprietes. CAMPANA CAPITAL, pibe. Colgalo al lado de la vitrina — hace AÑOS que guardo un marco vacío para esto."',
+    'g.campana.promptTanoMapa': '[E] mostrarle el mapa de 1882 🗺️ al Tano',
+    'g.campana.marcoPuesto': '🗺️ El mapa de 1882 queda enmarcado al lado de la vitrina: la verdad del pueblo, a la vista de todos. El Tano te ceba un mate del termo con los ojos brillosos. (+vida FULL)',
+    'g.campana.marcoBrilla': '✨ El mapa de 1882 en su marco: "vote bien…". Todo Campana ya lo vio. La verdad quedó colgada en la sede.',
+    'g.campana.marcoTanoPrimero': 'El marco vacío del Tano, colgado al lado de la vitrina hace años. Si tenés algo que va acá… primero contale a ÉL.',
+    'g.campana.marcoPlaca': 'CAMPANA CAPITAL · 1882',
+    'g.campana.marcoVacioLabel': '(un marco vacío)',
+    'g.campana.promptMarco': '[E] colgar el mapa 🗺️ en el marco',
+    'g.campana.promptMarcoVer': '[E] mirar el marco de la sede',
+    'g.campana.festejoMapa': '💜 ¡CAMPANA CAPITAL! 🗺️',
     // v367-369 LOS ANDENES VIVEN: salidas del andén + Tigre + Ezeiza + La Plata
     'g.tren.outTigre': '🏟️ A LA CANCHA (Tigre vs Dálmine)',
     'g.tren.outEzeiza': '🏟️ AL ESTADIO (final del ascenso)',

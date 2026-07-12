@@ -268,6 +268,17 @@
     'g.campana.vitrinaTanoPrimero': 'The case is locked… and el TANO keeps the key. Show him the trophy first.',
     'g.campana.vitrinaVacia': 'The clubhouse case: old rowing and football cups. One empty shelf, waiting for something.',
     'g.campana.festejo': '💜 HONORARY MEMBER! 🏆',
+    // v370 THE MAP TO EL TANO: the neighborhood legend was true
+    'g.campana.tanoMapa': '🗺️ El TANO stares at the map for a full minute, in silence. Then he says, slowly: "My old man told this story and nobody believed him: they STOLE the capital from us with threats. CAMPANA CAPITAL, kid. Hang it next to the case — I\'ve kept an empty frame for YEARS for this."',
+    'g.campana.promptTanoMapa': '[E] show el Tano the 1882 map 🗺️',
+    'g.campana.marcoPuesto': '🗺️ The 1882 map hangs framed next to the case: the town\'s truth, for all to see. El Tano pours you a mate from his thermos, eyes glistening. (+FULL health)',
+    'g.campana.marcoBrilla': '✨ The 1882 map in its frame: "vote wisely…". All of Campana has seen it now. The truth hangs at the clubhouse.',
+    'g.campana.marcoTanoPrimero': 'El Tano\'s empty frame, hanging next to the case for years. If you\'ve got something that belongs here… tell HIM first.',
+    'g.campana.marcoPlaca': 'CAMPANA CAPITAL · 1882',
+    'g.campana.marcoVacioLabel': '(an empty frame)',
+    'g.campana.promptMarco': '[E] hang the map 🗺️ in the frame',
+    'g.campana.promptMarcoVer': '[E] look at the clubhouse frame',
+    'g.campana.festejoMapa': '💜 CAMPANA CAPITAL! 🗺️',
     // v367-369 THE PLATFORMS COME ALIVE: platform exits + Tigre + Ezeiza + La Plata
     'g.tren.outTigre': '🏟️ TO THE STADIUM (Tigre vs Dálmine)',
     'g.tren.outEzeiza': '🏟️ TO THE STADIUM (promotion final)',

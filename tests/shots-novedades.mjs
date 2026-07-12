@@ -137,6 +137,13 @@ try {
   await page.keyboard.down('e'); await page.waitForTimeout(150);  await page.keyboard.up('e');   // el plano: la revelación
   await page.waitForTimeout(400); await shotCanvas('25-laplata');
   await page.evaluate(() => { try { localStorage.removeItem('ts_tigre'); localStorage.removeItem('ts_ascenso'); localStorage.removeItem('ts_laplata_mapa'); } catch (e) {} });
+  // v370 EL MUSEO DEL PUEBLO: la sede completa — el trofeo en la vitrina + el mapa de 1882 enmarcado
+  await page.evaluate(() => { try { localStorage.setItem('ts_trofeo_tano', '1'); localStorage.setItem('ts_trofeo_vitrina', '1'); localStorage.setItem('ts_mapa_tano', '1'); localStorage.setItem('ts_mapa_marco', '1'); } catch (e) {} });
+  await dbg('campanaYa'); await page.waitForTimeout(500);
+  await page.keyboard.down('s'); await page.waitForTimeout(620); await page.keyboard.up('s');
+  await page.keyboard.down('d'); await page.waitForTimeout(500); await page.keyboard.up('d');
+  await page.waitForTimeout(300); await shotCanvas('26-museo');
+  await page.evaluate(() => { try { localStorage.removeItem('ts_trofeo_tano'); localStorage.removeItem('ts_trofeo_vitrina'); localStorage.removeItem('ts_mapa_tano'); localStorage.removeItem('ts_mapa_marco'); } catch (e) {} });
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {

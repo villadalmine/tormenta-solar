@@ -31,7 +31,11 @@ const Campana = (() => {
     // v366: EL TROFEO A CASA — la SEDE del club (vitrina de trofeos), cerca de la estación
     const vitrina = { x: 3.2, y: 9.4 };
     let hasTrofeo = !!opts.trofeo, tanoShown = !!opts.tanoDone, enVitrina = !!opts.enVitrina;
-    let tanoJustNow = false, vitrinaJustNow = false, celebrateT = 0;
+    let tanoJustNow = false, vitrinaJustNow = false, celebrateT = 0, celebrateKey = 'g.campana.festejo';
+    // v370: EL MAPA AL TANO — la leyenda del barrio era cierta; el marco vacío que el Tano guardaba hace años
+    const marco = { x: 5.6, y: 9.4 };
+    let hasMapa = !!opts.mapa, mapaTanoShown = !!opts.mapaTanoDone, enMarco = !!opts.enMarco;
+    let mapaTanoJustNow = false, marcoJustNow = false;
     const banda = [];                                  // la hinchada de Dálmine caminando a la cancha
     for (let i = 0; i < 8; i++) banda.push({ x: (3 + i * 1.3), y: 7.5 + (i % 3) * 0.7, ph: i * 0.9 });
     const player = { x: 2.2 * CS, y: 7 * CS, r: 10, dir: 1, walk: 0 };
@@ -52,7 +56,18 @@ const Campana = (() => {
             tanoShown = true; tanoJustNow = true; setMsg(T('g.campana.tanoTrofeo'), 10);
             if (typeof Sfx !== 'undefined' && Sfx.win) Sfx.win(); return;
           }
+          if (hasMapa && !mapaTanoShown) { // v370: el mapa de 1882 — su viejo lo contaba y nadie le creía
+            mapaTanoShown = true; mapaTanoJustNow = true; setMsg(T('g.campana.tanoMapa'), 11);
+            if (typeof Sfx !== 'undefined' && Sfx.win) Sfx.win(); return;
+          }
           chatNpc = { name: viejo.name, persona: viejo.persona }; return;   // el Tano → chat IA
+        }
+        if ((hasMapa || enMarco || mapaTanoShown) && near(marco, 1.6)) {   // v370: el marco de la sede
+          if (enMarco) { setMsg(T('g.campana.marcoBrilla'), 7); return; }
+          if (hasMapa && mapaTanoShown) { enMarco = true; hasMapa = false; marcoJustNow = true;
+            celebrateT = 7; celebrateKey = 'g.campana.festejoMapa';
+            setMsg(T('g.campana.marcoPuesto'), 11); if (typeof Sfx !== 'undefined' && Sfx.win) Sfx.win(); return; }
+          setMsg(T('g.campana.marcoTanoPrimero'), 6); return;
         }
         if (near(vitrina, 1.7)) {          // v366: la vitrina de la sede
           if (enVitrina) { setMsg(T('g.campana.vitrinaBrilla'), 6); return; }
@@ -104,7 +119,8 @@ const Campana = (() => {
       if (mvy && freeAt(player.x, player.y + mvy * sp)) { player.y += mvy * sp; player.walk = 1; }
       if (Input.keys['escape']) { if (!escHeld) { escHeld = true; if (phase === 'calle') { done = true; exitTo = 'back'; } } } else escHeld = false;   // del estadio no te vas: esto termina en portal
       if (Input.keys['e'] || Input.keys['enter']) { if (!eHeld) { eHeld = true; interact(); } } else eHeld = false;
-      if (phase === 'calle') prompt = near(viejo, 1.7) ? ((hasTrofeo && !tanoShown) ? T('g.campana.promptTanoTrofeo') : T('g.campana.promptViejo'))
+      if (phase === 'calle') prompt = near(viejo, 1.7) ? ((hasTrofeo && !tanoShown) ? T('g.campana.promptTanoTrofeo') : (hasMapa && !mapaTanoShown) ? T('g.campana.promptTanoMapa') : T('g.campana.promptViejo'))
+        : ((hasMapa || enMarco || mapaTanoShown) && near(marco, 1.6)) ? ((hasMapa && mapaTanoShown && !enMarco) ? T('g.campana.promptMarco') : T('g.campana.promptMarcoVer'))
         : near(vitrina, 1.7) ? ((hasTrofeo && tanoShown && !enVitrina) ? T('g.campana.promptVitrina') : T('g.campana.promptVitrinaVer'))
         : near(estadioDoor, 1.8) ? T('g.campana.promptEstadio') : near(escalinata, 2.2) ? T('g.campana.promptEscalinata') : '';
       else prompt = st === 'gol' ? T('g.campana.promptGrito') : (st === 'half' && !choriEaten) ? (near(choriPuesto, 1.8) ? T('g.campana.promptChori') : T('g.campana.promptIrChori')) : '';
@@ -147,6 +163,22 @@ const Campana = (() => {
         g.font = '13px monospace'; g.fillText('🏆', sx2, sy2 - 11);
         g.fillStyle = '#ffd54f'; g.font = 'bold 6px monospace'; g.fillText(T('g.campana.placa'), sx2, sy2 - 2);
       }
+      // v370: el MARCO del Tano (junto a la sede): vacío esperando hace años… o con EL MAPA de 1882 colgado
+      if (hasMapa || enMarco || mapaTanoShown) { const mx2 = ox + (marco.x + 0.5) * CS, my2 = oy + (marco.y + 0.5) * CS;
+        g.fillStyle = '#4a3a28'; g.fillRect(mx2 - 3, my2 - 6, 6, 16);                     // el poste
+        g.fillStyle = '#5a4a30'; g.fillRect(mx2 - 20, my2 - 34, 40, 30);                  // el marco de madera
+        if (enMarco) {
+          g.fillStyle = '#d8c9a0'; g.fillRect(mx2 - 16, my2 - 30, 32, 22);                // EL MAPA
+          g.strokeStyle = '#7a6a4a'; g.lineWidth = 1; g.strokeRect(mx2 - 12, my2 - 27, 24, 16);
+          g.beginPath(); g.moveTo(mx2 - 12, my2 - 27); g.lineTo(mx2 + 12, my2 - 11); g.stroke();
+          g.beginPath(); g.moveTo(mx2 + 12, my2 - 27); g.lineTo(mx2 - 12, my2 - 11); g.stroke();
+          g.fillStyle = 'rgba(255,220,120,' + (0.14 + 0.1 * Math.sin(t * 3)) + ')'; g.beginPath(); g.arc(mx2, my2 - 19, 24, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#ffd54f'; g.font = 'bold 6px monospace'; g.textAlign = 'center'; g.fillText(T('g.campana.marcoPlaca'), mx2, my2 - 1);
+        } else {
+          g.fillStyle = '#241c12'; g.fillRect(mx2 - 16, my2 - 30, 32, 22);                // vacío
+          g.fillStyle = '#9fb0c4'; g.font = '7px monospace'; g.textAlign = 'center'; g.fillText(T('g.campana.marcoVacioLabel'), mx2, my2 - 1);
+        }
+      }
       // la BANDA de Dálmine caminando (violeta, bombos y banderas) — salta si hay festejo del trofeo
       for (const b of banda) { const bx2 = ox + b.x * CS, by2 = oy + b.y * CS + Math.sin(t * (celebrateT > 0 ? 9 : 4) + b.ph) * (celebrateT > 0 ? 5 : 2);
         g.fillStyle = '#111'; g.beginPath(); g.ellipse(bx2, by2 + 8, 7, 3, 0, 0, Math.PI * 2); g.fill();
@@ -168,9 +200,9 @@ const Campana = (() => {
       // cartel de la ciudad
       g.fillStyle = '#0d1017cc'; g.fillRect(ox + W * CS / 2 - 70, oy + 0.3 * CS, 140, 18);
       g.fillStyle = '#ffd54f'; g.font = 'bold 11px monospace'; g.fillText('CAMPANA · BS.AS.', ox + W * CS / 2, oy + 0.3 * CS + 13);
-      // v366: el festejo del trofeo (la banda te canta SOCIO HONORARIO)
+      // v366/v370: el festejo (SOCIO HONORARIO por el trofeo · CAMPANA CAPITAL por el mapa)
       if (celebrateT > 0) { g.fillStyle = 'rgba(106,61,154,' + (0.4 + 0.25 * Math.sin(t * 6)) + ')'; g.fillRect(0, VH / 2 - 34, VW, 68);
-        g.fillStyle = '#fff'; g.font = 'bold 22px monospace'; g.textAlign = 'center'; g.fillText(T('g.campana.festejo'), VW / 2, VH / 2 + 8); }
+        g.fillStyle = '#fff'; g.font = 'bold 22px monospace'; g.textAlign = 'center'; g.fillText(T(celebrateKey), VW / 2, VH / 2 + 8); }
     }
 
     function drawEstadio(g, VW, VH) {
@@ -236,10 +268,14 @@ const Campana = (() => {
       get openChatNpc() { const c = chatNpc; chatNpc = null; return c; },            // [E] sobre el Tano → chat IA (vuelve a Campana)
       get tanoEdge() { const v = tanoJustNow; tanoJustNow = false; return v; },      // one-shot v366: le mostraste el trofeo al Tano
       get vitrinaEdge() { const v = vitrinaJustNow; vitrinaJustNow = false; return v; },   // one-shot v366: el trofeo quedó en la vitrina
+      get mapaTanoEdge() { const v = mapaTanoJustNow; mapaTanoJustNow = false; return v; },   // one-shot v370: le mostraste el mapa al Tano
+      get marcoEdge() { const v = marcoJustNow; marcoJustNow = false; return v; },   // one-shot v370: el mapa quedó enmarcado en la sede
       update, draw,
       __viejo: () => { player.x = (viejo.x + 0.5) * CS; player.y = (viejo.y - 1.2) * CS; interact(); return chatNpc; },   // e2e: chat con el Tano (persona violeta)
       __trofeoTano: () => { player.x = (viejo.x + 0.5) * CS; player.y = (viejo.y - 0.8) * CS; interact(); return { tanoShown, hasTrofeo, enVitrina }; },   // e2e v366: [E] al Tano con el trofeo
       __vitrina: () => { player.x = (vitrina.x + 0.5) * CS; player.y = (vitrina.y - 0.8) * CS; interact(); return { tanoShown, hasTrofeo, enVitrina }; },  // e2e v366: [E] en la vitrina
+      __mapaTano: () => { player.x = (viejo.x + 0.5) * CS; player.y = (viejo.y - 0.8) * CS; interact(); return { mapaTanoShown, hasMapa, enMarco }; },     // e2e v370: [E] al Tano con el mapa
+      __marco: () => { player.x = (marco.x + 0.5) * CS; player.y = (marco.y - 0.8) * CS; interact(); return { mapaTanoShown, hasMapa, enMarco }; },        // e2e v370: [E] en el marco
       // e2e: correr la secuencia completa del estadio (entrar → chori → 4 goles → satélite → portal)
       __full: () => { phase = 'estadio'; st = 'pt1'; stT = 0;
         for (let k = 0; k < 2000 && !done; k++) { update(0.05);

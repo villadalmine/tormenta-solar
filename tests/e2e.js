@@ -553,6 +553,30 @@ if (require.main === module) {
     if (!(vt2.enVitrina && !vt2.hasTrofeo)) throw new Error('campana: al volver, la vitrina deberia mostrar el trofeo depositado: ' + JSON.stringify(vt2));
     if (ctf2.vitrinaEdge) throw new Error('campana: mirar la vitrina llena NO deberia re-disparar la arista');
     ok.push('trofeo-vitrina:ok');
+    // v370 EL MAPA AL TANO: el marco pide al Tano primero; con trofeo Y mapa, los beats van EN ORDEN
+    const cmk = Campana.create({ trofeo: true, mapa: true });
+    for (let i = 0; i < 10; i++) { cmk.update(0.05); cmk.draw(C, 960, 540); }
+    const mk0 = cmk.__marco();
+    if (mk0.enMarco || !mk0.hasMapa) throw new Error('campana: el marco sin pasar por el Tano NO deberia aceptar el mapa: ' + JSON.stringify(mk0));
+    cmk.__trofeoTano();                                        // 1er E: el beat del TROFEO
+    if (!cmk.tanoEdge) throw new Error('campana: con trofeo+mapa el 1er E deberia ser el beat del trofeo');
+    const mk1 = cmk.__mapaTano();                              // 2o E: el beat del MAPA
+    if (!(mk1.mapaTanoShown && mk1.hasMapa)) throw new Error('campana: el 2o E deberia ser el beat del mapa: ' + JSON.stringify(mk1));
+    if (!cmk.mapaTanoEdge) throw new Error('campana: mapaTanoEdge deberia dispararse');
+    if (cmk.mapaTanoEdge) throw new Error('campana: mapaTanoEdge deberia consumirse (one-shot)');
+    cmk.__mapaTano();                                          // 3er E: ahora si, el chat IA
+    const chatM = cmk.openChatNpc;
+    if (!(chatM && chatM.persona === 'violeta')) throw new Error('campana: el 3er E al Tano deberia abrir el chat: ' + JSON.stringify(chatM));
+    const mk2 = cmk.__marco();
+    if (!(mk2.enMarco && !mk2.hasMapa)) throw new Error('campana: el marco deberia recibir el mapa tras el Tano: ' + JSON.stringify(mk2));
+    if (!cmk.marcoEdge) throw new Error('campana: marcoEdge deberia dispararse');
+    for (let i = 0; i < 10; i++) { cmk.update(0.05); cmk.draw(C, 960, 540); }   // festejo CAMPANA CAPITAL sin crash
+    const cmk2 = Campana.create({ mapaTanoDone: true, enMarco: true });         // volver: el mapa cuelga enmarcado
+    for (let i = 0; i < 6; i++) { cmk2.update(0.05); cmk2.draw(C, 960, 540); }
+    const mk3 = cmk2.__marco();
+    if (!(mk3.enMarco && !mk3.hasMapa)) throw new Error('campana: al volver, el marco deberia mostrar el mapa colgado: ' + JSON.stringify(mk3));
+    if (cmk2.marcoEdge) throw new Error('campana: mirar el marco lleno NO deberia re-disparar la arista');
+    ok.push('mapa-marco:ok');
     // v367-369 LOS ANDENES VIVEN: la salida del andén por destino (DATA) — Tigre/Ezeiza/La Plata sí, Ballester no
     const trTig = Tren.create({ ramal: 'Mitre — Tigre', linea: 'Mitre' }); trTig.__arrive();
     if (trTig.__salida() !== 'tigre') throw new Error('tren: la salida de Tigre deberia ir a la cancha');
@@ -997,7 +1021,8 @@ if (require.main === module) {
       subeSeen:true, subeGot:true, subeReady:true, enPlaza:true, escarapela:true, sanmartinChip:true, nivel2Win:true, lineaC:true, enConstitucion:true,
       enRetiro:true, enVilla31:true, comedorHired:true, comedorJornada:true, curaBendicion:true, bocaTrapo:true, enCampana:true, dalmineGritado:true,
       polacoCaso:true, polacoCarrito:true, polacoHallado:true, bondi60:true, enZarate:true, regataWon:true,
-      trofeoTano:true, trofeoVitrina:true, tigreClasico:true, ezeizaAscenso:true, laplataMapa:true };
+      trofeoTano:true, trofeoVitrina:true, tigreClasico:true, ezeizaAscenso:true, laplataMapa:true,
+      mapaTano:true, mapaMarco:true };
     if (HintEngine.next(allDone, {}) !== null) out.push('FAIL con todo hecho sigue dando pista: ' + JSON.stringify(HintEngine.next(allDone, {})));
     return JSON.stringify(out);
   })()`, sandbox);
