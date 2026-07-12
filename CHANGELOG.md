@@ -101,6 +101,14 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v372] — 2026-07-12 — 🍮 LOS ANDENES CHICOS CON SABOR: Cañuelas, A. Korn y Bosques
+- Los tres andenes chicos del Roca dejan el flavor genérico 'campo': **3 FLAVORS nuevos (DATA)** en `tren.js`
+  con vendedor regional + linyera con nombre — **Cañuelas** (🍮 dulce de leche DE LA CUNA, **el Tambero**),
+  **A. Korn** (🍖 salame de quinta a cuchillo, **el Quintero**), **Bosques** (🍯 miel del apicultor,
+  **el Hachero**). Pilar sigue en 'campo' (no hay ramal aún). 3 ítems heal nuevos en WEAPONS (30/30/25).
+- Debug `canuelasYa` (+botón). e2e `andenes-sabor:ok` (flavorFor ×4 + compra del dulce). i18n 10 claves
+  ES≡EN. Blog + shot `28-canuelas`. Cache `?v=372`.
+
 ## [infra-75] — 2026-07-11 — 🔒 Seguridad en CI: gitleaks + trivy (y la master key FUERA de los docs)
 - **Hallazgo:** la master key interna de LiteLLM estaba escrita en **12 archivos** del repo público (docs,
   READMEs de los charts, specs, y como DEFAULT funcional en `gen-pool.mjs`/`gen-linyera-pool.mjs`). Es interna

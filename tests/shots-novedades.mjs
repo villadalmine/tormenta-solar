@@ -146,6 +146,13 @@ try {
   await page.evaluate(() => { try { localStorage.removeItem('ts_trofeo_tano'); localStorage.removeItem('ts_trofeo_vitrina'); localStorage.removeItem('ts_mapa_tano'); localStorage.removeItem('ts_mapa_marco'); } catch (e) {} });
   // v371: el piso DEPORTES del cine — partidos REALES (Mundial + Villa Dálmine con el "próx:")
   await dbg('cineYa'); await page.waitForTimeout(1500); await shotCanvas('27-cine');
+  // v372: los andenes chicos con sabor — Cañuelas: el Tambero + el dulce de leche DE LA CUNA
+  await dbg('canuelasYa'); await page.waitForTimeout(800);
+  await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');   // saltar el viaje
+  await page.waitForTimeout(600);
+  await page.keyboard.down('d'); await page.waitForTimeout(760); await page.keyboard.up('d');   // al vendedor
+  await page.keyboard.down('e'); await page.waitForTimeout(150); await page.keyboard.up('e');   // ¡dulce de leche!
+  await page.waitForTimeout(400); await shotCanvas('28-canuelas');
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {

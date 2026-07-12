@@ -982,6 +982,9 @@
     miga:       { id: 'miga',       emoji: '🥪', label: 'g.wpn.miga',       use: { kind: 'heal', amount: 25 } },   // sanguchito de miga (Ezeiza, precio aeropuerto)
     picada:     { id: 'picada',     emoji: '🧀', label: 'g.wpn.picada',     use: { kind: 'heal', amount: 35 } },   // picada de campo (Cañuelas/Korn)
     bizcocho:   { id: 'bizcocho',   emoji: '🥐', label: 'g.wpn.bizcocho',   use: { kind: 'heal', amount: 15 } },   // bizcochos de grasa (conurbano)
+    salame:     { id: 'salame',     emoji: '🍖', label: 'g.wpn.salame',     use: { kind: 'heal', amount: 30 } },   // v372: salame de quinta (A. Korn), cortado a cuchillo
+    dulcedeleche:{id: 'dulcedeleche',emoji: '🍮', label: 'g.wpn.dulcedeleche', use: { kind: 'heal', amount: 30 } },// v372: dulce de leche de Cañuelas (LA CUNA)
+    miel:       { id: 'miel',       emoji: '🍯', label: 'g.wpn.miel',       use: { kind: 'heal', amount: 25 } },   // v372: miel de Bosques (del apicultor al andén)
     fernet:     { id: 'fernet',     emoji: '🥤', label: 'g.wpn.fernet',  use: { kind: 'heal', amount: 25 } },   // pancarta → Fernet con Coca (+vida)
     mortero:    { id: 'mortero',    emoji: '🎆', label: 'g.wpn.mortero', use: { kind: 'ammo', amount: 25 } },    // bombo → prendés el mortero (+munición)
     palo:       { id: 'palo',       emoji: '🏏', label: 'g.wpn.palo',    noEquip: true },
@@ -4602,6 +4605,7 @@
         laplataYa:   () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'La Plata', linea: 'Roca', origen: 'constitucion' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterLaPlata(); return 'A PLAZA MORENO ⛪🗺️ (las diagonales + el mapa de la catedral)'; },
         mapaTanoYa:  () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_boca_trapo'); lsOn('ts_laplata_mapa'); addItem('mapa_1882'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterCampana(); return 'A CAMPANA con el mapa 🗺️ (mostráselo al Tano → el marco)'; },
         cineYa:      () => { if (!rooms || !player) return 'empezá una partida primero'; const ci = rooms.findIndex(r => (r.tags || []).includes('deportes')); if (ci < 0) return 'no encontré el piso Deportes'; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); state = 'playing'; transCd = 0.4; elHud.classList.remove('hidden'); elFloor.classList.remove('hidden'); spawnIn(ci, 8); cineNoticias = pickNoticias(rooms[ci]); return 'Piso DEPORTES del cine 📽️ (los partidos reales: Mundial + Villa Dálmine)'; },
+        canuelasYa:  () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterTren('Cañuelas', 'Roca', 'constitucion'); return 'Tren a CAÑUELAS 🍮 (el Tambero + dulce de leche DE LA CUNA)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

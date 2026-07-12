@@ -586,6 +586,15 @@ if (require.main === module) {
     if (trLPl.__salida() !== 'laplata') throw new Error('tren: la salida de La Plata deberia ir a Plaza Moreno');
     const trBB = Tren.create({ ramal: 'Villa Ballester', linea: 'Mitre' }); trBB.__arrive();
     if (trBB.__salida() !== null) throw new Error('tren: Ballester NO deberia tener salida de arco');
+    // v372 ANDENES CHICOS CON SABOR: cada estacion chica tiene su flavor propio (vend regional + linyera)
+    if (Tren.flavorFor('A. Korn').id !== 'korn') throw new Error('tren: A. Korn deberia tener flavor korn: ' + Tren.flavorFor('A. Korn').id);
+    if (Tren.flavorFor('Cañuelas').id !== 'canuelas') throw new Error('tren: Cañuelas deberia tener flavor canuelas');
+    if (Tren.flavorFor('Bosques').id !== 'bosques') throw new Error('tren: Bosques deberia tener flavor bosques');
+    if (Tren.flavorFor('Pilar').id !== 'campo') throw new Error('tren: Pilar sigue en el flavor campo generico');
+    const trCan = Tren.create({ ramal: 'Cañuelas', linea: 'Roca', coins: 40 }); trCan.__arrive();
+    const dl = trCan.__vend();
+    if (!(dl && dl.item === 'dulcedeleche' && dl.spent === 15)) throw new Error('tren: el vendedor de Cañuelas deberia vender dulcedeleche a 15: ' + JSON.stringify(dl));
+    ok.push('andenes-sabor:ok');
     // v367 TIGRE: el clasico completo — empate 1-1, suspendido, las hinchadas juntas
     if (typeof Tigre === 'undefined' || !Tigre.create) throw new Error('Tigre no cargó');
     const tg = Tigre.create({});

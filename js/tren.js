@@ -13,7 +13,11 @@ const Tren = (() => {
     rio:    { id: 'rio',    sky: '#375566', gnd: '#274536', prop: 'rio',    key: ['tigre', 'delta'],  vend: { item: 'fruta',      emoji: '🍑', price: 10 }, liny: 'la Turca' },
     ciudad: { id: 'ciudad', sky: '#3a4560', gnd: '#3a3a30', prop: 'ciudad', key: ['la plata', 'plata'], vend: { item: 'tortafrita', emoji: '🫓', price: 8 }, liny: 'el Profe' },
     aero:   { id: 'aero',   sky: '#4a4e5e', gnd: '#464636', prop: 'avion',  key: ['ezeiza'],          vend: { item: 'miga',       emoji: '🥪', price: 14 }, liny: 'el Chispa' },
-    campo:  { id: 'campo',  sky: '#4a6a5a', gnd: '#4a4526', prop: 'campo',  key: ['cañuelas', 'korn', 'bosques', 'pilar'], vend: { item: 'picada', emoji: '🧀', price: 12 }, liny: 'el Vasco' },
+    // v372: los andenes chicos con SABOR PROPIO (antes los tres caían al genérico 'campo')
+    korn:    { id: 'korn',    sky: '#4a6a5a', gnd: '#4d4728', prop: 'campo', key: ['korn'],                vend: { item: 'salame',       emoji: '🍖', price: 13 }, liny: 'el Quintero' },
+    canuelas:{ id: 'canuelas',sky: '#4d6a55', gnd: '#4a4526', prop: 'campo', key: ['cañuelas', 'canuelas'],vend: { item: 'dulcedeleche', emoji: '🍮', price: 15 }, liny: 'el Tambero' },
+    bosques: { id: 'bosques', sky: '#41604e', gnd: '#3f4a24', prop: 'campo', key: ['bosques'],             vend: { item: 'miel',         emoji: '🍯', price: 12 }, liny: 'el Hachero' },
+    campo:  { id: 'campo',  sky: '#4a6a5a', gnd: '#4a4526', prop: 'campo',  key: ['pilar'], vend: { item: 'picada', emoji: '🧀', price: 12 }, liny: 'el Vasco' },
     conurb: { id: 'conurb', sky: '#3a3a48', gnd: '#38332a', prop: 'casas',  key: [],                  vend: { item: 'bizcocho',   emoji: '🥐', price: 6 }, liny: 'el Flaco' },   // default: conurbano
   };
   function flavorFor(ramal) {
