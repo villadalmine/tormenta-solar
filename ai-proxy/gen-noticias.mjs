@@ -102,8 +102,19 @@ for (const pair of SPORTS) {
     if (!r.ok) continue;
     const j = await r.json(), ev = ((isTeam ? j.results : j.events) || [])[0];
     if (ev && ev.intHomeScore != null && ev.intAwayScore != null) {
+      let headline = `${ev.strHomeTeam} ${ev.intHomeScore}-${ev.intAwayScore} ${ev.strAwayTeam}`;
+      // infra-74: por EQUIPO sumamos el PRÓXIMO partido (eventsnext) — "· próx: Local vs Visitante · D/M".
+      // Best-effort: si falla queda solo el último resultado. El answer sigue siendo el score (verificación §4).
+      if (isTeam) try {
+        const rn = await fetch('https://www.thesportsdb.com/api/v1/json/3/eventsnext.php?id=' + id);
+        if (rn.ok) { const ev2 = (((await rn.json()).events) || [])[0];
+          if (ev2 && ev2.strHomeTeam && ev2.dateEvent) {
+            const [, m, d] = ev2.dateEvent.split('-');
+            headline += ` · próx: ${ev2.strHomeTeam} vs ${ev2.strAwayTeam} · ${+d}/${+m}`;
+          } }
+      } catch (e) {}
       const i = noticias.findIndex(n => n.topic === topic);
-      const item = { topic, headline: `${ev.strHomeTeam} ${ev.intHomeScore}-${ev.intAwayScore} ${ev.strAwayTeam}`, answer: `${ev.intHomeScore}-${ev.intAwayScore}`, ts: Date.now() };
+      const item = { topic, headline, answer: `${ev.intHomeScore}-${ev.intAwayScore}`, ts: Date.now() };
       if (i >= 0) noticias[i] = item; else noticias.push(item);
     }
   } catch (e) {}

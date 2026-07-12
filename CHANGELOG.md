@@ -101,6 +101,16 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [v371 · infra-74] — 2026-07-11 — ⚽📽️ DÁLMINE REAL en el noticiero: próximo partido + el TANO lo sabe
+- **Hallazgo:** el live horario de noticias (§7.1) YA estaba completo y andando (spec/backlog estaban viejos):
+  `NEWS_LIVE_ONLY` + `merge` + cron `0 * * * *` traen "Villa Dálmine 2-1 Dock Sud" REAL cada hora.
+- **infra-74 (proxy 0.2.15):** el path por equipo de `gen-noticias.mjs` suma el **PRÓXIMO partido**
+  (`eventsnext.php`) al titular: *"Villa Dálmine 2-1 Dock Sud · próx: Club Comunicaciones vs Villa Dálmine ·
+  14/7"* — el `answer` sigue numérico (la verificación del guarda §4 intacta). Validado punta a punta local.
+- **v371:** `worldSnapshot.cine.dalmine` = el titular de `primera-b` → **el TANO y los 19 NPCs IA saben el
+  resultado real y el próximo rival** de Villa Dálmine. Debug `cineYa` nuevo (piso Deportes directo, sirve
+  para shots/reels). `specs/cine-noticias.md §7.1` al día. Cache `?v=371`.
+
 ## [v370] — 2026-07-11 — 🗺️💜 EL MAPA AL TANO: "mi viejo lo contaba" — CAMPANA CAPITAL en la sede
 - **Cierra el hook del mapa (v369):** con el `mapa_1882` encima, el [E] al TANO es el beat guionado (patrón
   v366; con trofeo Y mapa pendientes, los beats van EN ORDEN: trofeo → mapa → chat IA) → arista **`mapa_tano`**:

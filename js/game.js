@@ -1437,7 +1437,8 @@
         news: newsQuest ? { topic: newsQuest.topic } : null,
         mundial: mundialQuest ? { equipo: mundialQuest.equipo, shown: mundialQuest.shown } : null,
       },
-      cine: { topics: ns.map(n => n.topic), mundialTabla: (topic('mundial-tabla') || {}).headline || null, mundial: (topic('mundial') || {}).headline || null },
+      cine: { topics: ns.map(n => n.topic), mundialTabla: (topic('mundial-tabla') || {}).headline || null, mundial: (topic('mundial') || {}).headline || null,
+        dalmine: (topic('primera-b') || {}).headline || null },   // v371: el último partido REAL de Villa Dálmine (+próximo) — el TANO lo sabe
       mundialEquipos: Object.keys((W.MUNDIAL && W.MUNDIAL.equipos) || {}).length,
       propaganda: [...new Set((W.PROPAGANDA || []).map(c => c.cat))],
       carteles: propagandaSample(),   // muestra de marcas que el oráculo puede recomendar
@@ -4600,6 +4601,7 @@
         ezeizaYa:    () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'Ezeiza', linea: 'Roca', origen: 'constitucion' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterEzeiza(); return 'Al 20 DE JUNIO ⚽💜 (la final del ascenso vs Tristán Suárez)'; },
         laplataYa:   () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_sat_down'); lsOn('ts_nivel2_win'); lsOn('ts_linea_c'); trenCtx = { ramal: 'La Plata', linea: 'Roca', origen: 'constitucion' }; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterLaPlata(); return 'A PLAZA MORENO ⛪🗺️ (las diagonales + el mapa de la catedral)'; },
         mapaTanoYa:  () => { if (!rooms || !player) return 'empezá una partida primero'; lsOn('ts_boca_trapo'); lsOn('ts_laplata_mapa'); addItem('mapa_1882'); const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); enterCampana(); return 'A CAMPANA con el mapa 🗺️ (mostráselo al Tano → el marco)'; },
+        cineYa:      () => { if (!rooms || !player) return 'empezá una partida primero'; const ci = rooms.findIndex(r => (r.tags || []).includes('deportes')); if (ci < 0) return 'no encontré el piso Deportes'; const ov = document.getElementById('options'); if (ov) ov.classList.add('hidden'); spawnIn(ci, 8); return 'Piso DEPORTES del cine 📽️ (los partidos reales: Mundial + Villa Dálmine)'; },
         tormenta:    () => { stormed = true; if (typeof FLAG_SETTERS !== 'undefined') FLAG_SETTERS.stormed(true); return 'Tormenta: mundo post-apagón (aplica al reentrar la sala)'; },
         bunker:      () => { bunkerUnlocked = true; return 'Búnker desbloqueado (sos gurú)'; },
         chino:       () => { chinoFrontOpen = true; chinoEntered = true; return 'Chino abierto (frente + trasera)'; },

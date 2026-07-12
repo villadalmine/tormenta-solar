@@ -217,16 +217,19 @@ grupo de Argentina** del Mundial. **NO se puede con fuente gratis/sin key** (ver
   (free con key), o el Patreon de TheSportsDB (key real → tabla completa + goleadores). El dueño tiene que conseguir una.
 - **NO inventar** la data (rompería la verificación del cine §4 y sería desinformación). Queda pendiente de la key.
 
-### 7.1 PENDIENTE (idea del dueño 2026-06-25, NO implementado) — news EN VIVO horario + Villa Dálmine
-- **Refresh cada 1 h** (hoy el cron es 1×/día 9am): para lo que cambia rápido (fútbol/Mundial, crypto). Diseño
-  recomendado: un **2º CronWorkflow `0 * * * *`** que corra `gen-noticias.mjs` en modo **live-only** (solo sports +
-  crypto, sin el resumen `gemma4-paid` de Google News) y **POSTee con MERGE por topic** — porque hoy el POST
-  **reemplaza** el día entero (`NOTI_DAYS[day] = …`), así que un POST parcial **borraría** los 13 topics de Google
-  News. → falta: (a) modo `NEWS_LIVE_ONLY` en `gen-noticias.mjs`, (b) `merge:true` en `POST /noticias` (update por
-  topic, no replace), (c) el cronworkflow horario.
-- **Villa Dálmine** ✅ **HECHO** (`infra-15`): `NEWS_SPORTS` ahora acepta `topic:team:<id>` (por EQUIPO vía
-  `eventslast.php`, no por liga) → `primera-b:team:137785` muestra el **último partido de Villa Dálmine**
-  ("Villa Dálmine 2-1 Sportivo Italiano"), sin importar cómo etiqueten la liga. Falta solo el **refresh horario**.
+### 7.1 ✅ HECHO COMPLETO — news EN VIVO horario + Villa Dálmine (verificado en prod 2026-07-11)
+- **Refresh cada 1 h** ✅: `NEWS_LIVE_ONLY=1` en `gen-noticias.mjs` (solo sports + crypto, sin Google News ni
+  IA) + `merge:true` en `POST /noticias` (update por topic, conserva el resto del día) + CronWorkflow horario
+  (`noticias.live: true`, `liveSchedule "0 * * * *"` en values-prod). Comprobado: el live de las 22:00 traía
+  "Villa Dálmine 2-1 Dock Sud" real.
+- **Villa Dálmine** ✅ (`infra-15`): `NEWS_SPORTS` acepta `topic:team:<id>` (por EQUIPO vía `eventslast.php`) →
+  `primera-b:team:137785` = el último partido del club sin importar la liga.
+- **PRÓXIMO partido** ✅ (`infra-74`, proxy 0.2.15): en el path por equipo, `eventsnext.php` suma al titular
+  "· próx: Local vs Visitante · D/M" (best-effort; el `answer` sigue siendo el score → la verificación §4 no
+  cambia). Ej: "Villa Dálmine 2-1 Dock Sud · próx: Club Comunicaciones vs Villa Dálmine · 14/7".
+- **Los oráculos lo saben** ✅ (`v371`): `worldSnapshot.cine.dalmine` = el titular de `primera-b` → el TANO
+  (persona violeta) y los 19 NPCs IA pueden contar el resultado real y el próximo rival. Debug `cineYa` (piso
+  Deportes directo).
 5. **F5 — archivo de 7 días + el GUARDA** ✅ (`v127`-`v129`, ver §3.6): persistencia por día en el PVC, `GET
    /noticias?day=`, NPC guarda con menú de elección, 1ª gratis, más viejo más caro, **regateo** hasta piso. Más el
    **TTS con fallback al server** (espeak-ng, §3.4, `v126`) para que lea aunque el navegador no tenga voz.
