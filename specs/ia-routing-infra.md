@@ -103,7 +103,7 @@ sería **más adelante**, y la rotación/paralelización "de verdad" igual convi
 ## 4. Kubernetes — estado REAL + chart del proxy
 
 > **Ya existe un LiteLLM corriendo** en el cluster del dueño (`infra-ai`): ns **`ai`**, service
-> **`litellm-proxy:4000`** (OpenAI-compatible), master key `sk-hermes-internal`. Hace **pool de keys**
+> **`litellm-proxy:4000`** (OpenAI-compatible), master key `sk-…`. Hace **pool de keys**
 > (varias `OPENROUTER_API_KEY` por tenant), **GPU** (`ollama` en `ai`, modelo `local-gpu`), **pool de NPUs**
 > (`rk1-npu-local`, round-robin) y **fallback chains** entre modelos free/pago. → El gateway de §2/§3 **es
 > este LiteLLM**; no hay que montar uno nuevo.

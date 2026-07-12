@@ -2,12 +2,13 @@
 // Lo corre un CronJob 1×/día (OFFLINE/batch → que tarde y reintente da igual). Node puro, sin deps.
 // Ganador del bench (specs/resiliencia.md §6.2): gemma4-free offline = gratis + mejor calidad lunfardo.
 //
-//   AI_BASE=http://litellm-proxy:4000/v1  AI_KEY=sk-hermes-internal  MODEL=gemma4-free  N=30 \
+//   AI_BASE=http://litellm-proxy:4000/v1  AI_KEY=sk-…  MODEL=gemma4-free  N=30 \
 //   POOL_POST_URL=http://tormenta-ai-proxy/linyera-pool  GEN_TOKEN=...  node gen-pool.mjs
 import { ROSTER } from './personas.js';                    // FUENTE ÚNICA del contexto de cada personaje (§6.3)
 
 const BASE = (process.env.AI_BASE || 'http://litellm-proxy:4000/v1').replace(/\/+$/, '');
-const KEY = process.env.AI_KEY || 'sk-hermes-internal';
+const KEY = process.env.AI_KEY || '';   // la master key NO va hardcodeada: en el cluster la inyecta el CronWorkflow (secret tormenta-ai-key)
+if (!KEY) { console.error('Falta AI_KEY (la master key del upstream, por env)'); process.exit(2); }
 let MODEL = process.env.MODEL || 'gemma4-free';
 // AUTOTUNE banco (specs/ia-costos.md §6): si el tuner eligió un modelo para el patrón `banco`, usarlo.
 // ADITIVO: si el proxy no responde o no hay override → queda el env de siempre. IA_CHAIN_URL viene del chart.

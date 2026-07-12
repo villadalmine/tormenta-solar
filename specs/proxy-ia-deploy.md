@@ -93,7 +93,7 @@ Sumar la regla del hostname nuevo al backend que ya apunta a la VIP del gateway:
 
 ### 4.4 Secret de la key del upstream (LiteLLM master key)
 ```sh
-kubectl -n ai create secret generic tormenta-ai-key --from-literal=apiKey=sk-hermes-internal
+kubectl -n ai create secret generic tormenta-ai-key --from-literal=apiKey=sk-…
 ```
 
 ## 4.5 Gotchas reales del deploy (vistos al levantarlo)

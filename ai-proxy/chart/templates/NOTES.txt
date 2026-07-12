@@ -18,7 +18,7 @@ Upstream:  {{ .Values.upstream.baseUrl }}  (modelo: {{ .Values.upstream.model }}
 {{- if and (not .Values.auth.existingSecret) (not .Values.auth.apiKey) }}
 
 ⚠️  FALTA LA API KEY DEL UPSTREAM. El pod no va a arrancar bien.
-   Para tu LiteLLM, la master key (ej. sk-hermes-internal). Elegí una opción:
+   Para tu LiteLLM, la master key (ej. sk-…). Elegí una opción:
    A) reusar un Secret:  --set auth.existingSecret=mi-secret --set auth.existingSecretKey=apiKey
-   B) pasarla directo:   --set auth.apiKey=sk-hermes-internal   (no la subas a git)
+   B) pasarla directo:   --set auth.apiKey=sk-…   (no la subas a git)
 {{- end }}

@@ -101,6 +101,18 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-75] — 2026-07-11 — 🔒 Seguridad en CI: gitleaks + trivy (y la master key FUERA de los docs)
+- **Hallazgo:** la master key interna de LiteLLM estaba escrita en **12 archivos** del repo público (docs,
+  READMEs de los charts, specs, y como DEFAULT funcional en `gen-pool.mjs`/`gen-linyera-pool.mjs`). Es interna
+  (ClusterIP), pero no va en un repo público. **Redactada de HEAD** (placeholder `sk-…`); los 2 scripts ahora
+  **exigen `AI_KEY` por env** (el CronWorkflow ya la inyectaba del secret — el default nunca se usaba en prod).
+  ⚠️ **Queda en la HISTORIA de git → rotar la key = pendiente del dueño** (config LiteLLM, repo infra).
+- **CI nuevo `.github/workflows/security.yml`** (backlog seguridad): **gitleaks** (secretos, historia completa,
+  allowlist en `.gitleaks.toml` para el hallazgo conocido) + **trivy fs** (vulns HIGH/CRITICAL en deps +
+  misconfig, `ignore-unfixed`). Corre en push/PR + barrido semanal. Pre-chequeo manual de los 668 commits:
+  sin keys de alto valor (OpenRouter/Anthropic/GitHub/AWS/private keys) en la historia.
+- **Verificado:** el estado real de "listo-para-codear" — la contraflor 3v3 YA estaba (v331, solo playtest).
+
 ## [v371 · infra-74] — 2026-07-11 — ⚽📽️ DÁLMINE REAL en el noticiero: próximo partido + el TANO lo sabe
 - **Hallazgo:** el live horario de noticias (§7.1) YA estaba completo y andando (spec/backlog estaban viejos):
   `NEWS_LIVE_ONLY` + `merge` + cron `0 * * * *` traen "Villa Dálmine 2-1 Dock Sud" REAL cada hora.

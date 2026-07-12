@@ -1,0 +1,40 @@
+name: seguridad
+
+# Barrido de seguridad (specs/seguridad.md, backlog "trivy/gitleaks en CI"):
+#  - gitleaks: secretos en el código y en TODA la historia (config/allowlist en .gitleaks.toml)
+#  - trivy:    vulnerabilidades en dependencias (lockfiles) + misconfiguraciones (Dockerfile/charts)
+# Corre en cada push/PR + un barrido semanal (agarra CVEs nuevos aunque no haya commits).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '30 8 * * 1'   # lunes 8:30 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # historia completa: busca secretos también en commits viejos
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: trivy fs (vulns en deps + misconfig)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'

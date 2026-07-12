@@ -82,7 +82,7 @@ API/memoria/grafo, o lo estoy hardcodeando en game.js v1?* → **hacelo en v2.**
   `/metrics` (Prometheus, etiquetado `tormenta_ai_chat_total{model,backend,outcome}` + histograma de latencia),
   `/health`. Imagen vía Kaniko/Argo (`ai-proxy/kaniko-build.yaml`, registry interno **solo resuelve en nodos rk1**).
   Dominio: `llm-tormenta-solar.cybercirujas.club`. Juego self-host: `tormenta-solar.cybercirujas.club` (chart `web/`).
-- **LiteLLM** (`litellm-proxy.ai:4000`, master key `sk-hermes-internal`) hace el pool. Model names: free
+- **LiteLLM** (`litellm-proxy.ai:4000`, master key `sk-…`) hace el pool. Model names: free
   (`gemma4-free` ★ el mejor, `kimi-free`, `deepseek-free`, `gemini-free`, `gpt-oss-free`…), pagos (`cheap`=valor,
   `claude-sonnet`=premium persona, `gpt-4o`), GPU (`local-gpu`=qwen2.5:1.5b; ollama-a/b tienen `gemma2:2b`),
   NPU (`rk1-npu-local`, rkllama). **Evitá modelos de razonamiento para chat** (r1, nemotron-ultra, nemotron leakea

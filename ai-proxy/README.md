@@ -55,7 +55,7 @@ helm upgrade tormenta-ai ai-proxy/chart -n ai -f ai-proxy/chart/values-prod.yaml
 **Secrets (ns `ai`) — qué es cada uno:**
 | Secret / fuente | Env en el pod | Para qué |
 |---|---|---|
-| `tormenta-ai-key` (key `apiKey`) | `AI_API_KEY` | key del upstream (LiteLLM master `sk-hermes-internal`) |
+| `tormenta-ai-key` (key `apiKey`) | `AI_API_KEY` | key del upstream (LiteLLM master `sk-…`) |
 | `--set linyeraPool.genToken=…` | `GEN_TOKEN` | protege `POST /linyera-pool`, `/precios`, `/sub-codes`, `/provision` |
 | **`tormenta-or-provisioning` (key `provisioningKey`)** | `OPENROUTER_PROVISIONING_KEY` | **Provisioning Key de OpenRouter** → crea keys-por-código (suscripción F3) |
 

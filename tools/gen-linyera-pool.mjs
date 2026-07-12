@@ -8,7 +8,8 @@
 import fs from 'fs';
 
 const BASE = process.env.AI_BASE || 'http://localhost:4000/v1';
-const KEY = process.env.AI_KEY || 'sk-hermes-internal';
+const KEY = process.env.AI_KEY || '';   // pasala por env (la master key de LiteLLM no va hardcodeada al repo)
+if (!KEY) { console.error('Falta AI_KEY (la master key de LiteLLM, por env)'); process.exit(2); }
 // GANADOR del bench (2026-06-25): gemma4-free OFFLINE = gratis + mejor calidad (lunfardo perfecto). La GPU/NPU
 // da gibberish (modelos chicos), descartada. 'cheap' (gpt-4o-mini) = backup pago si el free no rinde.
 const MODEL = process.env.MODEL || 'gemma4-free';      // 'gemma4-free' (gratis, mejor) | 'cheap' (pago backup)

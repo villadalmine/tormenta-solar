@@ -1,0 +1,18 @@
+# .gitleaks.toml — config del escaneo de secretos (lo corre el CI: .github/workflows/security.yml)
+# Reglas default de gitleaks + allowlist de hallazgos CONOCIDOS.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Hallazgos conocidos / falsos positivos"
+regexes = [
+  # master key INTERNA de LiteLLM (solo resuelve dentro del cluster, ClusterIP). Quedó en la HISTORIA del
+  # repo (docs/ejemplos); en infra-75 se redactó de HEAD y los scripts pasaron a exigir AI_KEY por env.
+  # Rotarla = dominio del dueño (config de LiteLLM en el repo infra) — anotado en el backlog.
+  '''sk-hermes-internal''',
+]
+paths = [
+  # capturas del blog e imágenes (binarios, sin secretos)
+  '''info/img/.*''',
+]

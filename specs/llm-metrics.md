@@ -222,7 +222,7 @@ pagos seguido sin drama.
     - *pagos* a comparar: `gemini-flash, cheap, deepseek-pro, qwen-pro, gpt-4o, claude-sonnet` (TBD). Estos
       **no** entran a producción del tier free; se miden para el ranking y para `suscripcion.md` (qué modelo
       pago vale la pena).
-  - Pega vía **LiteLLM** (`http://litellm-proxy:4000/v1`, key `sk-hermes-internal`) → así el costo lo calcula
+  - Pega vía **LiteLLM** (`http://litellm-proxy:4000/v1`, key `sk-…`) → así el costo lo calcula
     LiteLLM y reusa el pool de keys.
 
 ### 11.2 Qué mide por candidato

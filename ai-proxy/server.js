@@ -12,7 +12,7 @@ import { buildMessages } from './personas.js';
 
 // Upstream configurable: por defecto OpenRouter directo, pero podés apuntarlo a tu LiteLLM (u otro
 // endpoint OpenAI-compatible) que ya hace pool de keys / GPU / fallback. Para LiteLLM:
-//   AI_BASE_URL=http://litellm-proxy.ai.svc.cluster.local:4000/v1  AI_API_KEY=sk-hermes-internal  AI_MODEL=default
+//   AI_BASE_URL=http://litellm-proxy.ai.svc.cluster.local:4000/v1  AI_API_KEY=sk-…  AI_MODEL=default
 const BASE = (process.env.AI_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/+$/, '');
 const KEY = (process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || '').trim();
 const PORT = process.env.PORT || 8788;

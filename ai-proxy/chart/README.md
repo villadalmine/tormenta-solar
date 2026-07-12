@@ -14,16 +14,16 @@ docker push  ghcr.io/TU-USUARIO/tormenta-ai-proxy:0.1.0
 
 ## 2) Deploy (apuntando a tu LiteLLM)
 Por defecto el chart apunta a `http://litellm-proxy.ai.svc.cluster.local:4000/v1` con el modelo `default`.
-Sólo falta la **API key del upstream** (para LiteLLM = su **master key**, p.ej. `sk-hermes-internal`):
+Sólo falta la **API key del upstream** (para LiteLLM = su **master key**, p.ej. `sk-…`):
 
 ```bash
 helm upgrade --install tormenta-ai ai-proxy/chart -n ai \
   --set image.repository=ghcr.io/TU-USUARIO/tormenta-ai-proxy \
-  --set auth.apiKey=sk-hermes-internal
+  --set auth.apiKey=sk-…
 ```
 Mejor aún, sin pasar la key por CLI: creá un Secret y referencialo:
 ```bash
-kubectl -n ai create secret generic tormenta-ai-key --from-literal=apiKey=sk-hermes-internal
+kubectl -n ai create secret generic tormenta-ai-key --from-literal=apiKey=sk-…
 helm upgrade --install tormenta-ai ai-proxy/chart -n ai \
   --set image.repository=ghcr.io/TU-USUARIO/tormenta-ai-proxy \
   --set auth.existingSecret=tormenta-ai-key --set auth.existingSecretKey=apiKey

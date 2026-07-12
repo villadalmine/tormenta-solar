@@ -69,13 +69,13 @@ historias:                  # banco VIVO de historias de terror del vecino por e
   model: gemma4-paid
   per: 4
 
-# --- API key del upstream (para LiteLLM = su master key, p.ej. sk-hermes-internal) ---
+# --- API key del upstream (para LiteLLM = su master key, p.ej. sk-…) ---
 # Opción A (recomendada): referenciar un Secret YA existente (no commitea la key).
 # Opción B: poner apiKey acá → el chart crea el Secret (NO lo subas a git con la key real; usá --set).
 auth:
   existingSecret: ""      # ej: "tormenta-ai-key"
   existingSecretKey: ""   # ej: "apiKey"
-  apiKey: ""              # ej (solo --set): "sk-hermes-internal"
+  apiKey: ""              # ej (solo --set): "sk-…"
 
 service:
   type: ClusterIP
