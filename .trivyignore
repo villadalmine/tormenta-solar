@@ -7,3 +7,14 @@
 # y en su propio pase, no de pasada. Sacar esta línea cuando se haga.
 KSV-0118
 AVD-KSV-0118
+
+# KSV-0056 (HIGH): el Role `tormenta-deployer` (deploy/argo/rbac.yaml) puede create/update/patch services etc.
+# Es EL ROL DEL DEPLOY (helm upgrade necesita exactamente eso, acotado al ns del juego) — deliberado, no un
+# descuido. Revisarlo/afinarlo entra en el pase de hardening del backlog (4c).
+KSV-0056
+AVD-KSV-0056
+
+# KSV-0014 (HIGH): el container del web (nginx) sin readOnlyRootFilesystem. Para activarlo nginx necesita
+# tmpfs en /var/cache/nginx y /var/run (chart) — mismo pase de hardening dedicado del backlog (4c).
+KSV-0014
+AVD-KSV-0014
