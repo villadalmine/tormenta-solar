@@ -18,3 +18,8 @@ AVD-KSV-0056
 # tmpfs en /var/cache/nginx y /var/run (chart) — mismo pase de hardening dedicado del backlog (4c).
 KSV-0014
 AVD-KSV-0014
+
+# DS-0002 (HIGH): Dockerfile sin USER no-root — la MISMA causa raíz que KSV-0118/0014 vista a nivel imagen
+# (el fix es el mismo pase 4c: USER + tmpfs/fsGroup). Sacar junto con las de arriba.
+DS-0002
+AVD-DS-0002
