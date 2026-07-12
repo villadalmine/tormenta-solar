@@ -1,0 +1,9 @@
+# .trivyignore — hallazgos CONOCIDOS del barrido trivy (CI: security.yml). Cada entrada con su porqué.
+
+# KSV-0118 (HIGH): el deployment del proxy no fija runAsNonRoot/runAsUser (la imagen node corre como root).
+# El contexto YA tiene allowPrivilegeEscalation:false + readOnlyRootFilesystem:true y el servicio es ClusterIP
+# detrás del gateway → riesgo bajo. El hardening REAL (Dockerfile USER node + fsGroup para el PVC /data +
+# probar los crons que escriben /data) está anotado en el backlog — es infra que anda, se toca con cuidado
+# y en su propio pase, no de pasada. Sacar esta línea cuando se haga.
+KSV-0118
+AVD-KSV-0118
