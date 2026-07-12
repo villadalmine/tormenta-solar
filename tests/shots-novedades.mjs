@@ -144,6 +144,8 @@ try {
   await page.keyboard.down('d'); await page.waitForTimeout(500); await page.keyboard.up('d');
   await page.waitForTimeout(300); await shotCanvas('26-museo');
   await page.evaluate(() => { try { localStorage.removeItem('ts_trofeo_tano'); localStorage.removeItem('ts_trofeo_vitrina'); localStorage.removeItem('ts_mapa_tano'); localStorage.removeItem('ts_mapa_marco'); } catch (e) {} });
+  // v371: el piso DEPORTES del cine — partidos REALES (Mundial + Villa Dálmine con el "próx:")
+  await dbg('cineYa'); await page.waitForTimeout(1500); await shotCanvas('27-cine');
   if (errors.length) console.error('⚠️  errores JS durante las capturas:\n - ' + errors.join('\n - '));
   console.log('✓ capturas de novedades en info/img/novedades/');
 } catch (e) {
