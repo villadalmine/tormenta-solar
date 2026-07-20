@@ -128,6 +128,15 @@ let IA_CHAIN = null;                                // { chat:[...], reason, ts,
 function loadIaChain() { try { const d = JSON.parse(fs.readFileSync(IACHAIN_STORE, 'utf8')); if (d && ((Array.isArray(d.chat) && d.chat.length) || (Array.isArray(d.gen) && d.gen.length) || (Array.isArray(d.banco) && d.banco.length))) IA_CHAIN = d; } catch (e) {} }
 function saveIaChain() { try { fs.mkdirSync(IACHAIN_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); if (IA_CHAIN) fs.writeFileSync(IACHAIN_STORE, JSON.stringify(IA_CHAIN)); else { try { fs.unlinkSync(IACHAIN_STORE); } catch (e) {} } } catch (e) { console.error('ia-chain save:', e.message); } }
 loadIaChain();
+// ── VIGÍA DE GASTO de la cuenta OpenRouter ENTERA (infra-76): el gasto que preocupa al dueño NO es solo el del
+// juego — galaxy/hermes/openclaw/holmes/leloir comparten la misma cuenta. El cron ia-health llama GET /or-spend
+// cada 6h: el proxy le pide a OpenRouter el acumulado POR KEY (provisioning key, la misma de las subs F3),
+// calcula el delta vs el snapshot anterior (PVC) → estimado US$/día → gauges → PrometheusRule → Telegram.
+const ORSPEND_STORE = process.env.ORSPEND_STORE || '/data/or-spend.json';
+let OR_SPEND = null;                                // { ts, total, byKey:{name:usd}, deltaUsd, deltaHours, dayEstUsd, topKeys }
+function loadOrSpend() { try { const d = JSON.parse(fs.readFileSync(ORSPEND_STORE, 'utf8')); if (d && d.ts) OR_SPEND = d; } catch (e) {} }
+function saveOrSpend() { try { fs.mkdirSync(ORSPEND_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(ORSPEND_STORE, JSON.stringify(OR_SPEND)); } catch (e) { console.error('or-spend save:', e.message); } }
+loadOrSpend();
 // ── CHECKPOINTS por nick (guardar-partida.md F3): el último hito de tu partida viaja entre dispositivos.
 // Mismo patrón que barrio-mem: banco PVC + LRU + anti-spam. Cap 32KB por snapshot, 500 nicks (~16MB máx).
 const CHECKPOINT_STORE = process.env.CHECKPOINT_STORE || '/data/checkpoints.json';
@@ -990,6 +999,34 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ reports: IA_REPORTS }));
   }
+  // VIGÍA (infra-76): gasto REAL de TODA la cuenta OpenRouter por key (lo llama ia-health cada 6h; ?peek=1 no
+  // guarda snapshot, para mirar sin correr la ventana del delta). GEN_TOKEN: los nombres de keys son internos.
+  if (req.method === 'GET' && req.url.startsWith('/or-spend')) {
+    if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
+    (async () => {
+      if (!PROV_KEY) { res.writeHead(503); return res.end('sin OPENROUTER_PROVISIONING_KEY'); }
+      const r = await fetch(OR_BASE + '/keys?include_disabled=true', { headers: { 'Authorization': 'Bearer ' + PROV_KEY } });
+      if (!r.ok) { res.writeHead(502); return res.end('OR keys ' + r.status); }
+      const keys = (await r.json()).data || [];
+      const byKey = {};                              // puede haber 2 keys con el mismo nombre → se suman
+      for (const k of keys) { const n = k.name || k.label || '?'; byKey[n] = +((byKey[n] || 0) + (k.usage || 0)).toFixed(6); }
+      const total = +Object.values(byKey).reduce((a, b) => a + b, 0).toFixed(4);
+      const prev = OR_SPEND, now = Date.now();
+      let deltaUsd = 0, deltaHours = 0, dayEstUsd = 0, topKeys = [];
+      if (prev && prev.ts && now > prev.ts) {
+        deltaHours = +((now - prev.ts) / 3600000).toFixed(2);
+        for (const [n, u] of Object.entries(byKey)) { const dd = u - ((prev.byKey && prev.byKey[n]) || 0); if (dd > 0.000001) { deltaUsd += dd; topKeys.push({ key: n, usd: +dd.toFixed(4) }); } }
+        deltaUsd = +deltaUsd.toFixed(4);
+        dayEstUsd = deltaHours >= 0.05 ? +(deltaUsd * 24 / deltaHours).toFixed(2) : 0;
+        topKeys.sort((a, b) => b.usd - a.usd); topKeys = topKeys.slice(0, 5);
+      }
+      const snap = { ts: now, total, byKey, deltaUsd, deltaHours, dayEstUsd, topKeys };
+      if (!/[?&]peek=1/.test(req.url)) { OR_SPEND = snap; saveOrSpend(); }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(snap));
+    })().catch(e => { try { res.writeHead(500); res.end('or-spend: ' + e.message); } catch (_) {} });
+    return;
+  }
   // AUTOTUNE (§6): aplicar/resetear el override de la cadena anónima (GEN_TOKEN; lo usa el workflow ia-tune).
   if (req.method === 'POST' && req.url === '/ia-chain') {
     if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
@@ -1164,6 +1201,10 @@ http.createServer((req, res) => {
         `# HELP tormenta_ia_health_paid_used_pct Budget pago usado del día (%%)\n# TYPE tormenta_ia_health_paid_used_pct gauge\ntormenta_ia_health_paid_used_pct ${(IA_HEALTH.day && IA_HEALTH.day.paidUsedPct) || 0}\n` +
         `# HELP tormenta_ia_health_est_cost_usd Gasto estimado del día (pool compartido, US$)\n# TYPE tormenta_ia_health_est_cost_usd gauge\ntormenta_ia_health_est_cost_usd ${(IA_HEALTH.day && IA_HEALTH.day.estCostUsd) || 0}\n` +
         `# HELP tormenta_ia_health_ts Timestamp del último health\n# TYPE tormenta_ia_health_ts gauge\ntormenta_ia_health_ts ${IA_HEALTH.ts || 0}\n` : '') +
+      (OR_SPEND ? `# HELP tormenta_or_total_usd Gasto ACUMULADO de toda la cuenta OpenRouter (US$, todas las apps)\n# TYPE tormenta_or_total_usd gauge\ntormenta_or_total_usd ${OR_SPEND.total || 0}\n` +
+        `# HELP tormenta_or_day_est_usd Gasto estimado US$/día de TODA la cuenta (ventana del vigía, ~6h)\n# TYPE tormenta_or_day_est_usd gauge\ntormenta_or_day_est_usd ${OR_SPEND.dayEstUsd || 0}\n` +
+        `# HELP tormenta_or_key_usd Gasto acumulado por key de OpenRouter (US$)\n# TYPE tormenta_or_key_usd gauge\n` +
+        Object.entries(OR_SPEND.byKey || {}).filter(([, u]) => u >= 0.01).map(([n, u]) => `tormenta_or_key_usd{key=${JSON.stringify(n)}} ${u}`).join('\n') + '\n' : '') +
       `# HELP tormenta_ia_chain_override Override runtime de la cadena de chat activo (0=baseline env)\n# TYPE tormenta_ia_chain_override gauge\ntormenta_ia_chain_override ${IA_CHAIN ? 1 : 0}\n` +
       `# HELP tormenta_ia_tune_last_change_ts Último cambio del autotune (ms epoch)\n# TYPE tormenta_ia_tune_last_change_ts gauge\ntormenta_ia_tune_last_change_ts ${IA_TUNE_TS || (IA_CHAIN && IA_CHAIN.ts) || 0}\n` +
       `# HELP tormenta_ai_latency_ms_avg Latencia media (ms) de las respuestas con IA\n# TYPE tormenta_ai_latency_ms_avg gauge\ntormenta_ai_latency_ms_avg ${avg.toFixed(0)}\n`;

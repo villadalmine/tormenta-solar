@@ -61,7 +61,29 @@ const report = {
       `budget pago al ${paidUsedPct}% — considerar subir PAID_DAILY_CAP o abaratar la cadena`),
 };
 
-console.error(`health: ${verdict} · chats=${total} fallback=${fallbackPct}% · pago=${now.paidToday}/${now.paidCap} (${paidUsedPct}%) ≈ US$${estCost}`);
+// VIGÍA (infra-76): gasto de TODA la cuenta OpenRouter (galaxy/hermes/openclaw/holmes/leloir + el juego, TODAS
+// las apps del dueño). El proxy consulta OR con la provisioning key y devuelve el delta vs el run anterior (~6h)
+// → estimado US$/día. Solo sube a 'warn' (nunca 'critical': el rollback de cadena es para la salud del CHAT).
+const OR_DAY_WARN = +process.env.OR_DAY_WARN_USD || 3;
+if (POST_URL && TOKEN) {
+  try {
+    const rr = await fetch(POST_URL.replace(/\/ia-report$/, '/or-spend'), { headers: { 'x-gen-token': TOKEN } });
+    if (rr.ok) {
+      const cuenta = await rr.json();
+      report.day.cuentaOrDiaUsd = cuenta.dayEstUsd || 0;
+      report.day.cuentaOrTotalUsd = cuenta.total || 0;
+      report.day.cuentaOrTop = (cuenta.topKeys || []).slice(0, 3);
+      if ((cuenta.dayEstUsd || 0) >= OR_DAY_WARN) {
+        if (report.verdict === 'ok') report.verdict = 'warn';
+        report.note = (report.note === 'todo en orden' ? '' : report.note + ' · ') +
+          `la cuenta OpenRouter ENTERA (todas las apps, no solo el juego) va a ~US$${cuenta.dayEstUsd}/día — top: ` +
+          report.day.cuentaOrTop.map(k => `${k.key} US$${k.usd}`).join(' · ');
+      }
+    }
+  } catch (e) { console.error('or-spend:', e.message); }
+}
+
+console.error(`health: ${report.verdict} · chats=${total} fallback=${fallbackPct}% · pago=${now.paidToday}/${now.paidCap} (${paidUsedPct}%) ≈ US$${estCost} · cuenta≈US$${report.day.cuentaOrDiaUsd || '?'}/día`);
 
 // GUARDIÁN del autotune (§6): si la salud es CRÍTICA y hay un override de cadena activo → rollback al baseline
 // env (la cadena conocida-buena de values-prod). Reactivo también para deshacer.

@@ -48,6 +48,25 @@ spec:
           annotations:
             summary: 'ℹ️🤖 El AUTOTUNE cambió la cadena de chat (verificada punta a punta)'
             description: 'Cadena efectiva + motivo: https://llm-tormenta-solar.cybercirujas.club/ia-chain · Historial: /ia-reports (kind tune). Si algo anda mal, el health de 6h revierte solo; para forzar baseline: POST /ia-chain {reset:true}.'
+        # VIGÍA DE GASTO de la cuenta OpenRouter ENTERA (infra-76): el health de 6h llama /or-spend en el proxy
+        # (provisioning key) → delta por key → gauge US$/día. Cubre TODAS las apps (galaxy/hermes/openclaw/
+        # holmes/leloir + el juego). Pedido del dueño 2026-07-20: "se me va mucha plata por día".
+        - alert: TormentaGastoCuentaAlto
+          expr: tormenta_or_day_est_usd >= 3 and tormenta_or_day_est_usd < 10
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: '💳⚠️ La cuenta OpenRouter ENTERA va a ~US${{ $value }}/día (≈US$90+/mes)'
+            description: 'Gasto de TODAS las apps juntas (galaxy, hermes, openclaw, holmes, leloir y el juego), no solo Tormenta. Desglose por key: https://llm-tormenta-solar.cybercirujas.club/ia-reports (health → day.cuentaOrTop) · dashboard: https://openrouter.ai/activity'
+        - alert: TormentaGastoCuentaCritico
+          expr: tormenta_or_day_est_usd >= 10
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: '💳🚨 La cuenta OpenRouter va a ~US${{ $value }}/día — algo se descontroló'
+            description: 'Más de US$10/día = US$300+/mes. Mirar YA qué key dispara: https://llm-tormenta-solar.cybercirujas.club/ia-reports (health → day.cuentaOrTop) · https://openrouter.ai/activity · Sospechosos típicos: ticks de galaxy, agentes en loop (hermes/openclaw/holmes), Honcho procesando backlog.'
         - alert: TormentaIAHealthViejo
           expr: (time() - tormenta_ia_health_ts / 1000) > 28800
           for: 30m

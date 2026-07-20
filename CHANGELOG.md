@@ -101,6 +101,28 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-76] — 2026-07-20 — 💳🔭 VIGÍA DE GASTO: la cuenta OpenRouter ENTERA, vigilada y con alarma
+- **El pedido del dueño ("se me va mucha plata por día"):** auditoría completa de quién gasta. Resultado:
+  **NO es el juego** (Tormenta = centavos/día). La semana 13-20/07 fue **US$13.84 (~$2/día)**: Sonnet 5 $5.96
+  (30k llamadas chicas de `leloir-controlplane`), gemma-4-31b $4.94 (35M tokens: **ticks de galaxy cada 5 min**
+  + agente hermes), gemini-2.5-flash(-lite) $1.90 (101k requests de un poller), deepseek-flash $0.97 (loops de
+  hermes/openclaw/holmes). Antes de esto ya se había confirmado: `claude-sonnet` = **Sonnet 5** hace días
+  ($2/$10, 33% más barato que 4.5) y la cadena anónima ya corre con gemma4-paid (autotune).
+- **Acción inmediata (autorizada):** borrado el CronJob **`galaxy-dt-tick`** (ns `online-game-dt`, instancia
+  dev que nadie usaba) — duplicaba el gasto de galaxy y tiraba ticks en Error. El tick de galaxy PROD sigue.
+- **infra-76 (proxy 0.2.16) — el vigía:** `GET /or-spend` (GEN_TOKEN, `?peek=1` no mueve la ventana): consulta
+  OpenRouter `GET /keys` con la provisioning key (la de las subs F3) → **gasto acumulado POR KEY** → delta vs
+  snapshot PVC (`/data/or-spend.json`) → **estimado US$/día + top de keys**. `gen-ia-health.mjs` lo llama cada
+  6h → reporte (`day.cuentaOrDiaUsd/cuentaOrTop`) + verdict `warn` si ≥ `OR_DAY_WARN_USD` (default $3/día;
+  nunca `critical` — el rollback de cadena es para la salud del chat). Gauges `tormenta_or_day_est_usd` /
+  `tormenta_or_total_usd` / `tormenta_or_key_usd{key}` → **PrometheusRule TormentaGastoCuentaAlto (≥$3/día,
+  warning) / TormentaGastoCuentaCritico (≥$10/día, critical) → Telegram**. La página `info/ia.html`(+.en)
+  muestra "💳 la cuenta ENTERA: ~US$X/día · top: …" en cada chequeo de salud. SDD `ia-costos.md §2.1`.
+- **Bench del día (patrón chat, desde el pod):** gemma4-paid 3/3 (0.5-1.8s) · claude-sonnet/Sonnet 5 3/3
+  (3.2-3.6s) · cheap/deepseek-v4-flash 3/3 y **ahora respeta max_tokens** (el cuelgue de julio-09 no se
+  reproduce) · **deepseek-v4-pro 0/3: quema los 150 tokens razonando y devuelve VACÍO — nunca para chat**.
+- **Pendiente del dueño:** límites a las keys en el dashboard OR (principal y openclaw siguen SIN límite).
+
 ## [v372] — 2026-07-12 — 🍮 LOS ANDENES CHICOS CON SABOR: Cañuelas, A. Korn y Bosques
 - Los tres andenes chicos del Roca dejan el flavor genérico 'campo': **3 FLAVORS nuevos (DATA)** en `tren.js`
   con vendedor regional + linyera con nombre — **Cañuelas** (🍮 dulce de leche DE LA CUNA, **el Tambero**),

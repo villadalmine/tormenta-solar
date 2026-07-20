@@ -44,6 +44,8 @@ function repHealth(r) {
     '<div class="kv">last hours: <b>' + (w.chats || 0) + '</b> NPC chats · <b>' + (w.fallbackPct || 0) + '%</b> failed</div>' +
     '<div class="kv">SHARED pool quota (players without a code): <b>' + (d.paidCalls || 0) + '/' + (d.paidCap || 0) + '</b> paid replies today (' + (d.paidUsedPct || 0) + '%) ≈ <b>US$' + (d.estCostUsd || 0) + '</b>' +
     ' &nbsp;|&nbsp; subscriptions (premium codes): <b>US$' + (d.subRealCostUsd || 0) + '</b> spent</div>' +
+    (d.cuentaOrDiaUsd != null ? '<div class="kv">💳 the WHOLE OpenRouter account (every app: galaxy, agents, the game…): <b>~US$' + d.cuentaOrDiaUsd + '/day</b>' +
+      ((d.cuentaOrTop || []).length ? ' <span class="muted">· top: ' + d.cuentaOrTop.map(k => esc(k.key) + ' US$' + k.usd).join(' · ') + '</span>' : '') + '</div>' : '') +
     '<div class="muted">note: if you play with a premium code, your spend is counted under "subscriptions" — it does NOT consume the shared quota (that\'s why it can read 0/' + (d.paidCap || 2000) + ' even if you chatted a lot).</div>' +
     (r.note ? '<div class="muted">' + esc(nice(r.note)) + '</div>' : '');
 }

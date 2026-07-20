@@ -36,6 +36,29 @@ ser excelente para `banco` y malo para `chat`).
    `warning|critical` → **Telegram** (receiver `telegram-openclaw`). El dueño no mira nada: si algo anda mal, le llega.
 5. Lectura humana: **`GET /ia-reports`** (público, sin secretos) — el historial de salud + scouts.
 
+### 2.1 VIGÍA DE GASTO de la cuenta OpenRouter ENTERA (infra-76, proxy 0.2.16 — pedido dueño 2026-07-20)
+
+**El problema:** el gasto que duele NO es el del juego (centavos/día) — la cuenta OR la comparten TODAS las apps
+del dueño (galaxy ticks c/5min, agentes hermes/openclaw/holmesgpt, leloir-controlplane, Honcho). Auditoría
+2026-07-20: **US$13.84 la semana (~$2/día)** — Sonnet 5 $5.96 (30k llamadas chicas, leloir), gemma-4-31b $4.94
+(35M tok de prompts: galaxy+hermes), gemini-2.5-flash(-lite) $1.9 (101k reqs de algún poller). Tormenta: centavos.
+
+**La solución:** el mismo health de 6h ahora vigila la cuenta entera:
+1. **`GET /or-spend`** (proxy, GEN_TOKEN; `?peek=1` = mirar sin mover la ventana): consulta OR
+   `GET /keys?include_disabled=true` con la **provisioning key** (la misma de las subs F3, ya en el pod) →
+   acumulado POR KEY (nombres duplicados se suman) → **delta vs snapshot anterior** (PVC `/data/or-spend.json`)
+   → `dayEstUsd` (delta normalizado a 24h) + `topKeys` (quién gasta).
+2. `gen-ia-health.mjs` lo llama en cada run → al reporte: `day.cuentaOrDiaUsd/cuentaOrTotalUsd/cuentaOrTop`;
+   si `dayEstUsd ≥ OR_DAY_WARN_USD` (env, default **US$3/día**) → verdict sube a `warn` (NUNCA `critical`:
+   el auto-rollback de cadena es para la salud del CHAT, no para el gasto) + nota con el top de keys.
+3. Gauges: `tormenta_or_day_est_usd`, `tormenta_or_total_usd`, `tormenta_or_key_usd{key}` → PrometheusRule
+   **TormentaGastoCuentaAlto** (≥$3/día, warning) / **TormentaGastoCuentaCritico** (≥$10/día, critical) → Telegram.
+4. Página info/ia.html(+.en): el chequeo de salud muestra "💳 la cuenta OpenRouter ENTERA: ~US$X/día · top: …".
+
+La API pública de OR no da actividad por key (`/activity` con key común = 403, con provisioning = por modelo
+solamente, sin key) — por eso el delta de acumulados por key es LA forma de saber "quién gasta". La primera
+llamada solo siembra el snapshot (delta 0); a partir de la segunda hay estimado real.
+
 ## 3. CRON DIARIO — `ia-scout` (aprender qué modelos están bien y baratos)
 
 `ai-proxy/gen-ia-scout.mjs` (CronWorkflow `-ia-scout`, `15 6 * * *` — 6:15 AM, tras los crons de contenido):
