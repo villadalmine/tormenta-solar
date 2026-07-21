@@ -139,7 +139,8 @@ let OR_SPEND = null;                                // { ts, total, byKey, byApp
 function orKeyApp(name) {
   const n = String(name || '').toLowerCase();
   if (/^ts-|premium|@/.test(n)) return 'Suscripción premium (jugador del juego)';
-  if (n === 'hermes' || n.startsWith('hermes ')) return 'LiteLLM principal — juego TORMENTA (chat NPCs + crons) + passthrough';
+  if (n.includes('litellm') || n.includes('tormenta')) return 'LiteLLM principal — juego TORMENTA (chat NPCs + crons) + passthrough';
+  if (n.includes('hermes')) return 'agente Hermes (Telegram, APAGADO)';
   if (n.includes('openclaw')) return 'agente OpenClaw (APAGADO)';
   if (n.includes('holmes')) return 'HolmesGPT (SRE del cluster)';
   if (n.includes('kagent')) return 'kagent (agente k8s)';
