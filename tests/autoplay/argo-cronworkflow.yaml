@@ -38,6 +38,11 @@ spec:
               storage: 2Gi
     templates:
       - name: qa
+        # El PVC longhorn-nvme SOLO attachea en nodos rk1 (label storage=rk1-longhorn); el Pi NO lo tiene.
+        # Sin esto el pod puede caer en un Pi (visto: srv-pi-rack1) → PVC no attachea → PodInitializing hasta
+        # el activeDeadline (20') → Failed. Mismo fix que el WorkflowTemplate de deploy (infra-66).
+        nodeSelector:
+          storage: rk1-longhorn
         container:
           image: mcr.microsoft.com/playwright:v1.49.0-jammy   # node+chromium listos, multi-arch (arm64 ok)
           workingDir: /work
