@@ -101,6 +101,17 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-78] — 2026-07-21 — 🤖🔧 FIX autoplay QA: el pod no arrancaba (PVC no attacheaba en el Pi)
+- **Reporte del dueño:** "el autoplay no anda". No era el juego: el **pod nunca arrancaba**. El CronWorkflow
+  `tormenta-autoplay` (QA nocturno Playwright) tiene un PVC `longhorn-nvme` pero **sin `nodeSelector`** → el
+  scheduler lo ponía a veces en `srv-pi-rack1` (Raspberry Pi, sin Longhorn) → el PVC no attachea →
+  **PodInitializing hasta el `activeDeadline` (20') → Failed**, sin reporte QA desde ~13/07.
+- **Fix (commit efd0ea1):** `nodeSelector: {storage: rk1-longhorn}` en el template `qa` de
+  `tests/autoplay/argo-cronworkflow.yaml` — lo fija a nodos rk1 con Longhorn. Es EXACTAMENTE el mismo fix que
+  ya tenía el WorkflowTemplate de deploy (infra-66); al de autoplay le había faltado. Verificado: corrida
+  manual arrancó `Running` en `srv-rk1-nvme-01` (antes moría en init). **Regla: todo Workflow con PVC longhorn
+  necesita ese nodeSelector.**
+
 ## [infra-77] — 2026-07-21 — 💳🔍 VIGÍA v2: "quién gasta qué" por APP y por MODELO (la etiqueta de la key mentía)
 - **El hallazgo del dueño:** el vigía v1 mostraba el gasto por *key*, y la key principal de LiteLLM se
   llama **"hermes"** — pero el AGENTE hermes está **apagado** (`0/0`), igual que openclaw. La etiqueta ≠
