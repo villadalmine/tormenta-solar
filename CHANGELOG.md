@@ -101,6 +101,12 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-79] — 2026-07-21 — 💸 Ticker de noticias en vivo: cada 12h (era horario) — ahorro
+- El cron `noticias-live` (refresh de resultados reales Mundial/fútbol/crypto) corría **cada hora** (24×/día).
+  Los resultados no cambian tan seguido → pasado a **`0 0,12 * * *`** (00:00 y 12:00 UTC = 21:00 y 09:00 BsAs,
+  alineado con las noticias del día). `noticias.liveSchedule` en `ai-proxy/chart/values-prod.yaml` (+ default en
+  values.yaml). Aplicado por `helm upgrade` (sin rebuild). El cron de noticias diario (5,9,23 UTC) queda igual.
+
 ## [infra-78] — 2026-07-21 — 🤖🔧 FIX autoplay QA: el pod no arrancaba (PVC no attacheaba en el Pi)
 - **Reporte del dueño:** "el autoplay no anda". No era el juego: el **pod nunca arrancaba**. El CronWorkflow
   `tormenta-autoplay` (QA nocturno Playwright) tiene un PVC `longhorn-nvme` pero **sin `nodeSelector`** → el
