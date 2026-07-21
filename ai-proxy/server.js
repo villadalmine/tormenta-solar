@@ -133,7 +133,33 @@ loadIaChain();
 // cada 6h: el proxy le pide a OpenRouter el acumulado POR KEY (provisioning key, la misma de las subs F3),
 // calcula el delta vs el snapshot anterior (PVC) → estimado US$/día → gauges → PrometheusRule → Telegram.
 const ORSPEND_STORE = process.env.ORSPEND_STORE || '/data/or-spend.json';
-let OR_SPEND = null;                                // { ts, total, byKey:{name:usd}, deltaUsd, deltaHours, dayEstUsd, topKeys }
+let OR_SPEND = null;                                // { ts, total, byKey, byApp, byModel, dayTotal, monthTotal, ... }
+// La ETIQUETA de una key de OpenRouter ≠ la app que gasta (dueño 2026-07-21). Mapeo a la app REAL:
+// la key "hermes" es la principal de LiteLLM (juego entero), NO el agente hermes (apagado).
+function orKeyApp(name) {
+  const n = String(name || '').toLowerCase();
+  if (/^ts-|premium|@/.test(n)) return 'Suscripción premium (jugador del juego)';
+  if (n === 'hermes' || n.startsWith('hermes ')) return 'LiteLLM principal — juego TORMENTA (chat NPCs + crons) + passthrough';
+  if (n.includes('openclaw')) return 'agente OpenClaw (APAGADO)';
+  if (n.includes('holmes')) return 'HolmesGPT (SRE del cluster)';
+  if (n.includes('kagent')) return 'kagent (agente k8s)';
+  if (n === 'game' || n === 'galaxy' || n.includes('galaxy') || n === 'bot-game') return 'GALAXY (online-game: NPCs + asistente)';
+  if (n.includes('leloir')) return 'Leloir (tu control-plane / benches)';
+  if (n.includes('kgraph')) return 'kgraph';
+  if (n.includes('rino')) return 'laptop de Rino';
+  if (n.includes('chaos')) return 'chaos-k8s (pruebas)';
+  return name || '?';
+}
+// Qué modelo lo usa qué parte (heurística, para el desglose por modelo):
+function orModelApp(model) {
+  const m = String(model || '').toLowerCase();
+  if (m.includes('deepseek')) return 'galaxy + fallback del chat del juego';
+  if (m.includes('gemma')) return 'crons del juego (carteles/cine/chusmerío) + chat NPCs';
+  if (m.includes('claude')) return 'chat PREMIUM del juego + leloir';
+  if (m.includes('gemini')) return 'poller externo (no pasa por el juego)';
+  if (m.includes('nemotron') || m.includes('gpt-oss') || m.includes(':free')) return 'gratis';
+  return '?';
+}
 function loadOrSpend() { try { const d = JSON.parse(fs.readFileSync(ORSPEND_STORE, 'utf8')); if (d && d.ts) OR_SPEND = d; } catch (e) {} }
 function saveOrSpend() { try { fs.mkdirSync(ORSPEND_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(ORSPEND_STORE, JSON.stringify(OR_SPEND)); } catch (e) { console.error('or-spend save:', e.message); } }
 loadOrSpend();
@@ -999,8 +1025,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ reports: IA_REPORTS }));
   }
-  // VIGÍA (infra-76): gasto REAL de TODA la cuenta OpenRouter por key (lo llama ia-health cada 6h; ?peek=1 no
-  // guarda snapshot, para mirar sin correr la ventana del delta). GEN_TOKEN: los nombres de keys son internos.
+  // VIGÍA (infra-76/77): gasto REAL de TODA la cuenta OpenRouter, atribuido POR APP (no por etiqueta de key,
+  // que confunde) y POR MODELO. Lo llama ia-health cada 6h; ?peek=1 no guarda snapshot. GEN_TOKEN: nombres internos.
+  // CLAVE (dueño 2026-07-21): la etiqueta de una key ≠ la app. La key llamada "hermes" es la PRINCIPAL de LiteLLM
+  // (la usa el juego entero + galaxy en passthrough); el AGENTE hermes está apagado. Por eso mapeamos a app real.
   if (req.method === 'GET' && req.url.startsWith('/or-spend')) {
     if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
     (async () => {
@@ -1008,19 +1036,37 @@ http.createServer((req, res) => {
       const r = await fetch(OR_BASE + '/keys?include_disabled=true', { headers: { 'Authorization': 'Bearer ' + PROV_KEY } });
       if (!r.ok) { res.writeHead(502); return res.end('OR keys ' + r.status); }
       const keys = (await r.json()).data || [];
-      const byKey = {};                              // puede haber 2 keys con el mismo nombre → se suman
-      for (const k of keys) { const n = k.name || k.label || '?'; byKey[n] = +((byKey[n] || 0) + (k.usage || 0)).toFixed(6); }
-      const total = +Object.values(byKey).reduce((a, b) => a + b, 0).toFixed(4);
+      // por KEY: usa usage_daily/usage_monthly EXACTOS de OpenRouter (no estimación). Etiqueta → app real.
+      const acc = {};   // name -> {usd, day, month}
+      for (const k of keys) { const n = k.name || k.label || '?'; const a = acc[n] || (acc[n] = { usd: 0, day: 0, month: 0 }); a.usd += k.usage || 0; a.day += k.usage_daily || 0; a.month += k.usage_monthly || 0; }
+      const byKey = {}; for (const [n, a] of Object.entries(acc)) byKey[n] = +a.usd.toFixed(6);
+      const byApp = Object.entries(acc).map(([key, a]) => ({ key, app: orKeyApp(key), usdDay: +a.day.toFixed(4), usdMonth: +a.month.toFixed(4), usdTotal: +a.usd.toFixed(4) }))
+        .filter(x => x.usdMonth > 0.0001 || x.usdTotal > 0.01).sort((a, b) => b.usdMonth - a.usdMonth);
+      const total = +Object.values(byKey).reduce((s, u) => s + u, 0).toFixed(4);
+      const dayTotal = +byApp.reduce((s, x) => s + x.usdDay, 0).toFixed(4);
+      const monthTotal = +byApp.reduce((s, x) => s + x.usdMonth, 0).toFixed(4);
+      // por MODELO (últimos 2 días del activity API): deepseek-flash≈galaxy, gemma≈crons+chat, claude≈premium+leloir
+      let byModel = [];
+      try {
+        const ar = await fetch(OR_BASE + '/activity', { headers: { 'Authorization': 'Bearer ' + PROV_KEY } });
+        if (ar.ok) {
+          const rows = (await ar.json()).data || [];
+          const days = [...new Set(rows.map(x => (x.date || '').slice(0, 10)))].sort().slice(-2);
+          const m = {};
+          for (const x of rows) { if (!days.includes((x.date || '').slice(0, 10))) continue; const k = x.model || '?'; m[k] = (m[k] || 0) + (x.usage || 0); }
+          byModel = Object.entries(m).map(([model, usd]) => ({ model, usa: orModelApp(model), usd: +usd.toFixed(4) })).filter(x => x.usd > 0.0001).sort((a, b) => b.usd - a.usd).slice(0, 8);
+        }
+      } catch (e) {}
+      // delta (respaldo/tendencia intra-día, por si usage_daily aún no refleja el pico reciente)
       const prev = OR_SPEND, now = Date.now();
-      let deltaUsd = 0, deltaHours = 0, dayEstUsd = 0, topKeys = [];
+      let deltaUsd = 0, deltaHours = 0, dayEstUsd = 0;
       if (prev && prev.ts && now > prev.ts) {
         deltaHours = +((now - prev.ts) / 3600000).toFixed(2);
-        for (const [n, u] of Object.entries(byKey)) { const dd = u - ((prev.byKey && prev.byKey[n]) || 0); if (dd > 0.000001) { deltaUsd += dd; topKeys.push({ key: n, usd: +dd.toFixed(4) }); } }
-        deltaUsd = +deltaUsd.toFixed(4);
-        dayEstUsd = deltaHours >= 0.05 ? +(deltaUsd * 24 / deltaHours).toFixed(2) : 0;
-        topKeys.sort((a, b) => b.usd - a.usd); topKeys = topKeys.slice(0, 5);
+        for (const [n, u] of Object.entries(byKey)) { const dd = u - ((prev.byKey && prev.byKey[n]) || 0); if (dd > 0.000001) deltaUsd += dd; }
+        deltaUsd = +deltaUsd.toFixed(4); dayEstUsd = deltaHours >= 0.05 ? +(deltaUsd * 24 / deltaHours).toFixed(2) : 0;
       }
-      const snap = { ts: now, total, byKey, deltaUsd, deltaHours, dayEstUsd, topKeys };
+      // dayEstUsd para las alertas: prioriza el usage_daily real; si es 0 (temprano en el día) cae al delta.
+      const snap = { ts: now, total, byKey, byApp, byModel, dayTotal, monthTotal, dayEstUsd: dayTotal > 0 ? dayTotal : dayEstUsd, deltaUsd, deltaHours, topKeys: byApp.slice(0, 5).map(x => ({ key: x.app, usd: x.usdDay })) };
       if (!/[?&]peek=1/.test(req.url)) { OR_SPEND = snap; saveOrSpend(); }
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(snap));
@@ -1202,9 +1248,12 @@ http.createServer((req, res) => {
         `# HELP tormenta_ia_health_est_cost_usd Gasto estimado del día (pool compartido, US$)\n# TYPE tormenta_ia_health_est_cost_usd gauge\ntormenta_ia_health_est_cost_usd ${(IA_HEALTH.day && IA_HEALTH.day.estCostUsd) || 0}\n` +
         `# HELP tormenta_ia_health_ts Timestamp del último health\n# TYPE tormenta_ia_health_ts gauge\ntormenta_ia_health_ts ${IA_HEALTH.ts || 0}\n` : '') +
       (OR_SPEND ? `# HELP tormenta_or_total_usd Gasto ACUMULADO de toda la cuenta OpenRouter (US$, todas las apps)\n# TYPE tormenta_or_total_usd gauge\ntormenta_or_total_usd ${OR_SPEND.total || 0}\n` +
-        `# HELP tormenta_or_day_est_usd Gasto estimado US$/día de TODA la cuenta (ventana del vigía, ~6h)\n# TYPE tormenta_or_day_est_usd gauge\ntormenta_or_day_est_usd ${OR_SPEND.dayEstUsd || 0}\n` +
-        `# HELP tormenta_or_key_usd Gasto acumulado por key de OpenRouter (US$)\n# TYPE tormenta_or_key_usd gauge\n` +
-        Object.entries(OR_SPEND.byKey || {}).filter(([, u]) => u >= 0.01).map(([n, u]) => `tormenta_or_key_usd{key=${JSON.stringify(n)}} ${u}`).join('\n') + '\n' : '') +
+        `# HELP tormenta_or_day_est_usd Gasto US$/día de TODA la cuenta (usage_daily real de OpenRouter)\n# TYPE tormenta_or_day_est_usd gauge\ntormenta_or_day_est_usd ${OR_SPEND.dayEstUsd || 0}\n` +
+        `# HELP tormenta_or_month_usd Gasto US$ del mes en curso de TODA la cuenta\n# TYPE tormenta_or_month_usd gauge\ntormenta_or_month_usd ${OR_SPEND.monthTotal || 0}\n` +
+        `# HELP tormenta_or_app_day_usd Gasto US$/día por APP (mapeado desde la key)\n# TYPE tormenta_or_app_day_usd gauge\n` +
+        (OR_SPEND.byApp || []).filter(x => x.usdDay >= 0.001).map(x => `tormenta_or_app_day_usd{app=${JSON.stringify(x.app)}} ${x.usdDay}`).join('\n') + '\n' +
+        `# HELP tormenta_or_model_2d_usd Gasto US$ (últimos 2 días) por MODELO real\n# TYPE tormenta_or_model_2d_usd gauge\n` +
+        (OR_SPEND.byModel || []).filter(x => x.usd >= 0.001).map(x => `tormenta_or_model_2d_usd{model=${JSON.stringify(x.model)}} ${x.usd}`).join('\n') + '\n' : '') +
       `# HELP tormenta_ia_chain_override Override runtime de la cadena de chat activo (0=baseline env)\n# TYPE tormenta_ia_chain_override gauge\ntormenta_ia_chain_override ${IA_CHAIN ? 1 : 0}\n` +
       `# HELP tormenta_ia_tune_last_change_ts Último cambio del autotune (ms epoch)\n# TYPE tormenta_ia_tune_last_change_ts gauge\ntormenta_ia_tune_last_change_ts ${IA_TUNE_TS || (IA_CHAIN && IA_CHAIN.ts) || 0}\n` +
       `# HELP tormenta_ai_latency_ms_avg Latencia media (ms) de las respuestas con IA\n# TYPE tormenta_ai_latency_ms_avg gauge\ntormenta_ai_latency_ms_avg ${avg.toFixed(0)}\n`;

@@ -101,6 +101,26 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-77] — 2026-07-21 — 💳🔍 VIGÍA v2: "quién gasta qué" por APP y por MODELO (la etiqueta de la key mentía)
+- **El hallazgo del dueño:** el vigía v1 mostraba el gasto por *key*, y la key principal de LiteLLM se
+  llama **"hermes"** — pero el AGENTE hermes está **apagado** (`0/0`), igual que openclaw. La etiqueta ≠
+  la app. Esa key (`OPENROUTER_API_KEY`) la usa el **juego entero** (chat NPCs + crons) **y galaxy** (en
+  passthrough `openrouter/deepseek/...`). El "$0.9/día de deepseek bajo hermes" era **galaxy con el tick
+  cada 5 min**, no ningún agente. Confirmado: el 19/07 galaxy pasó de gemma a deepseek → gemma cayó $0.71→
+  $0.41 y deepseek saltó $0.05→$0.92, mismo día. Nada de agentes.
+- **infra-77 (proxy 0.2.17): `/or-spend` ahora atribuye a la APP REAL, no a la etiqueta.** Mapa
+  `orKeyApp()` (key→app: "hermes"→*LiteLLM principal, juego TORMENTA*; "game"→*GALAXY*; "openclaw"→*agente
+  APAGADO*; "leloir-*"→*tu control-plane*…) + **desglose POR MODELO** (`orModelApp()`: deepseek-flash≈
+  galaxy, gemma≈crons+chat, claude≈premium+leloir) desde el activity API. Usa los campos **exactos**
+  `usage_daily`/`usage_monthly` de OpenRouter (no más estimación por delta). Gauges nuevos
+  `tormenta_or_app_day_usd{app}`, `tormenta_or_model_2d_usd{model}`, `tormenta_or_month_usd`. El health 6h
+  reporta `day.cuentaOrTop` (por app) + `cuentaOrModelos` + `cuentaOrMesUsd`. Página info/ia.html(+.en)
+  muestra "quién gasta (por app, hoy)" + "por modelo (2 días)".
+- **Nota galaxy:** para que su gasto quede facturado a SU key (`"game"`, ya en `galaxy-secrets`), se lo
+  puede apuntar directo a OpenRouter (bypass LiteLLM) — su chart lo soporta (`llm_key = llm_api_key or
+  openrouter_api_key`). Cambio preparado en el repo galaxy; el runtime lo aplica el dueño (el classifier
+  bloquea el patch a prod). A 2×/día galaxy ya cuesta ~$0.70/mes igual.
+
 ## [infra-76] — 2026-07-20 — 💳🔭 VIGÍA DE GASTO: la cuenta OpenRouter ENTERA, vigilada y con alarma
 - **El pedido del dueño ("se me va mucha plata por día"):** auditoría completa de quién gasta. Resultado:
   **NO es el juego** (Tormenta = centavos/día). La semana 13-20/07 fue **US$13.84 (~$2/día)**: Sonnet 5 $5.96

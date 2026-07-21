@@ -59,6 +59,25 @@ La API pública de OR no da actividad por key (`/activity` con key común = 403,
 solamente, sin key) — por eso el delta de acumulados por key es LA forma de saber "quién gasta". La primera
 llamada solo siembra el snapshot (delta 0); a partir de la segunda hay estimado real.
 
+### 2.2 VIGÍA v2 (infra-77, proxy 0.2.17) — atribución POR APP y POR MODELO (la etiqueta de la key engaña)
+
+**El problema (dueño 2026-07-21):** el gasto por *key* confunde porque **la etiqueta de la key ≠ la app**.
+La key `OPENROUTER_API_KEY` se llama **"hermes"** en OpenRouter, pero el agente hermes está APAGADO — esa key
+es la **principal de LiteLLM** y la usa el juego entero (chat + crons) + galaxy (passthrough). Atribuir a
+"hermes" hacía pensar que gastaba un agente muerto.
+
+**La solución:** `/or-spend` ahora devuelve, además del `byKey` crudo:
+- **`byApp`**: cada key mapeada a la app REAL (`orKeyApp()` en server.js) con `usdDay`/`usdMonth`/`usdTotal`
+  **exactos** de OpenRouter (campos `usage_daily`/`usage_monthly` del endpoint `/keys` — no más estimación).
+- **`byModel`**: gasto por modelo real de los últimos 2 días (activity API) con una pista de qué parte lo usa
+  (`orModelApp()`): deepseek-flash≈galaxy, gemma≈crons+chat NPCs, claude≈premium+leloir, gemini≈poller externo.
+- `dayTotal`/`monthTotal` de la cuenta entera.
+
+Gauges: `tormenta_or_app_day_usd{app}`, `tormenta_or_model_2d_usd{model}`, `tormenta_or_month_usd`. El health
+6h suma `day.cuentaOrTop` (por app), `cuentaOrModelos`, `cuentaOrMesUsd`. Página info/ia.html(+.en) lo muestra.
+Reglas de mapeo (mantener si aparecen keys nuevas): las apagadas (openclaw, hermes-agente) se marcan APAGADO;
+galaxy = key "game"/"galaxy"; leloir = control-plane del dueño (controlado).
+
 ## 3. CRON DIARIO — `ia-scout` (aprender qué modelos están bien y baratos)
 
 `ai-proxy/gen-ia-scout.mjs` (CronWorkflow `-ia-scout`, `15 6 * * *` — 6:15 AM, tras los crons de contenido):

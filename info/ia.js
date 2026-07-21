@@ -39,8 +39,10 @@ function repHealth(r) {
     '<div class="kv">últimas horas: <b>' + (w.chats || 0) + '</b> charlas con NPCs · <b>' + (w.fallbackPct || 0) + '%</b> falladas</div>' +
     '<div class="kv">cupo del pool COMPARTIDO (jugadores sin código): <b>' + (d.paidCalls || 0) + '/' + (d.paidCap || 0) + '</b> respuestas pagas hoy (' + (d.paidUsedPct || 0) + '%) ≈ <b>US$' + (d.estCostUsd || 0) + '</b>' +
     ' &nbsp;|&nbsp; suscripciones (códigos premium): <b>US$' + (d.subRealCostUsd || 0) + '</b> gastados</div>' +
-    (d.cuentaOrDiaUsd != null ? '<div class="kv">💳 la cuenta OpenRouter ENTERA (todas las apps: galaxy, agentes, el juego…): <b>~US$' + d.cuentaOrDiaUsd + '/día</b>' +
-      ((d.cuentaOrTop || []).length ? ' <span class="muted">· top: ' + d.cuentaOrTop.map(k => esc(k.key) + ' US$' + k.usd).join(' · ') + '</span>' : '') + '</div>' : '') +
+    (d.cuentaOrDiaUsd != null ? '<div class="kv">💳 la cuenta OpenRouter ENTERA (todas las apps): <b>~US$' + d.cuentaOrDiaUsd + '/día</b>' +
+      (d.cuentaOrMesUsd ? ' · <b>US$' + d.cuentaOrMesUsd + '</b> este mes' : '') + '</div>' +
+      ((d.cuentaOrTop || []).length ? '<div class="kv" style="margin-left:1rem">quién gasta (por app, hoy): ' + d.cuentaOrTop.map(k => '<b>' + esc(k.key) + '</b> US$' + k.usd).join(' · ') + '</div>' : '') +
+      ((d.cuentaOrModelos || []).length ? '<div class="kv" style="margin-left:1rem">por modelo (2 días): ' + d.cuentaOrModelos.map(m => esc(m.modelo.split('/').pop()) + ' US$' + m.usd + (m.usa ? ' <span class="muted">(' + esc(m.usa) + ')</span>' : '')).join(' · ') + '</div>' : '') : '') +
     '<div class="muted">ojo: si jugás con tu código premium, tu gasto se cuenta en "suscripciones" — NO consume el cupo compartido (por eso puede decir 0/' + (d.paidCap || 2000) + ' aunque hayas chateado un montón).</div>' +
     (r.note ? '<div class="muted">' + esc(nice(r.note)) + '</div>' : '');
 }

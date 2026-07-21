@@ -71,8 +71,11 @@ if (POST_URL && TOKEN) {
     if (rr.ok) {
       const cuenta = await rr.json();
       report.day.cuentaOrDiaUsd = cuenta.dayEstUsd || 0;
+      report.day.cuentaOrMesUsd = cuenta.monthTotal || 0;
       report.day.cuentaOrTotalUsd = cuenta.total || 0;
-      report.day.cuentaOrTop = (cuenta.topKeys || []).slice(0, 3);
+      // POR APP (no por etiqueta de key) y POR MODELO: quién gasta qué, claro.
+      report.day.cuentaOrTop = (cuenta.byApp || []).slice(0, 4).map(x => ({ key: x.app, usd: x.usdDay }));
+      report.day.cuentaOrModelos = (cuenta.byModel || []).slice(0, 4).map(x => ({ modelo: x.model, usa: x.usa, usd: x.usd }));
       if ((cuenta.dayEstUsd || 0) >= OR_DAY_WARN) {
         if (report.verdict === 'ok') report.verdict = 'warn';
         report.note = (report.note === 'todo en orden' ? '' : report.note + ' · ') +
