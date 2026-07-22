@@ -1,6 +1,6 @@
 # SDD — NPCs VIVOS: chusmerío ambiente + diálogo entre NPCs (oráculos de la Matrix)
 
-- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v141 → v277).** F1 globitos templados · grafo social (rumores relayados) · F4a bus de eventos `js/eventos.js` (evlog en applyEdge/transition/chat/muerte/minijuego) + drives (deambular/chusmear/TE BUSCAN) · F4b `mov` declarativo (colas fijas, liberados por quest) · F4c oráculos improvisan por IA · F4d memoria del barrio persistente + cross-device por nick. Pendiente menor: memoria por-NPC individual (v2) + transcreación EN del chusmerío server.
+- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v141 → v277).** F1 globitos templados · grafo social (rumores relayados) · F4a bus de eventos `js/eventos.js` (evlog en applyEdge/transition/chat/muerte/minijuego) + drives (deambular/chusmear/TE BUSCAN) · F4b `mov` declarativo (colas fijas, liberados por quest) · F4c oráculos improvisan por IA · F4d memoria del barrio persistente + cross-device por nick. **§6 (v2, Draft, 2026-07-21): memoria por-NPC individual — diseño + alcance decididos, sin implementar.** Pendiente menor aparte: transcreación EN del chusmerío server.
 - **Relacionado:** `worldSnapshot`/`worldBrief` (game.js), `Mensajero` (invocación agente↔agente), `linyera-pool`
   (pool de frases por IA), [[v2-engine-principios]] (todo dato/API/memoria/grafo), `specs/modelo-de-entidades.md`.
 
@@ -93,4 +93,58 @@ F1-F3 (globitos + relay con fuente + **grafo social `social.knows/rival` como DA
   `borrachosHappy`) · `mov:{hasta:'flag'}` (vecinos hasta `stormed`, después quedan de guardia). `canMove()` evalúa
   contra `historiaState()` → EL GRAFO decide quién se mueve. Todos vuelven SIEMPRE a su `homeX`.
 - ✅ **F4c — DIÁLOGO NPC↔NPC por IA: HECHO (v277).** Dos oráculos que se cruzan (vía drives) improvisan 2 líneas por IA (`oracleDialogue`: AI.chat con worldBrief como grounding; cache localStorage por par+día, tope 2/sesión, cooldown 3 min, fallback pool). Se muestra como globitos encadenados si el jugador está cerca.
-- ✅ **F4d — MEMORIA DEL BARRIO: HECHO (v277).** `Eventos.remember` persiste lo notable (`ts_barrio_mem_v1`, ring 30); `memoriaVieja` (>6h) alimenta el chusmerío ('¿te acordás cuando…?') y el worldBrief ('MEMORIA DEL BARRIO') → los oráculos recuerdan tu historia entre sesiones. (La memoria por-NPC individual con evolución queda como refinamiento v2.)
+- ✅ **F4d — MEMORIA DEL BARRIO: HECHO (v277).** `Eventos.remember` persiste lo notable (`ts_barrio_mem_v1`, ring 30); `memoriaVieja` (>6h) alimenta el chusmerío ('¿te acordás cuando…?') y el worldBrief ('MEMORIA DEL BARRIO') → los oráculos recuerdan tu historia entre sesiones. (La memoria por-NPC individual con evolución queda como refinamiento v2, diseñado en §6.)
+
+## 6. v2 — Memoria por-NPC individual (Draft, decisiones 2026-07-21, sin implementar)
+
+> Motivación: hoy TODOS los NPC leen la MISMA memoria de barrio (F4d) — ningún NPC tiene una versión de
+> los hechos distinta de la del vecino. Un review externo sobre venta/monetización (ver nota de
+> Validación externa arriba) señaló esto como el gancho de venta más fuerte del juego ("un NPC que se
+> acuerda de VOS, no del barrio en general"). Dos decisiones del dueño (2026-07-21) fijan el alcance:
+
+### 6.1 Alcance — SOLO oráculos + NPCs de quest
+**NO** aplica a NPC decorativos/ambient (tipo 3 de §2). Motivo del dueño: menos superficie nueva (rings a
+persistir/sincronizar), memoria más rica justo donde importa la narrativa (Iorio, el cura, el tahúr, los
+borrachines, los oráculos-linyera), en vez de diluirla en civiles de fondo.
+**Backlog / descartado por ahora:** extender memoria individual a NPC decorativos/chusmerío puro —
+anotado como idea futura si algún día se quiere ir más allá de oráculos/quest (no priorizado; el dueño lo
+descartó explícitamente para este v2, no es un "falta" urgente).
+
+### 6.2 Monetización — gate PREMIUM
+La memoria individual por NPC es parte de lo que se **vende** (tier pago de [[suscripcion]], ~1€/mes):
+- **Free:** el NPC sigue leyendo la memoria de BARRIO compartida (F4d, comportamiento de hoy, sin cambios).
+- **Premium (`X-Sub-Code` activo):** el NPC en alcance (oráculo/quest) lee, además, SU PROPIA memoria
+  individual — lo que ese jugador puntual le dijo/prometió/le pasó a ESE NPC.
+Ver [[suscripcion]] §1 tabla de tiers, actualizada con esta fila.
+
+### 6.3 Mecanismo propuesto (reusa infraestructura existente, no inventa un sistema nuevo)
+Dos piezas ya construidas cubren el 80%:
+- **`oracleMem[key]`** (game.js): ya guarda el historial crudo de chat por NPC — sirve tal cual para
+  retomar conversación, pero no alimenta el chusmerío ambiente ni el grounding de OTRO NPC.
+- **`Eventos`/`evlog()`** (F4a, `js/eventos.js`): ya es un bus de eventos; F4d ya deriva de él una memoria
+  persistente (hoy de barrio).
+
+Propuesta (a especificar en detalle antes de codear, no aún acordada en el nivel de implementación):
+1. **`npcMem[npcKey]`** — ring chico (≤6-8 entradas) por NPC en alcance, análogo a `oracleMem` pero de
+   HECHOS (no de chat crudo); persiste en el save (serialize/restore) como `oracleMem`.
+2. **Atribución:** los eventos que ya pasan por `evlog()`/`applyEdge` de un NPC de quest (vía el grafo,
+   aristas `quiere`/`da`) se etiquetan con SU `npcKey` — no hace falta reinventar el bus, solo sumarle
+   quién lo protagoniza cuando el grafo ya lo sabe.
+3. **Promesas sin resolver ("hace 3 días que...")**: no hace falta loguearlo como evento — se puede
+   derivar directo del grafo (`historiaState()`): timestamp de cuándo se activó un `quiere` que el NPC
+   pide, comparado contra ahora, mientras no haya un `da` que lo resuelva. Más preciso que un log
+   free-form (no alucina, es matemática sobre el estado real).
+4. **Consumo:** `ambientPool`/`spawnAmbient` para ese NPC, y el grounding del chat si es oráculo, leen
+   `npcMem[key]` + la promesa pendiente **solo si el jugador tiene el gate premium activo** (§6.2); si no,
+   caen al comportamiento de hoy (memoria de barrio / sin mención puntual).
+5. **Persistencia cross-device:** se deja FUERA del v1 de este v2 (empezar chico, local vía save — igual
+   que `oracleMem` hoy). El patrón de sync ya existe (`POST /barrio-mem`) por si se quiere sumar después;
+   no se decide ahora.
+
+### 6.4 Preguntas abiertas (antes de implementar)
+- ¿El molde de línea es 100% templado (como `ambientPool` hoy) o pasa por IA (más caro, mejor calidad,
+  ya hay precedente en F4c `oracleDialogue`)? Probablemente templado para NPC no-oráculo (barato) e IA
+  para oráculos (ya pagan el costo del chat).
+- ¿Cap de NPCs en alcance? (contar cuántos son hoy `oracle`+`quest` reales antes de fijar el tamaño total
+  de `npcMem`).
+- ¿Se resetea `npcMem` en "partida nueva" igual que `oracleMem` (sí, por consistencia) — confirmar.

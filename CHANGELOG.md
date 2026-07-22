@@ -118,6 +118,24 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [infra-81] — 2026-07-21 — 📐 Memoria por-NPC individual (v2): diseño + alcance (Draft, sin código)
+- Cerradas las dos decisiones de producto que quedaban abiertas para el punto 2 de infra-80 (memoria
+  por-NPC individual): **(a) alcance** SOLO oráculos + NPCs de quest (Iorio, el cura, el tahúr, los
+  borrachines, los linyeras-oráculo) — los decorativos/chusmerío puro quedan **explícitamente afuera**
+  de este v2 (descartado por el dueño, no es un pendiente urgente; anotado como idea futura si algún día
+  se quiere ir más lejos); **(b) monetización** — gate **premium** (`X-Sub-Code`): free sigue viendo la
+  memoria de barrio genérica de F4d sin cambios, premium suma memoria puntual por NPC.
+- `specs/npcs-vivos.md §6` (nuevo, Draft): mecanismo propuesto que **reusa infraestructura existente**
+  en vez de inventar un sistema nuevo — `npcMem[key]` (ring chico por NPC, análogo a `oracleMem`) +
+  promesas sin resolver derivadas del grafo (`quiere` sin `da`, por antigüedad del flag, no un log
+  free-form) + consumo gateado por premium en `ambientPool`/grounding del chat. Preguntas abiertas antes
+  de codear: templado vs IA por línea, cap de NPCs en alcance, reset en partida nueva.
+- `specs/suscripcion.md`: tabla de tiers (§1) y "qué habilita el plan pago" (§2) actualizadas con esta
+  feature; §8 resuelve parcialmente la pendiente "¿solo IA o también gameplay?" (queda del lado IA).
+- `info/ia.html`/`info/ia.en.html`: nota "🧠 próximamente (premium, en diseño, todavía NO vive)" bajo la
+  fila de Suscriptores, para no prometer algo que todavía no está construido.
+- Sin código de juego tocado — es 100% spec/documentación, preparando el terreno para implementar.
+
 ## [infra-79] — 2026-07-21 — 💸 Ticker de noticias en vivo: cada 12h (era horario) — ahorro
 - El cron `noticias-live` (refresh de resultados reales Mundial/fútbol/crypto) corría **cada hora** (24×/día).
   Los resultados no cambian tan seguido → pasado a **`0 0,12 * * *`** (00:00 y 12:00 UTC = 21:00 y 09:00 BsAs,

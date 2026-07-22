@@ -59,7 +59,7 @@
 | Tier | Quién paga la IA | Modelo | Latencia | Cómo se identifica |
 |---|---|---|---|---|
 | **Free** (default) | el dev (pool free) | cadena free `gemma4-free,kimi-free` | variable; degrada a línea temática en pico | nada (todos) |
-| **Pago / Sub** | el dev (crédito OpenRouter pago) | modelo **premium rápido (TBD)** | baja y estable, sin cola free | **token de entitlement** que el juego manda al proxy |
+| **Pago / Sub** | el dev (crédito OpenRouter pago) | modelo **premium rápido (TBD)** + memoria individual por NPC ([[npcs-vivos]] §6, Draft) | baja y estable, sin cola free | **token de entitlement** que el juego manda al proxy |
 | **BYOK** | el jugador (su key) | el que elija (su riesgo) | la de su key | su API key en el navegador (ya existe) |
 
 Regla clave: **un usuario pago NO va por el tier free** — el proxy lo rutea a un `model_name` distinto en
@@ -70,6 +70,10 @@ LiteLLM (sin los `:free` saturables).
 - **Modelo premium** rápido y fiable (TBD — ver §5): respuestas <3s estables, mejor calidad/coherencia.
 - **Sin degradación**: no cae a la "línea temática por tormenta" salvo caída real.
 - **Más memoria/contexto**: historial más largo (más turnos recordados) y/o el oráculo GraphRAG (cuando exista).
+- **Memoria individual por NPC** (decidido 2026-07-21, Draft — ver [[npcs-vivos]] §6): los oráculos y NPCs
+  de quest (Iorio, el cura, el tahúr, los borrachines…) recuerdan hechos/promesas puntuales CON ESE
+  jugador, no la memoria de barrio genérica que ve el free. Alcance acotado a oráculos+quest (no
+  decorativos/chusmerío, ver §6.1 de ese SDD).
 - **Rate-limit más alto** que el free (que hoy es 12/min por IP).
 - (Opcional) personajes/voz extra, o features de juego — definir si la sub es solo-IA o también gameplay.
 - **Precio:** ~1 €/mes (idea inicial). TBD.
@@ -121,7 +125,10 @@ Rápidos, baratos y buenos para el linyera (criollo + memoria), vía OpenRouter 
 
 ## 8. Pendientes / decisiones
 
-- ¿La sub es **solo IA premium** o también desbloquea **gameplay** (personajes, niveles, skins)?
+- ¿La sub es **solo IA premium** o también desbloquea **gameplay** (personajes, niveles, skins)? →
+  **Parcialmente resuelto (2026-07-21):** la memoria individual por NPC queda del lado IA-premium (no es
+  gameplay nuevo, es más contexto para el mismo chat/chusmerío) — ver [[npcs-vivos]] §6. Gameplay puro
+  (skins/personajes) sigue sin decisión.
 - Elegir el **modelo pago** (§5) con datos.
 - Mecanismo de **pago** y de **token** (§4, §7).
 - ¿Free sigue teniendo IA (degradada) o en pico el free pasa 100% a líneas locales y la IA es "feature pago"?
