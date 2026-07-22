@@ -126,12 +126,36 @@
     const en = typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en';
     return (e && ((en && e.title_en) || e.title)) || edgeId;
   }
+  // §6 refinamiento: PROMESAS SIN RESOLVER ("hace 3 días que me pediste X y no te lo di"). NO se loguea como
+  // evento aparte: se DERIVA del grafo — un edge con "npc" cuyo `pre` YA se cumple pero que TODAVÍA no se
+  // aplicó (no está en npcMem) es, por definición, algo que ese NPC te está pidiendo AHORA. La primera vez que
+  // lo notamos, se estampa el momento (para el "hace cuánto"); es matemática sobre el estado real, no invención.
+  const npcAsked = {};   // edgeId → timestamp de cuándo notamos que ya podía pedírtelo
+  const edgeNpcs = e => e && e.npc ? (Array.isArray(e.npc) ? e.npc : [e.npc]) : [];   // un edge puede ser de VARIOS NPC
+  function scanNpcAsks() {
+    const edges = (typeof Historia !== 'undefined' && Historia.edges) || [];
+    if (!edges.length) return;
+    const st = historiaState();
+    for (const e of edges) {
+      const nps = edgeNpcs(e); if (!nps.length || npcAsked[e.id]) continue;
+      if (nps.some(np => (npcMem[np] || []).some(f => f.id === e.id))) continue;   // ya se lo agradeció (fact ya escrito)
+      const pre = e.pre || {};
+      if (Object.keys(pre).every(k => st[k] === pre[k])) npcAsked[e.id] = Date.now();
+    }
+  }
   // grounding premium para el CHAT: lo que ESTE NPC puntual sabe de vos por el grafo (gate: suscripción activa).
   function npcFactsGround(n) {
     if (typeof AI === 'undefined' || !AI.isPaid || !AI.isPaid()) return null;
-    const key = memKey(n), facts = key && npcMem[key];
-    if (!facts || !facts.length) return null;
-    return T('g.chat.npcMemGround', { d: facts.slice(-3).map(f => npcMemTitle(f.id)).join('; ') });
+    const key = memKey(n); if (!key) return null;
+    scanNpcAsks();
+    const facts = npcMem[key] || [];
+    const asks = ((typeof Historia !== 'undefined' && Historia.edges) || [])
+      .filter(e => edgeNpcs(e).includes(key) && npcAsked[e.id] && !facts.some(f => f.id === e.id));
+    if (!facts.length && !asks.length) return null;
+    const parts = [];
+    if (facts.length) parts.push(T('g.chat.npcMemGround', { d: facts.slice(-3).map(f => npcMemTitle(f.id)).join('; ') }));
+    for (const e of asks.slice(0, 2)) parts.push(T('g.chat.npcAsk', { d: Math.max(1, Math.floor((Date.now() - npcAsked[e.id]) / 86400000)), t: npcMemTitle(e.id) }));
+    return parts.join(' · ');
   }
   let roamingNpc = null;   // el linyera ERRANTE: aparece cerca de lo que no hiciste (ver historia-grafo.md §3.4)
   // roster de linyeras ilustres (homenaje) — el oráculo errante VARÍA entre ellos por sala (cada uno su identidad)
@@ -428,6 +452,7 @@
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
     for (const k in npcMem) delete npcMem[k];   // §6: partida nueva → los NPC también te olvidan a vos puntualmente
+    for (const k in npcAsked) delete npcAsked[k];   // §6: promesas sin resolver, de cero
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
     elFloor.textContent = TX(rooms[0].name);
@@ -458,6 +483,7 @@
       npcs: rooms.map(rm => (rm.npcs || []).filter(n => n.falopaTaken || n.limosnaTaken).map(n => ({ x: Math.round(n.x), f: !!n.falopaTaken, l: !!n.limosnaTaken }))),
       oracleMem,   // memoria de los linyeras por identidad (agent.memory)
       npcMem,      // §6: hechos del grafo atribuidos a un NPC puntual (premium)
+      npcAsked,    // §6: promesas sin resolver detectadas (edgeId → cuándo se notó)
     };
   }
   // restore(snap): reconstruye el mundo (reset) y le aplica el snapshot. true si cargó.
@@ -493,6 +519,7 @@
     for (const k in oracleMem) delete oracleMem[k];   // restaurá la memoria de los linyeras del snapshot
     if (snap.oracleMem) Object.assign(oracleMem, snap.oracleMem);
     for (const k in npcMem) delete npcMem[k]; if (snap.npcMem) Object.assign(npcMem, snap.npcMem);   // §6
+    for (const k in npcAsked) delete npcAsked[k]; if (snap.npcAsked) Object.assign(npcAsked, snap.npcAsked);   // §6
     if (stormed) Sfx.startHum();
     updateCam(); elFloor.textContent = TX(rooms[current].name);
     placeRoamingOraculo(Math.floor((player.x + player.w / 2) / Level.TILE));
@@ -1380,7 +1407,7 @@
     if (typeof Salon !== 'undefined' && Salon.enabled) Salon.beat(currentAt(), id);   // MULTIJUGADOR F1: hito anónimo al ticker del "Cine EN VIVO"
     tel('quest', { result: id });   // métrica: qué quest/arista de la historia se completó (dashboard)
     evlog('hito', id);   // al bus de eventos (los NPC comentan lo fresco)
-    if (e && e.npc) rememberNpc(e.npc, id);   // §6: memoria individual — SOLO si el edge lo declara en su DATA
+    if (e && e.npc) for (const np of (Array.isArray(e.npc) ? e.npc : [e.npc])) rememberNpc(np, id);   // §6: memoria individual, data-driven (un edge puede ser de VARIOS NPC, ej. French Y Beruti)
     if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); saveCheckpoint(id); return true; }
     if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) { FLAG_SETTERS[fallbackFlag](true); saveCheckpoint(id); }   // grafo ausente → red de seguridad
     return false;
@@ -4718,6 +4745,8 @@
       applyEdge: id => applyEdge(id),                                    // dispara un edge REAL del grafo (con su npc: si lo declara)
       facts: npc => (npcMem[npc] || []).slice(),                          // lo que ese npc "sabe" (crudo)
       keys: () => Object.keys(npcMem),                                    // qué NPCs tienen memoria (para probar que un edge SIN npc no escribe a nadie)
+      asks: () => ({ ...npcAsked }),                                      // promesas sin resolver detectadas (edgeId → t)
+      ageAsk: (edgeId, ms) => { if (npcAsked[edgeId] != null) npcAsked[edgeId] -= ms; },   // e2e: simular antigüedad sin esperar de verdad
       chatGround: n => npcFactsGround(n),                                 // el grounding que se le mandaría a la IA
       ambientLine: n => npcMemLine(n),                                    // la línea de globito (solo oráculos, F1-F4)
       setChat: (npcKey, msg) => { oracleMem[npcKey] = [{ role: 'user', content: msg }]; },   // simula chat previo

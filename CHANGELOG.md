@@ -118,6 +118,23 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [v375] — 2026-07-22 — 🧠 Promesas SIN RESOLVER + 3 NPCs más (French, Beruti, peronista, polaco, npc-array)
+- **Promesas sin resolver ("hace N días…"), el refinamiento que quedaba pendiente de v373.** `scanNpcAsks()`
+  (game.js): un edge con `npc` cuyo `pre` YA se cumple pero que TODAVÍA no está en `npcMem` es, por
+  definición, algo que ese NPC te pidió y no le diste — se estampa la PRIMERA vez que se nota
+  (`npcAsked[edgeId]`, persiste en el save) y el grounding del chat suma "hace N días te pedí X"
+  (`g.chat.npcAsk`, cap 2). 100% derivado del estado real del grafo — no puede inventar una promesa que
+  no exista, y deja de listarse solo al cumplirse (queda como fact normal en `npcMem`).
+- **`"npc"` ahora acepta array** (`applyEdge` recorre y le escribe a cada uno) — un mismo hito puede ser de
+  VARIOS NPC a la vez. Primer caso real: `escarapela`→`["french","beruti"]` (ambos recuerdan la campana del
+  Cabildo).
+- **3 NPCs más taguean su grafo**: `piquete_juramento`→`peronista`, `polaco_hallado`→`polaco` (el propio
+  Polaco se acuerda que lo encontraste), + el array de arriba. Total: 12 edges / 10 NPCs con memoria
+  individual.
+- Test ampliado (`Game.__npcmem.asks()`/`.ageAsk()`): detecta la promesa pendiente, la envejece, verifica
+  que desaparece al cumplirse, y que un edge con `npc` array escribe a los dos. Suite completa +
+  `web-smoke.mjs` verdes. Cache-bust `?v=375`.
+
 ## [v374] — 2026-07-22 — 🧠 Memoria individual por-NPC: 6 NPCs más taguean su propio grafo
 - Extiende v373 (motor sin tocar, 100% dato): sumados `tormenta`→cuevero, `polaco_caso`→gallega,
   `campana_llegada`→maquinista, `mapa_tano`/`trofeo_tano`→violeta (el Tano) en sus fichas SDD

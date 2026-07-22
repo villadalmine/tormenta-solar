@@ -39,6 +39,7 @@ volver con la TORMENTA activa y herir al SATÉLITE REBELDE con el rayo solar. Lo
   "title": "El juramento al General (se abre la barricada)",
   "title_en": "The oath to the General (the barricade opens)",
   "at": "lavalle",
+  "npc": "peronista",
   "pre": { "piqueteCampeon": true },
   "sets": { "juramento": true },
   "hints": {
@@ -145,6 +146,7 @@ LIBERTADOR → lo armás en la PIRÁMIDE DE MAYO → señal a los satélites →
   "title": "Repicar la campana del Cabildo → la escarapela (French & Beruti)",
   "title_en": "Ring the Cabildo bell → the cockade (French & Beruti)",
   "at": "plaza",
+  "npc": ["french", "beruti"],
   "pre": { "enPlaza": true },
   "sets": { "escarapela": true },
   "hints": {

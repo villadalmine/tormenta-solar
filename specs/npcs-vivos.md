@@ -1,6 +1,6 @@
 # SDD — NPCs VIVOS: chusmerío ambiente + diálogo entre NPCs (oráculos de la Matrix)
 
-- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v141 → v277).** F1 globitos templados · grafo social (rumores relayados) · F4a bus de eventos `js/eventos.js` (evlog en applyEdge/transition/chat/muerte/minijuego) + drives (deambular/chusmear/TE BUSCAN) · F4b `mov` declarativo (colas fijas, liberados por quest) · F4c oráculos improvisan por IA · F4d memoria del barrio persistente + cross-device por nick. **§6 (v2, F1 HECHO — v373, 2026-07-21): memoria por-NPC individual, 100% data-driven por el grafo (`edge.npc`), gate premium.** Pendiente menor aparte: transcreación EN del chusmerío server.
+- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v141 → v277).** F1 globitos templados · grafo social (rumores relayados) · F4a bus de eventos `js/eventos.js` (evlog en applyEdge/transition/chat/muerte/minijuego) + drives (deambular/chusmear/TE BUSCAN) · F4b `mov` declarativo (colas fijas, liberados por quest) · F4c oráculos improvisan por IA · F4d memoria del barrio persistente + cross-device por nick. **§6 (v2, HECHO — v373-375, 2026-07-21/22): memoria por-NPC individual, 100% data-driven por el grafo (`edge.npc`, string o array), gate premium, + promesas sin resolver con antigüedad.** Pendiente menor aparte: transcreación EN del chusmerío server.
 - **Relacionado:** `worldSnapshot`/`worldBrief` (game.js), `Mensajero` (invocación agente↔agente), `linyera-pool`
   (pool de frases por IA), [[v2-engine-principios]] (todo dato/API/memoria/grafo), `specs/modelo-de-entidades.md`.
 
@@ -135,19 +135,20 @@ if (e && e.npc) rememberNpc(e.npc, id);   // §6: memoria individual — SOLO si
 ```
 
 Sumar memoria a un NPC nuevo = **agregar `"npc":"clave"` a su ficha + `node tools/gen-historia.mjs`**, no
-tocar game.js. Etiquetados (2026-07-21/22, 9 edges / 7 NPCs — todos con `persona` real, es decir con chat,
-así la memoria tiene por dónde salir):
+tocar game.js. `"npc"` acepta **un string o un array** (`["french","beruti"]`) — un mismo hito puede ser de
+varios NPC a la vez (`applyEdge` los recorre y le escribe a cada uno). Etiquetados (2026-07-21/22, 12 edges
+/ 10 NPCs — todos con `persona` real, es decir con chat, así la memoria tiene por dónde salir):
 - `cura_bendicion`→`cura`, `comedor_contratado`/`comedor_jornada`→`comedor` (`lavalle-quest.md`).
-- `cuevero_gate`/`tormenta`→`cuevero` (`cueveros.md`: te cambia guita Y se acuerda que le desbarataste al tahúr para lograrlo).
-- `cuevero_gate`→ también quedó `tahur` (`cueveros.md`, el tahúr recuerda que lo desbarataste).
-- `polaco_caso`→`gallega` (`misterio-polaco.md`: te dio el caso del Polaco).
-- `campana_llegada`→`maquinista` (`lavalle-quest.md`: le diste el trapo, te llevó gratis).
-- `mapa_tano`→`violeta` (`andenes-vivos.md`) y `trofeo_tano`→`violeta` (`zarate-60.md`): el Tano se acuerda del mapa y del trofeo que le mostraste.
+- `cuevero_gate`→`tahur` y `tormenta`→`cuevero` (`cueveros.md`).
+- `polaco_caso`→`gallega`, `polaco_hallado`→`polaco` (`misterio-polaco.md`, el propio Polaco se acuerda que lo encontraste).
+- `campana_llegada`→`maquinista`, `piquete_juramento`→`peronista` (`lavalle-quest.md`).
+- `escarapela`→`["french","beruti"]` (`lavalle-quest.md`, AMBOS se acuerdan de la campana del Cabildo).
+- `mapa_tano`→`violeta` (`andenes-vivos.md`) y `trofeo_tano`→`violeta` (`zarate-60.md`).
 
-**Sin tag, a propósito:** NPCs sin `persona`/chat hoy (Iorio, vendedor de armas, los borrachines individuales)
-— tagearlos sería memoria que nadie puede leer todavía (no tienen por dónde surgir); esperar a que tengan
-chat, o sumarles uno, antes de taguear sus edges. Edges de LUGAR/evento sin un NPC único (piquete, subte,
-Cabildo, etc.) tampoco se tagean — no hay "de quién" sería la memoria.
+**Sin tag, a propósito:** NPCs sin `persona`/chat hoy (Iorio, vendedor de armas, la estudiante del tren, los
+borrachines individuales) — tagearlos sería memoria que nadie puede leer todavía (no tienen por dónde
+surgir); esperar a que tengan chat, o sumarles uno, antes de taguear sus edges. Edges de LUGAR/evento sin un
+NPC único (piquete, subte, Cabildo como lugar, etc.) tampoco se tagean — no hay "de quién" sería la memoria.
 
 **Piezas:**
 - **`npcMem[npcKey]`** (game.js, nuevo): ring de ≤6 hechos `{id, t}` por NPC — `id` es el edge del grafo,
@@ -169,17 +170,22 @@ Cabildo, etc.) tampoco se tagean — no hay "de quién" sería la memoria.
 - **Gate premium:** `AI.isPaid()` (js/ai.js, nuevo) — cachea sync el resultado de `mySub()`/`checkSub()`
   (se refresca al activar código en ⚙ Opciones + cada 10min); `AI.__setPaidForTest(v)` para tests.
 - **Free:** cero cambios de comportamiento — sin gate premium, ambos caminos devuelven `null`/nada.
+- **✅ Promesas SIN RESOLVER (HECHO, v375):** `scanNpcAsks()` — un edge con `npc` cuyo `pre` YA se cumple
+  pero que TODAVÍA no está en `npcMem` (no se aplicó) es, por definición, algo que ese NPC te pidió y no le
+  diste. Se estampa la PRIMERA vez que se nota (`npcAsked[edgeId]`, persiste como `npcMem`) → el grounding
+  agrega "hace N días te pedí X y no me lo diste" (`g.chat.npcAsk`, cap 2 por chat). 100% derivado del
+  estado real del grafo, no un log free-form — no puede alucinar una promesa que no existe.
 
 ### 6.4 Test
 `tests/e2e.js` (sección "MEMORIA INDIVIDUAL por-NPC", `Game.__npcmem`): un edge SIN `npc` no escribe a
-nadie · un edge CON `npc` escribe (siempre, gratis o pago — la ESCRITURA no gatea) · FREE no da grounding
-ni globito · PREMIUM sí, y solo para el NPC con hechos propios (no inventa nada para otro) · el globito
-individual es exclusivo de oráculos (un NPC de quest no lo dispara, aunque tenga `npcMem`) · `npcMem`
-sobrevive `serialize()`→(JSON, como localStorage real)→`continueGame()`. Corre con `node tests/e2e.js`.
+nadie · un edge CON `npc` (string o array) escribe (siempre, gratis o pago — la ESCRITURA no gatea) · FREE
+no da grounding ni globito · PREMIUM sí, y solo para el NPC con hechos propios (no inventa nada para otro)
+· el globito individual es exclusivo de oráculos (un NPC de quest no lo dispara, aunque tenga `npcMem`) ·
+una promesa con `pre` cumplido y sin fact se detecta como pendiente, envejece, y deja de listarse al
+cumplirse · `npcMem`/`npcAsked` sobreviven `serialize()`→(JSON, como localStorage real)→`continueGame()`.
+Corre con `node tests/e2e.js`.
 
 ### 6.5 Pendiente (no bloqueante)
-- Taguear más edges/NPCs con `npc` en sus fichas SDD (dato puro, sin tocar motor).
-- Promesas SIN RESOLVER ("hace 3 días que…", con antigüedad) — hoy solo se listan hechos ya pasados
-  (títulos de edges disparados); falta cruzar contra flags `pre` no cumplidos si se quiere ese matiz.
+- Taguear más edges/NPCs con `npc` en sus fichas SDD a medida que consigan chat (dato puro, sin tocar motor).
 - Persistencia cross-device: queda local (vía save), igual que `oracleMem` hoy; el patrón de sync ya
   existe (`POST /barrio-mem`) por si se quiere sumar después.

@@ -952,6 +952,7 @@
     'g.chk.loaded': 'La historia te recuerda, pibe: volviste al hito «{t}». En el barrio no se empieza de cero. 💾✊',
     'g.chat.remembers': '💭 (se acuerda de vos)',
     'g.chat.npcMemGround': 'Te acordás de esto puntual que pasó con VOS y este jugador (mencionalo si viene al caso, con naturalidad, no de una): {d}.',
+    'g.chat.npcAsk': 'Hace {d} día(s) le pediste algo a este jugador y todavía no te lo dio: {t}. Si viene al caso, reclamáselo con onda (sin ser pesado).',
     'g.idea.pend': 'MEMORIA TUYA: hace {min} min VOS le tiraste la idea de «{idea}» y no te contestó — si te viene con eso, acordate de que fue idea TUYA y seguile la corriente.',
     'g.idea.done': 'MEMORIA TUYA: vos le sugeriste «{idea}» y el pibe TE HIZO CASO (ya lo hizo) — felicitalo o chicanealo con eso.',
     'g.chat.stormTimeout': '⚡ La tormenta solar saturó la electrónica del modelo: se colgó y corté. Probá de nuevo en unos segundos, pibe.',

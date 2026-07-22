@@ -83,6 +83,7 @@ te REGALA la radiecita 📻: **usándola del inventario te sopla LA PISTA de la 
   "title": "El Polaco aparece en La Plata: la radiecita de la tormenta",
   "title_en": "El Polaco turns up at La Plata: the little storm radio",
   "at": "plaza",
+  "npc": "polaco",
   "pre": { "polacoCarrito": true },
   "sets": { "polacoHallado": true },
   "terminal": true,

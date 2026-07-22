@@ -637,6 +637,7 @@ const Historia = {
       "title": "El juramento al General (se abre la barricada)",
       "title_en": "The oath to the General (the barricade opens)",
       "at": "lavalle",
+      "npc": "peronista",
       "pre": {
         "piqueteCampeon": true
       },
@@ -746,6 +747,10 @@ const Historia = {
       "title": "Repicar la campana del Cabildo → la escarapela (French & Beruti)",
       "title_en": "Ring the Cabildo bell → the cockade (French & Beruti)",
       "at": "plaza",
+      "npc": [
+        "french",
+        "beruti"
+      ],
       "pre": {
         "enPlaza": true
       },
@@ -1134,6 +1139,7 @@ const Historia = {
       "title": "El Polaco aparece en La Plata: la radiecita de la tormenta",
       "title_en": "El Polaco turns up at La Plata: the little storm radio",
       "at": "plaza",
+      "npc": "polaco",
       "pre": {
         "polacoCarrito": true
       },

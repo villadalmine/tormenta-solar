@@ -1204,6 +1204,29 @@ if (require.main === module) {
     if (amb !== 'g.viva.recuerdaMio') out.push('FAIL PREMIUM con historial de chat debería pedir la clave g.viva.recuerdaMio: ' + amb);
     // un NPC de quest (no oráculo) NUNCA dispara la línea de globito, aunque tenga npcMem (alcance §6.1: fuera del F1-F4 ambient)
     if (N.ambientLine({ persona: 'cura', name: 'El cura' })) out.push('FAIL un NPC de quest no-oráculo no debería disparar la línea de globito (alcance §6.1)');
+    // PROMESAS SIN RESOLVER (refinamiento §6.5): comedor_contratado (npc:comedor) ya pasó → comedorHired queda
+    // true; comedor_jornada (mismo npc, pre:{comedorHired:true}) TODAVÍA no se aplicó → es una promesa pendiente,
+    // 100% DERIVADA del grafo (pre cumplido + sin fact), no un log aparte.
+    AI.__setPaidForTest(false);
+    N.applyEdge('comedor_contratado');
+    AI.__setPaidForTest(true);
+    const groundComedor = N.chatGround({ persona: 'comedor', name: 'La referente' });
+    if (!/g\.chat\.npcMemGround/.test(groundComedor || '')) out.push('FAIL el grounding del comedor debería traer el hecho ya pasado: ' + groundComedor);
+    if (!/g\.chat\.npcAsk/.test(groundComedor || '')) out.push('FAIL el grounding del comedor debería traer la promesa pendiente (comedor_jornada): ' + groundComedor);
+    const askTs = N.asks().comedor_jornada;
+    if (!askTs) out.push('FAIL no se registró la promesa pendiente comedor_jornada (pre cumplido, sin fact)');
+    else {
+      N.ageAsk('comedor_jornada', 3 * 86400000);   // "hace 3 días" sin esperar de verdad
+      if (N.asks().comedor_jornada !== askTs - 3 * 86400000) out.push('FAIL ageAsk no envejeció la promesa');
+    }
+    // al CUMPLIRSE la promesa (aplica comedor_jornada), deja de listarse como pendiente
+    N.applyEdge('comedor_jornada');
+    const groundAfter = N.chatGround({ persona: 'comedor', name: 'La referente' });
+    if (/g\.chat\.npcAsk/.test(groundAfter || '')) out.push('FAIL tras cumplirse, comedor_jornada no debería seguir como promesa pendiente: ' + groundAfter);
+    if (N.facts('comedor').length !== 2) out.push('FAIL debería haber 2 hechos de comedor (contratado + jornada): ' + JSON.stringify(N.facts('comedor')));
+    // un edge puede ser de VARIOS NPC a la vez (escarapela → npc:["french","beruti"], data en array)
+    N.applyEdge('escarapela');
+    if (N.facts('french').length !== 1 || N.facts('beruti').length !== 1) out.push('FAIL escarapela (npc array) debería escribir memoria a AMBOS: french=' + JSON.stringify(N.facts('french')) + ' beruti=' + JSON.stringify(N.facts('beruti')));
     // PERSISTENCIA: npcMem sobrevive serialize→continueGame por el mismo camino que oracleMem — JSON de por
     // medio (como localStorage en la vida real; el objeto EN VIVO no se pasa directo, ver el test de guardado)
     const snap = JSON.parse(JSON.stringify(Game.serialize()));

@@ -940,6 +940,7 @@
     'g.chk.loaded': 'The story remembers you, kid: back at the «{t}» milestone. Nobody starts from scratch in this barrio. 💾✊',
     'g.chat.remembers': '💭 (he remembers you)',
     'g.chat.npcMemGround': 'You remember this specific thing that happened between YOU and this player (bring it up naturally if it fits, don\'t force it): {d}.',
+    'g.chat.npcAsk': '{d} day(s) ago you asked this player for something and they still haven\'t come through: {t}. If it fits, bring it up (nicely, not pushy).',
     'g.idea.pend': 'YOUR MEMORY: {min} min ago YOU pitched him the idea of «{idea}» and he never answered — if he brings it up, remember it was YOUR idea and roll with it.',
     'g.idea.done': 'YOUR MEMORY: you suggested «{idea}» and the kid TOOK YOUR ADVICE (already did it) — congratulate him or tease him about it.',
     'g.chat.stormTimeout': '⚡ The solar storm fried the model\'s circuits: it hung, so I cut it. Try again in a few seconds, kid.',
