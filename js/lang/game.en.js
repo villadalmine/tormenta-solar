@@ -482,6 +482,7 @@
     'g.inv.hint': '[I] inventory',
     'g.moza.invite': '💋 The blonde leans in: "wanna go out back and try some house drinks, sweetheart? 😏" … (press E again if you dare)',
     'g.moza.ropero': '🚪💪 The second you say yes, a two-meter BOUNCER steps out of the back room: "bar\'s closed for you, champ" — and plants you on the sidewalk in one shove. 😵',
+    'g.moza.roperoPremio': '🚪💰 The BOUNCER recognizes you: "you again… here, take this and don\'t come back, deal?" He slips some coins in your pocket before planting you on the sidewalk. 😵🪙',
     'g.telo.title': "The blonde's love hotel",
     'g.telo.intro': '💋 The blonde pulls you into a fancy room: mirrors everywhere, a jacuzzi, a huge bed and a kinda weird door. “Come, sweetheart, relax a bit…” (walk up to the jacuzzi)',
     'g.telo.toJacuzzi': 'Walk up to the 🛁 jacuzzi',

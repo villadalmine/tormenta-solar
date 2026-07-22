@@ -118,6 +118,21 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [v380] — 2026-07-22 — 💋🪙 La Rubia: el ropero se apiada cada 3ra insistencia (deuda fina)
+- Cierra el pendiente de `specs/multijugador.md §3.2.2` ("pensar premio/variante si insistís N veces").
+  `mozaEjects` (persiste en el save) cuenta cuántas veces te rajaron; cada 3ra vez, en vez del mismo
+  eject de siempre, el ropero se apiada: **+15 monedas** y una línea nueva (`g.moza.roperoPremio`).
+- **Hallazgo al implementarlo** (documentado en el SDD): el gag simple (eject directo) que describe el
+  spec es hoy el **FALLBACK** — desde que existe `telo.js` (sub-modo real, atado a la quest del chip), el
+  2º "sí" a La Rubia entra ahí siempre que `Telo.create` esté disponible (en el juego real, siempre). El
+  premio se implementó igual en el camino que describe el pendiente, pero en la práctica el jugador ve
+  mayormente el TELO — que YA tiene su propia variante por repetición (`chipLoops>=3` → rescate en vez de
+  chip). No se tocó `telo.js` (motor narrativo delicado de la quest del chip, fuera de alcance de una
+  pasada chica).
+- Test `Game.__moza` en `tests/e2e.js` (fuerza el fallback nulleando `Telo.create` para poder probarlo).
+  Suite completa + `web-smoke.mjs` verdes. Cache-bust `?v=380`.
+- Novedades: entrada combinada ES/EN con el v379 (Opciones + esta).
+
 ## [v379] — 2026-07-22 — ⚙ Opciones: tamaño de paneles + volumen + presets de accesibilidad
 - Cierra `specs/configuracion.md` (quedaba Draft desde v=39): sumados `uiScale` (paneles/diálogos,
   separado de `fontScale`), `volume` (audio general) y **3 presets** (Chico/Normal/Grande) al panel

@@ -463,7 +463,7 @@
     stormed = false; bought = false; hasVale = false; challengeForVale = false; time = 0;
     cineArchive = null; guardaFreeUsed = false; guardaAsk = {}; newsQuest = null; mundialQuest = null; mundialApproach = null; ambientBubbles = []; ambientCd = 5;   // cine/quests/chusmerío se resetean por run
     secretUnlocked = false; arcadeWon.pacman = arcadeWon.galaga = arcadeWon.frogger = false;
-    gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0; stunPending = false;
+    gaveBeers = false; borrachosFed = 0; borrachosHappy = false; moneyRecovered = false; fifaWon = false; stunUntil = 0; stunPending = false; mozaEjects = 0;
     bunkerUnlocked = false;   // cada loop hay que volver a ganarse el búnker (loop "limpio")
     loopCount = 0; chinoFrontOpen = false; decayAcc = 0; trucoWon = false; trucoEverWon = false; armado = false; tesoroTaken = false; chinoEntered = false;   // loop de supervivencia, de cero
     cueveroUnlocked = false; tahurDiscovered = false; guidoSummoned = false; guidoRecruited = false; guidoFollowing = false;   // gate del cuevero, de cero
@@ -497,7 +497,7 @@
         birras: p.birras, carne: p.carne, fiambre: p.fiambre, diosa: p.diosa, falopa: p.falopa,
         spitDmg: p.spitDmg, hasMegaDrive: !!p.hasMegaDrive, hasCementoTicket: !!p.hasCementoTicket,
         inventory: (p.inventory || ['escupitajo']).slice(), weapon: p.weapon || 'escupitajo' },
-      flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed,
+      flags: { stormed, bought, hasVale, challengeForVale, secretUnlocked, gaveBeers, borrachosFed, mozaEjects,
         borrachosHappy, moneyRecovered, fifaWon, bunkerUnlocked, loopCount, chinoFrontOpen, trucoWon, trucoEverWon, armado, tesoroTaken, chinoEntered,
         cueveroUnlocked, tahurDiscovered, guidoSummoned, guidoRecruited, guidoFollowing, trucoSeisOffered,
         chipped, chipStep, playingAs, chipEverCured, chipLoops, chipParts: { ...chipParts },
@@ -524,7 +524,7 @@
     player.x = snap.px; player.y = snap.py; player.vx = player.vy = 0; player.alive = true;
     const f = snap.flags || {};
     stormed = !!f.stormed; bought = !!f.bought; hasVale = !!f.hasVale; challengeForVale = !!f.challengeForVale;
-    secretUnlocked = !!f.secretUnlocked; gaveBeers = !!f.gaveBeers; borrachosFed = f.borrachosFed | 0;
+    secretUnlocked = !!f.secretUnlocked; gaveBeers = !!f.gaveBeers; borrachosFed = f.borrachosFed | 0; mozaEjects = f.mozaEjects | 0;
     borrachosHappy = !!f.borrachosHappy; moneyRecovered = !!f.moneyRecovered; fifaWon = !!f.fifaWon;
     bunkerUnlocked = !!f.bunkerUnlocked; loopCount = f.loopCount | 0; chinoFrontOpen = !!f.chinoFrontOpen;
     trucoWon = !!f.trucoWon; trucoEverWon = !!f.trucoEverWon; armado = !!f.armado; tesoroTaken = !!f.tesoroTaken; chinoEntered = !!f.chinoEntered;
@@ -987,13 +987,17 @@
   }
   // LA RUBIA del bodegón + el ROPERO (gag recurrente, specs/multijugador.md §3.2.2): te invita a "probar tragos en la
   // puerta de atrás"; si le decís que SÍ (2da E), aparece un ropero de 2 metros y te raja del bar. Single-player, canned.
-  let mozaInvited = false;
+  // Deuda fina (v380): cada 3ra vez que te raja, el ropero se apiada — variante/premio en vez del mismo eject de siempre.
+  let mozaInvited = false, mozaEjects = 0;
   function handleMoza(n) {
     Sfx.pickup();
     if (!mozaInvited) { mozaInvited = true; setMsg(T('g.moza.invite'), '#ff8fc8', 6000); return; }
     mozaInvited = false;
     if (typeof Telo !== 'undefined' && Telo.create) { enterTelo(); return; }   // aceptás → entrás al TELO de lujo (sub-modo top-down)
-    flash(); Sfx.hurt(); ejectToStreet(T('g.moza.ropero'));                     // fallback (sin el sub-modo): el ropero directo
+    mozaEjects++;
+    flash(); Sfx.hurt();
+    if (mozaEjects % 3 === 0) { player.coins = (player.coins || 0) + 15; syncHud(); ejectToStreet(T('g.moza.roperoPremio')); }   // el ropero se apiada (cada 3ra)
+    else ejectToStreet(T('g.moza.ropero'));                                    // fallback (sin el sub-modo): el ropero directo
   }
   function enterTelo() {
     teloGame = Telo.create(chipLoops); state = 'telo'; flash();   // chipLoops≥3 → el robot ya no te chipa: te RESCATAN (telo.js)
@@ -4784,5 +4788,8 @@
       setChat: (npcKey, msg) => { oracleMem[npcKey] = [{ role: 'user', content: msg }]; },   // simula chat previo
     },
     // superficie de prueba (e2e) del relay del chusmerío (npcs-vivos.md §4): fuente puntual vs rol genérico
-    __rumor: { pool: () => rumorPool(worldSnapshot()) } });
+    __rumor: { pool: () => rumorPool(worldSnapshot()) },
+    // superficie de prueba (e2e) de La Rubia / el ropero (multijugador.md §3.2.2, deuda fina del premio cada N)
+    __moza: { poke: () => handleMoza(), ejects: () => mozaEjects, coins: () => (player && player.coins) || 0 },
+  });
 })();

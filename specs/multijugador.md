@@ -139,7 +139,20 @@ métrica Prometheus para un panel — hoy la validación directa es el endpoint 
   (no necesita el online); funciona aunque estés solo en el bar. Pensar premio/variante si insistís N veces.
 - **✅ HECHO (v211):** `handleMoza(n)` en game.js (flag `mozaInvited`, se resetea al cambiar de sala en `spawnIn`):
   1ª E = la rubia te invita (`g.moza.invite`); 2ª E = decís que sí → `flash()` + `ejectToStreet(g.moza.ropero)`. NPC
-  `La Rubia` (sprite `erotica`) en el bodegón. *(Falta la variante/premio si insistís N veces — deuda fina.)*
+  `La Rubia` (sprite `erotica`) en el bodegón.
+- **✅ Premio cada 3ra insistencia: HECHO (v380, 2026-07-22)** — con un matiz importante descubierto al
+  implementarlo: **el camino descripto arriba (eject directo) hoy es el FALLBACK.** Desde que existe
+  `telo.js` (sub-modo "el telo de lujo", [[telo-chip-quest]]), el 2º "sí" entra al TELO real (jacuzzi →
+  cama → oso → resultado) SIEMPRE que `Telo.create` esté disponible — que en el juego real, siempre lo
+  está. El eject simple de este SDD solo corre si Telo no cargó. Se implementó igual el premio en ese
+  camino (`mozaEjects`, persiste en el save; cada 3ra vez el ropero se apiada: +15 monedas y una línea
+  nueva `g.moza.roperoPremio` en vez del eject de siempre) porque es lo que describía el pendiente — pero
+  en la práctica el jugador casi siempre ve el TELO, no este gag. **El TELO ya tiene SU PROPIA variante
+  por-repetición** (`loopsDone`/`chipLoops>=3` → en vez de chiparte, te RESCATAN los 3 linyeras) — así que
+  el espíritu de "varía si insistís" ya estaba cubierto ahí, con otro contador. No se tocó `telo.js` (motor
+  narrativo delicado, atado a la quest del chip — fuera de alcance de esta pasada chica). Test
+  `Game.__moza` en `tests/e2e.js` (fuerza el fallback nulleando `Telo.create` temporalmente para poder
+  probar el gag simple).
 
 #### 3.2.3 VISTA TOP-DOWN del bodegón + el TELO de lujo (idea dueño 2026-06-28) — DISEÑO
 El dueño propone rehacer la sala compartida como **vista de ARRIBA** (top-down), más linda para representar **mesas con

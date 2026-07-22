@@ -485,6 +485,7 @@
     'g.inv.hint': '[I] inventario',
     'g.moza.invite': '💋 La rubia se te arrima: “¿vamos atrás a probar unos traguitos de la casa, corazón? 😏” … (apretá E de nuevo si te animás)',
     'g.moza.ropero': '🚪💪 Apenas decís que sí, de la trastienda sale un ROPERO de dos metros: “el bodegón cierra para vos, campeón” — y te planta en la vereda de un saque. 😵',
+    'g.moza.roperoPremio': '🚪💰 El ROPERO te reconoce: “de nuevo vos… mirá, tomá esto y no volvés más, ¿estamos?” Te deja unas monedas en el bolsillo antes de plantarte en la vereda. 😵🪙',
     'g.telo.title': 'El telo de la rubia',
     'g.telo.intro': '💋 La rubia te mete a una pieza de lujo: espejos por todos lados, jacuzzi, una cama enorme y una puerta media rara. “Vení, corazón, relajate un toque…” (acercate al jacuzzi)',
     'g.telo.toJacuzzi': 'Acercate al 🛁 jacuzzi',

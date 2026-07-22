@@ -1244,6 +1244,27 @@ if (require.main === module) {
   if (npcmemRes.length) { console.error('❌ NPCMEM:\n' + npcmemRes.join('\n')); process.exit(1); }
   console.log('✓ memoria individual por-NPC: data-driven (edge.npc del grafo) + gate premium + alcance oráculos/quest OK');
 
+  // ---- LA RUBIA / el ropero: premio cada 3ra vez que insistís (multijugador.md §3.2.2) ----
+  const moza = vm.runInContext(`(() => {
+    const out = [];
+    if (!window.Game || !Game.__moza) return JSON.stringify(['FAIL no expone Game.__moza']);
+    // fuerza el camino FALLBACK (sin el sub-modo Telo) para poder probar el gag simple del ropero
+    const hadTelo = typeof Telo !== 'undefined' ? Telo.create : undefined;
+    if (typeof Telo !== 'undefined') Telo.create = null;
+    const M = Game.__moza;
+    const before = M.coins();
+    for (let ronda = 1; ronda <= 3; ronda++) { M.poke(); M.poke(); }   // cada ronda: 1er E invita, 2do E te raja
+    if (M.ejects() !== 3) out.push('FAIL deberían ser 3 ejects tras 3 rondas: ' + M.ejects());
+    if (M.coins() !== before + 15) out.push('FAIL la 3ra vez debería dar +15 monedas (premio): antes=' + before + ' ahora=' + M.coins());
+    M.poke(); M.poke();   // 4ta ronda: vuelve al eject normal, sin premio
+    if (M.coins() !== before + 15) out.push('FAIL la 4ta vez NO debería dar premio de nuevo: ' + M.coins());
+    if (typeof Telo !== 'undefined') Telo.create = hadTelo;   // deja todo como estaba para el resto de la suite
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const mozaRes = JSON.parse(moza);
+  if (mozaRes.length) { console.error('❌ MOZA:\n' + mozaRes.join('\n')); process.exit(1); }
+  console.log('✓ La Rubia / el ropero: premio cada 3ra insistencia OK');
+
   // ---- CONFIG: uiScale + volumen + presets (specs/configuracion.md) ----
   const config = vm.runInContext(`(() => {
     const out = [];
