@@ -49,7 +49,14 @@ hablan de cosas del juego y de tu progreso ("che, me dijo el borrachín que no l
   level.js→gen-level→schema→mundo→engine. El relay **fluye por aristas**: un NPC prioriza relayear rumores de quien
   **CONOCE** (`social.knows`); y habla mal de su **`rival`** (`g.rivalGossip`). Tagueados: los oráculos conocen todo el
   chusme del barrio; el guarda es rival del tahúr. La **máquina de niveles** podrá autorar estas relaciones.
-  **✅ transcreación EN de los rumores/derivadas: HECHA (v287, 24 claves `g.viva.*`/`g.rumor.*`).** Queda: el banco CHUSMERIO del server bilingüe (cambio del cron gen-chusmerio) + que la fuente sea una entidad puntual (no solo rol).
+  **✅ transcreación EN de los rumores/derivadas: HECHA (v287, 24 claves `g.viva.*`/`g.rumor.*`).**
+  **✅ banco CHUSMERIO del server bilingüe: HECHO (v376 · infra-82, 2026-07-22).** `gen-chusmerio.mjs` pide
+  las 24 líneas en ES y EN en paralelo (mismo molde que `gen-historias.mjs`) y postea `{lineas, lineasEn}`;
+  el proxy (`POST`/`GET /chusmerio`) persiste ambas (`lineasEn` aditivo, retrocompatible con un cron/cliente
+  viejo que no lo mande/lea); el cliente (`js/chusmerio.js`) prefiere `lineasEn` cuando `I18n.short()==='en'`
+  y hay banco cargado, si no cae al estático `BASE`/ES. Probado local end-to-end (POST viejo sin romper,
+  POST nuevo, GET, persistencia a disco y reload). Queda: que la fuente del relay sea una entidad puntual
+  (no solo rol) — sin relación con lo bilingüe, es aparte.
 - **Memoria por NPC:** lo que chusmean persiste/evoluciona (agent.memory). 
 - Todo esto encaja con el modelo v2 (entidades+componentes+grafo+memoria); F1 es el placeholder v1 a migrar.
 

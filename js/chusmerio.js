@@ -17,8 +17,14 @@
   window.CHUSMERIO = (window.CHUSMERIO && window.CHUSMERIO.length) ? window.CHUSMERIO : BASE;
   if (typeof fetch !== 'function') return;
   const PROXY = 'https://llm-tormenta-solar.cybercirujas.club';
+  const isEn = () => (typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en');
   fetch(PROXY + '/chusmerio')
     .then(r => (r.ok ? r.json() : null))
-    .then(d => { if (d && Array.isArray(d.lineas) && d.lineas.length) window.CHUSMERIO = d.lineas; })
+    .then(d => {
+      if (!d) return;
+      // bilingüe (banco vivo, gen-chusmerio.mjs): en inglés preferí lineasEn si el banco ya la tiene; si no, ES
+      const pick = (isEn() && Array.isArray(d.lineasEn) && d.lineasEn.length) ? d.lineasEn : d.lineas;
+      if (Array.isArray(pick) && pick.length) window.CHUSMERIO = pick;
+    })
     .catch(() => {});
 })();

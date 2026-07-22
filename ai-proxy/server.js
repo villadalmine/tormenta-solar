@@ -62,10 +62,10 @@ function saveMundial() { try { fs.mkdirSync(MUNDIAL_STORE.replace(/\/[^/]*$/, ''
 loadMundial();
 // CHUSMERÍO del barrio (npcs-vivos.md): banco de frases ambiente que los NPC se dicen entre ellos. Lo genera un
 // cron con IA (gen-chusmerio.mjs) y el juego las rota en globitos. Persiste en PVC (reproducible).
-let CHUSMERIO = [], CHUSMERIO_TS = 0;
+let CHUSMERIO = [], CHUSMERIO_EN = [], CHUSMERIO_TS = 0;
 const CHUSMERIO_STORE = process.env.CHUSMERIO_STORE || '/data/chusmerio.json';
-function loadChusmerio() { try { const d = JSON.parse(fs.readFileSync(CHUSMERIO_STORE, 'utf8')); if (d && Array.isArray(d.lineas)) { CHUSMERIO = d.lineas; CHUSMERIO_TS = d.ts || 0; } } catch (e) {} }
-function saveChusmerio() { try { fs.mkdirSync(CHUSMERIO_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(CHUSMERIO_STORE, JSON.stringify({ lineas: CHUSMERIO, ts: CHUSMERIO_TS })); } catch (e) { console.error('chusmerio store save:', e.message); } }
+function loadChusmerio() { try { const d = JSON.parse(fs.readFileSync(CHUSMERIO_STORE, 'utf8')); if (d && Array.isArray(d.lineas)) { CHUSMERIO = d.lineas; CHUSMERIO_TS = d.ts || 0; CHUSMERIO_EN = Array.isArray(d.lineasEn) ? d.lineasEn : []; } } catch (e) {} }
+function saveChusmerio() { try { fs.mkdirSync(CHUSMERIO_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(CHUSMERIO_STORE, JSON.stringify({ lineas: CHUSMERIO, lineasEn: CHUSMERIO_EN, ts: CHUSMERIO_TS })); } catch (e) { console.error('chusmerio store save:', e.message); } }
 loadChusmerio();
 
 // HISTORIAS del VECINO (edificios-clausurados-historias.md §8): banco VIVO de relatos de terror por edificio que
@@ -739,7 +739,7 @@ http.createServer((req, res) => {
   }
   if (req.method === 'GET' && req.url === '/chusmerio') {                           // banco de frases ambiente (NPCs vivos)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
-    return res.end(JSON.stringify({ lineas: CHUSMERIO, updated: CHUSMERIO_TS }));
+    return res.end(JSON.stringify({ lineas: CHUSMERIO, lineasEn: CHUSMERIO_EN, updated: CHUSMERIO_TS }));
   }
   if (req.method === 'GET' && req.url === '/propaganda') {                          // banco de carteles del CINE
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });
@@ -1445,14 +1445,19 @@ http.createServer((req, res) => {
     });
     return;
   }
-  // el cron de chusmerío (gen-chusmerio.mjs) postea acá (GEN_TOKEN): {lineas:["..."]}. Sobrescribe; vacío no pisa.
+  // el cron de chusmerío (gen-chusmerio.mjs) postea acá (GEN_TOKEN): {lineas:["..."], lineasEn?:["..."]}.
+  // Sobrescribe; vacío no pisa. `lineasEn` es ADITIVO/opcional (retrocompatible con un cron viejo que no lo mande).
   if (req.method === 'POST' && req.url === '/chusmerio') {
     if (!GEN_TOKEN || (req.headers['x-gen-token'] || '') !== GEN_TOKEN) { res.writeHead(403); return res.end('forbidden'); }
     let pb = '';
     req.on('data', c => { pb += c; if (pb.length > 100000) req.destroy(); });
     req.on('end', () => {
       try { const d = JSON.parse(pb || '{}'); if (Array.isArray(d.lineas)) {
-        if (d.lineas.length) { CHUSMERIO = d.lineas.filter(x => typeof x === 'string').slice(0, 200); CHUSMERIO_TS = Date.now(); saveChusmerio(); }
+        if (d.lineas.length) {
+          CHUSMERIO = d.lineas.filter(x => typeof x === 'string').slice(0, 200);
+          if (Array.isArray(d.lineasEn) && d.lineasEn.length) CHUSMERIO_EN = d.lineasEn.filter(x => typeof x === 'string').slice(0, 200);
+          CHUSMERIO_TS = Date.now(); saveChusmerio();
+        }
         res.writeHead(200); return res.end(d.lineas.length ? 'ok' : 'empty-ignored'); } res.writeHead(400); res.end('bad'); }
       catch (e) { res.writeHead(400); res.end('bad json'); }
     });

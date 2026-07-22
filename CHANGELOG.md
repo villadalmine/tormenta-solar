@@ -118,6 +118,17 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [v376 · infra-82] — 2026-07-22 — 🗣️🌐 Chusmerío del server bilingüe (ES/EN)
+- Cierra deuda vieja de `npcs-vivos.md §4` (anotada desde v287): el banco CHUSMERIO que autora la IA
+  (`gen-chusmerio.mjs`) ahora pide las 24 líneas en **ES y EN en paralelo** (mismo molde que
+  `gen-historias.mjs`) y postea `{lineas, lineasEn}` al proxy.
+- **Todo aditivo/retrocompatible:** `lineasEn` es un campo opcional en el POST/GET `/chusmerio` — un cron o
+  cliente viejo que no lo mande/lea sigue andando exactamente igual (probado local: POST viejo sin
+  `lineasEn`, POST nuevo, GET, persistencia a disco en `/data/chusmerio.json` y reload, todo OK).
+  `js/chusmerio.js` prefiere `lineasEn` cuando el idioma del jugador es inglés (`I18n.short()`) y el banco
+  ya lo trae; si no, cae al ES/estático de siempre.
+- Suite completa (`tests/e2e.js`) + `web-smoke.mjs` (Playwright real) verdes. Cache-bust `?v=376`.
+
 ## [v375] — 2026-07-22 — 🧠 Promesas SIN RESOLVER + 3 NPCs más (French, Beruti, peronista, polaco, npc-array)
 - **Promesas sin resolver ("hace N días…"), el refinamiento que quedaba pendiente de v373.** `scanNpcAsks()`
   (game.js): un edge con `npc` cuyo `pre` YA se cumple pero que TODAVÍA no está en `npcMem` es, por
