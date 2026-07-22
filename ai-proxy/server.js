@@ -453,6 +453,37 @@ function bmMerge(nick, incoming) {
   saveBarrioMem();
 }
 
+// --- MEMORIA INDIVIDUAL por-NPC cross-device (npcs-vivos.md §6.5): npcMem/npcAsked del jugador, POR NICK ---
+// GET /npc-mem?nick=X → {npcMem:{npc:[{id,t}]}, npcAsked:{edgeId:t}} · POST /npc-mem {nick, npcMem, npcAsked}
+// (merge, cap 6 hechos/NPC). Mismo patrón que barrio-mem (PVC + LRU + anti-spam). ADITIVO: sin esto, la
+// memoria individual sigue andando igual, solo que local (como hoy). El nick ya es público en el salón.
+const NPCMEM_STORE = process.env.NPCMEM_STORE || '/data/npcmem.json';
+let NPCMEM = {};                                           // nick -> { npcMem:{npc:[{id,t}]}, npcAsked:{edgeId:t}, up:ts }
+const NM_POST_GAP = {};                                    // anti-spam: 1 POST cada 20s por nick
+function loadNpcMem() { try { NPCMEM = JSON.parse(fs.readFileSync(NPCMEM_STORE, 'utf8')) || {}; } catch (e) { NPCMEM = {}; } }
+function saveNpcMem() { try { fs.mkdirSync(NPCMEM_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(NPCMEM_STORE, JSON.stringify(NPCMEM)); } catch (e) { console.error('npcmem save:', e.message); } }
+loadNpcMem();
+function nmMerge(nick, incomingMem, incomingAsked) {
+  const cur = NPCMEM[nick] || { npcMem: {}, npcAsked: {} };
+  const mem = { ...cur.npcMem }, asked = { ...cur.npcAsked };
+  if (incomingMem && typeof incomingMem === 'object') for (const npc of Object.keys(incomingMem).slice(0, 40)) {
+    const arr = (mem[npc] || []).slice(); const seen = new Set(arr.map(f => f.id + '|' + f.t));
+    for (const f of (Array.isArray(incomingMem[npc]) ? incomingMem[npc] : []).slice(0, 6)) {
+      if (!f || !f.id) continue;
+      const clean = { id: String(f.id).slice(0, 40), t: +f.t || Date.now() };
+      if (!seen.has(clean.id + '|' + clean.t)) { arr.push(clean); seen.add(clean.id + '|' + clean.t); }
+    }
+    arr.sort((a, b) => a.t - b.t); mem[npc] = arr.slice(-6);
+  }
+  if (incomingAsked && typeof incomingAsked === 'object') for (const edgeId of Object.keys(incomingAsked).slice(0, 80)) {
+    const t = +incomingAsked[edgeId] || 0; if (t && (!asked[edgeId] || t < asked[edgeId])) asked[edgeId] = t;   // más vieja gana (es la primera vez que se notó)
+  }
+  NPCMEM[nick] = { npcMem: mem, npcAsked: asked, up: Date.now() };
+  const nicks = Object.keys(NPCMEM);                       // LRU: si nos pasamos de 4000 nicks, vuelan los más viejos
+  if (nicks.length > 4000) { nicks.sort((a, b) => (NPCMEM[a].up || 0) - (NPCMEM[b].up || 0)); for (const n of nicks.slice(0, nicks.length - 4000)) delete NPCMEM[n]; }
+  saveNpcMem();
+}
+
 // --- F3: key-por-código (OpenRouter provisioning) + store JSON-en-PVC (suscripcion.md §9.6) ----------
 // El proxy crea una key de OpenRouter POR código (con budget) y la guarda en un archivo JSON (PVC). Un sub con
 // key provisionada va DIRECTO a OpenRouter con SU key → gasto y tope reales por usuario. Sin DB ni deps (Node20).
@@ -794,6 +825,23 @@ http.createServer((req, res) => {
       const now = Date.now(); if (now - (BM_POST_GAP[nick] || 0) < 20000) { res.writeHead(429); return res.end('slow down'); }
       BM_POST_GAP[nick] = now; bmMerge(nick, d.mem);
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, n: BARRIOMEM[nick].mem.length }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
+  }
+  if (req.method === 'GET' && req.url.startsWith('/npc-mem')) {                    // memoria individual cross-device: leer por nick
+    const nick = bmNick(new URL(req.url, 'http://x').searchParams.get('nick'));
+    const d = (nick && NPCMEM[nick]) || { npcMem: {}, npcAsked: {} };
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ npcMem: d.npcMem || {}, npcAsked: d.npcAsked || {} }));
+  }
+  if (req.method === 'POST' && req.url === '/npc-mem') {                            // memoria individual cross-device: sync (merge)
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 16000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}'); const nick = bmNick(d.nick);
+      if (!nick) { res.writeHead(400); return res.end('no nick'); }
+      const now = Date.now(); if (now - (NM_POST_GAP[nick] || 0) < 20000) { res.writeHead(429); return res.end('slow down'); }
+      NM_POST_GAP[nick] = now; nmMerge(nick, d.npcMem, d.npcAsked);
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true }));
     } catch (e) { res.writeHead(400); res.end('bad'); } });
     return;
   }

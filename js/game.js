@@ -120,11 +120,37 @@
     const arr = npcMem[npc] = npcMem[npc] || [];
     arr.push({ id: edgeId, t: Date.now() });
     if (arr.length > 6) arr.shift();
+    scheduleNpcMemPost();   // §6.5: cross-device (debounced, fire-and-forget)
   }
   function npcMemTitle(edgeId) {   // mismo patrón que chkTitle: título del hito EN EL GRAFO, en el idioma actual
     const e = ((typeof Historia !== 'undefined' && Historia.edges) || []).find(x => x.id === edgeId);
     const en = typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en';
     return (e && ((en && e.title_en) || e.title)) || edgeId;
+  }
+  // §6.5: SYNC CROSS-DEVICE de la memoria individual, por NICK — mismo patrón (GET al entrar + POST debounced
+  // 25s) que Eventos.sync (barrio-mem) y syncCheckpoint (F3). 100% ADITIVO: si el proxy no responde o no hay
+  // nick, npcMem/npcAsked siguen viviendo SOLO local (comportamiento de hoy, sin cambios ni regresión).
+  const NPCMEM_PROXY = 'https://llm-tormenta-solar.cybercirujas.club';
+  let npcMemPostT = 0;
+  function syncNpcMem() {
+    try {
+      fetch(NPCMEM_PROXY + '/npc-mem?nick=' + encodeURIComponent(playerNick())).then(r => (r.ok ? r.json() : null)).then(d => {
+        if (!d) return;
+        if (d.npcMem && typeof d.npcMem === 'object') for (const npc of Object.keys(d.npcMem)) {
+          const cur = npcMem[npc] = npcMem[npc] || [];
+          const seen = new Set(cur.map(f => f.id + '|' + f.t));
+          for (const f of (d.npcMem[npc] || [])) if (f && f.id && !seen.has(f.id + '|' + f.t)) { cur.push({ id: String(f.id).slice(0, 40), t: +f.t || Date.now() }); seen.add(f.id + '|' + f.t); }
+          cur.sort((a, b) => a.t - b.t); npcMem[npc] = cur.slice(-6);
+        }
+        if (d.npcAsked && typeof d.npcAsked === 'object') for (const id in d.npcAsked) { const t = +d.npcAsked[id] || 0; if (t && (!npcAsked[id] || t < npcAsked[id])) npcAsked[id] = t; }
+      }).catch(() => {});
+    } catch (e) {}
+  }
+  function scheduleNpcMemPost() {
+    const now = Date.now();
+    if (now - npcMemPostT < 25000) return;   // debounce > el anti-spam del server (20s)
+    npcMemPostT = now;
+    try { fetch(NPCMEM_PROXY + '/npc-mem', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nick: playerNick(), npcMem, npcAsked }), keepalive: true }).catch(() => {}); } catch (e) {}
   }
   // §6 refinamiento: PROMESAS SIN RESOLVER ("hace 3 días que me pediste X y no te lo di"). NO se loguea como
   // evento aparte: se DERIVA del grafo — un edge con "npc" cuyo `pre` YA se cumple pero que TODAVÍA no se
@@ -140,7 +166,7 @@
       const nps = edgeNpcs(e); if (!nps.length || npcAsked[e.id]) continue;
       if (nps.some(np => (npcMem[np] || []).some(f => f.id === e.id))) continue;   // ya se lo agradeció (fact ya escrito)
       const pre = e.pre || {};
-      if (Object.keys(pre).every(k => st[k] === pre[k])) npcAsked[e.id] = Date.now();
+      if (Object.keys(pre).every(k => st[k] === pre[k])) { npcAsked[e.id] = Date.now(); scheduleNpcMemPost(); }   // §6.5: cross-device
     }
   }
   // grounding premium para el CHAT: lo que ESTE NPC puntual sabe de vos por el grafo (gate: suscripción activa).
@@ -4485,6 +4511,7 @@
   }
   function start() {
     if (typeof Eventos !== 'undefined' && Eventos.sync) Eventos.sync(playerNick());   // memoria del barrio cross-device (F4d+)
+    syncNpcMem();   // §6.5: memoria individual por-NPC cross-device
     clearProgress();   // partida NUEVA de cero (ENTRAR / REINTENTAR): borra el progreso persistido, conserva settings
     reset();
     sessStart = (typeof performance !== 'undefined' ? performance.now() : Date.now()); sessChats = 0; sessTrucoW = 0; sessTrucoL = 0;

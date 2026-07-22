@@ -118,6 +118,19 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [v377 · infra-83] — 2026-07-22 — 💾🌐 Memoria individual por-NPC: persistencia cross-device
+- Cierra el último pendiente de `npcs-vivos.md §6` (dueño: "si el 3 no rompe nada, hazlo"). Mismo patrón
+  YA probado en producción para `barrio-mem`/`checkpoint`: `GET`/`POST /npc-mem` por `nick`, merge (no
+  overwrite) con dedup, PVC + LRU 4000 nicks + anti-spam 20s. **100% aditivo**: sin nick o con el proxy
+  caído, `npcMem`/`npcAsked` siguen viviendo SOLO local — cero cambio de comportamiento, cero regresión.
+- Cliente: `syncNpcMem()` (GET al arrancar, junto a `Eventos.sync`/`syncCheckpoint`) + `scheduleNpcMemPost()`
+  (debounce 25s, disparado desde `rememberNpc`/`scanNpcAsks`).
+- **Validado local end-to-end ANTES de tocar producción** (server standalone + curl): GET vacío, POST,
+  GET con los datos, anti-spam 429, merge sin duplicar, `npcAsked` se queda con el timestamp más viejo
+  (gana la primera vez que se notó, no la última sync), persistencia a disco + reload tras reiniciar.
+- Suite completa (`tests/e2e.js`) + `web-smoke.mjs` (Chromium real, sin errores de consola) verdes.
+  Cache-bust `?v=377`.
+
 ## [v376 · infra-82] — 2026-07-22 — 🗣️🌐 Chusmerío del server bilingüe (ES/EN)
 - Cierra deuda vieja de `npcs-vivos.md §4` (anotada desde v287): el banco CHUSMERIO que autora la IA
   (`gen-chusmerio.mjs`) ahora pide las 24 líneas en **ES y EN en paralelo** (mismo molde que

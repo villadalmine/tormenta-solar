@@ -1,6 +1,6 @@
 # SDD — NPCs VIVOS: chusmerío ambiente + diálogo entre NPCs (oráculos de la Matrix)
 
-- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v141 → v277).** F1 globitos templados · grafo social (rumores relayados) · F4a bus de eventos `js/eventos.js` (evlog en applyEdge/transition/chat/muerte/minijuego) + drives (deambular/chusmear/TE BUSCAN) · F4b `mov` declarativo (colas fijas, liberados por quest) · F4c oráculos improvisan por IA · F4d memoria del barrio persistente + cross-device por nick. **§6 (v2, HECHO — v373-375, 2026-07-21/22): memoria por-NPC individual, 100% data-driven por el grafo (`edge.npc`, string o array), gate premium, + promesas sin resolver con antigüedad.** Pendiente menor aparte: transcreación EN del chusmerío server.
+- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v141 → v277).** F1 globitos templados · grafo social (rumores relayados) · F4a bus de eventos `js/eventos.js` (evlog en applyEdge/transition/chat/muerte/minijuego) + drives (deambular/chusmear/TE BUSCAN) · F4b `mov` declarativo (colas fijas, liberados por quest) · F4c oráculos improvisan por IA · F4d memoria del barrio persistente + cross-device por nick. **§6 (v2, HECHO — v373-377, 2026-07-21/22): memoria por-NPC individual, 100% data-driven por el grafo (`edge.npc`, string o array), gate premium, promesas sin resolver con antigüedad, + persistencia cross-device por nick (§6.6).** Transcreación EN del chusmerío server: HECHA (v376 · infra-82, ver §4).
 - **Relacionado:** `worldSnapshot`/`worldBrief` (game.js), `Mensajero` (invocación agente↔agente), `linyera-pool`
   (pool de frases por IA), [[v2-engine-principios]] (todo dato/API/memoria/grafo), `specs/modelo-de-entidades.md`.
 
@@ -210,5 +210,17 @@ Corre con `node tests/e2e.js`.
 
 ### 6.5 Pendiente (no bloqueante)
 - Taguear más edges/NPCs con `npc` en sus fichas SDD a medida que consigan chat (dato puro, sin tocar motor).
-- Persistencia cross-device: queda local (vía save), igual que `oracleMem` hoy; el patrón de sync ya
-  existe (`POST /barrio-mem`) por si se quiere sumar después.
+
+### 6.6 Persistencia cross-device (HECHO, v377 · infra-83, 2026-07-22)
+Mismo patrón que `barrio-mem`/`checkpoint` (GET al entrar + POST debounado 25s, PVC + LRU 4000 nicks + anti-
+spam 20s, por `nick`) — **100% aditivo**: sin nick o con el proxy caído, `npcMem`/`npcAsked` siguen viviendo
+SOLO local, sin ningún cambio de comportamiento (cero regresión).
+- **`GET`/`POST /npc-mem`** (ai-proxy/server.js): guarda `{npcMem:{npc:[{id,t}]}, npcAsked:{edgeId:t}}` por
+  nick. Merge (no overwrite): por NPC dedup por `id+t` (cap 6, igual que local); `npcAsked` se queda con el
+  timestamp MÁS VIEJO entre local y servidor (la primera vez que se notó gana, no la última sync).
+- **Cliente** (`js/game.js`): `syncNpcMem()` en el mismo punto que `Eventos.sync`/`syncCheckpoint` (arranque,
+  por nick) + `scheduleNpcMemPost()` disparado desde `rememberNpc`/`scanNpcAsks`, debounce 25s.
+- Probado LOCAL end-to-end (servidor standalone): GET vacío, POST, GET con los datos, anti-spam 429,
+  merge sin duplicar + dedup, npcAsked timestamp-más-viejo-gana, persistencia a disco + reload. Suite
+  completa (`tests/e2e.js`, sandbox sin `fetch` → cae a try/catch silencioso, sin crash) +
+  `web-smoke.mjs` (Chromium real) verdes.
