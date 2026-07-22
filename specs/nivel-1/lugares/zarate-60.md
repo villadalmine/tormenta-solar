@@ -105,6 +105,7 @@ siempre** (cada vez que volvés a Campana, ahí brilla), la banda te festeja y e
   "title": "El trofeo a casa: se lo mostrás al Tano en Campana",
   "title_en": "The trophy comes home: you show it to el Tano in Campana",
   "at": "plaza",
+  "npc": "violeta",
   "pre": { "regataWon": true },
   "sets": { "trofeoTano": true },
   "hints": {

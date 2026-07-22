@@ -389,6 +389,7 @@ Monumental** (clásico River-Boca) y **robás una bandera de Boca**; se la das a
   "title": "El maquinista sobrio te lleva a Campana",
   "title_en": "The sobered-up driver takes you to Campana",
   "at": "plaza",
+  "npc": "maquinista",
   "pre": { "bocaTrapo": true },
   "sets": { "enCampana": true },
   "hints": {

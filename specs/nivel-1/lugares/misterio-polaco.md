@@ -32,6 +32,7 @@ te REGALA la radiecita 📻: **usándola del inventario te sopla LA PISTA de la 
   "title": "La Gallega te da el caso: el Polaco desapareció",
   "title_en": "La Gallega gives you the case: el Polaco is missing",
   "at": "plaza",
+  "npc": "gallega",
   "pre": { "enRetiro": true },
   "sets": { "polacoCaso": true },
   "hints": {

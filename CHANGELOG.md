@@ -118,6 +118,16 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [v374] — 2026-07-22 — 🧠 Memoria individual por-NPC: 6 NPCs más taguean su propio grafo
+- Extiende v373 (motor sin tocar, 100% dato): sumados `tormenta`→cuevero, `polaco_caso`→gallega,
+  `campana_llegada`→maquinista, `mapa_tano`/`trofeo_tano`→violeta (el Tano) en sus fichas SDD
+  (cueveros.md, misterio-polaco.md, lavalle-quest.md, andenes-vivos.md, zarate-60.md) + regenerado
+  `js/historia.js` (`node tools/gen-historia.mjs`). Total: 9 edges / 7 NPCs con memoria individual.
+- Criterio para taguear (documentado en npcs-vivos.md §6.3): solo NPCs con `persona` real (o sea, con
+  chat) — sin eso la memoria quedaría escrita pero sin ningún lugar para salir a la luz. Iorio, el
+  vendedor de armas y los borrachines individuales quedan sin tag por ahora (no tienen chat hoy).
+- Suite completa (`tests/e2e.js`, 47 aristas) verde. Cache-bust `?v=374`.
+
 ## [v373] — 2026-07-21 — 🧠 Memoria individual por-NPC (F1): 100% data-driven por el grafo, premium
 - **npcs-vivos.md §6, F1 HECHO.** Cierra infra-80/81: un NPC ahora puede "acordarse de vos" puntualmente
   (no solo la memoria de barrio genérica de F4d) — el gancho de venta central del review de monetización.

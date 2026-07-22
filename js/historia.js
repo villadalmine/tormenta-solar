@@ -59,6 +59,7 @@ const Historia = {
       "title": "Disparar la tormenta solar",
       "title_en": "Trigger the solar storm",
       "at": "cueva",
+      "npc": "cuevero",
       "pre": {
         "cueveroUnlocked": true
       },
@@ -555,6 +556,7 @@ const Historia = {
       "title": "El mapa al Tano: la leyenda del barrio era CIERTA",
       "title_en": "The map to el Tano: the neighborhood legend was TRUE",
       "at": "plaza",
+      "npc": "violeta",
       "pre": {
         "laplataMapa": true
       },
@@ -992,6 +994,7 @@ const Historia = {
       "title": "El maquinista sobrio te lleva a Campana",
       "title_en": "The sobered-up driver takes you to Campana",
       "at": "plaza",
+      "npc": "maquinista",
       "pre": {
         "bocaTrapo": true
       },
@@ -1076,6 +1079,7 @@ const Historia = {
       "title": "La Gallega te da el caso: el Polaco desapareció",
       "title_en": "La Gallega gives you the case: el Polaco is missing",
       "at": "plaza",
+      "npc": "gallega",
       "pre": {
         "enRetiro": true
       },
@@ -1240,6 +1244,7 @@ const Historia = {
       "title": "El trofeo a casa: se lo mostrás al Tano en Campana",
       "title_en": "The trophy comes home: you show it to el Tano in Campana",
       "at": "plaza",
+      "npc": "violeta",
       "pre": {
         "regataWon": true
       },

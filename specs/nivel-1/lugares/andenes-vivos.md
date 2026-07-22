@@ -105,6 +105,7 @@ propio ARCO al bajarte, con una salida nueva en el andén. Brief del dueño (202
   "title": "El mapa al Tano: la leyenda del barrio era CIERTA",
   "title_en": "The map to el Tano: the neighborhood legend was TRUE",
   "at": "plaza",
+  "npc": "violeta",
   "pre": { "laplataMapa": true },
   "sets": { "mapaTano": true },
   "hints": {

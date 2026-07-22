@@ -135,11 +135,19 @@ if (e && e.npc) rememberNpc(e.npc, id);   // §6: memoria individual — SOLO si
 ```
 
 Sumar memoria a un NPC nuevo = **agregar `"npc":"clave"` a su ficha + `node tools/gen-historia.mjs`**, no
-tocar game.js. Etiquetados en esta pasada (2026-07-21): `cura_bendicion`→`cura` y `comedor_contratado`/
-`comedor_jornada`→`comedor` (`specs/nivel-1/lugares/lavalle-quest.md`), `cuevero_gate`→`tahur`
-(`specs/nivel-1/personajes/cueveros.md`, el tahúr recuerda que lo desbarataste). **El resto de los NPC de
-quest (borrachines, Iorio, etc.) queda SIN tag** — extenderlo es solo editar más fichas, no hay trabajo de
-motor pendiente.
+tocar game.js. Etiquetados (2026-07-21/22, 9 edges / 7 NPCs — todos con `persona` real, es decir con chat,
+así la memoria tiene por dónde salir):
+- `cura_bendicion`→`cura`, `comedor_contratado`/`comedor_jornada`→`comedor` (`lavalle-quest.md`).
+- `cuevero_gate`/`tormenta`→`cuevero` (`cueveros.md`: te cambia guita Y se acuerda que le desbarataste al tahúr para lograrlo).
+- `cuevero_gate`→ también quedó `tahur` (`cueveros.md`, el tahúr recuerda que lo desbarataste).
+- `polaco_caso`→`gallega` (`misterio-polaco.md`: te dio el caso del Polaco).
+- `campana_llegada`→`maquinista` (`lavalle-quest.md`: le diste el trapo, te llevó gratis).
+- `mapa_tano`→`violeta` (`andenes-vivos.md`) y `trofeo_tano`→`violeta` (`zarate-60.md`): el Tano se acuerda del mapa y del trofeo que le mostraste.
+
+**Sin tag, a propósito:** NPCs sin `persona`/chat hoy (Iorio, vendedor de armas, los borrachines individuales)
+— tagearlos sería memoria que nadie puede leer todavía (no tienen por dónde surgir); esperar a que tengan
+chat, o sumarles uno, antes de taguear sus edges. Edges de LUGAR/evento sin un NPC único (piquete, subte,
+Cabildo, etc.) tampoco se tagean — no hay "de quién" sería la memoria.
 
 **Piezas:**
 - **`npcMem[npcKey]`** (game.js, nuevo): ring de ≤6 hechos `{id, t}` por NPC — `id` es el edge del grafo,

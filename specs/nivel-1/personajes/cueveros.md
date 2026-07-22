@@ -93,6 +93,7 @@ te vende y **estalla la tormenta**. Por eso la tormenta ahora tiene `pre: { cuev
   "title": "Disparar la tormenta solar",
   "title_en": "Trigger the solar storm",
   "at": "cueva",
+  "npc": "cuevero",
   "pre": { "cueveroUnlocked": true },
   "sets": { "stormed": true },
   "hints": {
