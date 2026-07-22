@@ -176,6 +176,22 @@ NPC único (piquete, subte, Cabildo como lugar, etc.) tampoco se tagean — no h
   agrega "hace N días te pedí X y no me lo diste" (`g.chat.npcAsk`, cap 2 por chat). 100% derivado del
   estado real del grafo, no un log free-form — no puede alucinar una promesa que no existe.
 
+**¿Por qué no hace falta validar/podar memorias contradictorias?** (pregunta de un review externo, 2026-07-22:
+*"most emergent memory systems still need a human periodically pruning or resolving contradictions — is
+there validation before an NPC writes to its own entry, or is it fully autonomous end-to-end?"*)
+
+No es autónomo de punta a punta, y es a propósito: el GRAFO no se auto-edita — es contenido humano (markdown
+→ `gen-historia.mjs`), ningún NPC ni LLM lo toca. Lo único que pasa solo en tiempo real es que el motor
+agrega un **puntero** (`{edgeId, t}`, no texto libre) a un ring ACOTADO (≤6) cuando un hito YA ETIQUETADO por
+un humano se dispara. El texto que finalmente se ve sale siempre del hito ORIGINAL (fijo), nunca de una
+generación nueva — así que no hay dos versiones de un hecho que puedan divergir. Y clave: **el LLM solo LEE
+esto como grounding, nunca lo escribe** — su respuesta de chat no vuelve a persistirse, así que no puede
+alucinar un "recuerdo" que después quede como si fuera cierto. Ring acotado + solo-puntero + atribución
+curada por humano = nada que podar ni reconciliar, por construcción. Es el trade-off correcto para un mundo
+chico y curado (cero deriva, cero riesgo de alucinación persistente); si el objetivo fuera memoria
+emergente de verdad (creencias que un NPC forma solo, de eventos sin etiquetar), este diseño NO llega ahí —
+haría falta algo con validación/poda real, que es justo el problema que evitamos.
+
 ### 6.4 Test
 `tests/e2e.js` (sección "MEMORIA INDIVIDUAL por-NPC", `Game.__npcmem`): un edge SIN `npc` no escribe a
 nadie · un edge CON `npc` (string o array) escribe (siempre, gratis o pago — la ESCRITURA no gatea) · FREE
