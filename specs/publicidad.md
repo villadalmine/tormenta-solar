@@ -2,9 +2,14 @@
 
 - **Estado:** **MVP implementado (v=73–77)** — capa `js/ads.js` con formatos **afiche/poster**, **pantalla**
   (`screen`, animado), **fachada** y **góndola** (product placement en `super.js`) + `ads/slots.json` +
-  `ads/manifest.json` de ejemplo + **métricas de impresión** cliente (v=77, opt-in por endpoint). Pendiente:
-  imágenes pixel-procesadas, manifiesto remoto y el **endpoint server** de métricas (contrato en §5). El Draft
-  de abajo sigue siendo la guía.
+  `ads/manifest.json` de ejemplo + **métricas de impresión** cliente (v=77, opt-in por endpoint). **✅
+  Endpoint server: HECHO (v378 · infra-84, 2026-07-22)** — `POST`/`GET /ads-metrics` en el proxy, agrega
+  impresiones por slot (PVC, sin auth: son solo conteos anónimos, sin PII), cap 1000/slot/request (no confía
+  ciegamente en el cliente). `js/ads.js` ahora apunta por default al proxy propio (mismo patrón que
+  `ai.js`/`chusmerio.js`: URL hardcodeada, override opcional con `window.ADS_METRICS`) — antes de esto la
+  métrica nunca salía del navegador porque no había ningún endpoint configurado. Probado local end-to-end
+  (GET vacío, POST, acumulación, cap, persistencia a disco). Pendiente: imágenes pixel-procesadas,
+  manifiesto remoto. El Draft de abajo sigue siendo la guía.
 
 > **Métricas (v=77, cliente):** `js/ads.js` cuenta una impresión por slot **a lo sumo cada 5s** (no por
 > frame) y, **solo si `window.ADS_METRICS` apunta a un endpoint**, hace `flush` cada 30s y al ocultar/cerrar

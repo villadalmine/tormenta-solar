@@ -13,7 +13,10 @@ const Ads = (() => {
   const imgCache = {};          // url -> HTMLImageElement (lazy)
   // --- métricas de IMPRESIÓN (agregadas, sin datos personales; opt-in por endpoint) ---
   const views = {}, lastView = {};   // slotId -> conteo / último ts visto (throttle por slot)
-  const METRICS = (typeof window !== 'undefined' && window.ADS_METRICS) || '';   // '' = apagado (default)
+  // specs/publicidad.md §5: POST {views,ts} → el proxy agrega por slot (GET /ads-metrics). Mismo patrón que
+  // ai.js/chusmerio.js (proxy propio hardcodeado, override opcional por window.ADS_METRICS para quien
+  // self-hostee aparte). Solo conteos anónimos, sin PII — por eso sin gate ni token.
+  const METRICS = (typeof window !== 'undefined' && window.ADS_METRICS) || 'https://llm-tormenta-solar.cybercirujas.club/ads-metrics';
   function countView(id) {
     const t = Date.now();
     if (t - (lastView[id] || 0) < 5000) return;   // 1 impresión por slot cada 5s (no por frame)

@@ -55,8 +55,11 @@ hablan de cosas del juego y de tu progreso ("che, me dijo el borrachín que no l
   el proxy (`POST`/`GET /chusmerio`) persiste ambas (`lineasEn` aditivo, retrocompatible con un cron/cliente
   viejo que no lo mande/lea); el cliente (`js/chusmerio.js`) prefiere `lineasEn` cuando `I18n.short()==='en'`
   y hay banco cargado, si no cae al estático `BASE`/ES. Probado local end-to-end (POST viejo sin romper,
-  POST nuevo, GET, persistencia a disco y reload). Queda: que la fuente del relay sea una entidad puntual
-  (no solo rol) — sin relación con lo bilingüe, es aparte.
+  POST nuevo, GET, persistencia a disco y reload).
+  **✅ Fuente del relay = entidad puntual: HECHA (v378, 2026-07-22).** `ROLE_ENTITIES`/`srcForRole()`
+  (game.js): los roles con varias entidades con nombre propio (los 3 borrachines) citan a UNA al azar
+  ("el Borrachín del vino") en vez del rol genérico ("el borrachín"). Roles con una sola entidad no
+  cambian. Test `Game.__rumor` en `tests/e2e.js`.
 - **Memoria por NPC:** lo que chusmean persiste/evoluciona (agent.memory). 
 - Todo esto encaja con el modelo v2 (entidades+componentes+grafo+memoria); F1 es el placeholder v1 a migrar.
 

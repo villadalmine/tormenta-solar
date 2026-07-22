@@ -453,6 +453,15 @@ function bmMerge(nick, incoming) {
   saveBarrioMem();
 }
 
+// --- MÉTRICAS de publicidad (specs/publicidad.md §5): impresiones agregadas, SIN datos personales -------
+// POST /ads-metrics {views:{slotId:n,...}, ts} (js/ads.js, opt-in por window.ADS_METRICS) → suma acumulado
+// por slot. GET /ads-metrics → {views, updated} para debug/dashboards. PVC, sin LRU (pocos slots fijos).
+let ADS_VIEWS = {}, ADS_TS = 0;
+const ADS_STORE = process.env.ADS_STORE || '/data/ads-metrics.json';
+function loadAds() { try { const d = JSON.parse(fs.readFileSync(ADS_STORE, 'utf8')); if (d && d.views) { ADS_VIEWS = d.views; ADS_TS = d.ts || 0; } } catch (e) {} }
+function saveAds() { try { fs.mkdirSync(ADS_STORE.replace(/\/[^/]*$/, '') || '/', { recursive: true }); fs.writeFileSync(ADS_STORE, JSON.stringify({ views: ADS_VIEWS, ts: ADS_TS })); } catch (e) { console.error('ads-metrics save:', e.message); } }
+loadAds();
+
 // --- MEMORIA INDIVIDUAL por-NPC cross-device (npcs-vivos.md §6.5): npcMem/npcAsked del jugador, POR NICK ---
 // GET /npc-mem?nick=X → {npcMem:{npc:[{id,t}]}, npcAsked:{edgeId:t}} · POST /npc-mem {nick, npcMem, npcAsked}
 // (merge, cap 6 hechos/NPC). Mismo patrón que barrio-mem (PVC + LRU + anti-spam). ADITIVO: sin esto, la
@@ -767,6 +776,26 @@ http.createServer((req, res) => {
     }
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
     return res.end(JSON.stringify({ ts: Date.now(), source, estados }));
+  }
+  if (req.method === 'GET' && req.url === '/ads-metrics') {                          // impresiones de publicidad, agregadas por slot
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ views: ADS_VIEWS, updated: ADS_TS }));
+  }
+  if (req.method === 'POST' && req.url === '/ads-metrics') {                         // js/ads.js postea acá (sin auth: solo conteos, sin PII)
+    let pb = ''; req.on('data', c => { pb += c; if (pb.length > 8000) req.destroy(); });
+    req.on('end', () => { try {
+      const d = JSON.parse(pb || '{}');
+      if (d.views && typeof d.views === 'object') {
+        for (const slot of Object.keys(d.views).slice(0, 100)) {
+          const n = +d.views[slot]; if (!n || n < 0) continue;
+          const id = String(slot).slice(0, 40);
+          ADS_VIEWS[id] = (ADS_VIEWS[id] || 0) + Math.min(n, 1000);   // cap por request: no confiar ciegamente en el cliente
+        }
+        ADS_TS = Date.now(); saveAds();
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true }));
+    } catch (e) { res.writeHead(400); res.end('bad'); } });
+    return;
   }
   if (req.method === 'GET' && req.url === '/chusmerio') {                           // banco de frases ambiente (NPCs vivos)
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' });

@@ -118,6 +118,21 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [v378 · infra-84] — 2026-07-22 — 🗣️👤 Relay con fuente puntual + 📺💰 métricas de publicidad (server)
+- **Relay del chusmerío: fuente puntual** (deuda vieja de `npcs-vivos.md §4`). Los 3 borrachines tienen
+  nombre propio en `level.js` (Borrachín del vino/cerveza/porro) pero el relay siempre citaba el ROL
+  genérico ("el borrachín"). `ROLE_ENTITIES`/`srcForRole()` (game.js): cuando un rol tiene varias entidades,
+  el relay cita a UNA al azar — "dicen que fue EL BORRACHÍN DEL VINO". Roles con una sola entidad (tahúr,
+  chino…) no cambian. Test nuevo (`Game.__rumor`): 30 tiradas, nunca el rol genérico, varía entre ≥2 de
+  los 3.
+- **Métricas de publicidad, el endpoint server que faltaba** (`specs/publicidad.md §5`). `js/ads.js` ya
+  contaba impresiones desde v=77 pero nunca tenía adónde mandarlas (sin endpoint configurado = cero red).
+  `POST`/`GET /ads-metrics` en el proxy: agrega por slot (PVC, sin auth — son solo conteos anónimos, sin
+  PII), cap 1000/slot/request (no confía ciegamente en el cliente). `js/ads.js` apunta por default al
+  proxy propio (mismo patrón que `ai.js`/`chusmerio.js`). Probado local end-to-end (GET vacío, POST,
+  acumulación, cap, persistencia a disco).
+- Suite completa + `web-smoke.mjs` verdes. Cache-bust `?v=378`.
+
 ## [v377 · infra-83] — 2026-07-22 — 💾🌐 Memoria individual por-NPC: persistencia cross-device
 - Cierra el último pendiente de `npcs-vivos.md §6` (dueño: "si el 3 no rompe nada, hazlo"). Mismo patrón
   YA probado en producción para `barrio-mem`/`checkpoint`: `GET`/`POST /npc-mem` por `nick`, merge (no

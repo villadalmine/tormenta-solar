@@ -1240,6 +1240,28 @@ if (require.main === module) {
   if (npcmemRes.length) { console.error('❌ NPCMEM:\n' + npcmemRes.join('\n')); process.exit(1); }
   console.log('✓ memoria individual por-NPC: data-driven (edge.npc del grafo) + gate premium + alcance oráculos/quest OK');
 
+  // ---- RELAY del chusmerío: fuente PUNTUAL en vez de rol genérico (npcs-vivos.md §4) ----
+  const rumor = vm.runInContext(`(() => {
+    const out = [];
+    if (!window.Game || !Game.__rumor) return JSON.stringify(['FAIL no expone Game.__rumor']);
+    const snap = Game.serialize(); snap.flags.borrachosHappy = false; Game.continueGame(snap);   // precondición explícita (no asumir el estado que dejaron tests previos)
+    const ENTS = ['el Borrachín del vino', 'el Borrachín de la cerveza', 'el Borrachín del porro'];
+    const seen = new Set();
+    for (let i = 0; i < 30; i++) {
+      const r = Game.__rumor.pool().find(x => x.key === 'borracho');
+      if (!r) { out.push('FAIL no salió el rumor de borracho (borrachosHappy debería ser false al arrancar)'); break; }
+      if (r.src === 'el borrachín') out.push('FAIL el relay sigue citando el ROL genérico, no una entidad puntual: ' + r.src);
+      if (!ENTS.includes(r.src)) out.push('FAIL fuente inesperada (ni rol viejo ni una de las 3 entidades): ' + r.src);
+      seen.add(r.src);
+    }
+    if (seen.size < 2) out.push('FAIL en 30 tiradas debería haber variado entre al menos 2 de los 3 borrachines (salió: ' + JSON.stringify([...seen]) + ')');
+    // los roles con UNA sola entidad (tahúr, etc.) no cambian — siguen con su ROLE_NAMES de siempre
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const rumorRes = JSON.parse(rumor);
+  if (rumorRes.length) { console.error('❌ RUMOR:\n' + rumorRes.join('\n')); process.exit(1); }
+  console.log('✓ relay del chusmerío: fuente puntual entre los 3 borrachines (no el rol genérico) OK');
+
   // ---- motor de TRUCO (reglas puras: jerarquía, envido, flor, parda) ----
   const tru = vm.runInContext(`(() => {
     const out = [];

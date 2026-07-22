@@ -1676,8 +1676,13 @@
   // RELAY social: rumores ATRIBUIDOS (el chusme fluye de un NPC fuente → el que lo repite → vos). Derivados del estado
   // vivo (data) — cada uno tiene una FUENTE (el NPC que "sabe") y un claim sobre lo que hiciste. (npcs-vivos §4, grafo social)
   const ROLE_NAMES = { borracho:'el borrachín', tahur:'el tahúr', chino:'el chino', linyeras:'los linyeras', gondola:'el de la góndola', vendedor:'el vendedor de armas', guarda:'el guarda del cine', vecina:'la vecina' };
+  // npcs-vivos §4 (deuda vieja, HECHA v378): cuando un rol tiene VARIAS entidades puntuales (los 3 borrachines
+  // tienen nombre propio en level.js), el relay cita a UNA de ellas al azar en vez del rol genérico — "dicen que
+  // fue EL BORRACHÍN DEL VINO", no "el borrachín" a secas. Roles con una sola entidad (tahúr, chino…) no cambian.
+  const ROLE_ENTITIES = { borracho: ['el Borrachín del vino', 'el Borrachín de la cerveza', 'el Borrachín del porro'] };
+  const srcForRole = key => { const ents = ROLE_ENTITIES[key]; return ents ? ents[(Math.random() * ents.length) | 0] : (ROLE_NAMES[key] || key); };
   function rumorPool(s) {
-    const R = [], add = (key, txt, cond) => { if (cond) R.push({ key, src: ROLE_NAMES[key] || key, txt }); };
+    const R = [], add = (key, txt, cond) => { if (cond) R.push({ key, src: srcForRole(key), txt }); };
     add('borracho', T('g.rumor.borracho'), !s.borrachosHappy);
     add('tahur', T('g.rumor.tahur'), s.trucoEverWon);
     add('chino', T('g.rumor.chino'), s.chinoEntered);
@@ -4777,5 +4782,7 @@
       chatGround: n => npcFactsGround(n),                                 // el grounding que se le mandaría a la IA
       ambientLine: n => npcMemLine(n),                                    // la línea de globito (solo oráculos, F1-F4)
       setChat: (npcKey, msg) => { oracleMem[npcKey] = [{ role: 'user', content: msg }]; },   // simula chat previo
-    } });
+    },
+    // superficie de prueba (e2e) del relay del chusmerío (npcs-vivos.md §4): fuente puntual vs rol genérico
+    __rumor: { pool: () => rumorPool(worldSnapshot()) } });
 })();
