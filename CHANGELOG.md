@@ -118,6 +118,23 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [v379] — 2026-07-22 — ⚙ Opciones: tamaño de paneles + volumen + presets de accesibilidad
+- Cierra `specs/configuracion.md` (quedaba Draft desde v=39): sumados `uiScale` (paneles/diálogos,
+  separado de `fontScale`), `volume` (audio general) y **3 presets** (Chico/Normal/Grande) al panel
+  ⚙ Opciones.
+- **`uiScale`**: `--ui-scale` + `transform: scale()` en `.panel` — escala el panel ENTERO (texto+botones+
+  padding) en vez de threadear una CSS var por regla (menos superficie para olvidarse una).
+- **`volume`**: `js/audio.js` (`Sfx`) suma un `master` (`GainNode`) único — TODAS las fuentes de sonido
+  (SFX, música, hum, ambiente) ahora conectan ahí en vez de directo a `destination`. Se descartó separar
+  música/SFX (`musicVol`/`sfxVol` del draft original): el motor no tiene buses separados, hubiera sido
+  refactor grande para beneficio marginal.
+- **Verificación visual real con Playwright** (no solo crash-check): encontró y arregló un overflow de
+  verdad — los botones de preset se salían del panel (`.opt-btn` tiene `width:26px` fijo, muy angosto
+  para "Chico"/"Grande"); nueva clase `.opt-preset` con ancho automático.
+- **Gotcha del harness**: sumar `config.js` al sandbox headless (`tests/e2e.js`) destapó que el mock de
+  `style` no tenía `setProperty`/`getPropertyValue` (nunca hacía falta hasta ahora) — arreglado.
+- Suite completa (nueva sección "CONFIG") + `web-smoke.mjs` verdes. Cache-bust `?v=379`.
+
 ## [v378 · infra-84] — 2026-07-22 — 🗣️👤 Relay con fuente puntual + 📺💰 métricas de publicidad (server)
 - **Relay del chusmerío: fuente puntual** (deuda vieja de `npcs-vivos.md §4`). Los 3 borrachines tienen
   nombre propio en `level.js` (Borrachín del vino/cerveza/porro) pero el relay siempre citaba el ROL

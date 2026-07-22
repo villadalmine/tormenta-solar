@@ -4,12 +4,16 @@ const Sfx = (() => {
   let hum = null;      // zumbido de la tormenta
   let humGain = null;
   let amb = null, ambLfo = null, ambKind = null;   // cama de AMBIENTE por zona (capa aparte de la música)
+  let master = null, masterVol = 1;   // VOLUMEN general (specs/configuracion.md): único gain que TODO atraviesa antes de destination
 
   function ensure() {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
+    if (!master) { master = ctx.createGain(); master.gain.value = masterVol; master.connect(ctx.destination); }
     return ctx;
   }
+  // 0..1 (config.js: Config.get('volume')). Guardado en masterVol para aplicarse aunque el context aún no exista.
+  function setVolume(v) { masterVol = Math.min(1, Math.max(0, +v || 0)); if (master) master.gain.value = masterVol; }
 
   function blip(freq, dur, type = 'square', vol = 0.2) {
     const c = ensure();
@@ -18,7 +22,7 @@ const Sfx = (() => {
     o.type = type; o.frequency.value = freq;
     g.gain.setValueAtTime(vol, c.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
-    o.connect(g); g.connect(c.destination);
+    o.connect(g); g.connect(master);
     o.start(); o.stop(c.currentTime + dur);
   }
 
@@ -32,7 +36,7 @@ const Sfx = (() => {
     g.gain.setValueAtTime(vol, c.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
     const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1200;
-    src.connect(f); f.connect(g); g.connect(c.destination);
+    src.connect(f); f.connect(g); g.connect(master);
     src.start();
   }
 
@@ -55,7 +59,7 @@ const Sfx = (() => {
       g.gain.setValueAtTime(vol, start + dur * 0.7);
       g.gain.exponentialRampToValueAtTime(0.0008, start + dur);
     }
-    o.connect(g); g.connect(c.destination);
+    o.connect(g); g.connect(master);
     o.start(start); o.stop(start + dur + 0.03);
   }
   // BOMBO de hinchada (para makeTrack, opcional por paso): sine que cae 150→45Hz, corto y gordo. Conecta directo
@@ -64,7 +68,7 @@ const Sfx = (() => {
     const c = ensure(), o = c.createOscillator(), g = c.createGain();
     o.type = 'sine'; o.frequency.setValueAtTime(150, start); o.frequency.exponentialRampToValueAtTime(45, start + 0.1);
     g.gain.setValueAtTime(vol || 0.5, start); g.gain.exponentialRampToValueAtTime(0.001, start + 0.13);
-    o.connect(g); g.connect(c.destination); o.start(start); o.stop(start + 0.15);
+    o.connect(g); g.connect(master); o.start(start); o.stop(start + 0.15);
   }
   // track con scheduler de lookahead; [lead, bajo, tiempos, drum?] — drum: 'k' = bombo (opcional, no afecta los temas viejos)
   function makeTrack(song, beat, opts) {
@@ -177,7 +181,7 @@ const Sfx = (() => {
       if (clean) return; const c = ensure();
       const comp = c.createDynamicsCompressor();
       comp.threshold.value = -20; comp.knee.value = 24; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.18;
-      const out = c.createGain(); out.gain.value = opts.master || 0.72; comp.connect(out); out.connect(c.destination);
+      const out = c.createGain(); out.gain.value = opts.master || 0.72; comp.connect(out); out.connect(master);
       const ws = c.createWaveShaper(); ws.curve = distCurve(opts.drive || 6); ws.oversample = '4x';
       const gi = c.createGain(); gi.gain.value = 1; gi.connect(ws); ws.connect(comp);
       gtr = gi; clean = comp;
@@ -315,7 +319,7 @@ const Sfx = (() => {
       lfo.connect(lfoG); lfoG.connect(hum.frequency);
       humGain = c.createGain(); humGain.gain.value = 0.05;
       const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 400;
-      hum.connect(f); f.connect(humGain); humGain.connect(c.destination);
+      hum.connect(f); f.connect(humGain); humGain.connect(master);
       hum.start(); lfo.start();
     },
     stopHum() { if (humGain) humGain.gain.value = 0; },
@@ -343,7 +347,7 @@ const Sfx = (() => {
       amb = c.createBufferSource(); amb.buffer = buf; amb.loop = true;
       const f = c.createBiquadFilter(); f.type = cfg.type; f.frequency.value = cfg.freq; f.Q.value = cfg.q;
       const g = c.createGain(); g.gain.value = cfg.vol;
-      amb.connect(f); f.connect(g); g.connect(c.destination);
+      amb.connect(f); f.connect(g); g.connect(master);
       if (cfg.lfo) {                           // "respiración"/ráfagas lentas del volumen
         ambLfo = c.createOscillator(); ambLfo.frequency.value = cfg.lfo;
         const lg = c.createGain(); lg.gain.value = cfg.vol * 0.6;
@@ -386,5 +390,6 @@ const Sfx = (() => {
     },
     // CUMBIA VILLERA random-por-piso: el índice (nº de sala) elige uno de los 5 temas, estable por piso pero distinto entre pisos.
     setVillera(i) { const n = VILLERA.length; this.setRoomTrack('villera' + ((((i | 0) % n) + n) % n)); },
+    setVolume, getVolume: () => masterVol,   // specs/configuracion.md: volumen general (config.js lo llama al cargar/cambiar)
   };
 })();

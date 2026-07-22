@@ -2,9 +2,16 @@
 // Persiste en localStorage y aplica por CSS vars (--ui-font-scale, --ui-msg-fade) + Config.msgMs.
 // game.js usa Config.msgMs solo si Config existe (typeof guard), así el e2e headless no lo necesita.
 const Config = (() => {
-  const DEFAULTS = { fontScale: 1.0, msgMs: 1.0, msgFade: 150 };
-  const LIMITS   = { fontScale: [0.7, 1.3], msgMs: [0.5, 2.0], msgFade: [0, 600] };
-  const FMT = { fontScale: v => Math.round(v * 100) + '%', msgMs: v => v.toFixed(2) + '×', msgFade: v => v + 'ms' };
+  const DEFAULTS = { fontScale: 1.0, msgMs: 1.0, msgFade: 150, uiScale: 1.0, volume: 1.0 };
+  const LIMITS   = { fontScale: [0.7, 1.3], msgMs: [0.5, 2.0], msgFade: [0, 600], uiScale: [0.8, 1.3], volume: [0, 1] };
+  const FMT = { fontScale: v => Math.round(v * 100) + '%', msgMs: v => v.toFixed(2) + '×', msgFade: v => v + 'ms',
+    uiScale: v => Math.round(v * 100) + '%', volume: v => Math.round(v * 100) + '%' };
+  // presets de accesibilidad: combinan varios valores en un solo click (specs/configuracion.md)
+  const PRESETS = {
+    grande: { fontScale: 1.3, uiScale: 1.3, msgMs: 1.5 },
+    chico:  { fontScale: 0.8, uiScale: 0.85, msgMs: 0.75 },
+    default: { ...DEFAULTS },
+  };
   let cfg = { ...DEFAULTS };
 
   function load() {
@@ -18,14 +25,18 @@ const Config = (() => {
     try { if (typeof localStorage !== 'undefined') localStorage.setItem('ts_config', JSON.stringify(cfg)); } catch (e) {}
   }
   function apply() {
-    if (typeof document === 'undefined' || !document.documentElement) return;
-    const r = document.documentElement.style;
-    r.setProperty('--ui-font-scale', String(cfg.fontScale));
-    r.setProperty('--ui-msg-fade', cfg.msgFade + 'ms');
+    if (typeof document !== 'undefined' && document.documentElement) {
+      const r = document.documentElement.style;
+      r.setProperty('--ui-font-scale', String(cfg.fontScale));
+      r.setProperty('--ui-msg-fade', cfg.msgFade + 'ms');
+      r.setProperty('--ui-scale', String(cfg.uiScale));
+    }
+    if (typeof Sfx !== 'undefined' && Sfx.setVolume) Sfx.setVolume(cfg.volume);   // aditivo: sin Sfx (headless) no hace nada
   }
   const clamp = (k, v) => { const [a, b] = LIMITS[k] || [-1e9, 1e9]; return Math.min(b, Math.max(a, Math.round(v * 100) / 100)); };
   function set(k, v) { if (k in cfg) { cfg[k] = clamp(k, v); save(); apply(); refreshUI(); } return cfg[k]; }
   function reset() { cfg = { ...DEFAULTS }; save(); apply(); refreshUI(); }
+  function preset(name) { const p = PRESETS[name]; if (!p) return; cfg = { ...DEFAULTS, ...p }; save(); apply(); refreshUI(); }
 
   // ---- UI (panel de Opciones) ----
   const $ = id => (typeof document !== 'undefined' && document.getElementById) ? document.getElementById(id) : null;
@@ -42,6 +53,7 @@ const Config = (() => {
       if (document.querySelectorAll) document.querySelectorAll('.opt-btn').forEach(b => b.addEventListener('click', () => {
         set(b.getAttribute('data-k'), (cfg[b.getAttribute('data-k')] || 0) + parseFloat(b.getAttribute('data-d')));
       }));
+      if (document.querySelectorAll) document.querySelectorAll('.opt-preset').forEach(b => b.addEventListener('click', () => preset(b.getAttribute('data-preset'))));
       // atajo 'o' → abre/cierra Opciones, PERO no si estás escribiendo en un campo (ej. tu nombre con una "o" cerraba el panel)
       document.addEventListener('keydown', e => { if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return; if ((e.key || '').toLowerCase() === 'o') toggle(); });
       refreshUI();
@@ -53,5 +65,5 @@ const Config = (() => {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initUI);
     else initUI();
   }
-  return { get: k => cfg[k], set, reset, all: () => ({ ...cfg }), get msgMs() { return cfg.msgMs; } };
+  return { get: k => cfg[k], set, reset, preset, all: () => ({ ...cfg }), get msgMs() { return cfg.msgMs; } };
 })();

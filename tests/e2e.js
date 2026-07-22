@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
-const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
+const SCRIPTS = ['config.js','historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
   'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','consticalle.js','retiro.js','villa31.js','trenes.js','tren.js','cancha.js','campana.js','saavedra.js','once.js','chevallier.js','zarate.js','regata.js','tigre.js','ezeiza.js','laplata.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','ai.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
@@ -38,7 +38,11 @@ function withListeners(base) {
   base.removeEventListener = () => {};
   base.dispatch = (type, ev = {}) => (base.__h[type] || []).forEach(fn => fn(ev));
   base.classList = mkClassList();
-  base.style = {};
+  const styleProps = {};
+  base.style = new Proxy(styleProps, {   // CSSStyleDeclaration mínimo (config.js usa setProperty en --ui-* vars)
+    get(t, p) { if (p === 'setProperty') return (k, v) => { t[k] = v; }; if (p === 'getPropertyValue') return k => t[k] || ''; if (p === 'removeProperty') return k => { delete t[k]; }; return t[p] || ''; },
+    set(t, p, v) { t[p] = v; return true; },
+  });
   return base;
 }
 function mkCanvas(w = 0, h = 0) {
@@ -1239,6 +1243,28 @@ if (require.main === module) {
   const npcmemRes = JSON.parse(npcmem);
   if (npcmemRes.length) { console.error('❌ NPCMEM:\n' + npcmemRes.join('\n')); process.exit(1); }
   console.log('✓ memoria individual por-NPC: data-driven (edge.npc del grafo) + gate premium + alcance oráculos/quest OK');
+
+  // ---- CONFIG: uiScale + volumen + presets (specs/configuracion.md) ----
+  const config = vm.runInContext(`(() => {
+    const out = [];
+    if (typeof Config === 'undefined') return JSON.stringify(['FAIL Config no cargó']);
+    if (Config.get('uiScale') !== 1 || Config.get('volume') !== 1) out.push('FAIL defaults uiScale/volume deberían ser 1: ' + JSON.stringify({ u: Config.get('uiScale'), v: Config.get('volume') }));
+    Config.set('volume', 0.5);
+    if (Config.get('volume') !== 0.5) out.push('FAIL set(volume,0.5) no aplicó: ' + Config.get('volume'));
+    if (typeof Sfx !== 'undefined' && Sfx.getVolume && Sfx.getVolume() !== 0.5) out.push('FAIL Sfx.setVolume no se sincronizó con Config: ' + Sfx.getVolume());
+    Config.set('volume', 5);   // fuera de rango [0,1] → debe clampear
+    if (Config.get('volume') !== 1) out.push('FAIL volume no clampeó a 1 (LIMITS): ' + Config.get('volume'));
+    Config.preset('grande');
+    if (Config.get('fontScale') !== 1.3 || Config.get('uiScale') !== 1.3) out.push('FAIL preset grande no aplicó fontScale/uiScale: ' + JSON.stringify(Config.all()));
+    Config.preset('chico');
+    if (Config.get('uiScale') !== 0.85) out.push('FAIL preset chico no aplicó uiScale: ' + Config.get('uiScale'));
+    Config.reset();
+    if (Config.get('uiScale') !== 1 || Config.get('volume') !== 1) out.push('FAIL reset no volvió a los defaults: ' + JSON.stringify(Config.all()));
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const configRes = JSON.parse(config);
+  if (configRes.length) { console.error('❌ CONFIG:\n' + configRes.join('\n')); process.exit(1); }
+  console.log('✓ Config: uiScale + volumen (sincronizado con Sfx) + presets + clamp OK');
 
   // ---- RELAY del chusmerío: fuente PUNTUAL en vez de rol genérico (npcs-vivos.md §4) ----
   const rumor = vm.runInContext(`(() => {
