@@ -110,6 +110,29 @@
   // sesiones (persiste en el guardado). Es el `agent.memory` del modelo v2 (ver modelo-de-entidades §6½).
   const oracleMem = {};
   const memKey = n => (n && (n.persona || n.name)) || null;
+  // npcs-vivos §6 (v2, premium): memoria INDIVIDUAL por NPC, atribuida por el GRAFO (no hardcodeada en código).
+  // Un edge de Historia.edges puede declarar "npc":"cura" en su ficha SDD (specs/nivel-1/**/*.md, bloque ```hist);
+  // cuando esa arista se aplica (applyEdge), queda un hecho en npcMem[npc]. Sumar memoria a un NPC nuevo = editar
+  // el spec + regenerar (tools/gen-historia.mjs), no tocar game.js.
+  const npcMem = {};
+  function rememberNpc(npc, edgeId) {
+    if (!npc) return;
+    const arr = npcMem[npc] = npcMem[npc] || [];
+    arr.push({ id: edgeId, t: Date.now() });
+    if (arr.length > 6) arr.shift();
+  }
+  function npcMemTitle(edgeId) {   // mismo patrón que chkTitle: título del hito EN EL GRAFO, en el idioma actual
+    const e = ((typeof Historia !== 'undefined' && Historia.edges) || []).find(x => x.id === edgeId);
+    const en = typeof I18n !== 'undefined' && I18n.short && I18n.short() === 'en';
+    return (e && ((en && e.title_en) || e.title)) || edgeId;
+  }
+  // grounding premium para el CHAT: lo que ESTE NPC puntual sabe de vos por el grafo (gate: suscripción activa).
+  function npcFactsGround(n) {
+    if (typeof AI === 'undefined' || !AI.isPaid || !AI.isPaid()) return null;
+    const key = memKey(n), facts = key && npcMem[key];
+    if (!facts || !facts.length) return null;
+    return T('g.chat.npcMemGround', { d: facts.slice(-3).map(f => npcMemTitle(f.id)).join('; ') });
+  }
   let roamingNpc = null;   // el linyera ERRANTE: aparece cerca de lo que no hiciste (ver historia-grafo.md §3.4)
   // roster de linyeras ilustres (homenaje) — el oráculo errante VARÍA entre ellos por sala (cada uno su identidad)
   const ORACULOS = [{ name: 'Diógenes', sprite: 'linyera', persona: 'filosofo' },
@@ -404,6 +427,7 @@
     ninjaRunT = -99; ninjaRunRoom = -1;
     dollarBubbles = []; shotsSeen = 0; legalBlindUntil = 0;
     for (const k in oracleMem) delete oracleMem[k];   // partida nueva: los linyeras te olvidan
+    for (const k in npcMem) delete npcMem[k];   // §6: partida nueva → los NPC también te olvidan a vos puntualmente
     Bullets.clear(); Particles.clear(); Sfx.stopHum();
     state = 'playing';
     elFloor.textContent = TX(rooms[0].name);
@@ -433,6 +457,7 @@
       pickups: states.map(s => s.pickups.filter(pk => pk.taken).map(pk => Math.round(pk.x))),
       npcs: rooms.map(rm => (rm.npcs || []).filter(n => n.falopaTaken || n.limosnaTaken).map(n => ({ x: Math.round(n.x), f: !!n.falopaTaken, l: !!n.limosnaTaken }))),
       oracleMem,   // memoria de los linyeras por identidad (agent.memory)
+      npcMem,      // §6: hechos del grafo atribuidos a un NPC puntual (premium)
     };
   }
   // restore(snap): reconstruye el mundo (reset) y le aplica el snapshot. true si cargó.
@@ -467,6 +492,7 @@
     }
     for (const k in oracleMem) delete oracleMem[k];   // restaurá la memoria de los linyeras del snapshot
     if (snap.oracleMem) Object.assign(oracleMem, snap.oracleMem);
+    for (const k in npcMem) delete npcMem[k]; if (snap.npcMem) Object.assign(npcMem, snap.npcMem);   // §6
     if (stormed) Sfx.startHum();
     updateCam(); elFloor.textContent = TX(rooms[current].name);
     placeRoamingOraculo(Math.floor((player.x + player.w / 2) / Level.TILE));
@@ -1354,6 +1380,7 @@
     if (typeof Salon !== 'undefined' && Salon.enabled) Salon.beat(currentAt(), id);   // MULTIJUGADOR F1: hito anónimo al ticker del "Cine EN VIVO"
     tel('quest', { result: id });   // métrica: qué quest/arista de la historia se completó (dashboard)
     evlog('hito', id);   // al bus de eventos (los NPC comentan lo fresco)
+    if (e && e.npc) rememberNpc(e.npc, id);   // §6: memoria individual — SOLO si el edge lo declara en su DATA
     if (e && e.sets) { for (const k in e.sets) if (FLAG_SETTERS[k]) FLAG_SETTERS[k](!!e.sets[k]); saveCheckpoint(id); return true; }
     if (fallbackFlag && FLAG_SETTERS[fallbackFlag]) { FLAG_SETTERS[fallbackFlag](true); saveCheckpoint(id); }   // grafo ausente → red de seguridad
     return false;
@@ -1608,13 +1635,24 @@
     add('vecina', T('g.rumor.vecina', { b: (s.carteles && s.carteles[0] && s.carteles[0].brand) || '' }), s.carteles && s.carteles.length);
     return R;
   }
+  // npcs-vivos §6 (v2, premium): memoria INDIVIDUAL — a diferencia de la memoria de barrio (F4d, gratis, la ve
+  // cualquiera), esto es lo que ESTE oráculo puntual sabe de VOS porque se lo dijiste a ÉL. Reusa `oracleMem`
+  // (ya existe, ya persiste) en vez de inventar un store nuevo: sube de prioridad SOLO si hay código premium
+  // activo — free sigue viendo exactamente el chusmerío de siempre (rival/relay/pool), sin regresión.
+  function npcMemLine(a) {
+    if (!isOraculo(a) || typeof AI === 'undefined' || !AI.isPaid || !AI.isPaid()) return null;
+    const key = memKey(a), hist = key && oracleMem[key];
+    if (!hist || !hist.length) return null;
+    const said = hist.filter(m => m && m.role === 'user' && m.content).pop();
+    return said ? T('g.viva.recuerdaMio', { d: String(said.content).slice(0, 60) }) : null;
+  }
   function spawnAmbient() {
     const ns = eligibleNpcs(room()); if (!ns.length) return;
     const s = worldSnapshot(), pool = ambientPool(s), rumors = rumorPool(s), a = ns[(Math.random() * ns.length) | 0];
     const soc = a.social || {};
+    let aText = npcMemLine(a);   // premium: lo que ESTE NPC se acuerda de vos gana a todo lo demás
     // GOSSIP de RIVAL (grafo social, aristas `rival`): hablás mal del que no bancás.
-    let aText = null;
-    if (soc.rival && soc.rival.length && Math.random() < 0.4) { const rk = soc.rival[(Math.random() * soc.rival.length) | 0]; aText = T('g.rivalGossip', { who: ROLE_NAMES[rk] || rk }); }
+    if (!aText && soc.rival && soc.rival.length && Math.random() < 0.4) { const rk = soc.rival[(Math.random() * soc.rival.length) | 0]; aText = T('g.rivalGossip', { who: ROLE_NAMES[rk] || rk }); }
     // RELAY por ARISTAS: el NPC relayea un rumor de alguien que CONOCE (social.knows); si no tiene grafo, cualquiera.
     if (!aText && rumors.length && Math.random() < 0.5) {
       let cand = rumors.filter(r => !String(a.name || '').toLowerCase().includes(String(r.src).replace(/^(el|la|los) /, '').split(' ')[0]));   // no se auto-cita
@@ -1941,6 +1979,7 @@
     // te hizo caso" — el NPC se acuerda aunque hayas cerrado el chat sin responderle.
     const mk = memKey(chatNpc);
     if (!chipped && typeof Ideas !== 'undefined') { const ig = Ideas.groundFor(mk); if (ig) groundTxt = [groundTxt, ig].filter(Boolean).join(' · '); }
+    const nf = npcFactsGround(chatNpc); if (nf) groundTxt = [groundTxt, nf].filter(Boolean).join(' · ');   // §6: memoria individual premium (CUALQUIER NPC con chat, no solo oráculos)
     let reply;
     try { reply = await AI.chat(chatNpc.persona || 'filosofo', msg, chatHistory, groundTxt); }
     catch (e) { reply = T('g.chat.error'); }
@@ -4673,5 +4712,14 @@
       // banco vivo (IA): elige una historia para el edificio y devuelve si vino del banco vivo + su gancho (para tests)
       pick: edif => { const s = pickVecinoStory({ told: [] }, edif); return { id: s.id, live: !!s.live, gancho: vecinoGancho(s), tale: vecinoTale(s, edif) }; },
       state: () => ({ spinoffLevel, spinoffReturnRoom, current, entrado: { ...entradoEdif }, active: spinoffLevel, vecino: JSON.parse(JSON.stringify(vecinoState)) }),
+    },
+    // superficie de prueba (e2e) de la memoria individual por-NPC (npcs-vivos.md §6, premium, data-driven por el grafo)
+    __npcmem: {
+      applyEdge: id => applyEdge(id),                                    // dispara un edge REAL del grafo (con su npc: si lo declara)
+      facts: npc => (npcMem[npc] || []).slice(),                          // lo que ese npc "sabe" (crudo)
+      keys: () => Object.keys(npcMem),                                    // qué NPCs tienen memoria (para probar que un edge SIN npc no escribe a nadie)
+      chatGround: n => npcFactsGround(n),                                 // el grounding que se le mandaría a la IA
+      ambientLine: n => npcMemLine(n),                                    // la línea de globito (solo oráculos, F1-F4)
+      setChat: (npcKey, msg) => { oracleMem[npcKey] = [{ role: 'user', content: msg }]; },   // simula chat previo
     } });
 })();

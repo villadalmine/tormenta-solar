@@ -67,6 +67,7 @@ te vende y **estalla la tormenta**. Por eso la tormenta ahora tiene `pre: { cuev
   "title": "Destrabar al cuevero (desbaratar al tahúr)",
   "title_en": "Unblock the money changer (bust the card sharp)",
   "at": "cueva",
+  "npc": "tahur",
   "pre": {},
   "sets": { "cueveroUnlocked": true },
   "hints": {

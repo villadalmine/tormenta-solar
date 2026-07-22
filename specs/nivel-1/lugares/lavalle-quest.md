@@ -302,6 +302,7 @@ calle** y, siguiendo las vías de la **Línea San Martín**, llegás a la **Vill
   "title": "El comedor popular de la Villa 31 te contrata",
   "title_en": "The Villa 31 soup kitchen hires you",
   "at": "plaza",
+  "npc": "comedor",
   "pre": { "enVilla31": true },
   "sets": { "comedorHired": true },
   "hints": {
@@ -330,6 +331,7 @@ la cola. Al servir a todos, la referente te lo agradece y te paga una **changa**
   "title": "Servir la jornada del comedor popular",
   "title_en": "Serve a shift at the soup kitchen",
   "at": "plaza",
+  "npc": "comedor",
   "pre": { "comedorHired": true },
   "sets": { "comedorJornada": true },
   "terminal": true,
@@ -442,6 +444,7 @@ jornada, [E] en la olla renueva la cola (rejugable, cada ronda paga la changa).
   "title": "El mandado del cura: un plato para la abuela Coca → la bendición",
   "title_en": "The priest's errand: a plate for grandma Coca → the blessing",
   "at": "plaza",
+  "npc": "cura",
   "pre": { "enVilla31": true },
   "sets": { "curaBendicion": true },
   "terminal": true,

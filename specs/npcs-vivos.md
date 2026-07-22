@@ -1,6 +1,6 @@
 # SDD — NPCs VIVOS: chusmerío ambiente + diálogo entre NPCs (oráculos de la Matrix)
 
-- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v141 → v277).** F1 globitos templados · grafo social (rumores relayados) · F4a bus de eventos `js/eventos.js` (evlog en applyEdge/transition/chat/muerte/minijuego) + drives (deambular/chusmear/TE BUSCAN) · F4b `mov` declarativo (colas fijas, liberados por quest) · F4c oráculos improvisan por IA · F4d memoria del barrio persistente + cross-device por nick. **§6 (v2, Draft, 2026-07-21): memoria por-NPC individual — diseño + alcance decididos, sin implementar.** Pendiente menor aparte: transcreación EN del chusmerío server.
+- **Estado:** ✅ **F1-F4 IMPLEMENTADAS (v141 → v277).** F1 globitos templados · grafo social (rumores relayados) · F4a bus de eventos `js/eventos.js` (evlog en applyEdge/transition/chat/muerte/minijuego) + drives (deambular/chusmear/TE BUSCAN) · F4b `mov` declarativo (colas fijas, liberados por quest) · F4c oráculos improvisan por IA · F4d memoria del barrio persistente + cross-device por nick. **§6 (v2, F1 HECHO — v373, 2026-07-21): memoria por-NPC individual, 100% data-driven por el grafo (`edge.npc`), gate premium.** Pendiente menor aparte: transcreación EN del chusmerío server.
 - **Relacionado:** `worldSnapshot`/`worldBrief` (game.js), `Mensajero` (invocación agente↔agente), `linyera-pool`
   (pool de frases por IA), [[v2-engine-principios]] (todo dato/API/memoria/grafo), `specs/modelo-de-entidades.md`.
 
@@ -95,7 +95,7 @@ F1-F3 (globitos + relay con fuente + **grafo social `social.knows/rival` como DA
 - ✅ **F4c — DIÁLOGO NPC↔NPC por IA: HECHO (v277).** Dos oráculos que se cruzan (vía drives) improvisan 2 líneas por IA (`oracleDialogue`: AI.chat con worldBrief como grounding; cache localStorage por par+día, tope 2/sesión, cooldown 3 min, fallback pool). Se muestra como globitos encadenados si el jugador está cerca.
 - ✅ **F4d — MEMORIA DEL BARRIO: HECHO (v277).** `Eventos.remember` persiste lo notable (`ts_barrio_mem_v1`, ring 30); `memoriaVieja` (>6h) alimenta el chusmerío ('¿te acordás cuando…?') y el worldBrief ('MEMORIA DEL BARRIO') → los oráculos recuerdan tu historia entre sesiones. (La memoria por-NPC individual con evolución queda como refinamiento v2, diseñado en §6.)
 
-## 6. v2 — Memoria por-NPC individual (Draft, decisiones 2026-07-21, sin implementar)
+## 6. v2 — Memoria por-NPC individual (F1 HECHO — v373, 2026-07-21)
 
 > Motivación: hoy TODOS los NPC leen la MISMA memoria de barrio (F4d) — ningún NPC tiene una versión de
 > los hechos distinta de la del vecino. Un review externo sobre venta/monetización (ver nota de
@@ -117,34 +117,61 @@ La memoria individual por NPC es parte de lo que se **vende** (tier pago de [[su
   individual — lo que ese jugador puntual le dijo/prometió/le pasó a ESE NPC.
 Ver [[suscripcion]] §1 tabla de tiers, actualizada con esta fila.
 
-### 6.3 Mecanismo propuesto (reusa infraestructura existente, no inventa un sistema nuevo)
-Dos piezas ya construidas cubren el 80%:
-- **`oracleMem[key]`** (game.js): ya guarda el historial crudo de chat por NPC — sirve tal cual para
-  retomar conversación, pero no alimenta el chusmerío ambiente ni el grounding de OTRO NPC.
-- **`Eventos`/`evlog()`** (F4a, `js/eventos.js`): ya es un bus de eventos; F4d ya deriva de él una memoria
-  persistente (hoy de barrio).
+### 6.3 Mecanismo implementado — 100% DATA-DRIVEN por el grafo (pedido explícito del dueño: "todo dato/grafo,
+no hardcodear código por NPC")
 
-Propuesta (a especificar en detalle antes de codear, no aún acordada en el nivel de implementación):
-1. **`npcMem[npcKey]`** — ring chico (≤6-8 entradas) por NPC en alcance, análogo a `oracleMem` pero de
-   HECHOS (no de chat crudo); persiste en el save (serialize/restore) como `oracleMem`.
-2. **Atribución:** los eventos que ya pasan por `evlog()`/`applyEdge` de un NPC de quest (vía el grafo,
-   aristas `quiere`/`da`) se etiquetan con SU `npcKey` — no hace falta reinventar el bus, solo sumarle
-   quién lo protagoniza cuando el grafo ya lo sabe.
-3. **Promesas sin resolver ("hace 3 días que...")**: no hace falta loguearlo como evento — se puede
-   derivar directo del grafo (`historiaState()`): timestamp de cuándo se activó un `quiere` que el NPC
-   pide, comparado contra ahora, mientras no haya un `da` que lo resuelva. Más preciso que un log
-   free-form (no alucina, es matemática sobre el estado real).
-4. **Consumo:** `ambientPool`/`spawnAmbient` para ese NPC, y el grounding del chat si es oráculo, leen
-   `npcMem[key]` + la promesa pendiente **solo si el jugador tiene el gate premium activo** (§6.2); si no,
-   caen al comportamiento de hoy (memoria de barrio / sin mención puntual).
-5. **Persistencia cross-device:** se deja FUERA del v1 de este v2 (empezar chico, local vía save — igual
-   que `oracleMem` hoy). El patrón de sync ya existe (`POST /barrio-mem`) por si se quiere sumar después;
-   no se decide ahora.
+La atribución NO vive en código (nada de "si el NPC es el cura, hacé X" en game.js): vive en la **ficha SDD**
+del propio edge, igual que `sets`/`pre`/`hints`. Un bloque ` ```hist ` puede declarar un campo `"npc"`:
 
-### 6.4 Preguntas abiertas (antes de implementar)
-- ¿El molde de línea es 100% templado (como `ambientPool` hoy) o pasa por IA (más caro, mejor calidad,
-  ya hay precedente en F4c `oracleDialogue`)? Probablemente templado para NPC no-oráculo (barato) e IA
-  para oráculos (ya pagan el costo del chat).
-- ¿Cap de NPCs en alcance? (contar cuántos son hoy `oracle`+`quest` reales antes de fijar el tamaño total
-  de `npcMem`).
-- ¿Se resetea `npcMem` en "partida nueva" igual que `oracleMem` (sí, por consistencia) — confirmar.
+```json
+{ "id": "cura_bendicion", "npc": "cura", "sets": { "curaBendicion": true }, ... }
+```
+
+`tools/gen-historia.mjs` no valida ni exige ese campo (pasa cualquier extra tal cual) → `js/historia.js`
+(generado) lo trae, y `applyEdge()` en game.js lo lee genéricamente:
+
+```js
+if (e && e.npc) rememberNpc(e.npc, id);   // §6: memoria individual — SOLO si el edge lo declara en su DATA
+```
+
+Sumar memoria a un NPC nuevo = **agregar `"npc":"clave"` a su ficha + `node tools/gen-historia.mjs`**, no
+tocar game.js. Etiquetados en esta pasada (2026-07-21): `cura_bendicion`→`cura` y `comedor_contratado`/
+`comedor_jornada`→`comedor` (`specs/nivel-1/lugares/lavalle-quest.md`), `cuevero_gate`→`tahur`
+(`specs/nivel-1/personajes/cueveros.md`, el tahúr recuerda que lo desbarataste). **El resto de los NPC de
+quest (borrachines, Iorio, etc.) queda SIN tag** — extenderlo es solo editar más fichas, no hay trabajo de
+motor pendiente.
+
+**Piezas:**
+- **`npcMem[npcKey]`** (game.js, nuevo): ring de ≤6 hechos `{id, t}` por NPC — `id` es el edge del grafo,
+  `t` el timestamp; persiste en el save (serialize/restore) igual que `oracleMem`, se resetea en partida
+  nueva. El TEXTO no se guarda (evita duplicar datos): se resuelve en el momento con `npcMemTitle(id)`
+  buscando el edge en `Historia.edges` (mismo patrón que `chkTitle()` de los checkpoints) → siempre en el
+  idioma actual, sin re-traducir nada a mano.
+- **Grounding del CHAT (`chatSend`, game.js):** `npcFactsGround(chatNpc)` — si `AI.isPaid()` y el NPC en
+  el chat tiene hechos propios, agrega "recordás esto puntual: {títulos}" al grounding que recibe la IA
+  (clave `g.chat.npcMemGround`). Aplica a **cualquier NPC con chat** (cura, referente, oráculos), no solo
+  a los declarados `oracle:true` — es aditivo, un NPC sin hechos no cambia nada.
+- **Globito ambiente (`spawnAmbient`, F1-F4 de este spec):** `npcMemLine(a)` — reusa `oracleMem` (no
+  `npcMem`) porque el sistema de globitos solo alcanza a los NPCs del mapa principal
+  (`room().npcs`/`eligibleNpcs`), que son los `oracle:true` (Iorio, French, Beruti, los linyeras). Si
+  premium y el oráculo tiene chat previo con vos, prioriza una línea sobre lo que LE dijiste
+  (`g.viva.recuerdaMio`) por encima del rival-gossip/relay/pool genérico. Los NPC de quest en submódulos
+  (villa31.js, retiro.js, etc.) **no viven en ese array** → no les llega el globito; su vía es el chat
+  (arriba), no el ambiente.
+- **Gate premium:** `AI.isPaid()` (js/ai.js, nuevo) — cachea sync el resultado de `mySub()`/`checkSub()`
+  (se refresca al activar código en ⚙ Opciones + cada 10min); `AI.__setPaidForTest(v)` para tests.
+- **Free:** cero cambios de comportamiento — sin gate premium, ambos caminos devuelven `null`/nada.
+
+### 6.4 Test
+`tests/e2e.js` (sección "MEMORIA INDIVIDUAL por-NPC", `Game.__npcmem`): un edge SIN `npc` no escribe a
+nadie · un edge CON `npc` escribe (siempre, gratis o pago — la ESCRITURA no gatea) · FREE no da grounding
+ni globito · PREMIUM sí, y solo para el NPC con hechos propios (no inventa nada para otro) · el globito
+individual es exclusivo de oráculos (un NPC de quest no lo dispara, aunque tenga `npcMem`) · `npcMem`
+sobrevive `serialize()`→(JSON, como localStorage real)→`continueGame()`. Corre con `node tests/e2e.js`.
+
+### 6.5 Pendiente (no bloqueante)
+- Taguear más edges/NPCs con `npc` en sus fichas SDD (dato puro, sin tocar motor).
+- Promesas SIN RESOLVER ("hace 3 días que…", con antigüedad) — hoy solo se listan hechos ya pasados
+  (títulos de edges disparados); falta cruzar contra flags `pre` no cumplidos si se quiere ese matiz.
+- Persistencia cross-device: queda local (vía save), igual que `oracleMem` hoy; el patrón de sync ya
+  existe (`POST /barrio-mem`) por si se quiere sumar después.

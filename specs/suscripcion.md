@@ -70,10 +70,11 @@ LiteLLM (sin los `:free` saturables).
 - **Modelo premium** rápido y fiable (TBD — ver §5): respuestas <3s estables, mejor calidad/coherencia.
 - **Sin degradación**: no cae a la "línea temática por tormenta" salvo caída real.
 - **Más memoria/contexto**: historial más largo (más turnos recordados) y/o el oráculo GraphRAG (cuando exista).
-- **Memoria individual por NPC** (decidido 2026-07-21, Draft — ver [[npcs-vivos]] §6): los oráculos y NPCs
-  de quest (Iorio, el cura, el tahúr, los borrachines…) recuerdan hechos/promesas puntuales CON ESE
-  jugador, no la memoria de barrio genérica que ve el free. Alcance acotado a oráculos+quest (no
-  decorativos/chusmerío, ver §6.1 de ese SDD).
+- **Memoria individual por NPC** (**F1 HECHO — v373, 2026-07-21** — ver [[npcs-vivos]] §6): cualquier NPC
+  con chat (cura, referente, oráculos…) recuerda hechos puntuales del grafo CON ESE jugador vía grounding
+  del chat; los oráculos del mapa principal además lo sacan en globito ambiente. 100% data-driven: un edge
+  del grafo declara `"npc":"clave"` en su ficha SDD y listo (`tools/gen-historia.mjs`). Alcance acotado a
+  NPCs con chat/quest (no decorativos/chusmerío puro, ver §6.1 de ese SDD). Testeado en `tests/e2e.js`.
 - **Rate-limit más alto** que el free (que hoy es 12/min por IP).
 - (Opcional) personajes/voz extra, o features de juego — definir si la sub es solo-IA o también gameplay.
 - **Precio:** ~1 €/mes (idea inicial). TBD.

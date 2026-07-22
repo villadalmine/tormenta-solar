@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const SCRIPTS = ['historia.js','hint-engine.js','mensajero.js','eventos.js','ideas.js','truco.js','truco-net.js','truco-net6.js','telemetry.js','audio.js','art.js','input.js','fx.js','level.js','player.js',
-  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','consticalle.js','retiro.js','villa31.js','trenes.js','tren.js','cancha.js','campana.js','saavedra.js','once.js','chevallier.js','zarate.js','regata.js','tigre.js','ezeiza.js','laplata.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','mundo.js','level-data.js','game.js'];
+  'enemies.js','arcade.js','super.js','vinilos.js','playable.js','nivelai.js','spinoff.js','tienda.js','telo.js','bodegon.js','lavalle.js','obelisco.js','subte.js','plaza.js','constitucion.js','consticalle.js','retiro.js','villa31.js','trenes.js','tren.js','cancha.js','campana.js','saavedra.js','once.js','chevallier.js','zarate.js','regata.js','tigre.js','ezeiza.js','laplata.js','finale.js','mapa.js','piquete.js','soga.js','bombo.js','olla.js','pancarta.js','globo.js','bunkermapa.js','truco-pvp.js','truco-pvp6.js','ai.js','mundo.js','level-data.js','game.js'];
 
 // ---- mock de canvas 2d context (acepta cualquier llamada/propiedad) ----
 const grad = { addColorStop() {} };
@@ -1168,6 +1168,54 @@ if (require.main === module) {
   const vecRes = JSON.parse(vecino);
   if (vecRes.length) { console.error('❌ VECINO:\n' + vecRes.join('\n')); process.exit(1); }
   console.log('✓ vecino edificios clausurados: historia → pasar → nivel generado → interior real al ganar OK');
+
+  // ---- MEMORIA INDIVIDUAL por-NPC (npcs-vivos.md §6, v2): data-driven por el edge.npc del grafo + gate premium ----
+  const npcmem = vm.runInContext(`(() => {
+    const out = [];
+    if (!window.Game || !Game.__npcmem) return JSON.stringify(['FAIL no expone Game.__npcmem']);
+    if (typeof AI === 'undefined' || !AI.__setPaidForTest) return JSON.stringify(['FAIL AI no cargó (o falta __setPaidForTest) en el sandbox']);
+    const N = Game.__npcmem;
+    AI.__setPaidForTest(false);   // arranca FREE (default real)
+    if (N.keys().length) out.push('FAIL npcMem debería arrancar vacío: ' + JSON.stringify(N.keys()));
+    // un edge SIN "npc" declarado (ej. "edificio") no debe atribuir memoria a NADIE
+    N.applyEdge('edificio');
+    if (N.keys().length) out.push('FAIL un edge sin npc en el grafo no debería escribir memoria de nadie: ' + JSON.stringify(N.keys()));
+    // un edge CON "npc" declarado (cura_bendicion, specs/nivel-1/lugares/lavalle-quest.md) SÍ atribuye — la
+    // ESCRITURA pasa siempre (es el grafo quien decide "de quién es"), gatee lo que gatee la lectura
+    N.applyEdge('cura_bendicion');
+    const facts = N.facts('cura');
+    if (facts.length !== 1 || facts[0].id !== 'cura_bendicion') out.push('FAIL applyEdge con npc:"cura" no quedó en npcMem.cura: ' + JSON.stringify(facts));
+    // FREE: el chat con el cura NO debe traer memoria individual como grounding (sin regresión para el free)
+    const groundFree = N.chatGround({ persona: 'cura', name: 'El cura' });
+    if (groundFree) out.push('FAIL FREE no debería dar grounding de memoria individual: ' + groundFree);
+    // PREMIUM: el mismo chat SÍ trae grounding (contenido exacto no verificable acá: T() sin i18n.js cargado
+    // devuelve la CLAVE cruda — se valida que la clave sea la esperada, el texto real vive en js/lang/*.js)
+    AI.__setPaidForTest(true);
+    const groundPaid = N.chatGround({ persona: 'cura', name: 'El cura' });
+    if (groundPaid !== 'g.chat.npcMemGround') out.push('FAIL PREMIUM debería pedir la clave g.chat.npcMemGround: ' + groundPaid);
+    // un NPC sin hechos propios (nadie le declaró memoria) no inventa nada, ni en premium
+    if (N.chatGround({ persona: 'nadie_le_paso_nada' })) out.push('FAIL un NPC sin facts no debería dar grounding igual');
+    // AMBIENTE (globitos, F1-F4): solo ORÁCULOS, y solo con memoria PREVIA de chat (oracleMem) + premium
+    AI.__setPaidForTest(false);
+    if (N.ambientLine({ oracle: true, persona: 'filosofo', name: 'Diogenes' })) out.push('FAIL FREE no debería dar línea de globito con memoria individual');
+    N.setChat('filosofo', 'llevame un choripan la proxima');
+    AI.__setPaidForTest(true);
+    const amb = N.ambientLine({ oracle: true, persona: 'filosofo', name: 'Diogenes' });
+    if (amb !== 'g.viva.recuerdaMio') out.push('FAIL PREMIUM con historial de chat debería pedir la clave g.viva.recuerdaMio: ' + amb);
+    // un NPC de quest (no oráculo) NUNCA dispara la línea de globito, aunque tenga npcMem (alcance §6.1: fuera del F1-F4 ambient)
+    if (N.ambientLine({ persona: 'cura', name: 'El cura' })) out.push('FAIL un NPC de quest no-oráculo no debería disparar la línea de globito (alcance §6.1)');
+    // PERSISTENCIA: npcMem sobrevive serialize→continueGame por el mismo camino que oracleMem — JSON de por
+    // medio (como localStorage en la vida real; el objeto EN VIVO no se pasa directo, ver el test de guardado)
+    const snap = JSON.parse(JSON.stringify(Game.serialize()));
+    if (!snap.npcMem || !snap.npcMem.cura || !snap.npcMem.cura.length) out.push('FAIL serialize() no incluyó npcMem.cura');
+    Game.continueGame(snap);
+    if (Game.__npcmem.facts('cura').length !== 1) out.push('FAIL npcMem no sobrevivió el round-trip continueGame(snap)');
+    AI.__setPaidForTest(false);   // deja el sandbox limpio para lo que sigue
+    return JSON.stringify(out);
+  })()`, sandbox);
+  const npcmemRes = JSON.parse(npcmem);
+  if (npcmemRes.length) { console.error('❌ NPCMEM:\n' + npcmemRes.join('\n')); process.exit(1); }
+  console.log('✓ memoria individual por-NPC: data-driven (edge.npc del grafo) + gate premium + alcance oráculos/quest OK');
 
   // ---- motor de TRUCO (reglas puras: jerarquía, envido, flor, parda) ----
   const tru = vm.runInContext(`(() => {

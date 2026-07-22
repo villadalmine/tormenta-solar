@@ -36,6 +36,12 @@ const AI = (() => {
     try { const r = await fetch(PROXY + '/my-sub', { headers: { 'X-Sub-Code': c } }); return r.ok ? await r.json() : null; }
     catch (e) { return null; }
   }
+  // gate PREMIUM para features de GAMEPLAY (no solo el chat): npcs-vivos.md §6 (memoria individual por NPC).
+  // isPaid() es SÍNCRONO (lo consultan cosas como spawnAmbient en cada frame) → se cachea, refrescado async.
+  let _paidCache = false;
+  async function refreshPaid() { _paidCache = subCode() ? !!((await mySub()) || {}).paid : false; return _paidCache; }
+  function isPaid() { return _paidCache; }
+  if (typeof window !== 'undefined' && typeof setInterval === 'function') setInterval(() => { if (subCode()) refreshPaid(); }, 600000);   // 10min: agarra vencimientos sin recargar
   const MAX_TRIES = 3;        // no probar más de N modelos por mensaje (no colgar)
   let byokDead = false;       // tras varios fallos seguidos → de ahí en más, líneas locales
   let byokFails = 0;          // fallos seguidos de la key (un 429 transitorio NO mata el BYOK)
@@ -425,7 +431,7 @@ const AI = (() => {
         if (m && m.expiresAt) { const d = Math.max(0, Math.ceil((m.expiresAt - Date.now()) / 86400000)); s += ' · ' + T('opt.subExpiry', { d }); }
         return s;
       };
-      const showSub = async () => { if (!subCode()) return updSub(''); const m = await mySub(); updSub(m && m.paid ? fmtSub(m) : T('opt.subInvalid')); };
+      const showSub = async () => { if (!subCode()) { _paidCache = false; return updSub(''); } const m = await mySub(); _paidCache = !!(m && m.paid); updSub(m && m.paid ? fmtSub(m) : T('opt.subInvalid')); };
       if (sci) sci.value = subCode();
       if (ssb) ssb.addEventListener('click', async () => {
         const c = (sci && sci.value.trim()) || '';
@@ -438,5 +444,6 @@ const AI = (() => {
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   }
-  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, proxyDown, setSubCode, getSubCode: subCode, checkSub, mySub, setStormed, get online() { return mode() !== 'offline'; } };
+  return { chat, setKey, getKey: playerKey, setModel, getModel: userModel, currentModel, validate, mode, lastSource: () => lastSource, lastTimedOut: () => lastTimedOut, lastFallback: () => lastFallback, lastCapped: () => lastCapped, lastByokLimit: () => lastByokLimit, proxyDown, setSubCode, getSubCode: subCode, checkSub, mySub, isPaid, setStormed, get online() { return mode() !== 'offline'; },
+    __setPaidForTest: v => { _paidCache = !!v; } };   // superficie de prueba (e2e): forzar el gate premium sin red
 })();

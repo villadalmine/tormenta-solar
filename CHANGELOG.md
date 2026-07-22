@@ -118,6 +118,35 @@ El juego es 100% estático; se publica en
 - No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
   suma confirmación externa independiente.
 
+## [v373] — 2026-07-21 — 🧠 Memoria individual por-NPC (F1): 100% data-driven por el grafo, premium
+- **npcs-vivos.md §6, F1 HECHO.** Cierra infra-80/81: un NPC ahora puede "acordarse de vos" puntualmente
+  (no solo la memoria de barrio genérica de F4d) — el gancho de venta central del review de monetización.
+- **Atribución 100% en DATA, no en código** (pedido explícito del dueño): un edge del grafo declara
+  "npc":"clave" en su ficha SDD (bloque hist de specs/nivel-1/**/*.md) junto a sets/pre/hints — 
+  tools/gen-historia.mjs lo pasa tal cual a js/historia.js (generado), y applyEdge() (game.js) lo
+  lee genéricamente: si el edge trae npc, rememberNpc(e.npc, id). Sumar memoria a un NPC nuevo = editar su
+  ficha + regenerar, cero cambios en el motor. Etiquetados en esta pasada: cura_bendicion→cura,
+  comedor_contratado/comedor_jornada→comedor (lavalle-quest.md), cuevero_gate→tahur
+  (cueveros.md, el tahúr recuerda que lo desbarataste al truco). El resto de los NPC de quest queda sin
+  tag — extenderlo es solo dato.
+- **npcMem[npcKey]** (game.js, nuevo): ring ≤6 hechos {id,t} por NPC, persiste en el save
+  (serialize/restore, reset en partida nueva) igual que oracleMem. El texto se resuelve al vuelo desde
+  Historia.edges (mismo patrón que chkTitle() de los checkpoints) → siempre en el idioma actual.
+- **Consumo, gateado por PREMIUM** (AI.isPaid(), js/ai.js — nuevo, cachea mySub() sync, refresco cada
+  10min): (1) grounding del CHAT (npcFactsGround, clave g.chat.npcMemGround) — para CUALQUIER NPC con
+  chat, no solo oráculos; (2) globito ambiente (npcMemLine, clave g.viva.recuerdaMio) — solo oráculos
+  del mapa principal (room().npcs), reusando oracleMem (no npcMem) porque el sistema de globitos no
+  alcanza a los NPC de submódulos (villa31/retiro/etc.), esos van solo por el chat. **Free: cero cambios**
+  (ambos caminos devuelven null sin gate activo).
+- **Test** (tests/e2e.js, sección nueva, Game.__npcmem + AI.__setPaidForTest): edge sin npc no
+  escribe a nadie · edge con npc sí escribe (siempre, gratis o pago) · FREE no da grounding ni globito ·
+  PREMIUM sí, y solo al NPC con hechos propios · el globito es exclusivo de oráculos (un NPC de quest no
+  lo dispara aunque tenga memoria) · npcMem sobrevive el round-trip de guardado. ai.js sumado al
+  sandbox de tests/e2e.js (antes no cargaba ahí). Suite completa + web-smoke.mjs (Playwright) verdes.
+- Cache-bust ?v=373 en index.html (regla del proyecto: tocar js ⇒ bumpear versión).
+- specs/npcs-vivos.md §6 y specs/suscripcion.md actualizados a "F1 hecho"; info/ia.html/.en.html
+  pasan de "próximamente" a "YA vive".
+
 ## [infra-81] — 2026-07-21 — 📐 Memoria por-NPC individual (v2): diseño + alcance (Draft, sin código)
 - Cerradas las dos decisiones de producto que quedaban abiertas para el punto 2 de infra-80 (memoria
   por-NPC individual): **(a) alcance** SOLO oráculos + NPCs de quest (Iorio, el cura, el tahúr, los
