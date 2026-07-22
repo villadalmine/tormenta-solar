@@ -101,6 +101,23 @@ El juego es 100% estático; se publica en
   `/mundo-ai` están pendientes de que el dueño desbloquee el `tormenta-deploy` (nodo Pi sin Longhorn).
 - SDD `quest-mundo-ai.md §0.1`.
 
+## [infra-80] — 2026-07-21 — 🧭 Validación externa: 2 reviews de IA confirman el rumbo de venta/masificación
+- Pedido del dueño: revisar dos reviews externos de IA sobre si el juego (y el proyecto hermano `online-game`) "se
+  puede vender y masificar". El segundo review, sin conocer los SDDs, propuso casi exactamente el diseño ya
+  elegido acá: **freemium con la IA como capa paga** (~1€/mes) — NPCs con memoria que dan sensación de mundo
+  vivo, mercado cosmético sin ventaja pay-to-win, split gratis/pago para controlar el costo de inferencia.
+- Sin código: se agregó una nota de validación en [`specs/suscripcion.md`](specs/suscripcion.md) y
+  [`specs/npcs-vivos.md`](specs/npcs-vivos.md). Confirma que **NO falta más juego** — `suscripcion.md` (F1-F3
+  live: entitlement por código, ruteo a modelo pago), `npcs-vivos.md` (F4d memoria del barrio, chusmerío con
+  fuente/grafo social) y `tiendas-generadas.md` (interiores comprables autorados por IA) ya cubren el hueco que
+  el review señala. Los dos gaps reales que quedan, ya trackeados de antes:
+  1. **Pago automático** ([`specs/pasarela-pago.md`](specs/pasarela-pago.md)): research hecho (Mollie EU /
+     Mercado Pago-dLocal AR), falta que el dueño abra la cuenta y enganche el webhook a `/provision`.
+  2. **Memoria por NPC individual** (hoy es memoria de barrio compartida, `npcs-vivos.md §4` ya la lista como
+     refinamiento v2).
+- No cambia prioridades del tracker (`§ Bloqueado esperando al DUEÑO` arriba ya tenía la pasarela primera);
+  suma confirmación externa independiente.
+
 ## [infra-79] — 2026-07-21 — 💸 Ticker de noticias en vivo: cada 12h (era horario) — ahorro
 - El cron `noticias-live` (refresh de resultados reales Mundial/fútbol/crypto) corría **cada hora** (24×/día).
   Los resultados no cambian tan seguido → pasado a **`0 0,12 * * *`** (00:00 y 12:00 UTC = 21:00 y 09:00 BsAs,

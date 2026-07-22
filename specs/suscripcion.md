@@ -3,6 +3,16 @@
 - **Estado:** **F1+F2+F3 implementados y live** (proxy 0.1.18); **falta el PAGO automático** (pasarela + webhook + email) → ver "🔜 Próxima iteración" abajo.
 - **Última actualización:** 2026-06-25
 
+> **✅ Validación externa (2026-07-21):** un review de IA pedido por el dueño (sobre "vender y masificar" el
+> juego) propuso, sin conocer este SDD, casi exactamente este diseño: **freemium con la IA como capa paga**
+> (~1€/mes) — NPCs con memoria que dan la sensación de mundo vivo, mercado cosmético sin ventaja, split
+> gratis/pago para controlar costo de inferencia. Confirma el rumbo ya elegido acá (`rules` gratis / `llm` pago,
+> §1-§3) y en [[npcs-vivos]] (chusmerío + memoria del barrio). El único gap real que señala y que sigue abierto es
+> el mismo de siempre: el **pago automático** (§9.4/§9.6, ver [[pasarela-pago]]) — investigación hecha, falta que
+> el dueño ejecute (abrir cuenta Mollie/Mercado Pago). La idea de "NPC que te recuerda algo puntual de hace unos
+> días" ya está cerca en [[npcs-vivos]] §F4d (memoria del barrio persistente); falta el refinamiento a memoria
+> **por NPC individual** que ese mismo SDD ya lista como pendiente v2.
+
 ## 🔜 ESTADO + PRÓXIMA ITERACIÓN (leer esto primero) ⭐
 
 **Ya funciona (live):**

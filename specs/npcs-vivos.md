@@ -4,6 +4,14 @@
 - **Relacionado:** `worldSnapshot`/`worldBrief` (game.js), `Mensajero` (invocación agente↔agente), `linyera-pool`
   (pool de frases por IA), [[v2-engine-principios]] (todo dato/API/memoria/grafo), `specs/modelo-de-entidades.md`.
 
+> **✅ Validación externa (2026-07-21):** un review de IA sobre "vender y masificar" el juego propuso, sin conocer
+> este SDD, el mismo gancho de venta: NPCs que recuerdan al jugador entre sesiones y comentan lo que hizo — el
+> ejemplo que dio ("che, hace tres días me prometiste traerme un choripán") es literalmente lo que F4d (memoria
+> del barrio) ya hace. La brecha real frente a esa idea sigue siendo la de siempre: hoy la memoria es del
+> **barrio** (compartida, ring persistente), no un registro fino **por (NPC, jugador)** que evolucione distinto
+> con cada uno — el "refinamiento v2" que ya estaba anotado en §4. Ver [[suscripcion]] para el lado monetización
+> (esa memoria como parte de lo que se vende en el tier pago).
+
 ## 1. La idea (del dueño)
 Los NPC están **VIVOS y conectados**: se hablan **entre ellos** y te tiran data **de lo que hiciste y no**. Ves dos
 NPC en tiempo real con un **globito** arriba de la cabeza (diálogo corto, ~10 palabras) que podés **leer en vivo**, y
