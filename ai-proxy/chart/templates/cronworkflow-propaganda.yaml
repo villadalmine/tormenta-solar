@@ -46,8 +46,7 @@ spec:
           env:
             - name: PROP_POST_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/propaganda"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
             - name: PROP_MODEL
               value: {{ .Values.propaganda.model | default "gemma4-paid" | quote }}
             - name: AI_BASE_URL

@@ -136,6 +136,10 @@ historias:
   per: 4
 
 linyeraPool:
+  # GEN_TOKEN desde el Secret tormenta-qa-token (el mismo que usa el autoplay): ya NO va en texto plano ni por --set (2026-10-15).
+  genTokenSecret:
+    name: tormenta-qa-token
+    key: genToken
   cronjob:
     enabled: true
     schedule: "0 5 * * *"
@@ -154,3 +158,13 @@ securityContext:
 # fsGroup para que el uid 1000 pueda ESCRIBIR el PVC del store (subs.json) de Longhorn
 podSecurityContext:
   fsGroup: 1000
+
+# COSTOS (2026-10-15, OK de Rino, reporte AI-LEARNING docs/reportes/2026-10-15-tormenta-ia-uso.md):
+# AUTOTUNE apagado: el tuner elegía "el más barato que aprobara 2 scouts" SIN techo de precio y, cuando gemma4-paid fallaba un día,
+# subía el banco de los crons a claude-sonnet (Sonnet 5, 8 USD/M, 28x): ~0,45 USD por corrida del pool en vez de ~0,007 (≈4 USD/mes).
+# La cadena queda la que está (override en /data: chat gemma4-paid,claude-sonnet,cheap; gen y banco gemma4-paid). El scout sigue
+# midiendo y publicando el ranking (/ia-reports), pero no cambia nada solo. Reactivar = autotune "1" (agregar antes un techo de precio).
+autotune: "0"
+# Bench diario sin Sonnet: claude-sonnet y gpt-5.4-mini (que en LiteLLM también es claude-sonnet-5) costaban ~0,7 USD/mes de pruebas.
+scout:
+  exclude: "local|rk1|ollama|embed|whisper|claude|sonnet|opus|gpt-5.4-mini"

@@ -46,8 +46,7 @@ spec:
           env:
             - name: CHUSME_POST_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/chusmerio"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
             - name: CHUSME_MODEL
               value: {{ .Values.chusmerio.model | default "gemma4-paid" | quote }}
             - name: AI_BASE_URL

@@ -50,8 +50,7 @@ spec:
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/ia-reports"
             - name: REPORT_POST_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/ia-report"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
           resources:
             requests: { cpu: 25m, memory: 48Mi }
             limits: { cpu: 200m, memory: 128Mi }

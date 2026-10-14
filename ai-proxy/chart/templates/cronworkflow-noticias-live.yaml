@@ -47,8 +47,7 @@ spec:
               value: "1"
             - name: NEWS_POST_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/noticias"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
             {{- with .Values.noticias.sports }}
             - name: NEWS_SPORTS
               value: {{ . | quote }}

@@ -62,8 +62,7 @@ spec:
                   key: {{ include "tormenta-ai-proxy.secretKey" . }}
             - name: PROXY_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
             - name: AUTOTUNE
               value: {{ .Values.autotune | default "1" | quote }}
             - name: TUNE_CONSECUTIVE
@@ -93,8 +92,7 @@ spec:
                   optional: true   # sin el secret, el paso sale con error suave (no rompe el cron)
             - name: PROXY_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
           resources:
             requests: { cpu: 25m, memory: 48Mi }
             limits: { cpu: 200m, memory: 128Mi }
@@ -119,8 +117,11 @@ spec:
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/ia-report"
             - name: PRICES_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/precios"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
+            {{- with .Values.scout.exclude }}
+            - name: SCOUT_EXCLUDE   # modelos fuera del bench diario (2026-10-15: Sonnet afuera, costaba ~0,7 USD/mes)
+              value: {{ . | quote }}
+            {{- end }}
             - name: CHAIN_HINT   # las cadenas activas se benchmarkean SIEMPRE (titular primero)
               value: "{{ .Values.upstream.model }},claude-sonnet,gemma4-paid,cheap,gemma4-free"
           resources:

@@ -46,8 +46,7 @@ spec:
           env:
             - name: HIST_POST_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/historias"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
             - name: HIST_MODEL
               value: {{ .Values.historias.model | default "gemma4-paid" | quote }}
             - name: HIST_PER

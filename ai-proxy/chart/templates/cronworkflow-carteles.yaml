@@ -46,8 +46,7 @@ spec:
           env:
             - name: CARTELES_POST_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/carteles/ai"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
             - name: CARTELES_MODEL
               value: {{ .Values.carteles.model | default "gemma4-paid" | quote }}
             - name: AI_BASE_URL

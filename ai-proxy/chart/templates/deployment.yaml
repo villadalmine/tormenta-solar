@@ -51,9 +51,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "tormenta-ai-proxy.secretName" . }}
                   key: {{ include "tormenta-ai-proxy.secretKey" . }}
-            {{- if .Values.linyeraPool.genToken }}
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}    # comparte token con el CronJob (POST /linyera-pool)
+            {{- if or .Values.linyeraPool.genToken .Values.linyeraPool.genTokenSecret.name }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}    {{/* comparte token con los crons (POST /linyera-pool, bancos) */}}
             {{- end }}
             {{- range .Values.extraEnv }}
             - name: {{ .name }}

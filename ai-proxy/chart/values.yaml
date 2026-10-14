@@ -145,6 +145,10 @@ metrics:
 # El cron genera con gemma4-free (offline = gratis + mejor calidad; GPU/NPU descartados) y POSTea a /linyera-pool.
 linyeraPool:
   genToken: ""                  # token compartido proxy<->cron (poné uno con --set; protege POST /linyera-pool)
+  # Recomendado: el token desde un Secret (no queda en texto plano en el Deployment ni en los CronWorkflows). Si name está, gana sobre genToken.
+  genTokenSecret:
+    name: ""
+    key: genToken
   cronjob:
     enabled: false              # poné true en el deploy
     schedule: "0 5 * * *"       # 05:00 (de noche, off-peak del free)
@@ -172,3 +176,8 @@ securityContext:
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# ia-scout: modelos que el bench diario NO prueba (regex sobre los model_name de LiteLLM). Vacío = default del script
+# (local|rk1|ollama|embed|whisper). Ver specs/ia-costos.md.
+scout:
+  exclude: ""
