@@ -56,7 +56,7 @@ helm upgrade tormenta-ai ai-proxy/chart -n ai -f ai-proxy/chart/values-prod.yaml
 | Secret / fuente | Env en el pod | Para qué |
 |---|---|---|
 | `tormenta-ai-key` (key `apiKey`) | `AI_API_KEY` | key del upstream (LiteLLM master `sk-…`) |
-| `--set linyeraPool.genToken=…` | `GEN_TOKEN` | protege `POST /linyera-pool`, `/precios`, `/sub-codes`, `/provision` |
+| **`tormenta-qa-token` (key `genToken`)** (desde 2026-10-15; `linyeraPool.genTokenSecret` en values-prod) | `GEN_TOKEN` (proxy, los 10 crons y el autoplay) | protege `POST /linyera-pool`, `/precios`, `/sub-codes`, `/provision`, `/ia-chain`... El release guarda una copia en `linyeraPool.genToken` para que `deploy.sh` y el pipeline sigan andando: al rotar, actualizar los dos (runbook `docs/runbooks/tormenta-gen-token-rotar.md` de AI-LEARNING) |
 | **`tormenta-or-provisioning` (key `provisioningKey`)** | `OPENROUTER_PROVISIONING_KEY` | **Provisioning Key de OpenRouter** → crea keys-por-código (suscripción F3) |
 
 **Crear/rotar la provisioning key** (OpenRouter → Settings → **Provisioning API Keys**):

@@ -56,8 +56,7 @@ spec:
               value: {{ .Values.linyeraPool.cronjob.n | quote }}
             - name: POOL_POST_URL
               value: "http://{{ include "tormenta-ai-proxy.fullname" . }}/linyera-pool"
-            - name: GEN_TOKEN
-              value: {{ .Values.linyeraPool.genToken | quote }}
+            {{- include "tormenta-ai-proxy.genTokenEnv" . | nindent 12 }}
           resources:
             requests: { cpu: 50m, memory: 64Mi }
             limits: { cpu: 250m, memory: 192Mi }
