@@ -9,7 +9,7 @@ RUN apk add --no-cache espeak-ng
 # sólo los archivos del proxy (no hay node_modules: cero deps) + TODOS los generadores de los crones.
 # gen-*.mjs con WILDCARD: la lista a mano dejó gen-carteles.mjs AFUERA y su cron falló en silencio durante días
 # (exit 1 cada 6h, descubierto por la alerta ArgoWorkflowsFallados, 2026-07-03). Nunca más enumerar a mano.
-COPY package.json server.js personas.js gen-*.mjs ./
+COPY package.json server.js personas.js fallback-chain.js gen-*.mjs ./
 ENV PORT=8788
 EXPOSE 8788
 # usuario no-root (el nodo 'node' ya existe en la imagen oficial)

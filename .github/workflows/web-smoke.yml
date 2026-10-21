@@ -24,6 +24,10 @@ jobs:
       - name: circuit breaker (resiliencia)
         run: node tests/breaker.js
 
+      # 1c) proxy de IA: elecciÛn de la cadena del auto-rollback (m·s barato sano, techo cheap)
+      - name: ai-proxy (fallback-chain)
+        run: cd ai-proxy && node --test
+
       # 1b) modelo v2 data-driven: schema v√°lido + paridad v1‚â°v2 + JUGABILIDAD (la red de la m√°quina de niveles)
       - name: modelo v2 (schema + paridad + jugabilidad)
         run: |

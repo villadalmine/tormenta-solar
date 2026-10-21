@@ -25,7 +25,14 @@ upstream:
   # max_tokens (150/150) → confiable. cheap IGNORA el cap (devolvía 249-264 tokens!) → se alarga y cuelga >9.5s →
   # ~50% timeout. Por eso claude-sonnet PRIMERO (confiable) y cheap de respaldo barato. Reponer gemma4-free/paid
   # cuando se normalicen; la GPU no aplica al chat (nunca la usó).
-  model: claude-sonnet,cheap
+  #
+  # 2026-10-21: cheap-first. gemma4-paid cayó 100 % en la ventana de health, el auto-rollback volvió a ESTE baseline
+  # y el chat anónimo corrió en claude-sonnet (caro). Sonnet queda ÚLTIMO a propósito: la decisión del 2026-07-09
+  # (arriba) fue que gemma colgaba y que `cheap` ignora max_tokens; Sonnet es el único que respeta el cap y el
+  # más confiable en p95 (~5 s; el scout mide p95 ≈ 5,5 s). Riesgo: cheap-first sube el p95 y los timeouts
+  # (>9,5 s) si gemma/cheap se portan mal; el health lo muestra. El auto-rollback ya NO usa este valor a ciegas:
+  # elige el más barato sano (fallback-chain.js).
+  model: gemma4-paid,cheap,claude-sonnet
 
 # timeouts (el pago tarda 5-7s → presupuesto más amplio) + cupo/día por sesión + tope DURO de gasto pago
 extraEnv:

@@ -9,6 +9,7 @@ import http from 'http';
 import fs from 'node:fs';
 import { spawn } from 'node:child_process';
 import { buildMessages } from './personas.js';
+import { pickFallbackChain, TIERS } from './fallback-chain.js';
 
 // Upstream configurable: por defecto OpenRouter directo, pero podés apuntarlo a tu LiteLLM (u otro
 // endpoint OpenAI-compatible) que ya hace pool de keys / GPU / fallback. Para LiteLLM:
@@ -1157,9 +1158,16 @@ http.createServer((req, res) => {
     let pb = ''; req.on('data', c => { pb += c; if (pb.length > 4000) req.destroy(); });
     req.on('end', () => { try {
       const d = JSON.parse(pb || '{}');
-      if (d.reset) { const prev = IA_CHAIN; IA_CHAIN = null; saveIaChain(); IA_TUNE_TS = Date.now();
-        console.log('[ia-chain] RESET → baseline env', MODELS.join(','), d.reason ? '(' + d.reason + ')' : '');
-        res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: true, effective: activeChain(), prev: prev && prev.chat })); }
+      if (d.reset) { const prev = IA_CHAIN; IA_TUNE_TS = Date.now();
+        // El rollback NO vuelve a ciegas al env (puede ser caro: 2026-10-21 cayó en claude-sonnet): elige lo más
+        // barato SANO según ATTEMPT, con techo `cheap`. {reset:true, baseline:true} fuerza el env (reset viejo).
+        let warn = null;
+        if (d.baseline) IA_CHAIN = null;
+        else { const sel = pickFallbackChain({ candidates: [...MODELS, ...Object.keys(TIERS), ...((prev && prev.chat) || [])], attempts: ATTEMPT, prices: MODEL_PRICES });
+          warn = sel.warn; IA_CHAIN = { chat: sel.chain, gen: (prev && prev.gen) || [], banco: (prev && prev.banco) || [], reason: 'auto-rollback → más barato sano' + (d.reason ? ': ' + String(d.reason).slice(0, 120) : ''), ts: Date.now(), prev: { chat: (prev && prev.chat) || [] } }; }
+        saveIaChain();
+        (warn ? console.error : console.log)('[ia-chain] RESET →', d.baseline ? 'baseline env ' + MODELS.join(',') : IA_CHAIN.chat.join(','), warn ? '⚠ ' + warn : '', d.reason ? '(' + d.reason + ')' : '');
+        res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ ok: true, effective: activeChain(), prev: prev && prev.chat, warn })); }
       const clean = a => Array.isArray(a) ? a.map(x => String(x).trim()).filter(x => /^[\w\/.:-]{2,64}$/.test(x)).slice(0, 4) : [];
       const chat = clean(d.chat), gen = clean(d.gen), banco = clean(d.banco);
       if (!chat.length && !gen.length && !banco.length) { res.writeHead(400); return res.end('bad chain'); }

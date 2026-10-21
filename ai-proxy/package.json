@@ -5,6 +5,6 @@
   "description": "Proxy de chat IA para Tormenta Solar: guarda la key server-side, arma el prompt con personas, y routea a OpenRouter o a tu LiteLLM (pool/GPU). Node puro, sin dependencias.",
   "type": "module",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
+  "scripts": { "start": "node server.js", "test": "node --test" },
   "engines": { "node": ">=18" }
 }
